@@ -1,0 +1,36 @@
+# Codex/Codebuddy conversation cache
+.agents/
+
+# Speckit generated development documents and templates
+.specify/
+
+# Internal requirements document
+EduAgent_项目需求与技术方案_v1.1.md
+
+# Environment files and secrets
+.env
+.env.*
+!.env.example
+
+# Python caches and compiled files
+__pycache__/
+*.pyc
+
+# IDE configuration
+.vscode/
+.idea/
+
+# Python virtual environments
+venv/
+.venv/
+env/
+
+# Logs
+*.log
+
+# Local database files
+*.db
+*.sqlite
+
+# pytest cache
+.pytest_cache/
