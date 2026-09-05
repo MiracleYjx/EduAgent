@@ -61,7 +61,7 @@ def test_check_postgres_ready_raises_safe_error() -> None:
         "connect", {}, RuntimeError("offline")
     )
 
-    with pytest.raises(DatabaseNotReadyError, match="PostgreSQL is not ready"):
+    with pytest.raises(DatabaseNotReadyError, match="PostgreSQL 未就绪"):
         check_postgres_ready(engine)
 
 
