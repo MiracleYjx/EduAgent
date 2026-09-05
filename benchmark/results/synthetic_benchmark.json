@@ -1,0 +1,169 @@
+{
+  "metadata": {
+    "dataset_version": "m0-seed-v1",
+    "model_version": "synthetic-rules-v1",
+    "prompt_version": "synthetic-prompt-v1",
+    "scoring_criteria": "按参考答案、评分标准和知识点进行确定性评分。",
+    "seed": 20260904,
+    "record_count": 10
+  },
+  "cases": [
+    {
+      "case_id": "m0-literature-theme",
+      "question_type": "SHORT_ANSWER",
+      "question": "概括文章主题时，应该重点关注哪些信息？",
+      "scoring_criteria": "答出主要内容和作者核心意图即可得分。",
+      "reference_answer": "应关注文章主要内容、关键事件和作者表达的核心意图。",
+      "student_answer": "要看文章写了什么以及作者想表达什么。",
+      "score": 8.0,
+      "max_score": 10.0,
+      "reason": "学生覆盖了主要内容和作者意图两个核心方面。",
+      "knowledge_points": [
+        "文章主题",
+        "阅读概括"
+      ],
+      "validation_status": "Validated"
+    },
+    {
+      "case_id": "m0-math-addition",
+      "question_type": "SINGLE_CHOICE",
+      "question": "2 加 2 等于多少？",
+      "scoring_criteria": "答案完全正确得满分，否则不得分。",
+      "reference_answer": "4",
+      "student_answer": "4",
+      "score": 5.0,
+      "max_score": 5.0,
+      "reason": "学生答案与参考答案一致。",
+      "knowledge_points": [
+        "整数加法"
+      ],
+      "validation_status": "Validated"
+    },
+    {
+      "case_id": "m0-statistics-mean",
+      "question_type": "SINGLE_CHOICE",
+      "question": "一组数据的平均数通常如何计算？",
+      "scoring_criteria": "选择总和除以数据个数的答案得满分。",
+      "reference_answer": "数据总和除以数据个数",
+      "student_answer": "数据总和除以数据个数",
+      "score": 5.0,
+      "max_score": 5.0,
+      "reason": "学生给出了平均数的正确计算方法。",
+      "knowledge_points": [
+        "平均数",
+        "数据统计"
+      ],
+      "validation_status": "Validated"
+    },
+    {
+      "case_id": "m0-history-source",
+      "question_type": "SHORT_ANSWER",
+      "question": "分析历史资料时为什么需要核对资料来源？",
+      "scoring_criteria": "说明来源核对有助于判断资料可靠性和避免片面结论即可得分。",
+      "reference_answer": "核对来源可以评估可靠性、理解背景并减少片面解读。",
+      "student_answer": "因为不同来源可能有不同观点，需要判断资料是否可靠。",
+      "score": 9.0,
+      "max_score": 10.0,
+      "reason": "学生提到来源差异和可靠性判断，覆盖主要评分点。",
+      "knowledge_points": [
+        "史料分析",
+        "证据意识"
+      ],
+      "validation_status": "Validated"
+    },
+    {
+      "case_id": "m0-ethics-privacy",
+      "question_type": "SHORT_ANSWER",
+      "question": "设计教学系统时为什么要保护学生隐私？",
+      "scoring_criteria": "说明保护个人信息、避免滥用并维护学习信任即可得分。",
+      "reference_answer": "保护隐私可以避免个人信息滥用并维护学生的安全与信任。",
+      "student_answer": "因为学生信息不能被随意公开或滥用。",
+      "score": 9.0,
+      "max_score": 10.0,
+      "reason": "学生明确指出了信息公开和滥用风险。",
+      "knowledge_points": [
+        "隐私保护",
+        "教育伦理"
+      ],
+      "validation_status": "Validated"
+    },
+    {
+      "case_id": "m0-network-dns",
+      "question_type": "TRUE_FALSE",
+      "question": "DNS 的作用之一是将域名解析为 IP 地址。",
+      "scoring_criteria": "判断正确得满分，判断错误不得分。",
+      "reference_answer": "正确",
+      "student_answer": "错误",
+      "score": 0.0,
+      "max_score": 5.0,
+      "reason": "学生判断与 DNS 的基本功能不一致。",
+      "knowledge_points": [
+        "DNS",
+        "域名解析"
+      ],
+      "validation_status": "Validated"
+    },
+    {
+      "case_id": "m0-python-list",
+      "question_type": "SHORT_ANSWER",
+      "question": "简述 Python 列表的两个主要特征。",
+      "scoring_criteria": "答出有序和可变两个特征得满分，答出一个特征得一半分。",
+      "reference_answer": "列表是有序且可变的集合。",
+      "student_answer": "列表是有序且可变的集合。",
+      "score": 10.0,
+      "max_score": 10.0,
+      "reason": "学生答案覆盖评分标准要求的两个特征。",
+      "knowledge_points": [
+        "Python 列表",
+        "可变序列"
+      ],
+      "validation_status": "Validated"
+    },
+    {
+      "case_id": "m0-biology-cell",
+      "question_type": "SINGLE_CHOICE",
+      "question": "细胞是生物体结构和功能的基本单位，这一说法是否正确？",
+      "scoring_criteria": "选择正确答案得满分，否则不得分。",
+      "reference_answer": "正确",
+      "student_answer": "正确",
+      "score": 5.0,
+      "max_score": 5.0,
+      "reason": "学生选择了符合细胞基本概念的答案。",
+      "knowledge_points": [
+        "细胞基本单位"
+      ],
+      "validation_status": "Validated"
+    },
+    {
+      "case_id": "m0-database-index",
+      "question_type": "SHORT_ANSWER",
+      "question": "数据库索引的主要作用是什么？",
+      "scoring_criteria": "说明索引能够减少查询扫描范围并提升检索速度即可得分。",
+      "reference_answer": "索引通过减少需要扫描的数据范围来提升查询速度。",
+      "student_answer": "索引可以帮助数据库更快找到符合条件的记录。",
+      "score": 8.0,
+      "max_score": 10.0,
+      "reason": "学生说明了索引提升查询定位速度的核心作用。",
+      "knowledge_points": [
+        "数据库索引",
+        "查询优化"
+      ],
+      "validation_status": "Validated"
+    },
+    {
+      "case_id": "m0-physics-force",
+      "question_type": "TRUE_FALSE",
+      "question": "力可以改变物体的运动状态。",
+      "scoring_criteria": "判断正确得满分，判断错误不得分。",
+      "reference_answer": "正确",
+      "student_answer": "正确",
+      "score": 5.0,
+      "max_score": 5.0,
+      "reason": "学生正确识别了力对运动状态的影响。",
+      "knowledge_points": [
+        "力的作用效果"
+      ],
+      "validation_status": "Validated"
+    }
+  ]
+}
