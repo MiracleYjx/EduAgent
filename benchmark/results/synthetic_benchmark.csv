@@ -1,0 +1,11 @@
+case_id,dataset_version,model_version,prompt_version,scoring_criteria,question_type,question,reference_answer,student_answer,score,max_score,reason,knowledge_points,validation_status
+m0-literature-theme,m0-seed-v1,synthetic-rules-v1,synthetic-prompt-v1,按参考答案、评分标准和知识点进行确定性评分。,SHORT_ANSWER,概括文章主题时，应该重点关注哪些信息？,应关注文章主要内容、关键事件和作者表达的核心意图。,要看文章写了什么以及作者想表达什么。,8.0,10.0,学生覆盖了主要内容和作者意图两个核心方面。,文章主题|阅读概括,Validated
+m0-math-addition,m0-seed-v1,synthetic-rules-v1,synthetic-prompt-v1,按参考答案、评分标准和知识点进行确定性评分。,SINGLE_CHOICE,2 加 2 等于多少？,4,4,5.0,5.0,学生答案与参考答案一致。,整数加法,Validated
+m0-statistics-mean,m0-seed-v1,synthetic-rules-v1,synthetic-prompt-v1,按参考答案、评分标准和知识点进行确定性评分。,SINGLE_CHOICE,一组数据的平均数通常如何计算？,数据总和除以数据个数,数据总和除以数据个数,5.0,5.0,学生给出了平均数的正确计算方法。,平均数|数据统计,Validated
+m0-history-source,m0-seed-v1,synthetic-rules-v1,synthetic-prompt-v1,按参考答案、评分标准和知识点进行确定性评分。,SHORT_ANSWER,分析历史资料时为什么需要核对资料来源？,核对来源可以评估可靠性、理解背景并减少片面解读。,因为不同来源可能有不同观点，需要判断资料是否可靠。,9.0,10.0,学生提到来源差异和可靠性判断，覆盖主要评分点。,史料分析|证据意识,Validated
+m0-ethics-privacy,m0-seed-v1,synthetic-rules-v1,synthetic-prompt-v1,按参考答案、评分标准和知识点进行确定性评分。,SHORT_ANSWER,设计教学系统时为什么要保护学生隐私？,保护隐私可以避免个人信息滥用并维护学生的安全与信任。,因为学生信息不能被随意公开或滥用。,9.0,10.0,学生明确指出了信息公开和滥用风险。,隐私保护|教育伦理,Validated
+m0-network-dns,m0-seed-v1,synthetic-rules-v1,synthetic-prompt-v1,按参考答案、评分标准和知识点进行确定性评分。,TRUE_FALSE,DNS 的作用之一是将域名解析为 IP 地址。,正确,错误,0.0,5.0,学生判断与 DNS 的基本功能不一致。,DNS|域名解析,Validated
+m0-python-list,m0-seed-v1,synthetic-rules-v1,synthetic-prompt-v1,按参考答案、评分标准和知识点进行确定性评分。,SHORT_ANSWER,简述 Python 列表的两个主要特征。,列表是有序且可变的集合。,列表是有序且可变的集合。,10.0,10.0,学生答案覆盖评分标准要求的两个特征。,Python 列表|可变序列,Validated
+m0-biology-cell,m0-seed-v1,synthetic-rules-v1,synthetic-prompt-v1,按参考答案、评分标准和知识点进行确定性评分。,SINGLE_CHOICE,细胞是生物体结构和功能的基本单位，这一说法是否正确？,正确,正确,5.0,5.0,学生选择了符合细胞基本概念的答案。,细胞基本单位,Validated
+m0-database-index,m0-seed-v1,synthetic-rules-v1,synthetic-prompt-v1,按参考答案、评分标准和知识点进行确定性评分。,SHORT_ANSWER,数据库索引的主要作用是什么？,索引通过减少需要扫描的数据范围来提升查询速度。,索引可以帮助数据库更快找到符合条件的记录。,8.0,10.0,学生说明了索引提升查询定位速度的核心作用。,数据库索引|查询优化,Validated
+m0-physics-force,m0-seed-v1,synthetic-rules-v1,synthetic-prompt-v1,按参考答案、评分标准和知识点进行确定性评分。,TRUE_FALSE,力可以改变物体的运动状态。,正确,正确,5.0,5.0,学生正确识别了力对运动状态的影响。,力的作用效果,Validated
