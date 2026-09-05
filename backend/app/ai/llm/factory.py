@@ -88,9 +88,20 @@ class LLMProviderFactory:
 _default_factory = LLMProviderFactory()
 
 
+def _ensure_builtin_providers() -> None:
+    """按需加载内置 Provider，避免调用方必须了解模块导入顺序。"""
+
+    if "deepseek" in _default_factory.supported_providers():
+        return
+    from .deepseek import DeepSeekProvider
+
+    _default_factory.register("deepseek", DeepSeekProvider, replace=True)
+
+
 def get_llm_provider_factory() -> LLMProviderFactory:
     """返回进程级默认 Provider 工厂。"""
 
+    _ensure_builtin_providers()
     return _default_factory
 
 
@@ -112,6 +123,7 @@ def create_llm_provider(
 ) -> BaseLLMProvider:
     """使用默认工厂创建 Provider。"""
 
+    _ensure_builtin_providers()
     return _default_factory.create(settings)
 
 
