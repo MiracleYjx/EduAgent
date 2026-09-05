@@ -1,4 +1,4 @@
-"""Process entry point for the EduAgent backend."""
+"""EduAgent 后端进程入口点。"""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ app = create_app()
 
 
 def main() -> None:
-    """Run the backend when invoked as a Python module."""
+    """当作为 Python 模块调用时运行后端。"""
 
     uvicorn.run(
         "backend.main:app",
