@@ -1,7 +1,6 @@
 from unittest.mock import MagicMock
 
 import pytest
-from pydantic import SecretStr
 from sqlalchemy.exc import OperationalError
 
 from backend.app.core.config import AppSettings
@@ -12,20 +11,11 @@ from backend.app.core.database import (
     create_session_factory,
     initialize_pgvector_extension,
 )
+from tests.unit.settings_helpers import build_test_settings
 
 
 def build_settings() -> AppSettings:
-    return AppSettings(
-        database_url="postgresql+psycopg://user:password@localhost:5432/eduagent",
-        redis_url="redis://localhost:6379/0",
-        llm_provider="deepseek",
-        deepseek_api_key=SecretStr("test-key"),
-        deepseek_base_url="https://api.deepseek.com",
-        deepseek_model="deepseek-chat",
-        embedding_provider="local",
-        rerank_provider="none",
-        confidence_threshold=0.8,
-    )
+    return build_test_settings()
 
 
 def test_create_database_engine_uses_configured_postgres_url() -> None:

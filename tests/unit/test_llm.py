@@ -1,17 +1,17 @@
 import asyncio
-from collections.abc import Sequence
-from typing import Any
+from typing import Any, cast
 
 import pytest
-from pydantic import BaseModel, SecretStr
+from pydantic import BaseModel
 
-from backend.app.ai.llm.base import BaseLLMProvider
+from backend.app.ai.llm.base import BaseLLMProvider, LLMMessages
 from backend.app.ai.llm.factory import (
     LLMProviderFactory,
     ProviderAlreadyRegisteredError,
     UnsupportedLLMProviderError,
 )
 from backend.app.core.config import AppSettings
+from tests.unit.settings_helpers import build_test_settings
 
 
 class ExampleResult(BaseModel):
@@ -23,7 +23,7 @@ class StubProvider(BaseLLMProvider):
 
     async def generate_structured(
         self,
-        messages: Sequence[dict[str, str]],
+        messages: LLMMessages,
         schema: type[BaseModel],
         model: str | None = None,
     ) -> BaseModel:
@@ -32,17 +32,7 @@ class StubProvider(BaseLLMProvider):
 
 
 def build_settings(provider: str = "deepseek") -> AppSettings:
-    return AppSettings(
-        database_url="postgresql+psycopg://user:password@localhost:5432/eduagent",
-        redis_url="redis://localhost:6379/0",
-        llm_provider=provider,
-        deepseek_api_key=SecretStr("test-key"),
-        deepseek_base_url="https://api.deepseek.com",
-        deepseek_model="deepseek-chat",
-        embedding_provider="local",
-        rerank_provider="none",
-        confidence_threshold=0.8,
-    )
+    return build_test_settings(llm_provider=provider)
 
 
 def test_base_provider_exposes_structured_output_contract() -> None:
@@ -93,7 +83,7 @@ def test_factory_rejects_duplicate_provider_registration() -> None:
 
 def test_factory_rejects_builder_that_does_not_return_provider() -> None:
     factory = LLMProviderFactory()
-    factory.register("deepseek", lambda settings: settings)  # type: ignore[arg-type]
+    factory.register("deepseek", lambda settings: cast(BaseLLMProvider, settings))
 
     with pytest.raises(TypeError, match="必须返回 BaseLLMProvider"):
         factory.create(build_settings())

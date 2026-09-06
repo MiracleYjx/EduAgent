@@ -3,16 +3,18 @@ from __future__ import annotations
 import asyncio
 from functools import wraps
 from types import SimpleNamespace
+from typing import cast
 from unittest.mock import AsyncMock
 
 import pytest
-from pydantic import BaseModel, SecretStr
+from pydantic import BaseModel
 
-from backend.app.ai.llm.base import BaseLLMProvider
+from backend.app.ai.llm.base import BaseLLMProvider, LLMMessages
 from backend.app.ai.llm.deepseek import DeepSeekProvider
 from backend.app.ai.llm.factory import create_llm_provider
 from backend.app.core.config import AppSettings
 from backend.app.core.retry_policy import ProviderExecutionError, RetryPolicy
+from tests.unit.settings_helpers import build_test_settings
 
 
 class ExampleResult(BaseModel):
@@ -24,7 +26,7 @@ class FallbackProvider(BaseLLMProvider):
 
     async def generate_structured(
         self,
-        messages: list[dict[str, str]],
+        messages: LLMMessages,
         schema: type[BaseModel],
         model: str | None = None,
     ) -> BaseModel:
@@ -33,17 +35,7 @@ class FallbackProvider(BaseLLMProvider):
 
 
 def build_settings() -> AppSettings:
-    return AppSettings(
-        database_url="postgresql+psycopg://user:password@localhost:5432/eduagent",
-        redis_url="redis://localhost:6379/0",
-        llm_provider="deepseek",
-        deepseek_api_key=SecretStr("unit-test-placeholder"),
-        deepseek_base_url="https://api.deepseek.com",
-        deepseek_model="deepseek-chat",
-        embedding_provider="local",
-        rerank_provider="none",
-        confidence_threshold=0.8,
-    )
+    return build_test_settings(deepseek_api_key="unit-test-placeholder")
 
 
 def response(content: str | None) -> SimpleNamespace:
@@ -52,7 +44,7 @@ def response(content: str | None) -> SimpleNamespace:
     )
 
 
-def build_client(*results: SimpleNamespace) -> SimpleNamespace:
+def build_client(*results: SimpleNamespace | BaseException) -> SimpleNamespace:
     completions = SimpleNamespace(create=AsyncMock(side_effect=list(results)))
     return SimpleNamespace(chat=SimpleNamespace(completions=completions))
 
@@ -102,9 +94,12 @@ async def test_deepseek_retries_timeout_twice() -> None:
         sleep=sleep,
     )
 
-    result = await provider.generate_structured(
-        [{"role": "user", "content": "请返回 JSON"}],
+    result = cast(
         ExampleResult,
+        await provider.generate_structured(
+            [{"role": "user", "content": "请返回 JSON"}],
+            ExampleResult,
+        ),
     )
 
     assert result.value == 8
@@ -122,9 +117,12 @@ async def test_deepseek_retries_invalid_json_only_once() -> None:
         sleep=_recordless_sleep,
     )
 
-    result = await provider.generate_structured(
-        [{"role": "user", "content": "请返回 JSON"}],
+    result = cast(
         ExampleResult,
+        await provider.generate_structured(
+            [{"role": "user", "content": "请返回 JSON"}],
+            ExampleResult,
+        ),
     )
 
     assert result.value == 9
