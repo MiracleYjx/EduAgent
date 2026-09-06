@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from enum import Enum
 from typing import Annotated, Literal
 
 from pydantic import (
@@ -15,17 +14,7 @@ from pydantic import (
     model_validator,
 )
 
-
-class QuestionType(str, Enum):
-    """题库支持的题型标识。"""
-
-    SINGLE_CHOICE = "SINGLE_CHOICE"
-    MULTIPLE_CHOICE = "MULTIPLE_CHOICE"
-    TRUE_FALSE = "TRUE_FALSE"
-    FILL_BLANK = "FILL_BLANK"
-    SHORT_ANSWER = "SHORT_ANSWER"
-    ESSAY = "ESSAY"
-
+from backend.app.domain.enums import QuestionType
 
 NonEmptyText = Annotated[
     str,

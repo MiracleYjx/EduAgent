@@ -44,7 +44,7 @@ class ConfigurationError(RuntimeError):
         self.fields = fields
 
     @classmethod
-    def from_validation_error(cls, error: ValidationError) -> "ConfigurationError":
+    def from_validation_error(cls, error: ValidationError) -> ConfigurationError:
         fields = tuple(
             sorted(
                 {
@@ -145,7 +145,7 @@ class AppSettings(BaseSettings):
         return value
 
     @model_validator(mode="after")
-    def _validate_supported_providers(self) -> "AppSettings":
+    def _validate_supported_providers(self) -> AppSettings:
         checks = (
             ("LLM_PROVIDER", self.llm_provider, self.SUPPORTED_LLM_PROVIDERS),
             (
@@ -183,7 +183,7 @@ def get_settings() -> AppSettings:
     """Load runtime configuration once and cache the validated result."""
 
     try:
-        return AppSettings()
+        return AppSettings()  # type: ignore[call-arg]
     except (
         ValidationError
     ) as exc:  # pragma: no cover - exercised by startup validation later
@@ -197,9 +197,9 @@ def reset_settings_cache() -> None:
 
 
 __all__ = [
+    "REDACTED_VALUE",
     "AppSettings",
     "ConfigurationError",
-    "REDACTED_VALUE",
     "get_settings",
     "reset_settings_cache",
 ]

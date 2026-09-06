@@ -1,7 +1,6 @@
 from unittest.mock import MagicMock, patch
 
 import pytest
-from pydantic import SecretStr
 from redis.exceptions import RedisError
 
 from backend.app.core.config import AppSettings
@@ -12,20 +11,11 @@ from backend.app.core.redis import (
     create_redis_client,
     redis_lifespan,
 )
+from tests.unit.settings_helpers import build_test_settings
 
 
 def build_settings() -> AppSettings:
-    return AppSettings(
-        database_url="postgresql+psycopg://user:password@localhost:5432/eduagent",
-        redis_url="redis://:local-password@localhost:6379/0",
-        llm_provider="deepseek",
-        deepseek_api_key=SecretStr("test-key"),
-        deepseek_base_url="https://api.deepseek.com",
-        deepseek_model="deepseek-chat",
-        embedding_provider="local",
-        rerank_provider="none",
-        confidence_threshold=0.8,
-    )
+    return build_test_settings(redis_url="redis://:local-password@localhost:6379/0")
 
 
 def test_create_redis_client_uses_safe_connection_defaults() -> None:

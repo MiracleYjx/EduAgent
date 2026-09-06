@@ -10,6 +10,7 @@ COPY pyproject.toml ./
 RUN pip install --upgrade pip \
     && pip install ".[dev]"
 
+COPY alembic.ini ./
 COPY backend ./backend
 COPY migrations ./migrations
 COPY scripts ./scripts
