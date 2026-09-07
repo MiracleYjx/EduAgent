@@ -125,7 +125,15 @@ def _urlsafe_decode(value: str) -> bytes:
     if not value:
         raise ValueError("编码值不能为空。")
     padding = "=" * (-len(value) % 4)
-    return base64.b64decode(value + padding, altchars=b"-_", validate=True)
+    decoded = base64.b64decode(
+        value + padding,
+        altchars=b"-_",
+        validate=True,
+    )
+    # 拒绝末尾填充位被篡改但仍能解码成相同字节的非规范编码。
+    if _urlsafe_encode(decoded) != value.rstrip("="):
+        raise ValueError("Base64URL 编码不规范。")
+    return decoded
 
 
 def _resolve_secret_key(secret_key: str | SecretStr | None) -> bytes:

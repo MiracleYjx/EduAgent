@@ -6,7 +6,9 @@ import gradio as gr
 from fastapi import FastAPI
 from pydantic import BaseModel
 
+from backend.app.api.auth import router as auth_router
 from backend.app.core.config import AppSettings, get_settings
+from backend.app.core.security import AuthenticationMiddleware
 
 
 class HealthResponse(BaseModel):
@@ -32,6 +34,8 @@ def create_app(
     runtime_settings = settings or get_settings()
     app = FastAPI(title="EduAgent", version="0.1.0")
     app.state.settings = runtime_settings
+    app.add_middleware(AuthenticationMiddleware)
+    app.include_router(auth_router)
 
     @app.get("/health", response_model=HealthResponse, tags=["system"])
     async def health() -> HealthResponse:
