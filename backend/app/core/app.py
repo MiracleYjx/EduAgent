@@ -3,9 +3,12 @@
 from __future__ import annotations
 
 import gradio as gr
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
+from backend.app.api.admin import router as admin_router
 from backend.app.api.auth import router as auth_router
 from backend.app.core.config import AppSettings, get_settings
 from backend.app.core.security import AuthenticationMiddleware
@@ -37,6 +40,36 @@ def create_app(
     app.state.settings = runtime_settings
     app.add_middleware(AuthenticationMiddleware)
     app.include_router(auth_router)
+    app.include_router(admin_router)
+
+    @app.exception_handler(RequestValidationError)
+    async def validation_error_handler(
+        _request: Request,
+        exc: RequestValidationError,
+    ) -> JSONResponse:
+        """把请求校验错误转换成统一的中文响应。"""
+
+        details: list[dict[str, object]] = []
+        for error in exc.errors():
+            location = [str(item) for item in error.get("loc", ())]
+            field_name = location[-1] if location else "请求参数"
+            raw_message = str(error.get("msg", "输入无效。"))
+            if field_name == "roles":
+                message = "角色不能为空，且至少需要一个角色。"
+            elif raw_message == "Field required":
+                message = f"{field_name}不能为空。"
+            elif "should be" in raw_message or "valid" in raw_message:
+                message = f"{field_name}格式无效。"
+            else:
+                message = f"{field_name}输入无效。"
+            details.append(
+                {
+                    "loc": location,
+                    "msg": message,
+                    "type": str(error.get("type", "value_error")),
+                }
+            )
+        return JSONResponse(status_code=422, content={"detail": details})
 
     @app.get("/health", response_model=HealthResponse, tags=["system"])
     async def health() -> HealthResponse:

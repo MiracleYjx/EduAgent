@@ -19,6 +19,7 @@ from backend.app.domain.permissions import (
 )
 from backend.app.models import User
 from backend.app.services.auth_service import AuthenticationError, AuthService
+from backend.app.ui.admin_view import AdminView, create_admin_view
 
 
 class LoginState(TypedDict):
@@ -135,9 +136,7 @@ def navigation_for_roles(
 
     role_set = set(normalize_ui_roles(roles))
     return tuple(
-        item
-        for item in NAVIGATION_ITEMS
-        if item.allowed_roles.intersection(role_set)
+        item for item in NAVIGATION_ITEMS if item.allowed_roles.intersection(role_set)
     )
 
 
@@ -187,8 +186,7 @@ def _navigation_choices(
     """把登录状态转换为 Gradio 单选导航的显示值和内部键。"""
 
     return [
-        (item.label, item.key)
-        for item in navigation_for_roles(state.get("roles", []))
+        (item.label, item.key) for item in navigation_for_roles(state.get("roles", []))
     ]
 
 
@@ -211,7 +209,9 @@ def _page_for_navigation(
         return _UNAUTHENTICATED_MESSAGE
 
     allowed_items = navigation_for_roles(state.get("roles", []))
-    item = next((candidate for candidate in allowed_items if candidate.key == selection), None)
+    item = next(
+        (candidate for candidate in allowed_items if candidate.key == selection), None
+    )
     if item is None:
         return "当前账号没有可访问的导航项。"
 
@@ -254,7 +254,13 @@ def login_user(
             gr.update(choices=choices, value=first_key, visible=bool(choices)),
             _page_for_navigation(first_key, state),
         )
-    except (AuthenticationError, PermissionDeniedError, SQLAlchemyError, TypeError, ValueError) as error:
+    except (
+        AuthenticationError,
+        PermissionDeniedError,
+        SQLAlchemyError,
+        TypeError,
+        ValueError,
+    ) as error:
         return (
             empty_login_state(),
             format_ui_error(error),
@@ -266,7 +272,9 @@ def login_user(
         )
 
 
-def logout_user() -> tuple[LoginState, str, dict[str, Any], dict[str, Any], str, dict[str, Any], str]:
+def logout_user() -> tuple[
+    LoginState, str, dict[str, Any], dict[str, Any], str, dict[str, Any], str
+]:
     """清理当前 Gradio 会话并回到登录面板。"""
 
     return (
@@ -288,8 +296,66 @@ def select_navigation(
 
     try:
         return _page_for_navigation(selection, state)
-    except (PermissionDeniedError, SQLAlchemyError, TypeError, ValueError, AttributeError) as error:
+    except (
+        PermissionDeniedError,
+        SQLAlchemyError,
+        TypeError,
+        ValueError,
+        AttributeError,
+    ) as error:
         return format_ui_error(error)
+
+
+def _is_admin_navigation(selection: str | None) -> bool:
+    """判断当前导航选择是否应该展示管理员视图。"""
+
+    return selection in {"admin.users", "admin.status"}
+
+
+def login_user_for_app(
+    identifier: str,
+    password: str,
+    *,
+    session_factory: Callable[[], Any] | None = None,
+    secret_key: str | None = None,
+) -> tuple[Any, ...]:
+    """登录并同步设置管理员视图的显示状态。"""
+
+    result: list[Any] = list(
+        login_user(
+            identifier,
+            password,
+            session_factory=session_factory,
+            secret_key=secret_key,
+        )
+    )
+    state = result[0]
+    first_selection = _navigation_choices(state)
+    is_admin = bool(first_selection) and _is_admin_navigation(first_selection[0][1])
+    result[-1] = gr.update(value=result[-1], visible=not is_admin)
+    return (*result, gr.update(visible=is_admin))
+
+
+def logout_user_for_app() -> tuple[Any, ...]:
+    """退出登录并隐藏管理员视图。"""
+
+    result = list(logout_user())
+    result[-1] = gr.update(value=result[-1], visible=True)
+    return (*result, gr.update(visible=False))
+
+
+def select_navigation_for_app(
+    selection: str | None,
+    state: Mapping[str, Any],
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    """切换导航时同步显示普通页面或管理员视图。"""
+
+    content = select_navigation(selection, state)
+    is_admin = bool(state.get("access_token")) and _is_admin_navigation(selection)
+    return (
+        gr.update(value=content, visible=not is_admin),
+        gr.update(visible=is_admin),
+    )
 
 
 def create_gradio_app() -> gr.Blocks:
@@ -326,9 +392,10 @@ def create_gradio_app() -> gr.Blocks:
                 visible=False,
             )
             page_content = gr.Markdown(_UNAUTHENTICATED_MESSAGE)
+            admin_view: AdminView = create_admin_view(session_state)
 
         login_button.click(
-            fn=login_user,
+            fn=login_user_for_app,
             inputs=[identifier, password],
             outputs=[
                 session_state,
@@ -338,11 +405,12 @@ def create_gradio_app() -> gr.Blocks:
                 user_summary,
                 navigation,
                 page_content,
+                admin_view.panel,
             ],
             show_progress="hidden",
         )
         password.submit(
-            fn=login_user,
+            fn=login_user_for_app,
             inputs=[identifier, password],
             outputs=[
                 session_state,
@@ -352,11 +420,12 @@ def create_gradio_app() -> gr.Blocks:
                 user_summary,
                 navigation,
                 page_content,
+                admin_view.panel,
             ],
             show_progress="hidden",
         )
         logout_button.click(
-            fn=logout_user,
+            fn=logout_user_for_app,
             outputs=[
                 session_state,
                 login_message,
@@ -365,17 +434,20 @@ def create_gradio_app() -> gr.Blocks:
                 user_summary,
                 navigation,
                 page_content,
+                admin_view.panel,
             ],
             show_progress="hidden",
         )
         navigation.change(
-            fn=select_navigation,
+            fn=select_navigation_for_app,
             inputs=[navigation, session_state],
-            outputs=page_content,
+            outputs=[page_content, admin_view.panel],
             show_progress="hidden",
         )
 
     return demo
+
+
 __all__ = [
     "NAVIGATION_ITEMS",
     "LoginState",
@@ -384,8 +456,11 @@ __all__ = [
     "empty_login_state",
     "format_ui_error",
     "login_user",
+    "login_user_for_app",
     "logout_user",
+    "logout_user_for_app",
     "navigation_for_roles",
     "normalize_ui_roles",
     "select_navigation",
+    "select_navigation_for_app",
 ]
