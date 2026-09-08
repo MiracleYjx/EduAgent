@@ -9,6 +9,7 @@ from pydantic import BaseModel
 from backend.app.api.auth import router as auth_router
 from backend.app.core.config import AppSettings, get_settings
 from backend.app.core.security import AuthenticationMiddleware
+from backend.app.ui.gradio_app import create_gradio_app as build_gradio_app
 
 
 class HealthResponse(BaseModel):
@@ -19,9 +20,9 @@ class HealthResponse(BaseModel):
 
 
 def create_gradio_app() -> gr.Blocks:
-    """构建由后端挂载的 Gradio 界面占位。"""
+    """构建由后端挂载的 Gradio 应用外壳。"""
 
-    return gr.Blocks(title="EduAgent")
+    return build_gradio_app()
 
 
 def create_app(
