@@ -7,7 +7,7 @@ import re
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import Any
+from typing import Any, Literal, cast
 
 import gradio as gr
 from sqlalchemy.exc import SQLAlchemyError
@@ -40,6 +40,10 @@ QUESTION_TABLE_HEADERS = (
     "审核状态",
     "知识点",
     "创建时间",
+)
+QUESTION_TABLE_DATATYPES = cast(
+    tuple[Literal["str"], ...],
+    ("str",) * len(QUESTION_TABLE_HEADERS),
 )
 _GENERIC_ERROR = "题目操作失败，请稍后重试。"
 
@@ -383,7 +387,7 @@ def create_question_view(session_state: Any | None = None) -> QuestionView:
             refresh_button = gr.Button("刷新题目", variant="secondary")
         questions_table = gr.Dataframe(
             headers=list(QUESTION_TABLE_HEADERS),
-            datatype=["str"] * len(QUESTION_TABLE_HEADERS),
+            datatype=QUESTION_TABLE_DATATYPES,
             value=[],
             interactive=False,
             label="题目列表",
