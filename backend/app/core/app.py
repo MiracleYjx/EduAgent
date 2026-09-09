@@ -11,6 +11,7 @@ from pydantic import BaseModel
 from backend.app.api.admin import router as admin_router
 from backend.app.api.auth import router as auth_router
 from backend.app.api.courses import router as courses_router
+from backend.app.api.exams import router as exams_router
 from backend.app.api.knowledge_bases import router as knowledge_bases_router
 from backend.app.api.questions import router as questions_router
 from backend.app.core.config import AppSettings, get_settings
@@ -47,6 +48,7 @@ def create_app(
     app.include_router(courses_router)
     app.include_router(knowledge_bases_router)
     app.include_router(questions_router)
+    app.include_router(exams_router)
 
     @app.exception_handler(RequestValidationError)
     async def validation_error_handler(
