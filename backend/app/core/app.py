@@ -14,6 +14,8 @@ from backend.app.api.courses import router as courses_router
 from backend.app.api.exams import router as exams_router
 from backend.app.api.knowledge_bases import router as knowledge_bases_router
 from backend.app.api.questions import router as questions_router
+from backend.app.api.submissions import exam_submission_router
+from backend.app.api.submissions import router as submissions_router
 from backend.app.core.config import AppSettings, get_settings
 from backend.app.core.security import AuthenticationMiddleware
 from backend.app.ui.gradio_app import create_gradio_app as build_gradio_app
@@ -49,6 +51,8 @@ def create_app(
     app.include_router(knowledge_bases_router)
     app.include_router(questions_router)
     app.include_router(exams_router)
+    app.include_router(submissions_router)
+    app.include_router(exam_submission_router)
 
     @app.exception_handler(RequestValidationError)
     async def validation_error_handler(

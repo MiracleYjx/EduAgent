@@ -22,6 +22,10 @@ from backend.app.services.auth_service import AuthenticationError, AuthService
 from backend.app.ui.admin_view import AdminView, create_admin_view
 from backend.app.ui.exam_view import ExamView, create_exam_view
 from backend.app.ui.question_view import QuestionView, create_question_view
+from backend.app.ui.student_exam_view import (
+    StudentExamView,
+    create_student_exam_view,
+)
 
 
 class LoginState(TypedDict):
@@ -274,9 +278,9 @@ def login_user(
         )
 
 
-def logout_user() -> (
-    tuple[LoginState, str, dict[str, Any], dict[str, Any], str, dict[str, Any], str]
-):
+def logout_user() -> tuple[
+    LoginState, str, dict[str, Any], dict[str, Any], str, dict[str, Any], str
+]:
     """清理当前 Gradio 会话并回到登录面板。"""
 
     return (
@@ -324,6 +328,12 @@ def _is_exam_navigation(selection: str | None) -> bool:
     """判断当前导航选择是否应该展示教师考试视图。"""
 
     return selection == "teacher.exams"
+
+
+def _is_student_exam_navigation(selection: str | None) -> bool:
+    """判断当前导航选择是否应该展示学生考试视图。"""
+
+    return selection == "student.exams"
 
 
 def login_user_for_app(
@@ -443,6 +453,50 @@ def logout_user_for_app_with_questions_and_exams() -> tuple[Any, ...]:
     return (*result, gr.update(visible=False))
 
 
+def login_user_for_app_with_questions_and_exams_and_student(
+    identifier: str,
+    password: str,
+    *,
+    session_factory: Callable[[], Any] | None = None,
+    secret_key: str | None = None,
+) -> tuple[Any, ...]:
+    """登录并同步设置管理员、教师和学生视图的显示状态。"""
+
+    result = list(
+        login_user_for_app_with_questions_and_exams(
+            identifier,
+            password,
+            session_factory=session_factory,
+            secret_key=secret_key,
+        )
+    )
+    state = result[0]
+    choices = _navigation_choices(state)
+    first_selection = choices[0][1] if choices else None
+    is_student_exam = bool(state.get("access_token")) and _is_student_exam_navigation(
+        first_selection,
+    )
+    page_update = result[6]
+    page_value = (
+        page_update.get("value", "") if isinstance(page_update, dict) else page_update
+    )
+    result[6] = gr.update(
+        value=page_value,
+        visible=not _is_admin_navigation(first_selection)
+        and not _is_question_navigation(first_selection)
+        and not _is_exam_navigation(first_selection)
+        and not is_student_exam,
+    )
+    return (*result, gr.update(visible=is_student_exam))
+
+
+def logout_user_for_app_with_questions_and_exams_and_student() -> tuple[Any, ...]:
+    """退出登录并隐藏管理员、教师和学生视图。"""
+
+    result = list(logout_user_for_app_with_questions_and_exams())
+    return (*result, gr.update(visible=False))
+
+
 def select_navigation_for_app(
     selection: str | None,
     state: Mapping[str, Any],
@@ -501,6 +555,30 @@ def select_navigation_for_app_with_questions_and_exams(
     )
 
 
+def select_navigation_for_app_with_questions_and_exams_and_student(
+    selection: str | None,
+    state: Mapping[str, Any],
+) -> tuple[Any, ...]:
+    """切换导航时同步显示普通页面、管理员、教师或学生考试视图。"""
+
+    result = list(select_navigation_for_app_with_questions_and_exams(selection, state))
+    is_student_exam = bool(state.get("access_token")) and _is_student_exam_navigation(
+        selection,
+    )
+    page_update = result[0]
+    page_value = (
+        page_update.get("value", "") if isinstance(page_update, dict) else page_update
+    )
+    result[0] = gr.update(
+        value=page_value,
+        visible=not _is_admin_navigation(selection)
+        and not _is_question_navigation(selection)
+        and not _is_exam_navigation(selection)
+        and not is_student_exam,
+    )
+    return (*result, gr.update(visible=is_student_exam))
+
+
 def create_gradio_app() -> gr.Blocks:
     """创建包含登录、会话状态和角色导航的 Gradio 应用。"""
 
@@ -538,9 +616,10 @@ def create_gradio_app() -> gr.Blocks:
             admin_view: AdminView = create_admin_view(session_state)
             question_view: QuestionView = create_question_view(session_state)
             exam_view: ExamView = create_exam_view(session_state)
+            student_exam_view: StudentExamView = create_student_exam_view(session_state)
 
         login_button.click(
-            fn=login_user_for_app_with_questions_and_exams,
+            fn=login_user_for_app_with_questions_and_exams_and_student,
             inputs=[identifier, password],
             outputs=[
                 session_state,
@@ -553,11 +632,12 @@ def create_gradio_app() -> gr.Blocks:
                 admin_view.panel,
                 question_view.panel,
                 exam_view.panel,
+                student_exam_view.panel,
             ],
             show_progress="hidden",
         )
         password.submit(
-            fn=login_user_for_app_with_questions_and_exams,
+            fn=login_user_for_app_with_questions_and_exams_and_student,
             inputs=[identifier, password],
             outputs=[
                 session_state,
@@ -570,11 +650,12 @@ def create_gradio_app() -> gr.Blocks:
                 admin_view.panel,
                 question_view.panel,
                 exam_view.panel,
+                student_exam_view.panel,
             ],
             show_progress="hidden",
         )
         logout_button.click(
-            fn=logout_user_for_app_with_questions_and_exams,
+            fn=logout_user_for_app_with_questions_and_exams_and_student,
             outputs=[
                 session_state,
                 login_message,
@@ -586,17 +667,19 @@ def create_gradio_app() -> gr.Blocks:
                 admin_view.panel,
                 question_view.panel,
                 exam_view.panel,
+                student_exam_view.panel,
             ],
             show_progress="hidden",
         )
         navigation.change(
-            fn=select_navigation_for_app_with_questions_and_exams,
+            fn=select_navigation_for_app_with_questions_and_exams_and_student,
             inputs=[navigation, session_state],
             outputs=[
                 page_content,
                 admin_view.panel,
                 question_view.panel,
                 exam_view.panel,
+                student_exam_view.panel,
             ],
             show_progress="hidden",
         )
@@ -615,14 +698,17 @@ __all__ = [
     "login_user_for_app",
     "login_user_for_app_with_questions",
     "login_user_for_app_with_questions_and_exams",
+    "login_user_for_app_with_questions_and_exams_and_student",
     "logout_user",
     "logout_user_for_app",
     "logout_user_for_app_with_questions",
     "logout_user_for_app_with_questions_and_exams",
+    "logout_user_for_app_with_questions_and_exams_and_student",
     "navigation_for_roles",
     "normalize_ui_roles",
     "select_navigation",
     "select_navigation_for_app",
     "select_navigation_for_app_with_questions",
     "select_navigation_for_app_with_questions_and_exams",
+    "select_navigation_for_app_with_questions_and_exams_and_student",
 ]
