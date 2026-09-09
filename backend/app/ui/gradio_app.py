@@ -20,6 +20,7 @@ from backend.app.domain.permissions import (
 from backend.app.models import User
 from backend.app.services.auth_service import AuthenticationError, AuthService
 from backend.app.ui.admin_view import AdminView, create_admin_view
+from backend.app.ui.question_view import QuestionView, create_question_view
 
 
 class LoginState(TypedDict):
@@ -272,9 +273,9 @@ def login_user(
         )
 
 
-def logout_user() -> tuple[
-    LoginState, str, dict[str, Any], dict[str, Any], str, dict[str, Any], str
-]:
+def logout_user() -> (
+    tuple[LoginState, str, dict[str, Any], dict[str, Any], str, dict[str, Any], str]
+):
     """清理当前 Gradio 会话并回到登录面板。"""
 
     return (
@@ -312,6 +313,12 @@ def _is_admin_navigation(selection: str | None) -> bool:
     return selection in {"admin.users", "admin.status"}
 
 
+def _is_question_navigation(selection: str | None) -> bool:
+    """判断当前导航选择是否应该展示教师题库视图。"""
+
+    return selection == "teacher.questions"
+
+
 def login_user_for_app(
     identifier: str,
     password: str,
@@ -336,11 +343,53 @@ def login_user_for_app(
     return (*result, gr.update(visible=is_admin))
 
 
+def login_user_for_app_with_questions(
+    identifier: str,
+    password: str,
+    *,
+    session_factory: Callable[[], Any] | None = None,
+    secret_key: str | None = None,
+) -> tuple[Any, ...]:
+    """登录并同步设置管理员和教师题库视图的显示状态。"""
+
+    result = list(
+        login_user_for_app(
+            identifier,
+            password,
+            session_factory=session_factory,
+            secret_key=secret_key,
+        )
+    )
+    state = result[0]
+    choices = _navigation_choices(state)
+    first_selection = choices[0][1] if choices else None
+    is_admin = bool(state.get("access_token")) and _is_admin_navigation(first_selection)
+    is_question = bool(state.get("access_token")) and _is_question_navigation(
+        first_selection,
+    )
+    page_update = result[6]
+    page_value = (
+        page_update.get("value", "") if isinstance(page_update, dict) else page_update
+    )
+    result[6] = gr.update(
+        value=page_value,
+        visible=not is_admin and not is_question,
+    )
+    return (*result, gr.update(visible=is_question))
+
+
 def logout_user_for_app() -> tuple[Any, ...]:
     """退出登录并隐藏管理员视图。"""
 
     result = list(logout_user())
     result[-1] = gr.update(value=result[-1], visible=True)
+    return (*result, gr.update(visible=False))
+
+
+def logout_user_for_app_with_questions() -> tuple[Any, ...]:
+    """退出登录并隐藏管理员和教师题库视图。"""
+
+    result = list(logout_user_for_app())
     return (*result, gr.update(visible=False))
 
 
@@ -355,6 +404,24 @@ def select_navigation_for_app(
     return (
         gr.update(value=content, visible=not is_admin),
         gr.update(visible=is_admin),
+    )
+
+
+def select_navigation_for_app_with_questions(
+    selection: str | None,
+    state: Mapping[str, Any],
+) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any]]:
+    """切换导航时同步显示普通页面、管理员或教师题库视图。"""
+
+    content = select_navigation(selection, state)
+    is_admin = bool(state.get("access_token")) and _is_admin_navigation(selection)
+    is_question = bool(state.get("access_token")) and _is_question_navigation(
+        selection,
+    )
+    return (
+        gr.update(value=content, visible=not is_admin and not is_question),
+        gr.update(visible=is_admin),
+        gr.update(visible=is_question),
     )
 
 
@@ -393,9 +460,10 @@ def create_gradio_app() -> gr.Blocks:
             )
             page_content = gr.Markdown(_UNAUTHENTICATED_MESSAGE)
             admin_view: AdminView = create_admin_view(session_state)
+            question_view: QuestionView = create_question_view(session_state)
 
         login_button.click(
-            fn=login_user_for_app,
+            fn=login_user_for_app_with_questions,
             inputs=[identifier, password],
             outputs=[
                 session_state,
@@ -406,11 +474,12 @@ def create_gradio_app() -> gr.Blocks:
                 navigation,
                 page_content,
                 admin_view.panel,
+                question_view.panel,
             ],
             show_progress="hidden",
         )
         password.submit(
-            fn=login_user_for_app,
+            fn=login_user_for_app_with_questions,
             inputs=[identifier, password],
             outputs=[
                 session_state,
@@ -421,11 +490,12 @@ def create_gradio_app() -> gr.Blocks:
                 navigation,
                 page_content,
                 admin_view.panel,
+                question_view.panel,
             ],
             show_progress="hidden",
         )
         logout_button.click(
-            fn=logout_user_for_app,
+            fn=logout_user_for_app_with_questions,
             outputs=[
                 session_state,
                 login_message,
@@ -435,13 +505,14 @@ def create_gradio_app() -> gr.Blocks:
                 navigation,
                 page_content,
                 admin_view.panel,
+                question_view.panel,
             ],
             show_progress="hidden",
         )
         navigation.change(
-            fn=select_navigation_for_app,
+            fn=select_navigation_for_app_with_questions,
             inputs=[navigation, session_state],
-            outputs=[page_content, admin_view.panel],
+            outputs=[page_content, admin_view.panel, question_view.panel],
             show_progress="hidden",
         )
 
@@ -457,10 +528,13 @@ __all__ = [
     "format_ui_error",
     "login_user",
     "login_user_for_app",
+    "login_user_for_app_with_questions",
     "logout_user",
     "logout_user_for_app",
+    "logout_user_for_app_with_questions",
     "navigation_for_roles",
     "normalize_ui_roles",
     "select_navigation",
     "select_navigation_for_app",
+    "select_navigation_for_app_with_questions",
 ]
