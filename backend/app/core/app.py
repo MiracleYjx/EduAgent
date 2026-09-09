@@ -10,6 +10,8 @@ from pydantic import BaseModel
 
 from backend.app.api.admin import router as admin_router
 from backend.app.api.auth import router as auth_router
+from backend.app.api.courses import router as courses_router
+from backend.app.api.knowledge_bases import router as knowledge_bases_router
 from backend.app.core.config import AppSettings, get_settings
 from backend.app.core.security import AuthenticationMiddleware
 from backend.app.ui.gradio_app import create_gradio_app as build_gradio_app
@@ -41,6 +43,8 @@ def create_app(
     app.add_middleware(AuthenticationMiddleware)
     app.include_router(auth_router)
     app.include_router(admin_router)
+    app.include_router(courses_router)
+    app.include_router(knowledge_bases_router)
 
     @app.exception_handler(RequestValidationError)
     async def validation_error_handler(
