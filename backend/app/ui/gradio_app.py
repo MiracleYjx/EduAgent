@@ -44,6 +44,7 @@ from backend.app.ui.question_generation_view import (
     create_question_generation_view,
 )
 from backend.app.ui.question_view import QuestionView, create_question_view
+from backend.app.ui.results_view import ResultsView, create_results_view
 from backend.app.ui.review_view import ReviewView, create_review_view
 from backend.app.ui.student_exam_view import (
     StudentExamView,
@@ -670,6 +671,7 @@ def create_gradio_app() -> gr.Blocks:
                             create_question_generation_view(session_state)
                         )
                         review_view: ReviewView = create_review_view(session_state)
+                        results_view: ResultsView = create_results_view(session_state)
 
         panels = {
             "teacher.courses": knowledge_base_view.panel,
@@ -678,6 +680,7 @@ def create_gradio_app() -> gr.Blocks:
             "teacher.generate": question_generation_view.panel,
             "teacher.review": review_view.panel,
             "student.exams": student_exam_view.panel,
+            "student.results": results_view.panel,
         }
         knowledge_navigation_keys = {"teacher.courses", "teacher.knowledge"}
         admin_sections = {
