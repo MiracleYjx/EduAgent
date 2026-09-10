@@ -21,8 +21,13 @@ from backend.app.services.question_service import (
     QuestionSummary,
 )
 from backend.app.ui.layout_view import (
-    bind_confirmation, empty_state, feedback, status_badge, status_choices,
-    status_label, table_options,
+    bind_confirmation,
+    empty_state,
+    feedback,
+    status_badge,
+    status_choices,
+    status_label,
+    table_options,
 )
 
 QUESTION_TYPE_CHOICES = [question_type.value for question_type in QuestionType]
@@ -84,14 +89,16 @@ def _format_error(error: BaseException) -> str:
     """将内部异常转换成安全且易理解的中文提示。"""
 
     if isinstance(error, PermissionDeniedError):
-        return str(error) or "当前账号无权执行此操作。"
-    if isinstance(error, QuestionServiceError):
-        return str(error) or _GENERIC_ERROR
-    if isinstance(error, SQLAlchemyError):
-        return "系统暂时无法连接数据库，请稍后重试。"
-    if isinstance(error, (TypeError, ValueError, json.JSONDecodeError)):
-        return f"输入有误：{error or '请检查输入内容。'}"
-    return _GENERIC_ERROR
+        message = str(error) or "当前账号无权执行此操作。"
+    elif isinstance(error, QuestionServiceError):
+        message = str(error) or _GENERIC_ERROR
+    elif isinstance(error, SQLAlchemyError):
+        message = "系统暂时无法连接数据库，请稍后重试。"
+    elif isinstance(error, (TypeError, ValueError, json.JSONDecodeError)):
+        message = f"输入有误：{error or '请检查输入内容。'}"
+    else:
+        message = _GENERIC_ERROR
+    return feedback(message, "error")
 
 
 def _parse_options(value: Any) -> dict[str, Any] | list[Any] | None:
@@ -196,7 +203,11 @@ def refresh_questions(
                 status=_status_filter(question_status),
                 teacher_id=state.get("user_id"),
             )
-        return _question_rows(questions), feedback(f"已加载 {len(questions)} 道题目。", "success") if questions else empty_state("暂无题目。")
+        return _question_rows(questions), (
+            feedback(f"已加载 {len(questions)} 道题目。", "success")
+            if questions
+            else empty_state("暂无题目。")
+        )
     except (
         PermissionDeniedError,
         QuestionServiceError,
@@ -258,7 +269,10 @@ def create_question(
                 created_by=teacher_id,
             )
             rows = _list_course_questions(service, course_id, teacher_id)
-        return rows, feedback(f"题目“{created.id}”创建成功，当前状态为{status_label(created.status, entity='question')}。", "success")
+        return rows, feedback(
+            f"题目“{created.id}”创建成功，当前状态为{status_label(created.status, entity='question')}。",
+            "success",
+        )
     except (
         PermissionDeniedError,
         QuestionServiceError,
@@ -337,7 +351,10 @@ def set_question_status(
                 teacher_id=teacher_id,
             )
             rows = _list_course_questions(service, updated.course_id, teacher_id)
-        return rows, feedback(f"题目“{updated.id}”已更新为“{status_label(updated.status, entity='question')}”。", "success")
+        return rows, feedback(
+            f"题目“{updated.id}”已更新为“{status_label(updated.status, entity='question')}”。",
+            "success",
+        )
     except (
         PermissionDeniedError,
         QuestionServiceError,
@@ -384,7 +401,9 @@ def create_question_view(session_state: Any | None = None) -> QuestionView:
         with gr.Row():
             filter_course_id = gr.Textbox(label="课程 ID")
             filter_status = gr.Dropdown(
-                choices=status_choices(QUESTION_STATUS_CHOICES, entity="question", include_all=True),
+                choices=status_choices(
+                    QUESTION_STATUS_CHOICES, entity="question", include_all=True
+                ),
                 value="",
                 label="审核状态",
             )
@@ -475,7 +494,10 @@ def create_question_view(session_state: Any | None = None) -> QuestionView:
             show_progress="hidden",
         )
         bind_confirmation(
-            delete_button, action="删除题目", target=question_id, callback=delete_question,
+            delete_button,
+            action="删除题目",
+            target=question_id,
+            callback=delete_question,
             inputs=[question_id, state],
             outputs=[questions_table, message],
         )

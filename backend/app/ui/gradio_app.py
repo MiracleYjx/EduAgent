@@ -23,6 +23,10 @@ from backend.app.models import User
 from backend.app.services.auth_service import AuthenticationError, AuthService
 from backend.app.ui.admin_view import AdminView, create_admin_view
 from backend.app.ui.exam_view import ExamView, create_exam_view
+from backend.app.ui.knowledge_base_view import (
+    KnowledgeBaseView,
+    create_knowledge_base_view,
+)
 from backend.app.ui.layout_view import (
     ROLE_NAVIGATION,
     WORKSPACE_CSS,
@@ -654,12 +658,17 @@ def create_gradio_app() -> gr.Blocks:
                         student_exam_view: StudentExamView = create_student_exam_view(
                             session_state
                         )
+                        knowledge_base_view: KnowledgeBaseView = (
+                            create_knowledge_base_view(session_state)
+                        )
 
         panels = {
+            "teacher.courses": knowledge_base_view.panel,
             "teacher.questions": question_view.panel,
             "teacher.exams": exam_view.panel,
             "student.exams": student_exam_view.panel,
         }
+        knowledge_navigation_keys = {"teacher.courses", "teacher.knowledge"}
         admin_sections = {
             "admin.users": admin_view.users_section,
             "admin.roles": admin_view.roles_section,
@@ -704,7 +713,11 @@ def create_gradio_app() -> gr.Blocks:
                 ),
                 page_content: gr.update(
                     value=placeholder_page(item),
-                    visible=selected not in {*panels, *admin_sections} or not allowed,
+                    visible=(
+                        selected
+                        not in {*panels, *admin_sections, *knowledge_navigation_keys}
+                        or not allowed
+                    ),
                 ),
                 admin_view.panel: gr.update(
                     visible=allowed and selected in admin_sections
@@ -712,6 +725,9 @@ def create_gradio_app() -> gr.Blocks:
             }
             for key, panel in {**panels, **admin_sections}.items():
                 result[panel] = gr.update(visible=allowed and key == selected)
+            result[knowledge_base_view.panel] = gr.update(
+                visible=allowed and selected in knowledge_navigation_keys
+            )
             for (group_role, _), panel in groups.items():
                 result[panel] = gr.update(
                     visible=group_role.value == role and role in state["roles"]
