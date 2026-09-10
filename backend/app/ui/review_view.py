@@ -36,6 +36,9 @@ class ReviewView:
     reason: gr.Textbox
     evidence: gr.Markdown
     message: gr.Markdown
+    review_context: gr.State | None = None
+    exam_filter: gr.Textbox | None = None
+    student_filter: gr.Textbox | None = None
 
 
 def _empty_state() -> dict[str, Any]:
@@ -72,7 +75,9 @@ def review_queue_rows(records: Sequence[Mapping[str, Any] | Any]) -> list[list[s
             [
                 str(_value(record, "student_name", _value(record, "student", ""))),
                 str(_value(record, "exam_name", _value(record, "exam", ""))),
-                str(_value(record, "question_number", _value(record, "question_no", ""))),
+                str(
+                    _value(record, "question_number", _value(record, "question_no", ""))
+                ),
                 str(_value(record, "review_status", "")),
             ]
         )
@@ -113,7 +118,9 @@ def _review_detail(record: Mapping[str, Any] | Any | None) -> dict[str, Any]:
     return {
         "student": _value(record, "student_name", _value(record, "student", "")),
         "exam": _value(record, "exam_name", _value(record, "exam", "")),
-        "question": _value(record, "question_number", _value(record, "question_no", "")),
+        "question": _value(
+            record, "question_number", _value(record, "question_no", "")
+        ),
         "confidence": _value(record, "confidence", ""),
         "answer": _value(record, "student_answer", _value(record, "answer", "")),
         "score": _value(record, "score", None),
@@ -121,7 +128,9 @@ def _review_detail(record: Mapping[str, Any] | Any | None) -> dict[str, Any]:
         "knowledge_points": _value(record, "knowledge_points", []),
         "reference_answer": _value(record, "reference_answer", ""),
         "scoring_rubric": _value(record, "scoring_rubric", ""),
-        "evidence": _value(record, "evidence", _value(record, "retrieved_evidence", [])),
+        "evidence": _value(
+            record, "evidence", _value(record, "retrieved_evidence", [])
+        ),
     }
 
 
@@ -179,6 +188,7 @@ def create_review_view(session_state: Any | None = None) -> ReviewView:
             "{flex:1 1 100% !important;}}</style>"
         )
         gr.Markdown("## 阅卷复核")
+        review_context = gr.State(None)
         with gr.Row(elem_classes=["review-filters"]):
             exam_filter = gr.Textbox(label="考试", placeholder="按考试筛选")
             student_filter = gr.Textbox(label="学生", placeholder="按学生筛选")
@@ -216,7 +226,9 @@ def create_review_view(session_state: Any | None = None) -> ReviewView:
                             interactive=False,
                         )
                     with gr.Column(scale=55):
-                        score = gr.Number(label="AI 分数", value=None, precision=2, interactive=True)
+                        score = gr.Number(
+                            label="AI 分数", value=None, precision=2, interactive=True
+                        )
                         reason = gr.Textbox(label="评分理由", lines=5, interactive=True)
                         gr.Markdown("**知识点：** 暂无")
                         gr.Markdown("**参考答案：** 暂无")
@@ -224,7 +236,9 @@ def create_review_view(session_state: Any | None = None) -> ReviewView:
                 with gr.Accordion("检索依据", open=False):
                     evidence = gr.Markdown(empty_state("暂无检索依据可展示"))
                 with gr.Row(elem_classes=["review-actions"]):
-                    confirm = gr.Button("确认评分", variant="primary", interactive=False)
+                    confirm = gr.Button(
+                        "确认评分", variant="primary", interactive=False
+                    )
                     save = gr.Button("保存修改", interactive=False)
                     next_item = gr.Button("下一条", interactive=False)
 
@@ -234,9 +248,17 @@ def create_review_view(session_state: Any | None = None) -> ReviewView:
             outputs=[queue, message],
             show_progress="hidden",
         )
-        confirm.click(fn=confirm_review, inputs=[], outputs=[message], show_progress="hidden")
-        save.click(fn=save_review_changes, inputs=[], outputs=[message], show_progress="hidden")
-        next_item.click(fn=lambda: feedback("暂无可展示的复核项", "info"), inputs=[], outputs=[message])
+        confirm.click(
+            fn=confirm_review, inputs=[], outputs=[message], show_progress="hidden"
+        )
+        save.click(
+            fn=save_review_changes, inputs=[], outputs=[message], show_progress="hidden"
+        )
+        next_item.click(
+            fn=lambda: feedback("暂无可展示的复核项", "info"),
+            inputs=[],
+            outputs=[message],
+        )
 
     return ReviewView(
         panel=panel,
@@ -246,6 +268,9 @@ def create_review_view(session_state: Any | None = None) -> ReviewView:
         reason=reason,
         evidence=evidence,
         message=message,
+        review_context=review_context,
+        exam_filter=exam_filter,
+        student_filter=student_filter,
     )
 
 
