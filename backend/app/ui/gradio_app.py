@@ -44,6 +44,7 @@ from backend.app.ui.question_generation_view import (
     create_question_generation_view,
 )
 from backend.app.ui.question_view import QuestionView, create_question_view
+from backend.app.ui.review_view import ReviewView, create_review_view
 from backend.app.ui.student_exam_view import (
     StudentExamView,
     create_student_exam_view,
@@ -284,7 +285,7 @@ def select_navigation(
 def _is_admin_navigation(selection: str | None) -> bool:
     """判断当前导航选择是否应该展示管理员视图。"""
 
-    return selection in {"admin.users", "admin.roles", "admin.status"}
+    return selection in {"admin.home", "admin.users", "admin.roles", "admin.status"}
 
 
 def _is_question_navigation(selection: str | None) -> bool:
@@ -668,16 +669,19 @@ def create_gradio_app() -> gr.Blocks:
                         question_generation_view: QuestionGenerationView = (
                             create_question_generation_view(session_state)
                         )
+                        review_view: ReviewView = create_review_view(session_state)
 
         panels = {
             "teacher.courses": knowledge_base_view.panel,
             "teacher.questions": question_view.panel,
             "teacher.exams": exam_view.panel,
             "teacher.generate": question_generation_view.panel,
+            "teacher.review": review_view.panel,
             "student.exams": student_exam_view.panel,
         }
         knowledge_navigation_keys = {"teacher.courses", "teacher.knowledge"}
         admin_sections = {
+            "admin.home": admin_view.overview_section,
             "admin.users": admin_view.users_section,
             "admin.roles": admin_view.roles_section,
             "admin.status": admin_view.status_section,
