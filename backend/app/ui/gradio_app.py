@@ -44,7 +44,13 @@ from backend.app.ui.question_generation_view import (
     create_question_generation_view,
 )
 from backend.app.ui.question_view import QuestionView, create_question_view
-from backend.app.ui.results_view import ResultsView, create_results_view
+from backend.app.ui.results_view import (
+    ResultsView,
+    TeacherResultsView,
+    create_results_view,
+    create_teacher_results_view,
+    review_context_is_complete,
+)
 from backend.app.ui.review_view import ReviewView, create_review_view
 from backend.app.ui.student_exam_view import (
     StudentExamView,
@@ -672,6 +678,9 @@ def create_gradio_app() -> gr.Blocks:
                         )
                         review_view: ReviewView = create_review_view(session_state)
                         results_view: ResultsView = create_results_view(session_state)
+                        teacher_results_view: TeacherResultsView = (
+                            create_teacher_results_view(session_state)
+                        )
 
         panels = {
             "teacher.courses": knowledge_base_view.panel,
@@ -681,6 +690,7 @@ def create_gradio_app() -> gr.Blocks:
             "teacher.review": review_view.panel,
             "student.exams": student_exam_view.panel,
             "student.results": results_view.panel,
+            "teacher.analytics": teacher_results_view.panel,
         }
         knowledge_navigation_keys = {"teacher.courses", "teacher.knowledge"}
         admin_sections = {
@@ -891,6 +901,62 @@ def create_gradio_app() -> gr.Blocks:
             "concurrency_id": "eduagent-ui",
             "concurrency_limit": 1,
         }
+
+        def open_review_from_results(
+            context_value: Mapping[str, Any] | None,
+            current_state: LoginState,
+            nav: dict[str, Any],
+        ) -> dict[Any, Any]:
+            """从教师成绩页带着完整实体上下文切换到 T110。"""
+
+            try:
+                current = _authenticated_state(current_state)
+            except AuthenticationError:
+                return {
+                    workspace_message: feedback(
+                        "登录状态已失效，请退出后重新登录。", "error"
+                    )
+                }
+            except SQLAlchemyError:
+                return {
+                    workspace_message: feedback(
+                        "系统暂时无法连接数据库，请稍后重试。", "error"
+                    )
+                }
+            if UserRole.TEACHER.value not in current["roles"]:
+                return {
+                    workspace_message: feedback(
+                        "当前账号无权访问阅卷复核功能。", "error"
+                    )
+                }
+            if not review_context_is_complete(context_value):
+                return {
+                    teacher_results_view.message: feedback(
+                        "暂无可展示的完整待复核结果。", "info"
+                    )
+                }
+            assert context_value is not None
+
+            next_nav = deepcopy(nav)
+            next_nav["role"] = UserRole.TEACHER.value
+            next_nav.setdefault("pages", {})[UserRole.TEACHER.value] = "teacher.review"
+            result = render_workspace(current, next_nav, "teacher.review")
+            result.update(
+                {
+                    review_view.review_context: deepcopy(context_value),
+                    review_view.exam_filter: str(context_value.get("exam_id", "")),
+                    review_view.student_filter: str(
+                        context_value.get("student_id")
+                        or context_value.get("student_name", "")
+                    ),
+                    review_view.message: feedback(
+                        "已从成绩与学情进入阅卷复核，考试、答卷和题目上下文已绑定。",
+                        "info",
+                    ),
+                }
+            )
+            return result
+
         login_button.click(sign_in, inputs=[identifier, password], **event_options)
         password.submit(sign_in, inputs=[identifier, password], **event_options)
         logout_button.click(clear_workspace, inputs=[], **event_options)
@@ -910,6 +976,18 @@ def create_gradio_app() -> gr.Blocks:
             switch_role,
             inputs=[role_selector, session_state, navigation_state],
             **event_options,
+        )
+        teacher_results_view.review_button.click(
+            open_review_from_results,
+            inputs=[
+                teacher_results_view.review_context,
+                session_state,
+                navigation_state,
+            ],
+            outputs=outputs,
+            show_progress="minimal",
+            concurrency_id="eduagent-ui",
+            concurrency_limit=1,
         )
         for block_fn in view_functions:
             block_fn.concurrency_id = "eduagent-ui"
