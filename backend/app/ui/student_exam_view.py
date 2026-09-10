@@ -31,9 +31,9 @@ from backend.app.services.submission_service import (
     SubmissionValidationError,
 )
 from backend.app.ui.layout_view import (
-    bind_confirmation,
     empty_state,
     feedback,
+    question_indicator,
     status_badge,
     status_label,
     table_options,
@@ -488,16 +488,396 @@ submit_submission = submit_exam
 complete_exam = submit_exam
 
 
+def _answer_value(value: Any) -> Any:
+    """把控件答案转换为答卷服务支持的内容。"""
+
+    if value is None:
+        return None
+    return value if isinstance(value, (str, list, dict)) else str(value)
+
+
+def _workspace_card(
+    records: Sequence[Mapping[str, Any]],
+    answers: Mapping[str, Any],
+    marks: Sequence[int],
+    current: int,
+) -> str:
+    """渲染带文字冗余状态的答题卡。"""
+
+    items = []
+    for index, record in enumerate(records):
+        answered = bool(answers.get(str(record["id"])))
+        mark = index in marks
+        items.append(
+            question_indicator(
+                index + 1,
+                answered=answered,
+                marked=mark,
+                current=index == current,
+            )
+        )
+    return (
+        '<div class="edu-question-card" aria-label="答题卡">'
+        + "".join(items)
+        + f'<div class="edu-question-count">已答：{sum(bool(answers.get(str(item["id"]))) for item in records)}　'
+        + f'未答：{sum(not bool(answers.get(str(item["id"]))) for item in records)}</div>'
+        + '<div class="edu-question-legend">图例：已答 / 未答 / 标记 / 当前题</div></div>'
+    )
+
+
+def _workspace_detail(
+    records: Sequence[Mapping[str, Any]],
+    answers: Mapping[str, Any],
+    current: int,
+    *,
+    read_only: bool = False,
+) -> tuple[Any, ...]:
+    """返回当前题目及单选、判断、简答控件状态。"""
+
+    if not records:
+        return (
+            empty_state("请先从可参加考试列表开始或继续。"),
+            gr.update(choices=[], value=None, visible=False, interactive=False),
+            gr.update(choices=[], value=None, visible=False, interactive=False),
+            gr.update(value="", visible=False, interactive=False),
+        )
+    index = max(0, min(current, len(records) - 1))
+    record = records[index]
+    question_type = record["type"]
+    content = (
+        f"### 第 {index + 1} 题　{status_label(question_type, entity='question_type')}　"
+        f"{record['score']} 分\n\n{record['content']}"
+    )
+    options = record.get("options")
+    choices: list[tuple[str, str]] = []
+    if isinstance(options, Mapping):
+        choices = [(f"{key}：{value}", str(key)) for key, value in options.items()]
+    elif isinstance(options, Sequence) and not isinstance(options, (str, bytes)):
+        choices = [(str(value), str(value)) for value in options]
+    value = answers.get(str(record["id"]))
+    if question_type in {
+        QuestionType.SINGLE_CHOICE.value,
+        QuestionType.TRUE_FALSE.value,
+    }:
+        if question_type == QuestionType.TRUE_FALSE.value and not choices:
+            choices = [("正确", "True"), ("错误", "False")]
+        return (
+            content,
+            gr.update(
+                choices=choices, value=value, visible=True, interactive=not read_only
+            ),
+            gr.update(choices=[], value=None, visible=False, interactive=False),
+            gr.update(value="", visible=False, interactive=False),
+        )
+    return (
+        content,
+        gr.update(choices=[], value=None, visible=False, interactive=False),
+        gr.update(choices=[], value=None, visible=False, interactive=False),
+        gr.update(
+            value=value if isinstance(value, str) else "",
+            visible=True,
+            interactive=not read_only,
+        ),
+    )
+
+
+def _workspace_records(exam: Exam) -> list[dict[str, Any]]:
+    """只保存当前考试实际返回的题目和分值信息。"""
+
+    return [
+        {
+            "id": str(question.id),
+            "type": question.type.value,
+            "content": question.content,
+            "options": question.options,
+            "score": str(question.score),
+        }
+        for question in exam.questions or ()
+    ]
+
+
+def open_answer_workspace(
+    exam_id: str,
+    state: Mapping[str, Any],
+) -> tuple[Any, ...]:
+    """打开或继续真实答卷，并初始化题号导航。"""
+
+    try:
+        student_id = _student_id(state)
+        normalized_exam_id = _parse_uuid(exam_id, "考试标识")
+        with get_session_factory()() as session:
+            service = SubmissionService(session)
+            exam, submission = _load_exam(service, normalized_exam_id, student_id)
+        answers = {
+            answer.question_id: answer.content
+            for answer in submission.answers
+            if answer.content is not None
+        }
+        records = _workspace_records(exam)
+        read_only = submission.status is not SubmissionStatus.DRAFT
+        deadline = (
+            f"截止：{exam.ends_at.isoformat()}"
+            if exam.ends_at
+            else f"考试时长：{exam.duration_minutes or '未设置'} 分钟"
+        )
+        detail, single, boolean, text = _workspace_detail(
+            records, answers, 0, read_only=read_only
+        )
+        return (
+            exam.title,
+            f"{deadline}（仅显示服务提供的时间，不自动交卷）",
+            status_badge(submission.status, entity="submission"),
+            submission.id,
+            records,
+            answers,
+            [],
+            0,
+            _workspace_card(records, answers, [], 0),
+            detail,
+            single,
+            boolean,
+            text,
+            gr.update(visible=True),
+            gr.update(interactive=not read_only),
+            gr.update(interactive=not read_only),
+            gr.update(interactive=not read_only),
+            gr.update(interactive=not read_only),
+            gr.update(interactive=not read_only),
+            empty_state(
+                "答卷已提交，当前为只读状态。"
+                if read_only
+                else "答案尚未保存，请按题号作答并保存。"
+            ),
+        )
+    except (
+        PermissionDeniedError,
+        SubmissionServiceError,
+        SQLAlchemyError,
+        TypeError,
+        ValueError,
+    ) as error:
+        return (
+            "",
+            "",
+            "",
+            "",
+            [],
+            {},
+            [],
+            0,
+            _workspace_card([], {}, [], 0),
+            empty_state("答题区暂不可用。"),
+            gr.update(visible=False),
+            gr.update(visible=False),
+            gr.update(visible=False),
+            gr.update(visible=False),
+            gr.update(interactive=False),
+            gr.update(interactive=False),
+            gr.update(interactive=False),
+            gr.update(interactive=False),
+            gr.update(interactive=False),
+            _format_error(error),
+        )
+
+
+def update_current_answer(
+    value: Any,
+    records: Sequence[Mapping[str, Any]],
+    answers: Mapping[str, Any],
+    current: int,
+    marks: Sequence[int],
+) -> tuple[dict[str, Any], str]:
+    """仅更新当前会话答案，已答状态不等同于已保存状态。"""
+
+    if not records:
+        return dict(answers), _workspace_card(records, answers, marks, current)
+    updated = dict(answers)
+    question_id = str(records[current]["id"])
+    normalized = _answer_value(value)
+    if normalized is None or (isinstance(normalized, str) and not normalized.strip()):
+        updated.pop(question_id, None)
+    else:
+        updated[question_id] = normalized
+    return updated, _workspace_card(records, updated, marks, current)
+
+
+def toggle_mark(
+    marks: Sequence[int],
+    current: int,
+    records: Sequence[Mapping[str, Any]],
+    answers: Mapping[str, Any],
+) -> tuple[list[int], str]:
+    """切换当前题标记并保留已答状态。"""
+
+    result = {int(item) for item in marks}
+    if current in result:
+        result.remove(current)
+    else:
+        result.add(current)
+    values = sorted(result)
+    return values, _workspace_card(records, answers, values, current)
+
+
+def navigate_answer(
+    target: int,
+    records: Sequence[Mapping[str, Any]],
+    answers: Mapping[str, Any],
+    marks: Sequence[int],
+) -> tuple[int, str, Any, Any, Any, Any]:
+    """只切换当前题，不丢失当前会话答案。"""
+
+    if not records:
+        return (
+            0,
+            _workspace_card([], {}, marks, 0),
+            empty_state("暂无题目。"),
+            gr.update(),
+            gr.update(),
+            gr.update(),
+        )
+    current = max(0, min(int(target), len(records) - 1))
+    detail, single, boolean, text = _workspace_detail(records, answers, current)
+    return (
+        current,
+        _workspace_card(records, answers, marks, current),
+        detail,
+        single,
+        boolean,
+        text,
+    )
+
+
+def save_current_answer(
+    submission_id: str,
+    records: Sequence[Mapping[str, Any]],
+    answers: Mapping[str, Any],
+    state: Mapping[str, Any],
+) -> tuple[str, str]:
+    """保存当前会话中的答案，成功消息以服务回执为准。"""
+
+    try:
+        student_id = _student_id(state)
+        if not submission_id:
+            raise ValueError("请先开始或继续一场考试。")
+        parsed = _parse_answers(answers)
+        if parsed is None:
+            raise ValueError("请至少填写一道题的答案。")
+        with get_session_factory()() as session:
+            service = SubmissionService(session)
+            service.save_answers(
+                _parse_uuid(submission_id, "答卷标识"), parsed, student_id=student_id
+            )
+        return "已保存当前答卷答案。", feedback("答案已保存。", "success")
+    except (
+        PermissionDeniedError,
+        SubmissionServiceError,
+        SQLAlchemyError,
+        TypeError,
+        ValueError,
+    ) as error:
+        return "", _format_error(error)
+
+
+def prepare_submit(
+    records: Sequence[Mapping[str, Any]],
+    answers: Mapping[str, Any],
+) -> tuple[Any, ...]:
+    """显示内联交卷确认，未答题时只允许返回补答。"""
+
+    missing = [
+        str(index + 1)
+        for index, record in enumerate(records)
+        if not answers.get(str(record["id"]))
+    ]
+    text = f"交卷前确认：已答 {len(records) - len(missing)} / {len(records)} 题。" + (
+        f"未答题号：{'、'.join(missing)}。" if missing else "所有题目均已填写。"
+    )
+    return (
+        text,
+        gr.update(visible=True),
+        gr.update(interactive=not missing),
+        gr.update(visible=bool(missing)),
+        gr.update(visible=not missing),
+    )
+
+
+def confirm_submit(
+    submission_id: str,
+    answers: Mapping[str, Any],
+    records: Sequence[Mapping[str, Any]],
+    confirmed: bool,
+    state: Mapping[str, Any],
+) -> tuple[Any, ...]:
+    """确认后调用服务提交，提交成功后冻结当前控件。"""
+
+    try:
+        if not confirmed:
+            raise ValueError("请先确认交卷。")
+        missing = [record["id"] for record in records if not answers.get(record["id"])]
+        if missing:
+            raise ValueError("仍有未答题，请返回补答。")
+        with get_session_factory()() as session:
+            submission = SubmissionService(session).submit_submission(
+                _parse_uuid(submission_id, "答卷标识"),
+                student_id=_student_id(state),
+                answers=answers,
+            )
+        return (
+            status_badge(submission.status, entity="submission"),
+            feedback("答卷提交成功，答案已冻结。", "success"),
+            gr.update(interactive=False),
+            gr.update(interactive=False),
+            gr.update(interactive=False),
+            gr.update(interactive=False),
+            gr.update(interactive=False),
+            gr.update(interactive=False),
+            gr.update(interactive=False),
+            gr.update(interactive=False),
+            gr.update(visible=False),
+        )
+    except (
+        PermissionDeniedError,
+        SubmissionServiceError,
+        SQLAlchemyError,
+        TypeError,
+        ValueError,
+    ) as error:
+        return (
+            "",
+            _format_error(error),
+            gr.update(),
+            gr.update(),
+            gr.update(),
+            gr.update(),
+            gr.update(),
+            gr.update(),
+            gr.update(),
+            gr.update(),
+            gr.update(),
+        )
+
+
 def create_student_exam_view(session_state: Any | None = None) -> StudentExamView:
-    """创建学生考试面板。"""
+    """创建可参加考试、答题卡和逐题作答工作区。"""
 
     state = session_state or gr.State(_empty_state())
-    with gr.Column(visible=False) as panel:
-        gr.Markdown("## 参加考试")
+    with gr.Column(visible=False, elem_classes="edu-student-exam") as panel:
+        gr.HTML(
+            "<style>.edu-student-exam .edu-answer-text textarea "
+            "{min-height:240px !important;}</style>"
+        )
+        gr.Markdown("## 我的考试")
+        selected_exam = gr.Textbox(visible=False, container=False)
+        exam_ids = gr.State([])
+        submission_id = gr.Textbox(visible=False, container=False)
+        records = gr.State([])
+        answers = gr.State({})
+        marks = gr.State([])
+        current = gr.State(0)
+
         with gr.Row():
             refresh_button = gr.Button("刷新考试", variant="secondary")
-            exam_id_input = gr.Textbox(label="考试 ID")
-            open_button = gr.Button("开始或继续", variant="primary")
+            start_button = gr.Button("开始或继续", variant="primary")
         exams_table = gr.Dataframe(
             headers=list(EXAM_TABLE_HEADERS),
             datatype=EXAM_TABLE_DATATYPES,
@@ -506,75 +886,220 @@ def create_student_exam_view(session_state: Any | None = None) -> StudentExamVie
             label="可参加考试",
             **table_options(EXAM_TABLE_HEADERS),
         )
+        entry_message = gr.Markdown(empty_state("暂无可参加考试。"))
 
-        questions_table = gr.Dataframe(
-            headers=list(QUESTION_TABLE_HEADERS),
-            datatype=QUESTION_TABLE_DATATYPES,
-            value=[],
-            interactive=False,
-            label="考试题目",
-            **table_options(QUESTION_TABLE_HEADERS),
-        )
-        with gr.Row():
-            submission_id = gr.Textbox(label="答卷 ID", interactive=False)
-            answers_input = gr.JSON(
-                label="答案（题目 ID 到答案的 JSON）",
-                value={},
+        with gr.Column(
+            visible=False, elem_classes="edu-answer-workspace"
+        ) as answer_area:
+            with gr.Row():
+                exam_title = gr.Markdown("### 尚未开始考试")
+                submission_status = gr.Markdown()
+                deadline = gr.Markdown()
+                submit_button = gr.Button("交卷", variant="stop")
+            with gr.Row():
+                with gr.Column(scale=0, min_width=200, elem_classes="edu-answer-card"):
+                    card = gr.HTML()
+                    mark_button = gr.Button("标记本题")
+                with gr.Column(scale=1):
+                    question_detail = gr.Markdown(empty_state("请选择考试。"))
+                    single = gr.Radio(label="单选答案", choices=[], visible=False)
+                    boolean = gr.Radio(
+                        label="判断答案",
+                        choices=[("正确", "True"), ("错误", "False")],
+                        visible=False,
+                    )
+                    answer_text = gr.Textbox(
+                        label="简答答案（纯文本）",
+                        lines=8,
+                        elem_classes=["edu-answer-text"],
+                        visible=False,
+                    )
+                    with gr.Row():
+                        previous_button = gr.Button("上一题")
+                        save_button = gr.Button("保存当前答案")
+                        next_button = gr.Button("下一题")
+            with gr.Column(
+                visible=False, elem_classes="edu-submit-confirmation"
+            ) as confirmation:
+                confirmation_text = gr.Markdown()
+                confirm_checkbox = gr.Checkbox(
+                    label="我确认检查了当前答卷",
+                    value=False,
+                )
+                with gr.Row():
+                    return_button = gr.Button("返回补答")
+                    confirm_submit_button = gr.Button("确认交卷", variant="stop")
+
+            workspace_message = gr.Markdown(empty_state("答案尚未保存。"))
+
+        def refresh_entry(
+            current_state: Mapping[str, Any],
+        ) -> tuple[list[list[str]], list[str], str]:
+            try:
+                student_id = _student_id(current_state)
+                with get_session_factory()() as session:
+                    exams = SubmissionService(session).list_available_exams(
+                        student_id=student_id
+                    )
+                return (
+                    _exam_rows(exams),
+                    [exam.id for exam in exams],
+                    (
+                        feedback(f"已加载 {len(exams)} 场可参加考试。", "success")
+                        if exams
+                        else empty_state("暂无可参加考试。")
+                    ),
+                )
+            except (
+                PermissionDeniedError,
+                SubmissionServiceError,
+                SQLAlchemyError,
+                TypeError,
+                ValueError,
+            ) as error:
+                return [], [], _format_error(error)
+
+        def select_exam(event: gr.SelectData, ids: Sequence[str]) -> str:
+            index = (
+                event.index[0]
+                if isinstance(event.index, (list, tuple))
+                else event.index
             )
-        with gr.Row():
-            save_button = gr.Button("保存答案")
-            submit_button = gr.Button("提交答卷", variant="primary")
-        answers_table = gr.Dataframe(
-            headers=list(ANSWER_TABLE_HEADERS),
-            datatype=ANSWER_TABLE_DATATYPES,
-            value=[],
-            interactive=False,
-            label="答案状态",
-            **table_options(ANSWER_TABLE_HEADERS),
-        )
-        message = gr.Markdown(empty_state("尚未加载考试。"))
+            if (
+                not event.selected
+                or not isinstance(index, int)
+                or not 0 <= index < len(ids)
+            ):
+                raise ValueError("考试选择已失效，请重新选择。")
+            return ids[index]
+
+        def move_previous(index: int, *values: Any) -> tuple[Any, ...]:
+            return navigate_answer(index - 1, *values)
+
+        def move_next(index: int, *values: Any) -> tuple[Any, ...]:
+            return navigate_answer(index + 1, *values)
 
         refresh_button.click(
-            fn=refresh_exams,
+            refresh_entry,
             inputs=[state],
-            outputs=[exams_table, message],
+            outputs=[exams_table, exam_ids, entry_message],
             show_progress="hidden",
         )
-        open_button.click(
-            fn=start_exam,
-            inputs=[exam_id_input, state],
+        exams_table.select(select_exam, inputs=[exam_ids], outputs=[selected_exam])
+        start_button.click(
+            open_answer_workspace,
+            inputs=[selected_exam, state],
             outputs=[
-                questions_table,
+                exam_title,
+                deadline,
+                submission_status,
                 submission_id,
-                answers_input,
-                answers_table,
-                message,
+                records,
+                answers,
+                marks,
+                current,
+                card,
+                question_detail,
+                single,
+                boolean,
+                answer_text,
+                answer_area,
+                save_button,
+                previous_button,
+                mark_button,
+                next_button,
+                submit_button,
+                workspace_message,
             ],
+            show_progress="minimal",
+        )
+        answer_value_inputs = [records, answers, current, marks]
+        single.input(
+            update_current_answer,
+            inputs=[single, *answer_value_inputs],
+            outputs=[answers, card],
+            show_progress="hidden",
+        )
+        boolean.input(
+            update_current_answer,
+            inputs=[boolean, *answer_value_inputs],
+            outputs=[answers, card],
+            show_progress="hidden",
+        )
+        answer_text.input(
+            update_current_answer,
+            inputs=[answer_text, *answer_value_inputs],
+            outputs=[answers, card],
+            show_progress="hidden",
+        )
+        previous_button.click(
+            move_previous,
+            inputs=[current, records, answers, marks],
+            outputs=[current, card, question_detail, single, boolean, answer_text],
+            show_progress="hidden",
+        )
+        next_button.click(
+            move_next,
+            inputs=[current, records, answers, marks],
+            outputs=[current, card, question_detail, single, boolean, answer_text],
+            show_progress="hidden",
+        )
+        mark_button.click(
+            toggle_mark,
+            inputs=[marks, current, records, answers],
+            outputs=[marks, card],
             show_progress="hidden",
         )
         save_button.click(
-            fn=save_answers,
-            inputs=[submission_id, answers_input, state],
-            outputs=[answers_table, message],
+            save_current_answer,
+            inputs=[submission_id, records, answers, state],
+            outputs=[submission_status, workspace_message],
+            show_progress="minimal",
+        )
+        submit_button.click(
+            prepare_submit,
+            inputs=[records, answers],
+            outputs=[
+                confirmation_text,
+                confirmation,
+                confirm_submit_button,
+                return_button,
+                confirm_checkbox,
+            ],
             show_progress="hidden",
         )
-        bind_confirmation(
-            submit_button,
-            action="提交答卷",
-            target=submission_id,
-            callback=submit_exam,
-            inputs=[submission_id, answers_input, state],
-            outputs=[answers_table, message],
+        return_button.click(
+            lambda: {
+                confirmation: gr.update(visible=False),
+                confirm_checkbox: gr.update(value=False),
+            },
+            outputs=[confirmation, confirm_checkbox],
+            show_progress="hidden",
+        )
+        confirm_submit_button.click(
+            confirm_submit,
+            inputs=[submission_id, answers, records, confirm_checkbox, state],
+            outputs=[
+                submission_status,
+                workspace_message,
+                single,
+                boolean,
+                answer_text,
+                save_button,
+                submit_button,
+                confirmation,
+            ],
+            show_progress="minimal",
         )
 
     return StudentExamView(
         panel=panel,
         exams_table=exams_table,
-        questions_table=questions_table,
-        answers_table=answers_table,
+        questions_table=gr.Dataframe(visible=False),
+        answers_table=gr.Dataframe(visible=False),
         submission_id=submission_id,
-        answers_input=answers_input,
-        message=message,
+        answers_input=gr.JSON(visible=False),
+        message=workspace_message,
     )
 
 
