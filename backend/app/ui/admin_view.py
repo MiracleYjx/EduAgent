@@ -19,6 +19,15 @@ from backend.app.services.admin_service import (
     AdminSystemStatus,
     AdminUserSummary,
 )
+from backend.app.ui.layout_view import (
+    UiStatus,
+    bind_confirmation,
+    empty_state,
+    feedback,
+    status_badge,
+    status_label,
+    table_options,
+)
 
 USER_TABLE_HEADERS = ("用户 ID", "用户名", "邮箱", "状态", "角色", "创建时间")
 ROLE_CHOICES = [role.value for role in UserRole]
@@ -61,14 +70,16 @@ def _format_error(error: BaseException) -> str:
     """将内部异常转换成管理员可理解且不泄露敏感信息的提示。"""
 
     if isinstance(error, PermissionDeniedError):
-        return str(error) or "当前账号无权执行此操作。"
-    if isinstance(error, AdminServiceError):
-        return str(error) or _GENERIC_ERROR
-    if isinstance(error, SQLAlchemyError):
-        return "系统暂时无法连接数据库，请稍后重试。"
-    if isinstance(error, ValueError):
-        return f"输入有误：{error or '请检查输入内容。'}"
-    return _GENERIC_ERROR
+        message = str(error) or "当前账号无权执行此操作。"
+    elif isinstance(error, AdminServiceError):
+        message = str(error) or _GENERIC_ERROR
+    elif isinstance(error, SQLAlchemyError):
+        message = "系统暂时无法连接数据库，请稍后重试。"
+    elif isinstance(error, ValueError):
+        message = f"输入有误：{error or '请检查输入内容。'}"
+    else:
+        message = _GENERIC_ERROR
+    return feedback(message, "error")
 
 
 def _user_rows(users: Sequence[AdminUserSummary]) -> list[list[str]]:
@@ -79,8 +90,11 @@ def _user_rows(users: Sequence[AdminUserSummary]) -> list[list[str]]:
             user.id,
             user.username,
             user.email,
-            "启用" if user.is_active else "停用",
-            "、".join(user.roles),
+            status_badge(
+                UiStatus.ACTIVE if user.is_active else UiStatus.INACTIVE,
+                entity="ui",
+            ),
+            "、".join(status_label(role, entity="role") for role in user.roles),
             user.created_at.isoformat(),
         ]
         for user in users
@@ -91,27 +105,42 @@ def _role_rows(roles: Sequence[AdminRoleSummary]) -> list[list[str | int]]:
     """把角色摘要转换为 Gradio 表格行。"""
 
     return [
-        [role.name.value, role.description or "", role.user_count] for role in roles
+        [
+            status_label(role.name, entity="role"),
+            role.description or "",
+            role.user_count,
+        ]
+        for role in roles
     ]
 
 
 def _status_markdown(system_status: AdminSystemStatus) -> str:
     """把运行状态摘要转换为中文 Markdown。"""
 
-    overall = "正常" if system_status.overall_healthy else "异常"
-    database = "正常" if system_status.database.healthy else "异常"
-    redis = "正常" if system_status.redis.healthy else "异常"
+    overall_state = (
+        UiStatus.HEALTHY if system_status.overall_healthy else UiStatus.UNHEALTHY
+    )
+    database_state = (
+        UiStatus.HEALTHY if system_status.database.healthy else UiStatus.UNHEALTHY
+    )
+    redis_state = (
+        UiStatus.HEALTHY if system_status.redis.healthy else UiStatus.UNHEALTHY
+    )
+    overall = status_label(overall_state, entity="ui")
+    database = status_label(database_state, entity="ui")
+    redis = status_label(redis_state, entity="ui")
     role_lines = (
         "、".join(
-            f"{role} {count} 人" for role, count in system_status.users_by_role.items()
+            f"{status_label(role, entity='role')} {count} 人"
+            for role, count in system_status.users_by_role.items()
         )
         or "暂无角色统计"
     )
     return (
         f"### 系统状态：{overall}\n"
         f"- 检查时间：{system_status.checked_at.isoformat()}\n"
-        f"- 数据库：{database}（{system_status.database.detail}）\n"
-        f"- Redis：{redis}（{system_status.redis.detail}）\n"
+        f"- 数据库：{database} {status_badge(database_state, entity='ui')}（{system_status.database.detail}）\n"
+        f"- Redis：{redis} {status_badge(redis_state, entity='ui')}（{system_status.redis.detail}）\n"
         f"- 用户：{system_status.user_count if system_status.user_count is not None else '未知'}"
         f"，启用用户：{system_status.active_user_count if system_status.active_user_count is not None else '未知'}\n"
         f"- 角色：{system_status.role_count if system_status.role_count is not None else '未知'}"
@@ -126,7 +155,11 @@ def refresh_admin_users(state: Mapping[str, Any]) -> tuple[list[list[str]], str]
         _ensure_admin(state)
         with get_session_factory()() as session:
             users = AdminService(session).list_users()
-        return _user_rows(users), f"已加载 {len(users)} 个用户。"
+        return _user_rows(users), (
+            feedback(f"已加载 {len(users)} 个用户。", "success")
+            if users
+            else empty_state("暂无用户。")
+        )
     except (
         AdminServiceError,
         PermissionDeniedError,
@@ -144,7 +177,11 @@ def refresh_admin_roles(state: Mapping[str, Any]) -> tuple[list[list[str | int]]
         _ensure_admin(state)
         with get_session_factory()() as session:
             roles = AdminService(session).list_roles()
-        return _role_rows(roles), f"已加载 {len(roles)} 个角色。"
+        return _role_rows(roles), (
+            feedback(f"已加载 {len(roles)} 个角色。", "success")
+            if roles
+            else empty_state("暂无角色。")
+        )
     except (
         AdminServiceError,
         PermissionDeniedError,
@@ -195,7 +232,9 @@ def create_admin_user(
                 is_active=is_active,
             )
             users = service.list_users()
-        return _user_rows(users), f"用户“{created.username}”创建成功。"
+        return _user_rows(users), feedback(
+            f"用户“{created.username}”创建成功。", "success"
+        )
     except (
         AdminServiceError,
         PermissionDeniedError,
@@ -228,7 +267,9 @@ def update_admin_user(
                 is_active=is_active,
             )
             users = service.list_users()
-        return _user_rows(users), f"用户“{updated.username}”更新成功。"
+        return _user_rows(users), feedback(
+            f"用户“{updated.username}”更新成功。", "success"
+        )
     except (
         AdminServiceError,
         PermissionDeniedError,
@@ -252,7 +293,9 @@ def set_admin_user_roles(
             service = AdminService(session)
             updated = service.set_user_roles(user_id, roles or [])
             users = service.list_users()
-        return _user_rows(users), f"用户“{updated.username}”的角色已更新。"
+        return _user_rows(users), feedback(
+            f"用户“{updated.username}”的角色已更新。", "success"
+        )
     except (
         AdminServiceError,
         PermissionDeniedError,
@@ -275,7 +318,7 @@ def delete_admin_user(
             service = AdminService(session)
             service.delete_user(user_id)
             users = service.list_users()
-        return _user_rows(users), "用户删除成功。"
+        return _user_rows(users), feedback("用户删除成功。", "success")
     except (
         AdminServiceError,
         PermissionDeniedError,
@@ -300,6 +343,7 @@ def create_admin_view(session_state: Any | None = None) -> AdminView:
                 value=[],
                 interactive=False,
                 label="用户列表",
+                **table_options(USER_TABLE_HEADERS),
             )
             with gr.Row():
                 user_id = gr.Textbox(label="用户 ID")
@@ -330,6 +374,7 @@ def create_admin_view(session_state: Any | None = None) -> AdminView:
                 value=[],
                 interactive=False,
                 label="角色列表",
+                **table_options(("角色", "说明", "用户数量")),
             )
             role_user_id = gr.Textbox(label="用户 ID")
             assigned_roles = gr.CheckboxGroup(
@@ -345,8 +390,8 @@ def create_admin_view(session_state: Any | None = None) -> AdminView:
         with gr.Column() as status_section:
             gr.Markdown("## 运行状态")
             refresh_status = gr.Button("刷新运行状态", variant="primary")
-            status_panel = gr.Markdown("尚未加载运行状态。")
-        message = gr.Markdown()
+            status_panel = gr.Markdown(empty_state("尚未加载运行状态。"))
+        message = gr.Markdown(empty_state("尚未加载用户或角色。"))
         refresh_users.click(
             fn=refresh_admin_users,
             inputs=[state],
@@ -377,11 +422,13 @@ def create_admin_view(session_state: Any | None = None) -> AdminView:
             outputs=[users_table, message],
             show_progress="hidden",
         )
-        delete_button.click(
-            fn=delete_admin_user,
+        bind_confirmation(
+            delete_button,
+            action="删除用户",
+            target=user_id,
+            callback=delete_admin_user,
             inputs=[user_id, state],
             outputs=[users_table, message],
-            show_progress="hidden",
         )
         refresh_status.click(
             fn=refresh_admin_status,

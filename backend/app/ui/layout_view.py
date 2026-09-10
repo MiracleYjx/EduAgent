@@ -30,8 +30,19 @@ from backend.app.domain.enums import (
 
 StatusTone = Literal["neutral", "info", "success", "warning", "danger"]
 StatusEntity = Literal[
-    "ui", "question", "question_type", "document", "exam", "submission",
-    "answer", "grading", "grading_mode", "review", "validation", "workflow", "role",
+    "ui",
+    "question",
+    "question_type",
+    "document",
+    "exam",
+    "submission",
+    "answer",
+    "grading",
+    "grading_mode",
+    "review",
+    "validation",
+    "workflow",
+    "role",
 ]
 
 
@@ -48,6 +59,8 @@ class UiStatus(StrEnum):
     COMPLETED = "completed"
     CONFIRMED = "confirmed"
     FAILED = "failed"
+    ACTIVE = "active"
+    INACTIVE = "inactive"
     LOADING = "loading"
     EMPTY = "empty"
     INFO = "info"
@@ -56,13 +69,15 @@ class UiStatus(StrEnum):
 
 
 # 前景、背景、边框均为固定显示规范；调用方不能原地修改全局颜色。
-STATUS_COLORS: Mapping[StatusTone, tuple[str, str, str]] = MappingProxyType({
-    "neutral": ("#64748B", "#F8FAFC", "#64748B"),
-    "info": ("#2563EB", "#EFF6FF", "#2563EB"),
-    "success": ("#15803D", "#F0FDF4", "#15803D"),
-    "warning": ("#B45309", "#FFFBEB", "#B45309"),
-    "danger": ("#B91C1C", "#FEF2F2", "#B91C1C"),
-})
+STATUS_COLORS: Mapping[StatusTone, tuple[str, str, str]] = MappingProxyType(
+    {
+        "neutral": ("#64748B", "#F8FAFC", "#64748B"),
+        "info": ("#2563EB", "#EFF6FF", "#2563EB"),
+        "success": ("#15803D", "#F0FDF4", "#15803D"),
+        "warning": ("#B45309", "#FFFBEB", "#B45309"),
+        "danger": ("#B91C1C", "#FEF2F2", "#B91C1C"),
+    }
+)
 
 
 @dataclass(frozen=True)
@@ -81,85 +96,140 @@ class StatusPresentation:
         return STATUS_COLORS[self.tone][0]
 
 
-_ENUM_TYPES: Mapping[str, type[StrEnum]] = MappingProxyType({
-    "ui": UiStatus, "question": QuestionStatus, "question_type": QuestionType,
-    "document": DocumentStatus, "exam": ExamStatus, "submission": SubmissionStatus,
-    "answer": AnswerStatus, "grading": GradingStatus, "grading_mode": GradingMode,
-    "review": ReviewStatus, "validation": ValidationStatus, "workflow": WorkflowStatus,
-    "role": UserRole,
-})
+_ENUM_TYPES: Mapping[str, type[StrEnum]] = MappingProxyType(
+    {
+        "ui": UiStatus,
+        "question": QuestionStatus,
+        "question_type": QuestionType,
+        "document": DocumentStatus,
+        "exam": ExamStatus,
+        "submission": SubmissionStatus,
+        "answer": AnswerStatus,
+        "grading": GradingStatus,
+        "grading_mode": GradingMode,
+        "review": ReviewStatus,
+        "validation": ValidationStatus,
+        "workflow": WorkflowStatus,
+        "role": UserRole,
+    }
+)
 
 
-def _status_map(*rows: tuple[str, str, StatusTone, str]) -> Mapping[str, StatusPresentation]:
-    return MappingProxyType({value: StatusPresentation(value, label, tone, icon)
-                             for value, label, tone, icon in rows})
+def _status_map(
+    *rows: tuple[str, str, StatusTone, str]
+) -> Mapping[str, StatusPresentation]:
+    return MappingProxyType(
+        {
+            value: StatusPresentation(value, label, tone, icon)
+            for value, label, tone, icon in rows
+        }
+    )
 
 
 # 必须先按实体取表，再读取枚举值，避免相同的 Pending Review 被误译。
-_STATUS_MAPS: Mapping[str, Mapping[str, StatusPresentation]] = MappingProxyType({
-    "ui": _status_map(
-        ("unanswered", "未答", "neutral", "○"), ("answered", "已答", "success", "✓"),
-        ("marked", "已标记", "warning", "⚑"), ("current", "当前题", "info", "◎"),
-        ("pending_grading", "待批阅", "warning", "◷"),
-        ("low_confidence", "低置信度，待人工复核", "warning", "⚠"),
-        ("pending_review", "待人工复核", "warning", "⚠"),
-        ("completed", "已完成", "success", "✓"), ("confirmed", "已确认", "success", "✓"),
-        ("failed", "处理失败", "danger", "✕"), ("loading", "正在加载", "info", "◷"),
-        ("empty", "暂无数据", "neutral", "○"), ("info", "提示", "info", "i"),
-        ("healthy", "正常", "success", "✓"), ("unhealthy", "异常", "danger", "✕"),
-    ),
-    "question": _status_map(
-        ("Draft", "草稿", "neutral", "▤"), ("Candidate Generation", "候选题", "warning", "▤"),
-        ("Pending Review", "待教师审核", "warning", "◷"), ("Approved", "审核通过", "success", "✓"),
-        ("Needs Revision", "待修订", "warning", "✎"), ("Published", "已发布", "success", "✓"),
-    ),
-    "question_type": _status_map(
-        ("SINGLE_CHOICE", "单选题", "neutral", "○"), ("MULTIPLE_CHOICE", "多选题", "neutral", "▤"),
-        ("TRUE_FALSE", "判断题", "neutral", "○"), ("FILL_BLANK", "填空题", "neutral", "▤"),
-        ("SHORT_ANSWER", "简答题", "neutral", "▤"), ("ESSAY", "论述题", "neutral", "▤"),
-    ),
-    "document": _status_map(
-        ("Uploaded", "已上传，待处理", "info", "↑"), ("Parsing", "正在解析", "info", "◷"),
-        ("Chunking", "正在分块", "info", "◷"), ("Embedding", "正在向量化", "info", "◷"),
-        ("Ready", "资料已就绪", "success", "✓"), ("Failed", "处理失败", "danger", "✕"),
-    ),
-    "exam": _status_map(
-        ("Draft", "草稿", "neutral", "▤"), ("Published", "已发布", "success", "✓"),
-        ("Closed", "已关闭", "neutral", "○"), ("Archived", "已归档", "neutral", "▤"),
-    ),
-    "submission": _status_map(
-        ("Draft", "草稿", "neutral", "▤"), ("Submitted", "已提交，待批阅", "warning", "◷"),
-        ("Graded", "已评分，尚未最终确认", "info", "✓"), ("Reviewed", "已复核", "success", "✓"),
-    ),
-    "answer": _status_map(
-        ("Draft", "草稿", "neutral", "▤"), ("Submitted", "待批阅", "warning", "◷"),
-        ("Grading", "正在批阅", "info", "◷"), ("Graded", "已评分，尚未最终确认", "info", "✓"),
-        ("Failed", "批阅失败", "danger", "✕"),
-    ),
-    "grading": _status_map(
-        ("Pending", "待批阅", "warning", "◷"), ("Validated", "校验通过", "info", "✓"),
-        ("Accepted", "评分已接受", "info", "✓"), ("Pending Review", "待人工复核", "warning", "⚠"),
-        ("Final", "最终评分", "success", "✓"), ("Failed", "评分失败", "danger", "✕"),
-    ),
-    "review": _status_map(
-        ("Not Required", "无需复核", "neutral", "○"), ("Pending Review", "待人工复核", "warning", "⚠"),
-        ("Confirmed", "已确认", "success", "✓"), ("Modified", "已修改", "info", "✎"),
-        ("Re-grade", "待重新评分", "warning", "◷"), ("Final", "复核已完成", "success", "✓"),
-    ),
-    "validation": _status_map(
-        ("Pending", "待校验", "warning", "◷"), ("Validated", "校验通过", "success", "✓"),
-        ("Failed", "校验失败", "danger", "✕"),
-    ),
-    "workflow": _status_map(
-        ("Queued", "排队中", "warning", "◷"), ("Running", "处理中", "info", "◷"),
-        ("Paused", "已暂停", "warning", "‖"), ("Failed", "处理失败", "danger", "✕"),
-        ("Completed", "已完成", "success", "✓"),
-    ),
-    "role": _status_map(("Teacher", "教师", "neutral", "○"),
-                        ("Student", "学生", "neutral", "○"), ("Admin", "管理员", "neutral", "○")),
-    "grading_mode": _status_map(("Objective", "客观题评分", "info", "▤"),
-                                ("Subjective", "主观题评分", "info", "▤")),
-})
+_STATUS_MAPS: Mapping[str, Mapping[str, StatusPresentation]] = MappingProxyType(
+    {
+        "ui": _status_map(
+            ("unanswered", "未答", "neutral", "○"),
+            ("answered", "已答", "success", "✓"),
+            ("marked", "已标记", "warning", "⚑"),
+            ("current", "当前题", "info", "◎"),
+            ("pending_grading", "待批阅", "warning", "◷"),
+            ("low_confidence", "低置信度，待人工复核", "warning", "⚠"),
+            ("pending_review", "待人工复核", "warning", "⚠"),
+            ("completed", "已完成", "success", "✓"),
+            ("confirmed", "已确认", "success", "✓"),
+            ("failed", "处理失败", "danger", "✕"),
+            ("loading", "正在加载", "info", "◷"),
+            ("empty", "暂无数据", "neutral", "○"),
+            ("info", "提示", "info", "i"),
+            ("active", "启用", "success", "✓"),
+            ("inactive", "停用", "neutral", "○"),
+            ("healthy", "正常", "success", "✓"),
+            ("unhealthy", "异常", "danger", "✕"),
+        ),
+        "question": _status_map(
+            ("Draft", "草稿", "neutral", "▤"),
+            ("Candidate Generation", "候选题", "warning", "▤"),
+            ("Pending Review", "待教师审核", "warning", "◷"),
+            ("Approved", "审核通过", "success", "✓"),
+            ("Needs Revision", "待修订", "warning", "✎"),
+            ("Published", "已发布", "success", "✓"),
+        ),
+        "question_type": _status_map(
+            ("SINGLE_CHOICE", "单选题", "neutral", "○"),
+            ("MULTIPLE_CHOICE", "多选题", "neutral", "▤"),
+            ("TRUE_FALSE", "判断题", "neutral", "○"),
+            ("FILL_BLANK", "填空题", "neutral", "▤"),
+            ("SHORT_ANSWER", "简答题", "neutral", "▤"),
+            ("ESSAY", "论述题", "neutral", "▤"),
+        ),
+        "document": _status_map(
+            ("Uploaded", "已上传，待处理", "info", "↑"),
+            ("Parsing", "正在解析", "info", "◷"),
+            ("Chunking", "正在分块", "info", "◷"),
+            ("Embedding", "正在向量化", "info", "◷"),
+            ("Ready", "资料已就绪", "success", "✓"),
+            ("Failed", "处理失败", "danger", "✕"),
+        ),
+        "exam": _status_map(
+            ("Draft", "草稿", "neutral", "▤"),
+            ("Published", "已发布", "success", "✓"),
+            ("Closed", "已关闭", "neutral", "○"),
+            ("Archived", "已归档", "neutral", "▤"),
+        ),
+        "submission": _status_map(
+            ("Draft", "草稿", "neutral", "▤"),
+            ("Submitted", "已提交，待批阅", "warning", "◷"),
+            ("Graded", "已评分，尚未最终确认", "info", "✓"),
+            ("Reviewed", "已复核", "success", "✓"),
+        ),
+        "answer": _status_map(
+            ("Draft", "草稿", "neutral", "▤"),
+            ("Submitted", "待批阅", "warning", "◷"),
+            ("Grading", "正在批阅", "info", "◷"),
+            ("Graded", "已评分，尚未最终确认", "info", "✓"),
+            ("Failed", "批阅失败", "danger", "✕"),
+        ),
+        "grading": _status_map(
+            ("Pending", "待批阅", "warning", "◷"),
+            ("Validated", "校验通过", "info", "✓"),
+            ("Accepted", "评分已接受", "info", "✓"),
+            ("Pending Review", "待人工复核", "warning", "⚠"),
+            ("Final", "最终评分", "success", "✓"),
+            ("Failed", "评分失败", "danger", "✕"),
+        ),
+        "review": _status_map(
+            ("Not Required", "无需复核", "neutral", "○"),
+            ("Pending Review", "待人工复核", "warning", "⚠"),
+            ("Confirmed", "已确认", "success", "✓"),
+            ("Modified", "已修改", "info", "✎"),
+            ("Re-grade", "待重新评分", "warning", "◷"),
+            ("Final", "复核已完成", "success", "✓"),
+        ),
+        "validation": _status_map(
+            ("Pending", "待校验", "warning", "◷"),
+            ("Validated", "校验通过", "success", "✓"),
+            ("Failed", "校验失败", "danger", "✕"),
+        ),
+        "workflow": _status_map(
+            ("Queued", "排队中", "warning", "◷"),
+            ("Running", "处理中", "info", "◷"),
+            ("Paused", "已暂停", "warning", "‖"),
+            ("Failed", "处理失败", "danger", "✕"),
+            ("Completed", "已完成", "success", "✓"),
+        ),
+        "role": _status_map(
+            ("Teacher", "教师", "neutral", "○"),
+            ("Student", "学生", "neutral", "○"),
+            ("Admin", "管理员", "neutral", "○"),
+        ),
+        "grading_mode": _status_map(
+            ("Objective", "客观题评分", "info", "▤"),
+            ("Subjective", "主观题评分", "info", "▤"),
+        ),
+    }
+)
 _UNKNOWN_STATUS = StatusPresentation("unknown", "状态未知", "neutral", "?")
 
 
@@ -199,12 +269,18 @@ def status_text(value: Enum | str | None, *, entity: StatusEntity) -> str:
     return f"{item.icon} {item.label}"
 
 
-def status_choices(values: Iterable[Enum | str], *, entity: StatusEntity,
-                   include_all: bool = False) -> list[tuple[str, str]]:
+def status_choices(
+    values: Iterable[Enum | str], *, entity: StatusEntity, include_all: bool = False
+) -> list[tuple[str, str]]:
     """显示中文但保留原始提交值；不会扩大调用方给定的选项集合。"""
 
-    choices = [(status_label(value, entity=entity), str(value.value if isinstance(value, Enum) else value))
-               for value in values]
+    choices = [
+        (
+            status_label(value, entity=entity),
+            str(value.value if isinstance(value, Enum) else value),
+        )
+        for value in values
+    ]
     return [("全部", ""), *choices] if include_all else choices
 
 
@@ -212,18 +288,24 @@ def status_badge(value: Enum | str | None, *, entity: StatusEntity) -> str:
     """渲染只读徽标；原生操作按钮由调用视图独立绑定。"""
 
     item = get_status(value, entity=entity)
-    return (f'<span class="edu-status edu-tone-{item.tone}" data-status="{escape(item.value)}">'
-            f'<span aria-hidden="true">{item.icon}</span><span>{item.label}</span></span>')
+    return (
+        f'<span class="edu-status edu-tone-{item.tone}" data-status="{escape(item.value)}">'
+        f'<span aria-hidden="true">{item.icon}</span><span>{item.label}</span></span>'
+    )
 
 
-def status_banner(value: Enum | str | None, *, entity: StatusEntity, detail: str = "") -> str:
+def status_banner(
+    value: Enum | str | None, *, entity: StatusEntity, detail: str = ""
+) -> str:
     """渲染状态横幅，动态说明按文本转义，失败状态使用警告语义。"""
 
     item = get_status(value, entity=entity)
     role = "alert" if item.tone == "danger" else "status"
     body = f'<div class="edu-status-detail">{escape(detail)}</div>' if detail else ""
-    return (f'<div class="edu-state-banner edu-tone-{item.tone}" role="{role}">'
-            f'{status_badge(value, entity=entity)}{body}</div>')
+    return (
+        f'<div class="edu-state-banner edu-tone-{item.tone}" role="{role}">'
+        f"{status_badge(value, entity=entity)}{body}</div>"
+    )
 
 
 def empty_state(message: str = "暂无数据。") -> str:
@@ -235,11 +317,16 @@ def empty_state(message: str = "暂无数据。") -> str:
 def loading_state(message: str = "正在加载，请稍候。") -> str:
     """渲染带忙碌语义的中文加载状态。"""
 
-    return '<div aria-busy="true">' + status_banner(UiStatus.LOADING, entity="ui", detail=message) + '</div>'
+    return (
+        '<div aria-busy="true">'
+        + status_banner(UiStatus.LOADING, entity="ui", detail=message)
+        + "</div>"
+    )
 
 
-def confidence_banner(confidence: float | None, *, low_confidence: bool,
-                      threshold: float | None = None) -> str:
+def confidence_banner(
+    confidence: float | None, *, low_confidence: bool, threshold: float | None = None
+) -> str:
     """展示服务给定的分流结论及实际数值；不设默认阈值、不比较大小。"""
 
     def number(value: float | None) -> str:
@@ -250,12 +337,16 @@ def confidence_banner(confidence: float | None, *, low_confidence: bool,
     detail = f"置信度：{number(confidence)}"
     if threshold is not None:
         detail += f"；服务阈值：{number(threshold)}"
-    return status_banner(UiStatus.LOW_CONFIDENCE if low_confidence else UiStatus.INFO,
-                         entity="ui", detail=detail)
+    return status_banner(
+        UiStatus.LOW_CONFIDENCE if low_confidence else UiStatus.INFO,
+        entity="ui",
+        detail=detail,
+    )
 
 
-def question_indicator(number: int, *, answered: bool = False, marked: bool = False,
-                       current: bool = False) -> str:
+def question_indicator(
+    number: int, *, answered: bool = False, marked: bool = False, current: bool = False
+) -> str:
     """渲染答题卡标识，三种状态独立叠加；answered 由调用方显式给定。
 
     判断题答案 False 也可以传 answered=True。此标识不代表答对或已保存。
@@ -268,11 +359,13 @@ def question_indicator(number: int, *, answered: bool = False, marked: bool = Fa
     tone = get_status(state, entity="ui").tone
     current_class = " edu-question-current" if current else ""
     current_attr = ' aria-current="step"' if current else ""
-    return (f'<span class="edu-question-indicator edu-tone-{tone}{current_class}"{current_attr}>'
-            f'<span class="edu-question-number">{number}</span>'
-            f'<span>{status_text(state, entity="ui")}</span>'
-            f'<span class="edu-question-mark">{status_text(UiStatus.MARKED, entity="ui") if marked else ""}</span>'
-            f'<span class="edu-question-position">{"当前题" if current else ""}</span></span>')
+    return (
+        f'<span class="edu-question-indicator edu-tone-{tone}{current_class}"{current_attr}>'
+        f'<span class="edu-question-number">{number}</span>'
+        f'<span>{status_text(state, entity="ui")}</span>'
+        f'<span class="edu-question-mark">{status_text(UiStatus.MARKED, entity="ui") if marked else ""}</span>'
+        f'<span class="edu-question-position">{"当前题" if current else ""}</span></span>'
+    )
 
 
 @dataclass(frozen=True)
@@ -299,14 +392,14 @@ ROLE_NAVIGATION: tuple[LayoutNavigationItem, ...] = (
         "课程管理",
         "教学准备",
         frozenset({UserRole.TEACHER}),
-        "课程管理功能暂不可用。",
+        "课程与知识库元数据管理。",
     ),
     LayoutNavigationItem(
         "teacher.knowledge",
         "知识库",
         "教学准备",
         frozenset({UserRole.TEACHER}),
-        "知识库功能暂不可用。",
+        "课程资料与处理状态。",
     ),
     LayoutNavigationItem(
         "teacher.questions",
@@ -395,10 +488,12 @@ ROLE_NAVIGATION: tuple[LayoutNavigationItem, ...] = (
 )
 
 
-STATUS_CSS = "\n".join(
-    f".edu-tone-{tone} {{ --edu-status-fg: {colors[0]}; --edu-status-bg: {colors[1]}; --edu-status-border: {colors[2]}; }}"
-    for tone, colors in STATUS_COLORS.items()
-) + """
+STATUS_CSS = (
+    "\n".join(
+        f".edu-tone-{tone} {{ --edu-status-fg: {colors[0]}; --edu-status-bg: {colors[1]}; --edu-status-border: {colors[2]}; }}"
+        for tone, colors in STATUS_COLORS.items()
+    )
+    + """
 .edu-status { display: inline-flex; align-items: center; gap: 6px; padding: 3px 8px;
     max-width: 100%; color: var(--edu-status-fg); background: var(--edu-status-bg);
     border: 1px solid var(--edu-status-border); border-radius: 4px; font-size: 13px;
@@ -423,6 +518,7 @@ STATUS_CSS = "\n".join(
 .edu-confirmation button { min-height: 44px; }
 .edu-status-table { min-width: 0 !important; max-width: 100%; }
 """
+)
 
 
 def create_status_styles() -> gr.HTML:
@@ -434,11 +530,24 @@ def create_status_styles() -> gr.HTML:
 def table_options(headers: Sequence[str]) -> dict[str, Any]:
     """统一只读表格尺寸，长文本换行，横向滚动留在表格内部。"""
 
-    widths = [240 if any(word in header for word in ("内容", "标题", "名称", "说明", "答案"))
-              else 168 if "状态" in header else 180 if "ID" in header or "时间" in header else 112
-              for header in headers]
-    return {"wrap": True, "max_height": 420, "column_widths": widths,
-            "elem_classes": ["edu-status-table"]}
+    widths = [
+        (
+            240
+            if any(word in header for word in ("内容", "标题", "名称", "说明", "答案"))
+            else (
+                168
+                if "状态" in header
+                else 180 if "ID" in header or "时间" in header else 112
+            )
+        )
+        for header in headers
+    ]
+    return {
+        "wrap": True,
+        "max_height": 420,
+        "column_widths": widths,
+        "elem_classes": ["edu-status-table"],
+    }
 
 
 WORKSPACE_CSS = STATUS_CSS + """
@@ -565,9 +674,14 @@ def feedback(message: str, kind: str = "info") -> str:
 
     if not message:
         return ""
-    state = {"info": UiStatus.INFO, "success": UiStatus.COMPLETED,
-             "error": UiStatus.FAILED, "warning": UiStatus.PENDING_REVIEW,
-             "loading": UiStatus.LOADING, "empty": UiStatus.EMPTY}.get(kind, UiStatus.INFO)
+    state = {
+        "info": UiStatus.INFO,
+        "success": UiStatus.COMPLETED,
+        "error": UiStatus.FAILED,
+        "warning": UiStatus.PENDING_REVIEW,
+        "loading": UiStatus.LOADING,
+        "empty": UiStatus.EMPTY,
+    }.get(kind, UiStatus.INFO)
     return status_banner(state, entity="ui", detail=message)
 
 
@@ -582,9 +696,15 @@ class ConfirmationView:
     pending: gr.State
 
 
-def bind_confirmation(trigger: gr.Button, *, action: str, target: gr.Textbox,
-                      callback: Callable[..., Any], inputs: Sequence[Any],
-                      outputs: Sequence[Any]) -> ConfirmationView:
+def bind_confirmation(
+    trigger: gr.Button,
+    *,
+    action: str,
+    target: gr.Textbox,
+    callback: Callable[..., Any],
+    inputs: Sequence[Any],
+    outputs: Sequence[Any],
+) -> ConfirmationView:
     """把已有操作接入双阶段确认，不实现删除、提交或发布业务。
 
     inputs 是原回调的参数顺序，包含 target；值应可深拷贝且支持比较。
@@ -607,9 +727,15 @@ def bind_confirmation(trigger: gr.Button, *, action: str, target: gr.Textbox,
         label = str(values[target_index] or "").strip()
         if not label:
             raise gr.Error("请先选择操作对象。")
-        return {pending: deepcopy(list(values)), panel: gr.update(visible=True),
-                message: status_banner(UiStatus.INFO, entity="ui",
-                                       detail=f"确认{action}：{label}\n确认后将执行此操作。")}
+        return {
+            pending: deepcopy(list(values)),
+            panel: gr.update(visible=True),
+            message: status_banner(
+                UiStatus.INFO,
+                entity="ui",
+                detail=f"确认{action}：{label}\n确认后将执行此操作。",
+            ),
+        }
 
     def execute(snapshot: list[Any] | None, *values: Any) -> dict[Any, Any]:
         if snapshot is None or snapshot != list(values):
@@ -624,9 +750,17 @@ def bind_confirmation(trigger: gr.Button, *, action: str, target: gr.Textbox,
         return result
 
     local_outputs = [panel, pending, message]
-    trigger.click(request, inputs=list(inputs), outputs=local_outputs, show_progress="hidden")
-    confirm.click(execute, inputs=[pending, *inputs], outputs=[*outputs, *local_outputs],
-                  show_progress="minimal", concurrency_id="eduagent-ui", concurrency_limit=1)
+    trigger.click(
+        request, inputs=list(inputs), outputs=local_outputs, show_progress="hidden"
+    )
+    confirm.click(
+        execute,
+        inputs=[pending, *inputs],
+        outputs=[*outputs, *local_outputs],
+        show_progress="minimal",
+        concurrency_id="eduagent-ui",
+        concurrency_limit=1,
+    )
     cancel.click(close, outputs=local_outputs, show_progress="hidden", queue=False)
     for component in inputs:
         if not isinstance(component, gr.State):
@@ -664,9 +798,9 @@ def resettable_components(panel: Any) -> list[tuple[Any, Any]]:
 
 __all__ = [
     "ROLE_NAVIGATION",
-    "WORKSPACE_CSS",
     "STATUS_COLORS",
     "STATUS_CSS",
+    "WORKSPACE_CSS",
     "ConfirmationView",
     "LayoutNavigationItem",
     "StatusEntity",
@@ -680,11 +814,11 @@ __all__ = [
     "feedback",
     "get_status",
     "is_authorized_navigation",
+    "loading_state",
     "navigation_item",
     "navigation_items_for_roles",
     "placeholder_page",
     "question_indicator",
-    "loading_state",
     "resettable_components",
     "status_badge",
     "status_banner",

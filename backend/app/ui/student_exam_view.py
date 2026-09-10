@@ -9,9 +9,6 @@ from typing import Any, Literal, cast
 from uuid import UUID
 
 import gradio as gr
-from backend.app.ui.layout_view import (
-    bind_confirmation, empty_state, feedback, status_badge, status_label, table_options,
-)
 from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import selectinload
@@ -32,6 +29,14 @@ from backend.app.services.submission_service import (
     SubmissionServiceError,
     SubmissionSummary,
     SubmissionValidationError,
+)
+from backend.app.ui.layout_view import (
+    bind_confirmation,
+    empty_state,
+    feedback,
+    status_badge,
+    status_label,
+    table_options,
 )
 
 EXAM_TABLE_HEADERS = (
@@ -127,8 +132,8 @@ def _format_error(error: BaseException) -> str:
     """将内部异常转换成安全且易理解的中文提示。"""
 
     if isinstance(error, PermissionDeniedError):
-        return str(error) or "当前账号无权执行此操作。"
-    if isinstance(
+        message = str(error) or "当前账号无权执行此操作。"
+    elif isinstance(
         error,
         (
             SubmissionConflictError,
@@ -136,16 +141,17 @@ def _format_error(error: BaseException) -> str:
             SubmissionNotFoundError,
             SubmissionPermissionError,
             SubmissionValidationError,
+            SubmissionServiceError,
         ),
     ):
-        return str(error) or _GENERIC_ERROR
-    if isinstance(error, SubmissionServiceError):
-        return str(error) or _GENERIC_ERROR
-    if isinstance(error, SQLAlchemyError):
-        return "系统暂时无法连接数据库，请稍后重试。"
-    if isinstance(error, (TypeError, ValueError, json.JSONDecodeError)):
-        return f"输入有误：{error or '请检查输入内容。'}"
-    return _GENERIC_ERROR
+        message = str(error) or _GENERIC_ERROR
+    elif isinstance(error, SQLAlchemyError):
+        message = "系统暂时无法连接数据库，请稍后重试。"
+    elif isinstance(error, (TypeError, ValueError, json.JSONDecodeError)):
+        message = f"输入有误：{error or '请检查输入内容。'}"
+    else:
+        message = _GENERIC_ERROR
+    return feedback(message, "error")
 
 
 def _exam_rows(exams: Sequence[AvailableExamSummary]) -> list[list[str]]:
@@ -211,7 +217,11 @@ def _answer_rows(answers: Sequence[AnswerSummary]) -> list[list[str]]:
     """将答案摘要转换为学生可查看的处理状态表格。"""
 
     return [
-        [answer.question_id, _answer_text(answer.content), status_badge(answer.status, entity="answer")]
+        [
+            answer.question_id,
+            _answer_text(answer.content),
+            status_badge(answer.status, entity="answer"),
+        ]
         for answer in answers
     ]
 
@@ -344,7 +354,11 @@ def refresh_exams(state: Mapping[str, Any]) -> tuple[list[list[str]], str]:
             exams = SubmissionService(session).list_available_exams(
                 student_id=student_id,
             )
-        return _exam_rows(exams), feedback(f"已加载 {len(exams)} 场可参加考试。", "success") if exams else empty_state("暂无可参加考试。")
+        return _exam_rows(exams), (
+            feedback(f"已加载 {len(exams)} 场可参加考试。", "success")
+            if exams
+            else empty_state("暂无可参加考试。")
+        )
     except (
         PermissionDeniedError,
         SubmissionServiceError,
@@ -457,7 +471,9 @@ def submit_exam(
                 student_id=student_id,
                 answers=parsed_answers,
             )
-        return _answer_rows(submission.answers), feedback("答卷提交成功，答案已冻结。", "success")
+        return _answer_rows(submission.answers), feedback(
+            "答卷提交成功，答案已冻结。", "success"
+        )
     except (
         PermissionDeniedError,
         SubmissionServiceError,
@@ -543,7 +559,10 @@ def create_student_exam_view(session_state: Any | None = None) -> StudentExamVie
             show_progress="hidden",
         )
         bind_confirmation(
-            submit_button, action="提交答卷", target=submission_id, callback=submit_exam,
+            submit_button,
+            action="提交答卷",
+            target=submission_id,
+            callback=submit_exam,
             inputs=[submission_id, answers_input, state],
             outputs=[answers_table, message],
         )

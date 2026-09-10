@@ -10,11 +10,6 @@ from typing import Any, Literal, cast
 from uuid import UUID
 
 import gradio as gr
-
-from backend.app.ui.layout_view import (
-    bind_confirmation, empty_state, feedback, status_badge, status_choices,
-    status_label, table_options,
-)
 from sqlalchemy.exc import SQLAlchemyError
 
 from backend.app.core.database import get_session_factory
@@ -25,6 +20,15 @@ from backend.app.services.exam_service import (
     ExamService,
     ExamServiceError,
     ExamSummary,
+)
+from backend.app.ui.layout_view import (
+    bind_confirmation,
+    empty_state,
+    feedback,
+    status_badge,
+    status_choices,
+    status_label,
+    table_options,
 )
 
 EXAM_STATUS_CHOICES = [exam_status.value for exam_status in ExamStatus]
@@ -89,16 +93,18 @@ def _format_error(error: BaseException) -> str:
     """将内部异常转换成安全且易理解的中文提示。"""
 
     if isinstance(error, PermissionDeniedError):
-        return str(error) or "当前账号无权执行此操作。"
-    if isinstance(error, ExamPermissionError):
-        return str(error) or "当前账号无权访问该考试。"
-    if isinstance(error, ExamServiceError):
-        return str(error) or _GENERIC_ERROR
-    if isinstance(error, SQLAlchemyError):
-        return "系统暂时无法连接数据库，请稍后重试。"
-    if isinstance(error, (TypeError, ValueError)):
-        return f"输入有误：{error or '请检查输入内容。'}"
-    return _GENERIC_ERROR
+        message = str(error) or "当前账号无权执行此操作。"
+    elif isinstance(error, ExamPermissionError):
+        message = str(error) or "当前账号无权访问该考试。"
+    elif isinstance(error, ExamServiceError):
+        message = str(error) or _GENERIC_ERROR
+    elif isinstance(error, SQLAlchemyError):
+        message = "系统暂时无法连接数据库，请稍后重试。"
+    elif isinstance(error, (TypeError, ValueError)):
+        message = f"输入有误：{error or '请检查输入内容。'}"
+    else:
+        message = _GENERIC_ERROR
+    return feedback(message, "error")
 
 
 def _course_filter(value: Any) -> str | None:
@@ -249,7 +255,11 @@ def refresh_exams(
                 course_id=_course_filter(course_id),
                 exam_status=_status_filter(exam_status),
             )
-        return rows, feedback(f"已加载 {len(rows)} 场考试。", "success") if rows else empty_state("暂无考试。")
+        return rows, (
+            feedback(f"已加载 {len(rows)} 场考试。", "success")
+            if rows
+            else empty_state("暂无考试。")
+        )
     except (
         PermissionDeniedError,
         ExamServiceError,
@@ -299,7 +309,10 @@ def create_exam(
             )
         return (
             rows,
-            feedback(f"考试“{created.title}”创建成功，当前状态为“{status_label(created.status, entity='exam')}”。", "success"),
+            feedback(
+                f"考试“{created.title}”创建成功，当前状态为“{status_label(created.status, entity='exam')}”。",
+                "success",
+            ),
         )
     except (
         PermissionDeniedError,
@@ -372,7 +385,10 @@ def add_exam_questions(
                 teacher_id,
                 course_id=updated.course_id,
             )
-        return rows, feedback(f"已为考试“{updated.title}”关联 {updated.question_count} 道题目。", "success")
+        return rows, feedback(
+            f"已为考试“{updated.title}”关联 {updated.question_count} 道题目。",
+            "success",
+        )
     except (
         PermissionDeniedError,
         ExamServiceError,
@@ -440,7 +456,9 @@ def publish_exam(
                 teacher_id,
                 course_id=published.course_id,
             )
-        return rows, feedback(f"考试“{published.title}”发布成功，学生现在可以参加。", "success")
+        return rows, feedback(
+            f"考试“{published.title}”发布成功，学生现在可以参加。", "success"
+        )
     except (
         PermissionDeniedError,
         ExamServiceError,
@@ -475,7 +493,10 @@ def set_exam_status(
                 teacher_id,
                 course_id=updated.course_id,
             )
-        return rows, feedback(f"考试“{updated.title}”已更新为“{status_label(updated.status, entity='exam')}”。", "success")
+        return rows, feedback(
+            f"考试“{updated.title}”已更新为“{status_label(updated.status, entity='exam')}”。",
+            "success",
+        )
     except (
         PermissionDeniedError,
         ExamServiceError,
@@ -495,7 +516,9 @@ def create_exam_view(session_state: Any | None = None) -> ExamView:
         with gr.Row():
             filter_course_id = gr.Textbox(label="课程 ID")
             filter_status = gr.Dropdown(
-                choices=status_choices(EXAM_STATUS_CHOICES, entity="exam", include_all=True),
+                choices=status_choices(
+                    EXAM_STATUS_CHOICES, entity="exam", include_all=True
+                ),
                 value="",
                 label="考试状态",
             )
@@ -595,17 +618,26 @@ def create_exam_view(session_state: Any | None = None) -> ExamView:
             show_progress="hidden",
         )
         bind_confirmation(
-            remove_button, action="移除题目", target=exam_id, callback=remove_exam_questions,
+            remove_button,
+            action="移除题目",
+            target=exam_id,
+            callback=remove_exam_questions,
             inputs=[exam_id, remove_question_ids, state],
             outputs=[exams_table, message],
         )
         bind_confirmation(
-            status_button, action="更新考试状态", target=exam_id, callback=set_exam_status,
+            status_button,
+            action="更新考试状态",
+            target=exam_id,
+            callback=set_exam_status,
             inputs=[exam_id, target_status, state],
             outputs=[exams_table, message],
         )
         bind_confirmation(
-            publish_button, action="发布考试", target=exam_id, callback=publish_exam,
+            publish_button,
+            action="发布考试",
+            target=exam_id,
+            callback=publish_exam,
             inputs=[exam_id, state],
             outputs=[exams_table, message],
         )
