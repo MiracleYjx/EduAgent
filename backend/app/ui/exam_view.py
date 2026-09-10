@@ -10,6 +10,11 @@ from typing import Any, Literal, cast
 from uuid import UUID
 
 import gradio as gr
+
+from backend.app.ui.layout_view import (
+    bind_confirmation, empty_state, feedback, status_badge, status_choices,
+    status_label, table_options,
+)
 from sqlalchemy.exc import SQLAlchemyError
 
 from backend.app.core.database import get_session_factory
@@ -199,7 +204,7 @@ def _exam_rows(exams: Sequence[ExamSummary]) -> list[list[str]]:
             exam.id,
             exam.course_id,
             exam.title,
-            exam.status.value,
+            status_badge(exam.status, entity="exam"),
             str(exam.duration_minutes or ""),
             str(exam.question_count),
             str(exam.total_score),
@@ -244,7 +249,7 @@ def refresh_exams(
                 course_id=_course_filter(course_id),
                 exam_status=_status_filter(exam_status),
             )
-        return rows, f"已加载 {len(rows)} 场考试。"
+        return rows, feedback(f"已加载 {len(rows)} 场考试。", "success") if rows else empty_state("暂无考试。")
     except (
         PermissionDeniedError,
         ExamServiceError,
@@ -294,7 +299,7 @@ def create_exam(
             )
         return (
             rows,
-            f"考试“{created.title}”创建成功，当前状态为“{created.status.value}”。",
+            feedback(f"考试“{created.title}”创建成功，当前状态为“{status_label(created.status, entity='exam')}”。", "success"),
         )
     except (
         PermissionDeniedError,
@@ -335,7 +340,7 @@ def update_exam(
                 teacher_id,
                 course_id=updated.course_id,
             )
-        return rows, f"考试“{updated.title}”更新成功。"
+        return rows, feedback(f"考试“{updated.title}”更新成功。", "success")
     except (
         PermissionDeniedError,
         ExamServiceError,
@@ -367,7 +372,7 @@ def add_exam_questions(
                 teacher_id,
                 course_id=updated.course_id,
             )
-        return rows, f"已为考试“{updated.title}”关联 {updated.question_count} 道题目。"
+        return rows, feedback(f"已为考试“{updated.title}”关联 {updated.question_count} 道题目。", "success")
     except (
         PermissionDeniedError,
         ExamServiceError,
@@ -435,7 +440,7 @@ def publish_exam(
                 teacher_id,
                 course_id=published.course_id,
             )
-        return rows, f"考试“{published.title}”发布成功，学生现在可以参加。"
+        return rows, feedback(f"考试“{published.title}”发布成功，学生现在可以参加。", "success")
     except (
         PermissionDeniedError,
         ExamServiceError,
@@ -470,7 +475,7 @@ def set_exam_status(
                 teacher_id,
                 course_id=updated.course_id,
             )
-        return rows, f"考试“{updated.title}”已更新为“{updated.status.value}”。"
+        return rows, feedback(f"考试“{updated.title}”已更新为“{status_label(updated.status, entity='exam')}”。", "success")
     except (
         PermissionDeniedError,
         ExamServiceError,
@@ -490,7 +495,7 @@ def create_exam_view(session_state: Any | None = None) -> ExamView:
         with gr.Row():
             filter_course_id = gr.Textbox(label="课程 ID")
             filter_status = gr.Dropdown(
-                choices=["", *EXAM_STATUS_CHOICES],
+                choices=status_choices(EXAM_STATUS_CHOICES, entity="exam", include_all=True),
                 value="",
                 label="考试状态",
             )
@@ -501,6 +506,7 @@ def create_exam_view(session_state: Any | None = None) -> ExamView:
             value=[],
             interactive=False,
             label="考试列表",
+            **table_options(EXAM_TABLE_HEADERS),
         )
 
         gr.Markdown("### 创建或修改考试")
@@ -539,13 +545,13 @@ def create_exam_view(session_state: Any | None = None) -> ExamView:
             add_button = gr.Button("加入题目")
             remove_button = gr.Button("移除题目")
             target_status = gr.Dropdown(
-                choices=EXAM_STATUS_CHOICES,
+                choices=status_choices(EXAM_STATUS_CHOICES, entity="exam"),
                 value=ExamStatus.PUBLISHED.value,
                 label="目标状态",
             )
             status_button = gr.Button("更新状态")
             publish_button = gr.Button("发布考试", variant="primary")
-        message = gr.Markdown()
+        message = gr.Markdown(empty_state("尚未加载考试。"))
 
         refresh_button.click(
             fn=refresh_exams,
@@ -588,23 +594,20 @@ def create_exam_view(session_state: Any | None = None) -> ExamView:
             outputs=[exams_table, message],
             show_progress="hidden",
         )
-        remove_button.click(
-            fn=remove_exam_questions,
+        bind_confirmation(
+            remove_button, action="移除题目", target=exam_id, callback=remove_exam_questions,
             inputs=[exam_id, remove_question_ids, state],
             outputs=[exams_table, message],
-            show_progress="hidden",
         )
-        status_button.click(
-            fn=set_exam_status,
+        bind_confirmation(
+            status_button, action="更新考试状态", target=exam_id, callback=set_exam_status,
             inputs=[exam_id, target_status, state],
             outputs=[exams_table, message],
-            show_progress="hidden",
         )
-        publish_button.click(
-            fn=publish_exam,
+        bind_confirmation(
+            publish_button, action="发布考试", target=exam_id, callback=publish_exam,
             inputs=[exam_id, state],
             outputs=[exams_table, message],
-            show_progress="hidden",
         )
 
     return ExamView(
