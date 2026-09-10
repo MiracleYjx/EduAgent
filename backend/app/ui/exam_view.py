@@ -5,7 +5,8 @@ from __future__ import annotations
 import re
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
+from html import escape
 from typing import Any, Literal, cast
 from uuid import UUID
 
@@ -13,14 +14,16 @@ import gradio as gr
 from sqlalchemy.exc import SQLAlchemyError
 
 from backend.app.core.database import get_session_factory
-from backend.app.domain.enums import ExamStatus, UserRole
+from backend.app.domain.enums import ExamStatus, QuestionStatus, UserRole
 from backend.app.domain.permissions import PermissionDeniedError, normalize_role
+from backend.app.services.course_service import CourseService, CourseServiceError
 from backend.app.services.exam_service import (
     ExamPermissionError,
     ExamService,
     ExamServiceError,
     ExamSummary,
 )
+from backend.app.services.question_service import QuestionService, QuestionSummary
 from backend.app.ui.layout_view import (
     bind_confirmation,
     empty_state,
@@ -30,19 +33,23 @@ from backend.app.ui.layout_view import (
     status_label,
     table_options,
 )
+from backend.app.ui.question_view import (
+    create_question_selection,
+    load_question_choices,
+    question_selection_data,
+    selected_question_id,
+    teacher_course_choices,
+)
 
 EXAM_STATUS_CHOICES = [exam_status.value for exam_status in ExamStatus]
 EXAM_TABLE_HEADERS = (
-    "考试 ID",
-    "课程 ID",
-    "考试标题",
-    "状态",
+    "考试名称",
+    "课程",
+    "开放时间",
     "时长（分钟）",
     "题目数量",
     "总分",
-    "开始时间",
-    "结束时间",
-    "题目 ID",
+    "状态",
 )
 EXAM_TABLE_DATATYPES = cast(
     tuple[Literal["str"], ...],
@@ -207,16 +214,13 @@ def _exam_rows(exams: Sequence[ExamSummary]) -> list[list[str]]:
 
     return [
         [
-            exam.id,
-            exam.course_id,
             exam.title,
-            status_badge(exam.status, entity="exam"),
-            str(exam.duration_minutes or ""),
+            exam.course_id,
+            (exam.starts_at.isoformat() if exam.starts_at else "未设置"),
+            str(exam.duration_minutes or "未设置"),
             str(exam.question_count),
             str(exam.total_score),
-            exam.starts_at.isoformat() if exam.starts_at else "",
-            exam.ends_at.isoformat() if exam.ends_at else "",
-            "、".join(exam.question_ids),
+            status_badge(exam.status, entity="exam"),
         ]
         for exam in exams
     ]
@@ -236,7 +240,9 @@ def _list_exam_rows(
         status=exam_status,
         teacher_id=teacher_id,
     )
-    return _exam_rows(exams)
+    courses = CourseService(service.session).list_courses(teacher_id=teacher_id)
+    rows, _ = exam_table_data(exams, [(course.name, course.id) for course in courses])
+    return rows
 
 
 def refresh_exams(
@@ -507,146 +513,754 @@ def set_exam_status(
         return [], _format_error(error)
 
 
+UI_TIMEZONE = timezone(timedelta(hours=8))
+UI_TIMEZONE_LABEL = "北京时间 UTC+08:00"
+
+
+def exam_datetime(value: datetime | str | None) -> datetime | None:
+    """把日期时间控件的值统一为北京时间，保留明确的时区语义。"""
+
+    parsed = _parse_datetime(value, "日期时间")
+    if parsed is None:
+        return None
+    return (
+        parsed.replace(tzinfo=UI_TIMEZONE)
+        if parsed.tzinfo is None
+        else parsed.astimezone(UI_TIMEZONE)
+    )
+
+
+def exam_opening_label(exam: ExamSummary) -> str:
+    start = exam_datetime(exam.starts_at)
+    end = exam_datetime(exam.ends_at)
+    return (
+        (f"{start:%Y-%m-%d %H:%M}" if start else "不限开始时间")
+        + " 至 "
+        + (f"{end:%Y-%m-%d %H:%M}" if end else "不限结束时间")
+    )
+
+
+def exam_table_data(
+    exams: Sequence[ExamSummary],
+    courses: Sequence[tuple[str, str]],
+) -> tuple[list[list[str]], list[str]]:
+    """展示课程名称，内部考试标识单独保存。"""
+
+    names = {identifier: name for name, identifier in courses}
+    return [
+        [
+            exam.title,
+            names.get(exam.course_id, "课程暂不可用"),
+            exam_opening_label(exam),
+            str(exam.duration_minutes) if exam.duration_minutes else "不限时",
+            str(exam.question_count),
+            str(exam.total_score),
+            status_badge(exam.status, entity="exam"),
+        ]
+        for exam in exams
+    ], [exam.id for exam in exams]
+
+
+def exam_publication_issues(
+    exam: ExamSummary,
+    questions: Sequence[QuestionSummary],
+) -> list[str]:
+    """提供发布前反馈，最终发布仍调用考试服务校验。"""
+
+    issues: list[str] = []
+    if exam.status != ExamStatus.DRAFT:
+        issues.append("当前考试不是草稿。")
+    if not exam.title.strip():
+        issues.append("考试名称不能为空。")
+    if not questions:
+        issues.append("至少需要一道已审核题目。")
+    if set(exam.question_ids) != {question.id for question in questions}:
+        issues.append("已选题目发生变化，请重新加载。")
+    if any(question.course_id != exam.course_id for question in questions):
+        issues.append("考试题目必须属于同一课程。")
+    if any(question.status != QuestionStatus.APPROVED for question in questions):
+        issues.append("存在尚未审核通过的题目。")
+    start, end = exam_datetime(exam.starts_at), exam_datetime(exam.ends_at)
+    if start and end and end <= start:
+        issues.append("开放结束时间必须晚于开始时间。")
+    if end and end <= datetime.now(UI_TIMEZONE):
+        issues.append("开放结束时间已过。")
+    return issues
+
+
 def create_exam_view(session_state: Any | None = None) -> ExamView:
-    """创建教师考试组卷和发布面板。"""
+    """创建考试列表和基本信息、选择题目、发布检查三个步骤。"""
 
     state = session_state or gr.State(_empty_state())
+    errors = (
+        PermissionDeniedError,
+        ExamServiceError,
+        CourseServiceError,
+        SQLAlchemyError,
+        TypeError,
+        ValueError,
+    )
     with gr.Column(visible=False) as panel:
         gr.Markdown("## 考试与组卷")
+        exam_ids = gr.State([])
+        selected_exam = gr.State(None)
+        publication_snapshot = gr.State(None)
+        candidate_id = gr.State(None)
+        remove_id = gr.Textbox(visible=False, container=False)
         with gr.Row():
-            filter_course_id = gr.Textbox(label="课程 ID")
+            filter_course = gr.Dropdown(label="课程", choices=[])
             filter_status = gr.Dropdown(
+                label="考试状态",
                 choices=status_choices(
                     EXAM_STATUS_CHOICES, entity="exam", include_all=True
                 ),
                 value="",
-                label="考试状态",
             )
-            refresh_button = gr.Button("刷新考试", variant="secondary")
+            refresh_button = gr.Button("刷新考试", scale=0)
+            new_button = gr.Button("新建考试", variant="primary", scale=0)
+        message = gr.Markdown(empty_state("暂无考试。"))
         exams_table = gr.Dataframe(
             headers=list(EXAM_TABLE_HEADERS),
-            datatype=EXAM_TABLE_DATATYPES,
+            datatype=["str", "str", "str", "str", "str", "str", "markdown"],
             value=[],
             interactive=False,
-            label="考试列表",
+            label=f"考试列表（{UI_TIMEZONE_LABEL}）",
             **table_options(EXAM_TABLE_HEADERS),
         )
+        with gr.Column(visible=False) as editor:
+            exam_status = gr.Markdown()
+            with gr.Tabs(selected="basic") as steps:
+                with gr.Tab("基本信息", id="basic"):
+                    with gr.Row():
+                        edit_course = gr.Dropdown(label="所属课程", choices=[])
+                        title = gr.Textbox(label="考试名称")
+                        duration = gr.Number(
+                            label="时长（分钟，可选）", value=60, minimum=1, precision=0
+                        )
+                    description = gr.Textbox(label="考试说明", lines=2)
+                    with gr.Row():
+                        starts_at = gr.DateTime(
+                            label=f"开放开始（{UI_TIMEZONE_LABEL}，可选）",
+                            type="datetime",
+                            timezone="Asia/Shanghai",
+                        )
+                        ends_at = gr.DateTime(
+                            label=f"开放结束（{UI_TIMEZONE_LABEL}，可选）",
+                            type="datetime",
+                            timezone="Asia/Shanghai",
+                        )
+                    save_button = gr.Button("保存并选择题目", variant="primary")
+                with gr.Tab("选择题目", id="questions"):
+                    question_message = gr.Markdown(
+                        empty_state("请先保存考试基本信息。")
+                    )
+                    with gr.Row():
+                        with gr.Column(scale=60, min_width=360):
+                            available = create_question_selection("当前课程已审核题目")
+                            selected_candidate = gr.Textbox(
+                                label="当前选中题目", interactive=False
+                            )
+                            add_button = gr.Button("加入考试", interactive=False)
+                        with gr.Column(scale=40, min_width=300):
+                            chosen = create_question_selection("已选题清单")
+                            summary = gr.Markdown(empty_state("尚未选择题目。"))
+                            remove_target = gr.Textbox(
+                                label="待移除题目", interactive=False
+                            )
+                            remove_button = gr.Button("移除题目", interactive=False)
+                    with gr.Row():
+                        reload_questions = gr.Button("刷新题目")
+                        check_button = gr.Button("进入发布检查", variant="primary")
+                with gr.Tab("发布检查", id="publish"):
+                    publication_details = gr.Markdown(empty_state("尚未执行发布检查。"))
+                    recheck_button = gr.Button("重新检查")
+                    confirmed = gr.Checkbox(
+                        label="我已核对考试名称、开放时间和已审核题目",
+                        value=False,
+                        interactive=False,
+                    )
+                    publish_button = gr.Button(
+                        "发布考试", variant="primary", interactive=False
+                    )
+            with gr.Accordion("考试状态操作", open=False):
+                lifecycle_target = gr.Textbox(label="当前考试", interactive=False)
+                lifecycle = gr.Dropdown(label="目标状态", choices=[], value=None)
+                lifecycle_button = gr.Button("更新考试状态", interactive=False)
 
-        gr.Markdown("### 创建或修改考试")
-        with gr.Row():
-            exam_id = gr.Textbox(label="考试 ID（修改、组卷或发布时填写）")
-            course_id = gr.Textbox(label="课程 ID")
-            title = gr.Textbox(label="考试标题")
-            duration_minutes = gr.Number(
-                label="考试时长（分钟）",
-                value=60,
-                minimum=1,
-                precision=0,
+        fields = [edit_course, title, duration, description, starts_at, ends_at]
+        outputs = [
+            exam_ids,
+            selected_exam,
+            publication_snapshot,
+            candidate_id,
+            remove_id,
+            filter_course,
+            filter_status,
+            message,
+            exams_table,
+            editor,
+            exam_status,
+            steps,
+            *fields,
+            save_button,
+            question_message,
+            available.table,
+            available.ids,
+            selected_candidate,
+            add_button,
+            chosen.table,
+            chosen.ids,
+            summary,
+            remove_target,
+            remove_button,
+            reload_questions,
+            check_button,
+            publication_details,
+            recheck_button,
+            confirmed,
+            publish_button,
+            lifecycle_target,
+            lifecycle,
+            lifecycle_button,
+        ]
+
+        def invalidate() -> dict[Any, Any]:
+            return {
+                publication_snapshot: None,
+                confirmed: gr.update(value=False, interactive=False),
+                publish_button: gr.update(interactive=False),
+                publication_details: empty_state(
+                    "考试内容已更新，请重新执行发布检查。"
+                ),
+            }
+
+        def clear() -> dict[Any, Any]:
+            result = invalidate()
+            result.update(
+                {
+                    selected_exam: None,
+                    candidate_id: None,
+                    remove_id: "",
+                    editor: gr.update(visible=False),
+                    available.table: [],
+                    available.ids: [],
+                    chosen.table: [],
+                    chosen.ids: [],
+                    selected_candidate: "",
+                    remove_target: "",
+                    add_button: gr.update(interactive=False),
+                    remove_button: gr.update(interactive=False),
+                }
             )
-        description = gr.Textbox(label="考试描述", lines=2)
-        with gr.Row():
-            starts_at = gr.Textbox(label="开始时间（ISO 8601，可选）")
-            ends_at = gr.Textbox(label="结束时间（ISO 8601，可选）")
-        initial_question_ids = gr.Textbox(
-            label="初始题目 ID（逗号或换行分隔，可选）",
-            lines=3,
-        )
-        with gr.Row():
-            create_button = gr.Button("创建考试", variant="primary")
-            update_button = gr.Button("保存考试")
+            return result
 
-        gr.Markdown("### 草稿组卷与发布")
-        add_question_ids = gr.Textbox(
-            label="要加入的题目 ID（逗号或换行分隔）",
-            lines=2,
-        )
-        remove_question_ids = gr.Textbox(
-            label="要移除的题目 ID（逗号或换行分隔）",
-            lines=2,
-        )
-        with gr.Row():
-            add_button = gr.Button("加入题目")
-            remove_button = gr.Button("移除题目")
-            target_status = gr.Dropdown(
-                choices=status_choices(EXAM_STATUS_CHOICES, entity="exam"),
-                value=ExamStatus.PUBLISHED.value,
-                label="目标状态",
+        def list_updates(
+            course: str | None, status: str | None, current_state: Mapping[str, Any]
+        ) -> dict[Any, Any]:
+            teacher_id = _teacher_id(current_state)
+            courses = teacher_course_choices(current_state)
+            with get_session_factory()() as session:
+                exams = ExamService(session).list_exams(
+                    course_id=_course_filter(course),
+                    status=_status_filter(status),
+                    teacher_id=teacher_id,
+                )
+            rows, ids = exam_table_data(exams, courses)
+            return {
+                filter_course: gr.update(choices=courses, value=course),
+                filter_status: gr.update(value=status or ""),
+                exams_table: rows,
+                exam_ids: ids,
+                message: (
+                    feedback(f"已加载 {len(exams)} 场考试。", "success")
+                    if exams
+                    else empty_state("暂无符合条件的考试。")
+                ),
+            }
+
+        def refresh(
+            course: str | None, status: str | None, current_state: Mapping[str, Any]
+        ) -> dict[Any, Any]:
+            try:
+                return {**clear(), **list_updates(course, status, current_state)}
+            except errors as error:
+                return {
+                    **clear(),
+                    exams_table: [],
+                    exam_ids: [],
+                    message: _format_error(error),
+                }
+
+        def read_exam(
+            identifier: str, current_state: Mapping[str, Any]
+        ) -> tuple[ExamSummary, list[QuestionSummary]]:
+            teacher_id = _teacher_id(current_state)
+            with get_session_factory()() as session:
+                exam = ExamService(session).get_exam(identifier, teacher_id=teacher_id)
+                service = QuestionService(session)
+                questions = [
+                    service.get_question(qid, teacher_id=teacher_id)
+                    for qid in exam.question_ids
+                ]
+            return exam, questions
+
+        def form(
+            exam: ExamSummary | None,
+            current_state: Mapping[str, Any],
+            course: str | None = None,
+            step: str = "basic",
+        ) -> dict[Any, Any]:
+            result = clear()
+            editable = exam is None or exam.status == ExamStatus.DRAFT
+            courses = teacher_course_choices(current_state)
+            selected_course = exam.course_id if exam else course
+            result.update(
+                {
+                    editor: gr.update(visible=True),
+                    steps: gr.update(selected=step),
+                    selected_exam: exam.id if exam else None,
+                    exam_status: (
+                        status_badge(exam.status, entity="exam")
+                        if exam
+                        else status_badge(ExamStatus.DRAFT, entity="exam")
+                    ),
+                    edit_course: gr.update(
+                        choices=courses, value=selected_course, interactive=exam is None
+                    ),
+                    title: gr.update(
+                        value=exam.title if exam else "", interactive=editable
+                    ),
+                    description: gr.update(
+                        value=(exam.description or "") if exam else "",
+                        interactive=editable,
+                    ),
+                    duration: gr.update(
+                        value=exam.duration_minutes if exam else 60,
+                        interactive=editable,
+                    ),
+                    starts_at: gr.update(
+                        value=exam_datetime(exam.starts_at) if exam else None,
+                        interactive=editable,
+                    ),
+                    ends_at: gr.update(
+                        value=exam_datetime(exam.ends_at) if exam else None,
+                        interactive=editable,
+                    ),
+                    save_button: gr.update(interactive=editable),
+                    reload_questions: gr.update(interactive=exam is not None),
+                    check_button: gr.update(interactive=bool(exam and editable)),
+                    recheck_button: gr.update(interactive=bool(exam and editable)),
+                    lifecycle_target: exam.title if exam else "",
+                    lifecycle: gr.update(
+                        choices=status_choices(
+                            (
+                                [ExamStatus.CLOSED, ExamStatus.ARCHIVED]
+                                if exam and exam.status == ExamStatus.PUBLISHED
+                                else (
+                                    [ExamStatus.ARCHIVED]
+                                    if exam and exam.status == ExamStatus.CLOSED
+                                    else []
+                                )
+                            ),
+                            entity="exam",
+                        ),
+                        value=None,
+                    ),
+                    lifecycle_button: gr.update(
+                        interactive=bool(
+                            exam
+                            and exam.status in {ExamStatus.PUBLISHED, ExamStatus.CLOSED}
+                        )
+                    ),
+                }
             )
-            status_button = gr.Button("更新状态")
-            publish_button = gr.Button("发布考试", variant="primary")
-        message = gr.Markdown(empty_state("尚未加载考试。"))
+            if exam:
+                latest, questions = read_exam(exam.id, current_state)
+                candidates = load_question_choices(
+                    exam.course_id,
+                    None,
+                    None,
+                    QuestionStatus.APPROVED.value,
+                    current_state,
+                )
+                candidates = [
+                    question
+                    for question in candidates
+                    if question.id not in latest.question_ids
+                ]
+                available_rows, available_ids = question_selection_data(candidates)
+                chosen_rows, chosen_ids = question_selection_data(questions)
+                result.update(
+                    {
+                        available.table: available_rows,
+                        available.ids: available_ids,
+                        chosen.table: chosen_rows,
+                        chosen.ids: chosen_ids,
+                        summary: f"**题数：{latest.question_count}**　**总分：{latest.total_score} 分**",
+                        question_message: (
+                            ""
+                            if candidates
+                            else empty_state("暂无可加入的已审核题目。")
+                        ),
+                    }
+                )
+            else:
+                result.update(
+                    {
+                        summary: empty_state("尚未选择题目。"),
+                        question_message: empty_state("请先保存考试基本信息。"),
+                    }
+                )
+            return result
 
+        def new(course: str | None, current_state: Mapping[str, Any]) -> dict[Any, Any]:
+            try:
+                courses = teacher_course_choices(current_state)
+                selected_course = (
+                    course if course in {value for _, value in courses} else None
+                )
+                return {
+                    **form(None, current_state, selected_course),
+                    message: "" if courses else empty_state("暂无课程，请先创建课程。"),
+                }
+            except errors as error:
+                return {message: _format_error(error)}
+
+        def select_row(
+            ids: list[str], current_state: Mapping[str, Any], event: gr.SelectData
+        ) -> dict[Any, Any]:
+            try:
+                identifier = selected_question_id(event, ids)
+                exam, _ = read_exam(identifier, current_state)
+                return {**form(exam, current_state), message: ""}
+            except errors as error:
+                return {**clear(), message: _format_error(error)}
+
+        def save(
+            identifier: str | None,
+            course: str | None,
+            name: str,
+            minutes: Any,
+            text: str,
+            start: datetime | None,
+            end: datetime | None,
+            current_state: Mapping[str, Any],
+        ) -> dict[Any, Any]:
+            try:
+                teacher_id = _teacher_id(current_state)
+                if not course:
+                    raise ValueError("请选择所属课程。")
+                payload: dict[str, Any] = {
+                    "title": name,
+                    "description": text or None,
+                    "duration_minutes": _parse_duration(minutes),
+                    "starts_at": exam_datetime(start),
+                    "ends_at": exam_datetime(end),
+                }
+                with get_session_factory()() as session:
+                    service = ExamService(session)
+                    exam = (
+                        service.update_exam(
+                            identifier, teacher_id=teacher_id, **payload
+                        )
+                        if identifier
+                        else service.create_exam(
+                            course_id=course, created_by=teacher_id, **payload
+                        )
+                    )
+                return {
+                    **list_updates(exam.course_id, "", current_state),
+                    **form(exam, current_state, step="questions"),
+                    message: feedback("考试草稿已保存。", "success"),
+                }
+            except errors as error:
+                return {**invalidate(), message: _format_error(error)}
+
+        def choose_candidate(
+            ids: list[str],
+            identifier: str | None,
+            current_state: Mapping[str, Any],
+            event: gr.SelectData,
+        ) -> dict[Any, Any]:
+            try:
+                if not identifier:
+                    raise ValueError("请先保存考试。")
+                exam, _ = read_exam(identifier, current_state)
+                qid = selected_question_id(event, ids)
+                with get_session_factory()() as session:
+                    question = QuestionService(session).get_question(
+                        qid, teacher_id=_teacher_id(current_state)
+                    )
+                valid = (
+                    exam.status == ExamStatus.DRAFT
+                    and question.status == QuestionStatus.APPROVED
+                    and question.course_id == exam.course_id
+                    and qid not in exam.question_ids
+                )
+                return {
+                    candidate_id: qid if valid else None,
+                    selected_candidate: question.content,
+                    add_button: gr.update(interactive=valid),
+                }
+            except errors as error:
+                return {
+                    candidate_id: None,
+                    add_button: gr.update(interactive=False),
+                    message: _format_error(error),
+                }
+
+        def choose_remove(
+            ids: list[str],
+            identifier: str | None,
+            current_state: Mapping[str, Any],
+            event: gr.SelectData,
+        ) -> dict[Any, Any]:
+            try:
+                if not identifier:
+                    raise ValueError("请先选择考试。")
+                exam, questions = read_exam(identifier, current_state)
+                qid = selected_question_id(event, ids)
+                question = next((q for q in questions if q.id == qid), None)
+                valid = exam.status == ExamStatus.DRAFT and question is not None
+                return {
+                    remove_id: qid if valid else "",
+                    remove_target: question.content if question else "",
+                    remove_button: gr.update(interactive=valid),
+                }
+            except errors as error:
+                return {
+                    remove_id: "",
+                    remove_button: gr.update(interactive=False),
+                    message: _format_error(error),
+                }
+
+        def change_questions(
+            identifier: str | None,
+            qid: str | None,
+            current_state: Mapping[str, Any],
+            *,
+            remove: bool = False,
+        ) -> dict[Any, Any]:
+            try:
+                if not identifier or not qid:
+                    raise ValueError("请先选择考试和题目。")
+                with get_session_factory()() as session:
+                    service = ExamService(session)
+                    action = (
+                        service.remove_questions if remove else service.add_questions
+                    )
+                    exam = action(
+                        identifier, [qid], teacher_id=_teacher_id(current_state)
+                    )
+                return {
+                    **list_updates(exam.course_id, "", current_state),
+                    **form(exam, current_state, step="questions"),
+                    message: feedback("已选题清单已更新。", "success"),
+                }
+            except errors as error:
+                return {**invalidate(), message: _format_error(error)}
+
+        def remove_question(
+            label: str,
+            qid: str,
+            identifier: str | None,
+            current_state: Mapping[str, Any],
+        ) -> dict[Any, Any]:
+            return change_questions(identifier, qid, current_state, remove=True)
+
+        def reload(
+            identifier: str | None, current_state: Mapping[str, Any]
+        ) -> dict[Any, Any]:
+            try:
+                if not identifier:
+                    raise ValueError("请先保存考试。")
+                exam, _ = read_exam(identifier, current_state)
+                return form(exam, current_state, step="questions")
+            except errors as error:
+                return {**invalidate(), message: _format_error(error)}
+
+        def checked_data(
+            identifier: str, current_state: Mapping[str, Any]
+        ) -> tuple[ExamSummary, list[QuestionSummary], dict[str, Any]]:
+            exam, questions = read_exam(identifier, current_state)
+            snapshot = {
+                "exam": exam.model_dump(mode="json"),
+                "questions": [
+                    question.model_dump(mode="json") for question in questions
+                ],
+            }
+            return exam, questions, snapshot
+
+        def check(
+            identifier: str | None, current_state: Mapping[str, Any]
+        ) -> dict[Any, Any]:
+            try:
+                if not identifier:
+                    raise ValueError("请先保存考试。")
+                exam, questions, snapshot = checked_data(identifier, current_state)
+                issues = exam_publication_issues(exam, questions)
+                approved_count = sum(
+                    question.status == QuestionStatus.APPROVED for question in questions
+                )
+                details = (
+                    f"**考试名称**：{escape(exam.title)}\n\n"
+                    f"**开放时间**：{exam_opening_label(exam)}（{UI_TIMEZONE_LABEL}）\n\n"
+                    f"**已审核题目**：{approved_count} / {exam.question_count} 道　**总分**：{exam.total_score} 分\n\n"
+                )
+                details += (
+                    feedback("；".join(issues), "warning")
+                    if issues
+                    else feedback("发布条件已满足，请核对并确认。", "success")
+                )
+                return {
+                    steps: gr.update(selected="publish"),
+                    publication_snapshot: None if issues else snapshot,
+                    publication_details: details,
+                    confirmed: gr.update(value=False, interactive=not issues),
+                    publish_button: gr.update(interactive=False),
+                    message: "",
+                }
+            except errors as error:
+                return {**invalidate(), message: _format_error(error)}
+
+        def confirm(value: bool, snapshot: dict[str, Any] | None) -> dict[Any, Any]:
+            return {
+                publish_button: gr.update(interactive=value and snapshot is not None)
+            }
+
+        def publish(
+            identifier: str | None,
+            checked: bool,
+            snapshot: dict[str, Any] | None,
+            current_state: Mapping[str, Any],
+        ) -> dict[Any, Any]:
+            try:
+                if not identifier or not checked or snapshot is None:
+                    raise ValueError("请先完成发布检查并确认。")
+                exam, questions, current = checked_data(identifier, current_state)
+                if snapshot != current:
+                    raise ValueError("考试或题目已发生变化，请重新执行发布检查。")
+                issues = exam_publication_issues(exam, questions)
+                if issues:
+                    raise ValueError("；".join(issues))
+                with get_session_factory()() as session:
+                    published = ExamService(session).publish_exam(
+                        identifier, teacher_id=_teacher_id(current_state)
+                    )
+                result = {
+                    **list_updates(published.course_id, "", current_state),
+                    **form(published, current_state, step="publish"),
+                }
+                result[publication_details] = feedback(
+                    f"考试“{published.title}”已发布。", "success"
+                )
+                result[message] = feedback(
+                    "考试已发布，学生参加资格由开放时间和考试状态决定。", "success"
+                )
+                return result
+            except errors as error:
+                return {**invalidate(), message: _format_error(error)}
+
+        def change_status(
+            label: str,
+            identifier: str | None,
+            target: str | None,
+            current_state: Mapping[str, Any],
+        ) -> dict[Any, Any]:
+            try:
+                if not identifier or target not in {
+                    ExamStatus.CLOSED.value,
+                    ExamStatus.ARCHIVED.value,
+                }:
+                    raise ValueError("请选择关闭或归档状态。")
+                with get_session_factory()() as session:
+                    exam = ExamService(session).update_exam_status(
+                        identifier, target, teacher_id=_teacher_id(current_state)
+                    )
+                return {
+                    **list_updates(exam.course_id, "", current_state),
+                    **form(exam, current_state),
+                    message: feedback(
+                        f"考试已{status_label(exam.status, entity='exam')}。", "success"
+                    ),
+                }
+            except errors as error:
+                return {message: _format_error(error)}
+
+        event_options: dict[str, Any] = {
+            "outputs": outputs,
+            "show_progress": "minimal",
+            "concurrency_id": "eduagent-ui",
+            "concurrency_limit": 1,
+        }
         refresh_button.click(
-            fn=refresh_exams,
-            inputs=[filter_course_id, filter_status, state],
-            outputs=[exams_table, message],
-            show_progress="hidden",
+            refresh, inputs=[filter_course, filter_status, state], **event_options
         )
-        create_button.click(
-            fn=create_exam,
-            inputs=[
-                course_id,
-                title,
-                description,
-                duration_minutes,
-                starts_at,
-                ends_at,
-                initial_question_ids,
-                state,
-            ],
-            outputs=[exams_table, message],
-            show_progress="hidden",
+        filter_course.input(
+            refresh, inputs=[filter_course, filter_status, state], **event_options
         )
-        update_button.click(
-            fn=update_exam,
-            inputs=[
-                exam_id,
-                title,
-                description,
-                duration_minutes,
-                starts_at,
-                ends_at,
-                state,
-            ],
-            outputs=[exams_table, message],
-            show_progress="hidden",
+        filter_status.input(
+            refresh, inputs=[filter_course, filter_status, state], **event_options
+        )
+        new_button.click(new, inputs=[filter_course, state], **event_options)
+        exams_table.select(select_row, inputs=[exam_ids, state], **event_options)
+        save_button.click(save, inputs=[selected_exam, *fields, state], **event_options)
+        available.table.select(
+            choose_candidate,
+            inputs=[available.ids, selected_exam, state],
+            **event_options,
+        )
+        chosen.table.select(
+            choose_remove, inputs=[chosen.ids, selected_exam, state], **event_options
         )
         add_button.click(
-            fn=add_exam_questions,
-            inputs=[exam_id, add_question_ids, state],
-            outputs=[exams_table, message],
-            show_progress="hidden",
+            change_questions,
+            inputs=[selected_exam, candidate_id, state],
+            **event_options,
         )
+        reload_questions.click(reload, inputs=[selected_exam, state], **event_options)
+        check_button.click(check, inputs=[selected_exam, state], **event_options)
+        recheck_button.click(check, inputs=[selected_exam, state], **event_options)
+        confirmed.input(
+            confirm, inputs=[confirmed, publication_snapshot], **event_options
+        )
+        publish_button.click(
+            publish,
+            inputs=[selected_exam, confirmed, publication_snapshot, state],
+            **event_options,
+        )
+        for field in fields:
+            field_component: Any = field
+            field_event: Any = (
+                getattr(field_component, "input", None) or field_component.change
+            )
+            field_event(
+                invalidate,
+                outputs=[
+                    publication_snapshot,
+                    confirmed,
+                    publish_button,
+                    publication_details,
+                ],
+                show_progress="hidden",
+            )
         bind_confirmation(
             remove_button,
             action="移除题目",
-            target=exam_id,
-            callback=remove_exam_questions,
-            inputs=[exam_id, remove_question_ids, state],
-            outputs=[exams_table, message],
+            target=remove_target,
+            callback=remove_question,
+            inputs=[remove_target, remove_id, selected_exam, state],
+            outputs=outputs,
         )
         bind_confirmation(
-            status_button,
+            lifecycle_button,
             action="更新考试状态",
-            target=exam_id,
-            callback=set_exam_status,
-            inputs=[exam_id, target_status, state],
-            outputs=[exams_table, message],
+            target=lifecycle_target,
+            callback=change_status,
+            inputs=[lifecycle_target, selected_exam, lifecycle, state],
+            outputs=outputs,
         )
-        bind_confirmation(
-            publish_button,
-            action="发布考试",
-            target=exam_id,
-            callback=publish_exam,
-            inputs=[exam_id, state],
-            outputs=[exams_table, message],
-        )
-
-    return ExamView(
-        panel=panel,
-        exams_table=exams_table,
-        message=message,
-    )
+    return ExamView(panel, exams_table, message)
 
 
 build_exam_view = create_exam_view
