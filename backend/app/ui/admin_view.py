@@ -33,6 +33,9 @@ class AdminView:
     users_table: gr.Dataframe
     status_panel: gr.Markdown
     message: gr.Markdown
+    users_section: gr.Column
+    roles_section: gr.Column
+    status_section: gr.Column
 
 
 def _empty_state() -> dict[str, Any]:
@@ -288,47 +291,62 @@ def create_admin_view(session_state: Any | None = None) -> AdminView:
 
     state = session_state or gr.State(_empty_state())
     with gr.Column(visible=False) as panel:
-        gr.Markdown("## 管理员控制台")
-        gr.Markdown("### 用户管理")
-        with gr.Row():
+        with gr.Column() as users_section:
+            gr.Markdown("## 用户管理")
             refresh_users = gr.Button("刷新用户", variant="secondary")
-            refresh_roles = gr.Button("刷新角色", variant="secondary")
-        users_table = gr.Dataframe(
-            headers=list(USER_TABLE_HEADERS),
-            datatype=["str"] * len(USER_TABLE_HEADERS),
-            value=[],
-            interactive=False,
-            label="用户列表",
-        )
-        roles_table = gr.Dataframe(
-            headers=["角色", "说明", "用户数量"],
-            datatype=["str", "str", "number"],
-            value=[],
-            interactive=False,
-            label="角色列表",
-        )
-        with gr.Row():
-            user_id = gr.Textbox(label="用户 ID")
-            username = gr.Textbox(label="用户名")
-            email = gr.Textbox(label="邮箱")
-        with gr.Row():
-            password = gr.Textbox(label="密码", type="password")
-            roles = gr.CheckboxGroup(
-                choices=ROLE_CHOICES,
-                label="角色",
-                value=[UserRole.STUDENT.value],
+            users_table = gr.Dataframe(
+                headers=list(USER_TABLE_HEADERS),
+                datatype=["str"] * len(USER_TABLE_HEADERS),
+                value=[],
+                interactive=False,
+                label="用户列表",
             )
-            is_active = gr.Checkbox(label="启用用户", value=True)
-        with gr.Row():
-            create_button = gr.Button("创建用户", variant="primary")
-            update_button = gr.Button("保存用户")
-            roles_button = gr.Button("保存角色")
-            delete_button = gr.Button("删除用户", variant="stop")
+            with gr.Row():
+                user_id = gr.Textbox(label="用户 ID")
+                username = gr.Textbox(label="用户名")
+                email = gr.Textbox(label="邮箱")
+            with gr.Row():
+                password = gr.Textbox(label="密码", type="password")
+                roles = gr.CheckboxGroup(
+                    choices=[
+                        ("教师", UserRole.TEACHER.value),
+                        ("学生", UserRole.STUDENT.value),
+                        ("管理员", UserRole.ADMIN.value),
+                    ],
+                    label="新用户角色",
+                    value=[UserRole.STUDENT.value],
+                )
+                is_active = gr.Checkbox(label="启用用户", value=True)
+            with gr.Row():
+                create_button = gr.Button("创建用户", variant="primary")
+                update_button = gr.Button("保存用户")
+                delete_button = gr.Button("删除用户", variant="stop")
+        with gr.Column() as roles_section:
+            gr.Markdown("## 角色管理")
+            refresh_roles = gr.Button("刷新角色", variant="secondary")
+            roles_table = gr.Dataframe(
+                headers=["角色", "说明", "用户数量"],
+                datatype=["str", "str", "number"],
+                value=[],
+                interactive=False,
+                label="角色列表",
+            )
+            role_user_id = gr.Textbox(label="用户 ID")
+            assigned_roles = gr.CheckboxGroup(
+                choices=[
+                    ("教师", UserRole.TEACHER.value),
+                    ("学生", UserRole.STUDENT.value),
+                    ("管理员", UserRole.ADMIN.value),
+                ],
+                label="分配角色",
+                value=[],
+            )
+            roles_button = gr.Button("保存角色", variant="primary")
+        with gr.Column() as status_section:
+            gr.Markdown("## 运行状态")
+            refresh_status = gr.Button("刷新运行状态", variant="primary")
+            status_panel = gr.Markdown("尚未加载运行状态。")
         message = gr.Markdown()
-
-        gr.Markdown("### 运行状态")
-        refresh_status = gr.Button("刷新运行状态", variant="primary")
-        status_panel = gr.Markdown("点击刷新运行状态。")
         refresh_users.click(
             fn=refresh_admin_users,
             inputs=[state],
@@ -355,7 +373,7 @@ def create_admin_view(session_state: Any | None = None) -> AdminView:
         )
         roles_button.click(
             fn=set_admin_user_roles,
-            inputs=[user_id, roles, state],
+            inputs=[role_user_id, assigned_roles, state],
             outputs=[users_table, message],
             show_progress="hidden",
         )
@@ -377,6 +395,9 @@ def create_admin_view(session_state: Any | None = None) -> AdminView:
         users_table=users_table,
         status_panel=status_panel,
         message=message,
+        users_section=users_section,
+        roles_section=roles_section,
+        status_section=status_section,
     )
 
 

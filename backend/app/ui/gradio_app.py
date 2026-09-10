@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import os
 from collections.abc import Callable, Iterable, Mapping
-from dataclasses import dataclass
+from copy import deepcopy
+from functools import partial, wraps
+from html import escape
 from typing import Any, TypedDict
 
 import gradio as gr
@@ -21,6 +23,18 @@ from backend.app.models import User
 from backend.app.services.auth_service import AuthenticationError, AuthService
 from backend.app.ui.admin_view import AdminView, create_admin_view
 from backend.app.ui.exam_view import ExamView, create_exam_view
+from backend.app.ui.layout_view import (
+    ROLE_NAVIGATION,
+    WORKSPACE_CSS,
+    feedback,
+    is_authorized_navigation,
+    navigation_item,
+    placeholder_page,
+    resettable_components,
+)
+from backend.app.ui.layout_view import (
+    LayoutNavigationItem as NavigationItem,
+)
 from backend.app.ui.question_view import QuestionView, create_question_view
 from backend.app.ui.student_exam_view import (
     StudentExamView,
@@ -38,60 +52,7 @@ class LoginState(TypedDict):
     roles: list[str]
 
 
-@dataclass(frozen=True)
-class NavigationItem:
-    """一个按角色控制可见性的导航项。"""
-
-    key: str
-    label: str
-    allowed_roles: frozenset[UserRole]
-    description: str
-
-
-NAVIGATION_ITEMS: tuple[NavigationItem, ...] = (
-    NavigationItem(
-        key="teacher.courses",
-        label="课程与资料",
-        allowed_roles=frozenset({UserRole.TEACHER}),
-        description="教师课程、知识库和资料入口。",
-    ),
-    NavigationItem(
-        key="teacher.questions",
-        label="题库与审核",
-        allowed_roles=frozenset({UserRole.TEACHER}),
-        description="教师题目管理和审核入口。",
-    ),
-    NavigationItem(
-        key="teacher.exams",
-        label="考试与阅卷",
-        allowed_roles=frozenset({UserRole.TEACHER}),
-        description="教师组卷和发布入口。",
-    ),
-    NavigationItem(
-        key="student.exams",
-        label="参加考试",
-        allowed_roles=frozenset({UserRole.STUDENT}),
-        description="学生可参加的考试入口。",
-    ),
-    NavigationItem(
-        key="student.results",
-        label="我的成绩",
-        allowed_roles=frozenset({UserRole.STUDENT}),
-        description="学生成绩、错题和诊断入口。",
-    ),
-    NavigationItem(
-        key="admin.users",
-        label="用户与角色",
-        allowed_roles=frozenset({UserRole.ADMIN}),
-        description="管理员用户和角色管理入口。",
-    ),
-    NavigationItem(
-        key="admin.status",
-        label="运行状态",
-        allowed_roles=frozenset({UserRole.ADMIN}),
-        description="管理员系统运行状态入口。",
-    ),
-)
+NAVIGATION_ITEMS: tuple[NavigationItem, ...] = ROLE_NAVIGATION
 
 _EMPTY_LOGIN_STATE: LoginState = {
     "access_token": "",
@@ -201,8 +162,8 @@ def _role_summary(state: Mapping[str, Any]) -> str:
 
     roles = normalize_ui_roles(state.get("roles", []))
     role_names = "、".join(ROLE_DISPLAY_NAMES[role] for role in roles) or "未分配角色"
-    username = state.get("username") or "用户"
-    return f"### {username}\n角色：{role_names}"
+    username = escape(str(state.get("username") or "用户"))
+    return f'<span title="{username}（{role_names}）">{username}</span>'
 
 
 def _page_for_navigation(
@@ -221,7 +182,7 @@ def _page_for_navigation(
     if item is None:
         return "当前账号没有可访问的导航项。"
 
-    return f"## {item.label}\n\n{item.description}\n\n模块已准备就绪。"
+    return placeholder_page(item)
 
 
 def login_user(
@@ -278,9 +239,9 @@ def login_user(
         )
 
 
-def logout_user() -> tuple[
-    LoginState, str, dict[str, Any], dict[str, Any], str, dict[str, Any], str
-]:
+def logout_user() -> (
+    tuple[LoginState, str, dict[str, Any], dict[str, Any], str, dict[str, Any], str]
+):
     """清理当前 Gradio 会话并回到登录面板。"""
 
     return (
@@ -315,7 +276,7 @@ def select_navigation(
 def _is_admin_navigation(selection: str | None) -> bool:
     """判断当前导航选择是否应该展示管理员视图。"""
 
-    return selection in {"admin.users", "admin.status"}
+    return selection in {"admin.users", "admin.roles", "admin.status"}
 
 
 def _is_question_navigation(selection: str | None) -> bool:
@@ -504,7 +465,7 @@ def select_navigation_for_app(
     """切换导航时同步显示普通页面或管理员视图。"""
 
     content = select_navigation(selection, state)
-    is_admin = bool(state.get("access_token")) and _is_admin_navigation(selection)
+    is_admin = _can_navigate(selection, state) and _is_admin_navigation(selection)
     return (
         gr.update(value=content, visible=not is_admin),
         gr.update(visible=is_admin),
@@ -518,8 +479,8 @@ def select_navigation_for_app_with_questions(
     """切换导航时同步显示普通页面、管理员或教师题库视图。"""
 
     content = select_navigation(selection, state)
-    is_admin = bool(state.get("access_token")) and _is_admin_navigation(selection)
-    is_question = bool(state.get("access_token")) and _is_question_navigation(
+    is_admin = _can_navigate(selection, state) and _is_admin_navigation(selection)
+    is_question = _can_navigate(selection, state) and _is_question_navigation(
         selection,
     )
     return (
@@ -538,7 +499,7 @@ def select_navigation_for_app_with_questions_and_exams(
     page_update, admin_update, question_update = (
         select_navigation_for_app_with_questions(selection, state)
     )
-    is_exam = bool(state.get("access_token")) and _is_exam_navigation(selection)
+    is_exam = _can_navigate(selection, state) and _is_exam_navigation(selection)
     page_value = (
         page_update.get("value", "") if isinstance(page_update, dict) else page_update
     )
@@ -546,8 +507,8 @@ def select_navigation_for_app_with_questions_and_exams(
         gr.update(
             value=page_value,
             visible=not is_exam
-            and not _is_admin_navigation(selection)
-            and not _is_question_navigation(selection),
+            and not admin_update["visible"]
+            and not question_update["visible"],
         ),
         admin_update,
         question_update,
@@ -562,7 +523,7 @@ def select_navigation_for_app_with_questions_and_exams_and_student(
     """切换导航时同步显示普通页面、管理员、教师或学生考试视图。"""
 
     result = list(select_navigation_for_app_with_questions_and_exams(selection, state))
-    is_student_exam = bool(state.get("access_token")) and _is_student_exam_navigation(
+    is_student_exam = _can_navigate(selection, state) and _is_student_exam_navigation(
         selection,
     )
     page_update = result[0]
@@ -571,119 +532,357 @@ def select_navigation_for_app_with_questions_and_exams_and_student(
     )
     result[0] = gr.update(
         value=page_value,
-        visible=not _is_admin_navigation(selection)
-        and not _is_question_navigation(selection)
-        and not _is_exam_navigation(selection)
+        visible=not any(update["visible"] for update in result[1:])
         and not is_student_exam,
     )
     return (*result, gr.update(visible=is_student_exam))
 
 
+def _can_navigate(selection: str | None, state: Mapping[str, Any]) -> bool:
+    """同时检查登录状态和角色权限，不能只依赖组件隐藏。"""
+
+    return bool(state.get("access_token")) and is_authorized_navigation(
+        selection, state.get("roles", [])
+    )
+
+
+def _authenticated_state(state: Mapping[str, Any]) -> LoginState:
+    """复用认证服务核验有效期、启用状态及最新角色。"""
+
+    token = state.get("access_token", "")
+    if not token:
+        raise AuthenticationError("请先登录。")
+    with get_session_factory()() as session:
+        user = AuthService(session, secret_key=_jwt_secret_key()).get_current_user(
+            token
+        )
+        return _user_state(user, token)
+
+
+def _guard_view_callback(
+    fn: Callable[..., Any], state_index: int
+) -> Callable[..., Any]:
+    """业务视图每次操作前核验真实会话，再交回原有角色和资源守卫。"""
+
+    @wraps(fn)
+    def guarded(*args: Any, **kwargs: Any) -> Any:
+        values = list(args)
+        try:
+            values[state_index] = _authenticated_state(values[state_index])
+        except AuthenticationError:
+            raise gr.Error("登录状态已失效，请退出后重新登录。") from None
+        except SQLAlchemyError:
+            raise gr.Error("系统暂时无法连接数据库，请稍后重试。") from None
+        return fn(*values, **kwargs)
+
+    return guarded
+
+
 def create_gradio_app() -> gr.Blocks:
-    """创建包含登录、会话状态和角色导航的 Gradio 应用。"""
+    """创建共享外壳；会话与各页面输入在当前浏览器会话内保持。"""
 
-    with gr.Blocks(title="EduAgent 教学评测平台") as demo:
+    with gr.Blocks(title="EduAgent 教学评测平台", fill_width=True) as demo:
         session_state = gr.State(empty_login_state())
+        navigation_state = gr.State({"role": "", "pages": {}})
+        with gr.Column(elem_id="edu-root"):
+            # 样式随视图挂载，兼容 Gradio 5/6 的挂载参数差异。
+            gr.HTML(f"<style>{WORKSPACE_CSS}</style>", elem_id="edu-style")
+            with gr.Column(elem_id="edu-login") as login_panel:
+                gr.Markdown("# EduAgent\n\n### 登录教学评测平台")
+                identifier = gr.Textbox(
+                    label="用户名或邮箱", placeholder="请输入用户名或邮箱"
+                )
+                password = gr.Textbox(
+                    label="密码", placeholder="请输入密码", type="password"
+                )
+                login_button = gr.Button("登录", variant="primary")
+                login_message = gr.HTML(elem_id="edu-login-message")
 
-        gr.Markdown("# EduAgent 教学评测平台")
-        login_panel = gr.Column(visible=True)
-        with login_panel:
-            gr.Markdown("### 登录")
-            identifier = gr.Textbox(
-                label="用户名或邮箱",
-                placeholder="请输入用户名或邮箱",
+            with gr.Column(visible=False, elem_id="edu-workspace") as workspace:
+                with gr.Row(elem_id="edu-topbar"):
+                    gr.HTML("<strong>EduAgent</strong>", elem_id="edu-brand")
+                    context = gr.HTML(elem_id="edu-context")
+                    user_summary = gr.HTML(elem_id="edu-user")
+                    role_selector = gr.Dropdown(
+                        choices=[],
+                        value=None,
+                        label="当前角色",
+                        show_label=False,
+                        container=False,
+                        min_width=0,
+                        elem_id="edu-role",
+                        interactive=True,
+                    )
+                    logout_button = gr.Button("退出登录", elem_id="edu-logout")
+                with gr.Row(elem_id="edu-shell-row"):
+                    with (
+                        gr.Column(scale=0, min_width=0, elem_id="edu-sidebar"),
+                        gr.Accordion(
+                            "功能导航", open=False, elem_id="edu-menu"
+                        ) as menu,
+                    ):
+                        groups: dict[tuple[UserRole, str], gr.Column] = {}
+                        buttons: dict[str, gr.Button] = {}
+                        for role in UserRole:
+                            items = navigation_for_roles([role])
+                            for group in dict.fromkeys(item.group for item in items):
+                                with gr.Column(
+                                    visible=False, elem_classes="edu-nav-group"
+                                ) as group_panel:
+                                    groups[role, group] = group_panel
+                                    if group in {"教学准备", "AI 教学"}:
+                                        gr.Markdown(
+                                            group, elem_classes="edu-group-title"
+                                        )
+                                    for item in items:
+                                        if item.group == group:
+                                            buttons[item.key] = gr.Button(
+                                                item.label,
+                                                elem_classes=["edu-nav"],
+                                                min_width=0,
+                                                elem_id="edu-nav-"
+                                                + item.key.replace(".", "-"),
+                                            )
+                    with gr.Column(min_width=0, elem_id="edu-content"):
+                        workspace_message = gr.HTML(elem_id="edu-feedback")
+                        page_content = gr.Markdown()
+                        admin_view: AdminView = create_admin_view(session_state)
+                        question_view: QuestionView = create_question_view(
+                            session_state
+                        )
+                        exam_view: ExamView = create_exam_view(session_state)
+                        student_exam_view: StudentExamView = create_student_exam_view(
+                            session_state
+                        )
+
+        panels = {
+            "teacher.questions": question_view.panel,
+            "teacher.exams": exam_view.panel,
+            "student.exams": student_exam_view.panel,
+        }
+        admin_sections = {
+            "admin.users": admin_view.users_section,
+            "admin.roles": admin_view.roles_section,
+            "admin.status": admin_view.status_section,
+        }
+        resets = [
+            entry
+            for panel in [admin_view.panel, *panels.values()]
+            for entry in resettable_components(panel)
+        ]
+        view_functions = list(demo.fns.values())
+        for block_fn in view_functions:
+            if block_fn.fn is not None and session_state in block_fn.inputs:
+                block_fn.fn = _guard_view_callback(
+                    block_fn.fn, block_fn.inputs.index(session_state)
+                )
+
+        def render_workspace(
+            state: LoginState, nav: dict[str, Any], selected: str | None
+        ) -> dict[Any, Any]:
+            """单次更新所有导航和面板，保持当前角色只展示一页。"""
+
+            role = nav.get("role", "")
+            allowed = _can_navigate(selected, state) and is_authorized_navigation(
+                selected, [role]
             )
-            password = gr.Textbox(
-                label="密码",
-                placeholder="请输入密码",
-                type="password",
+            item = navigation_item(selected) if allowed else None
+            result: dict[Any, Any] = {
+                session_state: state,
+                navigation_state: nav,
+                login_panel: gr.update(visible=False),
+                workspace: gr.update(visible=True),
+                user_summary: _role_summary(state),
+                context: f"<span>{item.label if item else '工作台'}</span>",
+                role_selector: gr.update(
+                    choices=[
+                        (ROLE_DISPLAY_NAMES[r], r.value)
+                        for r in normalize_ui_roles(state["roles"])
+                    ],
+                    value=role or None,
+                    interactive=len(state["roles"]) > 1,
+                ),
+                page_content: gr.update(
+                    value=placeholder_page(item),
+                    visible=selected not in {*panels, *admin_sections} or not allowed,
+                ),
+                admin_view.panel: gr.update(
+                    visible=allowed and selected in admin_sections
+                ),
+            }
+            for key, panel in {**panels, **admin_sections}.items():
+                result[panel] = gr.update(visible=allowed and key == selected)
+            for (group_role, _), panel in groups.items():
+                result[panel] = gr.update(
+                    visible=group_role.value == role and role in state["roles"]
+                )
+            for key, button in buttons.items():
+                result[button] = gr.update(
+                    elem_classes=(
+                        ["edu-nav", "edu-nav-active"]
+                        if allowed and key == selected
+                        else ["edu-nav"]
+                    )
+                )
+            if not state["roles"]:
+                result[page_content] = gr.update(
+                    value="当前账号未分配角色，请联系管理员。", visible=True
+                )
+            return result
+
+        def clear_workspace(
+            message: str = "已退出登录。", kind: str = "success"
+        ) -> dict[Any, Any]:
+            """恢复所有页面初值，防止同一浏览器切换账号后残留数据。"""
+
+            result = render_workspace(
+                empty_login_state(), {"role": "", "pages": {}}, None
             )
-            login_button = gr.Button("登录", variant="primary")
-            login_message = gr.Markdown()
-
-        workspace = gr.Column(visible=False)
-        with workspace:
-            with gr.Row():
-                user_summary = gr.Markdown()
-                logout_button = gr.Button("退出登录", variant="secondary")
-            navigation = gr.Radio(
-                choices=[],
-                label="功能导航",
-                type="value",
-                visible=False,
+            result.update(
+                {
+                    component: gr.update(value=deepcopy(value))
+                    for component, value in resets
+                }
             )
-            page_content = gr.Markdown(_UNAUTHENTICATED_MESSAGE)
-            admin_view: AdminView = create_admin_view(session_state)
-            question_view: QuestionView = create_question_view(session_state)
-            exam_view: ExamView = create_exam_view(session_state)
-            student_exam_view: StudentExamView = create_student_exam_view(session_state)
+            result.update(
+                {
+                    login_panel: gr.update(visible=True),
+                    workspace: gr.update(visible=False),
+                    identifier: "",
+                    password: "",
+                    login_message: feedback(message, kind),
+                    workspace_message: "",
+                    context: "",
+                    user_summary: "",
+                    page_content: gr.update(value="", visible=True),
+                    menu: gr.update(open=False),
+                }
+            )
+            return result
 
-        login_button.click(
-            fn=login_user_for_app_with_questions_and_exams_and_student,
-            inputs=[identifier, password],
-            outputs=[
-                session_state,
-                login_message,
-                login_panel,
-                workspace,
-                user_summary,
-                navigation,
-                page_content,
-                admin_view.panel,
-                question_view.panel,
-                exam_view.panel,
-                student_exam_view.panel,
-            ],
-            show_progress="hidden",
-        )
-        password.submit(
-            fn=login_user_for_app_with_questions_and_exams_and_student,
-            inputs=[identifier, password],
-            outputs=[
-                session_state,
-                login_message,
-                login_panel,
-                workspace,
-                user_summary,
-                navigation,
-                page_content,
-                admin_view.panel,
-                question_view.panel,
-                exam_view.panel,
-                student_exam_view.panel,
-            ],
-            show_progress="hidden",
-        )
-        logout_button.click(
-            fn=logout_user_for_app_with_questions_and_exams_and_student,
-            outputs=[
-                session_state,
-                login_message,
-                login_panel,
-                workspace,
-                user_summary,
-                navigation,
-                page_content,
-                admin_view.panel,
-                question_view.panel,
-                exam_view.panel,
-                student_exam_view.panel,
-            ],
-            show_progress="hidden",
-        )
-        navigation.change(
-            fn=select_navigation_for_app_with_questions_and_exams_and_student,
-            inputs=[navigation, session_state],
-            outputs=[
-                page_content,
-                admin_view.panel,
-                question_view.panel,
-                exam_view.panel,
-                student_exam_view.panel,
-            ],
-            show_progress="hidden",
-        )
+        login_progress = gr.Progress()
 
+        def sign_in(
+            username: str, credential: str, progress: gr.Progress = login_progress
+        ) -> dict[Any, Any]:
+            """完成真实登录，清空旧页面并默认进入首个授权角色的概览。"""
+
+            progress(0, desc="正在登录，请稍候。")
+            response = login_user(username, credential)
+            state = response[0]
+            if not state["access_token"]:
+                result = clear_workspace(response[1], "error")
+                result[identifier] = username
+                return result
+            role = state["roles"][0] if state["roles"] else ""
+            choices = navigation_for_roles([role])
+            selected = choices[0].key if choices else None
+            result = clear_workspace("")
+            result.update(
+                render_workspace(
+                    state, {"role": role, "pages": {role: selected}}, selected
+                )
+            )
+            result[workspace_message] = feedback(response[1], "success")
+            return result
+
+        def navigate(
+            state: LoginState,
+            nav: dict[str, Any],
+            *,
+            selected: str | None = None,
+            role: str | None = None,
+        ) -> dict[Any, Any]:
+            """角色切换恢复上次页面；普通导航不重建视图或丢失草稿。"""
+
+            try:
+                current = _authenticated_state(state)
+            except AuthenticationError:
+                return clear_workspace("登录状态已失效，请重新登录。", "error")
+            except SQLAlchemyError as error:
+                return {
+                    workspace_message: feedback(format_ui_error(error), "error"),
+                    role_selector: gr.update(value=nav.get("role") or None),
+                }
+            if current["roles"] != state["roles"]:
+                return clear_workspace("账号角色已变更，请重新登录。", "info")
+            active_role = role if role is not None else nav.get("role", "")
+            if active_role not in current["roles"]:
+                return {
+                    workspace_message: feedback("当前账号无权切换到该角色。", "error"),
+                    role_selector: gr.update(value=nav.get("role") or None),
+                }
+            next_nav = deepcopy(nav)
+            if role is not None:
+                selected = (
+                    next_nav["pages"].get(role) or navigation_for_roles([role])[0].key
+                )
+            if not is_authorized_navigation(selected, [active_role]):
+                return {
+                    workspace_message: feedback("当前账号无权访问该页面。", "error")
+                }
+            next_nav["role"] = active_role
+            next_nav["pages"][active_role] = selected
+            result = render_workspace(current, next_nav, selected)
+            result[workspace_message] = ""
+            result[menu] = gr.update(open=False)
+            return result
+
+        outputs = list(
+            dict.fromkeys(
+                [
+                    session_state,
+                    navigation_state,
+                    login_panel,
+                    workspace,
+                    identifier,
+                    password,
+                    login_message,
+                    workspace_message,
+                    context,
+                    user_summary,
+                    role_selector,
+                    page_content,
+                    menu,
+                    admin_view.panel,
+                    *panels.values(),
+                    *admin_sections.values(),
+                    *groups.values(),
+                    *buttons.values(),
+                    *(component for component, _ in resets),
+                ]
+            )
+        )
+        # 同一队列串行处理数据操作和退出，避免慢请求在退出清空后重新填入旧数据。
+        event_options: dict[str, Any] = {
+            "outputs": outputs,
+            "show_progress": "minimal",
+            "concurrency_id": "eduagent-ui",
+            "concurrency_limit": 1,
+        }
+        login_button.click(sign_in, inputs=[identifier, password], **event_options)
+        password.submit(sign_in, inputs=[identifier, password], **event_options)
+        logout_button.click(clear_workspace, inputs=[], **event_options)
+        for key, button in buttons.items():
+            button.click(
+                partial(navigate, selected=key),
+                inputs=[session_state, navigation_state],
+                **event_options,
+            )
+
+        def switch_role(
+            role: str, state: LoginState, nav: dict[str, Any]
+        ) -> dict[Any, Any]:
+            return navigate(state, nav, role=role)
+
+        role_selector.input(
+            switch_role,
+            inputs=[role_selector, session_state, navigation_state],
+            **event_options,
+        )
+        for block_fn in view_functions:
+            block_fn.concurrency_id = "eduagent-ui"
+            block_fn.concurrency_limit = 1
     return demo
 
 

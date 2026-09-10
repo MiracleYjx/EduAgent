@@ -9,6 +9,9 @@ from typing import Any, Literal, cast
 from uuid import UUID
 
 import gradio as gr
+from backend.app.ui.layout_view import (
+    bind_confirmation, empty_state, feedback, status_badge, status_label, table_options,
+)
 from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import selectinload
@@ -152,7 +155,7 @@ def _exam_rows(exams: Sequence[AvailableExamSummary]) -> list[list[str]]:
         [
             exam.id,
             exam.title,
-            exam.status.value,
+            status_badge(exam.status, entity="exam"),
             str(exam.duration_minutes or ""),
             str(exam.question_count),
             str(exam.total_score),
@@ -166,9 +169,7 @@ def _exam_rows(exams: Sequence[AvailableExamSummary]) -> list[list[str]]:
 def _question_type_text(value: QuestionType | str) -> str:
     """把题型枚举或字符串转换为稳定显示文本。"""
 
-    if isinstance(value, QuestionType):
-        return value.value
-    return str(value)
+    return status_label(value, entity="question_type")
 
 
 def _question_rows(exam: Exam) -> list[list[str]]:
@@ -210,7 +211,7 @@ def _answer_rows(answers: Sequence[AnswerSummary]) -> list[list[str]]:
     """将答案摘要转换为学生可查看的处理状态表格。"""
 
     return [
-        [answer.question_id, _answer_text(answer.content), answer.status.value]
+        [answer.question_id, _answer_text(answer.content), status_badge(answer.status, entity="answer")]
         for answer in answers
     ]
 
@@ -343,7 +344,7 @@ def refresh_exams(state: Mapping[str, Any]) -> tuple[list[list[str]], str]:
             exams = SubmissionService(session).list_available_exams(
                 student_id=student_id,
             )
-        return _exam_rows(exams), f"已加载 {len(exams)} 场可参加考试。"
+        return _exam_rows(exams), feedback(f"已加载 {len(exams)} 场可参加考试。", "success") if exams else empty_state("暂无可参加考试。")
     except (
         PermissionDeniedError,
         SubmissionServiceError,
@@ -375,7 +376,7 @@ def start_exam(
             for answer in submission.answers
             if answer.content is not None
         }
-        message = f"已打开考试“{exam.title}”，答卷状态为“{submission.status.value}”。"
+        message = f"已打开考试“{exam.title}”，答卷状态为“{status_label(submission.status, entity='submission')}”。"
         if submission.status is not SubmissionStatus.DRAFT:
             message += "该答卷已提交，不能继续修改。"
         return (
@@ -383,7 +384,7 @@ def start_exam(
             submission.id,
             answers,
             _answer_rows(submission.answers),
-            message,
+            feedback(message, "success"),
         )
     except (
         PermissionDeniedError,
@@ -423,7 +424,7 @@ def save_answers(
                 normalized_submission_id,
                 student_id=student_id,
             )
-        return _answer_rows(submission.answers), "答案已保存。"
+        return _answer_rows(submission.answers), feedback("答案已保存。", "success")
     except (
         PermissionDeniedError,
         SubmissionServiceError,
@@ -456,7 +457,7 @@ def submit_exam(
                 student_id=student_id,
                 answers=parsed_answers,
             )
-        return _answer_rows(submission.answers), "答卷提交成功，答案已冻结。"
+        return _answer_rows(submission.answers), feedback("答卷提交成功，答案已冻结。", "success")
     except (
         PermissionDeniedError,
         SubmissionServiceError,
@@ -487,6 +488,7 @@ def create_student_exam_view(session_state: Any | None = None) -> StudentExamVie
             value=[],
             interactive=False,
             label="可参加考试",
+            **table_options(EXAM_TABLE_HEADERS),
         )
 
         questions_table = gr.Dataframe(
@@ -495,6 +497,7 @@ def create_student_exam_view(session_state: Any | None = None) -> StudentExamVie
             value=[],
             interactive=False,
             label="考试题目",
+            **table_options(QUESTION_TABLE_HEADERS),
         )
         with gr.Row():
             submission_id = gr.Textbox(label="答卷 ID", interactive=False)
@@ -511,8 +514,9 @@ def create_student_exam_view(session_state: Any | None = None) -> StudentExamVie
             value=[],
             interactive=False,
             label="答案状态",
+            **table_options(ANSWER_TABLE_HEADERS),
         )
-        message = gr.Markdown()
+        message = gr.Markdown(empty_state("尚未加载考试。"))
 
         refresh_button.click(
             fn=refresh_exams,
@@ -538,11 +542,10 @@ def create_student_exam_view(session_state: Any | None = None) -> StudentExamVie
             outputs=[answers_table, message],
             show_progress="hidden",
         )
-        submit_button.click(
-            fn=submit_exam,
+        bind_confirmation(
+            submit_button, action="提交答卷", target=submission_id, callback=submit_exam,
             inputs=[submission_id, answers_input, state],
             outputs=[answers_table, message],
-            show_progress="hidden",
         )
 
     return StudentExamView(

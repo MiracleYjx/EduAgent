@@ -20,6 +20,10 @@ from backend.app.services.question_service import (
     QuestionServiceError,
     QuestionSummary,
 )
+from backend.app.ui.layout_view import (
+    bind_confirmation, empty_state, feedback, status_badge, status_choices,
+    status_label, table_options,
+)
 
 QUESTION_TYPE_CHOICES = [question_type.value for question_type in QuestionType]
 MANAGED_QUESTION_STATUSES = (
@@ -42,8 +46,8 @@ QUESTION_TABLE_HEADERS = (
     "创建时间",
 )
 QUESTION_TABLE_DATATYPES = cast(
-    tuple[Literal["str"], ...],
-    ("str",) * len(QUESTION_TABLE_HEADERS),
+    tuple[Literal["str", "markdown"], ...],
+    ("str", "str", "str", "str", "str", "markdown", "str", "str"),
 )
 _GENERIC_ERROR = "题目操作失败，请稍后重试。"
 
@@ -136,10 +140,10 @@ def _question_rows(questions: Sequence[QuestionSummary]) -> list[list[str]]:
         [
             question.id,
             question.course_id,
-            question.type.value,
+            status_label(question.type, entity="question_type"),
             question.content,
             str(question.score),
-            question.status.value,
+            status_badge(question.status, entity="question"),
             "、".join(question.knowledge_points),
             question.created_at.isoformat(),
         ]
@@ -192,7 +196,7 @@ def refresh_questions(
                 status=_status_filter(question_status),
                 teacher_id=state.get("user_id"),
             )
-        return _question_rows(questions), f"已加载 {len(questions)} 道题目。"
+        return _question_rows(questions), feedback(f"已加载 {len(questions)} 道题目。", "success") if questions else empty_state("暂无题目。")
     except (
         PermissionDeniedError,
         QuestionServiceError,
@@ -254,7 +258,7 @@ def create_question(
                 created_by=teacher_id,
             )
             rows = _list_course_questions(service, course_id, teacher_id)
-        return rows, f"题目“{created.id}”创建成功，当前状态为 Draft。"
+        return rows, feedback(f"题目“{created.id}”创建成功，当前状态为{status_label(created.status, entity='question')}。", "success")
     except (
         PermissionDeniedError,
         QuestionServiceError,
@@ -299,7 +303,7 @@ def update_question(
                 teacher_id=teacher_id,
             )
             rows = _list_course_questions(service, updated.course_id, teacher_id)
-        return rows, f"题目“{updated.id}”更新成功。"
+        return rows, feedback(f"题目“{updated.id}”更新成功。", "success")
     except (
         PermissionDeniedError,
         QuestionServiceError,
@@ -333,7 +337,7 @@ def set_question_status(
                 teacher_id=teacher_id,
             )
             rows = _list_course_questions(service, updated.course_id, teacher_id)
-        return rows, f"题目“{updated.id}”已更新为“{updated.status.value}”。"
+        return rows, feedback(f"题目“{updated.id}”已更新为“{status_label(updated.status, entity='question')}”。", "success")
     except (
         PermissionDeniedError,
         QuestionServiceError,
@@ -360,7 +364,7 @@ def delete_question(
             question = service.get_question(question_id, teacher_id=teacher_id)
             service.delete_question(question_id, teacher_id=teacher_id)
             rows = _list_course_questions(service, question.course_id, teacher_id)
-        return rows, "题目删除成功。"
+        return rows, feedback("题目删除成功。", "success")
     except (
         PermissionDeniedError,
         QuestionServiceError,
@@ -380,7 +384,7 @@ def create_question_view(session_state: Any | None = None) -> QuestionView:
         with gr.Row():
             filter_course_id = gr.Textbox(label="课程 ID")
             filter_status = gr.Dropdown(
-                choices=["", *QUESTION_STATUS_CHOICES],
+                choices=status_choices(QUESTION_STATUS_CHOICES, entity="question", include_all=True),
                 value="",
                 label="审核状态",
             )
@@ -391,6 +395,7 @@ def create_question_view(session_state: Any | None = None) -> QuestionView:
             value=[],
             interactive=False,
             label="题目列表",
+            **table_options(QUESTION_TABLE_HEADERS),
         )
 
         gr.Markdown("### 题目编辑")
@@ -398,7 +403,7 @@ def create_question_view(session_state: Any | None = None) -> QuestionView:
             question_id = gr.Textbox(label="题目 ID")
             course_id = gr.Textbox(label="课程 ID")
             question_type = gr.Dropdown(
-                choices=QUESTION_TYPE_CHOICES,
+                choices=status_choices(QUESTION_TYPE_CHOICES, entity="question_type"),
                 value=QuestionType.SHORT_ANSWER.value,
                 label="题型",
             )
@@ -415,13 +420,13 @@ def create_question_view(session_state: Any | None = None) -> QuestionView:
             create_button = gr.Button("创建题目", variant="primary")
             update_button = gr.Button("保存题目")
             status_value = gr.Dropdown(
-                choices=QUESTION_STATUS_CHOICES,
+                choices=status_choices(QUESTION_STATUS_CHOICES, entity="question"),
                 value=QuestionStatus.PENDING_REVIEW.value,
                 label="目标状态",
             )
             status_button = gr.Button("更新状态")
             delete_button = gr.Button("删除题目", variant="stop")
-        message = gr.Markdown()
+        message = gr.Markdown(empty_state("尚未加载题目。"))
 
         refresh_button.click(
             fn=refresh_questions,
@@ -469,11 +474,10 @@ def create_question_view(session_state: Any | None = None) -> QuestionView:
             outputs=[questions_table, message],
             show_progress="hidden",
         )
-        delete_button.click(
-            fn=delete_question,
+        bind_confirmation(
+            delete_button, action="删除题目", target=question_id, callback=delete_question,
             inputs=[question_id, state],
             outputs=[questions_table, message],
-            show_progress="hidden",
         )
 
     return QuestionView(
