@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from functools import partial, wraps
 from html import escape
-from typing import Any, TypedDict
+from typing import Any, Literal, TypedDict, cast
 from uuid import UUID
 
 import gradio as gr
@@ -144,6 +144,9 @@ STUDENT_DASHBOARD_RESULT_HEADERS = (
 )
 
 TOPBAR_MESSAGE_HEADERS = ("类型", "关联对象", "状态", "时间", "查看入口")
+TOPBAR_MESSAGE_DATATYPES = cast(
+    tuple[Literal["str"], ...], ("str",) * len(TOPBAR_MESSAGE_HEADERS)
+)
 
 PAGE_BREADCRUMB_GROUPS: Mapping[str, str] = {
     "teacher.home": "概览",
@@ -2365,7 +2368,7 @@ def create_gradio_app() -> gr.Blocks:
                             )
                             message_table = gr.Dataframe(
                                 headers=list(TOPBAR_MESSAGE_HEADERS),
-                                datatype=["str"] * len(TOPBAR_MESSAGE_HEADERS),
+                                datatype=TOPBAR_MESSAGE_DATATYPES,
                                 value=[],
                                 interactive=False,
                                 label="当前用户可见的消息和待办",
