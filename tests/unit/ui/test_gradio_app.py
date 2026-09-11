@@ -21,16 +21,24 @@ def test_navigation_is_limited_by_role() -> None:
     admin_items = navigation_for_roles([UserRole.ADMIN])
 
     assert [item.key for item in teacher_items] == [
+        "teacher.home",
         "teacher.courses",
+        "teacher.knowledge",
         "teacher.questions",
         "teacher.exams",
+        "teacher.generate",
+        "teacher.review",
+        "teacher.analytics",
     ]
     assert [item.key for item in student_items] == [
+        "student.home",
         "student.exams",
         "student.results",
     ]
     assert [item.key for item in admin_items] == [
+        "admin.home",
         "admin.users",
+        "admin.roles",
         "admin.status",
     ]
 
