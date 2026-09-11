@@ -422,5 +422,5 @@ M0 工程骨架 + Benchmark
 - [X] T121 在 `backend/app/ui/gradio_app.py` 的登录面板与登录事件绑定处实现开发模式登录区域：仅当 `DEV_MODE=True` 时在登录页顶部显示“开发模式快速登录”及“以管理员身份登录”“以教师身份登录”“以学生身份登录”三个按钮；按钮调用账号初始化并使用标准 JWT 建立 `LoginState`，`DEV_MODE=False` 时组件完全隐藏且正常用户名/密码登录路径不变 per FR-002、FR-003、FR-004、plan §0、§6。
 - [X] T122 在 `backend/app/ui/layout_view.py` 的共享工作台顶部增加开发模式视觉提示“当前为开发模式，请勿用于生产环境”，仅在 `DEV_MODE=True` 渲染；提示不得改变导航授权或后端请求校验 per FR-004、FR-006、plan §0、§6。
 - [X] T123 在 `.env.example` 中增加 `DEV_MODE=false` 及中文说明注释，说明仅用于本地演示、开启后会创建预设测试账号、上线前必须关闭并清理账号 per FR-002、FR-007。
-- [ ] T124 编写 `docs/dev-mode.md`，记录开关、预设账号生命周期、快速登录行为、后端安全边界、测试/清理步骤，并链接 `docs/dev-mode-removal-checklist.md` per FR-001~FR-007、plan §0。
+- [X] T124 编写 `docs/dev-mode.md`，记录开关、预设账号生命周期、快速登录行为、后端安全边界、测试/清理步骤，并链接 `docs/dev-mode-removal-checklist.md` per FR-001~FR-007、plan §0。
 
