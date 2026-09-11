@@ -51,6 +51,7 @@ from backend.app.ui.layout_view import (
     ROLE_NAVIGATION,
     WORKSPACE_CSS,
     breadcrumb_html,
+    development_mode_banner,
     empty_state,
     feedback,
     is_authorized_navigation,
@@ -2354,6 +2355,12 @@ def create_gradio_app() -> gr.Blocks:
                 login_message = gr.HTML(elem_id="edu-login-message")
 
             with gr.Column(visible=False, elem_id="edu-workspace") as workspace:
+                dev_mode_enabled = _dev_mode_enabled()
+                gr.HTML(
+                    development_mode_banner(dev_mode_enabled),
+                    visible=dev_mode_enabled,
+                    elem_id="edu-dev-mode-banner",
+                )
                 with gr.Row(elem_id="edu-topbar"):
                     gr.HTML("<strong>EduAgent</strong>", elem_id="edu-brand")
                     context = gr.HTML(elem_id="edu-context")

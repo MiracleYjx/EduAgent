@@ -501,6 +501,9 @@ STATUS_CSS = (
 .edu-status > [aria-hidden] { flex: 0 0 auto; }
 .edu-state-banner { padding: 12px 16px; border-left: 3px solid var(--edu-status-border);
     background: var(--edu-status-bg); color: var(--edu-status-fg); }
+.edu-dev-mode-banner { padding: 10px 14px; border: 1px solid #f59e0b;
+    border-left-width: 4px; border-radius: 4px; background: #fffbeb;
+    color: #92400e; font-size: 13px; line-height: 20px; }
 .edu-state-banner .edu-status { padding: 0; border: 0; font-weight: 600; }
 .edu-status-detail { margin-top: 6px; white-space: pre-wrap; overflow-wrap: anywhere; }
 .edu-question-indicator { display: inline-flex; vertical-align: top; flex-direction: column;
@@ -705,6 +708,18 @@ def breadcrumb_html(items: Sequence[str]) -> str:
     return '<span class="edu-breadcrumb">' + " / ".join(labels) + "</span>"
 
 
+def development_mode_banner(enabled: bool) -> str:
+    """在开发模式下返回顶部环境提示，关闭时不渲染任何文字。"""
+
+    if not enabled:
+        return ""
+    return (
+        '<div class="edu-dev-mode-banner" role="status">'
+        "当前为开发模式，请勿用于生产环境"
+        "</div>"
+    )
+
+
 def feedback(message: str, kind: str = "info") -> str:
     """兼容外壳既有接口，统一成功、失败、警告、加载与空态的中文反馈。"""
 
@@ -847,6 +862,7 @@ __all__ = [
     "breadcrumb_html",
     "confidence_banner",
     "create_status_styles",
+    "development_mode_banner",
     "empty_state",
     "feedback",
     "get_status",
