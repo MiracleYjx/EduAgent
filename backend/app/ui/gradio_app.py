@@ -16,6 +16,7 @@ import gradio as gr
 from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
 
+from backend.app.core.config import ConfigurationError, get_settings
 from backend.app.core.database import get_session_factory
 from backend.app.domain.enums import ExamStatus, SubmissionStatus, UserRole
 from backend.app.domain.permissions import (
@@ -24,7 +25,11 @@ from backend.app.domain.permissions import (
     normalize_role,
 )
 from backend.app.models import Course, User
-from backend.app.services.auth_service import AuthenticationError, AuthService
+from backend.app.services.auth_service import (
+    AuthenticationError,
+    AuthService,
+    ensure_dev_mode_accounts,
+)
 from backend.app.services.course_service import (
     CourseService,
     CourseServiceError,
@@ -103,6 +108,7 @@ _EMPTY_LOGIN_STATE: LoginState = {
 }
 _UNAUTHENTICATED_MESSAGE = "请先登录。"
 _GENERIC_ERROR_MESSAGE = "操作失败，请稍后重试。"
+_DEV_MODE_TRUE_VALUES = frozenset({"1", "true", "t", "yes", "y", "on"})
 
 TEACHER_DASHBOARD_UNAVAILABLE_MESSAGE = "教师概览数据暂不可用，请稍后重试。"
 TEACHER_DASHBOARD_SCOPE_UNAVAILABLE = "当前课程：暂不可用"
@@ -1811,6 +1817,27 @@ def _jwt_secret_key() -> str | None:
     return value or None
 
 
+def _dev_mode_enabled(settings: Any | None = None) -> bool:
+    """读取开发模式开关；配置缺失时安全地回退为关闭。"""
+
+    configured = None
+    if settings is not None:
+        configured = getattr(settings, "DEV_MODE", None)
+        if configured is None:
+            configured = getattr(settings, "dev_mode", None)
+    if configured is None:
+        raw_environment_value = os.getenv("DEV_MODE")
+        if raw_environment_value is not None:
+            return raw_environment_value.strip().lower() in _DEV_MODE_TRUE_VALUES
+        try:
+            configured = getattr(get_settings(), "DEV_MODE", False)
+        except (ConfigurationError, TypeError, ValueError):
+            configured = False
+    if isinstance(configured, str):
+        return configured.strip().lower() in _DEV_MODE_TRUE_VALUES
+    return bool(configured)
+
+
 def _user_state(user: User, access_token: str) -> LoginState:
     """构造不含密码等敏感字段的 Gradio 登录状态。"""
 
@@ -1822,6 +1849,40 @@ def _user_state(user: User, access_token: str) -> LoginState:
         "email": user.email,
         "roles": [role.value for role in roles],
     }
+
+
+def login_as_dev_role(
+    role: UserRole | str,
+    *,
+    session_factory: Callable[[], Any] | None = None,
+    secret_key: str | None = None,
+    dev_mode: bool | str | int | None = None,
+) -> LoginState:
+    """开发模式按角色创建预设账号并签发标准 JWT。"""
+
+    if dev_mode is not None:
+        enabled = (
+            dev_mode
+            if isinstance(dev_mode, bool)
+            else str(dev_mode).strip().lower() in _DEV_MODE_TRUE_VALUES
+        )
+    else:
+        enabled = _dev_mode_enabled()
+    if not enabled:
+        raise AuthenticationError("开发模式未开启。")
+
+    normalized_role = normalize_role(role)
+    factory = session_factory or get_session_factory()
+    with factory() as session:
+        accounts = ensure_dev_mode_accounts(session, dev_mode=True)
+        user = accounts.get(normalized_role)
+        if user is None:
+            raise AuthenticationError("开发模式测试账号不可用。")
+        service = AuthService(
+            session,
+            secret_key=secret_key if secret_key is not None else _jwt_secret_key(),
+        )
+        return _user_state(user, service.issue_access_token(user))
 
 
 def _navigation_choices(
@@ -2274,6 +2335,15 @@ def create_gradio_app() -> gr.Blocks:
             gr.HTML(f"<style>{WORKSPACE_CSS}</style>", elem_id="edu-style")
             with gr.Column(elem_id="edu-login") as login_panel:
                 gr.Markdown("# EduAgent\n\n### 登录教学评测平台")
+                with gr.Column(
+                    visible=_dev_mode_enabled(),
+                    elem_id="edu-dev-login",
+                ):
+                    gr.Markdown("#### 开发模式快速登录")
+                    with gr.Row():
+                        dev_admin_button = gr.Button("以管理员身份登录")
+                        dev_teacher_button = gr.Button("以教师身份登录")
+                        dev_student_button = gr.Button("以学生身份登录")
                 identifier = gr.Textbox(
                     label="用户名或邮箱", placeholder="请输入用户名或邮箱"
                 )
@@ -2721,6 +2791,60 @@ def create_gradio_app() -> gr.Blocks:
                     )
                 )
             result[workspace_message] = feedback(response[1], "success")
+            return result
+
+        def dev_sign_in(role: UserRole) -> dict[Any, Any]:
+            """开发模式跳过密码输入，但仍建立标准 JWT 会话。"""
+
+            try:
+                state = login_as_dev_role(role)
+            except (
+                AuthenticationError,
+                SQLAlchemyError,
+                TypeError,
+                ValueError,
+            ) as error:
+                return clear_workspace(format_ui_error(error), "error")
+
+            role_value = state["roles"][0] if state["roles"] else ""
+            choices = navigation_for_roles([role_value])
+            selected = choices[0].key if choices else None
+            result = clear_workspace("")
+            initial_navigation: dict[str, Any] = {
+                "role": role_value,
+                "pages": {role_value: selected} if role_value else {},
+                "current_page": selected,
+                "history": [],
+                "messages": [],
+                "searches": {},
+            }
+            _record_session_message(
+                initial_navigation,
+                kind="开发模式登录",
+                related_object=state.get("username") or "开发测试账号",
+                status="已登录",
+                view_key=selected,
+                detail="已使用预设账号建立标准 JWT 会话。",
+            )
+            result.update(render_workspace(state, initial_navigation, selected))
+            if role_value == UserRole.TEACHER.value and selected == "teacher.home":
+                result.update(
+                    _teacher_dashboard_component_updates(
+                        teacher_dashboard_view,
+                        refresh_teacher_dashboard(state=state),
+                    )
+                )
+            if role_value == UserRole.STUDENT.value and selected == "student.home":
+                result.update(
+                    _student_dashboard_component_updates(
+                        student_dashboard_view,
+                        refresh_student_dashboard(state=state),
+                    )
+                )
+            result[workspace_message] = feedback(
+                f"开发模式快速登录成功，当前角色：{ROLE_DISPLAY_NAMES[normalize_role(role)]}。",
+                "success",
+            )
             return result
 
         def navigate(
@@ -3424,6 +3548,21 @@ def create_gradio_app() -> gr.Blocks:
 
         login_button.click(sign_in, inputs=[identifier, password], **event_options)
         password.submit(sign_in, inputs=[identifier, password], **event_options)
+        dev_admin_button.click(
+            partial(dev_sign_in, UserRole.ADMIN),
+            inputs=[],
+            **event_options,
+        )
+        dev_teacher_button.click(
+            partial(dev_sign_in, UserRole.TEACHER),
+            inputs=[],
+            **event_options,
+        )
+        dev_student_button.click(
+            partial(dev_sign_in, UserRole.STUDENT),
+            inputs=[],
+            **event_options,
+        )
         logout_button.click(clear_workspace, inputs=[], **event_options)
         message_button.click(
             open_message_panel,
@@ -3583,6 +3722,7 @@ __all__ = [
     "create_teacher_dashboard_view",
     "empty_login_state",
     "format_ui_error",
+    "login_as_dev_role",
     "login_user",
     "login_user_for_app",
     "login_user_for_app_with_questions",
