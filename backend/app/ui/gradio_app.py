@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import os
-from collections.abc import Callable, Iterable, Mapping
+from collections.abc import Callable, Iterable, Mapping, Sequence
 from copy import deepcopy
+from dataclasses import dataclass
 from functools import partial, wraps
 from html import escape
 from typing import Any, TypedDict
@@ -13,7 +14,7 @@ import gradio as gr
 from sqlalchemy.exc import SQLAlchemyError
 
 from backend.app.core.database import get_session_factory
-from backend.app.domain.enums import UserRole
+from backend.app.domain.enums import ExamStatus, UserRole
 from backend.app.domain.permissions import (
     ROLE_DISPLAY_NAMES,
     PermissionDeniedError,
@@ -21,6 +22,12 @@ from backend.app.domain.permissions import (
 )
 from backend.app.models import User
 from backend.app.services.auth_service import AuthenticationError, AuthService
+from backend.app.services.course_service import (
+    CourseService,
+    CourseServiceError,
+    CourseSummary,
+)
+from backend.app.services.exam_service import ExamService, ExamSummary
 from backend.app.ui.admin_view import AdminView, create_admin_view
 from backend.app.ui.exam_view import ExamView, create_exam_view
 from backend.app.ui.knowledge_base_view import (
@@ -30,11 +37,14 @@ from backend.app.ui.knowledge_base_view import (
 from backend.app.ui.layout_view import (
     ROLE_NAVIGATION,
     WORKSPACE_CSS,
+    empty_state,
     feedback,
     is_authorized_navigation,
     navigation_item,
     placeholder_page,
     resettable_components,
+    status_badge,
+    table_options,
 )
 from backend.app.ui.layout_view import (
     LayoutNavigationItem as NavigationItem,
@@ -80,6 +90,67 @@ _EMPTY_LOGIN_STATE: LoginState = {
 _UNAUTHENTICATED_MESSAGE = "请先登录。"
 _GENERIC_ERROR_MESSAGE = "操作失败，请稍后重试。"
 
+TEACHER_DASHBOARD_UNAVAILABLE_MESSAGE = "教师概览数据暂不可用，请稍后重试。"
+TEACHER_DASHBOARD_SCOPE_UNAVAILABLE = "当前课程：暂不可用"
+TEACHER_DASHBOARD_SUMMARY_UNAVAILABLE = "暂不可用"
+TEACHER_DASHBOARD_COURSE_EMPTY_MESSAGE = "暂无可展示的课程"
+TEACHER_DASHBOARD_TODO_EMPTY_MESSAGE = "暂无待办"
+TEACHER_DASHBOARD_EXAM_EMPTY_MESSAGE = "暂无最近考试"
+TEACHER_DASHBOARD_GRADE_EMPTY_MESSAGE = "暂无最终成绩概览"
+TEACHER_DASHBOARD_COURSE_SLOT_COUNT = 4
+TEACHER_DASHBOARD_TODO_HEADERS = ("类别", "所属课程/考试", "状态", "处理入口")
+TEACHER_DASHBOARD_EXAM_HEADERS = (
+    "考试名称",
+    "所属课程",
+    "开放时间",
+    "状态",
+    "题目数",
+    "总分",
+)
+
+
+@dataclass(frozen=True)
+class TeacherDashboardView:
+    """教师概览由主应用控制的组件集合。"""
+
+    panel: gr.Column
+    current_scope: gr.Markdown
+    course_filter: gr.Dropdown
+    refresh_button: gr.Button
+    summary_values: tuple[gr.Textbox, ...]
+    course_records: gr.State
+    course_cards: tuple[gr.HTML, ...]
+    course_slots: tuple[gr.Column, ...]
+    course_entry_buttons: tuple[gr.Button, ...]
+    course_empty: gr.Markdown
+    todo_table: gr.Dataframe
+    todo_empty: gr.Markdown
+    recent_exams_table: gr.Dataframe
+    recent_exams_empty: gr.Markdown
+    grade_overview: gr.Markdown
+    message: gr.Markdown
+
+
+@dataclass(frozen=True)
+class TeacherDashboardPayload:
+    """教师概览一次刷新所需的已授权数据和显示状态。"""
+
+    scope: str
+    refresh_interactive: bool
+    course_choices: list[tuple[str, str]]
+    selected_course_id: str | None
+    course_records: list[dict[str, Any]]
+    summary_values: tuple[str, str, str, str]
+    course_cards: tuple[str, ...]
+    course_entry_interactive: tuple[bool, ...]
+    course_empty: str
+    todo_rows: list[list[str]]
+    todo_empty: str
+    recent_exam_rows: list[list[str]]
+    recent_exams_empty: str
+    grade_overview: str
+    message: str
+
 
 def empty_login_state() -> LoginState:
     """返回新的空登录状态，避免不同浏览器会话共享可变对象。"""
@@ -91,6 +162,567 @@ def empty_login_state() -> LoginState:
         "email": _EMPTY_LOGIN_STATE["email"],
         "roles": [],
     }
+
+
+def _ensure_teacher_dashboard(state: Mapping[str, Any]) -> str:
+    """确认当前会话是教师，并返回用于服务查询的用户标识。"""
+
+    if not state.get("access_token"):
+        raise PermissionDeniedError("请先登录。")
+    try:
+        roles = {normalize_role(role) for role in state.get("roles", [])}
+    except (TypeError, ValueError) as error:
+        raise PermissionDeniedError("当前账号无权访问教师概览。") from error
+    if UserRole.TEACHER not in roles:
+        raise PermissionDeniedError("当前账号无权访问教师概览。")
+    teacher_id = str(state.get("user_id") or "").strip()
+    if not teacher_id:
+        raise PermissionDeniedError("登录状态缺少教师标识。")
+    return teacher_id
+
+
+def _dashboard_error_message(error: BaseException) -> str:
+    """将概览查询异常转换为不泄露内部细节的中文提示。"""
+
+    if isinstance(error, PermissionDeniedError):
+        return str(error) or "当前账号无权访问教师概览。"
+    if isinstance(error, SQLAlchemyError):
+        return "系统暂时无法连接数据库，请稍后重试。"
+    if isinstance(error, (TypeError, ValueError)):
+        return f"输入有误：{str(error) or '请检查当前筛选条件。'}"
+    return TEACHER_DASHBOARD_UNAVAILABLE_MESSAGE
+
+
+def _dashboard_unavailable_payload(
+    message: str = TEACHER_DASHBOARD_UNAVAILABLE_MESSAGE,
+    *,
+    kind: str = "warning",
+    refresh_interactive: bool = False,
+) -> TeacherDashboardPayload:
+    """构造登录前或服务缺失时使用的完整不可用态。"""
+
+    cards = [""] * TEACHER_DASHBOARD_COURSE_SLOT_COUNT
+    return TeacherDashboardPayload(
+        scope=TEACHER_DASHBOARD_SCOPE_UNAVAILABLE,
+        refresh_interactive=refresh_interactive,
+        course_choices=[],
+        selected_course_id=None,
+        course_records=[],
+        summary_values=(
+            TEACHER_DASHBOARD_SUMMARY_UNAVAILABLE,
+            TEACHER_DASHBOARD_SUMMARY_UNAVAILABLE,
+            TEACHER_DASHBOARD_SUMMARY_UNAVAILABLE,
+            TEACHER_DASHBOARD_SUMMARY_UNAVAILABLE,
+        ),
+        course_cards=tuple(cards),
+        course_entry_interactive=(False,) * TEACHER_DASHBOARD_COURSE_SLOT_COUNT,
+        course_empty=empty_state(TEACHER_DASHBOARD_COURSE_EMPTY_MESSAGE),
+        todo_rows=[],
+        todo_empty=empty_state(TEACHER_DASHBOARD_TODO_EMPTY_MESSAGE),
+        recent_exam_rows=[],
+        recent_exams_empty=empty_state(TEACHER_DASHBOARD_EXAM_EMPTY_MESSAGE),
+        grade_overview=empty_state(TEACHER_DASHBOARD_GRADE_EMPTY_MESSAGE),
+        message=feedback(message, kind),
+    )
+
+
+def _dashboard_course_record(course: CourseSummary) -> dict[str, Any]:
+    """保存服务返回的课程摘要，入口只使用已授权记录中的内部标识。"""
+
+    return {
+        "id": course.id,
+        "name": course.name,
+        "description": course.description or "",
+        "knowledge_base_count": course.knowledge_base_count,
+    }
+
+
+def _dashboard_course_card(course: CourseSummary) -> str:
+    """把真实课程摘要渲染为紧凑卡片，动态文本全部转义。"""
+
+    description = " ".join((course.description or "").split()) or "暂无课程简介"
+    if len(description) > 120:
+        description = f"{description[:117]}..."
+    return (
+        '<div class="teacher-dashboard-course-card-content">'
+        f"<h4>{escape(course.name)}</h4>"
+        f'<p class="teacher-dashboard-course-description">{escape(description)}</p>'
+        f'<p class="teacher-dashboard-course-meta">知识库：<strong>{course.knowledge_base_count}</strong> 个</p>'
+        "</div>"
+    )
+
+
+def _dashboard_time_label(value: Any) -> str:
+    """格式化服务返回的时间；缺少权威时间时明确显示未提供。"""
+
+    return value.strftime("%Y-%m-%d %H:%M") if hasattr(value, "strftime") else "未提供"
+
+
+def _dashboard_exam_opening_label(exam: ExamSummary) -> str:
+    """只显示考试服务提供的开放时间，不推断个人计时或截止规则。"""
+
+    start = _dashboard_time_label(exam.starts_at)
+    end = _dashboard_time_label(exam.ends_at)
+    if start == "未提供" and end == "未提供":
+        return "未提供"
+    if start == "未提供":
+        return f"未提供 至 {end}"
+    if end == "未提供":
+        return f"{start} 至 未提供"
+    return f"{start} 至 {end}"
+
+
+def _dashboard_exam_rows(
+    exams: Iterable[ExamSummary],
+    courses: Iterable[CourseSummary],
+) -> list[list[str]]:
+    """把授权考试摘要转换为最近考试表格行。"""
+
+    course_names = {course.id: course.name for course in courses}
+    # ExamService 按创建时间升序返回，取末尾记录即可保持最近考试顺序。
+    recent_exams = list(exams)[-5:][::-1]
+    return [
+        [
+            exam.title,
+            course_names.get(exam.course_id, "课程暂不可用"),
+            _dashboard_exam_opening_label(exam),
+            status_badge(exam.status, entity="exam"),
+            str(exam.question_count),
+            str(exam.total_score),
+        ]
+        for exam in recent_exams
+    ]
+
+
+def _dashboard_payload_for_courses(
+    courses: Iterable[CourseSummary],
+    course_id: str | None,
+    exams: Iterable[ExamSummary] | None,
+    *,
+    message: str,
+    message_kind: str = "warning",
+) -> TeacherDashboardPayload:
+    """根据已授权课程和考试摘要组装概览，不触碰成绩或诊断数据。"""
+
+    all_courses = list(courses)
+    choices = [(course.name, course.id) for course in all_courses]
+    normalized_course_id = str(course_id or "").strip() or None
+    if normalized_course_id is None:
+        selected_courses = all_courses
+    else:
+        selected_courses = [
+            course for course in all_courses if course.id == normalized_course_id
+        ]
+        if not selected_courses:
+            raise ValueError("当前课程不可用，请刷新课程后重试。")
+
+    selected_ids = {course.id for course in selected_courses}
+    scoped_exams = (
+        [exam for exam in exams if exam.course_id in selected_ids]
+        if exams is not None
+        else None
+    )
+    displayed_courses = selected_courses[:TEACHER_DASHBOARD_COURSE_SLOT_COUNT]
+    cards = [_dashboard_course_card(course) for course in displayed_courses]
+    cards.extend([""] * (TEACHER_DASHBOARD_COURSE_SLOT_COUNT - len(cards)))
+    if not displayed_courses:
+        cards[0] = empty_state(TEACHER_DASHBOARD_COURSE_EMPTY_MESSAGE)
+    records = [_dashboard_course_record(course) for course in displayed_courses]
+
+    if scoped_exams is None:
+        published_count = TEACHER_DASHBOARD_SUMMARY_UNAVAILABLE
+        recent_rows: list[list[str]] = []
+        recent_empty = empty_state(TEACHER_DASHBOARD_EXAM_EMPTY_MESSAGE)
+    else:
+        published_count = str(
+            sum(exam.status == ExamStatus.PUBLISHED for exam in scoped_exams)
+        )
+        recent_rows = _dashboard_exam_rows(scoped_exams, selected_courses)
+        recent_empty = empty_state(TEACHER_DASHBOARD_EXAM_EMPTY_MESSAGE)
+
+    scope = (
+        f"当前课程：{selected_courses[0].name}"
+        if normalized_course_id and selected_courses
+        else "当前课程：全部课程"
+    )
+    detail = message
+    if len(selected_courses) > len(displayed_courses):
+        detail += " 当前仅展示前四门课程，进入课程管理可查看全部。"
+    return TeacherDashboardPayload(
+        scope=scope,
+        refresh_interactive=True,
+        course_choices=choices,
+        selected_course_id=normalized_course_id,
+        course_records=records,
+        summary_values=(
+            str(len(selected_courses)),
+            published_count,
+            TEACHER_DASHBOARD_SUMMARY_UNAVAILABLE,
+            TEACHER_DASHBOARD_SUMMARY_UNAVAILABLE,
+        ),
+        course_cards=tuple(cards),
+        course_entry_interactive=tuple(
+            index < len(records) for index in range(TEACHER_DASHBOARD_COURSE_SLOT_COUNT)
+        ),
+        course_empty=empty_state(TEACHER_DASHBOARD_COURSE_EMPTY_MESSAGE),
+        todo_rows=[],
+        todo_empty=empty_state(TEACHER_DASHBOARD_TODO_EMPTY_MESSAGE),
+        recent_exam_rows=recent_rows,
+        recent_exams_empty=recent_empty,
+        grade_overview=empty_state(TEACHER_DASHBOARD_GRADE_EMPTY_MESSAGE),
+        message=feedback(detail, message_kind),
+    )
+
+
+def refresh_teacher_dashboard(
+    course_id: str | None = None,
+    state: Mapping[str, Any] | None = None,
+) -> TeacherDashboardPayload:
+    """读取教师授权课程和考试摘要，并保留未就绪业务的空态。"""
+
+    current_state = state or empty_login_state()
+    try:
+        teacher_id = _ensure_teacher_dashboard(current_state)
+        with get_session_factory()() as session:
+            courses = CourseService(session).list_courses(teacher_id=teacher_id)
+            try:
+                exams = ExamService(session).list_exams(teacher_id=teacher_id)
+            except (
+                PermissionDeniedError,
+                SQLAlchemyError,
+                TypeError,
+                ValueError,
+                RuntimeError,
+            ):
+                return _dashboard_payload_for_courses(
+                    courses,
+                    course_id,
+                    None,
+                    message=(
+                        "课程数据已加载；最近考试数据暂不可用，"
+                        "待审核题、待复核评分和最终成绩仍显示暂不可用。"
+                    ),
+                )
+    except (
+        PermissionDeniedError,
+        SQLAlchemyError,
+        TypeError,
+        ValueError,
+        RuntimeError,
+    ) as error:
+        return _dashboard_unavailable_payload(
+            _dashboard_error_message(error),
+            kind="error" if isinstance(error, PermissionDeniedError) else "warning",
+            refresh_interactive=bool(current_state.get("access_token")),
+        )
+
+    try:
+        return _dashboard_payload_for_courses(
+            courses,
+            course_id,
+            exams,
+            message=(
+                "课程与考试数据已加载；待审核题、待复核评分和最终成绩"
+                "依赖的业务服务暂未就绪。"
+            ),
+        )
+    except (TypeError, ValueError) as error:
+        return _dashboard_unavailable_payload(
+            _dashboard_error_message(error),
+            kind="error",
+            refresh_interactive=bool(current_state.get("access_token")),
+        )
+
+
+def _teacher_dashboard_component_updates(
+    view: TeacherDashboardView,
+    payload: TeacherDashboardPayload,
+) -> dict[Any, Any]:
+    """把概览载荷映射到组件，供登录、刷新和退出流程复用。"""
+
+    result: dict[Any, Any] = {
+        view.current_scope: payload.scope,
+        view.refresh_button: gr.update(interactive=payload.refresh_interactive),
+        view.course_filter: gr.update(
+            choices=payload.course_choices,
+            value=payload.selected_course_id,
+            interactive=bool(payload.course_choices),
+        ),
+        view.course_records: payload.course_records,
+        view.course_empty: gr.update(
+            value=payload.course_empty,
+            visible=not bool(payload.course_records),
+        ),
+        view.todo_table: payload.todo_rows,
+        view.todo_empty: gr.update(
+            value=payload.todo_empty,
+            visible=not bool(payload.todo_rows),
+        ),
+        view.recent_exams_table: payload.recent_exam_rows,
+        view.recent_exams_empty: gr.update(
+            value=payload.recent_exams_empty,
+            visible=not bool(payload.recent_exam_rows),
+        ),
+        view.grade_overview: payload.grade_overview,
+        view.message: payload.message,
+    }
+    for summary_component, value in zip(view.summary_values, payload.summary_values):
+        result[summary_component] = value
+    for card_component, value in zip(view.course_cards, payload.course_cards):
+        result[card_component] = value
+    for slot, enabled in zip(view.course_slots, payload.course_entry_interactive):
+        result[slot] = gr.update(visible=enabled)
+    for entry_button, enabled in zip(
+        view.course_entry_buttons, payload.course_entry_interactive
+    ):
+        result[entry_button] = gr.update(interactive=enabled)
+    return result
+
+
+def _create_teacher_dashboard_view(
+    session_state: Any | None = None,
+) -> TeacherDashboardView:
+    """创建教师工作台布局和课程/考试摘要刷新事件。"""
+
+    state = session_state or gr.State(empty_login_state())
+    initial_payload = _dashboard_unavailable_payload()
+    with gr.Column(visible=False, elem_classes="edu-teacher-dashboard") as panel:
+        gr.HTML(
+            "<style>"
+            ".edu-teacher-dashboard .dashboard-title-row {align-items:center;}"
+            ".edu-teacher-dashboard .dashboard-title {min-width:0;}"
+            ".edu-teacher-dashboard .dashboard-summary-row {gap:12px;}"
+            ".edu-teacher-dashboard .dashboard-summary {min-height:74px;}"
+            ".edu-teacher-dashboard .dashboard-main {align-items:stretch;gap:16px;}"
+            ".edu-teacher-dashboard .dashboard-courses,"
+            ".edu-teacher-dashboard .dashboard-todos,"
+            ".edu-teacher-dashboard .dashboard-recent,"
+            ".edu-teacher-dashboard .dashboard-grades {min-width:0;}"
+            ".edu-teacher-dashboard .dashboard-course-grid {align-items:stretch;gap:12px;}"
+            ".edu-teacher-dashboard .dashboard-course-slot {min-width:0;min-height:188px;"
+            "padding:12px;border:1px solid #e1e5eb;border-radius:6px;background:#fff;}"
+            ".edu-teacher-dashboard .dashboard-course-card {min-height:116px;}"
+            ".edu-teacher-dashboard .dashboard-course-card-content h4 {margin:0 0 8px;"
+            "font-size:16px;overflow-wrap:anywhere;}"
+            ".edu-teacher-dashboard .dashboard-course-description {min-height:48px;"
+            "margin:0;color:#68717e;overflow-wrap:anywhere;}"
+            ".edu-teacher-dashboard .dashboard-course-meta {margin:10px 0 0;color:#485160;}"
+            ".edu-teacher-dashboard .dashboard-course-entry {min-height:44px;width:100%;}"
+            ".edu-teacher-dashboard .dashboard-empty {min-height:120px;}"
+            "@media(max-width:1023px){"
+            ".edu-teacher-dashboard .dashboard-main {flex-wrap:wrap;}"
+            ".edu-teacher-dashboard .dashboard-courses,"
+            ".edu-teacher-dashboard .dashboard-todos {flex:1 1 100% !important;}"
+            "}"
+            "@media(max-width:767px){"
+            ".edu-teacher-dashboard .dashboard-title-row {flex-wrap:wrap;}"
+            ".edu-teacher-dashboard .dashboard-summary-row {flex-wrap:wrap;}"
+            ".edu-teacher-dashboard .dashboard-summary {flex:1 1 45%;}"
+            ".edu-teacher-dashboard .dashboard-course-grid {flex-wrap:wrap;}"
+            ".edu-teacher-dashboard .dashboard-course-slot {flex:1 1 100%;}"
+            "}"
+            "</style>"
+        )
+        with gr.Row(equal_height=False, elem_classes="dashboard-title-row"):
+            with gr.Column(scale=2, min_width=0, elem_classes="dashboard-title"):
+                gr.Markdown("## 教师概览")
+                current_scope = gr.Markdown(
+                    initial_payload.scope,
+                    elem_classes="dashboard-current-scope",
+                )
+            course_filter = gr.Dropdown(
+                label="当前课程",
+                choices=[],
+                value=None,
+                interactive=False,
+                scale=1,
+                min_width=220,
+            )
+            refresh_button = gr.Button(
+                "刷新概览",
+                variant="primary",
+                scale=0,
+                interactive=False,
+            )
+
+        with gr.Row(elem_classes="dashboard-summary-row"):
+            summary_values = [
+                gr.Textbox(
+                    label=label,
+                    value=initial_payload.summary_values[index],
+                    interactive=False,
+                    elem_classes="dashboard-summary",
+                )
+                for index, label in enumerate(
+                    ("课程数", "已发布考试", "待审核题", "待复核评分")
+                )
+            ]
+        gr.Markdown(
+            "统计仅展示当前教师已授权且完整的数据；缺失业务数据显示‘暂不可用’。"
+        )
+        message = gr.Markdown(initial_payload.message)
+        course_records = gr.State([])
+
+        with gr.Row(equal_height=False, elem_classes="dashboard-main"):
+            with gr.Column(
+                scale=2,
+                min_width=0,
+                elem_classes="dashboard-courses",
+            ):
+                gr.Markdown("### 我的课程")
+                course_empty = gr.Markdown(
+                    initial_payload.course_empty,
+                    elem_classes="dashboard-empty",
+                )
+                with gr.Row(
+                    equal_height=False,
+                    elem_classes="dashboard-course-grid",
+                ):
+                    course_cards: list[gr.HTML] = []
+                    course_slots: list[gr.Column] = []
+                    course_entry_buttons: list[gr.Button] = []
+                    for index in range(TEACHER_DASHBOARD_COURSE_SLOT_COUNT):
+                        with gr.Column(
+                            scale=1,
+                            min_width=170,
+                            elem_classes="dashboard-course-slot",
+                            visible=False,
+                        ) as course_slot:
+                            course_slots.append(course_slot)
+                            course_card = gr.HTML(
+                                initial_payload.course_cards[index],
+                                elem_classes="dashboard-course-card",
+                            )
+                            course_entry_button = gr.Button(
+                                "进入课程",
+                                variant="secondary",
+                                interactive=False,
+                                elem_classes="dashboard-course-entry",
+                            )
+                            course_cards.append(course_card)
+                            course_entry_buttons.append(course_entry_button)
+            with gr.Column(
+                scale=1,
+                min_width=0,
+                elem_classes="dashboard-todos",
+            ):
+                gr.Markdown("### 待办列表")
+                todo_table = gr.Dataframe(
+                    headers=list(TEACHER_DASHBOARD_TODO_HEADERS),
+                    datatype=["str", "str", "markdown", "str"],
+                    value=initial_payload.todo_rows,
+                    interactive=False,
+                    label="候选题审核与待复核评分",
+                    **table_options(TEACHER_DASHBOARD_TODO_HEADERS),
+                )
+                todo_empty = gr.Markdown(
+                    initial_payload.todo_empty,
+                    elem_classes="dashboard-empty",
+                )
+
+        with gr.Row(equal_height=False, elem_classes="dashboard-main"):
+            with gr.Column(
+                scale=2,
+                min_width=0,
+                elem_classes="dashboard-recent",
+            ):
+                gr.Markdown("### 最近考试")
+                recent_exams_table = gr.Dataframe(
+                    headers=list(TEACHER_DASHBOARD_EXAM_HEADERS),
+                    datatype=["str", "str", "str", "markdown", "str", "str"],
+                    value=initial_payload.recent_exam_rows,
+                    interactive=False,
+                    label="最近考试（仅当前教师授权课程）",
+                    **table_options(TEACHER_DASHBOARD_EXAM_HEADERS),
+                )
+                recent_exams_empty = gr.Markdown(
+                    initial_payload.recent_exams_empty,
+                    elem_classes="dashboard-empty",
+                )
+            with gr.Column(
+                scale=1,
+                min_width=0,
+                elem_classes="dashboard-grades",
+            ):
+                gr.Markdown("### 最终成绩概览")
+                grade_overview = gr.Markdown(initial_payload.grade_overview)
+                gr.Markdown("平均分仅基于服务返回的最终成绩；待复核评分不计入。")
+
+        def refresh_panel(
+            selected_course: str | None,
+            current_state: Mapping[str, Any],
+        ) -> dict[Any, Any]:
+            """刷新概览；未就绪的审核、复核和成绩服务继续显示空态。"""
+
+            payload = refresh_teacher_dashboard(selected_course, current_state)
+            return _teacher_dashboard_component_updates(view, payload)
+
+        view = TeacherDashboardView(
+            panel=panel,
+            current_scope=current_scope,
+            course_filter=course_filter,
+            refresh_button=refresh_button,
+            summary_values=tuple(summary_values),
+            course_records=course_records,
+            course_cards=tuple(course_cards),
+            course_slots=tuple(course_slots),
+            course_entry_buttons=tuple(course_entry_buttons),
+            course_empty=course_empty,
+            todo_table=todo_table,
+            todo_empty=todo_empty,
+            recent_exams_table=recent_exams_table,
+            recent_exams_empty=recent_exams_empty,
+            grade_overview=grade_overview,
+            message=message,
+        )
+        refresh_button.click(
+            refresh_panel,
+            inputs=[course_filter, state],
+            outputs=[
+                view.current_scope,
+                view.refresh_button,
+                view.course_filter,
+                *view.summary_values,
+                view.course_records,
+                view.course_empty,
+                *view.course_cards,
+                *view.course_slots,
+                *view.course_entry_buttons,
+                view.todo_table,
+                view.todo_empty,
+                view.recent_exams_table,
+                view.recent_exams_empty,
+                view.grade_overview,
+                view.message,
+            ],
+            show_progress="hidden",
+        )
+        course_filter.change(
+            refresh_panel,
+            inputs=[course_filter, state],
+            outputs=[
+                view.current_scope,
+                view.refresh_button,
+                view.course_filter,
+                *view.summary_values,
+                view.course_records,
+                view.course_empty,
+                *view.course_cards,
+                *view.course_slots,
+                *view.course_entry_buttons,
+                view.todo_table,
+                view.todo_empty,
+                view.recent_exams_table,
+                view.recent_exams_empty,
+                view.grade_overview,
+                view.message,
+            ],
+            show_progress="hidden",
+        )
+    return view
+
+
+create_teacher_dashboard_view = _create_teacher_dashboard_view
 
 
 def normalize_ui_roles(
@@ -681,8 +1313,12 @@ def create_gradio_app() -> gr.Blocks:
                         teacher_results_view: TeacherResultsView = (
                             create_teacher_results_view(session_state)
                         )
+                        teacher_dashboard_view: TeacherDashboardView = (
+                            create_teacher_dashboard_view(session_state)
+                        )
 
         panels = {
+            "teacher.home": teacher_dashboard_view.panel,
             "teacher.courses": knowledge_base_view.panel,
             "teacher.questions": question_view.panel,
             "teacher.exams": exam_view.panel,
@@ -799,6 +1435,12 @@ def create_gradio_app() -> gr.Blocks:
                     menu: gr.update(open=False),
                 }
             )
+            result.update(
+                _teacher_dashboard_component_updates(
+                    teacher_dashboard_view,
+                    _dashboard_unavailable_payload(),
+                )
+            )
             return result
 
         login_progress = gr.Progress()
@@ -824,6 +1466,13 @@ def create_gradio_app() -> gr.Blocks:
                     state, {"role": role, "pages": {role: selected}}, selected
                 )
             )
+            if UserRole.TEACHER.value in state["roles"] and selected == "teacher.home":
+                result.update(
+                    _teacher_dashboard_component_updates(
+                        teacher_dashboard_view,
+                        refresh_teacher_dashboard(state=state),
+                    )
+                )
             result[workspace_message] = feedback(response[1], "success")
             return result
 
@@ -865,6 +1514,13 @@ def create_gradio_app() -> gr.Blocks:
             next_nav["role"] = active_role
             next_nav["pages"][active_role] = selected
             result = render_workspace(current, next_nav, selected)
+            if active_role == UserRole.TEACHER.value and selected == "teacher.home":
+                result.update(
+                    _teacher_dashboard_component_updates(
+                        teacher_dashboard_view,
+                        refresh_teacher_dashboard(state=current),
+                    )
+                )
             result[workspace_message] = ""
             result[menu] = gr.update(open=False)
             return result
@@ -890,6 +1546,9 @@ def create_gradio_app() -> gr.Blocks:
                     *admin_sections.values(),
                     *groups.values(),
                     *buttons.values(),
+                    teacher_dashboard_view.refresh_button,
+                    *teacher_dashboard_view.course_slots,
+                    *teacher_dashboard_view.course_entry_buttons,
                     *(component for component, _ in resets),
                 ]
             )
@@ -957,6 +1616,83 @@ def create_gradio_app() -> gr.Blocks:
             )
             return result
 
+        def open_course_from_dashboard(
+            course_records: Sequence[Mapping[str, Any]] | None,
+            current_state: LoginState,
+            nav: dict[str, Any],
+            *,
+            index: int,
+        ) -> dict[Any, Any]:
+            """从课程卡片进入课程管理，并再次通过课程服务校验归属。"""
+
+            try:
+                current = _authenticated_state(current_state)
+            except AuthenticationError:
+                return {
+                    workspace_message: feedback(
+                        "登录状态已失效，请退出后重新登录。", "error"
+                    )
+                }
+            except SQLAlchemyError:
+                return {
+                    workspace_message: feedback(
+                        "系统暂时无法连接数据库，请稍后重试。", "error"
+                    )
+                }
+            if UserRole.TEACHER not in normalize_ui_roles(current["roles"]):
+                return {
+                    teacher_dashboard_view.message: feedback(
+                        "当前账号无权访问课程管理。", "error"
+                    )
+                }
+            if (
+                not isinstance(course_records, Sequence)
+                or isinstance(course_records, (str, bytes))
+                or not isinstance(index, int)
+                or not 0 <= index < len(course_records)
+                or not isinstance(course_records[index], Mapping)
+            ):
+                return {
+                    teacher_dashboard_view.message: feedback(
+                        "当前课程入口已失效，请刷新概览。", "info"
+                    )
+                }
+            course_id = str(course_records[index].get("id") or "").strip()
+            if not course_id:
+                return {
+                    teacher_dashboard_view.message: feedback(
+                        "当前课程入口已失效，请刷新概览。", "info"
+                    )
+                }
+            try:
+                with get_session_factory()() as session:
+                    course = CourseService(session).get_course(
+                        course_id,
+                        teacher_id=current["user_id"],
+                    )
+            except (
+                PermissionDeniedError,
+                CourseServiceError,
+                SQLAlchemyError,
+                TypeError,
+                ValueError,
+                RuntimeError,
+            ) as error:
+                return {
+                    teacher_dashboard_view.message: feedback(
+                        _dashboard_error_message(error), "error"
+                    )
+                }
+
+            next_nav = deepcopy(nav)
+            next_nav["role"] = UserRole.TEACHER.value
+            next_nav.setdefault("pages", {})[UserRole.TEACHER.value] = "teacher.courses"
+            result = render_workspace(current, next_nav, "teacher.courses")
+            result[knowledge_base_view.message] = feedback(
+                f"已进入课程“{course.name}”。", "info"
+            )
+            return result
+
         login_button.click(sign_in, inputs=[identifier, password], **event_options)
         password.submit(sign_in, inputs=[identifier, password], **event_options)
         logout_button.click(clear_workspace, inputs=[], **event_options)
@@ -989,6 +1725,21 @@ def create_gradio_app() -> gr.Blocks:
             concurrency_id="eduagent-ui",
             concurrency_limit=1,
         )
+        for index, course_entry_button in enumerate(
+            teacher_dashboard_view.course_entry_buttons
+        ):
+            course_entry_button.click(
+                partial(open_course_from_dashboard, index=index),
+                inputs=[
+                    teacher_dashboard_view.course_records,
+                    session_state,
+                    navigation_state,
+                ],
+                outputs=outputs,
+                show_progress="minimal",
+                concurrency_id="eduagent-ui",
+                concurrency_limit=1,
+            )
         for block_fn in view_functions:
             block_fn.concurrency_id = "eduagent-ui"
             block_fn.concurrency_limit = 1
@@ -997,9 +1748,18 @@ def create_gradio_app() -> gr.Blocks:
 
 __all__ = [
     "NAVIGATION_ITEMS",
+    "TEACHER_DASHBOARD_COURSE_EMPTY_MESSAGE",
+    "TEACHER_DASHBOARD_EXAM_EMPTY_MESSAGE",
+    "TEACHER_DASHBOARD_GRADE_EMPTY_MESSAGE",
+    "TEACHER_DASHBOARD_SUMMARY_UNAVAILABLE",
+    "TEACHER_DASHBOARD_TODO_EMPTY_MESSAGE",
+    "TEACHER_DASHBOARD_UNAVAILABLE_MESSAGE",
     "LoginState",
     "NavigationItem",
+    "TeacherDashboardPayload",
+    "TeacherDashboardView",
     "create_gradio_app",
+    "create_teacher_dashboard_view",
     "empty_login_state",
     "format_ui_error",
     "login_user",
@@ -1014,6 +1774,7 @@ __all__ = [
     "logout_user_for_app_with_questions_and_exams_and_student",
     "navigation_for_roles",
     "normalize_ui_roles",
+    "refresh_teacher_dashboard",
     "select_navigation",
     "select_navigation_for_app",
     "select_navigation_for_app_with_questions",
