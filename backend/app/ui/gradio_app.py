@@ -6,6 +6,7 @@ import os
 from collections.abc import Callable, Iterable, Mapping, Sequence
 from copy import deepcopy
 from dataclasses import dataclass
+from datetime import datetime
 from functools import partial, wraps
 from html import escape
 from typing import Any, TypedDict
@@ -44,6 +45,7 @@ from backend.app.ui.knowledge_base_view import (
 from backend.app.ui.layout_view import (
     ROLE_NAVIGATION,
     WORKSPACE_CSS,
+    breadcrumb_html,
     empty_state,
     feedback,
     is_authorized_navigation,
@@ -140,6 +142,208 @@ STUDENT_DASHBOARD_RESULT_HEADERS = (
     "结果状态",
     "查看结果",
 )
+
+TOPBAR_MESSAGE_HEADERS = ("类型", "关联对象", "状态", "时间", "查看入口")
+
+PAGE_BREADCRUMB_GROUPS: Mapping[str, str] = {
+    "teacher.home": "概览",
+    "teacher.courses": "课程",
+    "teacher.knowledge": "课程",
+    "teacher.questions": "题库",
+    "teacher.exams": "考试",
+    "teacher.generate": "AI 教学",
+    "teacher.review": "AI 教学",
+    "teacher.analytics": "学情分析",
+    "student.home": "学习",
+    "student.exams": "学习",
+    "student.results": "学习",
+    "admin.home": "管理",
+    "admin.users": "管理",
+    "admin.roles": "管理",
+    "admin.status": "管理",
+}
+
+PAGE_SEARCH_PLACEHOLDERS: Mapping[str, str] = {
+    "teacher.home": "搜索课程",
+    "teacher.courses": "搜索课程",
+    "teacher.knowledge": "搜索课程",
+    "teacher.questions": "搜索题目",
+    "teacher.exams": "搜索考试",
+    "teacher.generate": "搜索候选题",
+    "teacher.review": "搜索待复核结果",
+    "teacher.analytics": "搜索学生成绩",
+    "student.home": "搜索考试或结果",
+    "student.exams": "搜索考试",
+    "student.results": "搜索结果",
+    "admin.home": "搜索运行状态",
+    "admin.users": "搜索用户",
+    "admin.roles": "搜索角色",
+    "admin.status": "搜索运行状态",
+}
+
+# 顶部快捷入口只指向当前角色已有页面，不在外壳中创建新的业务操作。
+PAGE_PRIMARY_ACTIONS: Mapping[str, tuple[tuple[str, str], ...]] = {
+    "teacher.home": (("创建课程", "teacher.courses"), ("创建考试", "teacher.exams")),
+    "student.home": (("继续作答", "student.exams"), ("查看结果", "student.results")),
+    "admin.home": (("创建用户", "admin.users"), ("刷新状态", "admin.status")),
+    "teacher.courses": (("创建考试", "teacher.exams"),),
+    "teacher.exams": (("创建课程", "teacher.courses"),),
+    "student.exams": (("查看结果", "student.results"),),
+    "student.results": (("继续作答", "student.exams"),),
+    "admin.users": (("刷新状态", "admin.status"),),
+    "admin.status": (("创建用户", "admin.users"),),
+}
+
+
+def _page_breadcrumb(selected: str | None, item: NavigationItem | None) -> str:
+    """返回当前页面的共享面包屑，未知页面不显示虚假的层级。"""
+
+    if not selected or item is None:
+        return ""
+    return breadcrumb_html(
+        ("工作台", PAGE_BREADCRUMB_GROUPS.get(selected, "当前页面"), item.label)
+    )
+
+
+def _message_button_label(messages: Sequence[Mapping[str, Any]]) -> str:
+    """仅按当前会话已记录的反馈更新消息数量。"""
+
+    return f"消息（{len(messages)}）" if messages else "消息"
+
+
+def _record_session_message(
+    navigation: dict[str, Any],
+    *,
+    kind: str,
+    related_object: str,
+    status: str,
+    view_key: str | None = None,
+    detail: str = "",
+) -> None:
+    """记录本次会话反馈，不写入数据库、不跨会话复用。"""
+
+    messages = list(navigation.get("messages", []))
+    messages.append(
+        {
+            "kind": kind,
+            "related_object": related_object,
+            "status": status,
+            "time": datetime.now().astimezone().strftime("%Y-%m-%d %H:%M"),
+            "view_key": view_key,
+            "detail": detail,
+        }
+    )
+    navigation["messages"] = messages[-20:]
+
+
+def _message_rows(
+    messages: Sequence[Mapping[str, Any]], state: Mapping[str, Any]
+) -> list[list[str]]:
+    """把当前会话消息转换成只包含授权查看入口的表格行。"""
+
+    rows: list[list[str]] = []
+    for message in messages:
+        view_key = message.get("view_key")
+        can_view = isinstance(view_key, str) and _can_navigate(view_key, state)
+        rows.append(
+            [
+                str(message.get("kind") or "操作反馈"),
+                str(message.get("related_object") or "当前页面"),
+                str(message.get("status") or "提示"),
+                str(message.get("time") or "本次会话"),
+                "查看" if can_view else "不可用",
+            ]
+        )
+    return rows
+
+
+def _searchable_rows(value: Any) -> list[tuple[str, str]]:
+    """读取页面组件当前已加载的行，搜索不触发额外服务查询。"""
+
+    if hasattr(value, "values") and hasattr(value.values, "tolist"):
+        value = value.values.tolist()
+    if isinstance(value, Mapping):
+        value = [value]
+    if not isinstance(value, Sequence) or isinstance(value, (str, bytes, bytearray)):
+        return []
+    rows: list[tuple[str, str]] = []
+    for index, row in enumerate(value, start=1):
+        if isinstance(row, Mapping):
+            text = "；".join(
+                f"{key}：{item}" for key, item in row.items() if item not in (None, "")
+            )
+        elif isinstance(row, Sequence) and not isinstance(row, (str, bytes, bytearray)):
+            text = "；".join(str(item) for item in row if item not in (None, ""))
+        else:
+            text = str(row)
+        if text.strip():
+            rows.append((str(index), text))
+    return rows
+
+
+def _loaded_todo_messages(
+    state: Mapping[str, Any],
+    teacher_todo_value: Any = None,
+    teacher_result_value: Any = None,
+    student_result_value: Any = None,
+) -> list[dict[str, Any]]:
+    """把已经加载的角色范围内待处理行转换成临时会话消息。"""
+
+    roles = set(normalize_ui_roles(state.get("roles", [])))
+    records: list[dict[str, Any]] = []
+    if UserRole.TEACHER in roles:
+        for _, row_text in _searchable_rows(teacher_todo_value):
+            target = (
+                "teacher.review"
+                if "复核" in row_text
+                else "teacher.questions" if "审核" in row_text else "teacher.home"
+            )
+            records.append(
+                {
+                    "kind": "待办",
+                    "related_object": row_text[:160],
+                    "status": "待处理",
+                    "time": datetime.now().astimezone().strftime("%Y-%m-%d %H:%M"),
+                    "view_key": target if _can_navigate(target, state) else None,
+                    "detail": "来自当前教师已加载的待办列表。",
+                }
+            )
+        for _, row_text in _searchable_rows(teacher_result_value):
+            if not any(marker in row_text for marker in ("待", "复核", "Pending")):
+                continue
+            records.append(
+                {
+                    "kind": "成绩待办",
+                    "related_object": row_text[:160],
+                    "status": "待处理",
+                    "time": datetime.now().astimezone().strftime("%Y-%m-%d %H:%M"),
+                    "view_key": (
+                        "teacher.review"
+                        if _can_navigate("teacher.review", state)
+                        else None
+                    ),
+                    "detail": "来自当前教师已加载的成绩结果。",
+                }
+            )
+    if UserRole.STUDENT in roles:
+        for _, row_text in _searchable_rows(student_result_value):
+            if not any(marker in row_text for marker in ("待", "复核", "Pending")):
+                continue
+            records.append(
+                {
+                    "kind": "结果反馈",
+                    "related_object": row_text[:160],
+                    "status": "待确认",
+                    "time": datetime.now().astimezone().strftime("%Y-%m-%d %H:%M"),
+                    "view_key": (
+                        "student.results"
+                        if _can_navigate("student.results", state)
+                        else None
+                    ),
+                    "detail": "来自当前学生已加载的结果状态。",
+                }
+            )
+    return records
 
 
 @dataclass(frozen=True)
@@ -2053,7 +2257,15 @@ def create_gradio_app() -> gr.Blocks:
 
     with gr.Blocks(title="EduAgent 教学评测平台", fill_width=True) as demo:
         session_state = gr.State(empty_login_state())
-        navigation_state = gr.State({"role": "", "pages": {}})
+        navigation_state = gr.State(
+            {
+                "role": "",
+                "pages": {},
+                "current_page": None,
+                "history": [],
+                "messages": [],
+            }
+        )
         with gr.Column(elem_id="edu-root"):
             # 样式随视图挂载，兼容 Gradio 5/6 的挂载参数差异。
             gr.HTML(f"<style>{WORKSPACE_CSS}</style>", elem_id="edu-style")
@@ -2072,18 +2284,28 @@ def create_gradio_app() -> gr.Blocks:
                 with gr.Row(elem_id="edu-topbar"):
                     gr.HTML("<strong>EduAgent</strong>", elem_id="edu-brand")
                     context = gr.HTML(elem_id="edu-context")
-                    user_summary = gr.HTML(elem_id="edu-user")
-                    role_selector = gr.Dropdown(
-                        choices=[],
-                        value=None,
-                        label="当前角色",
+                    page_search = gr.Textbox(
+                        label="当前页搜索",
+                        placeholder="搜索当前页",
                         show_label=False,
                         container=False,
-                        min_width=0,
-                        elem_id="edu-role",
+                        elem_id="edu-search",
                         interactive=True,
                     )
-                    logout_button = gr.Button("退出登录", elem_id="edu-logout")
+                    message_button = gr.Button("消息", elem_id="edu-message-button")
+                    with gr.Accordion("用户菜单", open=False, elem_id="edu-user-menu"):
+                        user_summary = gr.HTML(elem_id="edu-user")
+                        role_selector = gr.Dropdown(
+                            choices=[],
+                            value=None,
+                            label="当前角色",
+                            show_label=False,
+                            container=False,
+                            min_width=0,
+                            elem_id="edu-role",
+                            interactive=True,
+                        )
+                        logout_button = gr.Button("退出登录", elem_id="edu-logout")
                 with gr.Row(elem_id="edu-shell-row"):
                     with (
                         gr.Column(scale=0, min_width=0, elem_id="edu-sidebar"),
@@ -2115,6 +2337,47 @@ def create_gradio_app() -> gr.Blocks:
                                             )
                     with gr.Column(min_width=0, elem_id="edu-content"):
                         workspace_message = gr.HTML(elem_id="edu-feedback")
+                        with gr.Row(elem_id="edu-page-header"):
+                            page_breadcrumb = gr.HTML(elem_id="edu-page-breadcrumb")
+                            with gr.Row(elem_id="edu-page-actions"):
+                                back_button = gr.Button(
+                                    "返回",
+                                    elem_id="edu-page-back",
+                                    visible=False,
+                                    interactive=False,
+                                )
+                                primary_action_one = gr.Button(
+                                    visible=False,
+                                    elem_classes=["edu-primary-action"],
+                                )
+                                primary_action_two = gr.Button(
+                                    visible=False,
+                                    elem_classes=["edu-primary-action"],
+                                )
+                        page_search_feedback = gr.HTML(elem_id="edu-search-feedback")
+                        with gr.Accordion(
+                            "消息与待办",
+                            open=False,
+                            elem_id="edu-message-panel",
+                        ) as message_panel:
+                            message_empty = gr.Markdown(
+                                empty_state("暂无本次会话消息。"), visible=True
+                            )
+                            message_table = gr.Dataframe(
+                                headers=list(TOPBAR_MESSAGE_HEADERS),
+                                datatype=["str"] * len(TOPBAR_MESSAGE_HEADERS),
+                                value=[],
+                                interactive=False,
+                                label="当前用户可见的消息和待办",
+                                **table_options(TOPBAR_MESSAGE_HEADERS),
+                            )
+                            message_view_button = gr.Button(
+                                "查看所选消息",
+                                variant="secondary",
+                                interactive=False,
+                                elem_id="edu-message-view",
+                            )
+                        message_selected = gr.State(None)
                         page_content = gr.Markdown()
                         admin_view: AdminView = create_admin_view(session_state)
                         question_view: QuestionView = create_question_view(
@@ -2157,6 +2420,22 @@ def create_gradio_app() -> gr.Blocks:
                             label="考试",
                         )
 
+        # 搜索输入只读取当前页面已经加载到组件中的数据，不创建跨页面或跨用户查询。
+        search_sources: tuple[tuple[str, Any], ...] = (
+            ("teacher.home", teacher_dashboard_view.course_records),
+            ("teacher.courses", knowledge_base_view.courses_table),
+            ("teacher.knowledge", knowledge_base_view.courses_table),
+            ("teacher.questions", question_view.questions_table),
+            ("teacher.exams", exam_view.exams_table),
+            ("student.home", student_dashboard_view.exam_records),
+            ("student.home", student_dashboard_view.result_records),
+            ("student.exams", student_exam_view.exams_table),
+            ("student.results", results_view.results_table),
+            ("teacher.analytics", teacher_results_view.results_table),
+            ("admin.users", admin_view.users_table),
+        )
+        search_source_components = [component for _, component in search_sources]
+
         panels = {
             "teacher.home": teacher_dashboard_view.panel,
             "teacher.courses": knowledge_base_view.panel,
@@ -2188,6 +2467,58 @@ def create_gradio_app() -> gr.Blocks:
                     block_fn.fn, block_fn.inputs.index(session_state)
                 )
 
+        def transition_navigation(
+            navigation: Mapping[str, Any] | None,
+            role: str,
+            selected: str | None,
+            *,
+            push_history: bool = True,
+        ) -> dict[str, Any]:
+            """更新导航并保留会话内返回栈，页面组件本身继续保留筛选值。"""
+
+            next_nav = deepcopy(dict(navigation or {}))
+            next_nav.setdefault("pages", {})
+            next_nav.setdefault("history", [])
+            next_nav.setdefault("messages", [])
+            next_nav.setdefault("searches", {})
+            previous_role = str(next_nav.get("role") or "")
+            previous_page = next_nav.get("current_page") or next_nav["pages"].get(
+                previous_role
+            )
+            if (
+                push_history
+                and previous_role == role
+                and previous_page
+                and previous_page != selected
+            ):
+                next_nav["history"] = [
+                    *list(next_nav.get("history", [])),
+                    {"role": role, "page": previous_page},
+                ][-12:]
+            next_nav["role"] = role
+            next_nav["current_page"] = selected
+            if selected:
+                next_nav["pages"][role] = selected
+            return next_nav
+
+        def back_target(
+            state: Mapping[str, Any], navigation: Mapping[str, Any]
+        ) -> str | None:
+            """从返回栈中取出当前角色仍有权限访问的页面。"""
+
+            role = str(navigation.get("role") or "")
+            for entry in reversed(list(navigation.get("history", []))):
+                if not isinstance(entry, Mapping) or str(entry.get("role")) != role:
+                    continue
+                candidate = entry.get("page")
+                if (
+                    isinstance(candidate, str)
+                    and is_authorized_navigation(candidate, [role])
+                    and _can_navigate(candidate, state)
+                ):
+                    return candidate
+            return None
+
         def render_workspace(
             state: LoginState, nav: dict[str, Any], selected: str | None
         ) -> dict[Any, Any]:
@@ -2198,6 +2529,10 @@ def create_gradio_app() -> gr.Blocks:
                 selected, [role]
             )
             item = navigation_item(selected) if allowed else None
+            messages = list(nav.get("messages", []))
+            search_value = str(nav.get("searches", {}).get(selected or "", ""))
+            actions = PAGE_PRIMARY_ACTIONS.get(selected or "", ()) if allowed else ()
+            previous_page = back_target(state, nav) if allowed else None
             result: dict[Any, Any] = {
                 session_state: state,
                 navigation_state: nav,
@@ -2205,6 +2540,43 @@ def create_gradio_app() -> gr.Blocks:
                 workspace: gr.update(visible=True),
                 user_summary: _role_summary(state),
                 context: f"<span>{item.label if item else '工作台'}</span>",
+                page_search: gr.update(
+                    value=search_value,
+                    placeholder=PAGE_SEARCH_PLACEHOLDERS.get(
+                        selected or "", "搜索当前页"
+                    ),
+                    interactive=bool(allowed),
+                ),
+                page_breadcrumb: _page_breadcrumb(selected, item),
+                back_button: gr.update(
+                    visible=previous_page is not None,
+                    interactive=previous_page is not None,
+                ),
+                primary_action_one: gr.update(
+                    value=actions[0][0] if len(actions) > 0 else "",
+                    visible=len(actions) > 0,
+                    interactive=(
+                        len(actions) > 0
+                        and is_authorized_navigation(actions[0][1], [role])
+                    ),
+                ),
+                primary_action_two: gr.update(
+                    value=actions[1][0] if len(actions) > 1 else "",
+                    visible=len(actions) > 1,
+                    interactive=(
+                        len(actions) > 1
+                        and is_authorized_navigation(actions[1][1], [role])
+                    ),
+                ),
+                page_search_feedback: "",
+                message_button: _message_button_label(messages),
+                message_table: _message_rows(messages, state),
+                message_empty: gr.update(
+                    value=empty_state("暂无本次会话消息。"), visible=not messages
+                ),
+                message_view_button: gr.update(interactive=False),
+                message_selected: None,
+                message_panel: gr.update(open=False),
                 role_selector: gr.update(
                     choices=[
                         (ROLE_DISPLAY_NAMES[r], r.value)
@@ -2246,6 +2618,7 @@ def create_gradio_app() -> gr.Blocks:
                 result[page_content] = gr.update(
                     value="当前账号未分配角色，请联系管理员。", visible=True
                 )
+                result[page_breadcrumb] = ""
             return result
 
         def clear_workspace(
@@ -2271,6 +2644,11 @@ def create_gradio_app() -> gr.Blocks:
                     login_message: feedback(message, kind),
                     workspace_message: "",
                     context: "",
+                    page_search: gr.update(
+                        value="", placeholder="搜索当前页", interactive=False
+                    ),
+                    page_search_feedback: "",
+                    page_breadcrumb: "",
                     user_summary: "",
                     page_content: gr.update(value="", visible=True),
                     menu: gr.update(open=False),
@@ -2308,11 +2686,23 @@ def create_gradio_app() -> gr.Blocks:
             choices = navigation_for_roles([role])
             selected = choices[0].key if choices else None
             result = clear_workspace("")
-            result.update(
-                render_workspace(
-                    state, {"role": role, "pages": {role: selected}}, selected
-                )
+            initial_navigation: dict[str, Any] = {
+                "role": role,
+                "pages": {role: selected} if role else {},
+                "current_page": selected,
+                "history": [],
+                "messages": [],
+                "searches": {},
+            }
+            _record_session_message(
+                initial_navigation,
+                kind="登录反馈",
+                related_object=state.get("username") or "当前账号",
+                status="已登录",
+                view_key=selected,
+                detail="本次会话已建立。",
             )
+            result.update(render_workspace(state, initial_navigation, selected))
             if UserRole.TEACHER.value in state["roles"] and selected == "teacher.home":
                 result.update(
                     _teacher_dashboard_component_updates(
@@ -2336,6 +2726,7 @@ def create_gradio_app() -> gr.Blocks:
             *,
             selected: str | None = None,
             role: str | None = None,
+            push_history: bool = True,
         ) -> dict[Any, Any]:
             """角色切换恢复上次页面；普通导航不重建视图或丢失草稿。"""
 
@@ -2356,17 +2747,31 @@ def create_gradio_app() -> gr.Blocks:
                     workspace_message: feedback("当前账号无权切换到该角色。", "error"),
                     role_selector: gr.update(value=nav.get("role") or None),
                 }
-            next_nav = deepcopy(nav)
             if role is not None:
                 selected = (
-                    next_nav["pages"].get(role) or navigation_for_roles([role])[0].key
+                    nav.get("pages", {}).get(role)
+                    or navigation_for_roles([role])[0].key
                 )
             if not is_authorized_navigation(selected, [active_role]):
                 return {
                     workspace_message: feedback("当前账号无权访问该页面。", "error")
                 }
-            next_nav["role"] = active_role
-            next_nav["pages"][active_role] = selected
+            next_nav = transition_navigation(
+                nav,
+                active_role,
+                selected,
+                push_history=push_history and role is None,
+            )
+            if selected != nav.get("current_page") or role is not None:
+                item = navigation_item(selected)
+                _record_session_message(
+                    next_nav,
+                    kind="页面反馈",
+                    related_object=item.label if item else "当前页面",
+                    status="已打开",
+                    view_key=selected,
+                    detail="已恢复当前页面的筛选和选中状态。",
+                )
             result = render_workspace(current, next_nav, selected)
             if active_role == UserRole.TEACHER.value and selected == "teacher.home":
                 result.update(
@@ -2398,6 +2803,18 @@ def create_gradio_app() -> gr.Blocks:
                     login_message,
                     workspace_message,
                     context,
+                    page_search,
+                    page_search_feedback,
+                    page_breadcrumb,
+                    back_button,
+                    primary_action_one,
+                    primary_action_two,
+                    message_button,
+                    message_panel,
+                    message_empty,
+                    message_table,
+                    message_view_button,
+                    message_selected,
                     user_summary,
                     role_selector,
                     page_content,
@@ -2424,6 +2841,208 @@ def create_gradio_app() -> gr.Blocks:
             "concurrency_id": "eduagent-ui",
             "concurrency_limit": 1,
         }
+
+        def search_current_page(
+            query: str | None,
+            current_state: LoginState,
+            nav: dict[str, Any],
+            *loaded_values: Any,
+        ) -> dict[Any, Any]:
+            """只在当前页面已加载的行中搜索，不绕过页面服务重新查库。"""
+
+            selected = nav.get("current_page")
+            if not _can_navigate(selected, current_state):
+                return {
+                    page_search_feedback: "",
+                    page_search: gr.update(interactive=False),
+                }
+            normalized = str(query or "").strip()
+            next_nav = deepcopy(nav)
+            next_nav.setdefault("searches", {})[selected] = normalized
+            if not normalized:
+                return {
+                    navigation_state: next_nav,
+                    page_search_feedback: "",
+                }
+
+            matches: list[tuple[str, str]] = []
+            for (page_key, _), value in zip(
+                search_sources, loaded_values, strict=False
+            ):
+                if page_key != selected:
+                    continue
+                for index, row_text in _searchable_rows(value):
+                    if normalized.casefold() in row_text.casefold():
+                        matches.append((index, row_text))
+            if not matches:
+                detail = "当前页面暂无匹配的已加载内容。"
+            else:
+                lines = [
+                    f"- 第 {index} 行：{escape(row_text[:240])}"
+                    for index, row_text in matches[:20]
+                ]
+                suffix = "" if len(matches) <= 20 else "\n- 其余匹配项未展开。"
+                detail = (
+                    f"当前页面已加载内容中匹配 {len(matches)} 项：\n"
+                    + "\n".join(lines)
+                    + suffix
+                )
+            return {
+                navigation_state: next_nav,
+                page_search_feedback: feedback(
+                    f"搜索词：{escape(normalized)}\n\n{detail}",
+                    "info" if matches else "empty",
+                ),
+            }
+
+        def open_message_panel(
+            current_state: LoginState,
+            nav: dict[str, Any],
+            teacher_todo_value: Any,
+            teacher_result_value: Any,
+            student_result_value: Any,
+        ) -> dict[Any, Any]:
+            """展开当前会话消息，行内容只来自已加载的会话反馈。"""
+
+            next_nav = deepcopy(nav)
+            messages = list(next_nav.get("messages", []))
+            loaded_messages = _loaded_todo_messages(
+                current_state,
+                teacher_todo_value,
+                teacher_result_value,
+                student_result_value,
+            )
+            existing_keys = {
+                (
+                    item.get("kind"),
+                    item.get("related_object"),
+                    item.get("view_key"),
+                )
+                for item in messages
+                if isinstance(item, Mapping)
+            }
+            for message in loaded_messages:
+                key = (
+                    message.get("kind"),
+                    message.get("related_object"),
+                    message.get("view_key"),
+                )
+                if key not in existing_keys:
+                    messages.append(message)
+                    existing_keys.add(key)
+            next_nav["messages"] = messages[-20:]
+            return {
+                navigation_state: next_nav,
+                message_panel: gr.update(open=True),
+                message_button: _message_button_label(next_nav["messages"]),
+                message_table: _message_rows(next_nav["messages"], current_state),
+                message_empty: gr.update(
+                    value=empty_state("暂无本次会话消息。"),
+                    visible=not next_nav["messages"],
+                ),
+            }
+
+        def select_message(
+            event: gr.SelectData,
+            messages_or_navigation: (
+                Sequence[Mapping[str, Any]] | Mapping[str, Any] | None
+            ),
+        ) -> tuple[Any, Any]:
+            """选中一条会话消息，仅启用经过索引校验的查看按钮。"""
+
+            messages: Any = messages_or_navigation
+            if isinstance(messages_or_navigation, Mapping):
+                messages = messages_or_navigation.get("messages", [])
+            index_value = (
+                event.index[0] if isinstance(event.index, tuple) else event.index
+            )
+            if not isinstance(index_value, int) or not isinstance(messages, Sequence):
+                return None, gr.update(interactive=False)
+            valid = 0 <= index_value < len(messages)
+            return (
+                index_value if valid else None,
+                gr.update(interactive=valid),
+            )
+
+        def view_message(
+            selected_index: int | None,
+            nav: dict[str, Any],
+            current_state: LoginState,
+        ) -> dict[Any, Any]:
+            """查看消息关联页面，重新执行角色和页面权限校验。"""
+
+            messages = list(nav.get("messages", []))
+            if (
+                not isinstance(selected_index, int)
+                or not 0 <= selected_index < len(messages)
+                or not isinstance(messages[selected_index], Mapping)
+            ):
+                return {
+                    workspace_message: feedback("暂无可查看的消息。", "info"),
+                    message_view_button: gr.update(interactive=False),
+                }
+            target = messages[selected_index].get("view_key")
+            if not isinstance(target, str) or not _can_navigate(target, current_state):
+                return {
+                    workspace_message: feedback(
+                        "该消息没有当前账号可访问的查看入口。", "warning"
+                    ),
+                    message_view_button: gr.update(interactive=False),
+                }
+            return navigate(current_state, nav, selected=target)
+
+        def run_primary_action(
+            current_state: LoginState,
+            nav: dict[str, Any],
+            *,
+            slot: int,
+        ) -> dict[Any, Any]:
+            """执行标题行快捷入口，只转到已有授权页面。"""
+
+            selected = nav.get("current_page")
+            actions = PAGE_PRIMARY_ACTIONS.get(selected or "", ())
+            if not isinstance(slot, int) or not 0 <= slot < len(actions):
+                return {workspace_message: feedback("当前页面暂无可用主操作。", "info")}
+            target = actions[slot][1]
+            if not is_authorized_navigation(target, current_state.get("roles", [])):
+                return {
+                    workspace_message: feedback(
+                        "当前账号无权访问该操作入口。", "warning"
+                    )
+                }
+            return navigate(current_state, nav, selected=target)
+
+        def go_back(current_state: LoginState, nav: dict[str, Any]) -> dict[Any, Any]:
+            """返回上一个仍可访问的页面，页面组件状态由 Gradio 会话保留。"""
+
+            next_nav = deepcopy(nav)
+            target = None
+            history = list(next_nav.get("history", []))
+            role = str(next_nav.get("role") or "")
+            while history:
+                entry = history.pop()
+                if not isinstance(entry, Mapping) or str(entry.get("role")) != role:
+                    continue
+                candidate = entry.get("page")
+                if (
+                    isinstance(candidate, str)
+                    and is_authorized_navigation(candidate, [role])
+                    and _can_navigate(candidate, current_state)
+                ):
+                    target = candidate
+                    break
+            if target is None:
+                return {
+                    back_button: gr.update(visible=False, interactive=False),
+                    workspace_message: feedback("暂无可返回的页面。", "info"),
+                }
+            next_nav["history"] = history
+            return navigate(
+                current_state,
+                next_nav,
+                selected=target,
+                push_history=False,
+            )
 
         def open_review_from_results(
             context_value: Mapping[str, Any] | None,
@@ -2460,9 +3079,17 @@ def create_gradio_app() -> gr.Blocks:
                 }
             assert context_value is not None
 
-            next_nav = deepcopy(nav)
-            next_nav["role"] = UserRole.TEACHER.value
-            next_nav.setdefault("pages", {})[UserRole.TEACHER.value] = "teacher.review"
+            next_nav = transition_navigation(
+                nav, UserRole.TEACHER.value, "teacher.review"
+            )
+            _record_session_message(
+                next_nav,
+                kind="复核入口",
+                related_object="考试 / 答卷 / 题目",
+                status="已打开",
+                view_key="teacher.review",
+                detail="已携带考试、答卷和题目上下文。",
+            )
             result = render_workspace(current, next_nav, "teacher.review")
             result.update(
                 {
@@ -2548,9 +3175,17 @@ def create_gradio_app() -> gr.Blocks:
                     )
                 }
 
-            next_nav = deepcopy(nav)
-            next_nav["role"] = UserRole.TEACHER.value
-            next_nav.setdefault("pages", {})[UserRole.TEACHER.value] = "teacher.courses"
+            next_nav = transition_navigation(
+                nav, UserRole.TEACHER.value, "teacher.courses"
+            )
+            _record_session_message(
+                next_nav,
+                kind="快捷入口",
+                related_object=course.name,
+                status="已打开",
+                view_key="teacher.courses",
+                detail="已恢复课程管理页面。",
+            )
             result = render_workspace(current, next_nav, "teacher.courses")
             result[knowledge_base_view.message] = feedback(
                 f"已进入课程“{course.name}”。", "info"
@@ -2620,9 +3255,17 @@ def create_gradio_app() -> gr.Blocks:
                     )
                 }
 
-            next_nav = deepcopy(nav)
-            next_nav["role"] = UserRole.STUDENT.value
-            next_nav.setdefault("pages", {})[UserRole.STUDENT.value] = "student.exams"
+            next_nav = transition_navigation(
+                nav, UserRole.STUDENT.value, "student.exams"
+            )
+            _record_session_message(
+                next_nav,
+                kind="考试入口",
+                related_object=exam.title,
+                status="已打开",
+                view_key="student.exams",
+                detail="已定位当前学生可参加的考试。",
+            )
             result = render_workspace(current, next_nav, "student.exams")
             exam_rows, _ = refresh_student_exams(current)
             result[student_exam_view.exams_table] = exam_rows
@@ -2729,9 +3372,17 @@ def create_gradio_app() -> gr.Blocks:
                     )
                 }
 
-            next_nav = deepcopy(nav)
-            next_nav["role"] = UserRole.STUDENT.value
-            next_nav.setdefault("pages", {})[UserRole.STUDENT.value] = "student.results"
+            next_nav = transition_navigation(
+                nav, UserRole.STUDENT.value, "student.results"
+            )
+            _record_session_message(
+                next_nav,
+                kind="成绩入口",
+                related_object="当前学生成绩与诊断",
+                status="已打开",
+                view_key="student.results",
+                detail="已按当前学生答卷归属打开结果页。",
+            )
             result = render_workspace(current, next_nav, "student.results")
             result_rows, result_message = refresh_student_results(
                 exam_id or None,
@@ -2771,6 +3422,62 @@ def create_gradio_app() -> gr.Blocks:
         login_button.click(sign_in, inputs=[identifier, password], **event_options)
         password.submit(sign_in, inputs=[identifier, password], **event_options)
         logout_button.click(clear_workspace, inputs=[], **event_options)
+        message_button.click(
+            open_message_panel,
+            inputs=[
+                session_state,
+                navigation_state,
+                teacher_dashboard_view.todo_table,
+                teacher_results_view.results_table,
+                student_dashboard_view.result_records,
+            ],
+            outputs=[
+                navigation_state,
+                message_panel,
+                message_button,
+                message_table,
+                message_empty,
+            ],
+            show_progress="hidden",
+            queue=False,
+        )
+        message_table.select(
+            select_message,
+            inputs=[navigation_state],
+            outputs=[message_selected, message_view_button],
+            show_progress="hidden",
+        )
+        message_view_button.click(
+            view_message,
+            inputs=[message_selected, navigation_state, session_state],
+            outputs=outputs,
+            show_progress="minimal",
+            concurrency_id="eduagent-ui",
+            concurrency_limit=1,
+        )
+        back_button.click(
+            go_back,
+            inputs=[session_state, navigation_state],
+            **event_options,
+        )
+        primary_action_one.click(
+            partial(run_primary_action, slot=0),
+            inputs=[session_state, navigation_state],
+            **event_options,
+        )
+        primary_action_two.click(
+            partial(run_primary_action, slot=1),
+            inputs=[session_state, navigation_state],
+            **event_options,
+        )
+        search_inputs = [
+            page_search,
+            session_state,
+            navigation_state,
+            *search_source_components,
+        ]
+        page_search.input(search_current_page, inputs=search_inputs, **event_options)
+        page_search.submit(search_current_page, inputs=search_inputs, **event_options)
         for key, button in buttons.items():
             button.click(
                 partial(navigate, selected=key),

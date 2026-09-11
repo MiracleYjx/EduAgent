@@ -564,6 +564,15 @@ WORKSPACE_CSS = STATUS_CSS + """
 #edu-brand { flex: 0 0 168px; min-width: 0; font-size: 20px; font-weight: 700; }
 #edu-brand strong { color: #2563eb; }
 #edu-context { flex: 1 1 0; min-width: 0; font-size: 14px; }
+#edu-search { flex: 1 1 260px; min-width: 180px; }
+#edu-search .wrap { min-height: 40px; border-color: var(--edu-line); }
+#edu-search input { min-height: 38px; }
+#edu-message-button { flex: 0 0 auto; min-width: 88px; height: 40px; }
+#edu-user-menu { flex: 0 0 auto; min-width: 0; border: 0; background: transparent; }
+#edu-user-menu > .label-wrap { min-height: 40px; padding: 0 10px; border: 1px solid var(--edu-line);
+    border-radius: 4px; background: #fff; }
+#edu-user-menu > [data-testid="accordion-content"] { min-width: 240px; padding: 12px;
+    border: 1px solid var(--edu-line); background: #fff; box-shadow: 0 8px 20px rgba(32,39,53,.12); }
 #edu-user { flex: 0 1 180px; min-width: 0; text-align: right; }
 #edu-user span, #edu-context span { display: block; white-space: nowrap;
     overflow: hidden; text-overflow: ellipsis; }
@@ -593,6 +602,20 @@ WORKSPACE_CSS = STATUS_CSS + """
 #edu-content .prose h2 { font-size: 22px; }
 #edu-content .prose h3 { font-size: 17px; }
 #edu-content textarea { overflow-wrap: anywhere; }
+#edu-page-header { min-height: 48px; align-items: center; gap: 12px; }
+#edu-page-breadcrumb { flex: 1 1 auto; min-width: 0; color: #485160; font-size: 14px; }
+#edu-page-breadcrumb .edu-breadcrumb { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#edu-page-actions { flex: 0 0 auto; min-width: 0; gap: 8px; justify-content: flex-end; }
+#edu-page-actions button { min-height: 40px; white-space: nowrap; }
+#edu-page-back { flex: 0 0 auto; }
+#edu-message-panel { border: 1px solid var(--edu-line); border-radius: 6px; background: #fff; }
+#edu-message-panel > .label-wrap { min-height: 42px; padding: 0 12px; }
+#edu-message-panel > [data-testid="accordion-content"] { padding: 12px; }
+#edu-message-table { min-width: 0; }
+#edu-message-view { min-height: 40px; }
+#edu-search-feedback { min-height: 0; }
+#edu-search-feedback:empty { display: none; }
+#edu-shortcut-note { color: #68717e; font-size: 12px; }
 #edu-login { width: min(440px, calc(100% - 32px)); min-width: 0 !important;
     margin: 64px auto; padding: 24px; border: 1px solid var(--edu-line);
     border-radius: 8px; background: #fff; }
@@ -613,12 +636,16 @@ WORKSPACE_CSS = STATUS_CSS + """
     #edu-brand { flex-basis: 128px; }
 }
 @media (max-width: 767px) {
-    #edu-topbar { padding: 0 12px; gap: 8px; }
+    #edu-topbar { height: auto; min-height: 64px; padding: 8px 12px; gap: 8px; flex-wrap: wrap; }
     #edu-brand { flex: 0 0 96px; font-size: 17px; }
     #edu-context { display: none; }
-    #edu-user { flex: 1 1 0; font-size: 12px; }
-    #edu-role { flex-basis: 80px; }
-    #edu-logout { flex-basis: 76px; font-size: 12px; }
+    #edu-search { order: 3; flex: 1 1 100%; min-width: 0; }
+    #edu-message-button { flex-basis: 72px; font-size: 12px; }
+    #edu-user-menu { flex: 0 0 auto; }
+    #edu-user-menu > .label-wrap { padding: 0 8px; }
+    #edu-page-header { align-items: flex-start; flex-wrap: wrap; }
+    #edu-page-breadcrumb { flex-basis: 100%; }
+    #edu-page-actions { flex-basis: 100%; justify-content: flex-start; flex-wrap: wrap; }
     #edu-shell-row { flex-direction: column; min-height: calc(100vh - 64px); }
     #edu-sidebar { flex: 0 0 auto; width: 100%; padding: 4px 12px;
         border-right: 0; border-bottom: 1px solid var(--edu-line); }
@@ -667,6 +694,15 @@ def placeholder_page(item: LayoutNavigationItem | None) -> str:
     if item is None:
         return "当前账号没有可访问的导航项。"
     return f'## {item.label}\n\n<div class="edu-placeholder">功能暂不可用</div>'
+
+
+def breadcrumb_html(items: Sequence[str]) -> str:
+    """生成共享工作台使用的安全面包屑 HTML。"""
+
+    labels = [escape(str(item).strip()) for item in items if str(item).strip()]
+    if not labels:
+        return ""
+    return '<span class="edu-breadcrumb">' + " / ".join(labels) + "</span>"
 
 
 def feedback(message: str, kind: str = "info") -> str:
@@ -808,6 +844,7 @@ __all__ = [
     "StatusTone",
     "UiStatus",
     "bind_confirmation",
+    "breadcrumb_html",
     "confidence_banner",
     "create_status_styles",
     "empty_state",
