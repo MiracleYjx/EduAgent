@@ -9,18 +9,20 @@ from dataclasses import dataclass
 from functools import partial, wraps
 from html import escape
 from typing import Any, TypedDict
+from uuid import UUID
 
 import gradio as gr
+from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
 
 from backend.app.core.database import get_session_factory
-from backend.app.domain.enums import ExamStatus, UserRole
+from backend.app.domain.enums import ExamStatus, SubmissionStatus, UserRole
 from backend.app.domain.permissions import (
     ROLE_DISPLAY_NAMES,
     PermissionDeniedError,
     normalize_role,
 )
-from backend.app.models import User
+from backend.app.models import Course, User
 from backend.app.services.auth_service import AuthenticationError, AuthService
 from backend.app.services.course_service import (
     CourseService,
@@ -28,6 +30,11 @@ from backend.app.services.course_service import (
     CourseSummary,
 )
 from backend.app.services.exam_service import ExamService, ExamSummary
+from backend.app.services.submission_service import (
+    AvailableExamSummary,
+    SubmissionService,
+    SubmissionServiceError,
+)
 from backend.app.ui.admin_view import AdminView, create_admin_view
 from backend.app.ui.exam_view import ExamView, create_exam_view
 from backend.app.ui.knowledge_base_view import (
@@ -59,12 +66,17 @@ from backend.app.ui.results_view import (
     TeacherResultsView,
     create_results_view,
     create_teacher_results_view,
+    refresh_student_results,
+    result_status_text,
     review_context_is_complete,
 )
 from backend.app.ui.review_view import ReviewView, create_review_view
 from backend.app.ui.student_exam_view import (
     StudentExamView,
     create_student_exam_view,
+)
+from backend.app.ui.student_exam_view import (
+    refresh_exams as refresh_student_exams,
 )
 
 
@@ -108,6 +120,27 @@ TEACHER_DASHBOARD_EXAM_HEADERS = (
     "总分",
 )
 
+STUDENT_DASHBOARD_UNAVAILABLE_MESSAGE = "学生概览数据暂不可用，请稍后重试。"
+STUDENT_DASHBOARD_SUMMARY_UNAVAILABLE = "暂不可用"
+STUDENT_DASHBOARD_EXAM_EMPTY_MESSAGE = "暂无可参加的考试"
+STUDENT_DASHBOARD_RESULT_EMPTY_MESSAGE = "暂无最近结果"
+STUDENT_DASHBOARD_DIAGNOSIS_EMPTY_MESSAGE = "暂无已确认诊断摘要"
+STUDENT_DASHBOARD_EXAM_HEADERS = (
+    "考试名称",
+    "课程",
+    "开放时间",
+    "时长",
+    "结果状态",
+    "开始/继续",
+)
+STUDENT_DASHBOARD_RESULT_HEADERS = (
+    "考试名称",
+    "课程",
+    "成绩",
+    "结果状态",
+    "查看结果",
+)
+
 
 @dataclass(frozen=True)
 class TeacherDashboardView:
@@ -149,6 +182,55 @@ class TeacherDashboardPayload:
     recent_exam_rows: list[list[str]]
     recent_exams_empty: str
     grade_overview: str
+    message: str
+
+
+@dataclass(frozen=True)
+class StudentDashboardView:
+    """学生概览由主应用控制的组件集合。"""
+
+    panel: gr.Column
+    refresh_button: gr.Button
+    summary_values: tuple[gr.Textbox, ...]
+    available_exams_table: gr.Dataframe
+    exam_records: gr.State
+    selected_exam_id: gr.Textbox
+    continue_button: gr.Button
+    exam_empty: gr.Markdown
+    recent_results_table: gr.Dataframe
+    result_records: gr.State
+    selected_result_id: gr.Textbox
+    view_results_button: gr.Button
+    result_empty: gr.Markdown
+    diagnosis: gr.Markdown
+    message: gr.Markdown
+
+    @property
+    def exam_table(self) -> gr.Dataframe:
+        """兼容按考试表命名的调用方。"""
+
+        return self.available_exams_table
+
+    @property
+    def results_table(self) -> gr.Dataframe:
+        """兼容按结果表命名的调用方。"""
+
+        return self.recent_results_table
+
+
+@dataclass(frozen=True)
+class StudentDashboardPayload:
+    """学生概览一次刷新所需的当前学生授权数据和显示状态。"""
+
+    refresh_interactive: bool
+    summary_values: tuple[str, str, str]
+    available_exam_rows: list[list[str]]
+    available_exam_records: list[dict[str, Any]]
+    exam_empty: str
+    recent_result_rows: list[list[str]]
+    recent_result_records: list[dict[str, Any]]
+    result_empty: str
+    diagnosis: str
     message: str
 
 
@@ -723,6 +805,746 @@ def _create_teacher_dashboard_view(
 
 
 create_teacher_dashboard_view = _create_teacher_dashboard_view
+
+
+def _ensure_student_dashboard(state: Mapping[str, Any]) -> str:
+    """确认当前会话是学生，并返回用于服务查询的用户标识。"""
+
+    if not state.get("access_token"):
+        raise PermissionDeniedError("请先登录。")
+    try:
+        roles = {normalize_role(role) for role in state.get("roles", [])}
+    except (TypeError, ValueError) as error:
+        raise PermissionDeniedError("当前账号无权访问学生概览。") from error
+    if UserRole.STUDENT not in roles:
+        raise PermissionDeniedError("当前账号无权访问学生概览。")
+    student_id = str(state.get("user_id") or "").strip()
+    if not student_id:
+        raise PermissionDeniedError("登录状态缺少学生标识。")
+    return student_id
+
+
+def _student_dashboard_error_message(error: BaseException) -> str:
+    """将学生概览异常转换为不泄露内部细节的中文提示。"""
+
+    if isinstance(error, PermissionDeniedError):
+        return str(error) or "当前账号无权访问学生概览。"
+    if isinstance(error, SQLAlchemyError):
+        return "系统暂时无法连接数据库，请稍后重试。"
+    if isinstance(error, SubmissionServiceError):
+        return str(error) or STUDENT_DASHBOARD_UNAVAILABLE_MESSAGE
+    if isinstance(error, (TypeError, ValueError)):
+        return f"输入有误：{str(error) or '请检查当前考试数据。'}"
+    return STUDENT_DASHBOARD_UNAVAILABLE_MESSAGE
+
+
+def _student_dashboard_unavailable_payload(
+    message: str = STUDENT_DASHBOARD_UNAVAILABLE_MESSAGE,
+    *,
+    kind: str = "warning",
+    refresh_interactive: bool = False,
+) -> StudentDashboardPayload:
+    """构造登录前或学生业务服务缺失时使用的完整不可用态。"""
+
+    return StudentDashboardPayload(
+        refresh_interactive=refresh_interactive,
+        summary_values=(
+            STUDENT_DASHBOARD_SUMMARY_UNAVAILABLE,
+            STUDENT_DASHBOARD_SUMMARY_UNAVAILABLE,
+            STUDENT_DASHBOARD_SUMMARY_UNAVAILABLE,
+        ),
+        available_exam_rows=[],
+        available_exam_records=[],
+        exam_empty=empty_state(STUDENT_DASHBOARD_EXAM_EMPTY_MESSAGE),
+        recent_result_rows=[],
+        recent_result_records=[],
+        result_empty=empty_state(STUDENT_DASHBOARD_RESULT_EMPTY_MESSAGE),
+        diagnosis=empty_state(STUDENT_DASHBOARD_DIAGNOSIS_EMPTY_MESSAGE),
+        message=feedback(message, kind),
+    )
+
+
+def _student_dashboard_value(
+    item: Mapping[str, Any] | Any,
+    name: str,
+    default: Any = None,
+) -> Any:
+    """从服务 DTO 或映射中读取字段，不改变服务返回值。"""
+
+    if isinstance(item, Mapping):
+        return item.get(name, default)
+    return getattr(item, name, default)
+
+
+def _student_dashboard_first_value(
+    item: Mapping[str, Any] | Any,
+    names: Sequence[str],
+    default: Any = None,
+) -> Any:
+    """按兼容字段名读取第一个已提供的值。"""
+
+    for name in names:
+        value = _student_dashboard_value(item, name, None)
+        if value not in (None, ""):
+            return value
+    return default
+
+
+def _student_dashboard_status_code(value: Any) -> str:
+    """将服务状态转换为比较用文本，不根据分数推导结果状态。"""
+
+    raw = getattr(value, "value", value)
+    return str(raw or "").strip().casefold().replace("_", " ")
+
+
+def _student_dashboard_is_final_status(value: Any) -> bool:
+    """只识别服务明确返回的最终结果状态。"""
+
+    return _student_dashboard_status_code(value) in {"final", "reviewed"}
+
+
+def _student_dashboard_submitted_count(records: Iterable[Any]) -> int:
+    """只按答卷服务返回的生命周期状态统计已提交答卷。"""
+
+    submitted_statuses = {
+        SubmissionStatus.SUBMITTED.value.casefold(),
+        SubmissionStatus.GRADED.value.casefold(),
+        SubmissionStatus.REVIEWED.value.casefold(),
+    }
+    return sum(
+        _student_dashboard_status_code(_student_dashboard_value(record, "status"))
+        in submitted_statuses
+        for record in records
+    )
+
+
+def _student_dashboard_course_names(
+    session: Any,
+    exams: Iterable[AvailableExamSummary],
+) -> dict[str, str]:
+    """只读取已由学生考试服务授权返回的考试所属课程名称。"""
+
+    course_ids = {
+        str(exam.course_id).strip()
+        for exam in exams
+        if str(exam.course_id or "").strip()
+    }
+    if not course_ids:
+        return {}
+    normalized_course_ids: list[UUID] = []
+    for course_id in course_ids:
+        try:
+            normalized_course_ids.append(UUID(course_id))
+        except (AttributeError, TypeError, ValueError):
+            continue
+    if not normalized_course_ids:
+        return {}
+    try:
+        courses = session.scalars(
+            select(Course).where(Course.id.in_(normalized_course_ids))
+        ).all()
+    except SQLAlchemyError as error:
+        raise SubmissionServiceError("无法读取考试所属课程信息。") from error
+    return {
+        str(course.id): str(course.name)
+        for course in courses
+        if getattr(course, "id", None) is not None and getattr(course, "name", None)
+    }
+
+
+def _student_dashboard_exam_data(
+    exams: Iterable[AvailableExamSummary],
+    course_names: Mapping[str, str] | None = None,
+) -> tuple[list[list[str]], list[dict[str, Any]]]:
+    """把当前学生可参加的考试摘要转换为表格行和安全入口记录。"""
+
+    names = course_names or {}
+    rows: list[list[str]] = []
+    records: list[dict[str, Any]] = []
+    for exam in exams:
+        exam_id = str(exam.id)
+        course_id = str(exam.course_id)
+        course_name = names.get(course_id) or "课程暂不可用"
+        duration = (
+            f"{exam.duration_minutes} 分钟"
+            if isinstance(exam.duration_minutes, int)
+            and not isinstance(exam.duration_minutes, bool)
+            and exam.duration_minutes > 0
+            else "未设置"
+        )
+        rows.append(
+            [
+                exam.title,
+                course_name,
+                _dashboard_exam_opening_label(exam),
+                duration,
+                status_badge(exam.status, entity="exam"),
+                "开始/继续",
+            ]
+        )
+        records.append(
+            {
+                "id": exam_id,
+                "exam_id": exam_id,
+                "title": exam.title,
+                "course_id": course_id,
+                "course_name": course_name,
+            }
+        )
+    return rows, records
+
+
+def _student_dashboard_result_data(
+    records: Iterable[Mapping[str, Any] | Any],
+) -> tuple[list[list[str]], list[dict[str, Any]]]:
+    """渲染结果服务明确提供的本人结果，待复核项不显示为最终成绩。"""
+
+    rows: list[list[str]] = []
+    safe_records: list[dict[str, Any]] = []
+    for record in list(records)[-5:][::-1]:
+        raw_status = _student_dashboard_first_value(
+            record,
+            ("result_status", "status"),
+            None,
+        )
+        status_code = _student_dashboard_status_code(raw_status)
+        if not status_code or status_code == SubmissionStatus.DRAFT.value.casefold():
+            continue
+        result_id = _student_dashboard_first_value(
+            record,
+            ("submission_id", "result_id", "id"),
+            None,
+        )
+        exam_id = _student_dashboard_first_value(record, ("exam_id",), None)
+        if result_id in (None, "") and exam_id in (None, ""):
+            # 没有可校验的实体标识时不渲染无效的查看入口。
+            continue
+        result_id_text = str(result_id or exam_id)
+        exam_name = _student_dashboard_first_value(
+            record,
+            ("exam_title", "exam_name", "title"),
+            "考试暂不可用",
+        )
+        course_name = _student_dashboard_first_value(
+            record,
+            ("course_name", "course_title"),
+            "课程暂不可用",
+        )
+        score = "最终成绩未形成"
+        if _student_dashboard_is_final_status(raw_status):
+            supplied_score = _student_dashboard_first_value(
+                record,
+                ("final_score", "total_score", "score"),
+                None,
+            )
+            score = (
+                str(supplied_score) if supplied_score not in (None, "") else "未提供"
+            )
+        rows.append(
+            [
+                str(exam_name),
+                str(course_name),
+                score,
+                result_status_text(raw_status),
+                "查看结果",
+            ]
+        )
+        safe_records.append(
+            {
+                "id": result_id_text,
+                "submission_id": str(result_id) if result_id else "",
+                "exam_id": str(exam_id) if exam_id else "",
+                "result_status": str(getattr(raw_status, "value", raw_status)),
+                "exam_name": str(exam_name),
+                "course_name": str(course_name),
+                "diagnosis": _student_dashboard_first_value(
+                    record,
+                    ("diagnosis_summary", "diagnosis"),
+                    "",
+                ),
+            }
+        )
+    return rows, safe_records
+
+
+def _student_dashboard_diagnosis(
+    records: Iterable[Mapping[str, Any] | Any],
+) -> str:
+    """只展示服务明确返回且已形成最终结果的诊断摘要。"""
+
+    for record in records:
+        status = _student_dashboard_first_value(
+            record,
+            ("result_status", "status"),
+            None,
+        )
+        if not _student_dashboard_is_final_status(status):
+            continue
+        diagnosis = _student_dashboard_first_value(
+            record,
+            ("diagnosis_summary", "diagnosis"),
+            None,
+        )
+        if diagnosis in (None, ""):
+            continue
+        return (
+            '<div class="student-dashboard-diagnosis">'
+            f"{escape(str(diagnosis))}</div>"
+        )
+    return empty_state(STUDENT_DASHBOARD_DIAGNOSIS_EMPTY_MESSAGE)
+
+
+def _student_dashboard_payload(
+    exams: Sequence[AvailableExamSummary] | None,
+    submissions: Sequence[Any] | None,
+    results: Sequence[Mapping[str, Any] | Any] | None,
+    course_names: Mapping[str, str] | None,
+    *,
+    message: str,
+    message_kind: str = "info",
+    refresh_interactive: bool = True,
+) -> StudentDashboardPayload:
+    """组装概览载荷；缺少任何权威数据时保留对应不可用态。"""
+
+    if exams is None:
+        exam_rows: list[list[str]] = []
+        exam_records: list[dict[str, Any]] = []
+    else:
+        exam_rows, exam_records = _student_dashboard_exam_data(exams, course_names)
+
+    if submissions is None:
+        submitted_count = STUDENT_DASHBOARD_SUMMARY_UNAVAILABLE
+    else:
+        submitted_count = str(_student_dashboard_submitted_count(submissions))
+
+    if results is None:
+        result_rows: list[list[str]] = []
+        result_records: list[dict[str, Any]] = []
+        result_count = STUDENT_DASHBOARD_SUMMARY_UNAVAILABLE
+        diagnosis = empty_state(STUDENT_DASHBOARD_DIAGNOSIS_EMPTY_MESSAGE)
+    else:
+        result_rows, result_records = _student_dashboard_result_data(results)
+        result_count = str(len(result_records))
+        diagnosis = _student_dashboard_diagnosis(results)
+
+    unavailable_parts = []
+    if exams is None:
+        unavailable_parts.append("可参加考试")
+    if submissions is None:
+        unavailable_parts.append("已提交数量")
+    if results is None:
+        unavailable_parts.append("成绩与诊断")
+    detail = message
+    if unavailable_parts:
+        detail += " " + "、".join(unavailable_parts) + "数据暂不可用。"
+
+    return StudentDashboardPayload(
+        refresh_interactive=refresh_interactive,
+        summary_values=(
+            (
+                str(len(exams))
+                if exams is not None
+                else STUDENT_DASHBOARD_SUMMARY_UNAVAILABLE
+            ),
+            submitted_count,
+            result_count,
+        ),
+        available_exam_rows=exam_rows,
+        available_exam_records=exam_records,
+        exam_empty=empty_state(STUDENT_DASHBOARD_EXAM_EMPTY_MESSAGE),
+        recent_result_rows=result_rows,
+        recent_result_records=result_records,
+        result_empty=empty_state(STUDENT_DASHBOARD_RESULT_EMPTY_MESSAGE),
+        diagnosis=diagnosis,
+        message=feedback(detail, message_kind),
+    )
+
+
+def refresh_student_dashboard(
+    state: Mapping[str, Any] | None = None,
+) -> StudentDashboardPayload:
+    """读取当前学生的考试和答卷摘要，并保留成绩服务未就绪空态。"""
+
+    current_state = state or empty_login_state()
+    try:
+        student_id = _ensure_student_dashboard(current_state)
+        with get_session_factory()() as session:
+            service = SubmissionService(session)
+            exams = service.list_available_exams(student_id=student_id)
+            try:
+                submissions = service.list_submissions(student_id=student_id)
+            except (
+                SubmissionServiceError,
+                SQLAlchemyError,
+                TypeError,
+                ValueError,
+                RuntimeError,
+            ):
+                submissions = None
+            try:
+                course_names = _student_dashboard_course_names(session, exams)
+            except (
+                SubmissionServiceError,
+                SQLAlchemyError,
+                AttributeError,
+                TypeError,
+                ValueError,
+                RuntimeError,
+            ):
+                course_names = {}
+        return _student_dashboard_payload(
+            exams,
+            submissions,
+            None,
+            course_names,
+            message="可参加考试和本人答卷数据已加载；成绩与诊断服务暂未就绪。",
+        )
+    except (
+        PermissionDeniedError,
+        SubmissionServiceError,
+        SQLAlchemyError,
+        AttributeError,
+        TypeError,
+        ValueError,
+        RuntimeError,
+    ) as error:
+        return _student_dashboard_unavailable_payload(
+            _student_dashboard_error_message(error),
+            kind="error" if isinstance(error, PermissionDeniedError) else "warning",
+            refresh_interactive=bool(current_state.get("access_token")),
+        )
+
+
+def _student_dashboard_component_updates(
+    view: StudentDashboardView,
+    payload: StudentDashboardPayload,
+) -> dict[Any, Any]:
+    """把学生概览载荷映射到组件，供登录、刷新和退出流程复用。"""
+
+    result: dict[Any, Any] = {
+        view.refresh_button: gr.update(interactive=payload.refresh_interactive),
+        view.available_exams_table: payload.available_exam_rows,
+        view.exam_records: payload.available_exam_records,
+        view.selected_exam_id: "",
+        view.continue_button: gr.update(
+            interactive=bool(payload.available_exam_records)
+        ),
+        view.exam_empty: gr.update(
+            value=payload.exam_empty,
+            visible=not bool(payload.available_exam_rows),
+        ),
+        view.recent_results_table: payload.recent_result_rows,
+        view.result_records: payload.recent_result_records,
+        view.selected_result_id: "",
+        view.view_results_button: gr.update(
+            interactive=bool(payload.recent_result_records)
+        ),
+        view.result_empty: gr.update(
+            value=payload.result_empty,
+            visible=not bool(payload.recent_result_rows),
+        ),
+        view.diagnosis: payload.diagnosis,
+        view.message: payload.message,
+    }
+    for summary_component, value in zip(view.summary_values, payload.summary_values):
+        result[summary_component] = value
+    return result
+
+
+def _student_dashboard_record_by_id(
+    records: Sequence[Mapping[str, Any]] | None,
+    selected_id: str | None,
+    *,
+    id_names: Sequence[str],
+) -> Mapping[str, Any] | None:
+    """从当前会话保存的授权记录中读取选中对象，拒绝伪造标识。"""
+
+    normalized_id = str(selected_id or "").strip()
+    if (
+        not normalized_id
+        or not isinstance(records, Sequence)
+        or isinstance(records, (str, bytes))
+    ):
+        return None
+    for record in records:
+        if not isinstance(record, Mapping):
+            continue
+        candidate = _student_dashboard_first_value(record, id_names, "")
+        if str(candidate or "").strip() == normalized_id:
+            return record
+    return None
+
+
+def _find_panel_component(
+    panel: Any,
+    component_type: type[Any],
+    *,
+    label: str | None = None,
+    visible: bool | None = None,
+    occurrence: int = 0,
+) -> Any | None:
+    """按稳定属性读取已有视图组件，供跨页面入口传递选择上下文。"""
+
+    matches: list[Any] = []
+
+    def visit(container: Any) -> None:
+        for child in getattr(container, "children", []) or []:
+            matches_type = isinstance(child, component_type)
+            matches_label = label is None or getattr(child, "label", None) == label
+            matches_visibility = (
+                visible is None or getattr(child, "visible", None) == visible
+            )
+            if matches_type and matches_label and matches_visibility:
+                matches.append(child)
+            visit(child)
+
+    visit(panel)
+    return matches[occurrence] if 0 <= occurrence < len(matches) else None
+
+
+def _create_student_dashboard_view(
+    session_state: Any | None = None,
+) -> StudentDashboardView:
+    """创建学生学习概览布局和当前学生数据刷新事件。"""
+
+    state = session_state or gr.State(empty_login_state())
+    initial_payload = _student_dashboard_unavailable_payload()
+    with gr.Column(visible=False, elem_classes="edu-student-dashboard") as panel:
+        gr.HTML(
+            "<style>"
+            ".edu-student-dashboard .student-dashboard-title-row {align-items:center;}"
+            ".edu-student-dashboard .student-dashboard-title {min-width:0;}"
+            ".edu-student-dashboard .student-dashboard-summary-row {gap:12px;}"
+            ".edu-student-dashboard .student-dashboard-summary {min-height:74px;}"
+            ".edu-student-dashboard .student-dashboard-main {align-items:stretch;gap:16px;}"
+            ".edu-student-dashboard .student-dashboard-exams,"
+            ".edu-student-dashboard .student-dashboard-results {min-width:0;}"
+            ".edu-student-dashboard .student-dashboard-empty {min-height:96px;}"
+            ".edu-student-dashboard .student-dashboard-diagnosis {"
+            "min-height:100px;padding:12px;border:1px solid #e1e5eb;"
+            "border-radius:6px;background:#fff;overflow-wrap:anywhere;}"
+            "@media(max-width:767px){"
+            ".edu-student-dashboard .student-dashboard-title-row {flex-wrap:wrap;}"
+            ".edu-student-dashboard .student-dashboard-summary-row {flex-wrap:wrap;}"
+            ".edu-student-dashboard .student-dashboard-summary {flex:1 1 30%;}"
+            ".edu-student-dashboard .student-dashboard-main {flex-wrap:wrap;}"
+            ".edu-student-dashboard .student-dashboard-exams,"
+            ".edu-student-dashboard .student-dashboard-results {flex:1 1 100% !important;}"
+            "}"
+            "</style>"
+        )
+        with gr.Row(
+            equal_height=False,
+            elem_classes="student-dashboard-title-row",
+        ):
+            with gr.Column(
+                scale=2,
+                min_width=0,
+                elem_classes="student-dashboard-title",
+            ):
+                gr.Markdown("## 学习概览")
+                gr.Markdown("仅显示当前学生已授权的考试、答卷和结果。")
+            continue_button = gr.Button(
+                "开始/继续",
+                variant="primary",
+                interactive=False,
+                scale=0,
+            )
+            view_results_button = gr.Button(
+                "查看结果",
+                variant="secondary",
+                interactive=False,
+                scale=0,
+            )
+            refresh_button = gr.Button(
+                "刷新概览",
+                variant="secondary",
+                interactive=False,
+                scale=0,
+            )
+
+        with gr.Row(elem_classes="student-dashboard-summary-row"):
+            summary_values = [
+                gr.Textbox(
+                    label=label,
+                    value=initial_payload.summary_values[index],
+                    interactive=False,
+                    elem_classes="student-dashboard-summary",
+                )
+                for index, label in enumerate(
+                    ("可参加考试数", "已提交数", "可查看结果数")
+                )
+            ]
+        message = gr.Markdown(initial_payload.message)
+        gr.Markdown("成绩状态由结果服务提供；待复核内容不会显示为最终成绩。")
+
+        exam_records = gr.State([])
+        selected_exam_id = gr.Textbox(visible=False, container=False)
+        result_records = gr.State([])
+        selected_result_id = gr.Textbox(visible=False, container=False)
+
+        with gr.Row(
+            equal_height=False,
+            elem_classes="student-dashboard-main",
+        ):
+            with gr.Column(
+                scale=2,
+                min_width=0,
+                elem_classes="student-dashboard-exams",
+            ):
+                gr.Markdown("### 可参加考试")
+                available_exams_table = gr.Dataframe(
+                    headers=list(STUDENT_DASHBOARD_EXAM_HEADERS),
+                    datatype=["str", "str", "str", "str", "markdown", "str"],
+                    value=initial_payload.available_exam_rows,
+                    interactive=False,
+                    label="当前学生可参加的考试",
+                    **table_options(STUDENT_DASHBOARD_EXAM_HEADERS),
+                )
+                exam_empty = gr.Markdown(
+                    initial_payload.exam_empty,
+                    elem_classes="student-dashboard-empty",
+                )
+                gr.Markdown("选择一行后使用“开始/继续”进入我的考试。")
+            with gr.Column(
+                scale=1,
+                min_width=0,
+                elem_classes="student-dashboard-results",
+            ):
+                gr.Markdown("### 最近结果")
+                recent_results_table = gr.Dataframe(
+                    headers=list(STUDENT_DASHBOARD_RESULT_HEADERS),
+                    datatype=["str", "str", "str", "markdown", "str"],
+                    value=initial_payload.recent_result_rows,
+                    interactive=False,
+                    label="当前学生最近结果",
+                    **table_options(STUDENT_DASHBOARD_RESULT_HEADERS),
+                )
+                result_empty = gr.Markdown(
+                    initial_payload.result_empty,
+                    elem_classes="student-dashboard-empty",
+                )
+                gr.Markdown("选择一项结果后使用“查看结果”进入成绩与诊断。")
+                gr.Markdown("### 已确认诊断摘要")
+                diagnosis = gr.Markdown(initial_payload.diagnosis)
+
+        def select_exam(
+            event: gr.SelectData,
+            records: Sequence[Mapping[str, Any]] | None,
+        ) -> tuple[str, dict[str, Any]]:
+            """把表格选行转换为当前学生考试入口标识。"""
+
+            if not event or not getattr(event, "selected", False):
+                return "", gr.update(interactive=False)
+            index = getattr(event, "index", None)
+            index = index[0] if isinstance(index, (list, tuple)) else index
+            if (
+                isinstance(index, bool)
+                or not isinstance(index, int)
+                or not isinstance(records, Sequence)
+                or isinstance(records, (str, bytes))
+                or not 0 <= index < len(records)
+                or not isinstance(records[index], Mapping)
+            ):
+                return "", gr.update(interactive=False)
+            exam_id = str(
+                records[index].get("exam_id") or records[index].get("id") or ""
+            ).strip()
+            return exam_id, gr.update(interactive=bool(exam_id))
+
+        def select_result(
+            event: gr.SelectData,
+            records: Sequence[Mapping[str, Any]] | None,
+        ) -> tuple[str, dict[str, Any]]:
+            """把结果表选行转换为当前学生结果入口标识。"""
+
+            if not event or not getattr(event, "selected", False):
+                return "", gr.update(interactive=False)
+            index = getattr(event, "index", None)
+            index = index[0] if isinstance(index, (list, tuple)) else index
+            if (
+                isinstance(index, bool)
+                or not isinstance(index, int)
+                or not isinstance(records, Sequence)
+                or isinstance(records, (str, bytes))
+                or not 0 <= index < len(records)
+                or not isinstance(records[index], Mapping)
+            ):
+                return "", gr.update(interactive=False)
+            result_id = str(
+                records[index].get("id")
+                or records[index].get("submission_id")
+                or records[index].get("exam_id")
+                or ""
+            ).strip()
+            return result_id, gr.update(interactive=bool(result_id))
+
+        def refresh_panel(
+            current_state: Mapping[str, Any],
+        ) -> dict[Any, Any]:
+            """刷新概览；成绩和诊断服务未就绪时继续显示明确空态。"""
+
+            return _student_dashboard_component_updates(
+                view,
+                refresh_student_dashboard(current_state),
+            )
+
+        view = StudentDashboardView(
+            panel=panel,
+            refresh_button=refresh_button,
+            summary_values=tuple(summary_values),
+            available_exams_table=available_exams_table,
+            exam_records=exam_records,
+            selected_exam_id=selected_exam_id,
+            continue_button=continue_button,
+            exam_empty=exam_empty,
+            recent_results_table=recent_results_table,
+            result_records=result_records,
+            selected_result_id=selected_result_id,
+            view_results_button=view_results_button,
+            result_empty=result_empty,
+            diagnosis=diagnosis,
+            message=message,
+        )
+
+        refresh_outputs = [
+            view.refresh_button,
+            *view.summary_values,
+            view.available_exams_table,
+            view.exam_records,
+            view.selected_exam_id,
+            view.continue_button,
+            view.exam_empty,
+            view.recent_results_table,
+            view.result_records,
+            view.selected_result_id,
+            view.view_results_button,
+            view.result_empty,
+            view.diagnosis,
+            view.message,
+        ]
+        refresh_button.click(
+            refresh_panel,
+            inputs=[state],
+            outputs=refresh_outputs,
+            show_progress="hidden",
+        )
+        available_exams_table.select(
+            select_exam,
+            inputs=[exam_records],
+            outputs=[selected_exam_id, continue_button],
+            show_progress="hidden",
+        )
+        recent_results_table.select(
+            select_result,
+            inputs=[result_records],
+            outputs=[selected_result_id, view_results_button],
+            show_progress="hidden",
+        )
+    return view
+
+
+create_student_dashboard_view = _create_student_dashboard_view
 
 
 def normalize_ui_roles(
@@ -1316,6 +2138,24 @@ def create_gradio_app() -> gr.Blocks:
                         teacher_dashboard_view: TeacherDashboardView = (
                             create_teacher_dashboard_view(session_state)
                         )
+                        student_dashboard_view: StudentDashboardView = (
+                            create_student_dashboard_view(session_state)
+                        )
+                        student_exam_selection = _find_panel_component(
+                            student_exam_view.panel,
+                            gr.Textbox,
+                            visible=False,
+                        )
+                        student_exam_ids = _find_panel_component(
+                            student_exam_view.panel,
+                            gr.State,
+                            occurrence=0,
+                        )
+                        student_results_exam = _find_panel_component(
+                            results_view.panel,
+                            gr.Dropdown,
+                            label="考试",
+                        )
 
         panels = {
             "teacher.home": teacher_dashboard_view.panel,
@@ -1324,6 +2164,7 @@ def create_gradio_app() -> gr.Blocks:
             "teacher.exams": exam_view.panel,
             "teacher.generate": question_generation_view.panel,
             "teacher.review": review_view.panel,
+            "student.home": student_dashboard_view.panel,
             "student.exams": student_exam_view.panel,
             "student.results": results_view.panel,
             "teacher.analytics": teacher_results_view.panel,
@@ -1441,6 +2282,12 @@ def create_gradio_app() -> gr.Blocks:
                     _dashboard_unavailable_payload(),
                 )
             )
+            result.update(
+                _student_dashboard_component_updates(
+                    student_dashboard_view,
+                    _student_dashboard_unavailable_payload(),
+                )
+            )
             return result
 
         login_progress = gr.Progress()
@@ -1471,6 +2318,13 @@ def create_gradio_app() -> gr.Blocks:
                     _teacher_dashboard_component_updates(
                         teacher_dashboard_view,
                         refresh_teacher_dashboard(state=state),
+                    )
+                )
+            if UserRole.STUDENT.value in state["roles"] and selected == "student.home":
+                result.update(
+                    _student_dashboard_component_updates(
+                        student_dashboard_view,
+                        refresh_student_dashboard(state=state),
                     )
                 )
             result[workspace_message] = feedback(response[1], "success")
@@ -1521,6 +2375,13 @@ def create_gradio_app() -> gr.Blocks:
                         refresh_teacher_dashboard(state=current),
                     )
                 )
+            if active_role == UserRole.STUDENT.value and selected == "student.home":
+                result.update(
+                    _student_dashboard_component_updates(
+                        student_dashboard_view,
+                        refresh_student_dashboard(state=current),
+                    )
+                )
             result[workspace_message] = ""
             result[menu] = gr.update(open=False)
             return result
@@ -1549,6 +2410,9 @@ def create_gradio_app() -> gr.Blocks:
                     teacher_dashboard_view.refresh_button,
                     *teacher_dashboard_view.course_slots,
                     *teacher_dashboard_view.course_entry_buttons,
+                    student_dashboard_view.refresh_button,
+                    student_dashboard_view.continue_button,
+                    student_dashboard_view.view_results_button,
                     *(component for component, _ in resets),
                 ]
             )
@@ -1693,6 +2557,217 @@ def create_gradio_app() -> gr.Blocks:
             )
             return result
 
+        def open_student_exam_from_dashboard(
+            exam_records: Sequence[Mapping[str, Any]] | None,
+            selected_exam_id: str | None,
+            current_state: LoginState,
+            nav: dict[str, Any],
+        ) -> dict[Any, Any]:
+            """从学生概览进入 T108，并再次校验考试对当前学生开放。"""
+
+            try:
+                current = _authenticated_state(current_state)
+            except AuthenticationError:
+                return {
+                    workspace_message: feedback(
+                        "登录状态已失效，请退出后重新登录。", "error"
+                    )
+                }
+            except SQLAlchemyError:
+                return {
+                    workspace_message: feedback(
+                        "系统暂时无法连接数据库，请稍后重试。", "error"
+                    )
+                }
+            if UserRole.STUDENT not in normalize_ui_roles(current["roles"]):
+                return {
+                    student_dashboard_view.message: feedback(
+                        "当前账号无权访问学生考试功能。", "error"
+                    )
+                }
+            record = _student_dashboard_record_by_id(
+                exam_records,
+                selected_exam_id,
+                id_names=("exam_id", "id"),
+            )
+            if record is None:
+                return {
+                    student_dashboard_view.message: feedback(
+                        "当前考试入口已失效，请刷新概览后重新选择。", "info"
+                    )
+                }
+            exam_id = str(
+                _student_dashboard_first_value(record, ("exam_id", "id"), "")
+            ).strip()
+            try:
+                with get_session_factory()() as session:
+                    exam = SubmissionService(session).get_available_exam(
+                        exam_id,
+                        student_id=current["user_id"],
+                    )
+            except (
+                SubmissionServiceError,
+                PermissionDeniedError,
+                SQLAlchemyError,
+                TypeError,
+                ValueError,
+                RuntimeError,
+            ) as error:
+                return {
+                    student_dashboard_view.message: feedback(
+                        _student_dashboard_error_message(error),
+                        "error",
+                    )
+                }
+
+            next_nav = deepcopy(nav)
+            next_nav["role"] = UserRole.STUDENT.value
+            next_nav.setdefault("pages", {})[UserRole.STUDENT.value] = "student.exams"
+            result = render_workspace(current, next_nav, "student.exams")
+            exam_rows, _ = refresh_student_exams(current)
+            result[student_exam_view.exams_table] = exam_rows
+            if student_exam_ids is not None:
+                result[student_exam_ids] = [
+                    str(item.get("exam_id") or item.get("id") or "")
+                    for item in exam_records or ()
+                    if isinstance(item, Mapping)
+                    and str(item.get("exam_id") or item.get("id") or "").strip()
+                ]
+            if student_exam_selection is not None:
+                result[student_exam_selection] = exam_id
+            result[student_exam_view.message] = feedback(
+                f"已定位考试“{exam.title}”，请在列表中选中后点击“开始或继续”。",
+                "info",
+            )
+            return result
+
+        def open_student_result_from_dashboard(
+            result_records: Sequence[Mapping[str, Any]] | None,
+            selected_result_id: str | None,
+            current_state: LoginState,
+            nav: dict[str, Any],
+        ) -> dict[Any, Any]:
+            """从学生概览进入 T111，并按当前学生校验答卷归属。"""
+
+            try:
+                current = _authenticated_state(current_state)
+            except AuthenticationError:
+                return {
+                    workspace_message: feedback(
+                        "登录状态已失效，请退出后重新登录。", "error"
+                    )
+                }
+            except SQLAlchemyError:
+                return {
+                    workspace_message: feedback(
+                        "系统暂时无法连接数据库，请稍后重试。", "error"
+                    )
+                }
+            if UserRole.STUDENT not in normalize_ui_roles(current["roles"]):
+                return {
+                    student_dashboard_view.message: feedback(
+                        "当前账号无权访问成绩与诊断功能。", "error"
+                    )
+                }
+            record = _student_dashboard_record_by_id(
+                result_records,
+                selected_result_id,
+                id_names=("id", "submission_id", "exam_id"),
+            )
+            if record is None:
+                return {
+                    student_dashboard_view.message: feedback(
+                        "当前结果入口已失效，请刷新概览后重新选择。", "info"
+                    )
+                }
+            submission_id = str(
+                _student_dashboard_first_value(
+                    record,
+                    ("submission_id",),
+                    "",
+                )
+                or ""
+            ).strip()
+            exam_id = str(
+                _student_dashboard_first_value(record, ("exam_id",), "") or ""
+            ).strip()
+            if not submission_id and not exam_id:
+                return {
+                    student_dashboard_view.message: feedback(
+                        "当前结果缺少可校验的答卷信息，暂不能打开。", "warning"
+                    )
+                }
+            try:
+                with get_session_factory()() as session:
+                    service = SubmissionService(session)
+                    if submission_id:
+                        service.get_submission(
+                            submission_id,
+                            student_id=current["user_id"],
+                        )
+                    else:
+                        submission = service.find_submission(
+                            exam_id,
+                            current["user_id"],
+                        )
+                        if submission is None:
+                            raise SubmissionServiceError(
+                                "当前学生暂无该考试的答卷结果。"
+                            )
+            except (
+                SubmissionServiceError,
+                PermissionDeniedError,
+                SQLAlchemyError,
+                TypeError,
+                ValueError,
+                RuntimeError,
+            ) as error:
+                return {
+                    student_dashboard_view.message: feedback(
+                        _student_dashboard_error_message(error),
+                        "error",
+                    )
+                }
+
+            next_nav = deepcopy(nav)
+            next_nav["role"] = UserRole.STUDENT.value
+            next_nav.setdefault("pages", {})[UserRole.STUDENT.value] = "student.results"
+            result = render_workspace(current, next_nav, "student.results")
+            result_rows, result_message = refresh_student_results(
+                exam_id or None,
+                current,
+            )
+            result[results_view.results_table] = result_rows
+            result[results_view.message] = result_message
+            if student_results_exam is not None and exam_id:
+                result[student_results_exam] = gr.update(
+                    value=exam_id,
+                    choices=[
+                        (
+                            str(
+                                _student_dashboard_first_value(
+                                    record,
+                                    ("exam_name", "exam_title", "title"),
+                                    "当前考试",
+                                )
+                            ),
+                            exam_id,
+                        )
+                    ],
+                )
+            if not _student_dashboard_is_final_status(
+                _student_dashboard_first_value(
+                    record,
+                    ("result_status", "status"),
+                    None,
+                )
+            ):
+                result[results_view.message] = feedback(
+                    "已进入成绩与诊断；当前结果尚未形成最终成绩。",
+                    "warning",
+                )
+            return result
+
         login_button.click(sign_in, inputs=[identifier, password], **event_options)
         password.submit(sign_in, inputs=[identifier, password], **event_options)
         logout_button.click(clear_workspace, inputs=[], **event_options)
@@ -1740,6 +2815,32 @@ def create_gradio_app() -> gr.Blocks:
                 concurrency_id="eduagent-ui",
                 concurrency_limit=1,
             )
+        student_dashboard_view.continue_button.click(
+            open_student_exam_from_dashboard,
+            inputs=[
+                student_dashboard_view.exam_records,
+                student_dashboard_view.selected_exam_id,
+                session_state,
+                navigation_state,
+            ],
+            outputs=outputs,
+            show_progress="minimal",
+            concurrency_id="eduagent-ui",
+            concurrency_limit=1,
+        )
+        student_dashboard_view.view_results_button.click(
+            open_student_result_from_dashboard,
+            inputs=[
+                student_dashboard_view.result_records,
+                student_dashboard_view.selected_result_id,
+                session_state,
+                navigation_state,
+            ],
+            outputs=outputs,
+            show_progress="minimal",
+            concurrency_id="eduagent-ui",
+            concurrency_limit=1,
+        )
         for block_fn in view_functions:
             block_fn.concurrency_id = "eduagent-ui"
             block_fn.concurrency_limit = 1
@@ -1748,6 +2849,13 @@ def create_gradio_app() -> gr.Blocks:
 
 __all__ = [
     "NAVIGATION_ITEMS",
+    "STUDENT_DASHBOARD_DIAGNOSIS_EMPTY_MESSAGE",
+    "STUDENT_DASHBOARD_EXAM_EMPTY_MESSAGE",
+    "STUDENT_DASHBOARD_EXAM_HEADERS",
+    "STUDENT_DASHBOARD_RESULT_EMPTY_MESSAGE",
+    "STUDENT_DASHBOARD_RESULT_HEADERS",
+    "STUDENT_DASHBOARD_SUMMARY_UNAVAILABLE",
+    "STUDENT_DASHBOARD_UNAVAILABLE_MESSAGE",
     "TEACHER_DASHBOARD_COURSE_EMPTY_MESSAGE",
     "TEACHER_DASHBOARD_EXAM_EMPTY_MESSAGE",
     "TEACHER_DASHBOARD_GRADE_EMPTY_MESSAGE",
@@ -1756,9 +2864,12 @@ __all__ = [
     "TEACHER_DASHBOARD_UNAVAILABLE_MESSAGE",
     "LoginState",
     "NavigationItem",
+    "StudentDashboardPayload",
+    "StudentDashboardView",
     "TeacherDashboardPayload",
     "TeacherDashboardView",
     "create_gradio_app",
+    "create_student_dashboard_view",
     "create_teacher_dashboard_view",
     "empty_login_state",
     "format_ui_error",
@@ -1774,6 +2885,7 @@ __all__ = [
     "logout_user_for_app_with_questions_and_exams_and_student",
     "navigation_for_roles",
     "normalize_ui_roles",
+    "refresh_student_dashboard",
     "refresh_teacher_dashboard",
     "select_navigation",
     "select_navigation_for_app",
