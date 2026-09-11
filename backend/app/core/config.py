@@ -117,6 +117,13 @@ class AppSettings(BaseSettings):
     embedding_provider: str
     rerank_provider: str
     confidence_threshold: float = Field(ge=0.0, le=1.0)
+    DEV_MODE: bool = False
+
+    @property
+    def dev_mode(self) -> bool:
+        """返回开发模式开关，兼容 Python 代码中的小写属性访问。"""
+
+        return self.DEV_MODE
 
     @field_validator(
         "llm_provider", "embedding_provider", "rerank_provider", mode="before"
@@ -175,6 +182,7 @@ class AppSettings(BaseSettings):
             "embedding_provider": self.embedding_provider,
             "rerank_provider": self.rerank_provider,
             "confidence_threshold": self.confidence_threshold,
+            "DEV_MODE": self.DEV_MODE,
         }
 
 

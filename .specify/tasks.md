@@ -409,3 +409,18 @@ M0 工程骨架 + Benchmark
 **完成边界**：本轮只追加任务和输出设计，不执行上述任务。后续需要先确认布局方向，再按
 依赖选择 UI 实施任务；保留 Phase 6 与本节各任务的独立验收记录，不将布局预览视为业务闭环完成。
 
+## Phase 8: Dev-Mode Login
+
+**目的**：为本地演示和测试提供可控的开发模式快速登录，同时保持后端 JWT 身份鉴权、
+当前用户加载和 RBAC 守卫不变。`DEV_MODE` 默认关闭；开启时只增加 UI 快速入口和
+预设测试账号初始化。T120 是本阶段唯一的 Service 层例外，仅新增幂等账号初始化辅助
+函数，不修改现有密码认证、JWT 签发/验证、API 端点或角色守卫。所有新增注释、界面
+文字和提示使用中文，继续使用 Gradio，不引入 React/Vue/Streamlit。
+
+- [X] T119 在 `backend/app/core/config.py` 的 `AppSettings` 中新增 `DEV_MODE: bool = False` 配置项，沿用 `.env` 加载和类型校验，并让公开配置摘要明确显示当前开关状态；配置关闭时保持现有登录行为 per FR-002、FR-004、plan §0。
+- [ ] T120 在 `backend/app/services/auth_service.py` 中实现 `ensure_dev_mode_accounts()`，仅在 `DEV_MODE=True` 时幂等创建或复用管理员、教师、学生各一个预设测试账号，确保账号启用且仅绑定对应角色；复用 `hash_password`、现有 User/Role 模型和 `issue_access_token`，不得覆盖同名真实账号、记录明文密码或修改 `authenticate`/JWT/RBAC 逻辑 per FR-001、FR-003、FR-004（Phase 8 唯一 Service 层例外）。
+- [ ] T121 在 `backend/app/ui/gradio_app.py` 的登录面板与登录事件绑定处实现开发模式登录区域：仅当 `DEV_MODE=True` 时在登录页顶部显示“开发模式快速登录”及“以管理员身份登录”“以教师身份登录”“以学生身份登录”三个按钮；按钮调用账号初始化并使用标准 JWT 建立 `LoginState`，`DEV_MODE=False` 时组件完全隐藏且正常用户名/密码登录路径不变 per FR-002、FR-003、FR-004、plan §0、§6。
+- [ ] T122 在 `backend/app/ui/layout_view.py` 的共享工作台顶部增加开发模式视觉提示“当前为开发模式，请勿用于生产环境”，仅在 `DEV_MODE=True` 渲染；提示不得改变导航授权或后端请求校验 per FR-004、FR-006、plan §0、§6。
+- [ ] T123 在 `.env.example` 中增加 `DEV_MODE=false` 及中文说明注释，说明仅用于本地演示、开启后会创建预设测试账号、上线前必须关闭并清理账号 per FR-002、FR-007。
+- [ ] T124 编写 `docs/dev-mode.md`，记录开关、预设账号生命周期、快速登录行为、后端安全边界、测试/清理步骤，并链接 `docs/dev-mode-removal-checklist.md` per FR-001~FR-007、plan §0。
+
