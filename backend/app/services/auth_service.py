@@ -16,10 +16,12 @@ from uuid import UUID
 
 from pydantic import SecretStr
 from sqlalchemy import or_, select
-from sqlalchemy.orm import Session
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm import Session, selectinload
 
 from backend.app.domain.enums import UserRole
-from backend.app.models import User
+from backend.app.domain.permissions import ROLE_DISPLAY_NAMES
+from backend.app.models import Role, User
 
 _PASSWORD_ALGORITHM = "scrypt"
 _SCRYPT_N = 2**14
@@ -32,6 +34,15 @@ _JWT_ALGORITHM = "HS256"
 _JWT_TYPE = "access"
 _DEFAULT_ACCESS_TOKEN_LIFETIME = timedelta(minutes=30)
 
+# 这些标识仅用于本地开发模式，便于上线前按前缀检索并清理。
+_DEV_MODE_ACCOUNT_SPECS: tuple[tuple[UserRole, str, str], ...] = (
+    (UserRole.ADMIN, "dev_admin", "dev_admin@eduagent.local"),
+    (UserRole.TEACHER, "dev_teacher", "dev_teacher@eduagent.local"),
+    (UserRole.STUDENT, "dev_student", "dev_student@eduagent.local"),
+)
+_DEV_MODE_TRUE_VALUES = frozenset({"1", "true", "t", "yes", "y", "on"})
+_DEV_MODE_FALSE_VALUES = frozenset({"0", "false", "f", "no", "n", "off", ""})
+
 
 class AuthenticationError(RuntimeError):
     """认证失败或认证配置无效时抛出的安全异常。"""
@@ -39,6 +50,125 @@ class AuthenticationError(RuntimeError):
 
 class InvalidTokenError(AuthenticationError):
     """JWT 格式、签名或有效期校验失败。"""
+
+
+def _coerce_dev_mode(value: Any) -> bool:
+    """将开发模式配置转换为严格布尔值。"""
+
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, int) and value in (0, 1):
+        return bool(value)
+    if isinstance(value, str):
+        normalized = value.strip().lower()
+        if normalized in _DEV_MODE_TRUE_VALUES:
+            return True
+        if normalized in _DEV_MODE_FALSE_VALUES:
+            return False
+    raise ValueError("DEV_MODE 配置值无效，请使用 true 或 false。")
+
+
+def _resolve_dev_mode(
+    dev_mode: bool | str | int | None,
+    settings: Any | None,
+) -> bool:
+    """按显式参数、运行配置或环境变量解析开发模式开关。"""
+
+    if settings is not None:
+        configured = getattr(settings, "DEV_MODE", None)
+        if configured is None:
+            configured = getattr(settings, "dev_mode", None)
+        if configured is not None:
+            return _coerce_dev_mode(configured)
+    if dev_mode is not None:
+        return _coerce_dev_mode(dev_mode)
+    return _coerce_dev_mode(os.getenv("DEV_MODE", "false"))
+
+
+def _ensure_dev_mode_role(session: Session, role: UserRole) -> Role:
+    """读取或创建一个内置角色记录。"""
+
+    role_model = session.scalar(select(Role).where(Role.name == role))
+    if role_model is not None:
+        if not role_model.description:
+            role_model.description = ROLE_DISPLAY_NAMES[role]
+        return role_model
+
+    role_model = Role(name=role, description=ROLE_DISPLAY_NAMES[role])
+    session.add(role_model)
+    session.flush()
+    return role_model
+
+
+def _ensure_dev_mode_account(
+    session: Session,
+    role: UserRole,
+    username: str,
+    email: str,
+) -> User:
+    """幂等准备单个开发账号，不覆盖标识冲突的真实账号。"""
+
+    matches = session.scalars(
+        select(User)
+        .options(selectinload(User.roles))
+        .where(or_(User.username == username, User.email == email))
+    ).all()
+    unique_matches = {str(user.id): user for user in matches}
+    if len(unique_matches) > 1:
+        raise AuthenticationError(f"开发模式账号标识冲突：{username}。")
+
+    user = next(iter(unique_matches.values()), None)
+    if user is not None:
+        if user.username != username or user.email != email:
+            raise AuthenticationError(f"开发模式账号标识已被占用：{username}。")
+    else:
+        # 只在创建时生成一次随机密码；数据库中永远只保存哈希。
+        user = User(
+            username=username,
+            email=email,
+            password_hash=hash_password(secrets.token_urlsafe(32)),
+            is_active=True,
+        )
+        session.add(user)
+
+    user.is_active = True
+    role_model = _ensure_dev_mode_role(session, role)
+    user.roles = [role_model]
+    session.flush()
+    return user
+
+
+def ensure_dev_mode_accounts(
+    session: Session,
+    dev_mode: bool | str | int | None = None,
+    *,
+    settings: Any | None = None,
+) -> dict[UserRole, User]:
+    """仅在开发模式开启时幂等创建或复用三个预设测试账号。
+
+    返回值按角色映射到用户实体，供 Gradio 使用 ``issue_access_token``
+    签发标准 JWT。关闭开发模式时不执行任何数据库查询或写入。
+    """
+
+    if not _resolve_dev_mode(dev_mode, settings):
+        return {}
+
+    accounts: dict[UserRole, User] = {}
+    try:
+        for role, username, email in _DEV_MODE_ACCOUNT_SPECS:
+            accounts[role] = _ensure_dev_mode_account(
+                session,
+                role,
+                username,
+                email,
+            )
+        session.commit()
+        for account in accounts.values():
+            session.refresh(account)
+    except SQLAlchemyError:
+        session.rollback()
+        raise
+    return accounts
 
 
 def _validate_password(password: str) -> str:
@@ -384,6 +514,7 @@ __all__ = [
     "authenticate_user",
     "create_access_token",
     "decode_access_token",
+    "ensure_dev_mode_accounts",
     "get_password_hash",
     "hash_password",
     "load_current_user",
