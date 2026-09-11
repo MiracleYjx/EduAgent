@@ -474,19 +474,29 @@ def create_admin_view(session_state: Any | None = None) -> AdminView:
                     edit_target_name = gr.Textbox(
                         label="确认目标用户", interactive=False
                     )
-                    user_id = gr.Textbox(label="用户 ID", interactive=False, visible=False)
+                    user_id = gr.Textbox(
+                        label="用户 ID", interactive=False, visible=False
+                    )
                     username = gr.Textbox(label="用户名")
                     email = gr.Textbox(label="邮箱")
-                    password = gr.Textbox(label="新密码（留空则不修改）", type="password")
+                    password = gr.Textbox(
+                        label="新密码（留空则不修改）", type="password"
+                    )
                     edit_roles = gr.CheckboxGroup(
                         choices=role_choices, label="角色", value=[], interactive=False
                     )
                     gr.Markdown("角色调整请前往“角色管理”页面。")
                     is_active = gr.Checkbox(label="启用用户", value=True)
                     with gr.Row():
-                        update_button = gr.Button("保存用户", variant="primary", interactive=False)
-                        deactivate_button = gr.Button("停用用户", variant="stop", interactive=False)
-                        delete_button = gr.Button("删除用户", variant="stop", interactive=False)
+                        update_button = gr.Button(
+                            "保存用户", variant="primary", interactive=False
+                        )
+                        deactivate_button = gr.Button(
+                            "停用用户", variant="stop", interactive=False
+                        )
+                        delete_button = gr.Button(
+                            "删除用户", variant="stop", interactive=False
+                        )
 
             with gr.Column(visible=False) as create_form:
                 gr.Markdown("### 创建用户\n填写新用户资料；当前选中标识已清空。")
@@ -546,9 +556,11 @@ def create_admin_view(session_state: Any | None = None) -> AdminView:
                 return (
                     _user_rows(visible),
                     _user_records(visible),
-                    feedback(f"已加载 {len(visible)} 个用户。", "success")
-                    if visible
-                    else empty_state("暂无符合条件的用户。"),
+                    (
+                        feedback(f"已加载 {len(visible)} 个用户。", "success")
+                        if visible
+                        else empty_state("暂无符合条件的用户。")
+                    ),
                 )
             except (
                 AdminServiceError,
@@ -569,8 +581,16 @@ def create_admin_view(session_state: Any | None = None) -> AdminView:
         ) -> dict[Any, Any]:
             """按表格行顺序填充编辑和角色两个面板。"""
 
-            index = event.index[0] if isinstance(event.index, (tuple, list)) else event.index
-            if not event.selected or not isinstance(index, int) or not 0 <= index < len(records):
+            index = (
+                event.index[0]
+                if isinstance(event.index, (tuple, list))
+                else event.index
+            )
+            if (
+                not event.selected
+                or not isinstance(index, int)
+                or not 0 <= index < len(records)
+            ):
                 raise gr.Error("用户选择已失效，请重新选择。")
             record = dict(records[index])
             roles_value = list(record.get("roles") or [])
@@ -695,8 +715,10 @@ def create_admin_view(session_state: Any | None = None) -> AdminView:
                         is_active=enabled,
                     )
                 rows, records, _ = query_users(current_state, name, role, active)
-                return rows, records, feedback(
-                    f"用户“{updated.username}”已保存。", "success"
+                return (
+                    rows,
+                    records,
+                    feedback(f"用户“{updated.username}”已保存。", "success"),
                 )
             except (
                 AdminServiceError,
@@ -757,15 +779,29 @@ def create_admin_view(session_state: Any | None = None) -> AdminView:
                 active,
             )
 
-        def load_overview(current_state: Mapping[str, Any]) -> tuple[str, str, str, str]:
+        def load_overview(
+            current_state: Mapping[str, Any],
+        ) -> tuple[str, str, str, str]:
             try:
                 _ensure_admin(current_state)
                 with get_session_factory()() as session:
                     snapshot = AdminService(session).get_system_status()
                 return (
-                    str(snapshot.user_count) if snapshot.user_count is not None else "未知",
-                    str(snapshot.active_user_count) if snapshot.active_user_count is not None else "未知",
-                    str(snapshot.role_count) if snapshot.role_count is not None else "未知",
+                    (
+                        str(snapshot.user_count)
+                        if snapshot.user_count is not None
+                        else "未知"
+                    ),
+                    (
+                        str(snapshot.active_user_count)
+                        if snapshot.active_user_count is not None
+                        else "未知"
+                    ),
+                    (
+                        str(snapshot.role_count)
+                        if snapshot.role_count is not None
+                        else "未知"
+                    ),
                     _dependency_markdown(snapshot),
                 )
             except (
@@ -793,7 +829,7 @@ def create_admin_view(session_state: Any | None = None) -> AdminView:
                 return _format_error(error)
 
         filter_inputs = [name_filter, role_filter, active_filter, state]
-        filter_options = {
+        filter_options: dict[str, Any] = {
             "outputs": [users_table, user_records, message],
             "show_progress": "hidden",
             "concurrency_id": "eduagent-ui",
@@ -803,7 +839,9 @@ def create_admin_view(session_state: Any | None = None) -> AdminView:
         for control in (name_filter, role_filter, active_filter):
             control.input(refresh_users_view, inputs=filter_inputs, **filter_options)
         users_table.select(
-            select_user, inputs=[user_records], outputs=[
+            select_user,
+            inputs=[user_records],
+            outputs=[
                 edit_status,
                 edit_target_name,
                 user_id,
@@ -820,7 +858,8 @@ def create_admin_view(session_state: Any | None = None) -> AdminView:
                 delete_button,
                 roles_button,
                 create_form,
-            ], show_progress="hidden"
+            ],
+            show_progress="hidden",
         )
         new_user_button.click(
             start_create,

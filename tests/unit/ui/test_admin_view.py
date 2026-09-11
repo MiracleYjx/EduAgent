@@ -40,8 +40,8 @@ def test_admin_view_builds_and_formats_user_rows() -> None:
             "user-id",
             "admin",
             "admin@example.com",
-            "启用",
-            "Admin",
+            '<span class="edu-status edu-tone-success" data-status="active"><span aria-hidden="true">✓</span><span>启用</span></span>',
+            "管理员",
             "2026-01-01T00:00:00+00:00",
         ]
     ]
@@ -68,4 +68,4 @@ def test_admin_view_formats_component_status_in_chinese() -> None:
     assert "系统状态：异常" in rendered
     assert "数据库：正常" in rendered
     assert "Redis：异常" in rendered
-    assert "Teacher 1 人" in rendered
+    assert "教师 1 人" in rendered
