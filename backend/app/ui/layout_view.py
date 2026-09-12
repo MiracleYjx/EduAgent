@@ -570,18 +570,20 @@ WORKSPACE_CSS = STATUS_CSS + """
 #edu-search { flex: 1 1 260px; min-width: 180px; }
 #edu-search .wrap { min-height: 40px; border-color: var(--edu-line); }
 #edu-search input { min-height: 38px; }
-#edu-message-button { flex: 0 0 auto; min-width: 88px; height: 40px; }
-#edu-user-menu { flex: 0 0 auto; min-width: 0; border: 0; background: transparent; }
-#edu-user-menu > .label-wrap { min-height: 40px; padding: 0 10px; border: 1px solid var(--edu-line);
+#edu-message-button { flex: 0 0 auto; min-width: 88px; height: 44px; }
+#edu-user-menu { position: relative; flex: 0 0 112px; width: 112px; min-width: 0;
+    padding: 0 !important; overflow: visible !important; border: 0; background: transparent; }
+#edu-user-menu > .label-wrap { min-height: 44px; margin: 0; padding: 0 10px; border: 1px solid var(--edu-line);
     border-radius: 4px; background: #fff; }
-#edu-user-menu > [data-testid="accordion-content"] { min-width: 240px; padding: 12px;
+#edu-user-menu > [data-testid="accordion-content"] { position: absolute; right: 0; top: calc(100% + 6px);
+    width: 240px; max-width: calc(100vw - 24px); padding: 12px;
     border: 1px solid var(--edu-line); background: #fff; box-shadow: 0 8px 20px rgba(32,39,53,.12); }
-#edu-user { flex: 0 1 180px; min-width: 0; text-align: right; }
+#edu-user { min-width: 0; text-align: left; }
 #edu-user span, #edu-context span { display: block; white-space: nowrap;
     overflow: hidden; text-overflow: ellipsis; }
-#edu-role { flex: 0 0 112px; min-width: 0 !important; }
+#edu-role { min-width: 0 !important; }
 #edu-role input { min-width: 0 !important; }
-#edu-logout { flex: 0 0 104px; min-width: 0; height: 44px; white-space: nowrap; }
+#edu-logout { flex: 0 0 auto; min-width: 0; height: 44px; white-space: nowrap; }
 #edu-shell-row { min-height: calc(100vh - 64px); gap: 0; flex-wrap: nowrap; align-items: stretch; }
 #edu-sidebar { flex: 0 0 216px; width: 216px; min-width: 0 !important; padding: 16px 12px;
     border-right: 1px solid var(--edu-line); background: #fff; }
@@ -597,25 +599,32 @@ WORKSPACE_CSS = STATUS_CSS + """
 #edu-sidebar .edu-nav:hover { background: #f3f5f8; }
 #edu-sidebar .edu-nav-active { color: var(--edu-blue); border-left-color: var(--edu-blue);
     background: #edf3ff; font-weight: 600; }
-#edu-root button:focus-visible { outline: 2px solid var(--edu-blue); outline-offset: 2px; }
+#edu-root button { min-height: 44px; min-width: 44px; }
+#edu-root button.icon-button { width: 44px; height: 44px; }
+#edu-root :is(button, input, textarea, [tabindex]):focus-visible {
+    outline: 2px solid var(--edu-blue); outline-offset: 2px; }
 #edu-root button.primary { background: #2563eb; border-color: #2563eb; color: #fff; }
 #edu-root button.primary:hover { background: #1d4ed8; border-color: #1d4ed8; }
 #edu-content { flex: 1 1 0; min-width: 0 !important; padding: 24px; gap: 18px; }
 #edu-content > .column { min-width: 0 !important; }
 #edu-content .prose h2 { font-size: 22px; }
 #edu-content .prose h3 { font-size: 17px; }
-#edu-content textarea { overflow-wrap: anywhere; }
+#edu-content :is(textarea, .prose, .label) { overflow-wrap: anywhere; }
+#edu-content .edu-status-table :is(.table-container, .table-wrap) { min-width: 0; max-width: 100%; }
+#edu-content .edu-status-table .table-wrap { overflow-x: auto; }
+#edu-content .dashboard-title-row > button { flex: 0 0 96px; width: 96px; min-width: 96px;
+    white-space: nowrap; }
 #edu-page-header { min-height: 48px; align-items: center; gap: 12px; }
 #edu-page-breadcrumb { flex: 1 1 auto; min-width: 0; color: #485160; font-size: 14px; }
 #edu-page-breadcrumb .edu-breadcrumb { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-#edu-page-actions { flex: 0 0 auto; min-width: 0; gap: 8px; justify-content: flex-end; }
-#edu-page-actions button { min-height: 40px; white-space: nowrap; }
+#edu-page-actions { flex: 0 0 auto; width: auto; min-width: 0; gap: 8px; justify-content: flex-end; }
+#edu-page-actions button { flex: 0 0 auto; width: auto; min-height: 44px; white-space: nowrap; }
 #edu-page-back { flex: 0 0 auto; }
 #edu-message-panel { border: 1px solid var(--edu-line); border-radius: 6px; background: #fff; }
-#edu-message-panel > .label-wrap { min-height: 42px; padding: 0 12px; }
+#edu-message-panel > .label-wrap { min-height: 44px; padding: 0 12px; }
 #edu-message-panel > [data-testid="accordion-content"] { padding: 12px; }
 #edu-message-table { min-width: 0; }
-#edu-message-view { min-height: 40px; }
+#edu-message-view { min-height: 44px; }
 #edu-search-feedback { min-height: 0; }
 #edu-search-feedback:empty { display: none; }
 #edu-shortcut-note { color: #68717e; font-size: 12px; }
@@ -631,8 +640,7 @@ WORKSPACE_CSS = STATUS_CSS + """
 .edu-error { color: #991b1b; border-color: #dc2626; background: #fef2f2; }
 .edu-placeholder { padding: 24px 0; color: #68717e; }
 @media (min-width: 768px) {
-    #edu-menu > .label-wrap { display: none; }
-    #edu-menu > [data-testid="accordion-content"] { display: block !important; }
+    #edu-root.edu-enhanced #edu-menu > .label-wrap { display: none; }
 }
 @media (max-width: 1199px) and (min-width: 768px) {
     #edu-sidebar { flex-basis: 176px; width: 176px; }
@@ -644,16 +652,108 @@ WORKSPACE_CSS = STATUS_CSS + """
     #edu-context { display: none; }
     #edu-search { order: 3; flex: 1 1 100%; min-width: 0; }
     #edu-message-button { flex-basis: 72px; font-size: 12px; }
-    #edu-user-menu { flex: 0 0 auto; }
+    #edu-user-menu { flex: 0 0 112px; }
     #edu-user-menu > .label-wrap { padding: 0 8px; }
-    #edu-page-header { align-items: flex-start; flex-wrap: wrap; }
+    #edu-page-header { flex-direction: column; align-items: stretch; flex-wrap: nowrap; }
     #edu-page-breadcrumb { flex-basis: 100%; }
-    #edu-page-actions { flex-basis: 100%; justify-content: flex-start; flex-wrap: wrap; }
+    #edu-page-actions { flex: 0 1 100%; width: 100%; max-width: 100%;
+        flex-basis: 100%; justify-content: flex-start; flex-wrap: wrap; }
     #edu-shell-row { flex-direction: column; min-height: calc(100vh - 64px); }
     #edu-sidebar { flex: 0 0 auto; width: 100%; padding: 4px 12px;
         border-right: 0; border-bottom: 1px solid var(--edu-line); }
     #edu-content { padding: 16px 12px; }
+    #edu-content .row { flex-direction: column; }
+    #edu-content .row > .column { width: 100%; min-width: 0 !important; }
+    #edu-content #edu-page-actions { flex-direction: row; }
+    #edu-content .dashboard-main { flex-wrap: nowrap !important; }
+    #edu-content .dashboard-main > .column { flex: 0 1 auto !important; width: 100% !important; }
+    #edu-content .dashboard-title-row > button { flex: 0 0 auto; height: 44px; }
+    #edu-content .edu-answer-card { flex-basis: auto; width: 100%; }
     #edu-login { margin: 32px auto; }
+}
+"""
+
+
+WORKSPACE_JS = """
+// Gradio 的折叠内容按展开状态挂载，桌面导航需同步原生展开状态。
+const root = element.closest('#edu-root');
+if (root && !root.classList.contains('edu-enhanced')) {
+    root.classList.add('edu-enhanced');
+    const mobile = matchMedia('(max-width: 767px)');
+    const confirmations = new Map();
+    let lastAction = null;
+    let messageOrigin = null;
+    let returnToMessage = false;
+    let scheduled = false;
+    const visible = node => node?.isConnected && node.getClientRects().length > 0;
+    const menuParts = () => [
+        root.querySelector('#edu-menu > .label-wrap'),
+        root.querySelector('#edu-menu > [data-testid="accordion-content"]')
+    ];
+    const sync = () => {
+        scheduled = false;
+        const [toggle, content] = menuParts();
+        if (toggle && content) {
+            const open = content.style.display !== 'none';
+            if (!mobile.matches && !open) toggle.click();
+            const expanded = String(content.style.display !== 'none');
+            if (toggle.getAttribute('aria-expanded') !== expanded) {
+                toggle.setAttribute('aria-expanded', expanded);
+            }
+        }
+        // 只在确认区内的操作导致关闭时返回焦点，避免抢走表单输入焦点。
+        for (const panel of root.querySelectorAll('.edu-confirmation, .edu-submit-confirmation')) {
+            if (visible(panel) && !confirmations.has(panel)) {
+                confirmations.set(panel, {origin: lastAction, returning: false});
+            }
+        }
+        for (const [panel, state] of confirmations) {
+            if (!visible(panel)) {
+                if (state.returning && visible(state.origin) && !state.origin.disabled) {
+                    state.origin.focus();
+                }
+                confirmations.delete(panel);
+            }
+        }
+        const messages = root.querySelector('#edu-message-panel > [data-testid="accordion-content"]');
+        if (returnToMessage && !visible(messages)) {
+            if (visible(messageOrigin)) messageOrigin.focus();
+            returnToMessage = false;
+        }
+    };
+    root.addEventListener('click', event => {
+        const button = event.target.closest('button');
+        if (!button) return;
+        const panel = button.closest('.edu-confirmation, .edu-submit-confirmation');
+        if (panel) {
+            const state = confirmations.get(panel);
+            if (state) state.returning = true;
+        } else {
+            lastAction = button;
+        }
+        if (button.id === 'edu-message-button') messageOrigin = button;
+        if (button.matches('#edu-message-panel > .label-wrap')) {
+            returnToMessage = visible(root.querySelector('#edu-message-panel > [data-testid="accordion-content"]'));
+        }
+        if (mobile.matches && button.classList.contains('edu-nav')) {
+            const [toggle, content] = menuParts();
+            if (content?.style.display !== 'none') toggle?.click();
+        }
+    }, true);
+    mobile.addEventListener('change', () => {
+        const [toggle, content] = menuParts();
+        if (toggle && content && (content.style.display !== 'none') === mobile.matches) {
+            toggle.click();
+        }
+    });
+    const observer = new MutationObserver(() => {
+        if (!scheduled) {
+            scheduled = true;
+            requestAnimationFrame(sync);
+        }
+    });
+    observer.observe(root, {childList: true, subtree: true, attributes: true, attributeFilter: ['style', 'class']});
+    sync();
 }
 """
 
@@ -852,6 +952,7 @@ __all__ = [
     "STATUS_COLORS",
     "STATUS_CSS",
     "WORKSPACE_CSS",
+    "WORKSPACE_JS",
     "ConfirmationView",
     "LayoutNavigationItem",
     "StatusEntity",

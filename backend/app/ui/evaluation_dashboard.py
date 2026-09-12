@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from math import isfinite
-from typing import Any
+from typing import Any, Literal, cast
 
 import gradio as gr
 import pandas as pd
@@ -28,6 +28,8 @@ METRIC_HEADERS = (
     "结果位置",
 )
 FAILURE_HEADERS = ("实验", "模型", "数据集", "运行状态", "失败原因", "结果位置")
+METRIC_DATATYPES = cast(tuple[Literal["str"], ...], ("str",) * len(METRIC_HEADERS))
+FAILURE_DATATYPES = cast(tuple[Literal["str"], ...], ("str",) * len(FAILURE_HEADERS))
 COMPARISON_NOTE = (
     "仅比较相同数据集及版本、指标单位、样本量和已记录比较条件的完成实验；"
     "运行中、失败或比较信息缺失的结果不参与柱状图。"
@@ -299,7 +301,7 @@ def create_evaluation_view(
                 gr.Markdown("### 指标对比")
                 metrics_table = gr.Dataframe(
                     headers=list(METRIC_HEADERS),
-                    datatype=["str"] * len(METRIC_HEADERS),
+                    datatype=METRIC_DATATYPES,
                     value=_metric_rows(source),
                     interactive=False,
                     label="指标对比表",
@@ -340,7 +342,7 @@ def create_evaluation_view(
             gr.Markdown("### 失败项")
             failures_table = gr.Dataframe(
                 headers=list(FAILURE_HEADERS),
-                datatype=["str"] * len(FAILURE_HEADERS),
+                datatype=FAILURE_DATATYPES,
                 value=_failure_rows(source),
                 interactive=False,
                 label="失败项",
