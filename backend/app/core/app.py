@@ -16,7 +16,17 @@ from backend.app.api.knowledge_bases import router as knowledge_bases_router
 from backend.app.api.questions import router as questions_router
 from backend.app.api.submissions import exam_submission_router
 from backend.app.api.submissions import router as submissions_router
-from backend.app.core.config import AppSettings, get_settings
+from backend.app.core.config import AppSettings, ConfigurationError, get_settings
+from backend.app.core.database import (
+    DatabaseNotReadyError,
+    check_postgres_ready,
+    create_database_engine,
+)
+from backend.app.core.redis import (
+    RedisNotReadyError,
+    check_redis_ready,
+    create_redis_client,
+)
 from backend.app.core.security import AuthenticationMiddleware
 from backend.app.ui.gradio_app import create_gradio_app as build_gradio_app
 
@@ -87,6 +97,58 @@ def create_app(
     async def health() -> HealthResponse:
         """返回一个与依赖无关的容器存活检查响应。"""
 
+        return HealthResponse()
+
+    @app.get("/ready", response_model=HealthResponse, tags=["system"])
+    def ready() -> HealthResponse | JSONResponse:
+        """依次检查配置、PostgreSQL 和 Redis，返回不含凭据的失败原因。"""
+
+        try:
+            checked_settings = settings or get_settings()
+        except ConfigurationError:
+            return JSONResponse(
+                status_code=503,
+                content={
+                    "status": "not_ready",
+                    "service": "backend",
+                    "failed_check": "config",
+                    "detail": "运行配置无效，请检查必填配置项。",
+                },
+            )
+
+        engine = create_database_engine(checked_settings, connect_timeout=2)
+        try:
+            check_postgres_ready(engine)
+        except DatabaseNotReadyError:
+            return JSONResponse(
+                status_code=503,
+                content={
+                    "status": "not_ready",
+                    "service": "backend",
+                    "failed_check": "postgres",
+                    "detail": "PostgreSQL 未就绪，请检查数据库服务和连接配置。",
+                },
+            )
+        finally:
+            engine.dispose()
+
+        client = create_redis_client(
+            checked_settings, socket_connect_timeout=1, socket_timeout=1
+        )
+        try:
+            check_redis_ready(client)
+        except RedisNotReadyError:
+            return JSONResponse(
+                status_code=503,
+                content={
+                    "status": "not_ready",
+                    "service": "backend",
+                    "failed_check": "redis",
+                    "detail": "Redis 未就绪，请检查 Redis 服务和连接配置。",
+                },
+            )
+        finally:
+            client.close()
         return HealthResponse()
 
     gr.mount_gradio_app(

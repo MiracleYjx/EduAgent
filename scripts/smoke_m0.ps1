@@ -4,7 +4,7 @@
 
 .DESCRIPTION
 启动 PostgreSQL、Redis 和 Backend，等待容器健康检查与 Backend
-健康端点可用，然后执行 Alembic 迁移和 Redis PING。脚本失败时会输出
+就绪端点可用，然后执行 Alembic 迁移和 Redis PING。脚本失败时会输出
 脱敏诊断并以非零退出码结束。
 #>
 
@@ -170,21 +170,21 @@ function Get-BackendHostPort {
     return [int]$match.Groups[1].Value
 }
 
-function Wait-ForBackendHealth {
+function Wait-ForBackendReady {
     param(
         [Parameter(Mandatory = $true)]
         [datetime]$Deadline
     )
 
     $backendPort = Get-BackendHostPort
-    $healthUrl = "http://127.0.0.1:$backendPort/health"
+    $readyUrl = "http://127.0.0.1:$backendPort/ready"
     $lastError = ""
 
     while ([DateTime]::UtcNow -lt $Deadline) {
         try {
-            $response = Invoke-WebRequest -Uri $healthUrl -UseBasicParsing -TimeoutSec 3
+            $response = Invoke-WebRequest -Uri $readyUrl -UseBasicParsing -TimeoutSec 4
             if ($response.StatusCode -eq 200) {
-                Write-Host "Backend 健康端点检查已通过：$healthUrl"
+                Write-Host "Backend 就绪端点检查已通过：$readyUrl"
                 return
             }
             $lastError = "HTTP 状态码 $($response.StatusCode)"
@@ -196,7 +196,7 @@ function Wait-ForBackendHealth {
         Start-Sleep -Seconds ([Math]::Max(1, $PollIntervalSeconds))
     }
 
-    throw "Backend 健康端点检查超时：$healthUrl；最近错误：$(ConvertTo-SafeText $lastError)"
+    throw "Backend 就绪端点检查超时：$readyUrl；最近错误：$(ConvertTo-SafeText $lastError)"
 }
 
 function Invoke-ComposeCheck {
@@ -258,11 +258,11 @@ try {
 
     Write-Host "开始执行 M0 冒烟验证。"
     Invoke-ComposeCheck -Description "Compose 配置检查" -Arguments @("compose", "config", "--quiet") | Out-Null
-    Invoke-ComposeCheck -Description "三容器启动" -Arguments @("compose", "up", "-d") | Out-Null
+    Invoke-ComposeCheck -Description "三容器启动" -Arguments @("compose", "up", "--build", "-d") | Out-Null
 
     $deadline = [DateTime]::UtcNow.AddSeconds($TimeoutSeconds)
     Wait-ForComposeServices -Deadline $deadline
-    Wait-ForBackendHealth -Deadline $deadline
+    Wait-ForBackendReady -Deadline $deadline
 
     Invoke-ComposeCheck `
         -Description "Alembic 数据库迁移" `
@@ -282,7 +282,7 @@ try {
         throw "Redis PING 未返回 PONG。"
     }
 
-    Write-Host "M0 冒烟验证通过：三个容器、Backend 健康端点、Alembic 迁移和 Redis PING 均正常。"
+    Write-Host "M0 冒烟验证通过：三个容器、Backend 就绪端点、Alembic 迁移和 Redis PING 均正常。"
     exit 0
 }
 catch {

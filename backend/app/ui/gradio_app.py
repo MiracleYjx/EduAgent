@@ -1813,13 +1813,6 @@ def format_ui_error(error: BaseException | None) -> str:
     return _GENERIC_ERROR_MESSAGE
 
 
-def _jwt_secret_key() -> str | None:
-    """只从环境变量读取 JWT 密钥，不把密钥写入 UI 或日志。"""
-
-    value = os.getenv("JWT_SECRET_KEY", "").strip()
-    return value or None
-
-
 def _dev_mode_enabled(settings: Any | None = None) -> bool:
     """读取开发模式开关；配置缺失时安全地回退为关闭。"""
 
@@ -1883,7 +1876,7 @@ def login_as_dev_role(
             raise AuthenticationError("开发模式测试账号不可用。")
         service = AuthService(
             session,
-            secret_key=secret_key if secret_key is not None else _jwt_secret_key(),
+            secret_key=secret_key,
         )
         return _user_state(user, service.issue_access_token(user))
 
@@ -1945,7 +1938,7 @@ def login_user(
         with factory() as session:
             service = AuthService(
                 session,
-                secret_key=secret_key if secret_key is not None else _jwt_secret_key(),
+                secret_key=secret_key,
             )
             user = service.authenticate(identifier.strip(), password)
             access_token = service.issue_access_token(user)
@@ -2294,7 +2287,7 @@ def _authenticated_state(state: Mapping[str, Any]) -> LoginState:
     if not token:
         raise AuthenticationError("请先登录。")
     with get_session_factory()() as session:
-        user = AuthService(session, secret_key=_jwt_secret_key()).get_current_user(
+        user = AuthService(session).get_current_user(
             token
         )
         return _user_state(user, token)

@@ -10,9 +10,10 @@ from typing import Any, cast
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
-from sqlalchemy import select
+from sqlalchemy import or_, select
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session, selectinload
+from sqlalchemy.sql.elements import ColumnElement
 
 from backend.app.domain.enums import (
     AnswerStatus,
@@ -21,7 +22,7 @@ from backend.app.domain.enums import (
     SubmissionStatus,
     UserRole,
 )
-from backend.app.models import Answer, Exam, Submission, User
+from backend.app.models import Answer, Exam, ExamParticipant, Submission, User
 from backend.app.services.exam_service import ExamSummary
 
 _UNSET = object()
@@ -386,6 +387,7 @@ class SubmissionService:
             select(Exam)
             .options(selectinload(Exam.questions))
             .where(Exam.status == ExamStatus.PUBLISHED)
+            .where(self._exam_participation_filter(normalized_student_id))
             .order_by(Exam.created_at, Exam.title, Exam.id)
         )
         try:
@@ -425,6 +427,7 @@ class SubmissionService:
         if normalized_student_id is not None:
             self._load_student(normalized_student_id)
         exam = self._load_exam(exam_id)
+        self._ensure_exam_participation(exam.id, normalized_student_id)
         self._ensure_exam_available(exam, _resolve_time(now, current_time, as_of))
         return self._available_exam_summary(exam)
 
@@ -453,6 +456,7 @@ class SubmissionService:
 
         # 锁定考试行，避免 PostgreSQL 并发请求同时创建同一学生的草稿答卷。
         exam = self._load_exam(exam_id, for_update=True)
+        self._ensure_exam_participation(exam.id, normalized_student_id)
         normalized_entries = (
             _normalize_answer_entries(answers) if answers is not None else []
         )
@@ -667,6 +671,7 @@ class SubmissionService:
 
         entries = _normalize_answer_entries(answers)
         exam = self._submission_exam(submission)
+        self._ensure_exam_participation(exam.id, submission.student_id)
         self._validate_answer_question_ids(exam, entries)
         moment = _resolve_time(now, current_time, as_of)
         self._ensure_exam_available(exam, moment)
@@ -719,6 +724,7 @@ class SubmissionService:
         moment = _resolve_time(now, current_time, as_of)
         if next_status is SubmissionStatus.SUBMITTED:
             exam = self._submission_exam(submission)
+            self._ensure_exam_participation(exam.id, submission.student_id)
             prospective = {
                 answer.question_id: answer.content for answer in submission.answers
             }
@@ -961,6 +967,7 @@ class SubmissionService:
                 self._submission_summary(submission),
             )
         exam = self._submission_exam(submission)
+        self._ensure_exam_participation(exam.id, submission.student_id)
         self._validate_answer_question_ids(exam, entries)
         self._save_answer_entries(submission, entries, exam)
         try:
@@ -1103,6 +1110,31 @@ class SubmissionService:
             raise SubmissionValidationError(
                 f"提交答卷前必须完成全部题目：{formatted}。"
             )
+
+    @staticmethod
+    def _exam_participation_filter(student_id: UUID | None) -> ColumnElement[bool]:
+        """仅允许已分配学生；没有分配记录的考试兼容历史全体开放行为。"""
+
+        assignments = select(ExamParticipant.id).where(ExamParticipant.exam_id == Exam.id)
+        return or_(
+            ~assignments.exists(),
+            assignments.where(ExamParticipant.student_id == student_id).exists(),
+        )
+
+    def _ensure_exam_participation(self, exam_id: UUID, student_id: UUID | None) -> None:
+        """按当前数据库分配记录检查资格，避免已有草稿绕过范围变化。"""
+
+        try:
+            allowed_exam = self.session.scalar(
+                select(Exam.id).where(
+                    Exam.id == exam_id,
+                    self._exam_participation_filter(student_id),
+                )
+            )
+        except SQLAlchemyError as exc:
+            raise SubmissionServiceError("无法检查考试分配信息。") from exc
+        if allowed_exam is None:
+            raise SubmissionPermissionError("当前学生未被分配参加此考试。")
 
     def _ensure_exam_available(self, exam: Exam, moment: datetime) -> None:
         """校验考试状态、时间窗和题目关系是否允许学生参加。"""

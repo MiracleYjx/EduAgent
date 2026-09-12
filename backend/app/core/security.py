@@ -2,16 +2,16 @@
 
 from __future__ import annotations
 
-import os
 from collections.abc import Callable, Iterable
+from datetime import timedelta
 from typing import Annotated, Any
 
 from fastapi import Depends, HTTPException, Request, Security, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from pydantic import SecretStr
 from sqlalchemy.orm import Session
 from starlette.middleware.base import BaseHTTPMiddleware
 
+from backend.app.core.config import AppSettings, get_settings
 from backend.app.core.database import get_db
 from backend.app.domain.enums import UserRole
 from backend.app.domain.permissions import (
@@ -40,39 +40,33 @@ bearer_scheme = HTTPBearer(
 oauth2_scheme = bearer_scheme
 
 
-def _coerce_secret(value: Any) -> str | SecretStr | None:
-    """把配置中的密钥转换为安全输入，空值统一视为未配置。"""
-
-    if isinstance(value, SecretStr):
-        return value if value.get_secret_value().strip() else None
-    if isinstance(value, str):
-        return value if value.strip() else None
-    return None
-
-
-def get_jwt_secret_key(request: Request) -> str | SecretStr | None:
-    """从应用状态、运行配置或环境变量读取 JWT 密钥。"""
-
-    app_state_key = _coerce_secret(getattr(request.app.state, "jwt_secret_key", None))
-    if app_state_key is not None:
-        return app_state_key
+def get_app_settings(request: Request) -> AppSettings:
+    """使用应用启动时校验过的配置，兼容单独挂载的认证路由。"""
 
     settings = getattr(request.app.state, "settings", None)
-    for field_name in ("jwt_secret_key", "JWT_SECRET_KEY"):
-        settings_key = _coerce_secret(getattr(settings, field_name, None))
-        if settings_key is not None:
-            return settings_key
+    return settings if isinstance(settings, AppSettings) else get_settings()
 
-    return _coerce_secret(os.getenv("JWT_SECRET_KEY"))
+
+def get_jwt_secret_key(
+    settings: Annotated[AppSettings, Depends(get_app_settings)],
+) -> str:
+    """只从类型化配置中取得 JWT 签名密钥。"""
+
+    return settings.JWT_SECRET_KEY.get_secret_value()
 
 
 def get_auth_service(
     session: Annotated[Session, Depends(get_db)],
-    secret_key: Annotated[str | SecretStr | None, Depends(get_jwt_secret_key)],
+    secret_key: Annotated[str, Depends(get_jwt_secret_key)],
+    settings: Annotated[AppSettings, Depends(get_app_settings)],
 ) -> AuthService:
     """创建使用当前请求数据库会话和 JWT 配置的认证服务。"""
 
-    return AuthService(session, secret_key=secret_key)
+    return AuthService(
+        session,
+        secret_key=secret_key,
+        access_token_lifetime=timedelta(minutes=settings.JWT_EXPIRE_MINUTES),
+    )
 
 
 def authentication_http_exception(exc: AuthenticationError) -> HTTPException:

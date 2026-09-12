@@ -56,8 +56,7 @@ def session() -> Generator[Session, None, None]:
 def app(session: Session):
     """构造带测试数据库、JWT 和 Redis 替身的应用。"""
 
-    application = create_app(settings=build_test_settings())
-    application.state.jwt_secret_key = SECRET
+    application = create_app(settings=build_test_settings(JWT_SECRET_KEY=SECRET))
     application.dependency_overrides[get_db] = lambda: (yield session)
     application.dependency_overrides[get_admin_service] = lambda: AdminService(
         session,

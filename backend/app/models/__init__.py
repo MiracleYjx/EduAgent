@@ -6,6 +6,7 @@ from backend.app.models.associations import exam_questions, user_roles
 from backend.app.models.course import Course
 from backend.app.models.document import Document
 from backend.app.models.exam import Exam
+from backend.app.models.exam_participant import ExamParticipant
 from backend.app.models.knowledge_base import KnowledgeBase
 from backend.app.models.question import Question
 from backend.app.models.role import Role
@@ -23,6 +24,7 @@ __all__ = [
     "Course",
     "Document",
     "Exam",
+    "ExamParticipant",
     "KnowledgeBase",
     "Question",
     "Role",
