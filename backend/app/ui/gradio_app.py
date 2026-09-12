@@ -51,6 +51,7 @@ from backend.app.ui.knowledge_base_view import (
 from backend.app.ui.layout_view import (
     ROLE_NAVIGATION,
     WORKSPACE_CSS,
+    WORKSPACE_JS,
     breadcrumb_html,
     development_mode_banner,
     empty_state,
@@ -2334,7 +2335,11 @@ def create_gradio_app() -> gr.Blocks:
         )
         with gr.Column(elem_id="edu-root"):
             # 样式随视图挂载，兼容 Gradio 5/6 的挂载参数差异。
-            gr.HTML(f"<style>{WORKSPACE_CSS}</style>", elem_id="edu-style")
+            gr.HTML(
+                f"<style>{WORKSPACE_CSS}</style>",
+                elem_id="edu-style",
+                js_on_load=WORKSPACE_JS,
+            )
             with gr.Column(elem_id="edu-login") as login_panel:
                 gr.Markdown("# EduAgent\n\n### 登录教学评测平台")
                 with gr.Column(
