@@ -42,6 +42,7 @@ from backend.app.services.submission_service import (
     SubmissionServiceError,
 )
 from backend.app.ui.admin_view import AdminView, create_admin_view
+from backend.app.ui.evaluation_dashboard import create_evaluation_view
 from backend.app.ui.exam_view import ExamView, create_exam_view
 from backend.app.ui.knowledge_base_view import (
     KnowledgeBaseView,
@@ -2484,6 +2485,8 @@ def create_gradio_app() -> gr.Blocks:
                         student_dashboard_view: StudentDashboardView = (
                             create_student_dashboard_view(session_state)
                         )
+                        # T086 尚无读取授权契约，保留隐藏挂载，不按角色开放入口。
+                        create_evaluation_view()
                         student_exam_selection = _find_panel_component(
                             student_exam_view.panel,
                             gr.Textbox,
