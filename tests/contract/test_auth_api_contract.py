@@ -18,7 +18,11 @@ from backend.app.core.security import require_permission, require_role
 from backend.app.domain.enums import UserRole
 from backend.app.domain.permissions import Permission
 from backend.app.models import Role, User
-from backend.app.services.auth_service import create_access_token, hash_password
+from backend.app.services.auth_service import (
+    create_access_token,
+    decode_access_token,
+    hash_password,
+)
 from tests.unit.settings_helpers import build_test_settings
 
 SECRET = "test-jwt-secret-that-is-not-a-production-secret"
@@ -47,8 +51,7 @@ def session() -> Generator[Session, None, None]:
 def app(session: Session):
     """构造带测试数据库和测试 JWT 密钥的应用。"""
 
-    application = create_app(settings=build_test_settings())
-    application.state.jwt_secret_key = SECRET
+    application = create_app(settings=build_test_settings(JWT_SECRET_KEY=SECRET))
 
     def override_get_db() -> Generator[Session, None, None]:
         """将认证请求指向隔离测试会话。"""
@@ -166,6 +169,28 @@ def test_missing_invalid_expired_and_disabled_credentials_are_rejected(
     )
     assert disabled_response.status_code == 401
     assert "停用" in disabled_response.json()["detail"]
+
+
+def test_login_uses_typed_jwt_config_and_does_not_expose_key(
+    app, session: Session, monkeypatch: pytest.MonkeyPatch, caplog
+) -> None:
+    """注入配置决定签名和有效期，环境变量不得覆盖它，响应和日志不得泄露密钥。"""
+
+    configured_secret = "configured-key-for-jwt-contract-1234567890"
+    app.state.settings = build_test_settings(
+        JWT_SECRET_KEY=configured_secret, JWT_EXPIRE_MINUTES=7,
+    )
+    monkeypatch.setenv("JWT_SECRET_KEY", "different-environment-key-1234567890")
+    user = seed_user(session, username="configured", role=UserRole.STUDENT)
+    client = TestClient(app)
+    token = login(client, user.username)
+    claims = decode_access_token(token, secret_key=configured_secret)
+    assert claims["exp"] - claims["iat"] == 7 * 60
+    response = client.get("/api/auth/me", headers={"Authorization": f"Bearer {token}"})
+    assert response.status_code == 200
+    failure = client.get("/api/auth/me", headers={"Authorization": "Bearer invalid"})
+    assert failure.status_code == 401
+    assert configured_secret not in response.text + failure.text + caplog.text
 
 
 @pytest.mark.parametrize(

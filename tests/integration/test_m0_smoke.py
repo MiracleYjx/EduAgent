@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+import json
 import shutil
 import subprocess
 from pathlib import Path
+from urllib.request import urlopen
 
 import pytest
 
@@ -42,23 +44,26 @@ def _docker_daemon_available() -> tuple[bool, str]:
     if version.returncode != 0:
         return False, "Docker Compose 不可用。"
 
-    info = subprocess.run(
-        [docker, "info", "--format", "{{.ServerVersion}}"],
-        cwd=PROJECT_ROOT,
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-        errors="replace",
-        timeout=15,
-        check=False,
-    )
+    try:
+        info = subprocess.run(
+            [docker, "info", "--format", "{{.ServerVersion}}"],
+            cwd=PROJECT_ROOT,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=15,
+            check=False,
+        )
+    except subprocess.TimeoutExpired:
+        return False, "Docker 引擎响应超时。"
     if info.returncode != 0:
         return False, "Docker 引擎未运行或当前用户无权访问。"
     return True, ""
 
 
 def test_m0_smoke_script() -> None:
-    """执行独立 M0 冒烟脚本并要求所有检查成功。"""
+    """执行独立 M0 冒烟脚本，并验证真实 /ready 端点返回就绪状态。"""
 
     if not SMOKE_SCRIPT.exists():
         pytest.fail(f"未找到 M0 冒烟脚本：{SMOKE_SCRIPT}")
@@ -91,3 +96,14 @@ def test_m0_smoke_script() -> None:
     )
     output = f"{result.stdout}\n{result.stderr}"
     assert result.returncode == 0, f"M0 冒烟脚本执行失败：\n{output}"
+    port = subprocess.run(
+        ["docker", "compose", "port", "backend", "8000"],
+        cwd=PROJECT_ROOT,
+        capture_output=True,
+        text=True,
+        timeout=15,
+        check=True,
+    ).stdout.strip().rsplit(":", 1)[1]
+    with urlopen(f"http://127.0.0.1:{port}/ready", timeout=5) as response:
+        assert response.status == 200
+        assert json.load(response) == {"status": "ok", "service": "backend"}

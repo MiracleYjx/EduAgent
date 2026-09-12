@@ -18,6 +18,7 @@ def build_test_settings(**overrides: Any) -> AppSettings:
         "embedding_provider": "local",
         "rerank_provider": "none",
         "confidence_threshold": 0.8,
+        "JWT_SECRET_KEY": "test-jwt-secret-that-is-not-a-production-secret",
     }
     values.update(overrides)
     return AppSettings.model_validate(values)

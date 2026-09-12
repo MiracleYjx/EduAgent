@@ -19,6 +19,7 @@ from sqlalchemy import or_, select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session, selectinload
 
+from backend.app.core.config import get_settings
 from backend.app.domain.enums import UserRole
 from backend.app.domain.permissions import ROLE_DISPLAY_NAMES
 from backend.app.models import Role, User
@@ -32,7 +33,7 @@ _HASH_BYTES = 32
 _MAX_PASSWORD_LENGTH = 1024
 _JWT_ALGORITHM = "HS256"
 _JWT_TYPE = "access"
-_DEFAULT_ACCESS_TOKEN_LIFETIME = timedelta(minutes=30)
+_DEFAULT_ACCESS_TOKEN_LIFETIME = timedelta(minutes=60)
 
 # 这些标识仅用于本地开发模式，便于上线前按前缀检索并清理。
 _DEV_MODE_ACCOUNT_SPECS: tuple[tuple[UserRole, str, str], ...] = (
@@ -267,12 +268,12 @@ def _urlsafe_decode(value: str) -> bytes:
 
 
 def _resolve_secret_key(secret_key: str | SecretStr | None) -> bytes:
-    """解析 JWT 密钥；未显式传入时只从环境变量读取，不使用硬编码密钥。"""
+    """解析显式传入的密钥，缺省时读取经过校验的类型化配置。"""
 
     if isinstance(secret_key, SecretStr):
         value = secret_key.get_secret_value()
     elif secret_key is None:
-        value = os.getenv("JWT_SECRET_KEY", "")
+        value = get_settings().JWT_SECRET_KEY.get_secret_value()
     else:
         value = secret_key
     if not isinstance(value, str) or not value.strip():
@@ -347,7 +348,13 @@ def create_access_token(
         requested_roles = roles
 
     issued_at = _as_utc(now)
-    lifetime = expires_delta or _DEFAULT_ACCESS_TOKEN_LIFETIME
+    lifetime = expires_delta
+    if lifetime is None:
+        lifetime = (
+            timedelta(minutes=get_settings().JWT_EXPIRE_MINUTES)
+            if secret_key is None
+            else _DEFAULT_ACCESS_TOKEN_LIFETIME
+        )
     expires_at = issued_at + lifetime
     payload: dict[str, Any] = {
         **claims,
@@ -440,7 +447,7 @@ class AuthService:
         session: Session,
         secret_key: str | SecretStr | None = None,
         *,
-        access_token_lifetime: timedelta = _DEFAULT_ACCESS_TOKEN_LIFETIME,
+        access_token_lifetime: timedelta | None = None,
     ) -> None:
         self.session = session
         self.secret_key = secret_key

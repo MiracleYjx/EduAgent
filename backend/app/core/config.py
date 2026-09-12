@@ -57,8 +57,11 @@ class ConfigurationError(RuntimeError):
             )
         )
         if fields:
-            return cls(f"Invalid runtime configuration: {', '.join(fields)}", fields)
-        return cls("Invalid runtime configuration", fields)
+            message = f"运行配置无效：{', '.join(fields)}。"
+            if "JWT_SECRET_KEY" in fields:
+                message += "JWT_SECRET_KEY 必须配置为至少 32 个字符的非空密钥。"
+            return cls(message, fields)
+        return cls("运行配置无效。", fields)
 
 
 def _normalize_text(value: Any) -> str:
@@ -96,6 +99,7 @@ class AppSettings(BaseSettings):
         case_sensitive=False,
         extra="ignore",
         env_prefix="",
+        hide_input_in_errors=True,
     )
 
     SUPPORTED_LLM_PROVIDERS: ClassVar[frozenset[str]] = frozenset(
@@ -117,6 +121,9 @@ class AppSettings(BaseSettings):
     embedding_provider: str
     rerank_provider: str
     confidence_threshold: float = Field(ge=0.0, le=1.0)
+    JWT_SECRET_KEY: SecretStr
+    JWT_ALGORITHM: str = "HS256"
+    JWT_EXPIRE_MINUTES: int = Field(default=60, gt=0)
     DEV_MODE: bool = False
 
     @property
@@ -142,6 +149,25 @@ class AppSettings(BaseSettings):
     def _validate_api_key(cls, value: SecretStr) -> SecretStr:
         if not value.get_secret_value().strip():
             raise ValueError("must not be empty")
+        return value
+
+    @field_validator("JWT_SECRET_KEY")
+    @classmethod
+    def _validate_jwt_secret_key(cls, value: SecretStr) -> SecretStr:
+        """拒绝空白和过短的 JWT 密钥，不在错误中输出输入值。"""
+
+        secret = value.get_secret_value()
+        if not secret.strip() or len(secret) < 32:
+            raise ValueError("JWT_SECRET_KEY 必须为至少 32 个字符的非空密钥。")
+        return value
+
+    @field_validator("JWT_ALGORITHM")
+    @classmethod
+    def _validate_jwt_algorithm(cls, value: str) -> str:
+        """当前签名实现只支持 HS256，禁止配置与实际算法不一致。"""
+
+        if value != "HS256":
+            raise ValueError("JWT_ALGORITHM 当前仅支持 HS256。")
         return value
 
     @field_validator("deepseek_base_url")
@@ -182,6 +208,9 @@ class AppSettings(BaseSettings):
             "embedding_provider": self.embedding_provider,
             "rerank_provider": self.rerank_provider,
             "confidence_threshold": self.confidence_threshold,
+            "JWT_SECRET_KEY": REDACTED_VALUE,
+            "JWT_ALGORITHM": self.JWT_ALGORITHM,
+            "JWT_EXPIRE_MINUTES": self.JWT_EXPIRE_MINUTES,
             "DEV_MODE": self.DEV_MODE,
         }
 

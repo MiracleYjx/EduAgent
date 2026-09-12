@@ -80,10 +80,9 @@ def client(
     with gr.Blocks() as test_gradio_app:
         gr.Markdown("教师准备流程集成测试")
     application = create_app(
-        settings=build_test_settings(),
+        settings=build_test_settings(JWT_SECRET_KEY=TEST_JWT_SECRET),
         gradio_app=test_gradio_app,
     )
-    application.state.jwt_secret_key = TEST_JWT_SECRET
 
     def override_get_db() -> Generator[Session, None, None]:
         """为每个 API 请求提供独立测试会话。"""
