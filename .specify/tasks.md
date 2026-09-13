@@ -111,7 +111,7 @@ Submission 路径可以独立运行；Admin 管理和所有角色校验均可验
 具有 embedding、`search_vector`、课程和资料来源；Vector Only、Keyword Only、Hybrid、
 Hybrid + Rerank 在同一数据集上产出带 `chunk_id` 的结果。
 
-- [ ] T031 [US1] 在 `tests/contract/test_document_parsers.py` 中增加失败优先的解析器契约测试，覆盖 PDF、TXT、Markdown、不支持格式、空文件和损坏文件
+- [X] T031 [US1] 在 `tests/contract/test_document_parsers.py` 中增加失败优先的解析器契约测试，覆盖 PDF、TXT、Markdown、不支持格式、空文件和损坏文件
 - [ ] T032 [US1] 在 `backend/app/ai/ingestion/parsers.py` 中实现受支持的 Document Parser 注册表和适配器，不支持的格式不得创建可用知识
 - [ ] T033 [US1] 在 `backend/app/ai/ingestion/cleaning.py` 和 `backend/app/ai/ingestion/chunking.py` 中实现文本清洗和带来源元数据的确定性分块
 - [ ] T034 [P] 在 `backend/app/ai/embedding/base.py` 中实现 `BaseEmbeddingProvider`，提供 `embed_documents()` 和 `embed_query()`
