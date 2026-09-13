@@ -10,6 +10,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 
 import pytest
+
 from backend.app.ai.ingestion.parsers import (
     DOCUMENT_CORRUPTED,
     DOCUMENT_EMPTY,
@@ -38,7 +39,8 @@ title: 不应保留的元数据
 参考 [设计文档](https://example.com/doc) 与 `代码片段`。
 
 ```python
-print("代码内容必须保留")
+def 示例():
+    print("代码内容必须保留")
 ```
 """
 
@@ -114,7 +116,7 @@ def _build_pdf(pages: Sequence[str]) -> bytes:
     for object_id in range(1, size):
         document += f"{offsets[object_id]:010d} 00000 n \n".encode("ascii")
     document += (
-        f"trailer\n<< /Size {size} /Root 1 0 R >>\nstartxref\n{start_xref}\n%EOF\n".encode(
+        f"trailer\n<< /Size {size} /Root 1 0 R >>\nstartxref\n{start_xref}\n%%EOF\n".encode(
             "ascii"
         )
     )
@@ -152,6 +154,8 @@ def test_markdown_parser_contract_strips_syntax_and_keeps_heading_locations() ->
     assert "本节介绍 RAG 基础。" in parsed.text
     assert "参考 设计文档 与 代码片段。" in parsed.text
     assert 'print("代码内容必须保留")' in parsed.text
+    # 代码块缩进属于教学内容，解析时不得被抹平。
+    assert '    print("代码内容必须保留")' in parsed.text
     assert [section.location for section in parsed.sections] == [
         "标题：第一章 概述",
         "标题：1.1 检索",
@@ -177,7 +181,7 @@ def test_supported_formats_contract_covers_pdf_txt_and_markdown() -> None:
     registry = build_default_registry()
 
     assert registry.supported_formats == ("markdown", "pdf", "txt")
-    assert registry.supported_extensions == ("md", "markdown", "pdf", "txt")
+    assert registry.supported_extensions == ("markdown", "md", "pdf", "txt")
     for filename in ("course.pdf", "课程.TXT", "notes.md", "notes.markdown"):
         assert registry.is_supported(filename), filename
     for filename in ("lesson.docx", "slides.pptx", "archive", "notes.rtf"):
@@ -240,6 +244,7 @@ def test_corrupted_file_contract_reports_retryable_corruption(
         ("无标题资料.md", b"#\n\n   \n"),
         ("无正文资料.pdf", _build_pdf([""])),
     ],
+    ids=["whitespace-txt", "empty-heading-markdown", "textless-pdf"],
 )
 def test_no_text_document_contract_reports_not_retryable_no_text(
     filename: str, payload: bytes
@@ -279,6 +284,7 @@ def test_error_code_contract_matches_plan_retry_semantics() -> None:
         ("课程资料.md", MARKDOWN_SOURCE.encode("utf-8")),
         ("课程资料.pdf", PDF_SOURCE_BYTES),
     ],
+    ids=["txt", "markdown", "pdf"],
 )
 def test_supported_documents_contract_never_return_blank_text(
     filename: str, payload: bytes
