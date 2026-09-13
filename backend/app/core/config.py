@@ -119,6 +119,10 @@ class AppSettings(BaseSettings):
     deepseek_base_url: AnyUrl
     deepseek_model: str
     embedding_provider: str
+    embedding_model: str | None = None
+    embedding_dimension: int | None = Field(default=None, gt=0)
+    embedding_base_url: AnyUrl | None = None
+    embedding_api_key: SecretStr | None = None
     rerank_provider: str
     confidence_threshold: float = Field(ge=0.0, le=1.0)
     JWT_SECRET_KEY: SecretStr
@@ -170,6 +174,48 @@ class AppSettings(BaseSettings):
             raise ValueError("JWT_ALGORITHM 当前仅支持 HS256。")
         return value
 
+    @field_validator("embedding_model", "embedding_base_url", mode="before")
+    @classmethod
+    def _normalize_optional_embedding_text(cls, value: Any) -> Any:
+        """将空的或占位形式的 Embedding 配置规范化为未配置。"""
+
+        if value is None:
+            return None
+        text = str(value).strip()
+        if text.lower() in _PLACEHOLDER_PROVIDER_VALUES:
+            return None
+        return text
+
+    @field_validator("embedding_dimension", mode="before")
+    @classmethod
+    def _normalize_optional_embedding_dimension(cls, value: Any) -> Any:
+        """允许显式留空的向量维度配置。"""
+
+        if isinstance(value, str):
+            text = value.strip().lower()
+            return None if not text or text in _PLACEHOLDER_PROVIDER_VALUES else value
+        return value
+
+    @field_validator("embedding_api_key", mode="before")
+    @classmethod
+    def _normalize_optional_api_key(cls, value: Any) -> Any:
+        """空值或占位值一律视为未配置密钥。"""
+
+        if value is None:
+            return None
+        if isinstance(value, SecretStr):
+            value = value.get_secret_value()
+        if str(value).strip().lower() in _PLACEHOLDER_PROVIDER_VALUES:
+            return None
+        return value
+
+    @field_validator("embedding_base_url")
+    @classmethod
+    def _validate_embedding_base_url(cls, value: AnyUrl | None) -> AnyUrl | None:
+        if value is not None and value.scheme not in {"http", "https"}:
+            raise ValueError("must use http or https")
+        return value
+
     @field_validator("deepseek_base_url")
     @classmethod
     def _validate_base_url(cls, value: AnyUrl) -> AnyUrl:
@@ -206,6 +252,16 @@ class AppSettings(BaseSettings):
             "deepseek_base_url": _redact_url(self.deepseek_base_url),
             "deepseek_model": self.deepseek_model,
             "embedding_provider": self.embedding_provider,
+            "embedding_model": self.embedding_model,
+            "embedding_dimension": self.embedding_dimension,
+            "embedding_base_url": (
+                _redact_url(self.embedding_base_url)
+                if self.embedding_base_url is not None
+                else None
+            ),
+            "embedding_api_key": (
+                REDACTED_VALUE if self.embedding_api_key is not None else None
+            ),
             "rerank_provider": self.rerank_provider,
             "confidence_threshold": self.confidence_threshold,
             "JWT_SECRET_KEY": REDACTED_VALUE,

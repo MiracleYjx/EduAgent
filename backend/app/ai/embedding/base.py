@@ -23,6 +23,8 @@ EMBEDDING_FAILED: Final[str] = "EMBEDDING_FAILED"
 EMBEDDING_INVALID_INPUT: Final[str] = "EMBEDDING_INVALID_INPUT"
 #: 向量数量或维度不符合契约的错误码。
 EMBEDDING_DIMENSION_MISMATCH: Final[str] = "EMBEDDING_DIMENSION_MISMATCH"
+#: Provider 在当前环境未就绪（缺少依赖或配置）的错误码。
+EMBEDDING_PROVIDER_NOT_READY: Final[str] = "EMBEDDING_PROVIDER_NOT_READY"
 
 
 class EmbeddingProviderError(RuntimeError):
@@ -52,13 +54,25 @@ class EmbeddingDimensionError(EmbeddingProviderError):
     retryable: ClassVar[bool] = False
 
 
+class EmbeddingProviderNotReadyError(EmbeddingProviderError):
+    """Provider 在当前环境未就绪（缺少依赖或配置）。
+
+    工厂必须在创建阶段抛出本错误，不得返回任何伪造或半可用实例。
+    """
+
+    error_code: ClassVar[str] = EMBEDDING_PROVIDER_NOT_READY
+    retryable: ClassVar[bool] = False
+
+
 class BaseEmbeddingProvider(ABC):
     """所有 Embedding Provider 共同遵守的最小接口。"""
 
-    provider_name: ClassVar[str] = "unknown"
-    model_name: ClassVar[str] = "unknown"
+    #: Provider 标识；同一实现可服务多个已注册名称，因此默认值允许被实例覆盖。
+    provider_name: str = "unknown"
+    #: 模型标识与版本；云端或本地 Provider 会按运行配置覆盖。
+    model_name: str = "unknown"
     #: 向量维度；未知时为 ``None``，由具体实现或首次调用确定。
-    dimension: ClassVar[int | None] = None
+    dimension: int | None = None
 
     @abstractmethod
     async def embed_documents(self, documents: Sequence[str]) -> list[list[float]]:
@@ -80,6 +94,16 @@ class BaseEmbeddingProvider(ABC):
             "model": self.model_name,
             "dimension": self.dimension,
         }
+
+    def is_ready(self) -> bool:
+        """返回 Provider 是否具备执行 Embedding 的必要条件。"""
+
+        return True
+
+    def readiness_detail(self) -> str | None:
+        """返回未就绪的具体原因与可操作建议；就绪时返回 ``None``。"""
+
+        return None
 
     def ensure_documents(self, documents: Sequence[str]) -> list[str]:
         """校验文档输入并返回规范化文本列表。
@@ -155,8 +179,10 @@ __all__ = [
     "EMBEDDING_DIMENSION_MISMATCH",
     "EMBEDDING_FAILED",
     "EMBEDDING_INVALID_INPUT",
+    "EMBEDDING_PROVIDER_NOT_READY",
     "BaseEmbeddingProvider",
     "EmbeddingDimensionError",
     "EmbeddingInputError",
     "EmbeddingProviderError",
+    "EmbeddingProviderNotReadyError",
 ]
