@@ -40,8 +40,8 @@ def load_sentence_transformer(model_name: str) -> Any:
             provider_name="local",
         )
     # sentence-transformers 属于可选的本地依赖，未安装时由 is_ready 给出安装提示。
-    from sentence_transformers import (
-        SentenceTransformer,  # type: ignore[import-not-found]
+    from sentence_transformers import (  # type: ignore[import-not-found]
+        SentenceTransformer,
     )
 
     return SentenceTransformer(model_name)
