@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from html import escape
+from pathlib import Path
 from typing import Any
 
 import gradio as gr
@@ -19,6 +20,7 @@ from backend.app.services.course_service import (
     CourseSummary,
 )
 from backend.app.services.knowledge_base_service import (
+    DocumentIngestionResult,
     DocumentSummary,
     KnowledgeBaseService,
     KnowledgeBaseServiceError,
@@ -33,8 +35,8 @@ from backend.app.ui.layout_view import (
     table_options,
 )
 
-# T038/T039 尚未完成，资料区只展示明确的不可用状态，不创建或伪造资料记录。
-INGESTION_READY = False
+# T039：摄取链路已接入，资料区上传真实文件并展示真实阶段与失败原因。
+INGESTION_READY = True
 COURSE_TABLE_HEADERS = ("课程名称", "简介", "知识库数", "更新时间")
 DOCUMENT_TABLE_HEADERS = ("文件名", "格式", "处理阶段", "更新时间")
 DOCUMENT_STATUS_LABELS = tuple(
@@ -161,24 +163,6 @@ def _document_rows(documents: Sequence[DocumentSummary]) -> list[list[str]]:
     ]
 
 
-def _documents_unavailable() -> str:
-    """返回摄取链路未就绪时的资料空态。"""
-
-    return feedback(
-        "文件摄取功能暂未就绪，暂无可展示的资料。上传按钮已禁用。",
-        "warning",
-    )
-
-
-def _source_unavailable() -> str:
-    """返回片段追溯未就绪时的来源和失败原因空态。"""
-
-    return feedback(
-        "片段追溯功能暂未就绪，暂无可用来源详情或失败原因。",
-        "warning",
-    )
-
-
 def _document_status_legend() -> str:
     """展示真实处理阶段的中文规范，不伪造任何资料行。"""
 
@@ -294,6 +278,99 @@ def update_course(
         ValueError,
     ) as error:
         return [], [], _course_picker_update([]), _format_error(error)
+
+
+def _document_stage_summary(
+    result: DocumentIngestionResult,
+    chunks: Sequence[Mapping[str, Any]],
+) -> str:
+    """展示真实处理阶段与失败原因，未形成知识片段时不显示 Ready。"""
+
+    label = status_label(result.status, entity="document")
+    if result.status is DocumentStatus.READY:
+        return feedback(
+            f"处理阶段：{label} · 已生成 {result.chunk_count} 个知识片段（共 {len(chunks)} 条可追溯）。",
+            "success",
+        )
+    reason = escape(result.error_message or "摄取未完成，请稍后重试。")
+    hint = "修正后可重新上传。" if result.retryable else "需补充或修正资料后重新上传。"
+    return feedback(f"处理阶段：{label} · 失败原因：{reason}（{hint}）", "warning")
+
+
+def _source_details(chunks: Sequence[Mapping[str, Any]]) -> str:
+    """展示知识片段的来源追溯信息与失败预期入口。"""
+
+    if not chunks:
+        return empty_state("暂无知识片段，上传资料后展示来源详情。")
+    lines = ["**来源详情**"]
+    for chunk in chunks[:5]:
+        metadata = chunk.get("metadata") or {}
+        location = escape(str(metadata.get("location", "全文")))
+        content = escape(str(chunk.get("content", ""))[:60])
+        lines.append(f"- 片段 {chunk.get('chunk_index')}（{location}）：{content}")
+    return "\n".join(lines)
+
+
+def upload_document(
+    file_value: Any,
+    knowledge_base_id: str,
+    state: Mapping[str, Any],
+) -> tuple[Any, ...]:
+    """上传真实文件内容并触发摄取，返回真实阶段、来源详情和失败原因。"""
+
+    try:
+        _ensure_teacher(state)
+        normalized_id = (knowledge_base_id or "").strip()
+        if not normalized_id:
+            raise ValueError("请先选择知识库。")
+        raw_path = file_value[0] if isinstance(file_value, (list, tuple)) else file_value
+        if not raw_path:
+            raise ValueError("请选择要上传的 PDF、TXT 或 Markdown 文件。")
+        path = Path(str(raw_path))
+        data = path.read_bytes()
+        with get_session_factory()() as session:
+            service = KnowledgeBaseService(session)
+            document = service.upload_document(
+                knowledge_base_id=normalized_id,
+                uploaded_by=state.get("user_id"),
+                original_filename=path.name,
+                storage_path=str(path),
+                teacher_id=state.get("user_id"),
+            )
+            result = service.ingest_document(
+                document.id,
+                content=data,
+                teacher_id=state.get("user_id"),
+            )
+            documents = service.list_documents(
+                knowledge_base_id=normalized_id,
+                teacher_id=state.get("user_id"),
+            )
+            chunks = service.list_document_chunks(
+                document.id,
+                teacher_id=state.get("user_id"),
+            )
+        kind = "success" if result.status is DocumentStatus.READY else "warning"
+        return (
+            _document_rows(documents),
+            _document_stage_summary(result, chunks),
+            _source_details(chunks),
+            feedback(
+                f"{path.name} 已处理：{status_label(result.status, entity='document')}。",
+                kind,
+            ),
+        )
+    except (
+        PermissionDeniedError,
+        CourseServiceError,
+        KnowledgeBaseServiceError,
+        SQLAlchemyError,
+        OSError,
+        TypeError,
+        ValueError,
+    ) as error:
+        message = _format_error(error)
+        return ([], message, empty_state("暂无知识片段。"), message)
 
 
 def _empty_knowledge_base_context() -> tuple[Any, ...]:
@@ -687,19 +764,16 @@ def create_knowledge_base_view(session_state: Any | None = None) -> KnowledgeBas
 
         gr.Markdown("### 课程资料")
         with gr.Row():
-            gr.File(
-                label="上传资料（功能暂未就绪）",
+            upload_file = gr.File(
+                label="上传资料（PDF / TXT / Markdown）",
                 file_types=[".pdf", ".txt", ".md"],
-                interactive=False,
+                interactive=True,
                 scale=2,
             )
-            gr.Button(
-                "上传资料（暂未就绪）",
-                variant="secondary",
-                interactive=False,
-                scale=0,
-            )
-        gr.Markdown(_documents_unavailable())
+            upload_button = gr.Button("上传并摄取", variant="primary", scale=0)
+        ingestion_status = gr.Markdown(
+            empty_state("请选择文件并上传，处理阶段将按真实摄取进度展示。")
+        )
         documents_table = gr.Dataframe(
             headers=list(DOCUMENT_TABLE_HEADERS),
             datatype=["str", "str", "markdown", "str"],
@@ -710,7 +784,7 @@ def create_knowledge_base_view(session_state: Any | None = None) -> KnowledgeBas
         )
         gr.Markdown(_document_status_legend())
         with gr.Accordion("来源详情与失败原因", open=False):
-            gr.Markdown(_source_unavailable())
+            source_details = gr.Markdown(empty_state("上传资料后展示来源片段与失败原因。"))
         message = gr.Markdown(empty_state("请刷新课程列表。"))
 
         refresh_button.click(
@@ -742,6 +816,12 @@ def create_knowledge_base_view(session_state: Any | None = None) -> KnowledgeBas
             inputs=[course_name, course_description, course_search, state],
             outputs=[courses_table, course_records, course_picker, message],
             show_progress="hidden",
+        )
+        upload_button.click(
+            upload_document,
+            inputs=[upload_file, selected_knowledge_base_id, state],
+            outputs=[documents_table, ingestion_status, source_details, message],
+            show_progress="visible",
         )
         update_course_button.click(
             update_course,
@@ -916,4 +996,5 @@ __all__ = [
     "select_knowledge_base",
     "update_course",
     "update_knowledge_base",
+    "upload_document",
 ]

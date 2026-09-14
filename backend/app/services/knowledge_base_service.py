@@ -2,20 +2,32 @@
 
 from __future__ import annotations
 
+import asyncio
 import re
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from datetime import datetime
 from pathlib import Path
 from typing import Any
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict
-from sqlalchemy import select
+from sqlalchemy import delete, func, select
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session, selectinload
 
+from backend.app.ai.embedding.base import EMBEDDING_DIMENSION_MISMATCH
+from backend.app.ai.ingestion.parsers import DOCUMENT_PARSE_FAILED
+from backend.app.ai.ingestion.service import (
+    KNOWLEDGE_BASE_EMPTY,
+    IngestionResult,
+    IngestionService,
+    IngestionTransition,
+    StatusListener,
+    resolve_error_message,
+)
 from backend.app.domain.enums import DocumentStatus
-from backend.app.models import Course, Document, KnowledgeBase, User
+from backend.app.models import Course, Document, DocumentChunk, KnowledgeBase, User
+from backend.app.models.document_chunk import EMBEDDING_VECTOR_DIMENSION
 from backend.app.services.course_service import (
     CourseNotFoundError,
     CoursePermissionError,
@@ -127,6 +139,32 @@ class DocumentSummary(BaseModel):
     retryable: bool = False
     created_at: datetime
     updated_at: datetime
+
+
+class DocumentIngestionResult(BaseModel):
+    """资料摄取结果摘要：真实终态、片段数量和可展示的失败原因。"""
+
+    model_config = ConfigDict(frozen=True)
+
+    document_id: str
+    status: DocumentStatus
+    chunk_count: int = 0
+    error_code: str | None = None
+    error_message: str | None = None
+    retryable: bool = False
+    detail: str | None = None
+
+
+def _safe_failure_detail(error: BaseException) -> str:
+    """返回可安全展示的失败技术原因，不包含资料内容或敏感配置。"""
+
+    return f"知识片段写入失败：{type(error).__name__}"
+
+
+def _default_ingestion_service_factory(listener: StatusListener) -> IngestionService:
+    """构造默认摄取编排器，并把阶段回调交给 Service 层落库。"""
+
+    return IngestionService(on_transition=listener)
 
 
 def _normalize_uuid(value: UUID | str | None, field_name: str) -> UUID:
@@ -637,6 +675,249 @@ class KnowledgeBaseService:
             teacher_id=teacher_id,
         )
 
+    def ingest_document(
+        self,
+        document_id: UUID | str,
+        *,
+        content: bytes | None = None,
+        teacher_id: UUID | str | None = None,
+        ingestion_service_factory: Callable[
+            [StatusListener], IngestionService
+        ]
+        | None = None,
+    ) -> DocumentIngestionResult:
+        """读取真实文件内容并执行摄取，返回真实的处理结果。
+
+        编排步骤（Uploaded -> Parsing -> Chunking -> Embedding -> Ready/Failed）由 T037 的
+        ``IngestionService`` 负责，本方法只负责：读取文件字节、把真实阶段与结果落库、
+        在成功后写入 ``DocumentChunk``（含向量与来源元数据）。失败时不得留下任何可用片段。
+
+        注意：编排器是异步的，而 Service 层保持同步接口（FastAPI 同步路由在线程池中执行），
+        因此这里用 ``asyncio.run`` 桥接；若在已有事件循环内调用需改用线程池执行。
+        """
+
+        document = self._load_document(document_id)
+        self._ensure_course_access(
+            self._load_course(document.course_id),
+            _resolve_actor_id(teacher_id),
+        )
+        payload = self._read_document_content(document, content)
+
+        def persist_transition(transition: IngestionTransition) -> None:
+            """把编排器的中间阶段真实写入文档状态。"""
+
+            if transition.status in {DocumentStatus.CHUNKING, DocumentStatus.EMBEDDING}:
+                self.update_document_status(
+                    document.id,
+                    transition.status,
+                    teacher_id=teacher_id,
+                )
+
+        self.update_document_status(
+            document.id,
+            DocumentStatus.PARSING,
+            teacher_id=teacher_id,
+        )
+        factory = ingestion_service_factory or _default_ingestion_service_factory
+        runner = factory(persist_transition)
+        result = asyncio.run(
+            runner.ingest(
+                filename=document.original_filename,
+                data=payload,
+                document_id=document.id,
+                course_id=document.course_id,
+                knowledge_base_id=document.knowledge_base_id,
+            )
+        )
+        return self._persist_ingestion_result(
+            document,
+            result,
+            teacher_id=teacher_id,
+        )
+
+    def list_document_chunks(
+        self,
+        document_id: UUID | str,
+        teacher_id: UUID | str | None = None,
+    ) -> list[dict[str, Any]]:
+        """读取文档的知识片段摘要，供界面展示摄取结果。"""
+
+        document = self._load_document(document_id)
+        self._ensure_course_access(
+            self._load_course(document.course_id),
+            _resolve_actor_id(teacher_id),
+        )
+        statement = (
+            select(DocumentChunk)
+            .where(DocumentChunk.document_id == document.id)
+            .order_by(DocumentChunk.chunk_index)
+        )
+        try:
+            chunks = self.session.scalars(statement).all()
+        except SQLAlchemyError as exc:
+            raise KnowledgeBaseServiceError("无法读取知识片段。") from exc
+        return [
+            {
+                "id": str(chunk.id),
+                "chunk_index": chunk.chunk_index,
+                "content": chunk.content,
+                "metadata": chunk.chunk_metadata,
+                "has_embedding": chunk.embedding is not None,
+            }
+            for chunk in chunks
+        ]
+
+    @staticmethod
+    def _read_document_content(document: Document, content: bytes | None) -> bytes:
+        """优先使用调用方传入的文件字节，否则从存储路径读取。"""
+
+        if content is not None:
+            if not isinstance(content, (bytes, bytearray, memoryview)):
+                raise DocumentValidationError("资料内容必须是字节数据。")
+            return bytes(content)
+        if not document.storage_path:
+            raise DocumentValidationError("资料缺少可读取的文件内容，请重新上传。")
+        path = Path(document.storage_path)
+        try:
+            if not path.is_file():
+                raise DocumentValidationError("资料文件不存在，请重新上传。")
+            return path.read_bytes()
+        except DocumentValidationError:
+            raise
+        except OSError as exc:
+            raise DocumentValidationError("资料文件不可读，请重新上传。") from exc
+
+    def _persist_ingestion_result(
+        self,
+        document: Document,
+        result: IngestionResult,
+        *,
+        teacher_id: UUID | str | None = None,
+    ) -> DocumentIngestionResult:
+        """把摄取结果写入文档状态与知识片段，失败时清理残留片段。"""
+
+        self._delete_document_chunks(document.id)
+        if not result.succeeded:
+            return self._mark_ingestion_failed(document, result, teacher_id=teacher_id)
+
+        mismatched = next(
+            (
+                chunk
+                for chunk in result.chunks
+                if len(chunk.embedding) != EMBEDDING_VECTOR_DIMENSION
+            ),
+            None,
+        )
+        if mismatched is not None:
+            return self._mark_ingestion_failed(
+                document,
+                result,
+                error_code=EMBEDDING_DIMENSION_MISMATCH,
+                retryable=False,
+                teacher_id=teacher_id,
+            )
+
+        rows = [
+            DocumentChunk(
+                document_id=document.id,
+                course_id=document.course_id,
+                knowledge_base_id=document.knowledge_base_id,
+                chunk_index=chunk.chunk_index,
+                content=chunk.content,
+                embedding=list(chunk.embedding),
+                chunk_metadata=dict(chunk.metadata),
+            )
+            for chunk in result.chunks
+        ]
+        if self._supports_postgres_features():
+            # 只有 PostgreSQL 能维护 tsvector；测试方言保持为空而不是伪造全文内容。
+            for row in rows:
+                row.search_vector = func.to_tsvector("simple", row.content)
+        try:
+            self.session.add_all(rows)
+            self.session.commit()
+        except (IntegrityError, SQLAlchemyError) as exc:
+            self.session.rollback()
+            self._delete_document_chunks(document.id)
+            return self._mark_ingestion_failed(
+                document,
+                result,
+                error_code=result.error_code or DOCUMENT_PARSE_FAILED,
+                retryable=True,
+                detail=_safe_failure_detail(exc),
+                teacher_id=teacher_id,
+            )
+
+        summary = self.update_document_status(
+            document.id,
+            DocumentStatus.READY,
+            teacher_id=teacher_id,
+        )
+        return DocumentIngestionResult(
+            document_id=summary.id,
+            status=summary.status,
+            chunk_count=len(rows),
+        )
+
+    def _mark_ingestion_failed(
+        self,
+        document: Document,
+        result: IngestionResult,
+        *,
+        error_code: str | None = None,
+        retryable: bool | None = None,
+        detail: str | None = None,
+        teacher_id: UUID | str | None = None,
+    ) -> DocumentIngestionResult:
+        """按真实失败原因标记文档失败；空知识库属于终态，不允许直接重试。"""
+
+        resolved_code = error_code or result.error_code or DOCUMENT_PARSE_FAILED
+        resolved_message = (
+            result.error_message
+            if error_code is None and result.error_message
+            else resolve_error_message(resolved_code)
+        )
+        resolved_retryable = (
+            retryable
+            if retryable is not None
+            else (False if resolved_code == KNOWLEDGE_BASE_EMPTY else bool(result.retryable))
+        )
+        summary = self.update_document_status(
+            document.id,
+            DocumentStatus.FAILED,
+            error_code=resolved_code,
+            error_message=resolved_message,
+            retryable=resolved_retryable,
+            teacher_id=teacher_id,
+        )
+        return DocumentIngestionResult(
+            document_id=summary.id,
+            status=summary.status,
+            chunk_count=0,
+            error_code=resolved_code,
+            error_message=resolved_message,
+            retryable=resolved_retryable,
+            detail=detail or result.detail,
+        )
+
+    def _delete_document_chunks(self, document_id: UUID) -> None:
+        """删除文档已有的知识片段，保证重复摄取不会残留旧知识。"""
+
+        try:
+            self.session.execute(
+                delete(DocumentChunk).where(DocumentChunk.document_id == document_id)
+            )
+            self.session.flush()
+        except SQLAlchemyError as exc:
+            self.session.rollback()
+            raise KnowledgeBaseServiceError("无法清理已有知识片段。") from exc
+
+    def _supports_postgres_features(self) -> bool:
+        """判断当前会话是否使用 PostgreSQL（tsvector 与 pgvector 只在 PG 生效）。"""
+
+        bind = self.session.get_bind()
+        return bind is not None and bind.dialect.name == "postgresql"
+
     def _load_course(self, course_id: UUID | str) -> Course:
         """加载课程实体并统一处理不存在错误。"""
 
@@ -807,6 +1088,7 @@ class KnowledgeBaseService:
 
 
 __all__ = [
+    "DocumentIngestionResult",
     "DocumentNotFoundError",
     "DocumentSummary",
     "DocumentValidationError",

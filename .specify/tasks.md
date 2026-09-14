@@ -119,7 +119,7 @@ Hybrid + Rerank 在同一数据集上产出带 `chunk_id` 的结果。
 - [X] T036 在 `tests/contract/test_embedding_provider.py` 中增加 Embedding Provider 契约测试，依赖 T034 和 T035，自动验证 `embed_documents()` 与 `embed_query()` 的输入类型、空输入处理、输出向量维度、批量数量与返回数量一致，以及 Provider 切换后仍满足同一接口契约
 - [X] T037 在 `backend/app/ai/ingestion/service.py` 中实现从解析、清洗、分块、Embedding 到 Ready/Failed 状态的资料摄取编排
 - [X] T038 在 `backend/app/models/document_chunk.py` 和 `migrations/versions/` 中创建 `DocumentChunk` 模型及迁移，支持 pgvector embedding、`search_vector`、元数据、来源关系、HNSW 和 GIN
-- [ ] T039 [US1] 在 `backend/app/services/knowledge_base_service.py`、`backend/app/api/knowledge_bases.py` 和 `backend/app/ui/knowledge_base_view.py` 中将资料上传和处理状态连接到知识库服务、API 和 Gradio 界面
+- [X] T039 [US1] 在 `backend/app/services/knowledge_base_service.py`、`backend/app/api/knowledge_bases.py` 和 `backend/app/ui/knowledge_base_view.py` 中将资料上传和处理状态连接到知识库服务、API 和 Gradio 界面
 - [ ] T040 [US1] 在 `tests/contract/test_retrieval_contract.py` 中增加失败优先的检索契约测试，覆盖来源追踪、空上下文、模式选择和结果字段
 - [ ] T041 在 `backend/app/ai/retrieval/vector_search.py` 中实现 pgvector 语义检索，包括 HNSW 配置和精确近邻 Benchmark 模式
 - [ ] T042 在 `backend/app/ai/retrieval/keyword_search.py` 中实现 PostgreSQL `tsvector + GIN` 关键词检索
