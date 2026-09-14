@@ -1,7 +1,11 @@
 """T039 知识库摄取持久化单元测试：真实阶段、片段落库与失败处理。
 
-测试运行在 SQLite 内存库上，Embedding Provider 使用替身（不下载模型、不访问网络），
-解析器可使用真实 TXT 解析器或替身注册表，用于稳定覆盖失败路径。
+失败路径使用 SQLite 内存库，成功摄取使用隔离 PostgreSQL。Embedding Provider 使用替身，
+不下载模型；解析器可使用真实 TXT 解析器或替身注册表。
+
+TCR（2026-09-14，H02）：成功摄取用例改用隔离 PostgreSQL，真实维护 search_vector；
+以提交后独立连接的状态/片段快照替代对内部方法的 spy，覆盖同事务提交、完整性反向
+校验与提交失败回滚。SQLite 保留失败路径并新增全文数据缺失不能 Ready 的断言。
 """
 
 from __future__ import annotations
@@ -13,7 +17,8 @@ from unittest.mock import MagicMock
 from uuid import UUID
 
 import pytest
-from sqlalchemy import create_engine, select
+from sqlalchemy import create_engine, event, func, select
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 from sqlalchemy.pool import StaticPool
 
@@ -47,6 +52,7 @@ from backend.app.services.knowledge_base_service import (
     KnowledgeBasePermissionError,
     KnowledgeBaseService,
 )
+from tests.postgres_helpers import isolated_postgres_engine
 
 LESSON_TEXT = (
     "第一节 检索增强生成。\n\n"
@@ -69,6 +75,14 @@ def session() -> Generator[Session, None, None]:
     with Session(engine) as database_session:
         yield database_session
     engine.dispose()
+
+
+@pytest.fixture
+def postgres_session() -> Generator[Session, None, None]:
+    """成功摄取使用真实 PostgreSQL/pgvector，避免空全文字段冒充 Ready。"""
+
+    with isolated_postgres_engine() as engine, Session(engine) as database_session:
+        yield database_session
 
 
 def add_teacher(session: Session, *, username: str = "teacher") -> User:
@@ -177,19 +191,26 @@ def seed_document(
     return teacher, service, document.id
 
 
-def test_ingest_document_persists_chunks_and_real_stages(session: Session) -> None:
+def test_ingest_document_persists_chunks_and_real_stages(postgres_session: Session) -> None:
     """成功摄取：真实阶段依次落库，片段带来源元数据与向量写入 DocumentChunk。"""
 
+    session = postgres_session
     teacher, service, document_id = seed_document(session)
     provider = StubEmbeddingProvider()
-    recorded: list[DocumentStatus] = []
-    original_update = service.update_document_status
+    recorded: list[tuple[DocumentStatus, int]] = []
 
-    def spy(document_id_value, status, **kwargs):
-        recorded.append(DocumentStatus(status))
-        return original_update(document_id_value, status, **kwargs)
+    @event.listens_for(session, "after_commit")
+    def record_committed_state(_session) -> None:
+        """独立连接只能同时看到完整片段与 Ready，不能看到半完成提交。"""
 
-    service.update_document_status = spy  # type: ignore[method-assign]
+        with Session(session.get_bind()) as observer:
+            status = observer.scalar(select(Document.status).where(Document.id == UUID(document_id)))
+            count = observer.scalar(
+                select(func.count()).select_from(DocumentChunk).where(
+                    DocumentChunk.document_id == UUID(document_id),
+                )
+            )
+            recorded.append((status, count))
 
     result = service.ingest_document(
         document_id,
@@ -199,10 +220,10 @@ def test_ingest_document_persists_chunks_and_real_stages(session: Session) -> No
     )
 
     assert recorded == [
-        DocumentStatus.PARSING,
-        DocumentStatus.CHUNKING,
-        DocumentStatus.EMBEDDING,
-        DocumentStatus.READY,
+        (DocumentStatus.PARSING, 0),
+        (DocumentStatus.CHUNKING, 0),
+        (DocumentStatus.EMBEDDING, 0),
+        (DocumentStatus.READY, result.chunk_count),
     ]
     assert result.status is DocumentStatus.READY
     assert result.chunk_count >= 1
@@ -229,8 +250,7 @@ def test_ingest_document_persists_chunks_and_real_stages(session: Session) -> No
         assert chunk.chunk_metadata["chunk_index"] == index
         assert chunk.embedding is not None
         assert len(chunk.embedding) == EMBEDDING_VECTOR_DIMENSION
-    # 测试方言不支持 tsvector，保持为空而不是伪造全文检索内容。
-    assert all(chunk.search_vector is None for chunk in chunks)
+    assert all(chunk.search_vector for chunk in chunks)
 
 
 def test_ingest_document_marks_failed_on_parse_error(session: Session) -> None:
@@ -343,9 +363,10 @@ def test_ingest_document_rejects_dimension_mismatch(session: Session) -> None:
     assert session.scalars(select(DocumentChunk)).all() == []
 
 
-def test_ingest_document_reads_storage_file(session: Session, tmp_path: Path) -> None:
+def test_ingest_document_reads_storage_file(postgres_session: Session, tmp_path: Path) -> None:
     """未直接传入字节时从 storage_path 读取真实文件内容。"""
 
+    session = postgres_session
     lesson = tmp_path / "lesson.txt"
     lesson.write_text(LESSON_TEXT.decode("utf-8"), encoding="utf-8")
     teacher, service, document_id = seed_document(session, storage_path=str(lesson))
@@ -376,9 +397,10 @@ def test_ingest_document_requires_readable_file(session: Session, tmp_path: Path
         )
 
 
-def test_ingest_document_replaces_previous_chunks(session: Session) -> None:
+def test_ingest_document_replaces_previous_chunks(postgres_session: Session) -> None:
     """重复摄取同一资料时应替换旧片段，不残留过期知识也不违反唯一约束。"""
 
+    session = postgres_session
     teacher, service, document_id = seed_document(session)
     factory = build_factory(provider=StubEmbeddingProvider())
 
@@ -417,9 +439,10 @@ def test_ingest_document_requires_course_access(session: Session) -> None:
         )
 
 
-def test_list_document_chunks_returns_metadata_for_ui(session: Session) -> None:
+def test_list_document_chunks_returns_metadata_for_ui(postgres_session: Session) -> None:
     """界面可读取片段摘要：序号、内容、来源元数据与是否有向量。"""
 
+    session = postgres_session
     teacher, service, document_id = seed_document(session)
     service.ingest_document(
         document_id,
@@ -434,3 +457,78 @@ def test_list_document_chunks_returns_metadata_for_ui(session: Session) -> None:
     assert rows[0]["chunk_index"] == 0
     assert rows[0]["has_embedding"] is True
     assert rows[0]["metadata"]["document_id"] == document_id
+
+
+def test_ingest_document_without_search_vector_cannot_be_ready(session: Session) -> None:
+    """SQLite 无法生成全文数据，即使向量成功也不能伪装为 Ready。"""
+
+    teacher, service, document_id = seed_document(session)
+    result = service.ingest_document(
+        document_id, content=LESSON_TEXT, teacher_id=teacher.id,
+        ingestion_service_factory=build_factory(provider=StubEmbeddingProvider()),
+    )
+    assert result.status is DocumentStatus.FAILED
+    assert result.chunk_count == 0
+    assert result.error_code == KNOWLEDGE_BASE_EMPTY
+    assert "search_vector" in (result.detail or "")
+    assert session.scalars(select(DocumentChunk)).all() == []
+
+
+@pytest.mark.parametrize("missing", ["content", "embedding", "search_vector", "empty_search_vector"])
+def test_ready_requires_complete_persisted_chunk(
+    postgres_session: Session, missing: str,
+) -> None:
+    """数据库片段缺正文、向量或全文索引时拒绝 Ready，并清理不完整片段。"""
+
+    session = postgres_session
+    teacher, service, document_id = seed_document(session)
+
+    def omit_field(_mapper, _connection, chunk) -> None:
+        """模拟写入边界未生成必要字段。"""
+
+        if missing == "content":
+            chunk.content = "   "
+        elif missing == "empty_search_vector":
+            chunk.search_vector = ""
+        else:
+            setattr(chunk, missing, None)
+
+    event.listen(DocumentChunk, "before_insert", omit_field)
+    try:
+        result = service.ingest_document(
+            document_id, content=LESSON_TEXT, teacher_id=teacher.id,
+            ingestion_service_factory=build_factory(provider=StubEmbeddingProvider()),
+        )
+    finally:
+        event.remove(DocumentChunk, "before_insert", omit_field)
+    assert result.status is DocumentStatus.FAILED
+    assert result.error_code == KNOWLEDGE_BASE_EMPTY
+    assert result.chunk_count == 0
+    assert session.scalars(select(DocumentChunk)).all() == []
+
+
+def test_ready_commit_failure_rolls_back_chunks(postgres_session: Session) -> None:
+    """Ready 提交失败时整个片段事务回滚，并真实记录 Failed。"""
+
+    session = postgres_session
+    teacher, service, document_id = seed_document(session)
+    document = session.get(Document, UUID(document_id))
+    assert document is not None
+
+    @event.listens_for(session, "before_commit")
+    def fail_ready_commit(_session) -> None:
+        """模拟最终提交失败，处理中及失败状态仍可提交。"""
+
+        if document.status is DocumentStatus.READY:
+            raise SQLAlchemyError("测试模拟 Ready 提交失败")
+
+    result = service.ingest_document(
+        document_id, content=LESSON_TEXT, teacher_id=teacher.id,
+        ingestion_service_factory=build_factory(provider=StubEmbeddingProvider()),
+    )
+    assert result.status is DocumentStatus.FAILED
+    assert result.error_code == DOCUMENT_PARSE_FAILED
+    assert "SQLAlchemyError" in (result.detail or "")
+    assert result.chunk_count == 0
+    assert session.scalars(select(DocumentChunk)).all() == []
+    assert service.get_document(document_id).status is DocumentStatus.FAILED

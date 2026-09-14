@@ -36,7 +36,8 @@ from backend.app.ai.retrieval.base import (
     resolve_dialect_name,
     resolve_filters,
 )
-from backend.app.models import DocumentChunk
+from backend.app.domain.enums import DocumentStatus
+from backend.app.models import Document, DocumentChunk
 
 POSTGRES_DIALECT: Final[str] = "postgresql"
 
@@ -126,8 +127,11 @@ class KeywordSearchRetriever(BaseRetriever):
         statement: Select[Any],
         scope: RetrievalFilters,
     ) -> Select[Any]:
-        """按课程、知识库与资料范围收窄检索范围。"""
+        """先排除非 Ready 文档，再按课程、知识库与资料范围收窄查询。"""
 
+        statement = statement.join(
+            Document, Document.id == DocumentChunk.document_id,
+        ).where(Document.status == DocumentStatus.READY)
         if scope.course_ids:
             statement = statement.where(DocumentChunk.course_id.in_(scope.course_ids))
         if scope.knowledge_base_ids:

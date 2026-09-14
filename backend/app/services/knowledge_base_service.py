@@ -581,7 +581,7 @@ class KnowledgeBaseService:
         retryable: bool | None = None,
         teacher_id: UUID | str | None = None,
     ) -> DocumentSummary:
-        """按状态机持久化文档处理状态和失败信息。"""
+        """按状态机持久化处理中或失败状态；Ready 仅由摄取事务设置。"""
 
         document = self._load_document(document_id)
         self._ensure_course_access(
@@ -589,6 +589,8 @@ class KnowledgeBaseService:
             _resolve_actor_id(teacher_id),
         )
         next_status = _normalize_document_status(status)
+        if next_status is DocumentStatus.READY:
+            raise DocumentValidationError("Ready 只能由摄取成功事务设置，不能直接更新。")
         current_status = document.status
         if (
             next_status != current_status
@@ -835,7 +837,21 @@ class KnowledgeBaseService:
                 row.search_vector = func.to_tsvector("simple", row.content)
         try:
             self.session.add_all(rows)
+            self.session.flush()
+            self._mark_document_ready(document)
+            # 知识片段和 Ready 一起提交，任何失败都不能留下半完成的可检索状态。
             self.session.commit()
+        except DocumentValidationError as exc:
+            self.session.rollback()
+            self._delete_document_chunks(document.id)
+            return self._mark_ingestion_failed(
+                document,
+                result,
+                error_code=KNOWLEDGE_BASE_EMPTY,
+                retryable=False,
+                detail=str(exc),
+                teacher_id=teacher_id,
+            )
         except (IntegrityError, SQLAlchemyError) as exc:
             self.session.rollback()
             self._delete_document_chunks(document.id)
@@ -848,16 +864,35 @@ class KnowledgeBaseService:
                 teacher_id=teacher_id,
             )
 
-        summary = self.update_document_status(
-            document.id,
-            DocumentStatus.READY,
-            teacher_id=teacher_id,
-        )
         return DocumentIngestionResult(
-            document_id=summary.id,
-            status=summary.status,
+            document_id=str(document.id),
+            status=document.status,
             chunk_count=len(rows),
         )
+
+    def _mark_document_ready(self, document: Document) -> None:
+        """只在摄取事务内校验已写入的完整片段，再设置 Ready，不单独提交。"""
+
+        if document.status is not DocumentStatus.EMBEDDING:
+            raise DocumentValidationError("只有完成 Embedding 阶段的资料才能由摄取设置 Ready。")
+        chunks = self.session.scalars(
+            select(DocumentChunk).where(
+                DocumentChunk.document_id == document.id,
+                DocumentChunk.embedding.is_not(None),
+                DocumentChunk.search_vector.is_not(None),
+            )
+        )
+        if not any(
+            chunk.content.strip() and chunk.embedding and (chunk.search_vector or "").strip()
+            for chunk in chunks
+        ):
+            raise DocumentValidationError(
+                "资料缺少同时具备有效正文、embedding 和 search_vector 的知识片段，不能设置 Ready。"
+            )
+        document.status = DocumentStatus.READY
+        document.error_code = None
+        document.error_message = None
+        document.retryable = False
 
     def _mark_ingestion_failed(
         self,
