@@ -23,6 +23,7 @@ from sqlalchemy.dialects.postgresql import TSVECTOR
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.types import TypeDecorator, TypeEngine
 
+from backend.app.core.config import EMBEDDING_DIMENSION_DEFAULT
 from backend.app.models.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
 
 if TYPE_CHECKING:
@@ -30,16 +31,8 @@ if TYPE_CHECKING:
 
     from backend.app.models.document import Document
 
-#: 向量维度，与 ``EMBEDDING_MODEL``（BAAI/bge-large-zh-v1.5，1024 维）保持一致。
-EMBEDDING_VECTOR_DIMENSION: Final[int] = 1024
-
-
-def resolve_embedding_dimension(configured: int | None = None) -> int:
-    """返回生效的向量维度；未配置时使用默认维度。"""
-
-    if configured is None or configured <= 0:
-        return EMBEDDING_VECTOR_DIMENSION
-    return configured
+#: 向量维度来自统一配置事实源，与 PostgreSQL 的 vector(1024) 迁移保持一致。
+EMBEDDING_VECTOR_DIMENSION: Final[int] = EMBEDDING_DIMENSION_DEFAULT
 
 
 class EmbeddingVector(TypeDecorator[list[float]]):
@@ -145,5 +138,4 @@ __all__ = [
     "EMBEDDING_VECTOR_DIMENSION",
     "DocumentChunk",
     "EmbeddingVector",
-    "resolve_embedding_dimension",
 ]

@@ -14,6 +14,7 @@ from typing import Any, Final
 
 from backend.app.ai.embedding.base import (
     BaseEmbeddingProvider,
+    EmbeddingDimensionError,
     EmbeddingProviderError,
     EmbeddingProviderNotReadyError,
 )
@@ -138,7 +139,13 @@ class LocalEmbeddingProvider(BaseEmbeddingProvider):
         if callable(resolved_dimension):
             reported = resolved_dimension()
             if isinstance(reported, int) and reported > 0:
-                self.dimension = reported
+                if self.dimension is not None and reported != self.dimension:
+                    raise EmbeddingDimensionError(
+                        f"本地模型返回维度 {reported}，与配置的 {self.dimension} 不一致。",
+                        provider_name=self.provider_name,
+                    )
+                if self.dimension is None:
+                    self.dimension = reported
         return model
 
     async def _encode(self, model: Any, texts: list[str]) -> list[list[float]]:

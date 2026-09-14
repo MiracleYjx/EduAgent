@@ -6,7 +6,7 @@ from backend.app.core.config import AppSettings
 
 
 def build_test_settings(**overrides: Any) -> AppSettings:
-    """构造测试用运行配置，并保留 Pydantic 的运行时校验。"""
+    """构造测试配置；H03 TCR：维度使用应用默认值，避免测试绕过启动门禁。"""
 
     values: dict[str, Any] = {
         "database_url": "postgresql+psycopg://user:password@localhost:5432/eduagent",
@@ -17,7 +17,6 @@ def build_test_settings(**overrides: Any) -> AppSettings:
         "deepseek_model": "deepseek-chat",
         "embedding_provider": "local",
         "embedding_model": "test-embedding-model",
-        "embedding_dimension": 8,
         "embedding_base_url": "https://embedding.example.com/v1",
         "embedding_api_key": "test-embedding-api-key",
         "rerank_provider": "none",

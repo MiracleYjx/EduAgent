@@ -16,7 +16,12 @@ from backend.app.api.knowledge_bases import router as knowledge_bases_router
 from backend.app.api.questions import router as questions_router
 from backend.app.api.submissions import exam_submission_router
 from backend.app.api.submissions import router as submissions_router
-from backend.app.core.config import AppSettings, ConfigurationError, get_settings
+from backend.app.core.config import (
+    EMBEDDING_DIMENSION_DEFAULT,
+    AppSettings,
+    ConfigurationError,
+    get_settings,
+)
 from backend.app.core.database import (
     DatabaseNotReadyError,
     check_postgres_ready,
@@ -52,6 +57,12 @@ def create_app(
     """创建并配置 FastAPI 应用。"""
 
     runtime_settings = settings or get_settings()
+    if runtime_settings.embedding_dimension != EMBEDDING_DIMENSION_DEFAULT:
+        raise ConfigurationError(
+            f"EMBEDDING_DIMENSION 当前为 {runtime_settings.embedding_dimension}，"
+            "与迁移 0004 的 vector(1024) 定义不一致。",
+            fields=("EMBEDDING_DIMENSION",),
+        )
     app = FastAPI(title="EduAgent", version="0.1.0")
     app.state.settings = runtime_settings
     app.add_middleware(AuthenticationMiddleware)

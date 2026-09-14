@@ -1,4 +1,8 @@
-"""JWT 类型化配置与启动失败脱敏测试。"""
+"""类型化配置与启动失败脱敏测试。
+
+TCR（2026-09-14，H03）：新增默认维度、空值拒绝和启动维度不匹配测试，
+防止错误配置进入 vector(1024) 摄取链路；保留原有 JWT 脱敏断言。
+"""
 
 import traceback
 
@@ -11,6 +15,35 @@ from backend.app.core.config import (
     reset_settings_cache,
 )
 from tests.unit.settings_helpers import build_test_settings
+
+
+def test_embedding_dimension_defaults_to_schema_dimension(monkeypatch, tmp_path) -> None:
+    """未填写维度时使用 1024，与现有应用启动用例共享此缺省配置。"""
+
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.delenv("EMBEDDING_DIMENSION", raising=False)
+    assert build_test_settings().embedding_dimension == 1024
+
+
+@pytest.mark.parametrize("dimension", [None, "", 0])
+def test_embedding_dimension_rejects_empty_or_invalid_value(dimension) -> None:
+    """显式空值或非正维度不再视为自动推断。"""
+
+    with pytest.raises(ValidationError, match="embedding_dimension"):
+        build_test_settings(embedding_dimension=dimension)
+
+
+@pytest.mark.parametrize("dimension", [384, 768, 1536])
+def test_embedding_dimension_mismatch_stops_startup(dimension: int) -> None:
+    """应用创建前阻止错误维度，并提供明确中文修复信息。"""
+
+    with pytest.raises(ConfigurationError) as error:
+        create_app(settings=build_test_settings(embedding_dimension=dimension))
+
+    assert error.value.fields == ("EMBEDDING_DIMENSION",)
+    assert f"当前为 {dimension}" in str(error.value)
+    assert "迁移 0004" in str(error.value)
+    assert "vector(1024)" in str(error.value)
 
 
 @pytest.mark.parametrize("secret", ["", " " * 32, "short-sensitive-secret", "x" * 31])

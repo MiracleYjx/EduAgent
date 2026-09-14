@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import re
 from functools import lru_cache
-from typing import Any, ClassVar
+from typing import Any, ClassVar, Final
 from urllib.parse import urlsplit, urlunsplit
 
 from pydantic import (
@@ -34,6 +34,9 @@ _PLACEHOLDER_PROVIDER_VALUES = {
     "tbd",
     "todo",
 }
+
+# DocumentChunk 的 PostgreSQL 迁移固定为 vector(1024)，应用配置必须与之保持一致。
+EMBEDDING_DIMENSION_DEFAULT: Final[int] = 1024
 
 
 class ConfigurationError(RuntimeError):
@@ -120,7 +123,7 @@ class AppSettings(BaseSettings):
     deepseek_model: str
     embedding_provider: str
     embedding_model: str | None = None
-    embedding_dimension: int | None = Field(default=None, gt=0)
+    embedding_dimension: int = Field(default=EMBEDDING_DIMENSION_DEFAULT, gt=0)
     embedding_base_url: AnyUrl | None = None
     embedding_api_key: SecretStr | None = None
     rerank_provider: str
@@ -191,16 +194,6 @@ class AppSettings(BaseSettings):
         if text.lower() in _PLACEHOLDER_PROVIDER_VALUES:
             return None
         return text
-
-    @field_validator("embedding_dimension", mode="before")
-    @classmethod
-    def _normalize_optional_embedding_dimension(cls, value: Any) -> Any:
-        """允许显式留空的向量维度配置。"""
-
-        if isinstance(value, str):
-            text = value.strip().lower()
-            return None if not text or text in _PLACEHOLDER_PROVIDER_VALUES else value
-        return value
 
     @field_validator("embedding_api_key", mode="before")
     @classmethod
@@ -296,6 +289,7 @@ def reset_settings_cache() -> None:
 
 
 __all__ = [
+    "EMBEDDING_DIMENSION_DEFAULT",
     "REDACTED_VALUE",
     "AppSettings",
     "ConfigurationError",
