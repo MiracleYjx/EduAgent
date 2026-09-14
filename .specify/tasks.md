@@ -123,7 +123,7 @@ Hybrid + Rerank 在同一数据集上产出带 `chunk_id` 的结果。
 - [X] T040 [US1] 在 `tests/contract/test_retrieval_contract.py` 中增加失败优先的检索契约测试，覆盖来源追踪、空上下文、模式选择和结果字段
 - [X] T041 在 `backend/app/ai/retrieval/vector_search.py` 中实现 pgvector 语义检索，包括 HNSW 配置和精确近邻 Benchmark 模式
 - [X] T042 在 `backend/app/ai/retrieval/keyword_search.py` 中实现 PostgreSQL `tsvector + GIN` 关键词检索
-- [ ] T043 在 `backend/app/ai/retrieval/hybrid_search.py` 中实现候选合并、去重、Weighted Score Fusion、Top-K 选择和检索模式切换
+- [X] T043 在 `backend/app/ai/retrieval/hybrid_search.py` 中实现候选合并、去重、Weighted Score Fusion、Top-K 选择和检索模式切换
 - [ ] T044 在 `backend/app/ai/retrieval/reranker.py` 中实现 Rerank 适配器契约以及 LLM Rerank 和轻量 Cross Encoder 路径，记录重排分数和 Provider 元数据
 - [ ] T045 [P] 在 `tests/contract/test_retrieval_contract.py` 和 `scripts/run_retrieval_benchmark.py` 中增加检索契约覆盖和四模式 Benchmark 执行器，比较 Vector Only、Keyword Only、Hybrid 和 Hybrid + Rerank
 

@@ -125,6 +125,8 @@ class AppSettings(BaseSettings):
     embedding_api_key: SecretStr | None = None
     rerank_provider: str
     confidence_threshold: float = Field(ge=0.0, le=1.0)
+    #: Hybrid 检索中向量路的权重 α；关键词路占 1-α。
+    hybrid_vector_weight: float = Field(default=0.5, ge=0.0, le=1.0)
     JWT_SECRET_KEY: SecretStr
     JWT_ALGORITHM: str = "HS256"
     JWT_EXPIRE_MINUTES: int = Field(default=60, gt=0)
