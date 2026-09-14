@@ -1,4 +1,8 @@
-"""T022 知识库服务单元测试：知识库、文档元数据和处理状态。"""
+"""T022 知识库服务单元测试：知识库、文档元数据和处理状态。
+
+TCR（2026-09-14，H02）：原生命周期用例直接将无片段文档置为 Ready，违反本批确认的
+摄取边界；改为断言拒绝及状态不变，其余元数据断言不变。
+"""
 
 from __future__ import annotations
 
@@ -108,16 +112,16 @@ def test_knowledge_base_and_document_metadata_lifecycle(session: Session) -> Non
         DocumentStatus.EMBEDDING,
         teacher_id=teacher.id,
     )
-    ready = service.update_document_status(
-        document.id,
-        DocumentStatus.READY,
-        teacher_id=teacher.id,
-    )
+    with pytest.raises(DocumentValidationError, match="摄取"):
+        service.update_document_status(
+            document.id,
+            DocumentStatus.READY,
+            teacher_id=teacher.id,
+        )
 
     assert parsing.status is DocumentStatus.PARSING
     assert embedding.status is DocumentStatus.EMBEDDING
-    assert ready.status is DocumentStatus.READY
-    assert service.get_document(document.id).status is DocumentStatus.READY
+    assert service.get_document(document.id).status is DocumentStatus.EMBEDDING
     assert len(service.list_documents(knowledge_base_id=knowledge_base.id)) == 1
     assert service.get_knowledge_base(knowledge_base.id).document_count == 1
 

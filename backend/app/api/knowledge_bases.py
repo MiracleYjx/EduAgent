@@ -180,6 +180,17 @@ class DocumentStatusUpdateRequest(BaseModel):
     error_message: str | None = Field(default=None, max_length=2000)
     retryable: bool | None = Field(default=None, description="失败后是否允许重试。")
 
+    @field_validator("status")
+    @classmethod
+    def validate_external_status(cls, value: DocumentStatus) -> DocumentStatus:
+        """外部请求只能报告处理中或失败，不能声明摄取成功。"""
+
+        if value not in {
+            DocumentStatus.PARSING, DocumentStatus.EMBEDDING, DocumentStatus.FAILED,
+        }:
+            raise ValueError("状态更新只允许 Parsing、Embedding、Failed；Ready 由摄取事务设置。")
+        return value
+
     @field_validator("error_code", "error_message", mode="before")
     @classmethod
     def normalize_error_text(cls, value: Any) -> str | None:

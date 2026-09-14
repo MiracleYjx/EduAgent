@@ -1,8 +1,11 @@
 """T039 资料上传摄取 API 契约测试：multipart 真实文件内容与真实处理状态。
 
-测试在 SQLite 内存库上运行，Embedding Provider 使用替身，因此不下载模型、不访问网络。
+测试请求边界使用 SQLite，成功摄取使用隔离 PostgreSQL；Embedding Provider 使用替身。
 上传端点必须接收真实文件正文并触发摄取：成功时返回 Ready，未就绪或解析失败时返回
 具体失败原因，不得因为“上传成功”就返回 Ready。
+
+TCR（2026-09-14，H02）：补充 API 禁止 Ready/Uploaded/Chunking 的反向契约，
+以实际请求和数据库状态验证拒绝行为；摄取成功断言依赖真实 PostgreSQL 全文索引。
 """
 
 from __future__ import annotations
@@ -30,6 +33,7 @@ from backend.app.models import Document, Role, User
 from backend.app.models.document_chunk import EMBEDDING_VECTOR_DIMENSION
 from backend.app.services import knowledge_base_service as knowledge_base_module
 from backend.app.services.auth_service import hash_password
+from tests.postgres_helpers import isolated_postgres_engine
 from tests.unit.settings_helpers import build_test_settings
 
 TEST_JWT_SECRET = token_urlsafe(48)
@@ -73,9 +77,13 @@ class StubEmbeddingProvider(BaseEmbeddingProvider):
 
 
 @pytest.fixture
-def session_factory() -> Generator[sessionmaker[Session], None, None]:
-    """创建可跨 TestClient 请求共享的隔离 SQLite 会话工厂。"""
+def session_factory(request: pytest.FixtureRequest) -> Generator[sessionmaker[Session], None, None]:
+    """成功摄取使用真实 PostgreSQL，其余请求边界使用隔离 SQLite。"""
 
+    if getattr(request, "param", None) == "postgres":
+        with isolated_postgres_engine() as engine:
+            yield sessionmaker(bind=engine, expire_on_commit=False)
+        return
     engine = create_engine(
         "sqlite:///:memory:",
         connect_args={"check_same_thread": False},
@@ -201,6 +209,7 @@ def _install_provider(monkeypatch: pytest.MonkeyPatch, provider: BaseEmbeddingPr
     )
 
 
+@pytest.mark.parametrize("session_factory", ["postgres"], indirect=True)
 def test_upload_document_ingests_real_content_and_returns_ready(
     client: TestClient,
     session_factory: sessionmaker[Session],
@@ -359,6 +368,7 @@ def test_upload_document_requires_file_field(
     assert response.status_code == 422, response.text
 
 
+@pytest.mark.parametrize("session_factory", ["postgres"], indirect=True)
 def test_uploaded_chunks_are_listed_with_source_metadata(
     client: TestClient,
     teacher_id: UUID,
@@ -387,3 +397,45 @@ def test_uploaded_chunks_are_listed_with_source_metadata(
     assert [item["original_filename"] for item in listed] == ["讲义.txt"]
     assert listed[0]["status"] == DocumentStatus.READY.value
     assert listed[0]["storage_path"]
+
+
+@pytest.mark.parametrize(
+    ("current_status", "requested_status"),
+    [
+        (DocumentStatus.EMBEDDING, DocumentStatus.READY),
+        (DocumentStatus.UPLOADED, DocumentStatus.UPLOADED),
+        (DocumentStatus.PARSING, DocumentStatus.CHUNKING),
+    ],
+)
+def test_status_api_rejects_internal_only_states(
+    client: TestClient,
+    session_factory: sessionmaker[Session],
+    teacher_id: UUID,
+    current_status: DocumentStatus,
+    requested_status: DocumentStatus,
+) -> None:
+    """状态 API 仅开放 Parsing、Embedding、Failed，不能伪造摄取成功。"""
+
+    headers = _login(client, "upload-teacher", TEACHER_PASSWORD)
+    knowledge_base_id = _create_knowledge_base(client, headers)
+    created = client.post(
+        f"/api/knowledge-bases/{knowledge_base_id}/documents",
+        headers=headers, json={"original_filename": "资料.txt"},
+    )
+    assert created.status_code == 201, created.text
+    document_id = created.json()["id"]
+    with session_factory() as session:
+        document = session.get(Document, UUID(document_id))
+        assert document is not None
+        document.status = current_status
+        session.commit()
+
+    response = client.patch(
+        f"/api/knowledge-bases/{knowledge_base_id}/documents/{document_id}/status",
+        headers=headers, json={"status": requested_status.value},
+    )
+    assert response.status_code == 422, response.text
+    with session_factory() as session:
+        document = session.get(Document, UUID(document_id))
+        assert document is not None
+        assert document.status is current_status

@@ -6,6 +6,10 @@
 
 本文件不访问真实模型：语义检索只接收调用方传入的 query embedding，关键词检索只接收
 查询文本。
+
+TCR（2026-09-14，H02）：新增所有非 Ready 状态的 SQLite 精确检索及真实 PostgreSQL
+向量、关键词、Hybrid、Rerank 反向契约；有效检索种子显式置为 Ready，原排序与来源
+断言不变，避免以错误的 Uploaded 种子掩盖生命周期门禁。
 """
 
 from __future__ import annotations
@@ -276,6 +280,7 @@ def _seed_course(
         for chunk in chunks:
             chunk.search_vector = func.to_tsvector("simple", chunk.content)
     session.add_all(chunks)
+    document.status = DocumentStatus.READY
     session.commit()
     return course, knowledge_base, document, chunks
 @pytest.fixture
@@ -841,3 +846,46 @@ def test_postgres_hybrid_rerank_requires_ready_reranker(
 
     assert error.value.error_code == RERANK_PROVIDER_NOT_READY
     assert error.value.retryable is False
+
+
+@pytest.mark.parametrize("status", [value for value in DocumentStatus if value is not DocumentStatus.READY])
+def test_non_ready_document_is_excluded_from_exact_search(
+    sqlite_session: Session, status: DocumentStatus,
+) -> None:
+    """即使存在相同向量，非 Ready 文档也不能进入精确检索结果。"""
+
+    _, _, document, _ = _seed_course(sqlite_session, name="status", vectors=[_vector(0)])
+    document.status = status
+    sqlite_session.commit()
+
+    assert get_retriever(RetrievalMode.VECTOR_ONLY).search(
+        sqlite_session, _vector(0),
+    ) == []
+
+
+@pytest.mark.parametrize("status", [value for value in DocumentStatus if value is not DocumentStatus.READY])
+@pytest.mark.parametrize("mode", list(RetrievalMode))
+def test_postgres_non_ready_document_is_excluded_from_all_modes(
+    postgres_session: Session, status: DocumentStatus, mode: RetrievalMode,
+) -> None:
+    """真实 PostgreSQL 的全部检索模式均排除非 Ready 文档片段。"""
+
+    seed = postgres_session.info["retrieval_seed"]
+    document = postgres_session.get(Document, seed["document_id"])
+    assert document is not None
+    document.status = status
+    postgres_session.commit()
+    scope = RetrievalFilters(document_ids=(document.id,))
+    kwargs = {"reranker": _ContractReranker()} if mode is RetrievalMode.HYBRID_RERANK else {}
+    retriever = get_retriever(mode, **kwargs)
+    query = (
+        _vector(0) if mode is RetrievalMode.VECTOR_ONLY
+        else "余弦距离" if mode is RetrievalMode.KEYWORD_ONLY
+        else RetrievalQuery("余弦距离", tuple(_vector(0)))
+    )
+
+    assert retriever.search(postgres_session, query, filters=scope) == []
+    if mode is RetrievalMode.VECTOR_ONLY:
+        assert get_retriever(mode, exact=True).search(
+            postgres_session, query, filters=scope,
+        ) == []
