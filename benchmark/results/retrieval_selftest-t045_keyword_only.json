@@ -1,0 +1,158 @@
+{
+  "run_id": "selftest-t045",
+  "run_at": "2026-09-14T01:42:21.416687+00:00",
+  "config": "keyword_only",
+  "dataset_version": "m0-seed-v1",
+  "model_version": "stub-hash-v1",
+  "prompt_version": "synthetic-prompt-v1",
+  "status": "ok",
+  "error_code": null,
+  "error_message": null,
+  "environment": {
+    "cpu": "AMD64 Family 23 Model 96 Stepping 1, AuthenticAMD",
+    "memory_mb": 0,
+    "python": "3.13.13",
+    "top_k": 5
+  },
+  "metrics": {
+    "recall_at_5": 1.0,
+    "precision_at_5": 1.0,
+    "recall_at_10": 1.0,
+    "precision_at_10": 1.0,
+    "mrr": 1.0,
+    "latency_p95_ms": 8.253
+  },
+  "results": [
+    {
+      "query_id": "m0-literature-theme",
+      "chunk_ids": [
+        "1475fdcb-d525-42ac-bd5f-bda90101c401"
+      ],
+      "scores": [
+        0.099103
+      ],
+      "relevant_ids": [
+        "1475fdcb-d525-42ac-bd5f-bda90101c401"
+      ],
+      "latency_ms": 4.477
+    },
+    {
+      "query_id": "m0-math-addition",
+      "chunk_ids": [
+        "8d653421-9282-4d4b-9ab3-0afdbb9ba7fb"
+      ],
+      "scores": [
+        0.405015
+      ],
+      "relevant_ids": [
+        "8d653421-9282-4d4b-9ab3-0afdbb9ba7fb"
+      ],
+      "latency_ms": 2.954
+    },
+    {
+      "query_id": "m0-statistics-mean",
+      "chunk_ids": [
+        "f3389245-a23c-4b77-a4b7-fa0c748f0d17"
+      ],
+      "scores": [
+        0.060793
+      ],
+      "relevant_ids": [
+        "f3389245-a23c-4b77-a4b7-fa0c748f0d17"
+      ],
+      "latency_ms": 8.253
+    },
+    {
+      "query_id": "m0-history-source",
+      "chunk_ids": [
+        "a5800d15-6dcf-493a-bc92-1a24bdb6b8e1"
+      ],
+      "scores": [
+        0.060793
+      ],
+      "relevant_ids": [
+        "a5800d15-6dcf-493a-bc92-1a24bdb6b8e1"
+      ],
+      "latency_ms": 2.417
+    },
+    {
+      "query_id": "m0-ethics-privacy",
+      "chunk_ids": [
+        "6724694d-e1c9-4c68-a7ec-3a8b850045cb"
+      ],
+      "scores": [
+        0.060793
+      ],
+      "relevant_ids": [
+        "6724694d-e1c9-4c68-a7ec-3a8b850045cb"
+      ],
+      "latency_ms": 2.658
+    },
+    {
+      "query_id": "m0-network-dns",
+      "chunk_ids": [
+        "8c91be2a-b837-4602-a492-4e77e5638d08"
+      ],
+      "scores": [
+        0.596714
+      ],
+      "relevant_ids": [
+        "8c91be2a-b837-4602-a492-4e77e5638d08"
+      ],
+      "latency_ms": 2.881
+    },
+    {
+      "query_id": "m0-python-list",
+      "chunk_ids": [
+        "d6af931a-e2bf-4fed-bc56-ff0e2779b320"
+      ],
+      "scores": [
+        0.394482
+      ],
+      "relevant_ids": [
+        "d6af931a-e2bf-4fed-bc56-ff0e2779b320"
+      ],
+      "latency_ms": 3.037
+    },
+    {
+      "query_id": "m0-biology-cell",
+      "chunk_ids": [
+        "c341d3a4-a402-443b-b80f-fdc1f7d4b7be"
+      ],
+      "scores": [
+        0.099103
+      ],
+      "relevant_ids": [
+        "c341d3a4-a402-443b-b80f-fdc1f7d4b7be"
+      ],
+      "latency_ms": 2.637
+    },
+    {
+      "query_id": "m0-database-index",
+      "chunk_ids": [
+        "0080398d-e8c5-45c7-a9b1-f9856b4996cf"
+      ],
+      "scores": [
+        0.060793
+      ],
+      "relevant_ids": [
+        "0080398d-e8c5-45c7-a9b1-f9856b4996cf"
+      ],
+      "latency_ms": 3.185
+    },
+    {
+      "query_id": "m0-physics-force",
+      "chunk_ids": [
+        "49c05f18-ed32-44a0-9962-362197f28fde"
+      ],
+      "scores": [
+        0.060793
+      ],
+      "relevant_ids": [
+        "49c05f18-ed32-44a0-9962-362197f28fde"
+      ],
+      "latency_ms": 2.912
+    }
+  ],
+  "analysis": "harness 自检运行：使用确定性替身 Embedding/Rerank 验证四模式管道，不得作为模型质量对比结果。"
+}

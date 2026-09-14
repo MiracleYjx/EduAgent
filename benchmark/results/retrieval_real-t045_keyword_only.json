@@ -1,0 +1,158 @@
+{
+  "run_id": "real-t045",
+  "run_at": "2026-09-14T01:42:20.008539+00:00",
+  "config": "keyword_only",
+  "dataset_version": "m0-seed-v1",
+  "model_version": "BAAI/bge-large-zh-v1.5",
+  "prompt_version": "synthetic-prompt-v1",
+  "status": "ok",
+  "error_code": null,
+  "error_message": null,
+  "environment": {
+    "cpu": "AMD64 Family 23 Model 96 Stepping 1, AuthenticAMD",
+    "memory_mb": 0,
+    "python": "3.13.13",
+    "top_k": 5
+  },
+  "metrics": {
+    "recall_at_5": 1.0,
+    "precision_at_5": 1.0,
+    "recall_at_10": 1.0,
+    "precision_at_10": 1.0,
+    "mrr": 1.0,
+    "latency_p95_ms": 7.556
+  },
+  "results": [
+    {
+      "query_id": "m0-literature-theme",
+      "chunk_ids": [
+        "a4eaf63f-92de-4e07-9183-7b85854494e9"
+      ],
+      "scores": [
+        0.099103
+      ],
+      "relevant_ids": [
+        "a4eaf63f-92de-4e07-9183-7b85854494e9"
+      ],
+      "latency_ms": 7.556
+    },
+    {
+      "query_id": "m0-math-addition",
+      "chunk_ids": [
+        "e7025631-9fb5-4575-bed5-69d966699451"
+      ],
+      "scores": [
+        0.405015
+      ],
+      "relevant_ids": [
+        "e7025631-9fb5-4575-bed5-69d966699451"
+      ],
+      "latency_ms": 2.096
+    },
+    {
+      "query_id": "m0-statistics-mean",
+      "chunk_ids": [
+        "f2ad831b-58be-4e87-a292-b20c7e7b36b3"
+      ],
+      "scores": [
+        0.060793
+      ],
+      "relevant_ids": [
+        "f2ad831b-58be-4e87-a292-b20c7e7b36b3"
+      ],
+      "latency_ms": 2.799
+    },
+    {
+      "query_id": "m0-history-source",
+      "chunk_ids": [
+        "98467b4f-00e0-4df4-b567-a8d97c66386c"
+      ],
+      "scores": [
+        0.060793
+      ],
+      "relevant_ids": [
+        "98467b4f-00e0-4df4-b567-a8d97c66386c"
+      ],
+      "latency_ms": 2.294
+    },
+    {
+      "query_id": "m0-ethics-privacy",
+      "chunk_ids": [
+        "7541dac9-1109-4197-b589-6d695cd458a5"
+      ],
+      "scores": [
+        0.060793
+      ],
+      "relevant_ids": [
+        "7541dac9-1109-4197-b589-6d695cd458a5"
+      ],
+      "latency_ms": 2.623
+    },
+    {
+      "query_id": "m0-network-dns",
+      "chunk_ids": [
+        "1de6fb66-c79a-4406-a9f4-757ac9ac2d62"
+      ],
+      "scores": [
+        0.596714
+      ],
+      "relevant_ids": [
+        "1de6fb66-c79a-4406-a9f4-757ac9ac2d62"
+      ],
+      "latency_ms": 3.303
+    },
+    {
+      "query_id": "m0-python-list",
+      "chunk_ids": [
+        "6727c408-2664-4217-86b7-e689c5e32e9f"
+      ],
+      "scores": [
+        0.394482
+      ],
+      "relevant_ids": [
+        "6727c408-2664-4217-86b7-e689c5e32e9f"
+      ],
+      "latency_ms": 2.16
+    },
+    {
+      "query_id": "m0-biology-cell",
+      "chunk_ids": [
+        "523ad7ee-a325-4848-811c-2ae57f73d9a6"
+      ],
+      "scores": [
+        0.099103
+      ],
+      "relevant_ids": [
+        "523ad7ee-a325-4848-811c-2ae57f73d9a6"
+      ],
+      "latency_ms": 2.054
+    },
+    {
+      "query_id": "m0-database-index",
+      "chunk_ids": [
+        "29fea267-2085-48d5-9a85-57141c7deab2"
+      ],
+      "scores": [
+        0.060793
+      ],
+      "relevant_ids": [
+        "29fea267-2085-48d5-9a85-57141c7deab2"
+      ],
+      "latency_ms": 2.64
+    },
+    {
+      "query_id": "m0-physics-force",
+      "chunk_ids": [
+        "f5605ff6-0899-4998-981a-4a01b4e3f4be"
+      ],
+      "scores": [
+        0.060793
+      ],
+      "relevant_ids": [
+        "f5605ff6-0899-4998-981a-4a01b4e3f4be"
+      ],
+      "latency_ms": 2.107
+    }
+  ],
+  "analysis": "真实 Provider 运行：记录实际可用模式的指标，未就绪模式记录失败原因。"
+}
