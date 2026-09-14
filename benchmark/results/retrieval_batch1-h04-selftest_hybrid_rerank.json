@@ -1,0 +1,338 @@
+{
+  "run_id": "batch1-h04-selftest",
+  "run_at": "2026-09-14T13:31:41.227977+00:00",
+  "config": "hybrid_rerank",
+  "dataset_version": "m0-seed-v1",
+  "model_version": "stub-hash-v1",
+  "prompt_version": "synthetic-prompt-v1",
+  "status": "ok",
+  "error_code": null,
+  "error_message": null,
+  "environment": {
+    "cpu": "AMD64 Family 23 Model 96 Stepping 1, AuthenticAMD",
+    "memory_mb": 0,
+    "python": "3.13.13",
+    "top_k": 5
+  },
+  "metrics": {
+    "recall_at_5": 1.0,
+    "precision_at_5": 0.2,
+    "recall_at_10": 1.0,
+    "precision_at_10": 0.1,
+    "mrr": 0.95,
+    "latency_p95_ms": 11.73
+  },
+  "results": [
+    {
+      "query_id": "m0-literature-theme",
+      "chunk_ids": [
+        "08cff645-c5fe-426c-b1fe-38a9c789a798",
+        "326b9905-cfa3-4eec-a923-cd5c91fbf8ea",
+        "4d4f174d-bfcf-4f32-bc1a-dec5e4b3f5df",
+        "528d67a8-48f0-4ecd-980e-5c4c5a751946",
+        "d69e6aa2-11e9-4e02-9a38-648bfa60fcd9",
+        "fc7e862f-6ced-48bb-85b0-6837c6763a42",
+        "dc167e28-f4bb-44a6-985f-e22876c4c005",
+        "6314aad1-0e6a-483d-a5ed-1974715fbe0a",
+        "49b155ea-2c63-4758-b89b-c089e31de9b8",
+        "4772bfd9-b3fa-4957-834a-bf2494260e7a"
+      ],
+      "scores": [
+        1.0,
+        0.5,
+        0.333333,
+        0.25,
+        0.2,
+        0.166667,
+        0.142857,
+        0.125,
+        0.111111,
+        0.1
+      ],
+      "relevant_ids": [
+        "08cff645-c5fe-426c-b1fe-38a9c789a798"
+      ],
+      "latency_ms": 11.311
+    },
+    {
+      "query_id": "m0-math-addition",
+      "chunk_ids": [
+        "4772bfd9-b3fa-4957-834a-bf2494260e7a",
+        "dc167e28-f4bb-44a6-985f-e22876c4c005",
+        "fc7e862f-6ced-48bb-85b0-6837c6763a42",
+        "6314aad1-0e6a-483d-a5ed-1974715fbe0a",
+        "d69e6aa2-11e9-4e02-9a38-648bfa60fcd9",
+        "326b9905-cfa3-4eec-a923-cd5c91fbf8ea",
+        "528d67a8-48f0-4ecd-980e-5c4c5a751946",
+        "08cff645-c5fe-426c-b1fe-38a9c789a798",
+        "49b155ea-2c63-4758-b89b-c089e31de9b8",
+        "4d4f174d-bfcf-4f32-bc1a-dec5e4b3f5df"
+      ],
+      "scores": [
+        1.0,
+        0.5,
+        0.333333,
+        0.25,
+        0.2,
+        0.166667,
+        0.142857,
+        0.125,
+        0.111111,
+        0.1
+      ],
+      "relevant_ids": [
+        "4772bfd9-b3fa-4957-834a-bf2494260e7a"
+      ],
+      "latency_ms": 9.711
+    },
+    {
+      "query_id": "m0-statistics-mean",
+      "chunk_ids": [
+        "fc7e862f-6ced-48bb-85b0-6837c6763a42",
+        "dc167e28-f4bb-44a6-985f-e22876c4c005",
+        "326b9905-cfa3-4eec-a923-cd5c91fbf8ea",
+        "4772bfd9-b3fa-4957-834a-bf2494260e7a",
+        "528d67a8-48f0-4ecd-980e-5c4c5a751946",
+        "6314aad1-0e6a-483d-a5ed-1974715fbe0a",
+        "4d4f174d-bfcf-4f32-bc1a-dec5e4b3f5df",
+        "08cff645-c5fe-426c-b1fe-38a9c789a798",
+        "49b155ea-2c63-4758-b89b-c089e31de9b8",
+        "d69e6aa2-11e9-4e02-9a38-648bfa60fcd9"
+      ],
+      "scores": [
+        1.0,
+        0.5,
+        0.333333,
+        0.25,
+        0.2,
+        0.166667,
+        0.142857,
+        0.125,
+        0.111111,
+        0.1
+      ],
+      "relevant_ids": [
+        "fc7e862f-6ced-48bb-85b0-6837c6763a42"
+      ],
+      "latency_ms": 9.717
+    },
+    {
+      "query_id": "m0-history-source",
+      "chunk_ids": [
+        "49b155ea-2c63-4758-b89b-c089e31de9b8",
+        "dc167e28-f4bb-44a6-985f-e22876c4c005",
+        "fc7e862f-6ced-48bb-85b0-6837c6763a42",
+        "08cff645-c5fe-426c-b1fe-38a9c789a798",
+        "4d4f174d-bfcf-4f32-bc1a-dec5e4b3f5df",
+        "326b9905-cfa3-4eec-a923-cd5c91fbf8ea",
+        "d69e6aa2-11e9-4e02-9a38-648bfa60fcd9",
+        "4772bfd9-b3fa-4957-834a-bf2494260e7a",
+        "528d67a8-48f0-4ecd-980e-5c4c5a751946",
+        "6314aad1-0e6a-483d-a5ed-1974715fbe0a"
+      ],
+      "scores": [
+        1.0,
+        0.5,
+        0.333333,
+        0.25,
+        0.2,
+        0.166667,
+        0.142857,
+        0.125,
+        0.111111,
+        0.1
+      ],
+      "relevant_ids": [
+        "49b155ea-2c63-4758-b89b-c089e31de9b8"
+      ],
+      "latency_ms": 9.809
+    },
+    {
+      "query_id": "m0-ethics-privacy",
+      "chunk_ids": [
+        "326b9905-cfa3-4eec-a923-cd5c91fbf8ea",
+        "49b155ea-2c63-4758-b89b-c089e31de9b8",
+        "d69e6aa2-11e9-4e02-9a38-648bfa60fcd9",
+        "4772bfd9-b3fa-4957-834a-bf2494260e7a",
+        "dc167e28-f4bb-44a6-985f-e22876c4c005",
+        "4d4f174d-bfcf-4f32-bc1a-dec5e4b3f5df",
+        "fc7e862f-6ced-48bb-85b0-6837c6763a42",
+        "528d67a8-48f0-4ecd-980e-5c4c5a751946",
+        "6314aad1-0e6a-483d-a5ed-1974715fbe0a",
+        "08cff645-c5fe-426c-b1fe-38a9c789a798"
+      ],
+      "scores": [
+        1.0,
+        0.5,
+        0.333333,
+        0.25,
+        0.2,
+        0.166667,
+        0.142857,
+        0.125,
+        0.111111,
+        0.1
+      ],
+      "relevant_ids": [
+        "326b9905-cfa3-4eec-a923-cd5c91fbf8ea"
+      ],
+      "latency_ms": 9.563
+    },
+    {
+      "query_id": "m0-network-dns",
+      "chunk_ids": [
+        "4d4f174d-bfcf-4f32-bc1a-dec5e4b3f5df",
+        "d69e6aa2-11e9-4e02-9a38-648bfa60fcd9",
+        "fc7e862f-6ced-48bb-85b0-6837c6763a42",
+        "6314aad1-0e6a-483d-a5ed-1974715fbe0a",
+        "49b155ea-2c63-4758-b89b-c089e31de9b8",
+        "326b9905-cfa3-4eec-a923-cd5c91fbf8ea",
+        "08cff645-c5fe-426c-b1fe-38a9c789a798",
+        "dc167e28-f4bb-44a6-985f-e22876c4c005",
+        "528d67a8-48f0-4ecd-980e-5c4c5a751946",
+        "4772bfd9-b3fa-4957-834a-bf2494260e7a"
+      ],
+      "scores": [
+        1.0,
+        0.5,
+        0.333333,
+        0.25,
+        0.2,
+        0.166667,
+        0.142857,
+        0.125,
+        0.111111,
+        0.1
+      ],
+      "relevant_ids": [
+        "4d4f174d-bfcf-4f32-bc1a-dec5e4b3f5df"
+      ],
+      "latency_ms": 9.633
+    },
+    {
+      "query_id": "m0-python-list",
+      "chunk_ids": [
+        "4d4f174d-bfcf-4f32-bc1a-dec5e4b3f5df",
+        "6314aad1-0e6a-483d-a5ed-1974715fbe0a",
+        "fc7e862f-6ced-48bb-85b0-6837c6763a42",
+        "49b155ea-2c63-4758-b89b-c089e31de9b8",
+        "326b9905-cfa3-4eec-a923-cd5c91fbf8ea",
+        "08cff645-c5fe-426c-b1fe-38a9c789a798",
+        "d69e6aa2-11e9-4e02-9a38-648bfa60fcd9",
+        "528d67a8-48f0-4ecd-980e-5c4c5a751946",
+        "dc167e28-f4bb-44a6-985f-e22876c4c005",
+        "4772bfd9-b3fa-4957-834a-bf2494260e7a"
+      ],
+      "scores": [
+        1.0,
+        0.5,
+        0.333333,
+        0.25,
+        0.2,
+        0.166667,
+        0.142857,
+        0.125,
+        0.111111,
+        0.1
+      ],
+      "relevant_ids": [
+        "6314aad1-0e6a-483d-a5ed-1974715fbe0a"
+      ],
+      "latency_ms": 11.73
+    },
+    {
+      "query_id": "m0-biology-cell",
+      "chunk_ids": [
+        "dc167e28-f4bb-44a6-985f-e22876c4c005",
+        "d69e6aa2-11e9-4e02-9a38-648bfa60fcd9",
+        "4772bfd9-b3fa-4957-834a-bf2494260e7a",
+        "4d4f174d-bfcf-4f32-bc1a-dec5e4b3f5df",
+        "49b155ea-2c63-4758-b89b-c089e31de9b8",
+        "6314aad1-0e6a-483d-a5ed-1974715fbe0a",
+        "fc7e862f-6ced-48bb-85b0-6837c6763a42",
+        "528d67a8-48f0-4ecd-980e-5c4c5a751946",
+        "08cff645-c5fe-426c-b1fe-38a9c789a798",
+        "326b9905-cfa3-4eec-a923-cd5c91fbf8ea"
+      ],
+      "scores": [
+        1.0,
+        0.5,
+        0.333333,
+        0.25,
+        0.2,
+        0.166667,
+        0.142857,
+        0.125,
+        0.111111,
+        0.1
+      ],
+      "relevant_ids": [
+        "dc167e28-f4bb-44a6-985f-e22876c4c005"
+      ],
+      "latency_ms": 11.183
+    },
+    {
+      "query_id": "m0-database-index",
+      "chunk_ids": [
+        "528d67a8-48f0-4ecd-980e-5c4c5a751946",
+        "fc7e862f-6ced-48bb-85b0-6837c6763a42",
+        "dc167e28-f4bb-44a6-985f-e22876c4c005",
+        "49b155ea-2c63-4758-b89b-c089e31de9b8",
+        "08cff645-c5fe-426c-b1fe-38a9c789a798",
+        "6314aad1-0e6a-483d-a5ed-1974715fbe0a",
+        "326b9905-cfa3-4eec-a923-cd5c91fbf8ea",
+        "d69e6aa2-11e9-4e02-9a38-648bfa60fcd9",
+        "4d4f174d-bfcf-4f32-bc1a-dec5e4b3f5df",
+        "4772bfd9-b3fa-4957-834a-bf2494260e7a"
+      ],
+      "scores": [
+        1.0,
+        0.5,
+        0.333333,
+        0.25,
+        0.2,
+        0.166667,
+        0.142857,
+        0.125,
+        0.111111,
+        0.1
+      ],
+      "relevant_ids": [
+        "528d67a8-48f0-4ecd-980e-5c4c5a751946"
+      ],
+      "latency_ms": 10.703
+    },
+    {
+      "query_id": "m0-physics-force",
+      "chunk_ids": [
+        "d69e6aa2-11e9-4e02-9a38-648bfa60fcd9",
+        "326b9905-cfa3-4eec-a923-cd5c91fbf8ea",
+        "fc7e862f-6ced-48bb-85b0-6837c6763a42",
+        "dc167e28-f4bb-44a6-985f-e22876c4c005",
+        "4772bfd9-b3fa-4957-834a-bf2494260e7a",
+        "528d67a8-48f0-4ecd-980e-5c4c5a751946",
+        "4d4f174d-bfcf-4f32-bc1a-dec5e4b3f5df",
+        "08cff645-c5fe-426c-b1fe-38a9c789a798",
+        "6314aad1-0e6a-483d-a5ed-1974715fbe0a",
+        "49b155ea-2c63-4758-b89b-c089e31de9b8"
+      ],
+      "scores": [
+        1.0,
+        0.5,
+        0.333333,
+        0.25,
+        0.2,
+        0.166667,
+        0.142857,
+        0.125,
+        0.111111,
+        0.1
+      ],
+      "relevant_ids": [
+        "d69e6aa2-11e9-4e02-9a38-648bfa60fcd9"
+      ],
+      "latency_ms": 11.121
+    }
+  ],
+  "analysis": "harness 自检运行：使用确定性替身 Embedding/Rerank 验证四模式管道，不得作为模型质量对比结果。"
+}

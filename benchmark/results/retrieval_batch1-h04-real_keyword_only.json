@@ -1,0 +1,20 @@
+{
+  "run_id": "batch1-h04-real",
+  "run_at": "2026-09-14T13:31:36.322862+00:00",
+  "config": "keyword_only",
+  "dataset_version": "m0-seed-v1",
+  "model_version": "BAAI/bge-large-zh-v1.5",
+  "prompt_version": "synthetic-prompt-v1",
+  "status": "failed",
+  "error_code": "EMBEDDING_PROVIDER_NOT_READY",
+  "error_message": "无法建立包含向量和全文索引的 Ready 评测语料：EmbeddingProviderNotReadyError: EMBEDDING_PROVIDER_NOT_READY：Embedding Provider huggingface 当前未就绪：当前环境缺少本地 Embedding 依赖。请安装本地模型依赖：pip install sentence-transformers。",
+  "environment": {
+    "cpu": "AMD64 Family 23 Model 96 Stepping 1, AuthenticAMD",
+    "memory_mb": 0,
+    "python": "3.13.13",
+    "top_k": 5
+  },
+  "metrics": {},
+  "results": [],
+  "analysis": "真实 Provider 运行：记录实际可用模式的指标，未就绪模式记录失败原因。"
+}

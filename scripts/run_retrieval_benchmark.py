@@ -47,7 +47,7 @@ from backend.app.ai.retrieval.base import (
 from backend.app.ai.retrieval.reranker import BaseReranker, HybridRerankRetriever
 from backend.app.core.config import get_settings
 from backend.app.core.database import create_database_engine
-from backend.app.domain.enums import UserRole
+from backend.app.domain.enums import DocumentStatus, UserRole
 from backend.app.models import (
     Course,
     Document,
@@ -252,22 +252,28 @@ def _make_embedding_provider(self_test: bool) -> BaseEmbeddingProvider:
 
 
 def _embed_texts(provider: BaseEmbeddingProvider, texts: Sequence[str]) -> list[list[float]]:
-    """同步调用异步 Embedding Provider。"""
+    """同步调用异步 Embedding Provider，批量编码语料文档。"""
 
     return asyncio.run(provider.embed_documents(list(texts)))
+
+
+def _embed_queries(provider: BaseEmbeddingProvider, queries: Sequence[str]) -> list[list[float]]:
+    """逐条调用查询编码接口，保留 Provider 的查询前缀和语义约定。"""
+
+    async def encode() -> list[list[float]]:
+        return [await provider.embed_query(query) for query in queries]
+
+    return asyncio.run(encode())
 
 
 def seed_corpus(
     session: Session,
     cases: Sequence[RetrievalCase],
-    vectors: Sequence[Sequence[float]] | None,
+    vectors: Sequence[Sequence[float]],
     *,
     run_id: str,
 ) -> dict[str, Any]:
-    """把评测语料写入真实数据库，并返回可供过滤与清理的标识。
-
-    ``vectors`` 为 ``None`` 时不写向量（关键词模式不依赖 Embedding，仍需真实语料）。
-    """
+    """写入完整评测语料后同事务设置 Ready，返回过滤与清理标识。"""
 
     teacher = User(
         username=f"benchmark-{run_id}",
@@ -296,7 +302,7 @@ def seed_corpus(
             knowledge_base_id=knowledge_base.id,
             chunk_index=index,
             content=case.corpus_text,
-            embedding=list(vectors[index]) if vectors is not None else None,
+            embedding=list(vectors[index]),
             chunk_metadata={
                 "document_id": str(document.id),
                 "course_id": str(course.id),
@@ -307,6 +313,8 @@ def seed_corpus(
         chunk.search_vector = func.to_tsvector("simple", chunk.content)
         chunks.append(chunk)
     session.add_all(chunks)
+    # 评测种子已有文档向量和全文数据，与 Ready 一起提交后才允许检索。
+    document.status = DocumentStatus.READY
     session.commit()
 
     return {
@@ -447,7 +455,7 @@ def write_run_records(
             "python": platform.python_version(),
             "top_k": top_k,
         },
-        "metrics": run.metrics,
+        "metrics": run.metrics if run.status == "ok" else {},
         "results": run.per_query,
         "analysis": analysis,
     }
@@ -474,11 +482,17 @@ def write_run_records(
             prompt_version or "",
             run.status,
             run.error_code or "",
-            f"{run.metrics.get('recall_at_5', 0.0):.4f}",
-            f"{run.metrics.get('recall_at_10', 0.0):.4f}",
-            f"{run.metrics.get('precision_at_5', 0.0):.4f}",
-            f"{run.metrics.get('mrr', 0.0):.4f}",
-            f"{run.metrics.get('latency_p95_ms', 0.0):.3f}",
+            *[
+                format(run.metrics[key], precision)
+                if run.status == "ok" and key in run.metrics else ""
+                for key, precision in (
+                    ("recall_at_5", ".4f"),
+                    ("recall_at_10", ".4f"),
+                    ("precision_at_5", ".4f"),
+                    ("mrr", ".4f"),
+                    ("latency_p95_ms", ".3f"),
+                )
+            ],
             result_path.name,
         ]
     )
@@ -539,29 +553,26 @@ def main(argv: Sequence[str] | None = None) -> int:
             print("document_chunks 表不存在，请先执行 alembic upgrade head。", file=sys.stderr)
             return 1
 
-        try:
-            provider = _make_embedding_provider(args.self_test)
-        except Exception as exc:  # noqa: BLE001  # Provider 未就绪时四模式记录失败
-            print(
-                f"Embedding Provider 未就绪：{type(exc).__name__}: {exc}",
-                file=sys.stderr,
-            )
-            provider = None
-
-        session = Session(bind=engine, expire_on_commit=False)
-        seed: dict[str, Any] = {}
         corpus_vectors: list[list[float]] | None = None
         query_vectors: list[list[float]] | None = None
-        chunk_ids: list[Any] = []
-        if provider is not None:
+        embedding_error: Exception | None = None
+        try:
+            provider = _make_embedding_provider(args.self_test)
             corpus_vectors = _embed_texts(
                 provider, [case.corpus_text for case in cases]
             )
-            # 查询向量取题干文本向量，与语料向量分开计算，避免自匹配。
-            query_vectors = _embed_texts(provider, [case.query for case in cases])
-        # 语料始终写入：关键词模式不依赖 Embedding，仍可产出真实指标。
-        seed = seed_corpus(session, cases, corpus_vectors, run_id=run_id)
-        chunk_ids = list(seed["chunk_ids"])
+            # 查询逐条使用 embed_query，保留模型查询前缀与 Provider 约定。
+            query_vectors = _embed_queries(provider, [case.query for case in cases])
+        except Exception as exc:  # noqa: BLE001  # 原始失败按模式写入记录
+            embedding_error = exc
+            print(f"Embedding 执行失败：{type(exc).__name__}: {exc}", file=sys.stderr)
+
+        session = Session(bind=engine, expire_on_commit=False)
+        seed: dict[str, Any] = {}
+        if corpus_vectors is not None:
+            seed = seed_corpus(session, cases, corpus_vectors, run_id=run_id)
+        # 缺少文档向量时不能伪造 Ready；查询编码失败不影响已有完整语料的关键词检索。
+        chunk_ids = list(seed.get("chunk_ids", []))
         scope = RetrievalFilters(
             document_ids=(seed["document_id"],) if seed else (),
         )
@@ -578,16 +589,32 @@ def main(argv: Sequence[str] | None = None) -> int:
 
         for config_value in args.configs:
             config = RetrievalMode(config_value)
-            run = run_config(
-                session,
-                config,
-                cases,
-                query_vectors,
-                chunk_ids,
-                scope,
-                top_k=args.top_k,
-                self_test=args.self_test,
-            )
+            if embedding_error is not None and (
+                not seed or config is not RetrievalMode.KEYWORD_ONLY
+            ):
+                reason = (
+                    "无法建立包含向量和全文索引的 Ready 评测语料"
+                    if not seed else "无法生成查询向量"
+                )
+                run = ConfigRun(
+                    config=config,
+                    per_query=[],
+                    metrics={},
+                    status="failed",
+                    error_code=getattr(embedding_error, "error_code", type(embedding_error).__name__),
+                    error_message=f"{reason}：{type(embedding_error).__name__}: {embedding_error}",
+                )
+            else:
+                run = run_config(
+                    session,
+                    config,
+                    cases,
+                    query_vectors,
+                    chunk_ids,
+                    scope,
+                    top_k=args.top_k,
+                    self_test=args.self_test,
+                )
             path = write_run_records(
                 run,
                 run_id=run_id,
