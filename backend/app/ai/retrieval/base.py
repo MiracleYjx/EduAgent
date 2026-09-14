@@ -369,6 +369,10 @@ _BUILTIN_RETRIEVERS: Final[Mapping[RetrievalMode, tuple[str, str]]] = MappingPro
             "backend.app.ai.retrieval.hybrid_search",
             "HybridSearchRetriever",
         ),
+        RetrievalMode.HYBRID_RERANK: (
+            "backend.app.ai.retrieval.reranker",
+            "HybridRerankRetriever",
+        ),
     }
 )
 

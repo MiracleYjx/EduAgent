@@ -127,6 +127,10 @@ class AppSettings(BaseSettings):
     confidence_threshold: float = Field(ge=0.0, le=1.0)
     #: Hybrid 检索中向量路的权重 α；关键词路占 1-α。
     hybrid_vector_weight: float = Field(default=0.5, ge=0.0, le=1.0)
+    #: 单次 Rerank 的候选上限，用于控制 LLM token 消耗。
+    rerank_max_candidates: int = Field(default=20, gt=0)
+    #: LLM Rerank 单次调用超时（秒）。
+    rerank_timeout_seconds: float = Field(default=30.0, gt=0)
     JWT_SECRET_KEY: SecretStr
     JWT_ALGORITHM: str = "HS256"
     JWT_EXPIRE_MINUTES: int = Field(default=60, gt=0)

@@ -26,13 +26,11 @@ from backend.app.ai.retrieval.base import (
     DEFAULT_TOP_K,
     MAX_TOP_K,
     RETRIEVAL_INVALID_INPUT,
-    RETRIEVAL_MODE_NOT_IMPLEMENTED,
     RETRIEVAL_UNSUPPORTED_DIALECT,
     BaseRetriever,
     RetrievalFilters,
     RetrievalInputError,
     RetrievalMode,
-    RetrievalModeNotImplementedError,
     RetrievalUnsupportedDialectError,
     RetrievedChunk,
     get_retriever,
@@ -135,27 +133,16 @@ def test_retrieved_chunk_exposes_required_fields_and_source_tracking() -> None:
         RetrievalMode.VECTOR_ONLY,
         RetrievalMode.KEYWORD_ONLY,
         RetrievalMode.HYBRID,
+        RetrievalMode.HYBRID_RERANK,
     ],
 )
 def test_implemented_modes_return_retriever(mode: RetrievalMode) -> None:
-    """vector/keyword/hybrid 三种模式必须能取得实现，且声明自己的模式。"""
+    """四种模式必须能取得实现，且声明自己的模式。"""
 
     retriever = get_retriever(mode)
 
     assert isinstance(retriever, BaseRetriever)
     assert retriever.mode is mode
-
-
-@pytest.mark.parametrize("mode", [RetrievalMode.HYBRID_RERANK])
-def test_unimplemented_modes_fail_explicitly(mode: RetrievalMode) -> None:
-    """HYBRID_RERANK 在 T044 落地前必须明确失败，不能返回伪造候选。"""
-
-    with pytest.raises(RetrievalModeNotImplementedError) as error:
-        get_retriever(mode)
-
-    assert error.value.error_code == RETRIEVAL_MODE_NOT_IMPLEMENTED
-    assert error.value.retryable is False
-    assert error.value.user_message
 
 
 def test_top_k_is_validated() -> None:
