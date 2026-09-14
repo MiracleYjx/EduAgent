@@ -135,7 +135,10 @@ class LocalEmbeddingProvider(BaseEmbeddingProvider):
                 provider_name=self.provider_name,
             ) from exc
 
-        resolved_dimension = getattr(model, "get_sentence_embedding_dimension", None)
+        # 新版 sentence-transformers 使用 get_embedding_dimension；兼容旧版模型接口。
+        resolved_dimension = getattr(model, "get_embedding_dimension", None)
+        if not callable(resolved_dimension):
+            resolved_dimension = getattr(model, "get_sentence_embedding_dimension", None)
         if callable(resolved_dimension):
             reported = resolved_dimension()
             if isinstance(reported, int) and reported > 0:

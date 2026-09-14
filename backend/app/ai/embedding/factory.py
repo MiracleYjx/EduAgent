@@ -131,7 +131,12 @@ def _ensure_builtin_providers() -> None:
         """构造本地 Provider，并把注册名称写入 Provider 标识以支持溯源。"""
 
         def build(settings: AppSettings) -> BaseEmbeddingProvider:
-            provider = LocalEmbeddingProvider.from_settings(settings)
+            # 本地 BGE 通过任一别名加载，都遵循仅在查询侧添加指令的模型约定。
+            provider = (
+                BgeEmbeddingProvider.from_settings(settings)
+                if (settings.embedding_model or "").lower().startswith("baai/bge-")
+                else LocalEmbeddingProvider.from_settings(settings)
+            )
             provider.provider_name = name
             return provider
 

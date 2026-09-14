@@ -127,6 +127,8 @@ class AppSettings(BaseSettings):
     embedding_base_url: AnyUrl | None = None
     embedding_api_key: SecretStr | None = None
     rerank_provider: str
+    #: 未配置时，LLM 沿用 DEEPSEEK_MODEL，Cross Encoder 使用自身默认模型。
+    rerank_model: str | None = None
     confidence_threshold: float = Field(ge=0.0, le=1.0)
     #: Hybrid 检索中向量路的权重 α；关键词路占 1-α。
     hybrid_vector_weight: float = Field(default=0.5, ge=0.0, le=1.0)
@@ -183,10 +185,10 @@ class AppSettings(BaseSettings):
             raise ValueError("JWT_ALGORITHM 当前仅支持 HS256。")
         return value
 
-    @field_validator("embedding_model", "embedding_base_url", mode="before")
+    @field_validator("embedding_model", "embedding_base_url", "rerank_model", mode="before")
     @classmethod
     def _normalize_optional_embedding_text(cls, value: Any) -> Any:
-        """将空的或占位形式的 Embedding 配置规范化为未配置。"""
+        """将空的或占位形式的模型配置规范化为未配置。"""
 
         if value is None:
             return None
@@ -262,6 +264,7 @@ class AppSettings(BaseSettings):
                 REDACTED_VALUE if self.embedding_api_key is not None else None
             ),
             "rerank_provider": self.rerank_provider,
+            "rerank_model": self.rerank_model,
             "confidence_threshold": self.confidence_threshold,
             "JWT_SECRET_KEY": REDACTED_VALUE,
             "JWT_ALGORITHM": self.JWT_ALGORITHM,
