@@ -2,10 +2,20 @@
 
 from __future__ import annotations
 
+import tempfile
+from pathlib import Path
 from typing import Annotated, Any
-from uuid import UUID
+from uuid import UUID, uuid4
 
-from fastapi import APIRouter, Depends, HTTPException, Response, status
+from fastapi import (
+    APIRouter,
+    Depends,
+    File,
+    HTTPException,
+    Response,
+    UploadFile,
+    status,
+)
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 from sqlalchemy.orm import Session
 
@@ -16,6 +26,7 @@ from backend.app.domain.permissions import Permission
 from backend.app.models import User
 from backend.app.services.course_service import CourseNotFoundError, CourseServiceError
 from backend.app.services.knowledge_base_service import (
+    DocumentIngestionResult,
     DocumentNotFoundError,
     DocumentSummary,
     DocumentValidationError,
@@ -29,6 +40,19 @@ from backend.app.services.knowledge_base_service import (
 )
 
 router = APIRouter(prefix="/api/knowledge-bases", tags=["知识库"])
+
+#: 上传资料落盘目录；MVP 使用本地临时目录，后续可替换为配置化存储或对象存储。
+UPLOAD_STORAGE_DIR = Path(tempfile.gettempdir()) / "eduagent_uploads"
+
+
+def _store_upload_bytes(filename: str, data: bytes) -> Path:
+    """把上传的文件内容写入本地存储目录，保留原始扩展名。"""
+
+    UPLOAD_STORAGE_DIR.mkdir(parents=True, exist_ok=True)
+    suffix = Path(filename).suffix.lower() or ".bin"
+    target = UPLOAD_STORAGE_DIR / f"{uuid4().hex}{suffix}"
+    target.write_bytes(data)
+    return target
 
 
 class KnowledgeBaseCreateRequest(BaseModel):
@@ -390,6 +414,47 @@ def create_document(
         raise _knowledge_base_http_exception(exc) from None
 
 
+@router.post(
+    "/{knowledge_base_id}/documents/upload",
+    response_model=DocumentIngestionResult,
+    status_code=status.HTTP_201_CREATED,
+)
+def upload_and_ingest_document(
+    knowledge_base_id: UUID,
+    file: Annotated[UploadFile, File(description="真实资料文件内容。")],
+    teacher: KnowledgeBaseManager,
+    service: KnowledgeBaseServiceDependency,
+) -> DocumentIngestionResult:
+    """上传真实文件内容并触发摄取，返回真实的处理状态。
+
+    与仅登记元数据的 ``POST /{knowledge_base_id}/documents`` 不同，本端点接收 multipart
+    文件正文，落盘后立即执行解析、清洗、分块与 Embedding；返回体中的状态是真实阶段
+    结果（读取失败时给出具体失败原因），不会因为上传成功就报 Ready。
+
+    本端点保持同步：摄取编排器内部使用 ``asyncio.run`` 驱动异步 Provider，FastAPI 会把
+    同步路由放到线程池执行，避免与运行中的事件循环冲突。
+    """
+
+    filename = (file.filename or "").strip()
+    data = file.file.read()
+    try:
+        stored_path = _store_upload_bytes(filename or "upload.bin", data)
+        document = service.upload_document(
+            knowledge_base_id=knowledge_base_id,
+            uploaded_by=teacher.id,
+            original_filename=filename or stored_path.name,
+            storage_path=str(stored_path),
+            teacher_id=teacher.id,
+        )
+        return service.ingest_document(
+            document.id,
+            content=data,
+            teacher_id=teacher.id,
+        )
+    except (CourseServiceError, KnowledgeBaseServiceError, ValueError, OSError) as exc:
+        raise _knowledge_base_http_exception(exc) from None
+
+
 @router.get(
     "/{knowledge_base_id}/documents/{document_id}",
     response_model=DocumentSummary,
@@ -459,6 +524,7 @@ def retry_document(
 
 __all__ = [
     "DocumentCreateRequest",
+    "DocumentIngestionResult",
     "DocumentStatusUpdateRequest",
     "KnowledgeBaseBindRequest",
     "KnowledgeBaseCreateRequest",
