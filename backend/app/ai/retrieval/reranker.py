@@ -211,6 +211,16 @@ class BaseReranker(ABC):
 
         raise NotImplementedError
 
+    async def rerank_async(
+        self,
+        query: str,
+        candidates: Sequence[RetrievedChunk],
+        top_k: int = DEFAULT_TOP_K,
+    ) -> list[RetrievedChunk]:
+        """异步入口；既有同步实现在线程中执行，不阻塞调用方事件循环。"""
+
+        return await asyncio.to_thread(self.rerank, query, candidates, top_k)
+
     def describe(self) -> dict[str, str | int | float | None]:
         """返回 Provider 元数据，供检索结果与 Benchmark 记录来源。"""
 
@@ -254,7 +264,21 @@ class LLMRerankAdapter(BaseReranker):
         candidates: Sequence[RetrievedChunk],
         top_k: int = DEFAULT_TOP_K,
     ) -> list[RetrievedChunk]:
-        """调用 LLM 对候选打分并重排。"""
+        """同步兼容入口；事件循环中的调用方必须使用异步入口。"""
+
+        try:
+            asyncio.get_running_loop()
+        except RuntimeError:
+            return asyncio.run(self.rerank_async(query, candidates, top_k))
+        raise RerankInputError("当前线程已有事件循环，请使用 await rerank_async(...)。")
+
+    async def rerank_async(
+        self,
+        query: str,
+        candidates: Sequence[RetrievedChunk],
+        top_k: int = DEFAULT_TOP_K,
+    ) -> list[RetrievedChunk]:
+        """在调用方事件循环中等待 LLM，保留来源、超时与取消语义。"""
 
         text = normalize_query_text(query)
         limit = normalize_top_k(top_k)
@@ -262,7 +286,7 @@ class LLMRerankAdapter(BaseReranker):
         if not prepared:
             return []
 
-        response = self._invoke(text, prepared)
+        response = await self._invoke(text, prepared)
         known_ids = {candidate.chunk_id for candidate in prepared}
         unknown_ids = [
             item.chunk_id for item in response.rankings if item.chunk_id not in known_ids
@@ -274,7 +298,7 @@ class LLMRerankAdapter(BaseReranker):
         scores = {item.chunk_id: float(item.score) for item in response.rankings}
         return _apply_scores(prepared, scores, limit)
 
-    def _invoke(self, text: str, candidates: Sequence[RetrievedChunk]) -> LLMRerankResponse:
+    async def _invoke(self, text: str, candidates: Sequence[RetrievedChunk]) -> LLMRerankResponse:
         """执行一次结构化重排调用，超时与 Provider 错误统一收敛。"""
 
         messages: list[LLMMessage] = [
@@ -282,15 +306,13 @@ class LLMRerankAdapter(BaseReranker):
             {"role": "user", "content": self._build_prompt(text, candidates)},
         ]
         try:
-            result = asyncio.run(
-                asyncio.wait_for(
-                    self._provider.generate_structured(
-                        messages,
-                        LLMRerankResponse,
-                        model=self._model,
-                    ),
-                    timeout=self.timeout,
-                )
+            result = await asyncio.wait_for(
+                self._provider.generate_structured(
+                    messages,
+                    LLMRerankResponse,
+                    model=self._model,
+                ),
+                timeout=self.timeout,
             )
         except TimeoutError as exc:
             raise RerankFailedError(
