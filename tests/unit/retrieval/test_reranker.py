@@ -2,6 +2,11 @@
 
 LLM 路线使用替身 Provider，Cross Encoder 路线使用注入的假模型加载器；两者都不访问
 网络、不下载模型，因此可以稳定纳入普通回归。
+
+TCR（2026-09-14，H01）：原同步测试无法暴露已有事件循环中的崩溃，新增异步调用、
+同步误用、超时、取消和既有同步实现兼容测试。沿用 pytest 和 asyncio.run 驱动真实
+事件循环，不新增测试依赖、不修改 Cross Encoder 实现或放宽既有断言。
+先运行新增用例确认旧实现缺少异步入口，再验证修复。
 """
 
 from __future__ import annotations
@@ -252,6 +257,23 @@ def test_llm_rerank_maps_provider_error() -> None:
         adapter.rerank("查询", [_candidate("chunk-a")], top_k=1)
 
 
+def test_llm_rerank_async_and_sync_entrypoint_inside_running_event_loop() -> None:
+    """已有事件循环时异步入口可用，同步兼容入口给出明确错误。"""
+
+    async def exercise() -> None:
+        provider = StubLLMProvider(response=_llm_response({"chunk-a": 0.8}))
+        adapter = LLMRerankAdapter(provider=provider)
+
+        results = await adapter.rerank_async("查询", [_candidate("chunk-a")], top_k=1)
+
+        assert [item.chunk_id for item in results] == ["chunk-a"]
+        assert results[0].rerank_score == pytest.approx(0.8)
+        with pytest.raises(RerankInputError, match="事件循环"):
+            adapter.rerank("查询", [_candidate("chunk-a")], top_k=1)
+
+    asyncio.run(exercise())
+
+
 def test_llm_rerank_requires_ready_provider(monkeypatch: pytest.MonkeyPatch) -> None:
     """LLM Provider 未就绪时抛 RERANK_PROVIDER_NOT_READY，不静默降级。"""
 
@@ -438,3 +460,58 @@ def test_rerank_inputs_are_validated() -> None:
         adapter.rerank("   ", [_candidate("chunk-a")], top_k=1)
     with pytest.raises(RerankInputError):
         adapter.rerank("查询", "不是候选序列", top_k=1)  # type: ignore[arg-type]
+
+
+def test_llm_rerank_async_keeps_timeout_and_provider_error_codes() -> None:
+    """异步入口保持超时与 Provider 失败的既有错误码。"""
+
+    async def exercise() -> None:
+        for provider in (
+            StubLLMProvider(response=_llm_response({}), delay=1.0),
+            StubLLMProvider(error=LLMProviderError("调用失败")),
+        ):
+            adapter = LLMRerankAdapter(provider=provider, timeout=0.01)
+            with pytest.raises(RerankFailedError) as error:
+                await adapter.rerank_async("查询", [_candidate("chunk-a")])
+            assert error.value.error_code == RERANK_FAILED
+            assert error.value.retryable is True
+            assert error.value.__cause__ is not None
+
+    asyncio.run(exercise())
+
+
+def test_llm_rerank_async_propagates_cancellation_to_provider() -> None:
+    """取消重排会取消同一事件循环中的 Provider，不遗留后台调用。"""
+
+    async def exercise() -> None:
+        started = asyncio.Event()
+        cancelled = asyncio.Event()
+        loop = asyncio.get_running_loop()
+
+        class WaitingProvider(StubLLMProvider):
+            async def generate_structured(self, messages, schema, model=None):
+                assert asyncio.get_running_loop() is loop
+                started.set()
+                try:
+                    await asyncio.Event().wait()
+                finally:
+                    cancelled.set()
+
+        adapter = LLMRerankAdapter(provider=WaitingProvider())
+        task = asyncio.create_task(adapter.rerank_async("查询", [_candidate("chunk-a")]))
+        await asyncio.wait_for(started.wait(), timeout=1.0)
+        task.cancel()
+        with pytest.raises(asyncio.CancelledError):
+            await task
+        assert cancelled.is_set()
+
+    asyncio.run(exercise())
+
+
+def test_sync_reranker_inherits_async_compatibility() -> None:
+    """只实现同步契约的既有适配器仍可通过基类异步入口调用。"""
+
+    reranker = StubReranker(reverse=True)
+    candidates = [_candidate("chunk-a"), _candidate("chunk-b")]
+    results = asyncio.run(reranker.rerank_async("查询", candidates, top_k=1))
+    assert [item.chunk_id for item in results] == ["chunk-b"]
