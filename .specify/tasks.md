@@ -428,3 +428,25 @@ M0 工程骨架 + Benchmark
 ## T092-T118 状态核对说明（2026-09-13）
 
 本次按当前代码可运行性重新核对：共享外壳、题库、考试、答题和管理员视图（T092、T094、T097、T101-T104、T106-T108、T113、T116）保持 [X]。知识库摄取、AI 出题/复核、结果与评测数据依赖尚未完成的 M2-M5 服务，因此 T093、T095、T096、T098-T100、T105、T109-T112、T114-T115、T117 标为 [~]，表示 UI 已实现但业务待接入；T118 标为 [~]，表示布局代码存在但三种视口的实际验收证据待补。后续完成对应服务、授权契约和真实数据联调后，逐项补充验收证据并将部分任务更新为 [X]。
+
+## Phase 9: Prefix-Cache Optimization
+
+**目的**：评估并落地 Reasonix 三区上下文管理在 EduAgent LLM 调用链路中的可复用部分，
+以稳定不可变前缀、保持仅追加日志顺序、隔离易失暂存区为约束，降低 DeepSeek 前缀缓存
+未命中造成的成本。所有命中率或成本收益必须以可复现实验验证；本阶段不改变角色授权、
+结构化输出和既有 Agent/Workflow 业务契约。T125 保持 `BaseLLMProvider.generate_structured`
+现有必需参数兼容；若后续方案改变该抽象方法签名，必须另行标注破坏性变更并提供旧实现
+的兼容适配器。
+
+- [ ] T125 [HIGH] [P] [M3 基础] 在 `backend/app/ai/llm/base.py` 的 `BaseLLMProvider` 中新增 `supports_prefix_cache(self) -> bool` 能力方法，中文说明其表示是否支持 DeepSeek 前缀缓存优化，提供默认返回 `False` 的具体实现，不加 `@abstractmethod`，使其他 Provider 和既有测试 Stub 无需覆写即可继续实例化；仅在 `backend/app/ai/llm/deepseek.py` 的 `DeepSeekProvider` 中覆写返回 `True`，其他 Provider 保持默认 `False`。在新增的 `backend/app/ai/llm/context.py` 中定义 `ContextEnvelope` 与 `ContextManager`，保留版本化不可变前缀、仅追加日志、请求前清空且不得发送的易失暂存区、稳定消息序列化和前缀指纹，并设置 Provider 能力判断环节，激活规则按 T126 执行；保持 `generate_structured(messages, schema, model=None)` 的签名、返回类型以及 JSON Output、Pydantic 校验、重试和回退行为不变，此新增默认方法为非破坏性扩展；在 `tests/unit/ai/test_context_manager.py` 补充三区边界及默认能力继承测试，并将既有 `tests/unit/test_llm.py`、`tests/unit/test_deepseek.py` 的 M0 回归通过列为实施验收条件 per Constitution III/IV/V、plan §2/§7 (missing)
+- [ ] T126 [MEDIUM] [P] [M3 基础] 在 `backend/app/core/config.py` 保留 `ENABLE_PREFIX_CACHE_OPTIMIZATION: bool = False` 的全局开关设计，并在 `.env.example`、`docs/development.md` 说明默认关闭、仅 DeepSeek 路径生效和脱敏要求；在 `backend/app/ai/llm/context.py` 中仅当 `settings.ENABLE_PREFIX_CACHE_OPTIMIZATION == True` 且 `provider.supports_prefix_cache() == True` 时激活 ContextManager 的三区架构，任一条件不满足均沿用现有消息组装及 Provider 调用行为；能力判断仅通过 Provider 方法完成，ContextManager、Agent 和业务 Service 不得通过 Provider 名称字符串或 `DeepSeekProvider` 类型判断分支；在 `tests/unit/ai/test_context_manager.py` 补充测试，覆盖非 DeepSeek Provider 在开关开启时仍不激活、DeepSeek 在开关关闭时不激活、双闸门均开启时激活，以及未激活时请求消息保持原样；配置与文档可与 T125 并行准备，能力门控联调与测试须在 T125 完成后验收 per plan 技术约束、Constitution I/III/V (missing)
+- [ ] T127 [HIGH] [M3] 在 `backend/app/services/grading/` 与待实现的 Grading Agent 中固定版本化系统提示、评分 Schema 和输出约束，将题目/评分标准/学生答案/检索上下文作为请求尾部数据，按事件顺序追加检索与阅卷日志并在调用前移除易失暂存；补充 T052/T069 对应的上下文稳定性契约测试 per FR-031~FR-037、agent-workflow contract、T052/T069 (missing)
+- [ ] T128 [HIGH] [M4] 在 Question Agent（`backend/app/ai/agents/question_agent.py`）中固化系统提示、工具定义和结构化输出示例，将教师条件与检索结果作为仅追加输入，查询草稿和自检过程留在易失暂存区；补充 T067/T075 的前缀字节稳定性测试，不改变候选题审核状态 per FR-024~FR-028、US1、T067/T075 (missing)
+- [ ] T129 [HIGH] [M4] 在 Reviewer Agent（`backend/app/ai/agents/reviewer_agent.py`）中固定复核规则和结构化决策 Schema，将原始评分、证据与复核事件按时间追加，隔离复核决策草稿；补充 T070 的恢复/重试测试并保持 `accept/revise/regrade` 契约不变 per FR-035~FR-037、agent-workflow contract、T070 (missing)
+- [ ] T130 [HIGH] [M4] 在 `backend/app/ai/workflows/` 的阅卷 LangGraph 实现中为节点路由、工具和 Schema 固定不可变前缀，以 WorkflowRun 事件和检查点仅追加记录状态，清空节点级易失计划后再发起下一次 LLM 请求；补充 T072 的暂停/恢复与前缀一致性测试，不改变 Pending/Retrieving/Grading/Needs Review/Completed/Failed/Paused 状态机 per plan §5、data-model.md、T072 (missing)
+- [ ] T131 [MEDIUM] [P] [M3/M4] 在 `backend/app/ai/retrieval/reranker.py` 的 `LLMRerankAdapter` 中复用版本化 `_RERANK_SYSTEM_PROMPT` 前缀，保证候选顺序和请求日志只追加，记录前缀指纹；为 LLM 路线补充命中/未命中契约测试，并明确 Cross Encoder 路线不接入该机制 per FR-032、rag-retrieval contract、T044 (partial)
+- [ ] T132 [MEDIUM] [M5] 在 `backend/app/ai/llm/`、`backend/app/models/` 或现有 AgentRun/Benchmark 记录边界中增加脱敏的前缀版本、前缀指纹、缓存命中状态、模型和 Prompt 版本指标，在 `scripts/` 增加可复现的对照实验并记录数据集/配置/结果；将命中率基线与三区架构结果写入 `docs/`，禁止以未测量估计宣称收益 per Constitution V、plan §7、T086 (missing)
+
+**执行依赖**：T125 为上下文基础，T126 可与 T125 并行但须在相关 Agent 开关验收前完成；T127 依赖 T125/T126 以及 T052/T069，T128 依赖 T125 以及 T067/T075，T129 依赖 T125 以及 T070，T130 依赖 T125 以及 T072，T131 依赖 T125 以及 T044；T132 在 T125-T131 和 T086 的结果记录边界具备后执行。
+
+**目标路径补充**：T126 的配置说明使用 `docs/development.md`；T127 的 Agent 实现使用 `backend/app/ai/agents/grading_agent.py`，契约测试使用 `tests/contract/test_prefix_cache_grading.py`；T128 的测试使用 `tests/contract/test_prefix_cache_question.py`；T129 的测试使用 `tests/contract/test_prefix_cache_reviewer.py`；T130 的 Workflow 测试使用 `tests/integration/test_prefix_cache_workflow.py`；T131 的测试使用 `tests/contract/test_prefix_cache_rerank.py`；T132 的对照脚本使用 `scripts/run_prefix_cache_benchmark.py`，结果说明使用 `docs/evaluation.md` 和 `docs/validation-report.md`。
