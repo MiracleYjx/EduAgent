@@ -3,7 +3,7 @@
 BGE 属于本地句向量模型，复用 :class:`LocalEmbeddingProvider` 的加载与编码逻辑，并补充
 两点 BGE 专有约定：
 
-- 未配置 ``EMBEDDING_MODEL`` 时使用 BGE 中文小模型作为默认值。
+- 未配置 ``EMBEDDING_MODEL`` 时使用 BGE 中文大模型作为默认值。
 - 检索场景下只为查询添加指令前缀（BGE-M3 不需要前缀），文档侧保持原文。
 """
 
@@ -18,7 +18,7 @@ from backend.app.ai.embedding.providers.local import (
 )
 from backend.app.core.config import AppSettings
 
-BGE_DEFAULT_MODEL: Final[str] = "BAAI/bge-small-zh-v1.5"
+BGE_DEFAULT_MODEL: Final[str] = "BAAI/bge-large-zh-v1.5"
 #: BGE v1.5 中文模型建议在检索查询前添加的指令前缀。
 BGE_QUERY_PREFIX: Final[str] = "为这个句子生成表示以用于检索相关文章："
 

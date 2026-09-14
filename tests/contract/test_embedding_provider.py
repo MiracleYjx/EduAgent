@@ -6,6 +6,9 @@
 
 测试只使用可控测试替身、注入的假本地模型与假异步客户端：不访问网络、不下载模型，
 因此可以稳定纳入普通回归。
+
+TCR（2026-09-14，H03）：默认配置契约更新为 1024 维；新增模型自报维度与配置
+不一致的反向测试，防止本地加载器静默覆盖配置。测试替身保留按需推断维度的能力。
 """
 
 from __future__ import annotations
@@ -385,12 +388,29 @@ def test_bge_provider_contract_prefixes_query_only() -> None:
 def test_bge_provider_contract_uses_default_model_when_settings_missing() -> None:
     """未配置 EMBEDDING_MODEL 时 BGE 使用默认模型，而不是抛出空模型错误。"""
 
-    settings = build_test_settings(embedding_model=None, embedding_dimension=None)
+    settings = build_test_settings(embedding_model=None, embedding_dimension=1024)
 
     provider = BgeEmbeddingProvider.from_settings(settings)
 
-    assert provider.model_name == BGE_DEFAULT_MODEL
-    assert provider.dimension is None
+    assert provider.model_name == "BAAI/bge-large-zh-v1.5"
+    assert provider.dimension == 1024
+
+
+def test_local_provider_rejects_model_dimension_instead_of_overwriting_config() -> None:
+    """加载了错误维度的模型必须明确失败，不能覆盖已配置的 1024。"""
+
+    provider = LocalEmbeddingProvider(
+        model="错误维度的测试模型",
+        dimension=1024,
+        model_loader=lambda _name: FakeSentenceTransformer(dimension=768),
+    )
+
+    with pytest.raises(EmbeddingDimensionError) as error:
+        _run(provider.embed_query("课程资料"))
+
+    assert error.value.error_code == EMBEDDING_DIMENSION_MISMATCH
+    assert "768" in str(error.value) and "1024" in str(error.value)
+    assert provider.dimension == 1024
 
 
 def test_factory_contract_registers_and_rejects_invalid_selection() -> None:
@@ -482,7 +502,7 @@ def test_default_factory_contract_creates_ready_cloud_provider() -> None:
     """配置完整的云端 Provider 必须就绪，并能给出可溯源的模型与维度。"""
 
     provider = get_embedding_provider_factory().create(
-        build_test_settings(embedding_provider="openai_compatible")
+        build_test_settings(embedding_provider="openai_compatible", embedding_dimension=8)
     )
 
     assert provider.is_ready() is True
