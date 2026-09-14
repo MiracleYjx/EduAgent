@@ -13,6 +13,7 @@ from backend.app.models.base import Base, TimestampMixin, UUIDPrimaryKeyMixin, e
 
 if TYPE_CHECKING:
     from backend.app.models.course import Course
+    from backend.app.models.document_chunk import DocumentChunk
     from backend.app.models.knowledge_base import KnowledgeBase
     from backend.app.models.user import User
 
@@ -49,6 +50,11 @@ class Document(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     )
     uploader: Mapped[User] = relationship(
         "User", back_populates="uploaded_documents", foreign_keys=[uploaded_by]
+    )
+    chunks: Mapped[list[DocumentChunk]] = relationship(
+        "DocumentChunk",
+        back_populates="document",
+        cascade="all, delete-orphan",
     )
 
 

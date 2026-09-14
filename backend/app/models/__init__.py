@@ -5,6 +5,7 @@ from backend.app.models.answer import Answer
 from backend.app.models.associations import exam_questions, user_roles
 from backend.app.models.course import Course
 from backend.app.models.document import Document
+from backend.app.models.document_chunk import DocumentChunk
 from backend.app.models.exam import Exam
 from backend.app.models.exam_participant import ExamParticipant
 from backend.app.models.knowledge_base import KnowledgeBase
@@ -23,6 +24,7 @@ __all__ = [
     "Base",
     "Course",
     "Document",
+    "DocumentChunk",
     "Exam",
     "ExamParticipant",
     "KnowledgeBase",
