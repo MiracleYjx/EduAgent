@@ -34,6 +34,10 @@ dev = [
     "pytest>=8.0",
     "pytest-asyncio>=0.24",
 ]
+# 可选：本地 Cross Encoder Rerank 路线；未安装时该路线明确报未就绪，不影响主流程。
+rerank = [
+    "sentence-transformers>=3.0",
+]
 
 [tool.setuptools.packages.find]
 include = ["backend*"]
