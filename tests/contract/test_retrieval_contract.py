@@ -131,10 +131,14 @@ def test_retrieved_chunk_exposes_required_fields_and_source_tracking() -> None:
 
 @pytest.mark.parametrize(
     "mode",
-    [RetrievalMode.VECTOR_ONLY, RetrievalMode.KEYWORD_ONLY],
+    [
+        RetrievalMode.VECTOR_ONLY,
+        RetrievalMode.KEYWORD_ONLY,
+        RetrievalMode.HYBRID,
+    ],
 )
 def test_implemented_modes_return_retriever(mode: RetrievalMode) -> None:
-    """vector/keyword 两种模式必须能取得实现，且声明自己的模式。"""
+    """vector/keyword/hybrid 三种模式必须能取得实现，且声明自己的模式。"""
 
     retriever = get_retriever(mode)
 
@@ -142,9 +146,9 @@ def test_implemented_modes_return_retriever(mode: RetrievalMode) -> None:
     assert retriever.mode is mode
 
 
-@pytest.mark.parametrize("mode", [RetrievalMode.HYBRID, RetrievalMode.HYBRID_RERANK])
+@pytest.mark.parametrize("mode", [RetrievalMode.HYBRID_RERANK])
 def test_unimplemented_modes_fail_explicitly(mode: RetrievalMode) -> None:
-    """HYBRID/HYBRID_RERANK 在 T043/T044 前必须明确失败，不能返回伪造候选。"""
+    """HYBRID_RERANK 在 T044 落地前必须明确失败，不能返回伪造候选。"""
 
     with pytest.raises(RetrievalModeNotImplementedError) as error:
         get_retriever(mode)

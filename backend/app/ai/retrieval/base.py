@@ -45,6 +45,30 @@ RETRIEVAL_ERROR_MESSAGES: Final[Mapping[str, str]] = MappingProxyType(
 DEFAULT_TOP_K: Final[int] = 5
 MAX_TOP_K: Final[int] = 50
 
+#: 候选来源标记：单路召回与两路同时召回。
+SOURCE_MODE_VECTOR: Final[str] = "vector"
+SOURCE_MODE_KEYWORD: Final[str] = "keyword"
+SOURCE_MODE_BOTH: Final[str] = "both"
+
+
+@dataclass(frozen=True, slots=True)
+class RetrievalQuery:
+    """混合检索需要的完整查询：查询文本 + 已算好的 query embedding。
+
+    检索层不负责调用 Embedding Provider，因此混合检索要求调用方同时传入两种形式。
+    """
+
+    text: str
+    embedding: tuple[float, ...]
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "text", normalize_query_text(self.text))
+        object.__setattr__(
+            self,
+            "embedding",
+            tuple(normalize_query_vector(self.embedding)),
+        )
+
 
 class RetrievalError(RuntimeError):
     """检索失败基类；默认按不可重试的输入或配置问题处理。"""
@@ -173,6 +197,8 @@ class RetrievedChunk:
     fusion_score: float | None = None
     rerank_score: float | None = None
     rank: int = 0
+    #: 候选来源标记：vector / keyword / both，便于诊断融合行为。
+    source_mode: str | None = None
 
     @property
     def score(self) -> float:
@@ -202,6 +228,7 @@ class RetrievedChunk:
             "fusion_score": self.fusion_score,
             "rerank_score": self.rerank_score,
             "rank": self.rank,
+            "source_mode": self.source_mode,
             "score": self.score,
         }
 
@@ -213,6 +240,7 @@ class RetrievedChunk:
         rank: int = 0,
         semantic_score: float | None = None,
         keyword_score: float | None = None,
+        source_mode: str | None = None,
     ) -> RetrievedChunk:
         """由 ``DocumentChunk`` 实体构造候选，保留全部来源信息。"""
 
@@ -226,6 +254,7 @@ class RetrievedChunk:
             semantic_score=semantic_score,
             keyword_score=keyword_score,
             rank=rank,
+            source_mode=source_mode,
         )
 
 
@@ -336,6 +365,10 @@ _BUILTIN_RETRIEVERS: Final[Mapping[RetrievalMode, tuple[str, str]]] = MappingPro
             "backend.app.ai.retrieval.keyword_search",
             "KeywordSearchRetriever",
         ),
+        RetrievalMode.HYBRID: (
+            "backend.app.ai.retrieval.hybrid_search",
+            "HybridSearchRetriever",
+        ),
     }
 )
 
@@ -367,12 +400,16 @@ __all__ = [
     "RETRIEVAL_INVALID_INPUT",
     "RETRIEVAL_MODE_NOT_IMPLEMENTED",
     "RETRIEVAL_UNSUPPORTED_DIALECT",
+    "SOURCE_MODE_BOTH",
+    "SOURCE_MODE_KEYWORD",
+    "SOURCE_MODE_VECTOR",
     "BaseRetriever",
     "RetrievalError",
     "RetrievalFilters",
     "RetrievalInputError",
     "RetrievalMode",
     "RetrievalModeNotImplementedError",
+    "RetrievalQuery",
     "RetrievalUnsupportedDialectError",
     "RetrievedChunk",
     "get_retriever",
