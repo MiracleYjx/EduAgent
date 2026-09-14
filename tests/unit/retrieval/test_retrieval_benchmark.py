@@ -1,19 +1,26 @@
 """T045 检索 Benchmark 执行器单元测试：用例构造、指标与记录写入。
 
-不访问数据库与外部模型：只验证规则化标注、指标计算与 JSON/CSV 记录格式（含失败记录）。
+不访问数据库与外部模型：验证规则化标注、指标计算与 JSON/CSV 记录格式（含失败记录）。
+
+TCR（2026-09-14，H04）：新增区分文档/查询操作的 Provider 替身，验证逐条查询编码、
+输入顺序和输出来源；真实主流程、Ready 语料及失败记录由 Benchmark 契约测试覆盖。
+成功指标断言不变，失败 JSON/CSV 指标必须为空，不将替身数据视为模型质量证据。
 """
 
 from __future__ import annotations
 
+import csv
 import json
 from pathlib import Path
 
 import pytest
 
+from backend.app.ai.embedding.base import BaseEmbeddingProvider
 from backend.app.ai.retrieval.base import RetrievalMode
 from scripts.run_retrieval_benchmark import (
     SUMMARY_NAME,
     ConfigRun,
+    _embed_queries,
     build_retrieval_cases,
     compute_metrics,
     percentile,
@@ -193,7 +200,41 @@ def test_write_run_records_marks_failures_without_metrics(tmp_path: Path) -> Non
     assert payload["status"] == "failed"
     assert payload["error_code"] == "EMBEDDING_PROVIDER_NOT_READY"
     assert payload["results"] == []
+    assert payload["metrics"] == {}
 
     summary_row = (tmp_path / SUMMARY_NAME).read_text(encoding="utf-8").splitlines()[1]
     assert "failed" in summary_row
     assert "EMBEDDING_PROVIDER_NOT_READY" in summary_row
+    with (tmp_path / SUMMARY_NAME).open(encoding="utf-8", newline="") as handle:
+        row = next(csv.DictReader(handle))
+    assert all(row[key] == "" for key in (
+        "recall_at_5", "recall_at_10", "precision_at_5", "mrr", "latency_p95_ms",
+    ))
+
+
+def test_embed_queries_uses_provider_query_operation_per_case() -> None:
+    """查询向量必须逐条调用 embed_query，避免复用文档批量编码路径。"""
+
+    class RecordingProvider(BaseEmbeddingProvider):
+        provider_name = "stub"
+        model_name = "query-operation-stub"
+        dimension = 2
+
+        def __init__(self) -> None:
+            self.document_calls: list[list[str]] = []
+            self.query_calls: list[str] = []
+
+        async def embed_documents(self, documents):
+            values = self.ensure_documents(documents)
+            self.document_calls.append(values)
+            return [[1.0, 0.0] for _ in values]
+
+        async def embed_query(self, query):
+            value = self.ensure_query(query)
+            self.query_calls.append(value)
+            return [0.0, 1.0]
+
+    provider = RecordingProvider()
+    assert _embed_queries(provider, ["查询一", "查询二"]) == [[0.0, 1.0], [0.0, 1.0]]
+    assert provider.query_calls == ["查询一", "查询二"]
+    assert provider.document_calls == []

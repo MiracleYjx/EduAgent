@@ -7,3 +7,11 @@ selftest-t045,2026-09-14T01:42:21.359909+00:00,vector_only,m0-seed-v1,stub-hash-
 selftest-t045,2026-09-14T01:42:21.416687+00:00,keyword_only,m0-seed-v1,stub-hash-v1,synthetic-prompt-v1,ok,,1.0000,1.0000,1.0000,1.0000,8.253,retrieval_selftest-t045_keyword_only.json
 selftest-t045,2026-09-14T01:42:21.517431+00:00,hybrid,m0-seed-v1,stub-hash-v1,synthetic-prompt-v1,ok,,1.0000,1.0000,0.2000,0.9500,14.456,retrieval_selftest-t045_hybrid.json
 selftest-t045,2026-09-14T01:42:21.609758+00:00,hybrid_rerank,m0-seed-v1,stub-hash-v1,synthetic-prompt-v1,ok,,1.0000,1.0000,0.2000,0.9500,9.487,retrieval_selftest-t045_hybrid_rerank.json
+batch1-h04-real,2026-09-14T13:31:36.299110+00:00,vector_only,m0-seed-v1,BAAI/bge-large-zh-v1.5,synthetic-prompt-v1,failed,EMBEDDING_PROVIDER_NOT_READY,,,,,,retrieval_batch1-h04-real_vector_only.json
+batch1-h04-real,2026-09-14T13:31:36.322862+00:00,keyword_only,m0-seed-v1,BAAI/bge-large-zh-v1.5,synthetic-prompt-v1,failed,EMBEDDING_PROVIDER_NOT_READY,,,,,,retrieval_batch1-h04-real_keyword_only.json
+batch1-h04-real,2026-09-14T13:31:36.324047+00:00,hybrid,m0-seed-v1,BAAI/bge-large-zh-v1.5,synthetic-prompt-v1,failed,EMBEDDING_PROVIDER_NOT_READY,,,,,,retrieval_batch1-h04-real_hybrid.json
+batch1-h04-real,2026-09-14T13:31:36.325110+00:00,hybrid_rerank,m0-seed-v1,BAAI/bge-large-zh-v1.5,synthetic-prompt-v1,failed,EMBEDDING_PROVIDER_NOT_READY,,,,,,retrieval_batch1-h04-real_hybrid_rerank.json
+batch1-h04-selftest,2026-09-14T13:31:40.958818+00:00,vector_only,m0-seed-v1,stub-hash-v1,synthetic-prompt-v1,ok,,0.6000,1.0000,0.1200,0.5811,11.817,retrieval_batch1-h04-selftest_vector_only.json
+batch1-h04-selftest,2026-09-14T13:31:41.022767+00:00,keyword_only,m0-seed-v1,stub-hash-v1,synthetic-prompt-v1,ok,,1.0000,1.0000,1.0000,1.0000,11.208,retrieval_batch1-h04-selftest_keyword_only.json
+batch1-h04-selftest,2026-09-14T13:31:41.120891+00:00,hybrid,m0-seed-v1,stub-hash-v1,synthetic-prompt-v1,ok,,1.0000,1.0000,0.2000,0.9500,10.642,retrieval_batch1-h04-selftest_hybrid.json
+batch1-h04-selftest,2026-09-14T13:31:41.227977+00:00,hybrid_rerank,m0-seed-v1,stub-hash-v1,synthetic-prompt-v1,ok,,1.0000,1.0000,0.2000,0.9500,11.730,retrieval_batch1-h04-selftest_hybrid_rerank.json
