@@ -1,0 +1,338 @@
+{
+  "run_id": "batch2-h05-real",
+  "run_at": "2026-09-14T16:03:25.844260+00:00",
+  "config": "vector_only",
+  "dataset_version": "m0-seed-v1",
+  "model_version": "BAAI/bge-large-zh-v1.5",
+  "prompt_version": "synthetic-prompt-v1",
+  "status": "ok",
+  "error_code": null,
+  "error_message": null,
+  "environment": {
+    "cpu": "AMD64 Family 23 Model 96 Stepping 1, AuthenticAMD",
+    "memory_mb": 0,
+    "python": "3.13.13",
+    "top_k": 5
+  },
+  "metrics": {
+    "recall_at_5": 1.0,
+    "precision_at_5": 0.2,
+    "recall_at_10": 1.0,
+    "precision_at_10": 0.1,
+    "mrr": 1.0,
+    "latency_p95_ms": 13.088
+  },
+  "results": [
+    {
+      "query_id": "m0-literature-theme",
+      "chunk_ids": [
+        "0c2c0b67-12f1-4ff7-adce-72adbbb6a7ec",
+        "db2ddd4b-f5bb-4862-98de-ecb380e0cd20",
+        "8cd5811f-3f9a-47ca-a5c1-74e2b8086668",
+        "cddbcd5e-becf-4c51-8d8e-eb76cd8c9cee",
+        "5df3438f-3b15-4f74-8005-56bbdcb72710",
+        "e55e4622-b8eb-42b8-b6b3-693e1953f8ef",
+        "8f1b700a-b13f-4d82-902c-b3ea549cb404",
+        "930c7956-0c90-47c5-ae81-ade863423943",
+        "6984dde6-10b9-43a8-a3f7-862b374d34b2",
+        "346f0e5e-6ed7-4e2c-b8b4-5eff407f32dc"
+      ],
+      "scores": [
+        0.776291,
+        0.42656,
+        0.418864,
+        0.38769,
+        0.373036,
+        0.35247,
+        0.333542,
+        0.328222,
+        0.283204,
+        0.270939
+      ],
+      "relevant_ids": [
+        "0c2c0b67-12f1-4ff7-adce-72adbbb6a7ec"
+      ],
+      "latency_ms": 13.088
+    },
+    {
+      "query_id": "m0-math-addition",
+      "chunk_ids": [
+        "346f0e5e-6ed7-4e2c-b8b4-5eff407f32dc",
+        "8f1b700a-b13f-4d82-902c-b3ea549cb404",
+        "e55e4622-b8eb-42b8-b6b3-693e1953f8ef",
+        "8cd5811f-3f9a-47ca-a5c1-74e2b8086668",
+        "930c7956-0c90-47c5-ae81-ade863423943",
+        "0c2c0b67-12f1-4ff7-adce-72adbbb6a7ec",
+        "db2ddd4b-f5bb-4862-98de-ecb380e0cd20",
+        "5df3438f-3b15-4f74-8005-56bbdcb72710",
+        "6984dde6-10b9-43a8-a3f7-862b374d34b2",
+        "cddbcd5e-becf-4c51-8d8e-eb76cd8c9cee"
+      ],
+      "scores": [
+        0.725012,
+        0.351507,
+        0.313147,
+        0.303714,
+        0.226539,
+        0.213769,
+        0.208272,
+        0.183758,
+        0.180999,
+        0.170305
+      ],
+      "relevant_ids": [
+        "346f0e5e-6ed7-4e2c-b8b4-5eff407f32dc"
+      ],
+      "latency_ms": 7.959
+    },
+    {
+      "query_id": "m0-statistics-mean",
+      "chunk_ids": [
+        "8f1b700a-b13f-4d82-902c-b3ea549cb404",
+        "db2ddd4b-f5bb-4862-98de-ecb380e0cd20",
+        "8cd5811f-3f9a-47ca-a5c1-74e2b8086668",
+        "346f0e5e-6ed7-4e2c-b8b4-5eff407f32dc",
+        "e55e4622-b8eb-42b8-b6b3-693e1953f8ef",
+        "cddbcd5e-becf-4c51-8d8e-eb76cd8c9cee",
+        "0c2c0b67-12f1-4ff7-adce-72adbbb6a7ec",
+        "6984dde6-10b9-43a8-a3f7-862b374d34b2",
+        "5df3438f-3b15-4f74-8005-56bbdcb72710",
+        "930c7956-0c90-47c5-ae81-ade863423943"
+      ],
+      "scores": [
+        0.754797,
+        0.300052,
+        0.29692,
+        0.270878,
+        0.266295,
+        0.224855,
+        0.220376,
+        0.219652,
+        0.210124,
+        0.170169
+      ],
+      "relevant_ids": [
+        "8f1b700a-b13f-4d82-902c-b3ea549cb404"
+      ],
+      "latency_ms": 8.617
+    },
+    {
+      "query_id": "m0-history-source",
+      "chunk_ids": [
+        "cddbcd5e-becf-4c51-8d8e-eb76cd8c9cee",
+        "db2ddd4b-f5bb-4862-98de-ecb380e0cd20",
+        "5df3438f-3b15-4f74-8005-56bbdcb72710",
+        "6984dde6-10b9-43a8-a3f7-862b374d34b2",
+        "e55e4622-b8eb-42b8-b6b3-693e1953f8ef",
+        "0c2c0b67-12f1-4ff7-adce-72adbbb6a7ec",
+        "8f1b700a-b13f-4d82-902c-b3ea549cb404",
+        "8cd5811f-3f9a-47ca-a5c1-74e2b8086668",
+        "930c7956-0c90-47c5-ae81-ade863423943",
+        "346f0e5e-6ed7-4e2c-b8b4-5eff407f32dc"
+      ],
+      "scores": [
+        0.810494,
+        0.366578,
+        0.359735,
+        0.336198,
+        0.323094,
+        0.319466,
+        0.273305,
+        0.252929,
+        0.208012,
+        0.17639
+      ],
+      "relevant_ids": [
+        "cddbcd5e-becf-4c51-8d8e-eb76cd8c9cee"
+      ],
+      "latency_ms": 9.04
+    },
+    {
+      "query_id": "m0-ethics-privacy",
+      "chunk_ids": [
+        "5df3438f-3b15-4f74-8005-56bbdcb72710",
+        "cddbcd5e-becf-4c51-8d8e-eb76cd8c9cee",
+        "db2ddd4b-f5bb-4862-98de-ecb380e0cd20",
+        "8cd5811f-3f9a-47ca-a5c1-74e2b8086668",
+        "6984dde6-10b9-43a8-a3f7-862b374d34b2",
+        "e55e4622-b8eb-42b8-b6b3-693e1953f8ef",
+        "0c2c0b67-12f1-4ff7-adce-72adbbb6a7ec",
+        "8f1b700a-b13f-4d82-902c-b3ea549cb404",
+        "930c7956-0c90-47c5-ae81-ade863423943",
+        "346f0e5e-6ed7-4e2c-b8b4-5eff407f32dc"
+      ],
+      "scores": [
+        0.780479,
+        0.327052,
+        0.267592,
+        0.266441,
+        0.264447,
+        0.252036,
+        0.211608,
+        0.210539,
+        0.200613,
+        0.129419
+      ],
+      "relevant_ids": [
+        "5df3438f-3b15-4f74-8005-56bbdcb72710"
+      ],
+      "latency_ms": 8.192
+    },
+    {
+      "query_id": "m0-network-dns",
+      "chunk_ids": [
+        "6984dde6-10b9-43a8-a3f7-862b374d34b2",
+        "db2ddd4b-f5bb-4862-98de-ecb380e0cd20",
+        "cddbcd5e-becf-4c51-8d8e-eb76cd8c9cee",
+        "e55e4622-b8eb-42b8-b6b3-693e1953f8ef",
+        "930c7956-0c90-47c5-ae81-ade863423943",
+        "8cd5811f-3f9a-47ca-a5c1-74e2b8086668",
+        "5df3438f-3b15-4f74-8005-56bbdcb72710",
+        "8f1b700a-b13f-4d82-902c-b3ea549cb404",
+        "0c2c0b67-12f1-4ff7-adce-72adbbb6a7ec",
+        "346f0e5e-6ed7-4e2c-b8b4-5eff407f32dc"
+      ],
+      "scores": [
+        0.876159,
+        0.430078,
+        0.326918,
+        0.289436,
+        0.278417,
+        0.261911,
+        0.256026,
+        0.247102,
+        0.237995,
+        0.160508
+      ],
+      "relevant_ids": [
+        "6984dde6-10b9-43a8-a3f7-862b374d34b2"
+      ],
+      "latency_ms": 7.72
+    },
+    {
+      "query_id": "m0-python-list",
+      "chunk_ids": [
+        "8cd5811f-3f9a-47ca-a5c1-74e2b8086668",
+        "db2ddd4b-f5bb-4862-98de-ecb380e0cd20",
+        "0c2c0b67-12f1-4ff7-adce-72adbbb6a7ec",
+        "8f1b700a-b13f-4d82-902c-b3ea549cb404",
+        "e55e4622-b8eb-42b8-b6b3-693e1953f8ef",
+        "5df3438f-3b15-4f74-8005-56bbdcb72710",
+        "6984dde6-10b9-43a8-a3f7-862b374d34b2",
+        "cddbcd5e-becf-4c51-8d8e-eb76cd8c9cee",
+        "930c7956-0c90-47c5-ae81-ade863423943",
+        "346f0e5e-6ed7-4e2c-b8b4-5eff407f32dc"
+      ],
+      "scores": [
+        0.808813,
+        0.32182,
+        0.29737,
+        0.267319,
+        0.256686,
+        0.241523,
+        0.229174,
+        0.218435,
+        0.216125,
+        0.198104
+      ],
+      "relevant_ids": [
+        "8cd5811f-3f9a-47ca-a5c1-74e2b8086668"
+      ],
+      "latency_ms": 6.655
+    },
+    {
+      "query_id": "m0-biology-cell",
+      "chunk_ids": [
+        "e55e4622-b8eb-42b8-b6b3-693e1953f8ef",
+        "930c7956-0c90-47c5-ae81-ade863423943",
+        "8f1b700a-b13f-4d82-902c-b3ea549cb404",
+        "cddbcd5e-becf-4c51-8d8e-eb76cd8c9cee",
+        "8cd5811f-3f9a-47ca-a5c1-74e2b8086668",
+        "6984dde6-10b9-43a8-a3f7-862b374d34b2",
+        "0c2c0b67-12f1-4ff7-adce-72adbbb6a7ec",
+        "5df3438f-3b15-4f74-8005-56bbdcb72710",
+        "db2ddd4b-f5bb-4862-98de-ecb380e0cd20",
+        "346f0e5e-6ed7-4e2c-b8b4-5eff407f32dc"
+      ],
+      "scores": [
+        0.900692,
+        0.313808,
+        0.259898,
+        0.250322,
+        0.24727,
+        0.226071,
+        0.214498,
+        0.20126,
+        0.197867,
+        0.185575
+      ],
+      "relevant_ids": [
+        "e55e4622-b8eb-42b8-b6b3-693e1953f8ef"
+      ],
+      "latency_ms": 6.981
+    },
+    {
+      "query_id": "m0-database-index",
+      "chunk_ids": [
+        "db2ddd4b-f5bb-4862-98de-ecb380e0cd20",
+        "6984dde6-10b9-43a8-a3f7-862b374d34b2",
+        "8cd5811f-3f9a-47ca-a5c1-74e2b8086668",
+        "cddbcd5e-becf-4c51-8d8e-eb76cd8c9cee",
+        "5df3438f-3b15-4f74-8005-56bbdcb72710",
+        "0c2c0b67-12f1-4ff7-adce-72adbbb6a7ec",
+        "8f1b700a-b13f-4d82-902c-b3ea549cb404",
+        "e55e4622-b8eb-42b8-b6b3-693e1953f8ef",
+        "930c7956-0c90-47c5-ae81-ade863423943",
+        "346f0e5e-6ed7-4e2c-b8b4-5eff407f32dc"
+      ],
+      "scores": [
+        0.753534,
+        0.359228,
+        0.342823,
+        0.319609,
+        0.275237,
+        0.274151,
+        0.258775,
+        0.221272,
+        0.221262,
+        0.113562
+      ],
+      "relevant_ids": [
+        "db2ddd4b-f5bb-4862-98de-ecb380e0cd20"
+      ],
+      "latency_ms": 7.088
+    },
+    {
+      "query_id": "m0-physics-force",
+      "chunk_ids": [
+        "930c7956-0c90-47c5-ae81-ade863423943",
+        "e55e4622-b8eb-42b8-b6b3-693e1953f8ef",
+        "8cd5811f-3f9a-47ca-a5c1-74e2b8086668",
+        "db2ddd4b-f5bb-4862-98de-ecb380e0cd20",
+        "6984dde6-10b9-43a8-a3f7-862b374d34b2",
+        "5df3438f-3b15-4f74-8005-56bbdcb72710",
+        "0c2c0b67-12f1-4ff7-adce-72adbbb6a7ec",
+        "346f0e5e-6ed7-4e2c-b8b4-5eff407f32dc",
+        "cddbcd5e-becf-4c51-8d8e-eb76cd8c9cee",
+        "8f1b700a-b13f-4d82-902c-b3ea549cb404"
+      ],
+      "scores": [
+        0.801541,
+        0.347816,
+        0.304751,
+        0.261809,
+        0.237553,
+        0.220579,
+        0.211913,
+        0.205209,
+        0.203551,
+        0.192609
+      ],
+      "relevant_ids": [
+        "930c7956-0c90-47c5-ae81-ade863423943"
+      ],
+      "latency_ms": 8.243
+    }
+  ],
+  "analysis": "真实 Provider 运行：记录实际可用模式的指标，未就绪模式记录失败原因。"
+}

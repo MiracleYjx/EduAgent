@@ -9,6 +9,10 @@
 
 TCR（2026-09-14，H03）：默认配置契约更新为 1024 维；新增模型自报维度与配置
 不一致的反向测试，防止本地加载器静默覆盖配置。测试替身保留按需推断维度的能力。
+
+TCR（2026-09-14，H05）：验证 huggingface/local 别名加载 BGE 后仍只给查询添加前缀，
+避免已确认的本地运行配置绕过 BGE 检索约定；缺依赖用例注入未就绪状态，安装本地
+依赖后仍验证原错误契约，不依赖机器状态，也不下载真实模型。
 """
 
 from __future__ import annotations
@@ -413,6 +417,30 @@ def test_local_provider_rejects_model_dimension_instead_of_overwriting_config() 
     assert provider.dimension == 1024
 
 
+@pytest.mark.parametrize("name", ["huggingface", "local"])
+def test_local_aliases_preserve_bge_query_instruction(monkeypatch, name: str) -> None:
+    """Provider 别名不能改变 BGE 的文档/查询编码约定。"""
+
+    import backend.app.ai.embedding.providers.local as local_module
+
+    model = FakeSentenceTransformer(dimension=1024)
+    monkeypatch.setattr(local_module, "load_sentence_transformer", lambda _name: model)
+    monkeypatch.setattr(local_module, "sentence_transformers_available", lambda: True)
+    provider = get_embedding_provider_factory().create(
+        build_test_settings(
+            embedding_provider=name,
+            embedding_model="BAAI/bge-large-zh-v1.5",
+            embedding_dimension=1024,
+        )
+    )
+
+    _run(provider.embed_documents(["课程文档"]))
+    _run(provider.embed_query("查询课程知识"))
+
+    assert provider.provider_name == name
+    assert model.encoded == [["课程文档"], [BGE_QUERY_PREFIX + "查询课程知识"]]
+
+
 def test_factory_contract_registers_and_rejects_invalid_selection() -> None:
     """工厂必须支持注册、拒绝重复注册与重复注册替换，并拒绝未注册 Provider。"""
 
@@ -438,14 +466,17 @@ def test_factory_contract_registers_and_rejects_invalid_selection() -> None:
     assert "huggingface" in str(captured.value)
 
 
-def test_factory_contract_requires_ready_provider() -> None:
+def test_factory_contract_requires_ready_provider(monkeypatch) -> None:
     """未就绪的 Provider 必须抛出明确错误，且不得返回任何实例。"""
 
+    import backend.app.ai.embedding.providers.local as local_module
+
+    monkeypatch.setattr(local_module, "sentence_transformers_available", lambda: False)
     factory = EmbeddingProviderFactory()
     factory.register("local", lambda _settings: LocalEmbeddingProvider(model="未安装依赖"))
     settings = build_test_settings(embedding_provider="local", embedding_model="未安装依赖")
     ready, detail = factory.readiness(settings)
-    # 当前环境未安装 sentence-transformers，因此该 Provider 必须被判定为未就绪。
+    # 明确模拟缺依赖，避免真实环境安装完成后丢失失败路径覆盖。
     assert ready is False
     assert detail is not None and EMBEDDING_PROVIDER_NOT_READY in detail
 

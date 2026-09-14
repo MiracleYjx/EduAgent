@@ -7,6 +7,11 @@ TCR（2026-09-14，H01）：原同步测试无法暴露已有事件循环中的�
 同步误用、超时、取消和既有同步实现兼容测试。沿用 pytest 和 asyncio.run 驱动真实
 事件循环，不新增测试依赖、不修改 Cross Encoder 实现或放宽既有断言。
 先运行新增用例确认旧实现缺少异步入口，再验证修复。
+
+TCR（2026-09-14，H05）：新增 RERANK_MODEL 配置到实际调用的测试与手动备用路线
+模型选择测试；缺依赖用例改为注入缺依赖状态，安装本地运行依赖后仍验证同一错误契约。
+真实调用发现提示未声明输出结构，补充提示包含 JSON 字段契约的断言，避免只传入
+本地校验器却未告知远端模型输出格式。
 """
 
 from __future__ import annotations
@@ -41,8 +46,8 @@ from backend.app.ai.retrieval.reranker import (
     RerankInputError,
     RerankProviderNotReadyError,
     build_reranker,
-    sentence_transformers_available,
 )
+from tests.unit.settings_helpers import build_test_settings
 
 QUERY_VECTOR = (0.1, 0.2, 0.3)
 
@@ -179,6 +184,8 @@ def test_llm_rerank_orders_candidates_and_keeps_sources() -> None:
     assert results[0].fusion_score == pytest.approx(0.4)
     assert provider.calls[0]["model"] == "stub-model"
     assert provider.calls[0]["schema"] is LLMRerankResponse
+    assert "JSON Schema" in provider.prompt
+    assert all(f'"{name}"' in provider.prompt for name in ("rankings", "chunk_id", "score"))
 
 
 def test_llm_rerank_caps_candidates_for_cost_control() -> None:
@@ -290,11 +297,10 @@ def test_llm_rerank_requires_ready_provider(monkeypatch: pytest.MonkeyPatch) -> 
     assert error.value.user_message
 
 
-def test_cross_encoder_requires_optional_dependency() -> None:
+def test_cross_encoder_requires_optional_dependency(monkeypatch) -> None:
     """未安装 sentence-transformers 时必须在初始化阶段明确报未就绪。"""
 
-    if sentence_transformers_available():
-        pytest.skip("本地已安装 sentence-transformers，跳过缺依赖断言。")
+    monkeypatch.setattr(reranker_module, "sentence_transformers_available", lambda: False)
 
     with pytest.raises(RerankProviderNotReadyError) as error:
         CrossEncoderRerankAdapter()
@@ -370,6 +376,39 @@ def test_build_reranker_selects_route_and_rejects_unknown(
     monkeypatch.setattr(reranker_module, "get_settings", lambda: _StubSettings())
     with pytest.raises(RerankInputError):
         build_reranker()
+
+
+def test_rerank_model_configuration_reaches_llm_call(monkeypatch) -> None:
+    """配置的重排模型必须真正传给 Provider，并允许显式参数覆盖。"""
+
+    settings = build_test_settings(rerank_provider="llm", rerank_model="配置的重排模型")
+    monkeypatch.setattr(reranker_module, "get_settings", lambda: settings)
+    provider = StubLLMProvider(response=_llm_response({"chunk-a": 0.8}))
+    adapter = build_reranker(provider=provider)
+    adapter.rerank("课程查询", [_candidate("chunk-a")])
+    assert provider.calls[-1]["model"] == "配置的重排模型"
+    assert adapter.model_name == "配置的重排模型"
+    override = build_reranker(provider=provider, model="显式模型")
+    override.rerank("课程查询", [_candidate("chunk-a")])
+    assert provider.calls[-1]["model"] == "显式模型"
+
+
+def test_manual_cross_encoder_route_uses_its_own_model(monkeypatch) -> None:
+    """手动备用路线不能把默认 LLM 模型当作 Cross Encoder 加载。"""
+
+    settings = build_test_settings(rerank_provider="llm", rerank_model="deepseek-chat")
+    monkeypatch.setattr(reranker_module, "get_settings", lambda: settings)
+    loaded = []
+
+    def loader(name):
+        loaded.append(name)
+        return StubCrossEncoder([0.5])
+
+    build_reranker("cross_encoder", model_loader=loader).rerank("课程查询", [_candidate("a")])
+    settings.rerank_provider = "cross_encoder"
+    settings.rerank_model = "备用模型"
+    build_reranker(model_loader=loader).rerank("课程查询", [_candidate("a")])
+    assert loaded == ["BAAI/bge-reranker-base", "备用模型"]
 
 
 def test_hybrid_rerank_returns_empty_context_without_calling_reranker() -> None:

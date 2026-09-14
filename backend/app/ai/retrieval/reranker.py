@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import asyncio
 import importlib.util
+import json
 import math
 from abc import ABC, abstractmethod
 from collections.abc import Callable, Sequence
@@ -302,7 +303,12 @@ class LLMRerankAdapter(BaseReranker):
         """执行一次结构化重排调用，超时与 Provider 错误统一收敛。"""
 
         messages: list[LLMMessage] = [
-            {"role": "system", "content": _RERANK_SYSTEM_PROMPT},
+            {
+                "role": "system",
+                "content": _RERANK_SYSTEM_PROMPT
+                + "\n请严格按照以下 JSON Schema 返回 JSON 对象：\n"
+                + json.dumps(LLMRerankResponse.model_json_schema(), ensure_ascii=False),
+            },
             {"role": "user", "content": self._build_prompt(text, candidates)},
         ]
         try:
@@ -452,6 +458,14 @@ def build_reranker(name: str | None = None, **kwargs: Any) -> BaseReranker:
 
     resolved = name if name is not None else get_settings().rerank_provider
     normalized = (resolved or "").strip().lower()
+    if normalized in {"llm", "openai_compatible", "cross_encoder"} and "model" not in kwargs:
+        settings = get_settings()
+        # 显式切换路线时不套用另一条路线的模型；显式 model 参数始终优先。
+        configured_model = settings.rerank_model if normalized == settings.rerank_provider else None
+        if configured_model:
+            kwargs["model"] = configured_model
+        elif normalized in {"llm", "openai_compatible"}:
+            kwargs["model"] = settings.deepseek_model
     if normalized in {"llm", "openai_compatible"}:
         return LLMRerankAdapter(**kwargs)
     if normalized == "cross_encoder":

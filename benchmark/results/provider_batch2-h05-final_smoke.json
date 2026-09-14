@@ -1,0 +1,316 @@
+{
+  "run_id": "batch2-h05-final",
+  "run_at": "2026-09-14T15:55:25.324771+00:00",
+  "status": "ok",
+  "source_file": "docs/rag-smoke-course.txt",
+  "embedding_offline": true,
+  "sentence_transformers_version": "6.0.1",
+  "stages": {
+    "database": {
+      "status": "ok",
+      "embedding_column": "vector(1024)"
+    },
+    "ingestion": {
+      "document_id": "afe90003-7b48-4694-91f8-031c99531501",
+      "status": "Ready",
+      "chunk_count": 5,
+      "error_code": null,
+      "error_message": null,
+      "retryable": false,
+      "detail": null,
+      "vector_count": 5,
+      "search_vector_count": 5,
+      "dimensions": [
+        1024,
+        1024,
+        1024,
+        1024,
+        1024
+      ]
+    },
+    "hybrid": {
+      "status": "ok",
+      "results": [
+        {
+          "chunk_id": "2778d0b7-2832-499b-b0ee-ff6e343cb8f6",
+          "course_id": "09d9c763-1b55-4ef4-a123-76116322d635",
+          "document_id": "afe90003-7b48-4694-91f8-031c99531501",
+          "content": "第二讲：向量检索\n向量检索把课程片段和用户查询编码到同一语义空间。余弦相似度根据两个向量的夹角衡量语义接近程度，方向越接近，相似度通常越高。文档编码和查询编码必须使用兼容的模型、版本和维度。BGE 中文模型可以在查询前添加检索指令，而文档保持原文。向量结果有助于找到表达不同但含义接近的知识，例如查询“如何衡量语义接近程度”时寻找解释余弦相似度的段落。向量分数是相关性的信号，不能直接当作答案正确率或评分置信度。",
+          "metadata": {
+            "chunk_index": 2,
+            "document_id": "afe90003-7b48-4694-91f8-031c99531501",
+            "course_id": "09d9c763-1b55-4ef4-a123-76116322d635",
+            "knowledge_base_id": "e651bc45-2330-4c43-b1a3-9f25f4751ddb",
+            "original_filename": "rag-smoke-course.txt",
+            "file_format": "txt",
+            "location": "第 3 段",
+            "section_index": 3,
+            "start_char": 0,
+            "end_char": 206,
+            "content_sha256": "acec454109a41c826e53174d127bf5a2670f076729749cf6122e2ea62219e6b8"
+          },
+          "semantic_score": 0.7759897708892822,
+          "keyword_score": null,
+          "fusion_score": 0.5,
+          "rerank_score": null,
+          "rank": 0,
+          "source_mode": "vector",
+          "score": 0.5
+        },
+        {
+          "chunk_id": "01e3e0e4-d617-45fd-8a64-70342dc4ebd8",
+          "course_id": "09d9c763-1b55-4ef4-a123-76116322d635",
+          "document_id": "afe90003-7b48-4694-91f8-031c99531501",
+          "content": "第一讲：知识资料摄取\n检索增强生成将课程资料作为回答依据。资料上传后先识别文件格式，再解析文本、清理空白、按段落分块，并为每个片段生成向量。片段需要记录课程、文档、片段序号以及文本位置，回答时才能展示来源。上传成功只表示文件已经接收，不能代表知识已可检索。只有非空文本、向量和全文检索字段全部写入成功，文档才能进入 Ready 状态。解析失败或向量生成失败的文档不能参加检索。",
+          "metadata": {
+            "chunk_index": 1,
+            "document_id": "afe90003-7b48-4694-91f8-031c99531501",
+            "course_id": "09d9c763-1b55-4ef4-a123-76116322d635",
+            "knowledge_base_id": "e651bc45-2330-4c43-b1a3-9f25f4751ddb",
+            "original_filename": "rag-smoke-course.txt",
+            "file_format": "txt",
+            "location": "第 2 段",
+            "section_index": 2,
+            "start_char": 0,
+            "end_char": 188,
+            "content_sha256": "4fcf2a4d27ecb801856c38d639c3e99db16eb154ed8344d1095d5c9ca3e1e556"
+          },
+          "semantic_score": 0.4600304961204529,
+          "keyword_score": null,
+          "fusion_score": 0.08166773165107623,
+          "rerank_score": null,
+          "rank": 1,
+          "source_mode": "vector",
+          "score": 0.08166773165107623
+        },
+        {
+          "chunk_id": "bced805a-a64c-4395-8211-a74b535dbfe9",
+          "course_id": "09d9c763-1b55-4ef4-a123-76116322d635",
+          "document_id": "afe90003-7b48-4694-91f8-031c99531501",
+          "content": "第四讲：候选重排与评测\n重排在初次检索后进一步判断查询与候选的相关性。LLM 重排需要返回结构化的片段标识和分数，并经 Schema 校验，不能新增候选之外的资料。Cross Encoder 是另一条可手动选择的重排路线。重排改变分数和排序，但必须保留原始内容与来源。超时或输出格式错误时应记录失败原因，不能把未重排结果当作成功结果。对同一批查询比较关键词、向量、混合及混合加重排，使用人工相关性标签计算召回率与排序指标。冒烟测试只验证接口和完整流程，不能代替独立语料上的质量评估。",
+          "metadata": {
+            "chunk_index": 4,
+            "document_id": "afe90003-7b48-4694-91f8-031c99531501",
+            "course_id": "09d9c763-1b55-4ef4-a123-76116322d635",
+            "knowledge_base_id": "e651bc45-2330-4c43-b1a3-9f25f4751ddb",
+            "original_filename": "rag-smoke-course.txt",
+            "file_format": "txt",
+            "location": "第 5 段",
+            "section_index": 5,
+            "start_char": 0,
+            "end_char": 241,
+            "content_sha256": "fe489e353adf42b1b248752ecd81418035ad3b368e690f656eb8e4253f7fb66e"
+          },
+          "semantic_score": 0.42493287995257634,
+          "keyword_score": null,
+          "fusion_score": 0.035198244734162526,
+          "rerank_score": null,
+          "rank": 2,
+          "source_mode": "vector",
+          "score": 0.035198244734162526
+        },
+        {
+          "chunk_id": "ddec62ab-4fd8-4ea6-b40e-f87d9f0b1d79",
+          "course_id": "09d9c763-1b55-4ef4-a123-76116322d635",
+          "document_id": "afe90003-7b48-4694-91f8-031c99531501",
+          "content": "第三讲：关键词与混合检索\n关键词检索根据查询词和文档词项的匹配返回片段，适合术语、专有名词和编号。PostgreSQL 可以把正文转换为全文检索字段，并通过 GIN 索引支持词项查询。词项切分会影响中文查询命中率，需要用真实语料检查。混合检索同时获得向量候选和关键词候选，将相同片段去重，对两路分数归一化后加权融合。向量权重和关键词权重之和为一；某一路没有候选时仍应保留另一条路线的真实结果。课程和文档范围必须在数据库查询阶段过滤，防止不同课程的知识混入回答。",
+          "metadata": {
+            "chunk_index": 3,
+            "document_id": "afe90003-7b48-4694-91f8-031c99531501",
+            "course_id": "09d9c763-1b55-4ef4-a123-76116322d635",
+            "knowledge_base_id": "e651bc45-2330-4c43-b1a3-9f25f4751ddb",
+            "original_filename": "rag-smoke-course.txt",
+            "file_format": "txt",
+            "location": "第 4 段",
+            "section_index": 4,
+            "start_char": 0,
+            "end_char": 230,
+            "content_sha256": "b8d8e463a8b66bf8fd46fc50118426a75c8dd467d4a9a1f5e3ab5e04494418f3"
+          },
+          "semantic_score": 0.4093596637248993,
+          "keyword_score": null,
+          "fusion_score": 0.014579198577726934,
+          "rerank_score": null,
+          "rank": 3,
+          "source_mode": "vector",
+          "score": 0.014579198577726934
+        },
+        {
+          "chunk_id": "d952c33f-7f10-4a10-b4cc-dc410864ee8f",
+          "course_id": "09d9c763-1b55-4ef4-a123-76116322d635",
+          "document_id": "afe90003-7b48-4694-91f8-031c99531501",
+          "content": "课程：检索增强生成基础",
+          "metadata": {
+            "chunk_index": 0,
+            "document_id": "afe90003-7b48-4694-91f8-031c99531501",
+            "course_id": "09d9c763-1b55-4ef4-a123-76116322d635",
+            "knowledge_base_id": "e651bc45-2330-4c43-b1a3-9f25f4751ddb",
+            "original_filename": "rag-smoke-course.txt",
+            "file_format": "txt",
+            "location": "第 1 段",
+            "section_index": 1,
+            "start_char": 0,
+            "end_char": 11,
+            "content_sha256": "0fbeb5ce42f781ce9825e42952259ddf6ba19280852da9fadcafe886a5ecd90b"
+          },
+          "semantic_score": 0.39834824204444885,
+          "keyword_score": null,
+          "fusion_score": 0.0,
+          "rerank_score": null,
+          "rank": 4,
+          "source_mode": "vector",
+          "score": 0.0
+        }
+      ]
+    },
+    "rerank": {
+      "status": "ok",
+      "results": [
+        {
+          "chunk_id": "2778d0b7-2832-499b-b0ee-ff6e343cb8f6",
+          "course_id": "09d9c763-1b55-4ef4-a123-76116322d635",
+          "document_id": "afe90003-7b48-4694-91f8-031c99531501",
+          "content": "第二讲：向量检索\n向量检索把课程片段和用户查询编码到同一语义空间。余弦相似度根据两个向量的夹角衡量语义接近程度，方向越接近，相似度通常越高。文档编码和查询编码必须使用兼容的模型、版本和维度。BGE 中文模型可以在查询前添加检索指令，而文档保持原文。向量结果有助于找到表达不同但含义接近的知识，例如查询“如何衡量语义接近程度”时寻找解释余弦相似度的段落。向量分数是相关性的信号，不能直接当作答案正确率或评分置信度。",
+          "metadata": {
+            "chunk_index": 2,
+            "document_id": "afe90003-7b48-4694-91f8-031c99531501",
+            "course_id": "09d9c763-1b55-4ef4-a123-76116322d635",
+            "knowledge_base_id": "e651bc45-2330-4c43-b1a3-9f25f4751ddb",
+            "original_filename": "rag-smoke-course.txt",
+            "file_format": "txt",
+            "location": "第 3 段",
+            "section_index": 3,
+            "start_char": 0,
+            "end_char": 206,
+            "content_sha256": "acec454109a41c826e53174d127bf5a2670f076729749cf6122e2ea62219e6b8"
+          },
+          "semantic_score": 0.7759897708892822,
+          "keyword_score": null,
+          "fusion_score": 0.5,
+          "rerank_score": 0.98,
+          "rank": 0,
+          "source_mode": "vector",
+          "score": 0.98
+        },
+        {
+          "chunk_id": "bced805a-a64c-4395-8211-a74b535dbfe9",
+          "course_id": "09d9c763-1b55-4ef4-a123-76116322d635",
+          "document_id": "afe90003-7b48-4694-91f8-031c99531501",
+          "content": "第四讲：候选重排与评测\n重排在初次检索后进一步判断查询与候选的相关性。LLM 重排需要返回结构化的片段标识和分数，并经 Schema 校验，不能新增候选之外的资料。Cross Encoder 是另一条可手动选择的重排路线。重排改变分数和排序，但必须保留原始内容与来源。超时或输出格式错误时应记录失败原因，不能把未重排结果当作成功结果。对同一批查询比较关键词、向量、混合及混合加重排，使用人工相关性标签计算召回率与排序指标。冒烟测试只验证接口和完整流程，不能代替独立语料上的质量评估。",
+          "metadata": {
+            "chunk_index": 4,
+            "document_id": "afe90003-7b48-4694-91f8-031c99531501",
+            "course_id": "09d9c763-1b55-4ef4-a123-76116322d635",
+            "knowledge_base_id": "e651bc45-2330-4c43-b1a3-9f25f4751ddb",
+            "original_filename": "rag-smoke-course.txt",
+            "file_format": "txt",
+            "location": "第 5 段",
+            "section_index": 5,
+            "start_char": 0,
+            "end_char": 241,
+            "content_sha256": "fe489e353adf42b1b248752ecd81418035ad3b368e690f656eb8e4253f7fb66e"
+          },
+          "semantic_score": 0.42493287995257634,
+          "keyword_score": null,
+          "fusion_score": 0.035198244734162526,
+          "rerank_score": 0.35,
+          "rank": 1,
+          "source_mode": "vector",
+          "score": 0.35
+        },
+        {
+          "chunk_id": "ddec62ab-4fd8-4ea6-b40e-f87d9f0b1d79",
+          "course_id": "09d9c763-1b55-4ef4-a123-76116322d635",
+          "document_id": "afe90003-7b48-4694-91f8-031c99531501",
+          "content": "第三讲：关键词与混合检索\n关键词检索根据查询词和文档词项的匹配返回片段，适合术语、专有名词和编号。PostgreSQL 可以把正文转换为全文检索字段，并通过 GIN 索引支持词项查询。词项切分会影响中文查询命中率，需要用真实语料检查。混合检索同时获得向量候选和关键词候选，将相同片段去重，对两路分数归一化后加权融合。向量权重和关键词权重之和为一；某一路没有候选时仍应保留另一条路线的真实结果。课程和文档范围必须在数据库查询阶段过滤，防止不同课程的知识混入回答。",
+          "metadata": {
+            "chunk_index": 3,
+            "document_id": "afe90003-7b48-4694-91f8-031c99531501",
+            "course_id": "09d9c763-1b55-4ef4-a123-76116322d635",
+            "knowledge_base_id": "e651bc45-2330-4c43-b1a3-9f25f4751ddb",
+            "original_filename": "rag-smoke-course.txt",
+            "file_format": "txt",
+            "location": "第 4 段",
+            "section_index": 4,
+            "start_char": 0,
+            "end_char": 230,
+            "content_sha256": "b8d8e463a8b66bf8fd46fc50118426a75c8dd467d4a9a1f5e3ab5e04494418f3"
+          },
+          "semantic_score": 0.4093596637248993,
+          "keyword_score": null,
+          "fusion_score": 0.014579198577726934,
+          "rerank_score": 0.3,
+          "rank": 2,
+          "source_mode": "vector",
+          "score": 0.3
+        },
+        {
+          "chunk_id": "01e3e0e4-d617-45fd-8a64-70342dc4ebd8",
+          "course_id": "09d9c763-1b55-4ef4-a123-76116322d635",
+          "document_id": "afe90003-7b48-4694-91f8-031c99531501",
+          "content": "第一讲：知识资料摄取\n检索增强生成将课程资料作为回答依据。资料上传后先识别文件格式，再解析文本、清理空白、按段落分块，并为每个片段生成向量。片段需要记录课程、文档、片段序号以及文本位置，回答时才能展示来源。上传成功只表示文件已经接收，不能代表知识已可检索。只有非空文本、向量和全文检索字段全部写入成功，文档才能进入 Ready 状态。解析失败或向量生成失败的文档不能参加检索。",
+          "metadata": {
+            "chunk_index": 1,
+            "document_id": "afe90003-7b48-4694-91f8-031c99531501",
+            "course_id": "09d9c763-1b55-4ef4-a123-76116322d635",
+            "knowledge_base_id": "e651bc45-2330-4c43-b1a3-9f25f4751ddb",
+            "original_filename": "rag-smoke-course.txt",
+            "file_format": "txt",
+            "location": "第 2 段",
+            "section_index": 2,
+            "start_char": 0,
+            "end_char": 188,
+            "content_sha256": "4fcf2a4d27ecb801856c38d639c3e99db16eb154ed8344d1095d5c9ca3e1e556"
+          },
+          "semantic_score": 0.4600304961204529,
+          "keyword_score": null,
+          "fusion_score": 0.08166773165107623,
+          "rerank_score": 0.2,
+          "rank": 3,
+          "source_mode": "vector",
+          "score": 0.2
+        },
+        {
+          "chunk_id": "d952c33f-7f10-4a10-b4cc-dc410864ee8f",
+          "course_id": "09d9c763-1b55-4ef4-a123-76116322d635",
+          "document_id": "afe90003-7b48-4694-91f8-031c99531501",
+          "content": "课程：检索增强生成基础",
+          "metadata": {
+            "chunk_index": 0,
+            "document_id": "afe90003-7b48-4694-91f8-031c99531501",
+            "course_id": "09d9c763-1b55-4ef4-a123-76116322d635",
+            "knowledge_base_id": "e651bc45-2330-4c43-b1a3-9f25f4751ddb",
+            "original_filename": "rag-smoke-course.txt",
+            "file_format": "txt",
+            "location": "第 1 段",
+            "section_index": 1,
+            "start_char": 0,
+            "end_char": 11,
+            "content_sha256": "0fbeb5ce42f781ce9825e42952259ddf6ba19280852da9fadcafe886a5ecd90b"
+          },
+          "semantic_score": 0.39834824204444885,
+          "keyword_score": null,
+          "fusion_score": 0.0,
+          "rerank_score": 0.05,
+          "rank": 4,
+          "source_mode": "vector",
+          "score": 0.05
+        }
+      ]
+    }
+  },
+  "embedding_provider": {
+    "provider": "huggingface",
+    "model": "BAAI/bge-large-zh-v1.5",
+    "dimension": 1024
+  },
+  "query": "向量检索如何用余弦相似度衡量课程资料的语义接近程度？",
+  "query_dimension": 1024,
+  "rerank_provider": {
+    "provider": "llm",
+    "model": "deepseek-chat",
+    "max_candidates": 20
+  },
+  "cleanup": "ok",
+  "elapsed_seconds": 20.078
+}

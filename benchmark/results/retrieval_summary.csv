@@ -15,3 +15,7 @@ batch1-h04-selftest,2026-09-14T13:31:40.958818+00:00,vector_only,m0-seed-v1,stub
 batch1-h04-selftest,2026-09-14T13:31:41.022767+00:00,keyword_only,m0-seed-v1,stub-hash-v1,synthetic-prompt-v1,ok,,1.0000,1.0000,1.0000,1.0000,11.208,retrieval_batch1-h04-selftest_keyword_only.json
 batch1-h04-selftest,2026-09-14T13:31:41.120891+00:00,hybrid,m0-seed-v1,stub-hash-v1,synthetic-prompt-v1,ok,,1.0000,1.0000,0.2000,0.9500,10.642,retrieval_batch1-h04-selftest_hybrid.json
 batch1-h04-selftest,2026-09-14T13:31:41.227977+00:00,hybrid_rerank,m0-seed-v1,stub-hash-v1,synthetic-prompt-v1,ok,,1.0000,1.0000,0.2000,0.9500,11.730,retrieval_batch1-h04-selftest_hybrid_rerank.json
+batch2-h05-real,2026-09-14T16:03:25.844260+00:00,vector_only,m0-seed-v1,BAAI/bge-large-zh-v1.5,synthetic-prompt-v1,ok,,1.0000,1.0000,0.2000,1.0000,13.088,retrieval_batch2-h05-real_vector_only.json
+batch2-h05-real,2026-09-14T16:03:25.904565+00:00,keyword_only,m0-seed-v1,BAAI/bge-large-zh-v1.5,synthetic-prompt-v1,ok,,1.0000,1.0000,1.0000,1.0000,5.280,retrieval_batch2-h05-real_keyword_only.json
+batch2-h05-real,2026-09-14T16:03:26.002220+00:00,hybrid,m0-seed-v1,BAAI/bge-large-zh-v1.5,synthetic-prompt-v1,ok,,1.0000,1.0000,0.2000,1.0000,10.959,retrieval_batch2-h05-real_hybrid.json
+batch2-h05-real,2026-09-14T16:03:54.851869+00:00,hybrid_rerank,m0-seed-v1,BAAI/bge-large-zh-v1.5,synthetic-prompt-v1,ok,,1.0000,1.0000,0.2000,1.0000,3553.576,retrieval_batch2-h05-real_hybrid_rerank.json
