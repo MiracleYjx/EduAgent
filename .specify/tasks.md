@@ -121,7 +121,7 @@ Hybrid + Rerank 在同一数据集上产出带 `chunk_id` 的结果。
 - [X] T038 在 `backend/app/models/document_chunk.py` 和 `migrations/versions/` 中创建 `DocumentChunk` 模型及迁移，支持 pgvector embedding、`search_vector`、元数据、来源关系、HNSW 和 GIN
 - [X] T039 [US1] 在 `backend/app/services/knowledge_base_service.py`、`backend/app/api/knowledge_bases.py` 和 `backend/app/ui/knowledge_base_view.py` 中将资料上传和处理状态连接到知识库服务、API 和 Gradio 界面
 - [X] T040 [US1] 在 `tests/contract/test_retrieval_contract.py` 中增加失败优先的检索契约测试，覆盖来源追踪、空上下文、模式选择和结果字段
-- [ ] T041 在 `backend/app/ai/retrieval/vector_search.py` 中实现 pgvector 语义检索，包括 HNSW 配置和精确近邻 Benchmark 模式
+- [X] T041 在 `backend/app/ai/retrieval/vector_search.py` 中实现 pgvector 语义检索，包括 HNSW 配置和精确近邻 Benchmark 模式
 - [ ] T042 在 `backend/app/ai/retrieval/keyword_search.py` 中实现 PostgreSQL `tsvector + GIN` 关键词检索
 - [ ] T043 在 `backend/app/ai/retrieval/hybrid_search.py` 中实现候选合并、去重、Weighted Score Fusion、Top-K 选择和检索模式切换
 - [ ] T044 在 `backend/app/ai/retrieval/reranker.py` 中实现 Rerank 适配器契约以及 LLM Rerank 和轻量 Cross Encoder 路径，记录重排分数和 Provider 元数据

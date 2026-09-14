@@ -255,18 +255,21 @@ def normalize_top_k(top_k: int = DEFAULT_TOP_K) -> int:
     return top_k
 
 
-def normalize_query_vector(query: Sequence[float]) -> list[float]:
+def normalize_query_vector(query: object) -> list[float]:
     """校验查询向量，返回浮点列表。"""
 
     if isinstance(query, (str, bytes)) or not isinstance(query, Sequence):
         raise RetrievalInputError("语义检索需要 query embedding 向量，而不是文本。")
-    vector = [float(value) for value in query]
+    try:
+        vector = [float(value) for value in query]
+    except (TypeError, ValueError) as exc:
+        raise RetrievalInputError("query embedding 必须是数值序列。") from exc
     if not vector:
         raise RetrievalInputError("query embedding 不能为空。")
     return vector
 
 
-def normalize_query_text(query: str) -> str:
+def normalize_query_text(query: object) -> str:
     """校验关键词查询文本，拒绝空查询和非文本输入。"""
 
     if not isinstance(query, str):
