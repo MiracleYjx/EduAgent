@@ -1,0 +1,9 @@
+run_id,run_at,config,dataset_version,model_version,prompt_version,status,error_code,recall_at_5,recall_at_10,precision_at_5,mrr,latency_p95_ms,result_path
+real-t045,2026-09-14T01:42:19.954942+00:00,vector_only,m0-seed-v1,BAAI/bge-large-zh-v1.5,synthetic-prompt-v1,failed,EMBEDDING_PROVIDER_NOT_READY,0.0000,0.0000,0.0000,0.0000,0.000,retrieval_real-t045_vector_only.json
+real-t045,2026-09-14T01:42:20.008539+00:00,keyword_only,m0-seed-v1,BAAI/bge-large-zh-v1.5,synthetic-prompt-v1,ok,,1.0000,1.0000,1.0000,1.0000,7.556,retrieval_real-t045_keyword_only.json
+real-t045,2026-09-14T01:42:20.010009+00:00,hybrid,m0-seed-v1,BAAI/bge-large-zh-v1.5,synthetic-prompt-v1,failed,EMBEDDING_PROVIDER_NOT_READY,0.0000,0.0000,0.0000,0.0000,0.000,retrieval_real-t045_hybrid.json
+real-t045,2026-09-14T01:42:20.012347+00:00,hybrid_rerank,m0-seed-v1,BAAI/bge-large-zh-v1.5,synthetic-prompt-v1,failed,EMBEDDING_PROVIDER_NOT_READY,0.0000,0.0000,0.0000,0.0000,0.000,retrieval_real-t045_hybrid_rerank.json
+selftest-t045,2026-09-14T01:42:21.359909+00:00,vector_only,m0-seed-v1,stub-hash-v1,synthetic-prompt-v1,ok,,0.6000,1.0000,0.1200,0.5811,11.038,retrieval_selftest-t045_vector_only.json
+selftest-t045,2026-09-14T01:42:21.416687+00:00,keyword_only,m0-seed-v1,stub-hash-v1,synthetic-prompt-v1,ok,,1.0000,1.0000,1.0000,1.0000,8.253,retrieval_selftest-t045_keyword_only.json
+selftest-t045,2026-09-14T01:42:21.517431+00:00,hybrid,m0-seed-v1,stub-hash-v1,synthetic-prompt-v1,ok,,1.0000,1.0000,0.2000,0.9500,14.456,retrieval_selftest-t045_hybrid.json
+selftest-t045,2026-09-14T01:42:21.609758+00:00,hybrid_rerank,m0-seed-v1,stub-hash-v1,synthetic-prompt-v1,ok,,1.0000,1.0000,0.2000,0.9500,9.487,retrieval_selftest-t045_hybrid_rerank.json

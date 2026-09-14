@@ -1,0 +1,27 @@
+{
+  "run_id": "real-t045",
+  "run_at": "2026-09-14T01:42:19.954942+00:00",
+  "config": "vector_only",
+  "dataset_version": "m0-seed-v1",
+  "model_version": "BAAI/bge-large-zh-v1.5",
+  "prompt_version": "synthetic-prompt-v1",
+  "status": "failed",
+  "error_code": "EMBEDDING_PROVIDER_NOT_READY",
+  "error_message": "Embedding Provider 未就绪，无法构造查询向量。",
+  "environment": {
+    "cpu": "AMD64 Family 23 Model 96 Stepping 1, AuthenticAMD",
+    "memory_mb": 0,
+    "python": "3.13.13",
+    "top_k": 5
+  },
+  "metrics": {
+    "recall_at_5": 0.0,
+    "precision_at_5": 0.0,
+    "recall_at_10": 0.0,
+    "precision_at_10": 0.0,
+    "mrr": 0.0,
+    "latency_p95_ms": 0.0
+  },
+  "results": [],
+  "analysis": "真实 Provider 运行：记录实际可用模式的指标，未就绪模式记录失败原因。"
+}

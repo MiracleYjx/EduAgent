@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import hashlib
 from collections.abc import Generator, Sequence
-from dataclasses import fields
+from dataclasses import fields, replace
 from uuid import UUID, uuid4
 
 import pytest
@@ -31,6 +31,7 @@ from backend.app.ai.retrieval.base import (
     RetrievalFilters,
     RetrievalInputError,
     RetrievalMode,
+    RetrievalQuery,
     RetrievalUnsupportedDialectError,
     RetrievedChunk,
     get_retriever,
@@ -39,6 +40,12 @@ from backend.app.ai.retrieval.base import (
     normalize_query_vector,
     normalize_top_k,
     resolve_filters,
+)
+from backend.app.ai.retrieval.reranker import (
+    RERANK_PROVIDER_NOT_READY,
+    BaseReranker,
+    HybridRerankRetriever,
+    RerankProviderNotReadyError,
 )
 from backend.app.core.config import get_settings
 from backend.app.core.database import Base, create_database_engine
@@ -438,14 +445,18 @@ def postgres_session() -> Generator[Session, None, None]:
 def test_postgres_vector_search_matches_exact_baseline(postgres_session: Session) -> None:
     """HNSW 近似结果与精确近邻基线在种子数据上必须给出同一最近邻。"""
 
-    chunk_ids = postgres_session.info["retrieval_seed"]["chunk_ids"]
+    seed = postgres_session.info["retrieval_seed"]
+    chunk_ids = seed["chunk_ids"]
+    scope = RetrievalFilters(document_ids=(seed["document_id"],))
     approximate = get_retriever(RetrievalMode.VECTOR_ONLY)
     exact = get_retriever(RetrievalMode.VECTOR_ONLY, exact=True)
 
     for index in range(len(chunk_ids)):
         query = _vector(index)
-        approximate_hits = approximate.search(postgres_session, query, top_k=2)
-        exact_hits = exact.search(postgres_session, query, top_k=2)
+        approximate_hits = approximate.search(
+            postgres_session, query, top_k=2, filters=scope
+        )
+        exact_hits = exact.search(postgres_session, query, top_k=2, filters=scope)
 
         assert approximate_hits, "语义检索应返回候选"
         assert exact_hits, "精确基线应返回候选"
@@ -523,9 +534,10 @@ def test_postgres_keyword_search_ranks_matching_term(postgres_session: Session) 
     """关键词检索命中术语，返回 ts_rank 分数并保留来源。"""
 
     seed = postgres_session.info["retrieval_seed"]
+    scope = RetrievalFilters(document_ids=(seed["document_id"],))
     retriever = get_retriever(RetrievalMode.KEYWORD_ONLY)
 
-    hits = retriever.search(postgres_session, "余弦距离", top_k=5)
+    hits = retriever.search(postgres_session, "余弦距离", top_k=5, filters=scope)
 
     assert hits
     assert hits[0].chunk_id == str(seed["chunk_ids"][0])
@@ -536,7 +548,7 @@ def test_postgres_keyword_search_ranks_matching_term(postgres_session: Session) 
     assert hits[0].document_id == str(seed["document_id"])
     assert "余弦距离" in hits[0].content
 
-    vector_term = retriever.search(postgres_session, "tsvector", top_k=5)
+    vector_term = retriever.search(postgres_session, "tsvector", top_k=5, filters=scope)
     assert [item.chunk_id for item in vector_term] == [str(seed["chunk_ids"][1])]
 
 
@@ -546,9 +558,10 @@ def test_postgres_keyword_search_supports_websearch_builder(
     """websearch_to_tsquery 同样可用，支持引号与布尔词。"""
 
     seed = postgres_session.info["retrieval_seed"]
+    scope = RetrievalFilters(document_ids=(seed["document_id"],))
     retriever = get_retriever(RetrievalMode.KEYWORD_ONLY, query_builder="websearch")
 
-    hits = retriever.search(postgres_session, '"重排"', top_k=5)
+    hits = retriever.search(postgres_session, '"重排"', top_k=5, filters=scope)
 
     assert [item.chunk_id for item in hits] == [str(seed["chunk_ids"][3])]
 
@@ -679,3 +692,152 @@ def test_postgres_ingested_document_is_keyword_searchable(
             session.delete(course_row)
         session.delete(teacher)
         session.commit()
+
+
+# ---------------------------------------------------------------------------
+# T045 Hybrid / Hybrid + Rerank 契约（SQLite 方言边界 + PostgreSQL 集成）
+# ---------------------------------------------------------------------------
+
+
+class _ContractReranker(BaseReranker):
+    """确定性重排替身：按候选原顺序给出递减分数，不访问外部模型。"""
+
+    provider_name = "contract-stub"
+    model_name = "contract-stub-v1"
+
+    def __init__(self) -> None:
+        self.calls: list[str] = []
+
+    def rerank(
+        self,
+        query: str,
+        candidates: Sequence[RetrievedChunk],
+        top_k: int = DEFAULT_TOP_K,
+    ) -> list[RetrievedChunk]:
+        self.calls.append(query)
+        rescored = [
+            replace(candidate, rerank_score=1.0 / (index + 1))
+            for index, candidate in enumerate(candidates)
+        ]
+        return [
+            replace(candidate, rank=rank)
+            for rank, candidate in enumerate(rescored[:top_k])
+        ]
+
+
+def test_hybrid_requires_text_and_embedding_together(sqlite_session: Session) -> None:
+    """Hybrid 需要查询文本 + 向量，单独传入任一项都明确失败。"""
+
+    hybrid = get_retriever(RetrievalMode.HYBRID)
+
+    with pytest.raises(RetrievalInputError):
+        hybrid.search(sqlite_session, _vector(0))
+    with pytest.raises(RetrievalInputError):
+        hybrid.search(sqlite_session, "余弦距离")
+
+
+def test_hybrid_does_not_silently_degrade_without_keyword_route(
+    sqlite_session: Session,
+) -> None:
+    """非 PostgreSQL 方言下 Hybrid 直接报方言错误，不退化为向量单路。"""
+
+    _seed_course(sqlite_session, name="hybrid-dialect", vectors=[_vector(0)])
+    hybrid = get_retriever(RetrievalMode.HYBRID)
+
+    with pytest.raises(RetrievalUnsupportedDialectError):
+        hybrid.search(sqlite_session, RetrievalQuery("余弦距离", _vector(0)))
+
+
+def test_postgres_hybrid_fuses_both_routes(postgres_session: Session) -> None:
+    """Hybrid 在真实 PostgreSQL 上融合两路候选，并保留来源与分数。"""
+
+    seed = postgres_session.info["retrieval_seed"]
+    hybrid = get_retriever(RetrievalMode.HYBRID, vector_weight=0.5)
+
+    results = hybrid.search(
+        postgres_session,
+        RetrievalQuery("余弦距离", _vector(0)),
+        top_k=5,
+        filters=RetrievalFilters(document_ids=(seed["document_id"],)),
+    )
+
+    assert results
+    assert results[0].chunk_id == str(seed["chunk_ids"][0])
+    assert results[0].source_mode == "both"
+    assert results[0].fusion_score == pytest.approx(1.0, abs=1e-6)
+    assert results[0].semantic_score is not None
+    assert results[0].keyword_score is not None
+    fused_scores = [item.fusion_score or 0.0 for item in results]
+    assert fused_scores == sorted(fused_scores, reverse=True)
+    for rank, item in enumerate(results):
+        assert item.rank == rank
+        assert item.document_id == str(seed["document_id"])
+        assert item.course_id == str(seed["course_id"])
+        assert item.content.strip()
+
+
+def test_postgres_hybrid_empty_context_returns_empty_list(
+    postgres_session: Session,
+) -> None:
+    """Hybrid 在无匹配范围时返回空列表，不抛异常。"""
+
+    hybrid = get_retriever(RetrievalMode.HYBRID)
+
+    assert (
+        hybrid.search(
+            postgres_session,
+            RetrievalQuery("余弦距离", _vector(0)),
+            filters=RetrievalFilters(course_ids=(uuid4(),)),
+        )
+        == []
+    )
+
+
+def test_postgres_hybrid_rerank_scores_after_fusion(postgres_session: Session) -> None:
+    """Hybrid + Rerank 在融合结果上重排，保留融合分数与来源。"""
+
+    seed = postgres_session.info["retrieval_seed"]
+    reranker = _ContractReranker()
+    retriever = HybridRerankRetriever(reranker=reranker, fusion_top_k=20)
+
+    results = retriever.search(
+        postgres_session,
+        RetrievalQuery("余弦距离", _vector(0)),
+        top_k=3,
+        filters=RetrievalFilters(document_ids=(seed["document_id"],)),
+    )
+
+    assert reranker.calls == ["余弦距离"]
+    assert len(results) == 3
+    assert [item.rank for item in results] == [0, 1, 2]
+    assert all(item.rerank_score is not None for item in results)
+    assert results[0].document_id == str(seed["document_id"])
+    assert results[0].fusion_score is not None
+    assert results[0].content.strip()
+
+
+def test_postgres_hybrid_rerank_requires_ready_reranker(
+    postgres_session: Session,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """无可用 Rerank Provider 时 Hybrid + Rerank 明确失败，不返回未重排结果。"""
+
+    from backend.app.ai.retrieval import reranker as reranker_module
+
+    def _raise(**kwargs: object) -> BaseReranker:
+        raise RerankProviderNotReadyError("RERANK_PROVIDER=none 未启用重排。")
+
+    monkeypatch.setattr(reranker_module, "build_reranker", _raise)
+    retriever = HybridRerankRetriever()
+    seed = postgres_session.info["retrieval_seed"]
+
+    with pytest.raises(RerankProviderNotReadyError) as error:
+        retriever.search(
+            postgres_session,
+            RetrievalQuery("余弦距离", _vector(0)),
+            top_k=3,
+            filters=RetrievalFilters(document_ids=(seed["document_id"],)),
+        )
+
+    assert error.value.error_code == RERANK_PROVIDER_NOT_READY
+    assert error.value.retryable is False
