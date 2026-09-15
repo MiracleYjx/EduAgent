@@ -1,7 +1,9 @@
 """四模式检索 Benchmark 执行器（T045）。
 
 按 ``.specify/plan.md`` §2 的规范分别运行 ``vector_only``、``keyword_only``、``hybrid`` 与
-``hybrid_rerank``，把每次运行的完整结果写入 ``benchmark/results/``：
+``hybrid_rerank``，把每次运行的完整结果写入 ``benchmark/results/``。默认加载
+``benchmark/corpus/`` 下已摄取的 Python 教材、Query 和语义标注；保留旧合成数据入口供
+既有契约测试使用：
 
 - 单次运行：``retrieval_<run_id>_<config>.json``（含元数据、指标、逐查询结果与失败原因）。
 - 横向比较：``retrieval_summary.csv``（每次运行一行，失败运行同样写入状态与错误码）。
@@ -9,9 +11,8 @@
 诚实性约束：
 
 - 运行失败（Provider 未就绪、方言不支持等）也写入记录，不伪造指标，不把失败当作 0 分。
-- 数据集来自 ``scripts/generate_synthetic_benchmark.py`` 的合成阅卷样本；该数据集没有
-  query-chunk 相关性标签，因此按规则构造：题干作为 query，包含参考答案的知识片段作为
-  正样本（同一片段也包含题干文本，便于关键词路做术语匹配）。不使用随机数。
+- 新数据集使用 ``annotations.json`` 中的多正样本标注，并排除 ``out_of_scope``；旧合成
+  数据没有 query-chunk 标签时，才按参考答案所在片段构造单一正样本。
 - ``--self-test`` 使用确定性哈希替身 Embedding/Rerank，仅用于验证四模式管道能端到端
   跑通，记录中的 ``model_version`` 会标注为 stub，**不得当作模型质量对比结果**。
 """
@@ -31,6 +32,7 @@ from dataclasses import dataclass, replace
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
+from uuid import UUID
 
 from sqlalchemy import func, select, text
 from sqlalchemy.orm import Session
@@ -60,7 +62,11 @@ from backend.app.models import (
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUTPUT_DIR = PROJECT_ROOT / "benchmark" / "results"
 DATASET_PATH = DEFAULT_OUTPUT_DIR / "synthetic_benchmark.json"
-SUMMARY_NAME = "retrieval_summary.csv"
+CORPUS_DIR = PROJECT_ROOT / "benchmark" / "corpus"
+NEW_CHUNKS_PATH = CORPUS_DIR / "chunks.json"
+NEW_QUERIES_PATH = CORPUS_DIR / "queries.json"
+NEW_ANNOTATIONS_PATH = CORPUS_DIR / "annotations.json"
+SUMMARY_NAME = "retrieval_summary_v2.csv"
 #: 向量维度必须与 ``document_chunks.embedding`` 列一致。
 EMBEDDING_DIMENSION = 1024
 DEFAULT_QUERY_LIMIT = 12
@@ -74,6 +80,8 @@ class RetrievalCase:
     query_id: str
     query: str
     corpus_text: str
+    relevant_ids: tuple[str, ...] = ()
+    out_of_scope: bool = False
 
 
 @dataclass(slots=True)
@@ -108,7 +116,10 @@ class StubHashEmbeddingProvider(BaseEmbeddingProvider):
 
     def _vector(self, text_value: str) -> list[float]:
         digest = hashlib.sha256(text_value.encode("utf-8")).digest()
-        return [digest[index % len(digest)] / 255 for index in range(self.dimension)]
+        dimension = self.dimension
+        if dimension is None:
+            raise RuntimeError("替身 Embedding 未设置向量维度。")
+        return [digest[index % len(digest)] / 255 for index in range(dimension)]
 
 
 class IdentityReranker(BaseReranker):
@@ -149,9 +160,37 @@ def build_retrieval_cases(
     *,
     limit: int = DEFAULT_QUERY_LIMIT,
 ) -> list[RetrievalCase]:
-    """按规则把合成阅卷样本转成检索评测用例（无随机数）。"""
+    """把新标注数据或旧合成样本转换为检索评测用例。"""
 
-    cases: list[RetrievalCase] = []
+    if "queries" in dataset and "annotations" in dataset:
+        annotations = {
+            str(item.get("query_id")): item
+            for item in dataset.get("annotations", [])
+        }
+        cases: list[RetrievalCase] = []
+        for query in list(dataset.get("queries", []))[:limit]:
+            query_id = str(query.get("query_id", ""))
+            annotation = annotations.get(query_id, {})
+            relevant_ids = tuple(
+                str(chunk_id)
+                for chunk_id in annotation.get("positive_chunk_ids", [])
+            )
+            if not query_id or not str(query.get("query", "")).strip():
+                continue
+            if annotation.get("out_of_scope") or not relevant_ids:
+                continue
+            cases.append(
+                RetrievalCase(
+                    query_id=query_id,
+                    query=str(query["query"]).strip(),
+                    corpus_text="",
+                    relevant_ids=relevant_ids,
+                    out_of_scope=False,
+                )
+            )
+        return cases
+
+    cases = []
     for case in list(dataset.get("cases", []))[:limit]:
         question = str(case.get("question", "")).strip()
         answer = str(case.get("reference_answer", "")).strip()
@@ -202,6 +241,7 @@ def compute_metrics(
             metrics[f"recall_at_{k}"] = 0.0
             metrics[f"precision_at_{k}"] = 0.0
         metrics["mrr"] = 0.0
+        metrics["ndcg_at_10"] = 0.0
         metrics["latency_p95_ms"] = 0.0
         return metrics
 
@@ -227,6 +267,19 @@ def compute_metrics(
                 break
         reciprocal_ranks.append(rank)
     metrics["mrr"] = sum(reciprocal_ranks) / len(reciprocal_ranks)
+    ndcgs: list[float] = []
+    for record in per_query:
+        relevant = set(record.get("relevant_ids", []))
+        retrieved = list(record.get("chunk_ids", []))[:10]
+        dcg = sum(
+            1.0 / math.log2(index + 2)
+            for index, chunk_id in enumerate(retrieved)
+            if chunk_id in relevant
+        )
+        ideal_hits = min(len(relevant), 10)
+        idcg = sum(1.0 / math.log2(index + 2) for index in range(ideal_hits))
+        ndcgs.append(dcg / idcg if idcg else 0.0)
+    metrics["ndcg_at_10"] = sum(ndcgs) / len(ndcgs)
     metrics["latency_p95_ms"] = percentile(
         [float(record.get("latency_ms", 0.0)) for record in per_query], 0.95
     )
@@ -236,6 +289,25 @@ def compute_metrics(
 def load_dataset(path: Path = DATASET_PATH) -> dict[str, Any]:
     """读取合成数据集；不存在时按既有生成器重新生成（不写随机数据）。"""
 
+    if (
+        path == DATASET_PATH
+        and NEW_CHUNKS_PATH.is_file()
+        and NEW_QUERIES_PATH.is_file()
+        and NEW_ANNOTATIONS_PATH.is_file()
+    ):
+        chunks = json.loads(NEW_CHUNKS_PATH.read_text(encoding="utf-8"))
+        queries = json.loads(NEW_QUERIES_PATH.read_text(encoding="utf-8"))
+        annotations = json.loads(NEW_ANNOTATIONS_PATH.read_text(encoding="utf-8"))
+        return {
+            "metadata": {
+                "dataset_version": "synthetic-python-basics-v2",
+                "model_version": "bge-large-zh-v1.5",
+                "prompt_version": "llm-rerank-v1",
+            },
+            "corpus": chunks,
+            "queries": queries,
+            "annotations": annotations,
+        }
     if path.is_file():
         return json.loads(path.read_text(encoding="utf-8"))
     from scripts.generate_synthetic_benchmark import generate_synthetic_benchmark
@@ -403,8 +475,10 @@ def run_config(
                     "query_id": case.query_id,
                     "chunk_ids": [item.chunk_id for item in results],
                     "scores": [round(float(item.score), 6) for item in results],
-                    # 正样本规则：该用例的语料片段即唯一相关片段。
-                    "relevant_ids": [str(chunk_ids[index])],
+                    "relevant_ids": list(
+                        case.relevant_ids
+                        or ((str(chunk_ids[index]),) if chunk_ids else ())
+                    ),
                     "latency_ms": round(latency_ms, 3),
                 }
             )
@@ -439,9 +513,10 @@ def write_run_records(
     """写入单次运行 JSON（失败运行同样写入错误状态）并追加汇总行。"""
 
     output_dir.mkdir(parents=True, exist_ok=True)
+    run_at = datetime.now(UTC).isoformat()
     payload = {
         "run_id": run_id,
-        "run_at": datetime.now(UTC).isoformat(),
+        "run_at": run_at,
         "config": run.config.value,
         "dataset_version": dataset_version,
         "model_version": model_version,
@@ -468,14 +543,15 @@ def write_run_records(
     summary_path = output_dir / SUMMARY_NAME
     header = (
         "run_id,run_at,config,dataset_version,model_version,prompt_version,status,"
-        "error_code,recall_at_5,recall_at_10,precision_at_5,mrr,latency_p95_ms,result_path\n"
+        "error_code,recall_at_5,recall_at_10,precision_at_5,mrr,ndcg_at_10,"
+        "latency_p95_ms,result_path\n"
     )
     if not summary_path.is_file():
         summary_path.write_text(header, encoding="utf-8")
     row = ",".join(
         [
             run_id,
-            payload["run_at"],
+            run_at,
             run.config.value,
             dataset_version,
             model_version,
@@ -490,6 +566,7 @@ def write_run_records(
                     ("recall_at_10", ".4f"),
                     ("precision_at_5", ".4f"),
                     ("mrr", ".4f"),
+                    ("ndcg_at_10", ".4f"),
                     ("latency_p95_ms", ".3f"),
                 )
             ],
@@ -523,12 +600,44 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     return parser.parse_args(argv)
 
 
+def _load_ingested_corpus(
+    session: Session,
+    dataset: Mapping[str, Any],
+) -> tuple[UUID, list[str]]:
+    """校验新教材已摄取为 Ready，并返回资料范围与 chunk 标识。"""
+
+    corpus = dataset.get("corpus")
+    if not isinstance(corpus, Mapping):
+        raise TypeError("新数据集缺少 corpus manifest。")
+    document_id = UUID(str(corpus.get("document_id")))
+    expected = [str(item["chunk_id"]) for item in corpus.get("chunks", [])]
+    rows = list(
+        session.scalars(
+            select(DocumentChunk)
+            .where(DocumentChunk.document_id == document_id)
+            .order_by(DocumentChunk.chunk_index)
+        )
+    )
+    actual = [str(row.id) for row in rows]
+    if actual != expected:
+        raise ValueError(
+            f"摄取 chunk 与 manifest 不一致（数据库 {len(actual)}，manifest {len(expected)}）。"
+        )
+    document = session.get(Document, document_id)
+    if document is None or document.status is not DocumentStatus.READY:
+        raise ValueError("教材文档未处于 Ready 状态。")
+    if any(row.embedding is None or row.search_vector is None for row in rows):
+        raise ValueError("教材 chunk 缺少 embedding 或全文检索字段。")
+    return document_id, actual
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     """执行四模式检索 Benchmark。"""
 
     args = parse_args(argv)
     run_id = args.run_id or datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
     dataset = load_dataset()
+    is_ingested_dataset = "corpus" in dataset and "queries" in dataset
     cases = build_retrieval_cases(dataset, limit=args.queries)
     if not cases:
         print("未构造出任何检索用例，请检查合成数据集。", file=sys.stderr)
@@ -556,11 +665,13 @@ def main(argv: Sequence[str] | None = None) -> int:
         corpus_vectors: list[list[float]] | None = None
         query_vectors: list[list[float]] | None = None
         embedding_error: Exception | None = None
+        provider: BaseEmbeddingProvider | None = None
         try:
             provider = _make_embedding_provider(args.self_test)
-            corpus_vectors = _embed_texts(
-                provider, [case.corpus_text for case in cases]
-            )
+            if not is_ingested_dataset:
+                corpus_vectors = _embed_texts(
+                    provider, [case.corpus_text for case in cases]
+                )
             # 查询逐条使用 embed_query，保留模型查询前缀与 Provider 约定。
             query_vectors = _embed_queries(provider, [case.query for case in cases])
         except Exception as exc:  # noqa: BLE001  # 原始失败按模式写入记录
@@ -569,22 +680,39 @@ def main(argv: Sequence[str] | None = None) -> int:
 
         session = Session(bind=engine, expire_on_commit=False)
         seed: dict[str, Any] = {}
-        if corpus_vectors is not None:
+        seeded_temp = False
+        if is_ingested_dataset:
+            try:
+                document_id, chunk_ids = _load_ingested_corpus(session, dataset)
+                seed = {"document_id": document_id}
+            except Exception as exc:  # noqa: BLE001
+                embedding_error = embedding_error or exc
+                chunk_ids = []
+                print(f"教材校验失败：{type(exc).__name__}: {exc}", file=sys.stderr)
+        elif corpus_vectors is not None:
             seed = seed_corpus(session, cases, corpus_vectors, run_id=run_id)
+            seeded_temp = True
         # 缺少文档向量时不能伪造 Ready；查询编码失败不影响已有完整语料的关键词检索。
-        chunk_ids = list(seed.get("chunk_ids", []))
+        if not is_ingested_dataset:
+            chunk_ids = list(seed.get("chunk_ids", []))
         scope = RetrievalFilters(
             document_ids=(seed["document_id"],) if seed else (),
         )
 
         model_version = (
-            "stub-hash-v1" if args.self_test else (get_settings().embedding_model or "unknown")
+            "stub-hash-v1"
+            if args.self_test
+            else (
+                "bge-large-zh-v1.5"
+                if is_ingested_dataset
+                else (get_settings().embedding_model or "unknown")
+            )
         )
         analysis = (
             "harness 自检运行：使用确定性替身 Embedding/Rerank 验证四模式管道，"
             "不得作为模型质量对比结果。"
             if args.self_test
-            else "真实 Provider 运行：记录实际可用模式的指标，未就绪模式记录失败原因。"
+            else "真实 Provider 运行：按教材标注计算指标，未就绪模式记录失败原因。"
         )
 
         for config_value in args.configs:
@@ -619,9 +747,16 @@ def main(argv: Sequence[str] | None = None) -> int:
                 run,
                 run_id=run_id,
                 output_dir=args.output_dir,
-                dataset_version=str(dataset.get("metadata", {}).get("dataset_version", "unknown")),
+                dataset_version=str(
+                    dataset.get("metadata", {}).get("dataset_version", "unknown")
+                ),
                 model_version=model_version,
-                prompt_version=str(dataset.get("metadata", {}).get("prompt_version", "")) or None,
+                prompt_version=(
+                    "llm-rerank-v1"
+                    if is_ingested_dataset
+                    else str(dataset.get("metadata", {}).get("prompt_version", ""))
+                    or None
+                ),
                 top_k=args.top_k,
                 analysis=analysis,
             )
@@ -630,7 +765,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             if run.status != "ok":
                 failed_configs += 1
 
-        if session is not None and seed:
+        if session is not None and seed and seeded_temp:
             cleanup_corpus(session, seed)
         return 1 if failed_configs else 0
     finally:

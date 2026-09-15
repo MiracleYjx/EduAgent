@@ -1,0 +1,407 @@
+{
+  "dataset_version": "synthetic-python-basics-v1",
+  "document_id": "97b6cb59-5908-4982-a011-dc13fb2bea75",
+  "chunk_count": 21,
+  "average_length_chars": 345.95,
+  "chunks": [
+    {
+      "chunk_id": "7e7eed02-621c-4af2-abb5-987ccabdf7a2",
+      "chunk_index": 0,
+      "title": "Python 基础教程",
+      "content": "Python 基础教程\n\n第1章 Python 简介与环境搭建\n\n1.1 什么是 Python\nPython 是一种高级、解释型、通用的编程语言。它由 Guido van Rossum 于 1989 年圣诞节期间开始设计，并于 1991 年首次发布。Python 的设计哲学强调代码的可读性和简洁性，其语法允许程序员用比 C++ 或 Java 更少的代码行表达概念。\nPython 是动态类型语言，支持多种编程范式，包括面向对象、过程式和函数式编程。它拥有庞大的标准库和第三方库生态系统，广泛应用于 Web 开发、数据分析、人工智能、科学计算和自动化脚本等领域。",
+      "metadata": {
+        "chunk_index": 0,
+        "document_id": "97b6cb59-5908-4982-a011-dc13fb2bea75",
+        "course_id": "78a48eba-869e-42ae-8ddb-1b3a3643daa0",
+        "knowledge_base_id": "951dc269-3be4-4429-a9d1-0d29462c5f27",
+        "original_filename": "python_basics.md",
+        "file_format": "markdown",
+        "location": "标题：Python 基础教程；标题：第1章 Python 简介与环境搭建；标题：1.1 什么是 Python",
+        "section_index": 3,
+        "start_char": 0,
+        "end_char": 281,
+        "content_sha256": "1799fb80974219b34617eba582828c23eef0ec032947824950b208cb60f60d46"
+      }
+    },
+    {
+      "chunk_id": "d0552970-a8c6-4f84-837f-6b6410a98301",
+      "chunk_index": 1,
+      "title": "1.2 安装 Python",
+      "content": "1.2 安装 Python\n要开始使用 Python，首先需要在你的计算机上安装 Python 解释器。可以访问 Python 官方网站下载适合你操作系统的安装包。安装时，请确保勾选“Add Python to PATH”选项，以便在命令行中直接使用 Python。\n安装完成后，打开终端或命令提示符，输入 python --version 或 python3 --version，如果显示版本号，说明安装成功。\n对于初学者，推荐使用 Anaconda 发行版，它包含了 Python 以及许多常用的科学计算库，并提供了包管理和环境管理工具 conda。",
+      "metadata": {
+        "chunk_index": 1,
+        "document_id": "97b6cb59-5908-4982-a011-dc13fb2bea75",
+        "course_id": "78a48eba-869e-42ae-8ddb-1b3a3643daa0",
+        "knowledge_base_id": "951dc269-3be4-4429-a9d1-0d29462c5f27",
+        "original_filename": "python_basics.md",
+        "file_format": "markdown",
+        "location": "标题：1.2 安装 Python",
+        "section_index": 4,
+        "start_char": 0,
+        "end_char": 277,
+        "content_sha256": "d18b31f281858529cbe8f149988c0d5ccd37ebb500b427b57b3ab7699e28a442"
+      }
+    },
+    {
+      "chunk_id": "13278529-7781-49ba-a0b1-733798614409",
+      "chunk_index": 2,
+      "title": "1.3 第一个 Python 程序",
+      "content": "1.3 第一个 Python 程序\n让我们从经典的“Hello, World!”程序开始。在文本编辑器中输入以下代码，并保存为 hello.py：\nprint(\"Hello, World!\")\n在命令行中运行 python hello.py，你将在屏幕上看到输出：\nHello, World!\nprint() 是 Python 的内置函数，用于将指定的内容输出到控制台。字符串可以用单引号或双引号括起来。\n注意：Python 对大小写敏感，Print 和 print 是不同的。缩进在 Python 中非常重要，它用于定义代码块，而不是像其他语言那样使用大括号。",
+      "metadata": {
+        "chunk_index": 2,
+        "document_id": "97b6cb59-5908-4982-a011-dc13fb2bea75",
+        "course_id": "78a48eba-869e-42ae-8ddb-1b3a3643daa0",
+        "knowledge_base_id": "951dc269-3be4-4429-a9d1-0d29462c5f27",
+        "original_filename": "python_basics.md",
+        "file_format": "markdown",
+        "location": "标题：1.3 第一个 Python 程序",
+        "section_index": 5,
+        "start_char": 0,
+        "end_char": 281,
+        "content_sha256": "deeaccb85d968facf5deeab3e401001f384c6bf1810855218632411e5e5653f1"
+      }
+    },
+    {
+      "chunk_id": "a13a06b0-69e0-4ffd-aa52-56f22570c211",
+      "chunk_index": 3,
+      "title": "第2章 变量与数据类型",
+      "content": "第2章 变量与数据类型\n\n2.1 变量与赋值\n变量是用于存储数据的命名位置。在 Python 中，你不需要声明变量的类型，直接赋值即可创建变量。例如：\nx = 10\nname = \"Alice\"\nis_student = True\n这里，x 是整数，name 是字符串，is_student 是布尔值。Python 是动态类型语言，变量的类型可以在运行时改变。\n变量名必须遵循标识符规则：以字母或下划线开头，后跟字母、数字或下划线；不能是 Python 的关键字。",
+      "metadata": {
+        "chunk_index": 3,
+        "document_id": "97b6cb59-5908-4982-a011-dc13fb2bea75",
+        "course_id": "78a48eba-869e-42ae-8ddb-1b3a3643daa0",
+        "knowledge_base_id": "951dc269-3be4-4429-a9d1-0d29462c5f27",
+        "original_filename": "python_basics.md",
+        "file_format": "markdown",
+        "location": "标题：第2章 变量与数据类型；标题：2.1 变量与赋值",
+        "section_index": 7,
+        "start_char": 0,
+        "end_char": 232,
+        "content_sha256": "1b876a6dddc7e3a9b9afea86d530e94b75e1de42d6a8837b06f5b1974bae1127"
+      }
+    },
+    {
+      "chunk_id": "a7105ed4-0c2d-4365-b670-a03ad6111ada",
+      "chunk_index": 4,
+      "title": "2.2 基本数据类型",
+      "content": "2.2 基本数据类型\nPython 有几个内置的基本数据类型：\n整数（int）：如 10, -5, 0\n浮点数（float）：如 3.14, -0.5, 2.0\n字符串（str）：如 \"hello\", 'Python'\n布尔值（bool）：True 和 False\n空值（NoneType）：None\n你可以使用 type() 函数来查看变量的类型：\nprint(type(10)) # <class 'int'>\nprint(type(3.14)) # <class 'float'>\nprint(type(\"hello\")) # <class 'str'>\nprint(type(True)) # <class 'bool'>\nprint(type(None)) # <class 'NoneType'>\n注意：Python 的整数没有大小限制，可以表示任意大的整数。浮点数遵循 IEEE 754 双精度标准。",
+      "metadata": {
+        "chunk_index": 4,
+        "document_id": "97b6cb59-5908-4982-a011-dc13fb2bea75",
+        "course_id": "78a48eba-869e-42ae-8ddb-1b3a3643daa0",
+        "knowledge_base_id": "951dc269-3be4-4429-a9d1-0d29462c5f27",
+        "original_filename": "python_basics.md",
+        "file_format": "markdown",
+        "location": "标题：2.2 基本数据类型",
+        "section_index": 8,
+        "start_char": 0,
+        "end_char": 407,
+        "content_sha256": "75972b24201dd6cd15421f468b41753a58d73cc240c252db6f191d6e32dbd789"
+      }
+    },
+    {
+      "chunk_id": "d7d75c19-2dad-43c3-8155-ce5935f7283d",
+      "chunk_index": 5,
+      "title": "2.3 类型转换",
+      "content": "2.3 类型转换\n有时需要在不同类型之间转换。Python 提供了内置函数进行显式类型转换：\nnum_str = \"123\"\nnum_int = int(num_str) # 转换为整数\nnum_float = float(num_str) # 转换为浮点数\nstr_num = str(456) # 转换为字符串\nbool_val = bool(0) # 转换为布尔值，0 为 False，非0为 True\n转换时要注意可能引发的错误，例如 int(\"abc\") 会抛出 ValueError。",
+      "metadata": {
+        "chunk_index": 5,
+        "document_id": "97b6cb59-5908-4982-a011-dc13fb2bea75",
+        "course_id": "78a48eba-869e-42ae-8ddb-1b3a3643daa0",
+        "knowledge_base_id": "951dc269-3be4-4429-a9d1-0d29462c5f27",
+        "original_filename": "python_basics.md",
+        "file_format": "markdown",
+        "location": "标题：2.3 类型转换",
+        "section_index": 9,
+        "start_char": 0,
+        "end_char": 248,
+        "content_sha256": "82c9a6bd2d5df1938801bf6e2bc17a0206356e67dd44da0ba9cb6d2fd4647d93"
+      }
+    },
+    {
+      "chunk_id": "f350786d-fbf5-486a-98df-104445515366",
+      "chunk_index": 6,
+      "title": "第3章 运算符与表达式",
+      "content": "第3章 运算符与表达式\n\n3.1 算术运算符\nPython 支持常见的算术运算符：加 +、减 -、乘 *、除 /、整除 //、取模 %、幂 **。\na = 10\nb = 3\nprint(a + b) # 13\nprint(a - b) # 7\nprint(a * b) # 30\nprint(a / b) # 3.3333333333333335\nprint(a // b) # 3\nprint(a % b) # 1\nprint(a ** b) # 1000\n注意：除法 / 总是返回浮点数，即使能整除。整除 // 返回向下取整的结果。",
+      "metadata": {
+        "chunk_index": 6,
+        "document_id": "97b6cb59-5908-4982-a011-dc13fb2bea75",
+        "course_id": "78a48eba-869e-42ae-8ddb-1b3a3643daa0",
+        "knowledge_base_id": "951dc269-3be4-4429-a9d1-0d29462c5f27",
+        "original_filename": "python_basics.md",
+        "file_format": "markdown",
+        "location": "标题：第3章 运算符与表达式；标题：3.1 算术运算符",
+        "section_index": 11,
+        "start_char": 0,
+        "end_char": 268,
+        "content_sha256": "10bf9a5c62faa1de9531948424a944c7edb5518d39b38900f27140745297955a"
+      }
+    },
+    {
+      "chunk_id": "8c832a64-abc2-4a2e-aaea-9da598bfb901",
+      "chunk_index": 7,
+      "title": "3.2 比较运算符与逻辑运算符",
+      "content": "3.2 比较运算符与逻辑运算符\n比较运算符用于比较两个值，返回布尔值：==、!=、>、=、<=。\n逻辑运算符用于组合布尔表达式：and、or、not。\nx = 5\ny = 10\nprint(x < y) # True\nprint(x == y) # False\nprint(x < y and y > 0) # True\nprint(not (x > y)) # True\n注意：Python 中的逻辑运算符具有短路特性，即 and 和 or 会根据前面的结果决定是否计算后面的表达式。\n\n3.3 赋值运算符与表达式\n除了基本的 =，Python 还支持复合赋值运算符，如 +=、-=、*=、/= 等。\ncount = 0\ncount += 1 # 等价于 count = count + 1\ncount *= 2 # 等价于 count = count * 2\nprint(count) # 2\n表达式是由运算符和操作数组成的序列，它会产生一个值。例如 2 + 3 * 4 是一个表达式，其值为 14。",
+      "metadata": {
+        "chunk_index": 7,
+        "document_id": "97b6cb59-5908-4982-a011-dc13fb2bea75",
+        "course_id": "78a48eba-869e-42ae-8ddb-1b3a3643daa0",
+        "knowledge_base_id": "951dc269-3be4-4429-a9d1-0d29462c5f27",
+        "original_filename": "python_basics.md",
+        "file_format": "markdown",
+        "location": "标题：3.2 比较运算符与逻辑运算符；标题：3.3 赋值运算符与表达式",
+        "section_index": 12,
+        "start_char": 0,
+        "end_char": 452,
+        "content_sha256": "dcb3326e5e8334dd50fe8d234d990cf2ccdaa4f88e6a4d6688c79a01f6b9dbff"
+      }
+    },
+    {
+      "chunk_id": "f42ad0ae-8feb-4bbd-bb7d-9c95d2cc6cb8",
+      "chunk_index": 8,
+      "title": "第4章 控制流",
+      "content": "第4章 控制流\n\n4.1 条件语句\n条件语句允许程序根据条件执行不同的代码块。Python 使用 if、elif、else 关键字。\nscore = 85\nif score >= 90:\n    print(\"优秀\")\nelif score >= 60:\n    print(\"及格\")\nelse:\n    print(\"不及格\")\n运行结果：及格\n注意：冒号和缩进是必须的。Python 使用缩进来表示代码块，通常用 4 个空格。\n\n4.2 循环语句\nPython 有两种循环：for 循环和 while 循环。\nfor 循环用于遍历序列（如列表、字符串、range 对象）：\nfor i in range(5):\n    print(i)\n输出 0 到 4。\nwhile 循环在条件为真时重复执行：\nn = 0\nwhile n < 5:\n    print(n)\n    n += 1\n输出同上。\n注意：要避免无限循环，确保循环条件最终会变为假。可以使用 break 提前退出循环，continue 跳过当前迭代。",
+      "metadata": {
+        "chunk_index": 8,
+        "document_id": "97b6cb59-5908-4982-a011-dc13fb2bea75",
+        "course_id": "78a48eba-869e-42ae-8ddb-1b3a3643daa0",
+        "knowledge_base_id": "951dc269-3be4-4429-a9d1-0d29462c5f27",
+        "original_filename": "python_basics.md",
+        "file_format": "markdown",
+        "location": "标题：第4章 控制流；标题：4.1 条件语句；标题：4.2 循环语句",
+        "section_index": 15,
+        "start_char": 0,
+        "end_char": 459,
+        "content_sha256": "f35fd2121c7efcb9d7959579a1de48ccc800f4db25619e9aecc5a3c4e57ea9fd"
+      }
+    },
+    {
+      "chunk_id": "f310864b-af52-4360-b2a7-c63042daf680",
+      "chunk_index": 9,
+      "title": "4.3 循环中的控制语句",
+      "content": "4.3 循环中的控制语句\nbreak 用于立即终止整个循环；continue 用于跳过当前迭代，进入下一次迭代。\nfor i in range(10):\n    if i == 3:\n        continue\n    if i == 8:\n        break\n    print(i)\n输出：0, 1, 2, 4, 5, 6, 7\n注意：break 和 continue 只能用在循环内部。\n\n第5章 函数\n\n5.1 定义与调用函数\n函数是组织好的、可重复使用的代码块。使用 def 关键字定义函数。\ndef greet(name):\n    \"\"\"向指定的人问好\"\"\"\n    return f\"Hello, {name}!\"\nmessage = greet(\"Alice\")\nprint(message) # Hello, Alice!\n函数可以接受参数，并可选地返回值。如果没有 return，函数返回 None。\n注意：文档字符串（docstring）是可选的，但推荐添加以说明函数用途。",
+      "metadata": {
+        "chunk_index": 9,
+        "document_id": "97b6cb59-5908-4982-a011-dc13fb2bea75",
+        "course_id": "78a48eba-869e-42ae-8ddb-1b3a3643daa0",
+        "knowledge_base_id": "951dc269-3be4-4429-a9d1-0d29462c5f27",
+        "original_filename": "python_basics.md",
+        "file_format": "markdown",
+        "location": "标题：4.3 循环中的控制语句；标题：第5章 函数；标题：5.1 定义与调用函数",
+        "section_index": 17,
+        "start_char": 0,
+        "end_char": 456,
+        "content_sha256": "5dac3a315e25350a9eb3474aa7de69b201a03d777fb00c40a32acee166ebdefd"
+      }
+    },
+    {
+      "chunk_id": "e486e29b-20eb-4bea-890b-b311a01d40b5",
+      "chunk_index": 10,
+      "title": "5.2 参数传递",
+      "content": "5.2 参数传递\nPython 支持多种参数传递方式：位置参数、默认参数、关键字参数、可变参数。\ndef power(base, exponent=2):\n    return base ** exponent\nprint(power(3)) # 9\nprint(power(3, 3)) # 27\nprint(power(exponent=3, base=2)) # 8\n可变参数：*args 接收任意数量的位置参数，**kwargs 接收任意数量的关键字参数。\ndef sum_all(*args):\n    return sum(args)\nprint(sum_all(1, 2, 3)) # 6\n注意：默认参数的值在函数定义时计算，因此避免使用可变对象作为默认值。",
+      "metadata": {
+        "chunk_index": 10,
+        "document_id": "97b6cb59-5908-4982-a011-dc13fb2bea75",
+        "course_id": "78a48eba-869e-42ae-8ddb-1b3a3643daa0",
+        "knowledge_base_id": "951dc269-3be4-4429-a9d1-0d29462c5f27",
+        "original_filename": "python_basics.md",
+        "file_format": "markdown",
+        "location": "标题：5.2 参数传递",
+        "section_index": 20,
+        "start_char": 0,
+        "end_char": 336,
+        "content_sha256": "718f57fb01ea6a2ec4441b930626f40955f8ca7ba1c3d5532a848f2bd02ef9be"
+      }
+    },
+    {
+      "chunk_id": "9c659b1f-443c-4d93-9668-464933558ebd",
+      "chunk_index": 11,
+      "title": "5.3 变量作用域",
+      "content": "5.3 变量作用域\nPython 中的作用域分为局部作用域、嵌套作用域、全局作用域和内置作用域。在函数内部赋值的变量是局部的，除非使用 global 或 nonlocal 声明。\nx = 10\ndef change():\n    global x\n    x = 20\nchange()\nprint(x) # 20\n注意：尽量避免使用 global，因为它会使代码难以调试。\n\n第6章 数据结构\n\n6.1 列表\n列表是可变的有序序列，用方括号表示。\nfruits = [\"apple\", \"banana\", \"cherry\"]\nfruits.append(\"orange\")\nfruits[1] = \"blueberry\"\nprint(fruits) # ['apple', 'blueberry', 'cherry', 'orange']\n列表支持索引、切片、添加、删除等操作。\n注意：列表是可变对象，修改会影响原列表。",
+      "metadata": {
+        "chunk_index": 11,
+        "document_id": "97b6cb59-5908-4982-a011-dc13fb2bea75",
+        "course_id": "78a48eba-869e-42ae-8ddb-1b3a3643daa0",
+        "knowledge_base_id": "951dc269-3be4-4429-a9d1-0d29462c5f27",
+        "original_filename": "python_basics.md",
+        "file_format": "markdown",
+        "location": "标题：5.3 变量作用域；标题：第6章 数据结构；标题：6.1 列表",
+        "section_index": 21,
+        "start_char": 0,
+        "end_char": 411,
+        "content_sha256": "a4c476c30121a67dedbe671cdb5381f51cdc0d5156bcd374131f62bd3433b58d"
+      }
+    },
+    {
+      "chunk_id": "30d3ba2f-9646-4444-ad02-d544ad1a26e3",
+      "chunk_index": 12,
+      "title": "6.2 元组与集合",
+      "content": "6.2 元组与集合\n元组是不可变的有序序列，用圆括号表示。\npoint = (3, 4)\nx, y = point\nprint(x, y) # 3 4\n集合是无序的不重复元素集，用花括号或 set() 创建。\ns = {1, 2, 3, 2}\nprint(s) # {1, 2, 3}\n注意：元组可以作为字典的键，而列表不能。集合用于去重和成员测试。\n\n6.3 字典\n字典是键值对的集合，用花括号表示。\nperson = {\"name\": \"Alice\", \"age\": 25}\nprint(person[\"name\"]) # Alice\nperson[\"age\"] = 26\nprint(person) # {'name': 'Alice', 'age': 26}\n字典的键必须是不可变类型，如字符串、数字或元组。\n注意：从 Python 3.7 开始，字典保持插入顺序。",
+      "metadata": {
+        "chunk_index": 12,
+        "document_id": "97b6cb59-5908-4982-a011-dc13fb2bea75",
+        "course_id": "78a48eba-869e-42ae-8ddb-1b3a3643daa0",
+        "knowledge_base_id": "951dc269-3be4-4429-a9d1-0d29462c5f27",
+        "original_filename": "python_basics.md",
+        "file_format": "markdown",
+        "location": "标题：6.2 元组与集合；标题：6.3 字典",
+        "section_index": 24,
+        "start_char": 0,
+        "end_char": 387,
+        "content_sha256": "6f792cabbe85a394cfd6499507acb3bc5a782d51a5392f90a3e604c6081d2663"
+      }
+    },
+    {
+      "chunk_id": "86c395da-3b8d-49e8-a7d0-f4f81f6c4da1",
+      "chunk_index": 13,
+      "title": "第7章 字符串处理",
+      "content": "第7章 字符串处理\n\n7.1 字符串基础\n字符串是字符的序列，可以用单引号、双引号或三引号定义。\ns1 = 'hello'\ns2 = \"world\"\ns3 = '''多行\n字符串'''\nprint(s1 + \" \" + s2) # hello world\n字符串是不可变的，任何修改操作都会返回新字符串。\n注意：三引号常用于多行字符串或文档字符串。\n\n7.2 常用字符串方法\nPython 提供了丰富的字符串方法，如 upper()、lower()、strip()、split()、join()、replace() 等。\ntext = \" Hello, World! \"\nprint(text.strip()) # \"Hello, World!\"\nprint(text.upper()) # \" HELLO, WORLD! \"\nprint(text.split(\",\")) # [' Hello', ' World! ']\nprint(\"-\".join([\"a\", \"b\"])) # \"a-b\"\n注意：字符串方法不会改变原字符串，而是返回新字符串。",
+      "metadata": {
+        "chunk_index": 13,
+        "document_id": "97b6cb59-5908-4982-a011-dc13fb2bea75",
+        "course_id": "78a48eba-869e-42ae-8ddb-1b3a3643daa0",
+        "knowledge_base_id": "951dc269-3be4-4429-a9d1-0d29462c5f27",
+        "original_filename": "python_basics.md",
+        "file_format": "markdown",
+        "location": "标题：第7章 字符串处理；标题：7.1 字符串基础；标题：7.2 常用字符串方法",
+        "section_index": 27,
+        "start_char": 0,
+        "end_char": 474,
+        "content_sha256": "56f3521aa8f80fccf54d54907a7d21e052f100ba0db90caad70499162ee0da20"
+      }
+    },
+    {
+      "chunk_id": "90e45e9b-3053-401f-99c0-cf10e66a73b6",
+      "chunk_index": 14,
+      "title": "7.3 格式化字符串",
+      "content": "7.3 格式化字符串\nPython 支持多种字符串格式化方式：百分号 %、str.format() 和 f-string（Python 3.6+）。\nname = \"Alice\"\nage = 25\nprint(\"My name is %s, I am %d.\" % (name, age))\nprint(\"My name is {}, I am {}.\".format(name, age))\nprint(f\"My name is {name}, I am {age}.\")\n推荐使用 f-string，它简洁且可读性好。\n注意：f-string 在运行时求值，可以包含表达式。",
+      "metadata": {
+        "chunk_index": 14,
+        "document_id": "97b6cb59-5908-4982-a011-dc13fb2bea75",
+        "course_id": "78a48eba-869e-42ae-8ddb-1b3a3643daa0",
+        "knowledge_base_id": "951dc269-3be4-4429-a9d1-0d29462c5f27",
+        "original_filename": "python_basics.md",
+        "file_format": "markdown",
+        "location": "标题：7.3 格式化字符串",
+        "section_index": 29,
+        "start_char": 0,
+        "end_char": 289,
+        "content_sha256": "7dad28e4060f0c9de33e8e26f907e4288c8241158fd7e5cb4f5b00aad67eeed4"
+      }
+    },
+    {
+      "chunk_id": "d82d6007-e9ba-4b6c-ba75-8102e48b1758",
+      "chunk_index": 15,
+      "title": "第8章 文件操作",
+      "content": "第8章 文件操作\n\n8.1 打开与关闭文件\n使用 open() 函数打开文件，它返回文件对象。操作完成后应调用 close() 关闭文件，或使用 with 语句自动管理。\n# 写入文件\nwith open(\"example.txt\", \"w\", encoding=\"utf-8\") as f:\n    f.write(\"Hello, file!\\n\")\n# 读取文件\nwith open(\"example.txt\", \"r\", encoding=\"utf-8\") as f:\n    content = f.read()\n    print(content)\n注意：使用 with 可以确保文件正确关闭，即使发生异常。\n\n8.2 文件读写模式\nopen() 的第二个参数指定模式：'r' 只读，'w' 写入（覆盖），'a' 追加，'b' 二进制模式，'+' 读写模式。\nwith open(\"data.txt\", \"a\", encoding=\"utf-8\") as f:\n    f.write(\"追加一行\\n\")\n注意：写入模式会清空文件原有内容，追加模式则在末尾添加。",
+      "metadata": {
+        "chunk_index": 15,
+        "document_id": "97b6cb59-5908-4982-a011-dc13fb2bea75",
+        "course_id": "78a48eba-869e-42ae-8ddb-1b3a3643daa0",
+        "knowledge_base_id": "951dc269-3be4-4429-a9d1-0d29462c5f27",
+        "original_filename": "python_basics.md",
+        "file_format": "markdown",
+        "location": "标题：第8章 文件操作；标题：8.1 打开与关闭文件；标题：8.2 文件读写模式",
+        "section_index": 31,
+        "start_char": 0,
+        "end_char": 486,
+        "content_sha256": "13f502f5441a3b8894b3de9efa84d2bb43a41268522f2eb598f95633ac2dfba9"
+      }
+    },
+    {
+      "chunk_id": "cd81cdfa-b6f8-44d8-8a3a-43c92341661b",
+      "chunk_index": 16,
+      "title": "8.3 读取大文件",
+      "content": "8.3 读取大文件\n对于大文件，应逐行读取以节省内存。\nwith open(\"large_file.txt\", \"r\", encoding=\"utf-8\") as f:\n    for line in f:\n        print(line.strip())\n注意：read() 一次性读取整个文件，readline() 读取一行，readlines() 读取所有行到列表。",
+      "metadata": {
+        "chunk_index": 16,
+        "document_id": "97b6cb59-5908-4982-a011-dc13fb2bea75",
+        "course_id": "78a48eba-869e-42ae-8ddb-1b3a3643daa0",
+        "knowledge_base_id": "951dc269-3be4-4429-a9d1-0d29462c5f27",
+        "original_filename": "python_basics.md",
+        "file_format": "markdown",
+        "location": "标题：8.3 读取大文件",
+        "section_index": 33,
+        "start_char": 0,
+        "end_char": 189,
+        "content_sha256": "bebed44cadf479e0f35e1a42b0576a9f60b7f24e1814cf15a5d0c9475a10e8b9"
+      }
+    },
+    {
+      "chunk_id": "5fe9dc2c-0829-4706-ac2d-cf5682300ba0",
+      "chunk_index": 17,
+      "title": "第9章 异常处理",
+      "content": "第9章 异常处理\n\n9.1 异常的概念\n异常是程序运行时发生的错误。Python 使用 try、except、else、finally 进行异常处理。\ntry:\n    num = int(input(\"请输入一个数字：\"))\n    result = 10 / num\nexcept ValueError:\n    print(\"输入的不是数字！\")\nexcept ZeroDivisionError:\n    print(\"不能除以零！\")\nelse:\n    print(f\"结果是 {result}\")\nfinally:\n    print(\"执行完毕。\")\n注意：else 在无异常时执行，finally 总是执行，常用于资源清理。",
+      "metadata": {
+        "chunk_index": 17,
+        "document_id": "97b6cb59-5908-4982-a011-dc13fb2bea75",
+        "course_id": "78a48eba-869e-42ae-8ddb-1b3a3643daa0",
+        "knowledge_base_id": "951dc269-3be4-4429-a9d1-0d29462c5f27",
+        "original_filename": "python_basics.md",
+        "file_format": "markdown",
+        "location": "标题：第9章 异常处理；标题：9.1 异常的概念",
+        "section_index": 35,
+        "start_char": 0,
+        "end_char": 321,
+        "content_sha256": "9fbdf3299763d56ac74f65d008967d2e5af319a07613eb1e3621e92af60a5ef0"
+      }
+    },
+    {
+      "chunk_id": "804719f5-eaa8-4ffc-b5f2-dba68c57dd0e",
+      "chunk_index": 18,
+      "title": "9.2 捕获与抛出异常",
+      "content": "9.2 捕获与抛出异常\n可以使用 raise 主动抛出异常，并自定义异常信息。\ndef check_age(age):\n    if age < 0:\n        raise ValueError(\"年龄不能为负数\")\n    print(\"年龄有效\")\ntry:\n    check_age(-1)\nexcept ValueError as e:\n    print(e)\n注意：捕获异常时应指定具体的异常类型，避免使用裸 except。\n\n9.3 自定义异常\n可以通过继承 Exception 类来创建自定义异常。\nclass MyError(Exception):\n    pass\ntry:\n    raise MyError(\"自定义错误\")\nexcept MyError as e:\n    print(e)\n注意：自定义异常通常用于特定领域的错误处理。",
+      "metadata": {
+        "chunk_index": 18,
+        "document_id": "97b6cb59-5908-4982-a011-dc13fb2bea75",
+        "course_id": "78a48eba-869e-42ae-8ddb-1b3a3643daa0",
+        "knowledge_base_id": "951dc269-3be4-4429-a9d1-0d29462c5f27",
+        "original_filename": "python_basics.md",
+        "file_format": "markdown",
+        "location": "标题：9.2 捕获与抛出异常；标题：9.3 自定义异常",
+        "section_index": 36,
+        "start_char": 0,
+        "end_char": 385,
+        "content_sha256": "b2706979575f37ff3dca50ec08b7693eb69de00c8b082185706a80cdd982b1c9"
+      }
+    },
+    {
+      "chunk_id": "6dc5595b-bf14-4ed7-97e2-3280cc75a894",
+      "chunk_index": 19,
+      "title": "第10章 模块与包",
+      "content": "第10章 模块与包\n\n10.1 导入模块\n模块是包含 Python 代码的文件。使用 import 导入模块。\nimport math\nprint(math.sqrt(16)) # 4.0\nfrom math import pi\nprint(pi) # 3.141592653589793\n注意：应避免使用 from module import *，因为它会导入所有名称，可能引起命名冲突。\n\n10.2 创建模块\n任何 .py 文件都可以作为模块导入。例如，创建 mymodule.py：\ndef greet(name):\n    return f\"Hello, {name}!\"\n然后在另一个文件中导入：\nimport mymodule\nprint(mymodule.greet(\"Alice\"))\n注意：模块搜索路径包括当前目录、PYTHONPATH 和标准库路径。",
+      "metadata": {
+        "chunk_index": 19,
+        "document_id": "97b6cb59-5908-4982-a011-dc13fb2bea75",
+        "course_id": "78a48eba-869e-42ae-8ddb-1b3a3643daa0",
+        "knowledge_base_id": "951dc269-3be4-4429-a9d1-0d29462c5f27",
+        "original_filename": "python_basics.md",
+        "file_format": "markdown",
+        "location": "标题：第10章 模块与包；标题：10.1 导入模块；标题：10.2 创建模块",
+        "section_index": 39,
+        "start_char": 0,
+        "end_char": 385,
+        "content_sha256": "1de249d7135d9f7ecf9e74cd035b71343d8954c00f44cff7a7cd95689e956925"
+      }
+    },
+    {
+      "chunk_id": "b97d7536-1f5e-415a-b321-e479ec085c4d",
+      "chunk_index": 20,
+      "title": "10.3 包",
+      "content": "10.3 包\n包是包含多个模块的目录，其中必须包含 init.py 文件（Python 3.3+ 可选）。例如：\nmy_package/\n    __init__.py\n    module1.py\n    module2.py\n导入包中的模块：\nfrom my_package import module1\nmodule1.func()\n注意：包可以嵌套，使用点号访问子包。\n通过本教程的学习，你已经掌握了 Python 的基础知识。继续实践和探索，你将能够构建更复杂的应用程序。",
+      "metadata": {
+        "chunk_index": 20,
+        "document_id": "97b6cb59-5908-4982-a011-dc13fb2bea75",
+        "course_id": "78a48eba-869e-42ae-8ddb-1b3a3643daa0",
+        "knowledge_base_id": "951dc269-3be4-4429-a9d1-0d29462c5f27",
+        "original_filename": "python_basics.md",
+        "file_format": "markdown",
+        "location": "标题：10.3 包",
+        "section_index": 41,
+        "start_char": 0,
+        "end_char": 241,
+        "content_sha256": "a0a7cdca16cda10bd7675f079e6c43c5fbd634bb6f32e503139ee7f2be7a743e"
+      }
+    }
+  ]
+}

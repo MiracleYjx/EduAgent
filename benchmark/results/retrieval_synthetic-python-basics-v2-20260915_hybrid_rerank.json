@@ -1,0 +1,661 @@
+{
+  "run_id": "synthetic-python-basics-v2-20260915",
+  "run_at": "2026-09-15T08:40:03.323235+00:00",
+  "config": "hybrid_rerank",
+  "dataset_version": "synthetic-python-basics-v2",
+  "model_version": "bge-large-zh-v1.5",
+  "prompt_version": "llm-rerank-v1",
+  "status": "ok",
+  "error_code": null,
+  "error_message": null,
+  "environment": {
+    "cpu": "AMD64 Family 23 Model 96 Stepping 1, AuthenticAMD",
+    "memory_mb": 0,
+    "python": "3.13.13",
+    "top_k": 10
+  },
+  "metrics": {
+    "recall_at_5": 1.0,
+    "precision_at_5": 0.32,
+    "recall_at_10": 1.0,
+    "precision_at_10": 0.16,
+    "mrr": 1.0,
+    "ndcg_at_10": 0.9919720789148186,
+    "latency_p95_ms": 12149.929
+  },
+  "results": [
+    {
+      "query_id": "q01",
+      "chunk_ids": [
+        "7e7eed02-621c-4af2-abb5-987ccabdf7a2",
+        "a13a06b0-69e0-4ffd-aa52-56f22570c211",
+        "d0552970-a8c6-4f84-837f-6b6410a98301",
+        "13278529-7781-49ba-a0b1-733798614409",
+        "30d3ba2f-9646-4444-ad02-d544ad1a26e3",
+        "5fe9dc2c-0829-4706-ac2d-cf5682300ba0",
+        "6dc5595b-bf14-4ed7-97e2-3280cc75a894",
+        "86c395da-3b8d-49e8-a7d0-f4f81f6c4da1",
+        "8c832a64-abc2-4a2e-aaea-9da598bfb901",
+        "90e45e9b-3053-401f-99c0-cf10e66a73b6"
+      ],
+      "scores": [
+        1.0,
+        0.15,
+        0.1,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05
+      ],
+      "relevant_ids": [
+        "7e7eed02-621c-4af2-abb5-987ccabdf7a2"
+      ],
+      "latency_ms": 5427.819
+    },
+    {
+      "query_id": "q02",
+      "chunk_ids": [
+        "d0552970-a8c6-4f84-837f-6b6410a98301",
+        "7e7eed02-621c-4af2-abb5-987ccabdf7a2",
+        "13278529-7781-49ba-a0b1-733798614409",
+        "6dc5595b-bf14-4ed7-97e2-3280cc75a894",
+        "b97d7536-1f5e-415a-b321-e479ec085c4d",
+        "30d3ba2f-9646-4444-ad02-d544ad1a26e3",
+        "5fe9dc2c-0829-4706-ac2d-cf5682300ba0",
+        "86c395da-3b8d-49e8-a7d0-f4f81f6c4da1",
+        "8c832a64-abc2-4a2e-aaea-9da598bfb901",
+        "90e45e9b-3053-401f-99c0-cf10e66a73b6"
+      ],
+      "scores": [
+        0.98,
+        0.25,
+        0.15,
+        0.02,
+        0.02,
+        0.01,
+        0.01,
+        0.01,
+        0.01,
+        0.01
+      ],
+      "relevant_ids": [
+        "d0552970-a8c6-4f84-837f-6b6410a98301"
+      ],
+      "latency_ms": 4227.779
+    },
+    {
+      "query_id": "q03",
+      "chunk_ids": [
+        "a13a06b0-69e0-4ffd-aa52-56f22570c211",
+        "a7105ed4-0c2d-4365-b670-a03ad6111ada",
+        "7e7eed02-621c-4af2-abb5-987ccabdf7a2",
+        "8c832a64-abc2-4a2e-aaea-9da598bfb901",
+        "d7d75c19-2dad-43c3-8155-ce5935f7283d",
+        "f350786d-fbf5-486a-98df-104445515366",
+        "13278529-7781-49ba-a0b1-733798614409",
+        "30d3ba2f-9646-4444-ad02-d544ad1a26e3",
+        "86c395da-3b8d-49e8-a7d0-f4f81f6c4da1",
+        "90e45e9b-3053-401f-99c0-cf10e66a73b6"
+      ],
+      "scores": [
+        1.0,
+        0.6,
+        0.4,
+        0.3,
+        0.3,
+        0.2,
+        0.1,
+        0.1,
+        0.1,
+        0.1
+      ],
+      "relevant_ids": [
+        "a13a06b0-69e0-4ffd-aa52-56f22570c211",
+        "a7105ed4-0c2d-4365-b670-a03ad6111ada"
+      ],
+      "latency_ms": 4057.074
+    },
+    {
+      "query_id": "q04",
+      "chunk_ids": [
+        "d7d75c19-2dad-43c3-8155-ce5935f7283d",
+        "a7105ed4-0c2d-4365-b670-a03ad6111ada",
+        "f350786d-fbf5-486a-98df-104445515366",
+        "5fe9dc2c-0829-4706-ac2d-cf5682300ba0",
+        "86c395da-3b8d-49e8-a7d0-f4f81f6c4da1",
+        "90e45e9b-3053-401f-99c0-cf10e66a73b6",
+        "8c832a64-abc2-4a2e-aaea-9da598bfb901",
+        "a13a06b0-69e0-4ffd-aa52-56f22570c211",
+        "13278529-7781-49ba-a0b1-733798614409",
+        "30d3ba2f-9646-4444-ad02-d544ad1a26e3"
+      ],
+      "scores": [
+        0.95,
+        0.9,
+        0.85,
+        0.6,
+        0.3,
+        0.25,
+        0.2,
+        0.15,
+        0.1,
+        0.1
+      ],
+      "relevant_ids": [
+        "d7d75c19-2dad-43c3-8155-ce5935f7283d",
+        "f350786d-fbf5-486a-98df-104445515366"
+      ],
+      "latency_ms": 3999.526
+    },
+    {
+      "query_id": "q05",
+      "chunk_ids": [
+        "f350786d-fbf5-486a-98df-104445515366",
+        "8c832a64-abc2-4a2e-aaea-9da598bfb901",
+        "13278529-7781-49ba-a0b1-733798614409",
+        "30d3ba2f-9646-4444-ad02-d544ad1a26e3",
+        "5fe9dc2c-0829-4706-ac2d-cf5682300ba0",
+        "6dc5595b-bf14-4ed7-97e2-3280cc75a894",
+        "7e7eed02-621c-4af2-abb5-987ccabdf7a2",
+        "86c395da-3b8d-49e8-a7d0-f4f81f6c4da1",
+        "90e45e9b-3053-401f-99c0-cf10e66a73b6",
+        "9c659b1f-443c-4d93-9668-464933558ebd"
+      ],
+      "scores": [
+        1.0,
+        0.1,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "relevant_ids": [
+        "f350786d-fbf5-486a-98df-104445515366"
+      ],
+      "latency_ms": 4318.556
+    },
+    {
+      "query_id": "q06",
+      "chunk_ids": [
+        "8c832a64-abc2-4a2e-aaea-9da598bfb901",
+        "f350786d-fbf5-486a-98df-104445515366",
+        "f42ad0ae-8feb-4bbd-bb7d-9c95d2cc6cb8",
+        "5fe9dc2c-0829-4706-ac2d-cf5682300ba0",
+        "804719f5-eaa8-4ffc-b5f2-dba68c57dd0e",
+        "e486e29b-20eb-4bea-890b-b311a01d40b5",
+        "13278529-7781-49ba-a0b1-733798614409",
+        "30d3ba2f-9646-4444-ad02-d544ad1a26e3",
+        "6dc5595b-bf14-4ed7-97e2-3280cc75a894",
+        "86c395da-3b8d-49e8-a7d0-f4f81f6c4da1"
+      ],
+      "scores": [
+        0.95,
+        0.3,
+        0.1,
+        0.05,
+        0.03,
+        0.03,
+        0.02,
+        0.02,
+        0.02,
+        0.02
+      ],
+      "relevant_ids": [
+        "8c832a64-abc2-4a2e-aaea-9da598bfb901",
+        "f42ad0ae-8feb-4bbd-bb7d-9c95d2cc6cb8"
+      ],
+      "latency_ms": 4164.951
+    },
+    {
+      "query_id": "q07",
+      "chunk_ids": [
+        "f42ad0ae-8feb-4bbd-bb7d-9c95d2cc6cb8",
+        "13278529-7781-49ba-a0b1-733798614409",
+        "5fe9dc2c-0829-4706-ac2d-cf5682300ba0",
+        "f310864b-af52-4360-b2a7-c63042daf680",
+        "30d3ba2f-9646-4444-ad02-d544ad1a26e3",
+        "6dc5595b-bf14-4ed7-97e2-3280cc75a894",
+        "7e7eed02-621c-4af2-abb5-987ccabdf7a2",
+        "804719f5-eaa8-4ffc-b5f2-dba68c57dd0e",
+        "86c395da-3b8d-49e8-a7d0-f4f81f6c4da1",
+        "8c832a64-abc2-4a2e-aaea-9da598bfb901"
+      ],
+      "scores": [
+        1.0,
+        0.3,
+        0.1,
+        0.1,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "relevant_ids": [
+        "f42ad0ae-8feb-4bbd-bb7d-9c95d2cc6cb8"
+      ],
+      "latency_ms": 4197.978
+    },
+    {
+      "query_id": "q08",
+      "chunk_ids": [
+        "f310864b-af52-4360-b2a7-c63042daf680",
+        "f42ad0ae-8feb-4bbd-bb7d-9c95d2cc6cb8",
+        "13278529-7781-49ba-a0b1-733798614409",
+        "30d3ba2f-9646-4444-ad02-d544ad1a26e3",
+        "5fe9dc2c-0829-4706-ac2d-cf5682300ba0",
+        "6dc5595b-bf14-4ed7-97e2-3280cc75a894",
+        "7e7eed02-621c-4af2-abb5-987ccabdf7a2",
+        "804719f5-eaa8-4ffc-b5f2-dba68c57dd0e",
+        "86c395da-3b8d-49e8-a7d0-f4f81f6c4da1",
+        "8c832a64-abc2-4a2e-aaea-9da598bfb901"
+      ],
+      "scores": [
+        1.0,
+        0.7,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "relevant_ids": [
+        "f42ad0ae-8feb-4bbd-bb7d-9c95d2cc6cb8",
+        "f310864b-af52-4360-b2a7-c63042daf680"
+      ],
+      "latency_ms": 4016.712
+    },
+    {
+      "query_id": "q09",
+      "chunk_ids": [
+        "f310864b-af52-4360-b2a7-c63042daf680",
+        "e486e29b-20eb-4bea-890b-b311a01d40b5",
+        "9c659b1f-443c-4d93-9668-464933558ebd",
+        "6dc5595b-bf14-4ed7-97e2-3280cc75a894",
+        "13278529-7781-49ba-a0b1-733798614409",
+        "30d3ba2f-9646-4444-ad02-d544ad1a26e3",
+        "5fe9dc2c-0829-4706-ac2d-cf5682300ba0",
+        "7e7eed02-621c-4af2-abb5-987ccabdf7a2",
+        "804719f5-eaa8-4ffc-b5f2-dba68c57dd0e",
+        "86c395da-3b8d-49e8-a7d0-f4f81f6c4da1"
+      ],
+      "scores": [
+        1.0,
+        0.7,
+        0.5,
+        0.4,
+        0.1,
+        0.1,
+        0.1,
+        0.1,
+        0.1,
+        0.1
+      ],
+      "relevant_ids": [
+        "f310864b-af52-4360-b2a7-c63042daf680",
+        "e486e29b-20eb-4bea-890b-b311a01d40b5"
+      ],
+      "latency_ms": 3654.909
+    },
+    {
+      "query_id": "q10",
+      "chunk_ids": [
+        "e486e29b-20eb-4bea-890b-b311a01d40b5",
+        "30d3ba2f-9646-4444-ad02-d544ad1a26e3",
+        "9c659b1f-443c-4d93-9668-464933558ebd",
+        "f310864b-af52-4360-b2a7-c63042daf680",
+        "f42ad0ae-8feb-4bbd-bb7d-9c95d2cc6cb8",
+        "13278529-7781-49ba-a0b1-733798614409",
+        "5fe9dc2c-0829-4706-ac2d-cf5682300ba0",
+        "6dc5595b-bf14-4ed7-97e2-3280cc75a894",
+        "7e7eed02-621c-4af2-abb5-987ccabdf7a2",
+        "804719f5-eaa8-4ffc-b5f2-dba68c57dd0e"
+      ],
+      "scores": [
+        0.95,
+        0.15,
+        0.1,
+        0.05,
+        0.05,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "relevant_ids": [
+        "e486e29b-20eb-4bea-890b-b311a01d40b5"
+      ],
+      "latency_ms": 4138.216
+    },
+    {
+      "query_id": "q11",
+      "chunk_ids": [
+        "9c659b1f-443c-4d93-9668-464933558ebd",
+        "30d3ba2f-9646-4444-ad02-d544ad1a26e3",
+        "13278529-7781-49ba-a0b1-733798614409",
+        "5fe9dc2c-0829-4706-ac2d-cf5682300ba0",
+        "6dc5595b-bf14-4ed7-97e2-3280cc75a894",
+        "7e7eed02-621c-4af2-abb5-987ccabdf7a2",
+        "804719f5-eaa8-4ffc-b5f2-dba68c57dd0e",
+        "86c395da-3b8d-49e8-a7d0-f4f81f6c4da1",
+        "8c832a64-abc2-4a2e-aaea-9da598bfb901",
+        "90e45e9b-3053-401f-99c0-cf10e66a73b6"
+      ],
+      "scores": [
+        0.9,
+        0.7,
+        0.1,
+        0.1,
+        0.1,
+        0.1,
+        0.1,
+        0.1,
+        0.1,
+        0.1
+      ],
+      "relevant_ids": [
+        "9c659b1f-443c-4d93-9668-464933558ebd",
+        "30d3ba2f-9646-4444-ad02-d544ad1a26e3"
+      ],
+      "latency_ms": 4258.416
+    },
+    {
+      "query_id": "q12",
+      "chunk_ids": [
+        "30d3ba2f-9646-4444-ad02-d544ad1a26e3",
+        "9c659b1f-443c-4d93-9668-464933558ebd",
+        "86c395da-3b8d-49e8-a7d0-f4f81f6c4da1",
+        "13278529-7781-49ba-a0b1-733798614409",
+        "5fe9dc2c-0829-4706-ac2d-cf5682300ba0",
+        "6dc5595b-bf14-4ed7-97e2-3280cc75a894",
+        "7e7eed02-621c-4af2-abb5-987ccabdf7a2",
+        "804719f5-eaa8-4ffc-b5f2-dba68c57dd0e",
+        "8c832a64-abc2-4a2e-aaea-9da598bfb901",
+        "90e45e9b-3053-401f-99c0-cf10e66a73b6"
+      ],
+      "scores": [
+        1.0,
+        0.3,
+        0.2,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "relevant_ids": [
+        "30d3ba2f-9646-4444-ad02-d544ad1a26e3"
+      ],
+      "latency_ms": 4431.591
+    },
+    {
+      "query_id": "q13",
+      "chunk_ids": [
+        "86c395da-3b8d-49e8-a7d0-f4f81f6c4da1",
+        "90e45e9b-3053-401f-99c0-cf10e66a73b6",
+        "d7d75c19-2dad-43c3-8155-ce5935f7283d",
+        "13278529-7781-49ba-a0b1-733798614409",
+        "30d3ba2f-9646-4444-ad02-d544ad1a26e3",
+        "5fe9dc2c-0829-4706-ac2d-cf5682300ba0",
+        "6dc5595b-bf14-4ed7-97e2-3280cc75a894",
+        "7e7eed02-621c-4af2-abb5-987ccabdf7a2",
+        "804719f5-eaa8-4ffc-b5f2-dba68c57dd0e",
+        "8c832a64-abc2-4a2e-aaea-9da598bfb901"
+      ],
+      "scores": [
+        1.0,
+        0.2,
+        0.2,
+        0.1,
+        0.1,
+        0.1,
+        0.1,
+        0.1,
+        0.1,
+        0.1
+      ],
+      "relevant_ids": [
+        "86c395da-3b8d-49e8-a7d0-f4f81f6c4da1"
+      ],
+      "latency_ms": 4237.68
+    },
+    {
+      "query_id": "q14",
+      "chunk_ids": [
+        "86c395da-3b8d-49e8-a7d0-f4f81f6c4da1",
+        "90e45e9b-3053-401f-99c0-cf10e66a73b6",
+        "d7d75c19-2dad-43c3-8155-ce5935f7283d",
+        "a7105ed4-0c2d-4365-b670-a03ad6111ada",
+        "9c659b1f-443c-4d93-9668-464933558ebd",
+        "a13a06b0-69e0-4ffd-aa52-56f22570c211",
+        "f310864b-af52-4360-b2a7-c63042daf680",
+        "30d3ba2f-9646-4444-ad02-d544ad1a26e3",
+        "8c832a64-abc2-4a2e-aaea-9da598bfb901",
+        "e486e29b-20eb-4bea-890b-b311a01d40b5"
+      ],
+      "scores": [
+        0.9,
+        0.85,
+        0.3,
+        0.15,
+        0.1,
+        0.1,
+        0.1,
+        0.05,
+        0.05,
+        0.05
+      ],
+      "relevant_ids": [
+        "86c395da-3b8d-49e8-a7d0-f4f81f6c4da1",
+        "90e45e9b-3053-401f-99c0-cf10e66a73b6"
+      ],
+      "latency_ms": 12149.929
+    },
+    {
+      "query_id": "q15",
+      "chunk_ids": [
+        "d82d6007-e9ba-4b6c-ba75-8102e48b1758",
+        "cd81cdfa-b6f8-44d8-8a3a-43c92341661b",
+        "5fe9dc2c-0829-4706-ac2d-cf5682300ba0",
+        "13278529-7781-49ba-a0b1-733798614409",
+        "30d3ba2f-9646-4444-ad02-d544ad1a26e3",
+        "6dc5595b-bf14-4ed7-97e2-3280cc75a894",
+        "7e7eed02-621c-4af2-abb5-987ccabdf7a2",
+        "86c395da-3b8d-49e8-a7d0-f4f81f6c4da1",
+        "8c832a64-abc2-4a2e-aaea-9da598bfb901",
+        "90e45e9b-3053-401f-99c0-cf10e66a73b6"
+      ],
+      "scores": [
+        0.98,
+        0.9,
+        0.6,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05
+      ],
+      "relevant_ids": [
+        "d82d6007-e9ba-4b6c-ba75-8102e48b1758"
+      ],
+      "latency_ms": 6265.442
+    },
+    {
+      "query_id": "q16",
+      "chunk_ids": [
+        "cd81cdfa-b6f8-44d8-8a3a-43c92341661b",
+        "d82d6007-e9ba-4b6c-ba75-8102e48b1758",
+        "13278529-7781-49ba-a0b1-733798614409",
+        "30d3ba2f-9646-4444-ad02-d544ad1a26e3",
+        "5fe9dc2c-0829-4706-ac2d-cf5682300ba0",
+        "6dc5595b-bf14-4ed7-97e2-3280cc75a894",
+        "804719f5-eaa8-4ffc-b5f2-dba68c57dd0e",
+        "86c395da-3b8d-49e8-a7d0-f4f81f6c4da1",
+        "8c832a64-abc2-4a2e-aaea-9da598bfb901",
+        "90e45e9b-3053-401f-99c0-cf10e66a73b6"
+      ],
+      "scores": [
+        1.0,
+        0.4,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05
+      ],
+      "relevant_ids": [
+        "d82d6007-e9ba-4b6c-ba75-8102e48b1758",
+        "cd81cdfa-b6f8-44d8-8a3a-43c92341661b"
+      ],
+      "latency_ms": 5145.35
+    },
+    {
+      "query_id": "q17",
+      "chunk_ids": [
+        "5fe9dc2c-0829-4706-ac2d-cf5682300ba0",
+        "804719f5-eaa8-4ffc-b5f2-dba68c57dd0e",
+        "d7d75c19-2dad-43c3-8155-ce5935f7283d",
+        "d82d6007-e9ba-4b6c-ba75-8102e48b1758",
+        "f42ad0ae-8feb-4bbd-bb7d-9c95d2cc6cb8",
+        "13278529-7781-49ba-a0b1-733798614409",
+        "30d3ba2f-9646-4444-ad02-d544ad1a26e3",
+        "6dc5595b-bf14-4ed7-97e2-3280cc75a894",
+        "7e7eed02-621c-4af2-abb5-987ccabdf7a2",
+        "86c395da-3b8d-49e8-a7d0-f4f81f6c4da1"
+      ],
+      "scores": [
+        1.0,
+        0.9,
+        0.1,
+        0.1,
+        0.1,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05
+      ],
+      "relevant_ids": [
+        "5fe9dc2c-0829-4706-ac2d-cf5682300ba0",
+        "804719f5-eaa8-4ffc-b5f2-dba68c57dd0e"
+      ],
+      "latency_ms": 13894.147
+    },
+    {
+      "query_id": "q18",
+      "chunk_ids": [
+        "5fe9dc2c-0829-4706-ac2d-cf5682300ba0",
+        "804719f5-eaa8-4ffc-b5f2-dba68c57dd0e",
+        "f42ad0ae-8feb-4bbd-bb7d-9c95d2cc6cb8",
+        "f310864b-af52-4360-b2a7-c63042daf680",
+        "d82d6007-e9ba-4b6c-ba75-8102e48b1758",
+        "cd81cdfa-b6f8-44d8-8a3a-43c92341661b",
+        "13278529-7781-49ba-a0b1-733798614409",
+        "30d3ba2f-9646-4444-ad02-d544ad1a26e3",
+        "6dc5595b-bf14-4ed7-97e2-3280cc75a894",
+        "7e7eed02-621c-4af2-abb5-987ccabdf7a2"
+      ],
+      "scores": [
+        1.0,
+        0.28,
+        0.08,
+        0.04,
+        0.03,
+        0.02,
+        0.01,
+        0.01,
+        0.01,
+        0.01
+      ],
+      "relevant_ids": [
+        "5fe9dc2c-0829-4706-ac2d-cf5682300ba0",
+        "804719f5-eaa8-4ffc-b5f2-dba68c57dd0e"
+      ],
+      "latency_ms": 4249.156
+    },
+    {
+      "query_id": "q19",
+      "chunk_ids": [
+        "6dc5595b-bf14-4ed7-97e2-3280cc75a894",
+        "b97d7536-1f5e-415a-b321-e479ec085c4d",
+        "13278529-7781-49ba-a0b1-733798614409",
+        "30d3ba2f-9646-4444-ad02-d544ad1a26e3",
+        "5fe9dc2c-0829-4706-ac2d-cf5682300ba0",
+        "7e7eed02-621c-4af2-abb5-987ccabdf7a2",
+        "86c395da-3b8d-49e8-a7d0-f4f81f6c4da1",
+        "8c832a64-abc2-4a2e-aaea-9da598bfb901",
+        "90e45e9b-3053-401f-99c0-cf10e66a73b6",
+        "9c659b1f-443c-4d93-9668-464933558ebd"
+      ],
+      "scores": [
+        1.0,
+        0.4,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "relevant_ids": [
+        "6dc5595b-bf14-4ed7-97e2-3280cc75a894",
+        "b97d7536-1f5e-415a-b321-e479ec085c4d"
+      ],
+      "latency_ms": 4484.493
+    },
+    {
+      "query_id": "q20",
+      "chunk_ids": [
+        "b97d7536-1f5e-415a-b321-e479ec085c4d",
+        "6dc5595b-bf14-4ed7-97e2-3280cc75a894",
+        "13278529-7781-49ba-a0b1-733798614409",
+        "30d3ba2f-9646-4444-ad02-d544ad1a26e3",
+        "5fe9dc2c-0829-4706-ac2d-cf5682300ba0",
+        "7e7eed02-621c-4af2-abb5-987ccabdf7a2",
+        "804719f5-eaa8-4ffc-b5f2-dba68c57dd0e",
+        "86c395da-3b8d-49e8-a7d0-f4f81f6c4da1",
+        "8c832a64-abc2-4a2e-aaea-9da598bfb901",
+        "90e45e9b-3053-401f-99c0-cf10e66a73b6"
+      ],
+      "scores": [
+        0.85,
+        0.65,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "relevant_ids": [
+        "6dc5595b-bf14-4ed7-97e2-3280cc75a894",
+        "b97d7536-1f5e-415a-b321-e479ec085c4d"
+      ],
+      "latency_ms": 5172.085
+    }
+  ],
+  "analysis": "真实 Provider 运行：按教材标注计算指标，未就绪模式记录失败原因。"
+}

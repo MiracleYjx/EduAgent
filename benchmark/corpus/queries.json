@@ -1,0 +1,122 @@
+[
+  {
+    "query_id": "q01",
+    "query": "Python 是什么类型的编程语言，它有哪些主要特点？",
+    "chapter": "Python 简介与环境搭建",
+    "difficulty": "easy"
+  },
+  {
+    "query_id": "q02",
+    "query": "在 Windows 上装好 Python 后，怎么确认安装成功并能直接在命令行用 python 命令？",
+    "chapter": "Python 简介与环境搭建",
+    "difficulty": "medium"
+  },
+  {
+    "query_id": "q03",
+    "query": "Python 里变量需要提前声明类型吗？赋值的时候会发生什么？",
+    "chapter": "变量与数据类型",
+    "difficulty": "easy"
+  },
+  {
+    "query_id": "q04",
+    "query": "如果我把字符串 '3.14' 直接和整数相加会怎样？该怎么做类型转换才能正确计算？",
+    "chapter": "变量与数据类型",
+    "difficulty": "medium"
+  },
+  {
+    "query_id": "q05",
+    "query": "Python 里 / 和 // 这两个运算符有什么区别？",
+    "chapter": "运算符与表达式",
+    "difficulty": "easy"
+  },
+  {
+    "query_id": "q06",
+    "query": "写一个判断闰年的条件，用 and 和 or 组合多个条件时，Python 的短路求值会怎样影响结果？",
+    "chapter": "运算符与表达式",
+    "difficulty": "hard"
+  },
+  {
+    "query_id": "q07",
+    "query": "Python 的 if...elif...else 是怎么执行的，缩进在这里起什么作用？",
+    "chapter": "控制流",
+    "difficulty": "easy"
+  },
+  {
+    "query_id": "q08",
+    "query": "在一个循环里同时用 break 和 continue，它们分别会怎样改变循环的执行流程？",
+    "chapter": "控制流",
+    "difficulty": "medium"
+  },
+  {
+    "query_id": "q09",
+    "query": "Python 中怎么定义一个函数？函数如果没有 return 会返回什么？",
+    "chapter": "函数",
+    "difficulty": "easy"
+  },
+  {
+    "query_id": "q10",
+    "query": "为什么函数的默认参数不要用列表这类可变对象？能举个场景说明会出什么问题吗？",
+    "chapter": "函数",
+    "difficulty": "hard"
+  },
+  {
+    "query_id": "q11",
+    "query": "列表和元组在可变性上有什么不同？分别适合用在什么场合？",
+    "chapter": "数据结构",
+    "difficulty": "easy"
+  },
+  {
+    "query_id": "q12",
+    "query": "我想统计一段文字里出现了哪些不重复的单词，用哪种数据结构比较合适，怎么用？",
+    "chapter": "数据结构",
+    "difficulty": "medium"
+  },
+  {
+    "query_id": "q13",
+    "query": "Python 的字符串可不可以修改？如果我调用了 upper()，原来的字符串会变吗？",
+    "chapter": "字符串处理",
+    "difficulty": "easy"
+  },
+  {
+    "query_id": "q14",
+    "query": "从 '2024-01-15' 这样的日期字符串里把年、月、日分别取出来，用 split 和格式化怎么做？",
+    "chapter": "字符串处理",
+    "difficulty": "medium"
+  },
+  {
+    "query_id": "q15",
+    "query": "Python 里打开文件后为什么推荐用 with 语句？",
+    "chapter": "文件操作",
+    "difficulty": "easy"
+  },
+  {
+    "query_id": "q16",
+    "query": "要处理一个几 GB 的日志文件，只读模式下一次读一行和一次性 read() 哪种更合适，为什么？",
+    "chapter": "文件操作",
+    "difficulty": "hard"
+  },
+  {
+    "query_id": "q17",
+    "query": "Python 中 try...except 是用来做什么的？",
+    "chapter": "异常处理",
+    "difficulty": "easy"
+  },
+  {
+    "query_id": "q18",
+    "query": "try 里的 else 和 finally 分别在什么时候执行？如果 except 里又抛出了异常会怎样？",
+    "chapter": "异常处理",
+    "difficulty": "hard"
+  },
+  {
+    "query_id": "q19",
+    "query": "什么是 Python 模块？import 一个模块时发生了什么？",
+    "chapter": "模块与包",
+    "difficulty": "easy"
+  },
+  {
+    "query_id": "q20",
+    "query": "自定义包时 __init__.py 有什么作用？from package import module 和 import package.module 在使用上有什么区别？",
+    "chapter": "模块与包",
+    "difficulty": "hard"
+  }
+]

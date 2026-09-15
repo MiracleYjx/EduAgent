@@ -1,0 +1,5 @@
+run_id,run_at,config,dataset_version,model_version,prompt_version,status,error_code,recall_at_5,recall_at_10,precision_at_5,mrr,ndcg_at_10,latency_p95_ms,result_path
+synthetic-python-basics-v2-20260915,2026-09-15T08:38:16.369632+00:00,keyword_only,synthetic-python-basics-v2,bge-large-zh-v1.5,llm-rerank-v1,ok,,0.0000,0.0000,0.0000,0.0000,0.0000,3.213,retrieval_synthetic-python-basics-v2-20260915_keyword_only.json
+synthetic-python-basics-v2-20260915,2026-09-15T08:38:16.559205+00:00,vector_only,synthetic-python-basics-v2,bge-large-zh-v1.5,llm-rerank-v1,ok,,1.0000,1.0000,0.3200,0.9750,0.9655,9.426,retrieval_synthetic-python-basics-v2-20260915_vector_only.json
+synthetic-python-basics-v2-20260915,2026-09-15T08:38:16.827094+00:00,hybrid,synthetic-python-basics-v2,bge-large-zh-v1.5,llm-rerank-v1,ok,,1.0000,1.0000,0.3200,0.9750,0.9655,13.837,retrieval_synthetic-python-basics-v2-20260915_hybrid.json
+synthetic-python-basics-v2-20260915,2026-09-15T08:40:03.323235+00:00,hybrid_rerank,synthetic-python-basics-v2,bge-large-zh-v1.5,llm-rerank-v1,ok,,1.0000,1.0000,0.3200,1.0000,0.9920,12149.929,retrieval_synthetic-python-basics-v2-20260915_hybrid_rerank.json
