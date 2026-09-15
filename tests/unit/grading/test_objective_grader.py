@@ -54,6 +54,7 @@ from backend.app.services.grading.objective_grader import (
 from backend.app.services.grading.question_router import (
     QUESTION_TYPE_MISSING,
     QUESTION_TYPE_UNKNOWN,
+    GradingRoutingError,
     UnknownQuestionTypeError,
 )
 from backend.app.services.submission_service import (
@@ -485,9 +486,9 @@ def test_subjective_question_type_is_rejected(
 
 
 def test_missing_question_type_raises(grader: ObjectiveGrader) -> None:
-    """题型缺失必须显式失败。"""
+    """题型缺失必须由 Router 显式失败，且不会被改写成评分器错误。"""
 
-    with pytest.raises(ObjectiveGradingError) as excinfo:
+    with pytest.raises(GradingRoutingError) as excinfo:
         _grade(
             grader,
             question_type=None,
@@ -496,6 +497,7 @@ def test_missing_question_type_raises(grader: ObjectiveGrader) -> None:
         )
 
     assert excinfo.value.error_code == QUESTION_TYPE_MISSING
+    assert not isinstance(excinfo.value, ObjectiveGradingError)
 
 
 @pytest.mark.parametrize(
