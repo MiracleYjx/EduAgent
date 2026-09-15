@@ -460,6 +460,30 @@ def test_entry_without_context_does_not_call_provider() -> None:
     assert provider.calls == []
 
 
+def test_entry_rejects_empty_context_even_when_require_context_false() -> None:
+    """`require_context=False` 仅供低层组装使用，正式入口仍须拒绝空上下文。"""
+
+    provider = FakeGradingProvider(_payload())
+    grader = SubjectiveGrader(provider=provider)
+
+    with pytest.raises(InsufficientContextError) as excinfo:
+        asyncio.run(
+            grader.grade(
+                SESSION,
+                _source(),
+                max_score=MAX_SCORE,
+                retriever=StubRetriever([]),
+                reranker=StubReranker(),
+                embedding_provider=StubEmbeddingProvider(),
+                require_context=False,
+                settings=build_test_settings(confidence_threshold=0.5),
+            )
+        )
+
+    assert excinfo.value.error_code == GRADING_MISSING_CONTEXT
+    assert provider.calls == []
+
+
 def test_entry_returns_validated_result_and_passes_message_contract() -> None:
     """完整入口：记录请求消息、返回 Validated 结果并按阈值回填复核状态。"""
 
@@ -572,6 +596,70 @@ def test_provider_call_failure_maps_to_provider_failed(code: str) -> None:
 
     assert excinfo.value.error_code == GRADING_PROVIDER_FAILED
     assert code in str(excinfo.value)
+
+
+@pytest.mark.parametrize("retryable", [True, False])
+def test_provider_failure_preserves_retryable_flag(retryable: bool) -> None:
+    """Provider 失败映射必须保真传递可重试标记与来源元数据。"""
+
+    provider = FakeGradingProvider(
+        ProviderExecutionError(
+            ProviderErrorInfo(
+                code="ProviderFailed",
+                message="脱敏后的 Provider 失败。",
+                attempt_count=3,
+                retryable=retryable,
+                status="ProviderFailed",
+            )
+        )
+    )
+
+    with pytest.raises(ProviderFailedError) as excinfo:
+        _grade(provider)
+
+    assert excinfo.value.error_code == GRADING_PROVIDER_FAILED
+    assert excinfo.value.retryable is retryable
+    assert excinfo.value.source_code == "ProviderFailed"
+    assert excinfo.value.attempt_count == 3
+    assert excinfo.value.status == "ProviderFailed"
+
+
+def test_structured_failure_preserves_source_metadata() -> None:
+    """结构化失败同样保留来源码、尝试次数与可重试标记。"""
+
+    provider = FakeGradingProvider(
+        ProviderExecutionError(
+            ProviderErrorInfo(
+                code="StructuredOutputFailed",
+                message="脱敏后的结构化失败。",
+                attempt_count=2,
+                retryable=True,
+                status="StructuredOutputFailed",
+            )
+        )
+    )
+
+    with pytest.raises(InvalidLLMResponseError) as excinfo:
+        _grade(provider)
+
+    assert excinfo.value.retryable is True
+    assert excinfo.value.source_code == "StructuredOutputFailed"
+    assert excinfo.value.attempt_count == 2
+
+
+@pytest.mark.parametrize(
+    "question_type",
+    [QuestionType.SINGLE_CHOICE, QuestionType.TRUE_FALSE, "MULTIPLE_CHOICE"],
+)
+def test_parse_rejects_objective_question_type(
+    question_type: QuestionType | str,
+) -> None:
+    """解析器直接调用时也不得为客观题生成主观题结果。"""
+
+    with pytest.raises(GradingModeMismatchError) as excinfo:
+        _parse(_payload(), question_type=question_type)
+
+    assert excinfo.value.error_code == GRADING_MODE_MISMATCH
 
 
 def test_invalid_response_error_is_redacted() -> None:
