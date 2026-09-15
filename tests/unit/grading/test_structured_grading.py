@@ -25,10 +25,10 @@ from __future__ import annotations
 import asyncio
 import json
 from collections.abc import Mapping, Sequence
+from dataclasses import replace
 from decimal import Decimal
 from functools import wraps
 from typing import Any
-from uuid import uuid4
 
 import pytest
 from pydantic import BaseModel
@@ -43,6 +43,7 @@ from backend.app.ai.retrieval.base import (
     RetrievalMode,
     RetrievedChunk,
 )
+from backend.app.ai.retrieval.reranker import BaseReranker
 from backend.app.core.retry_policy import ProviderErrorInfo, ProviderExecutionError
 from backend.app.domain.enums import QuestionType
 from backend.app.schemas.ai import GradingResult
@@ -165,6 +166,28 @@ class StubRetriever(BaseRetriever):
         return list(self._hits)
 
 
+class StubReranker(BaseReranker):
+    """重排替身：按已有分数排序并在截断，不调用任何 Provider。"""
+
+    provider_name = "stub"
+
+    def __init__(self) -> None:
+        self.calls = 0
+
+    def rerank(
+        self,
+        query: str,
+        candidates: Sequence[RetrievedChunk],
+        top_k: int = DEFAULT_TOP_K,
+    ) -> list[RetrievedChunk]:
+        self.calls += 1
+        ordered = sorted(candidates, key=lambda item: item.score, reverse=True)
+        return [
+            replace(chunk, rank=index)
+            for index, chunk in enumerate(ordered[:top_k])
+        ]
+
+
 class OtherPayload(BaseModel):
     """与被测 Schema 不同的模型，用于验证返回类型校核。"""
 
@@ -226,6 +249,7 @@ def _grade(
             _source(),
             max_score=max_score,
             retriever=StubRetriever(hits if hits is not None else [_chunk("chunk-1")]),
+            reranker=StubReranker(),
             embedding_provider=StubEmbeddingProvider(),
             settings=settings
             if settings is not None
@@ -293,10 +317,14 @@ def test_valid_mapping_allows_empty_point_lists() -> None:
         json.dumps({**_payload(), "suggestions": ["   "]}, ensure_ascii=False),
         json.dumps({**_payload(), "correct_points": ["  "]}, ensure_ascii=False),
         json.dumps({**_payload(), "missing_knowledge_points": [""]}, ensure_ascii=False),
-        '{"score": NaN, "confidence": 0.5, "reason": "r", '
-        '"correct_points": [], "missing_knowledge_points": [], "suggestions": ["s"]}',
-        '{"score": Infinity, "confidence": 0.5, "reason": "r", '
-        '"correct_points": [], "missing_knowledge_points": [], "suggestions": ["s"]}',
+        (
+            '{"score": NaN, "confidence": 0.5, "reason": "r", '
+            '"correct_points": [], "missing_knowledge_points": [], "suggestions": ["s"]}'
+        ),
+        (
+            '{"score": Infinity, "confidence": 0.5, "reason": "r", '
+            '"correct_points": [], "missing_knowledge_points": [], "suggestions": ["s"]}'
+        ),
     ],
 )
 def test_invalid_payload_maps_to_invalid_response(raw: str) -> None:
