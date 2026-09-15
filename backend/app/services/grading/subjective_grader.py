@@ -49,6 +49,7 @@ from backend.app.core.config import AppSettings, get_settings
 from backend.app.core.retry_policy import ProviderExecutionError
 from backend.app.domain.enums import QuestionType, ReviewStatus, ValidationStatus
 from backend.app.schemas.ai import GradingResult, NonEmptyText
+from backend.app.services.grading.confidence_policy import ConfidencePolicy
 from backend.app.services.grading.grading_context import (
     NOT_ANSWERED_TEXT,
     GradingContext,
@@ -373,8 +374,8 @@ class SubjectiveGrader:
 
     :param provider: 评分 Provider；``None`` 表示在调用时通过既有工厂按配置解析，未就绪时
         显式失败，不在导入期实例化。
-    :param policy: 置信度策略；``None`` 时使用读取 ``AppSettings.confidence_threshold`` 的
-        默认检查（T053 提供可配置策略并作为默认接线）。
+    :param policy: 置信度策略；``None`` 时使用 :class:`ConfidencePolicy`（读取
+        ``AppSettings.confidence_threshold``）。入口返回前必执行置信度检查。
     """
 
     def __init__(
@@ -473,16 +474,15 @@ class SubjectiveGrader:
         result: GradingResult,
         settings: AppSettings,
     ) -> GradingResult:
-        """置信度检查：低置信度结果必须进入待人工复核。"""
+        """置信度检查：未注入策略时使用读取运行配置的默认策略。
 
-        if self._policy is not None:
-            return self._policy.apply(result)
-        threshold = float(settings.confidence_threshold)
-        if result.confidence >= threshold:
-            return result
-        return result.model_copy(
-            update={"review_status": ReviewStatus.PENDING_REVIEW.value}
-        )
+        入口返回前必执行本检查，否则低置信度结果会绕过 FR-035/FR-036 的人工复核。
+        """
+
+        policy = self._policy
+        if policy is None:
+            policy = ConfidencePolicy(settings=settings)
+        return policy.apply(result)
 
 
 __all__ = [
