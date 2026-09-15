@@ -51,7 +51,6 @@ from backend.app.domain.enums import QuestionType, ReviewStatus, ValidationStatu
 from backend.app.schemas.ai import GradingResult, NonEmptyText
 from backend.app.services.grading.confidence_policy import ConfidencePolicy
 from backend.app.services.grading.grading_context import (
-    NOT_ANSWERED_TEXT,
     GradingContext,
     GradingModeMismatchError,
     InsufficientContextError,
@@ -331,12 +330,14 @@ def parse_subjective_payload(
 
 
 def _build_user_message(context: GradingContext, *, max_score: float) -> str:
-    """构造用户消息：平台满分与 §5.3 的全部评分输入。"""
+    """构造用户消息：平台满分与 §5.3 的全部评分输入。
+
+    评分标准与学生答案在 :class:`SubjectiveGradingSource` 构造阶段已保证非空白，
+    因此这里不再提供「未作答」等占位文案，避免用占位内容代替真实作答。
+    """
 
     source = context.source
     knowledge_points = "、".join(source.knowledge_points) or "（题目未标注知识点）"
-    rubric = (source.scoring_rubric or "").strip() or "（题目未提供评分标准）"
-    student_answer = source.student_answer_text or NOT_ANSWERED_TEXT
     return "\n".join(
         [
             f"本题满分：{max_score}",
@@ -345,9 +346,9 @@ def _build_user_message(context: GradingContext, *, max_score: float) -> str:
             "【标准答案】",
             source.reference_answer,
             "【评分标准】",
-            rubric,
+            str(source.scoring_rubric).strip(),
             "【学生答案】",
-            student_answer,
+            source.student_answer_text,
             "【知识点】",
             knowledge_points,
             "【课程检索上下文】",

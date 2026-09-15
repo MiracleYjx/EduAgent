@@ -26,7 +26,7 @@ import asyncio
 from collections.abc import Sequence
 from functools import wraps
 from typing import Any
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 import pytest
 
@@ -75,6 +75,9 @@ from tests.unit.settings_helpers import build_test_settings
 #: 检索过滤条件要求 UUID；测试使用固定合法 UUID 以覆盖真实过滤链路。
 COURSE_ID = "3f1a8c2e-0d4f-4b7a-9c1e-2b8d5f6a7c90"
 KNOWLEDGE_BASE_ID = "8c7d6e5f-4a3b-4c2d-9e1f-0a1b2c3d4e5f"
+OTHER_COURSE_ID = "1b2c3d4e-5f60-4718-9a2b-3c4d5e6f7081"
+OTHER_KNOWLEDGE_BASE_ID = "2c3d4e5f-6071-4829-8b3c-4d5e6f708192"
+DOCUMENT_ID = "3d4e5f60-7182-493a-9c4d-5e6f708192a3"
 EMBEDDING_VECTOR = (0.1, 0.2, 0.3)
 _SESSION = object()
 
@@ -275,13 +278,52 @@ def test_source_rejects_invalid_required_input(overrides: dict[str, Any]) -> Non
     assert isinstance(excinfo.value, GradingContextError)
 
 
-def test_blank_student_answer_is_allowed_and_marked() -> None:
-    """学生未作答允许进入评分，但必须显式标注，不得伪造内容。"""
+@pytest.mark.parametrize(
+    "overrides",
+    [
+        {"student_answer": ""},
+        {"student_answer": "   "},
+        {"student_answer": []},
+        {"student_answer": ["  "]},
+        {"scoring_rubric": None},
+        {"scoring_rubric": ""},
+        {"scoring_rubric": "   "},
+        {"student_answer": {"blank_1": "答案"}},
+    ],
+)
+def test_required_subjective_inputs_must_not_be_blank(
+    overrides: dict[str, Any],
+) -> None:
+    """评分标准与学生答案均为必填非空白；字典答案缺乏键语义约定，显式拒绝。"""
 
-    source = _source(student_answer="   ")
+    with pytest.raises(GradingInputError) as excinfo:
+        _source(**overrides)
 
-    assert source.student_answer_text == ""
-    assert "（学生未作答）" in build_query_text(source)
+    assert excinfo.value.error_code == GRADING_INVALID_INPUT
+
+
+def test_missing_constructor_arguments_raise_business_error() -> None:
+    """漏传必填构造参数必须转为业务异常，不得泄漏 Python `TypeError`。"""
+
+    with pytest.raises(GradingInputError) as excinfo:
+        SubjectiveGradingSource(
+            question_type=QuestionType.SHORT_ANSWER,
+            course_id=COURSE_ID,
+            question_content="题干",
+            reference_answer="参考答案",
+        )
+
+    assert excinfo.value.error_code == GRADING_INVALID_INPUT
+    assert not isinstance(excinfo.value, TypeError)
+
+
+def test_mapping_student_answer_exposes_rejection_reason() -> None:
+    """字典答案被拒绝时必须说明类型，避免被隐式转成文本。"""
+
+    with pytest.raises(GradingInputError) as excinfo:
+        _source(student_answer={"blank_1": "答案"})
+
+    assert "dict" in excinfo.value.detail
 
 
 # --- Query Construction ---
@@ -322,12 +364,13 @@ def test_query_text_keeps_student_budget_and_original_source() -> None:
     assert len(source.student_answer_text) == 2000
 
 
-def test_query_text_omits_rubric_section_when_absent() -> None:
-    """评分标准缺失时省略该段落，不编造评分标准。"""
+def test_query_text_always_includes_required_sections() -> None:
+    """评分标准与学生答案均为必填，因此 Query 段落始终存在。"""
 
-    query = build_query_text(_source(scoring_rubric=None))
+    query = build_query_text(_source())
 
-    assert "【评分标准】" not in query
+    assert "【评分标准】" in query
+    assert "【学生答案】" in query
 
 
 # --- Final Context、溯源与充分性 ---
@@ -363,6 +406,63 @@ def test_context_keeps_course_document_metadata_and_scores() -> None:
     assert context.chunks[0].rerank_score == 0.87
     assert "document-c1" in context.final_context
     assert "0.87" in context.final_context
+
+
+def test_caller_filters_cannot_widen_course_scope() -> None:
+    """调用方过滤条件不得把检索范围扩到其它课程。"""
+
+    retriever = StubRetriever(hits=[_chunk("c1")])
+
+    with pytest.raises(GradingInputError) as excinfo:
+        _build(
+            retriever=retriever,
+            filters=RetrievalFilters(course_ids=(UUID(OTHER_COURSE_ID),)),
+        )
+
+    assert excinfo.value.error_code == GRADING_INVALID_INPUT
+    assert retriever.calls == []
+
+
+def test_caller_filters_are_intersected_with_source_scope() -> None:
+    """课程始终强制为题目课程；知识库取交集；资料过滤透传。"""
+
+    retriever = StubRetriever(hits=[_chunk("c1")])
+
+    context = _build(
+        retriever=retriever,
+        knowledge_base_ids=(KNOWLEDGE_BASE_ID,),
+        filters=RetrievalFilters(
+            course_ids=(UUID(COURSE_ID),),
+            knowledge_base_ids=(
+                UUID(KNOWLEDGE_BASE_ID),
+                UUID(OTHER_KNOWLEDGE_BASE_ID),
+            ),
+            document_ids=(UUID(DOCUMENT_ID),),
+        ),
+    )
+
+    scope = context.filters
+    assert [str(value) for value in scope.course_ids] == [COURSE_ID]
+    assert [str(value) for value in scope.knowledge_base_ids] == [KNOWLEDGE_BASE_ID]
+    assert [str(value) for value in scope.document_ids] == [DOCUMENT_ID]
+
+
+def test_conflicting_knowledge_base_filters_are_rejected() -> None:
+    """题目知识库范围与调用方条件无交集时显式失败。"""
+
+    retriever = StubRetriever(hits=[_chunk("c1")])
+
+    with pytest.raises(GradingInputError):
+        _build(
+            retriever=retriever,
+            knowledge_base_ids=(KNOWLEDGE_BASE_ID,),
+            filters=RetrievalFilters(
+                course_ids=(UUID(COURSE_ID),),
+                knowledge_base_ids=(UUID(OTHER_KNOWLEDGE_BASE_ID),),
+            ),
+        )
+
+    assert retriever.calls == []
 
 
 @pytest.mark.parametrize("content", ["", "   ", "\n\t"])
@@ -615,6 +715,7 @@ def _build(
     top_k: int = DEFAULT_TOP_K,
     require_context: bool = True,
     knowledge_base_ids: Sequence[str] = (),
+    filters: Any = None,
     settings: Any = None,
 ) -> Any:
     """同步包装：测试统一通过事件循环调用异步组装入口。"""
@@ -625,6 +726,7 @@ def _build(
             _source(knowledge_base_ids=tuple(knowledge_base_ids)),
             mode=mode,
             top_k=top_k,
+            filters=filters,
             retriever=retriever,
             embedding_provider=embedding or StubEmbeddingProvider(),
             require_context=require_context,
