@@ -18,8 +18,9 @@
     3. ``student_answer``：对应 ``Answer.content``，本批支持 ``str``、``list[str]`` 与
        ``None``。**本批显式不支持 dict[str, str]**（缺少键语义约定），遇到时显式报错；
        本批不修改 ``Answer.content`` 模型、``submission_service`` 与 UI 写入路径。
-    4. ``max_score``：必须为有限正数（``bool`` 不接受）；非有限数（NaN、±inf）、非正数
-       或非数值都显式失败。
+    4. ``max_score``：必须为有限正数（``bool`` 不接受）；非有限数（NaN、±inf）、超大值
+       （整数或 ``Decimal`` 超出浮点范围）、``Decimal`` signaling NaN 或非数值都统一转为
+       ``GRADING_INVALID_MAX_SCORE``，不泄漏底层 ``ValueError`` / ``OverflowError``。
     5. ``option_keys``（可选）：由调用方显式提供的选项键集合（例如 ``Question.options``
        为字典时取其键）。本批不定义「列表选项 → 字母键」的派生规则，派生属于调用方责任；
        未提供时评分器只做集合比较，不校验键是否合法。
@@ -231,13 +232,28 @@ def _display_key(key: str) -> str:
 
 
 def _resolve_max_score(value: Any) -> float:
-    """校验并转换题目满分；只接受有限正数。"""
+    """校验并转换题目满分；只接受有限正数。
+
+    非数值、非有限数（NaN、±inf、``Decimal`` 的 signaling NaN）、超出浮点可表示范围的
+    超大值（整数或 ``Decimal``）以及非正数都统一转为 :class:`InvalidMaxScoreError`：
+    不向调用方泄漏 ``ValueError`` / ``OverflowError`` / ``InvalidOperation``，
+    也不把原始异常链带入业务错误。
+    """
 
     if isinstance(value, bool) or not isinstance(value, (int, float, Decimal)):
         raise InvalidMaxScoreError(
             f"题目满分必须是有限正数，收到类型 {type(value).__name__}。"
         )
-    number = float(value)
+    number: float | None = None
+    failed = False
+    try:
+        number = float(value)
+    except (ValueError, OverflowError, InvalidOperation):
+        failed = True
+    if failed or number is None:
+        raise InvalidMaxScoreError(
+            f"题目满分必须是有限正数，收到 {value!r}；该数值无法转换为可比较的有限浮点数。"
+        )
     if not math.isfinite(number) or number <= 0:
         raise InvalidMaxScoreError(f"题目满分必须是有限正数，收到 {value!r}。")
     return number
