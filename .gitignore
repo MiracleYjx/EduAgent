@@ -34,3 +34,6 @@ env/
 
 # pytest cache
 .pytest_cache/
+
+# HuggingFace 本地模型缓存
+.cache/
