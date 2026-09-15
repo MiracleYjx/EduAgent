@@ -39,12 +39,18 @@
     - ``MULTIPLE_CHOICE``：选项键集合比较，规则见下。
 
 多选编码（不自行拆分）
-    - 学生答案与标准答案均为 ``str``（键序列）或 ``list[str]``（每项一键）。
-    - ``str`` 仅按显式分隔符 ``, ， 、 ; ； / |`` 与空白切分；**不做逐字符拆分**。
-      切分后只剩一项且归一化长度大于 1 时，仅当该串本身就是已知选项键（出现在
+    - ``str``（键序列）：仅按显式分隔符 ``, ， 、 ; ； / |`` 与空白切分；**不做逐字符
+      拆分**。切分后只剩一项且归一化长度大于 1 时，仅当该串本身就是已知选项键（出现在
       ``option_keys`` 中）才视为单键，否则显式报错。
+    - ``list[str]``：**每一项就是一个完整选项键，不再二次切分**；项内空白原样保留（不做
+      trim），仅做 ``NFKC`` 与大小写归一，以支持 ``"A 选项"`` 这类含空格的选项 ID；
+      空白项不构成选项键，直接忽略。
+    - 已知局限：``str`` 形式以空白作为分隔符，因此含空格的选项 ID 无法用字符串形式的
+      标准答案表达；本批不新增该编码约定，留待后续任务定义参考键的显式表达方式。
     - 提供 ``option_keys`` 时，标准答案键与学生答案键都必须落在该集合内；越界键显式报错，
-      以此区分「编码非法」与「合法但选错的错选」。
+      以此区分「编码非法」与「合法但选错的错选」。``option_keys`` 的每项按 ``NFKC`` →
+      去掉首尾空白 → ``casefold`` 归一（保留项内空白），与 ``list[str]`` 答案项键形态一致；
+      ``str`` 形式因以空白为分隔符，仍会删除全部空白。
     - 同一题内重复出现的选项键按集合去重（重复既不额外加分也不扣分）；本模块不处理跨题
       重复，跨题重复仍由 ``submission_service`` 的既有规则拒绝。
 
@@ -201,9 +207,21 @@ def normalize_text(value: str) -> str:
 
 
 def normalize_choice_key(value: str) -> str:
-    """选项键归一：``NFKC`` → 删除全部空白 → ``casefold``。"""
+    """字符串形式选项键归一：``NFKC`` → 删除全部空白 → ``casefold``。
+
+    仅用于 ``str`` 形式答案的切分结果，因为该形式以空白作为分隔符。
+    """
 
     return re.sub(r"\s+", "", unicodedata.normalize("NFKC", value)).casefold()
+
+
+def normalize_option_key(value: str) -> str:
+    """选项键标识归一：``NFKC`` → 去掉首尾空白 → ``casefold``，保留项内空白。
+
+    与 ``list[str]`` 答案项的键形态保持一致，使 ``"A 选项"`` 这类含空格的选项 ID 可用。
+    """
+
+    return unicodedata.normalize("NFKC", value).strip().casefold()
 
 
 def _display_key(key: str) -> str:
@@ -288,7 +306,7 @@ def _known_option_keys(option_keys: Any) -> frozenset[str] | None:
             raise InvalidAnswerFormatError(
                 f"选项键必须是字符串，收到类型 {type(item).__name__}。"
             )
-        key = normalize_choice_key(item)
+        key = normalize_option_key(item)
         if not key:
             raise InvalidAnswerFormatError("选项键不能为空或仅含空白字符。")
         keys.append(key)
@@ -320,6 +338,18 @@ def _split_choice_items(
     return keys
 
 
+def _verbatim_choice_key(item: str) -> str | None:
+    """把列表项作为完整选项键：仅 ``NFKC`` 与大小写归一，不切分、不 trim。
+
+    项内空白原样保留，以支持 ``"A 选项"`` 这类含空格的选项 ID；空白项不构成选项键，
+    返回 ``None`` 交由调用方忽略。
+    """
+
+    if not item.strip():
+        return None
+    return normalize_option_key(item)
+
+
 def parse_multiple_choice_keys(
     value: Any,
     *,
@@ -328,8 +358,9 @@ def parse_multiple_choice_keys(
 ) -> frozenset[str]:
     """把多选答案解析为选项键集合。
 
-    ``value`` 可为 ``str`` 或 ``list[str]``；重复键按集合去重；提供 ``option_keys`` 时，
-    任何越界键都会显式报错，以区分编码非法与合法但选错的答案。
+    ``value`` 为 ``str`` 时按显式分隔符切分；为 ``list[str]`` 时每一项即一个完整键，
+    不再二次切分、也不做 trim。重复键按集合去重；提供 ``option_keys`` 时，任何越界键都会
+    显式报错，以区分编码非法与合法但选错的答案。
     """
 
     known_keys = _known_option_keys(option_keys)
@@ -343,7 +374,11 @@ def parse_multiple_choice_keys(
                     f"{label}列表必须只包含字符串，"
                     f"收到类型 {type(item).__name__}。"
                 )
-            keys.extend(_split_choice_items(item, known_keys=known_keys, label=label))
+            # 契约：list[str] 的每一项就是一个完整选项键，不做二次切分、也不做 trim，
+            # 避免把 "A,B" 或 "A 选项" 误解为多个键。
+            key = _verbatim_choice_key(item)
+            if key is not None:
+                keys.append(key)
     else:
         raise InvalidAnswerFormatError(
             f"不支持的{label}类型：{type(value).__name__}。"
@@ -661,6 +696,7 @@ __all__ = [
     "ObjectiveGradingError",
     "is_blank_answer",
     "normalize_choice_key",
+    "normalize_option_key",
     "normalize_text",
     "parse_multiple_choice_keys",
 ]
