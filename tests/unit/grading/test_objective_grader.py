@@ -50,6 +50,7 @@ from backend.app.services.grading.objective_grader import (
     ObjectiveGrader,
     ObjectiveGradingError,
     is_blank_answer,
+    parse_multiple_choice_keys,
 )
 from backend.app.services.grading.question_router import (
     QUESTION_TYPE_MISSING,
@@ -695,6 +696,70 @@ def test_grading_does_not_open_network_connections(
             max_score=5.0,
         )
         assert 0.0 <= result.score <= result.max_score
+
+
+# --- B01 回归：list[str] 每项就是一个完整选项键，不再二次切分 ---
+
+
+def test_b01_list_items_are_not_split_again() -> None:
+    """契约：``["A,B"]`` 是单个键，不得被二次切分为 ``{"A", "B"}``。"""
+
+    keys = parse_multiple_choice_keys(
+        ["A,B"], option_keys=["A,B", "C"], label="学生答案"
+    )
+
+    assert keys == frozenset({"a,b"})
+
+
+def test_b01_list_items_keep_inner_whitespace() -> None:
+    """选项 ID 可能含空格（如 ``"A 选项"``），列表项原样保留、不做 trim。"""
+
+    keys = parse_multiple_choice_keys(
+        ["A 选项"], option_keys=["A 选项", "B 选项"], label="学生答案"
+    )
+
+    assert keys == frozenset({"a 选项"})
+
+
+def test_b01_two_list_items_are_two_keys() -> None:
+    """``["A", "B"]`` 逐项作为键，正常识别为两个键。"""
+
+    keys = parse_multiple_choice_keys(
+        ["A", "B"], option_keys=["A", "B", "C"], label="学生答案"
+    )
+
+    assert keys == frozenset({"a", "b"})
+
+
+def test_b01_compound_key_is_not_silently_split(grader: ObjectiveGrader) -> None:
+    """选项键集合不含 ``"A,B"`` 时，``["A,B"]`` 不得被静默理解为 ``{A, B}``。"""
+
+    with pytest.raises(InvalidAnswerFormatError) as excinfo:
+        _grade(
+            grader,
+            question_type=QuestionType.MULTIPLE_CHOICE,
+            reference_answer="A,B",
+            student_answer=["A,B"],
+            max_score=5.0,
+            option_keys=["A", "B"],
+        )
+
+    assert excinfo.value.error_code == GRADING_INVALID_ANSWER_FORMAT
+
+
+def test_b01_list_form_still_matches_reference_text(grader: ObjectiveGrader) -> None:
+    """``["A", "B"]`` 与标准答案字符串 ``"A,B"`` 等价，仍给满分。"""
+
+    result = _grade(
+        grader,
+        question_type=QuestionType.MULTIPLE_CHOICE,
+        reference_answer="A,B",
+        student_answer=["A", "B"],
+        max_score=5.0,
+        option_keys=["A", "B", "C"],
+    )
+
+    assert result.score == 5.0
 
 
 def test_grader_accepts_question_like_objects_end_to_end(
