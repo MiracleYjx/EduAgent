@@ -145,7 +145,7 @@ Embedding Provider 契约测试通过，并且 Benchmark 可以比较所有要�
 - [X] T048 [US3] 在 `tests/unit/grading/test_objective_grader.py` 中增加确定性评分失败优先测试，覆盖正确、错误、缺失和重复答案
 - [X] T049 [US3] 在 `backend/app/services/grading/objective_grader.py` 中实现不调用 LLM 的 Objective 规则评分
 - [X] T050 [US3] 在 `backend/app/services/grading/grading_context.py` 中实现主观题答案 Query Construction 和检索上下文组装，包含题目、标准答案、评分标准、学生答案和 Final Context
-- [ ] T051 [US3] 在 `tests/unit/grading/test_structured_grading.py` 中增加结构化输出和分数范围失败优先测试，覆盖 JSON 解析、Pydantic 校验、分数范围、置信度范围和无效响应
+- [X] T051 [US3] 在 `tests/unit/grading/test_structured_grading.py` 中增加结构化输出和分数范围失败优先测试，覆盖 JSON 解析、Pydantic 校验、分数范围、置信度范围和无效响应
 - [ ] T052 [US3] 在 `backend/app/services/grading/subjective_grader.py` 中使用 LLM Provider 和 RAG 上下文实现 Subjective Grading，只返回经过校验的 GradingResult DTO
 - [ ] T053 [US3] 在 `backend/app/services/grading/confidence_policy.py` 中实现可配置的置信度阈值策略和 Pending Review 决策
 - [ ] T054 [US3] 在 `backend/app/services/grading/result_aggregator.py` 中实现 Objective/Subjective 结果汇总和最终分数计算
