@@ -27,6 +27,7 @@ from __future__ import annotations
 
 import ast
 import socket
+from decimal import Decimal
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Any
@@ -760,6 +761,42 @@ def test_b01_list_form_still_matches_reference_text(grader: ObjectiveGrader) -> 
     )
 
     assert result.score == 5.0
+
+
+# --- B02 回归：非法 Decimal / 超大整数满分统一为业务异常 ---
+
+
+@pytest.mark.parametrize(
+    "max_score",
+    [
+        Decimal("sNaN"),
+        Decimal("NaN"),
+        Decimal("1E+400"),
+        Decimal("-1E+400"),
+        10**400,
+        -(10**400),
+    ],
+)
+def test_b02_invalid_decimal_max_score_is_a_business_error(
+    grader: ObjectiveGrader,
+    max_score: Any,
+) -> None:
+    """非法 Decimal/超大整数满分必须统一为业务异常，不泄漏底层异常类型。"""
+
+    with pytest.raises(InvalidMaxScoreError) as excinfo:
+        _grade(
+            grader,
+            question_type=QuestionType.SINGLE_CHOICE,
+            reference_answer="B",
+            student_answer="B",
+            max_score=max_score,
+        )
+
+    assert excinfo.value.error_code == GRADING_INVALID_MAX_SCORE
+    assert not isinstance(excinfo.value, (ValueError, OverflowError))
+    # 不把底层异常链带给调用方，便于统一按业务错误码处理。
+    assert excinfo.value.__cause__ is None
+    assert excinfo.value.__context__ is None
 
 
 def test_grader_accepts_question_like_objects_end_to_end(
