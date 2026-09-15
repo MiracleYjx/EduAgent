@@ -140,7 +140,7 @@ Embedding Provider 契约测试通过，并且 Benchmark 可以比较所有要�
 复核结果能够生成诊断报告；GradingResult、DiagnosisReport、ReviewRecord、AgentRun
 和 WorkflowRun 的数据库模型及 Alembic 迁移均可独立检查。
 
-- [ ] T046 [US3] 在 `tests/unit/grading/test_question_router.py` 中增加 Objective/Subjective 路由失败优先测试
+- [X] T046 [US3] 在 `tests/unit/grading/test_question_router.py` 中增加 Objective/Subjective 路由失败优先测试
 - [ ] T047 [US3] 在 `backend/app/services/grading/question_router.py` 中实现 Question Router，使用题目类型而非模型输出来选择 Objective 或 Subjective
 - [ ] T048 [US3] 在 `tests/unit/grading/test_objective_grader.py` 中增加确定性评分失败优先测试，覆盖正确、错误、缺失和重复答案
 - [ ] T049 [US3] 在 `backend/app/services/grading/objective_grader.py` 中实现不调用 LLM 的 Objective 规则评分
