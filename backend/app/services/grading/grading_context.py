@@ -41,6 +41,7 @@ from backend.app.ai.retrieval.base import (
     get_retriever,
     normalize_mode,
     normalize_top_k,
+    resolve_filters,
 )
 from backend.app.ai.retrieval.reranker import BaseReranker, build_reranker
 from backend.app.core.config import AppSettings, get_settings
@@ -77,8 +78,17 @@ TRUNCATION_MARKER: Final[str] = "…（已截断）"
 PER_CHUNK_CHARS: Final[int] = 800
 #: Final Context 的总字符上限。
 MAX_FINAL_CONTEXT_CHARS: Final[int] = 6000
-#: 学生未作答时在 Query 与 Prompt 中的显式标注。
-NOT_ANSWERED_TEXT: Final[str] = "（学生未作答）"
+
+
+class _MissingArgument:
+    """哨兵类型：区分「未传参」与显式传入的空值。"""
+
+    def __repr__(self) -> str:  # pragma: no cover - 仅用于诊断输出
+        return "<未传参>"
+
+
+#: 未传参哨兵；用于把漏传参数转为业务异常，而不是 Python ``TypeError``。
+_MISSING: Final[_MissingArgument] = _MissingArgument()
 
 SECTION_QUESTION: Final[str] = "【题目】"
 SECTION_REFERENCE: Final[str] = "【参考要点】"
@@ -197,18 +207,23 @@ class SubjectiveGradingSource:
        缺失或未知沿用 Router 错误码，客观题报 ``GRADING_MODE_MISMATCH``；
     2. ``reference_answer``：来自 ``Question.reference_answer``；缺失/空白报
        ``GRADING_MISSING_REFERENCE_ANSWER``；
-    3. 其余必填项（``course_id``、``question_content``、``student_answer`` 等）非法或缺失报
-       ``GRADING_INVALID_INPUT``；可选字段缺省合法。
+    3. 其余必填项（``scoring_rubric``、``student_answer``、``course_id``、``question_content``
+       等）缺失、类型非法或全空白报 ``GRADING_INVALID_INPUT``；漏传构造参数同样转为本错误码，
+       不向上层泄漏 Python ``TypeError``。
 
-    ``student_answer`` 允许空字符串（学生未作答），此时 :attr:`student_answer_text` 为空串，
-    由 Query 与 Prompt 显式标注，不猜测得分。
+    **评分标准与学生答案均为必填且非空白**：缺少评分标准时「按规则给分」没有依据，
+    空白作答也不得送入模型猜测（FR-031）。
+
+    ``student_answer`` 接受文本或字符串列表（列表用换行连接）。``Answer.content`` 虽然允许
+    字典，但主观题没有键语义与顺序约定，因此本模块**显式拒绝字典答案**，不提供字典转文本的
+    隐式规则，避免把无意义的拼接结果当作学生作答。
     """
 
     question_type: QuestionType | str | None
     course_id: UUID | str
     question_content: str
     reference_answer: str
-    student_answer: str | Sequence[str] | None
+    student_answer: str | Sequence[str] | None | _MissingArgument = _MISSING
     scoring_rubric: str | None = None
     knowledge_points: tuple[str, ...] = ()
     knowledge_base_ids: tuple[str, ...] = ()
@@ -230,6 +245,12 @@ class SubjectiveGradingSource:
         if not isinstance(self.reference_answer, str) or not self.reference_answer.strip():
             raise ReferenceAnswerMissingError("题目缺少标准答案，无法组装评分依据。")
 
+        if not isinstance(self.scoring_rubric, str) or not self.scoring_rubric.strip():
+            raise GradingInputError(
+                "题目缺少非空的评分标准，无法按规则评分。"
+            )
+        object.__setattr__(self, "scoring_rubric", self.scoring_rubric.strip())
+
         object.__setattr__(
             self, "course_id", _as_uuid_text(self.course_id, label="课程标识")
         )
@@ -238,10 +259,6 @@ class SubjectiveGradingSource:
             "question_content",
             _as_text(self.question_content, label="题目内容"),
         )
-        if self.scoring_rubric is not None:
-            if not isinstance(self.scoring_rubric, str):
-                raise GradingInputError("评分标准必须是文本或未提供。")
-            object.__setattr__(self, "scoring_rubric", self.scoring_rubric.strip() or None)
         object.__setattr__(
             self,
             "knowledge_points",
@@ -259,12 +276,17 @@ class SubjectiveGradingSource:
         object.__setattr__(self, "student_answer", self._normalize_answer())
 
     def _normalize_answer(self) -> str:
-        """校验学生答案形态；列表答案用换行连接，**不做 ``str()`` 化**。"""
+        """校验学生答案形态；必须为文本或字符串列表，且不得为空白。
+
+        列表答案用换行连接；**不做 ``str()`` 化**，字典形态在本模块被明确拒绝。
+        """
 
         raw = self.student_answer
-        if raw is None:
+        if isinstance(raw, _MissingArgument) or raw is None:
             raise GradingInputError("缺少学生答案，无法组装评分输入。")
         if isinstance(raw, str):
+            if not raw.strip():
+                raise GradingInputError("学生答案为空白，无法组装评分输入。")
             return raw
         if isinstance(raw, (bytes, bytearray)) or not isinstance(raw, Sequence):
             raise GradingInputError(
@@ -277,7 +299,10 @@ class SubjectiveGradingSource:
                     f"学生答案列表只接受字符串，收到类型 {type(item).__name__}。"
                 )
             items.append(item)
-        return "\n".join(items)
+        joined = "\n".join(items)
+        if not joined.strip():
+            raise GradingInputError("学生答案为空白，无法组装评分输入。")
+        return joined
 
     @property
     def student_answer_text(self) -> str:
@@ -310,10 +335,9 @@ def build_query_text(source: SubjectiveGradingSource) -> str:
     sections: list[tuple[str, str]] = [
         (SECTION_QUESTION, source.question_content),
         (SECTION_REFERENCE, source.reference_answer),
+        (SECTION_RUBRIC, rubric),
+        (SECTION_STUDENT, source.student_answer_text),
     ]
-    if rubric:
-        sections.append((SECTION_RUBRIC, rubric))
-    sections.append((SECTION_STUDENT, source.student_answer_text or NOT_ANSWERED_TEXT))
 
     overhead = sum(len(label) + 1 for label, _ in sections) + (len(sections) - 1)
     budgets: dict[str, int] = {label: 0 for label, _ in sections}
@@ -375,6 +399,51 @@ class _HybridLikeRetriever(Protocol):
         top_k: int = DEFAULT_TOP_K,
         filters: RetrievalFilters | None = None,
     ) -> list[RetrievedChunk]: ...
+
+
+def _merge_filters(
+    source: SubjectiveGradingSource,
+    filters: RetrievalFilters | None,
+) -> RetrievalFilters:
+    """合并调用方过滤条件：课程范围始终强制为题目所属课程。
+
+    - ``course_ids`` 永远只包含题目课程；调用方限定其它课程时显式失败，
+      防止主观题评分检索到其它课程内容；
+    - ``knowledge_base_ids`` 与题目知识库范围取交集，交集为空时显式失败；
+    - ``document_ids`` 由调用方提供并透传，但仍受强制课程过滤约束。
+      （不查库无法验证资料归属，因此依赖课程过滤与上游数据一致性。）
+    """
+
+    course_id = UUID(str(source.course_id))
+    source_knowledge_bases = tuple(
+        UUID(value) for value in source.knowledge_base_ids
+    )
+    if filters is None:
+        return RetrievalFilters(
+            course_ids=(course_id,),
+            knowledge_base_ids=source_knowledge_bases,
+        )
+    resolved = resolve_filters(filters)
+    if resolved.course_ids and course_id not in resolved.course_ids:
+        raise GradingInputError(
+            "调用方过滤条件与题目所属课程不一致，拒绝跨课程检索。"
+        )
+    knowledge_base_ids = resolved.knowledge_base_ids or source_knowledge_bases
+    if resolved.knowledge_base_ids and source_knowledge_bases:
+        allowed = set(source_knowledge_bases)
+        merged = tuple(
+            value for value in resolved.knowledge_base_ids if value in allowed
+        )
+        if not merged:
+            raise GradingInputError(
+                "调用方知识库过滤条件与题目知识库范围无交集，拒绝跨知识库检索。"
+            )
+        knowledge_base_ids = merged
+    return RetrievalFilters(
+        course_ids=(course_id,),
+        knowledge_base_ids=knowledge_base_ids,
+        document_ids=resolved.document_ids,
+    )
 
 
 def _resolve_positive_int(value: Any, *, label: str) -> int:
@@ -500,16 +569,7 @@ async def build_grading_context(
     limit = normalize_top_k(top_k)
 
     query_text = build_query_text(source)
-    scope = (
-        filters
-        if filters is not None
-        else RetrievalFilters(
-            course_ids=(UUID(str(source.course_id)),),
-            knowledge_base_ids=tuple(
-                UUID(value) for value in source.knowledge_base_ids
-            ),
-        )
-    )
+    scope = _merge_filters(source, filters)
 
     embedding: list[float] | None = None
     if resolved_mode in {
@@ -578,7 +638,6 @@ __all__ = [
     "GRADING_MODE_MISMATCH",
     "MAX_FINAL_CONTEXT_CHARS",
     "MAX_QUERY_CHARS",
-    "NOT_ANSWERED_TEXT",
     "PER_CHUNK_CHARS",
     "QUERY_FIELD_BUDGETS",
     "STUDENT_QUERY_BUDGET",
