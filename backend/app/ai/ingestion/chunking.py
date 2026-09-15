@@ -18,8 +18,8 @@ from uuid import UUID
 
 from backend.app.ai.ingestion.cleaning import CleanedDocument, is_blank
 
-DEFAULT_MAX_CHARS: Final[int] = 800
-DEFAULT_OVERLAP_CHARS: Final[int] = 120
+DEFAULT_MAX_CHARS: Final[int] = 500
+DEFAULT_OVERLAP_CHARS: Final[int] = 80
 
 #: 边界优先级：先段落分隔，再中文句末，再换行，最后英文句末。
 _BOUNDARY_SEPARATORS: Final[tuple[str, ...]] = (
@@ -231,6 +231,16 @@ def chunk_document(
     """按来源片段切分清洗后的资料，并保持全局递增的分块序号。"""
 
     _validate_limits(max_chars, overlap_chars)
+    if document.file_format == "markdown":
+        return _chunk_markdown_document(
+            document,
+            document_id=document_id,
+            course_id=course_id,
+            knowledge_base_id=knowledge_base_id,
+            original_filename=original_filename,
+            max_chars=max_chars,
+            overlap_chars=overlap_chars,
+        )
     chunks: list[TextChunk] = []
     for section in document.sections:
         if is_blank(section.text):
@@ -248,6 +258,83 @@ def chunk_document(
                     file_format=document.file_format,
                     location=section.location,
                     section_index=section.index,
+                )
+            )
+    return tuple(chunks)
+
+
+def _chunk_markdown_document(
+    document: CleanedDocument,
+    *,
+    document_id: UUID | None,
+    course_id: UUID | None,
+    knowledge_base_id: UUID | None,
+    original_filename: str,
+    max_chars: int,
+    overlap_chars: int,
+) -> tuple[TextChunk, ...]:
+    """合并 Markdown 标题与相邻正文后再分块，避免标题或短 section 单独成块。"""
+
+    groups: list[tuple[str, str, int]] = []
+    current_text: list[str] = []
+    current_locations: list[str] = []
+    current_section_index = 0
+    pending_heading_text: list[str] = []
+    pending_heading_locations: list[str] = []
+
+    def flush() -> None:
+        if not current_text:
+            return
+        groups.append(
+            (
+                "\n\n".join(current_text),
+                "；".join(current_locations),
+                current_section_index,
+            )
+        )
+
+    for section in document.sections:
+        # 解析器把没有正文的章节标题作为独立 section；暂存到下一段正文前，避免标题单独成块。
+        if "\n" not in section.text:
+            pending_heading_text.append(section.text)
+            pending_heading_locations.append(section.location)
+            continue
+
+        section_text = "\n\n".join((*pending_heading_text, section.text))
+        section_locations = [*pending_heading_locations, section.location]
+        pending_heading_text.clear()
+        pending_heading_locations.clear()
+        candidate = "\n\n".join((*current_text, section_text))
+        # 小于 100 字符的短 section 即使略超上限也与相邻正文合并。
+        short_section = len(section_text) < 100
+        if current_text and len(candidate) > max_chars and not short_section:
+            flush()
+            current_text.clear()
+            current_locations.clear()
+            current_section_index = 0
+        if not current_text:
+            current_section_index = section.index
+        current_text.append(section_text)
+        current_locations.extend(section_locations)
+    # 末尾没有正文的标题不单独产出 chunk。
+    flush()
+
+    chunks: list[TextChunk] = []
+    for merged_text, location, section_index in groups:
+        spans = _split_spans(merged_text, max_chars, overlap_chars)
+        for span in spans:
+            chunks.append(
+                _build_chunk(
+                    len(chunks),
+                    merged_text,
+                    span,
+                    document_id=document_id,
+                    course_id=course_id,
+                    knowledge_base_id=knowledge_base_id,
+                    original_filename=original_filename,
+                    file_format=document.file_format,
+                    location=location,
+                    section_index=section_index,
                 )
             )
     return tuple(chunks)

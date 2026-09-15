@@ -1,0 +1,440 @@
+[
+  {
+    "query_id": "q01",
+    "query": "Python 是什么类型的编程语言，它有哪些主要特点？",
+    "positive_chunk_ids": [
+      "7e7eed02-621c-4af2-abb5-987ccabdf7a2"
+    ],
+    "annotation_method": "llm+rule+top-k",
+    "selection_methods": {
+      "7e7eed02-621c-4af2-abb5-987ccabdf7a2": [
+        "rule",
+        "llm",
+        "top-k"
+      ]
+    },
+    "confidence": 1.0,
+    "out_of_scope": false,
+    "out_of_scope_reason": null,
+    "status": "insufficient_positive"
+  },
+  {
+    "query_id": "q02",
+    "query": "在 Windows 上装好 Python 后，怎么确认安装成功并能直接在命令行用 python 命令？",
+    "positive_chunk_ids": [
+      "d0552970-a8c6-4f84-837f-6b6410a98301"
+    ],
+    "annotation_method": "llm+rule+top-k",
+    "selection_methods": {
+      "d0552970-a8c6-4f84-837f-6b6410a98301": [
+        "rule",
+        "llm",
+        "top-k"
+      ]
+    },
+    "confidence": 1.0,
+    "out_of_scope": false,
+    "out_of_scope_reason": null,
+    "status": "insufficient_positive"
+  },
+  {
+    "query_id": "q03",
+    "query": "Python 里变量需要提前声明类型吗？赋值的时候会发生什么？",
+    "positive_chunk_ids": [
+      "a13a06b0-69e0-4ffd-aa52-56f22570c211",
+      "a7105ed4-0c2d-4365-b670-a03ad6111ada"
+    ],
+    "annotation_method": "llm+rule+top-k",
+    "selection_methods": {
+      "a13a06b0-69e0-4ffd-aa52-56f22570c211": [
+        "rule",
+        "llm",
+        "top-k"
+      ],
+      "a7105ed4-0c2d-4365-b670-a03ad6111ada": [
+        "top-k"
+      ]
+    },
+    "confidence": 0.65,
+    "out_of_scope": false,
+    "out_of_scope_reason": null,
+    "status": "ok"
+  },
+  {
+    "query_id": "q04",
+    "query": "如果我把字符串 '3.14' 直接和整数相加会怎样？该怎么做类型转换才能正确计算？",
+    "positive_chunk_ids": [
+      "d7d75c19-2dad-43c3-8155-ce5935f7283d",
+      "f350786d-fbf5-486a-98df-104445515366"
+    ],
+    "annotation_method": "llm+rule+top-k",
+    "selection_methods": {
+      "d7d75c19-2dad-43c3-8155-ce5935f7283d": [
+        "rule",
+        "llm",
+        "top-k"
+      ],
+      "f350786d-fbf5-486a-98df-104445515366": [
+        "top-k"
+      ]
+    },
+    "confidence": 0.65,
+    "out_of_scope": false,
+    "out_of_scope_reason": null,
+    "status": "ok"
+  },
+  {
+    "query_id": "q05",
+    "query": "Python 里 / 和 // 这两个运算符有什么区别？",
+    "positive_chunk_ids": [
+      "f350786d-fbf5-486a-98df-104445515366"
+    ],
+    "annotation_method": "llm+rule+top-k",
+    "selection_methods": {
+      "f350786d-fbf5-486a-98df-104445515366": [
+        "rule",
+        "llm",
+        "top-k"
+      ]
+    },
+    "confidence": 1.0,
+    "out_of_scope": false,
+    "out_of_scope_reason": null,
+    "status": "insufficient_positive"
+  },
+  {
+    "query_id": "q06",
+    "query": "写一个判断闰年的条件，用 and 和 or 组合多个条件时，Python 的短路求值会怎样影响结果？",
+    "positive_chunk_ids": [
+      "8c832a64-abc2-4a2e-aaea-9da598bfb901",
+      "f42ad0ae-8feb-4bbd-bb7d-9c95d2cc6cb8"
+    ],
+    "annotation_method": "llm+rule+top-k",
+    "selection_methods": {
+      "8c832a64-abc2-4a2e-aaea-9da598bfb901": [
+        "rule",
+        "llm",
+        "top-k"
+      ],
+      "f42ad0ae-8feb-4bbd-bb7d-9c95d2cc6cb8": [
+        "top-k"
+      ]
+    },
+    "confidence": 0.6,
+    "out_of_scope": false,
+    "out_of_scope_reason": null,
+    "status": "ok"
+  },
+  {
+    "query_id": "q07",
+    "query": "Python 的 if...elif...else 是怎么执行的，缩进在这里起什么作用？",
+    "positive_chunk_ids": [
+      "f42ad0ae-8feb-4bbd-bb7d-9c95d2cc6cb8"
+    ],
+    "annotation_method": "llm+rule+top-k",
+    "selection_methods": {
+      "f42ad0ae-8feb-4bbd-bb7d-9c95d2cc6cb8": [
+        "rule",
+        "llm",
+        "top-k"
+      ]
+    },
+    "confidence": 1.0,
+    "out_of_scope": false,
+    "out_of_scope_reason": null,
+    "status": "insufficient_positive"
+  },
+  {
+    "query_id": "q08",
+    "query": "在一个循环里同时用 break 和 continue，它们分别会怎样改变循环的执行流程？",
+    "positive_chunk_ids": [
+      "f42ad0ae-8feb-4bbd-bb7d-9c95d2cc6cb8",
+      "f310864b-af52-4360-b2a7-c63042daf680"
+    ],
+    "annotation_method": "llm+rule+top-k",
+    "selection_methods": {
+      "f42ad0ae-8feb-4bbd-bb7d-9c95d2cc6cb8": [
+        "rule",
+        "llm",
+        "top-k"
+      ],
+      "f310864b-af52-4360-b2a7-c63042daf680": [
+        "rule",
+        "llm",
+        "top-k"
+      ]
+    },
+    "confidence": 0.8,
+    "out_of_scope": false,
+    "out_of_scope_reason": null,
+    "status": "ok"
+  },
+  {
+    "query_id": "q09",
+    "query": "Python 中怎么定义一个函数？函数如果没有 return 会返回什么？",
+    "positive_chunk_ids": [
+      "f310864b-af52-4360-b2a7-c63042daf680",
+      "e486e29b-20eb-4bea-890b-b311a01d40b5"
+    ],
+    "annotation_method": "llm+rule+top-k",
+    "selection_methods": {
+      "f310864b-af52-4360-b2a7-c63042daf680": [
+        "rule",
+        "llm",
+        "top-k"
+      ],
+      "e486e29b-20eb-4bea-890b-b311a01d40b5": [
+        "top-k"
+      ]
+    },
+    "confidence": 0.7,
+    "out_of_scope": false,
+    "out_of_scope_reason": null,
+    "status": "ok"
+  },
+  {
+    "query_id": "q10",
+    "query": "为什么函数的默认参数不要用列表这类可变对象？能举个场景说明会出什么问题吗？",
+    "positive_chunk_ids": [
+      "e486e29b-20eb-4bea-890b-b311a01d40b5"
+    ],
+    "annotation_method": "llm+rule+top-k",
+    "selection_methods": {
+      "e486e29b-20eb-4bea-890b-b311a01d40b5": [
+        "rule",
+        "llm",
+        "top-k"
+      ]
+    },
+    "confidence": 0.6,
+    "out_of_scope": false,
+    "out_of_scope_reason": null,
+    "status": "insufficient_positive"
+  },
+  {
+    "query_id": "q11",
+    "query": "列表和元组在可变性上有什么不同？分别适合用在什么场合？",
+    "positive_chunk_ids": [
+      "9c659b1f-443c-4d93-9668-464933558ebd",
+      "30d3ba2f-9646-4444-ad02-d544ad1a26e3"
+    ],
+    "annotation_method": "llm+rule+top-k",
+    "selection_methods": {
+      "9c659b1f-443c-4d93-9668-464933558ebd": [
+        "top-k"
+      ],
+      "30d3ba2f-9646-4444-ad02-d544ad1a26e3": [
+        "rule",
+        "llm",
+        "top-k"
+      ]
+    },
+    "confidence": 0.6,
+    "out_of_scope": false,
+    "out_of_scope_reason": null,
+    "status": "ok"
+  },
+  {
+    "query_id": "q12",
+    "query": "我想统计一段文字里出现了哪些不重复的单词，用哪种数据结构比较合适，怎么用？",
+    "positive_chunk_ids": [
+      "30d3ba2f-9646-4444-ad02-d544ad1a26e3"
+    ],
+    "annotation_method": "llm+rule+top-k",
+    "selection_methods": {
+      "30d3ba2f-9646-4444-ad02-d544ad1a26e3": [
+        "rule",
+        "llm",
+        "top-k"
+      ]
+    },
+    "confidence": 1.0,
+    "out_of_scope": false,
+    "out_of_scope_reason": null,
+    "status": "insufficient_positive"
+  },
+  {
+    "query_id": "q13",
+    "query": "Python 的字符串可不可以修改？如果我调用了 upper()，原来的字符串会变吗？",
+    "positive_chunk_ids": [
+      "86c395da-3b8d-49e8-a7d0-f4f81f6c4da1"
+    ],
+    "annotation_method": "llm+rule+top-k",
+    "selection_methods": {
+      "86c395da-3b8d-49e8-a7d0-f4f81f6c4da1": [
+        "rule",
+        "llm",
+        "top-k"
+      ]
+    },
+    "confidence": 1.0,
+    "out_of_scope": false,
+    "out_of_scope_reason": null,
+    "status": "insufficient_positive"
+  },
+  {
+    "query_id": "q14",
+    "query": "从 '2024-01-15' 这样的日期字符串里把年、月、日分别取出来，用 split 和格式化怎么做？",
+    "positive_chunk_ids": [
+      "86c395da-3b8d-49e8-a7d0-f4f81f6c4da1",
+      "90e45e9b-3053-401f-99c0-cf10e66a73b6"
+    ],
+    "annotation_method": "llm+rule+top-k",
+    "selection_methods": {
+      "86c395da-3b8d-49e8-a7d0-f4f81f6c4da1": [
+        "rule",
+        "llm",
+        "top-k"
+      ],
+      "90e45e9b-3053-401f-99c0-cf10e66a73b6": [
+        "top-k"
+      ]
+    },
+    "confidence": 0.55,
+    "out_of_scope": false,
+    "out_of_scope_reason": null,
+    "status": "ok"
+  },
+  {
+    "query_id": "q15",
+    "query": "Python 里打开文件后为什么推荐用 with 语句？",
+    "positive_chunk_ids": [
+      "d82d6007-e9ba-4b6c-ba75-8102e48b1758"
+    ],
+    "annotation_method": "llm+rule+top-k",
+    "selection_methods": {
+      "d82d6007-e9ba-4b6c-ba75-8102e48b1758": [
+        "rule",
+        "llm",
+        "top-k"
+      ]
+    },
+    "confidence": 1.0,
+    "out_of_scope": false,
+    "out_of_scope_reason": null,
+    "status": "insufficient_positive"
+  },
+  {
+    "query_id": "q16",
+    "query": "要处理一个几 GB 的日志文件，只读模式下一次读一行和一次性 read() 哪种更合适，为什么？",
+    "positive_chunk_ids": [
+      "d82d6007-e9ba-4b6c-ba75-8102e48b1758",
+      "cd81cdfa-b6f8-44d8-8a3a-43c92341661b"
+    ],
+    "annotation_method": "llm+rule+top-k",
+    "selection_methods": {
+      "d82d6007-e9ba-4b6c-ba75-8102e48b1758": [
+        "rule",
+        "llm",
+        "top-k"
+      ],
+      "cd81cdfa-b6f8-44d8-8a3a-43c92341661b": [
+        "rule",
+        "llm",
+        "top-k"
+      ]
+    },
+    "confidence": 0.8,
+    "out_of_scope": false,
+    "out_of_scope_reason": null,
+    "status": "ok"
+  },
+  {
+    "query_id": "q17",
+    "query": "Python 中 try...except 是用来做什么的？",
+    "positive_chunk_ids": [
+      "5fe9dc2c-0829-4706-ac2d-cf5682300ba0",
+      "804719f5-eaa8-4ffc-b5f2-dba68c57dd0e"
+    ],
+    "annotation_method": "llm+rule+top-k",
+    "selection_methods": {
+      "5fe9dc2c-0829-4706-ac2d-cf5682300ba0": [
+        "rule",
+        "llm",
+        "top-k"
+      ],
+      "804719f5-eaa8-4ffc-b5f2-dba68c57dd0e": [
+        "rule",
+        "llm",
+        "top-k"
+      ]
+    },
+    "confidence": 0.95,
+    "out_of_scope": false,
+    "out_of_scope_reason": null,
+    "status": "ok"
+  },
+  {
+    "query_id": "q18",
+    "query": "try 里的 else 和 finally 分别在什么时候执行？如果 except 里又抛出了异常会怎样？",
+    "positive_chunk_ids": [
+      "5fe9dc2c-0829-4706-ac2d-cf5682300ba0",
+      "804719f5-eaa8-4ffc-b5f2-dba68c57dd0e"
+    ],
+    "annotation_method": "llm+rule+top-k",
+    "selection_methods": {
+      "5fe9dc2c-0829-4706-ac2d-cf5682300ba0": [
+        "rule",
+        "llm",
+        "top-k"
+      ],
+      "804719f5-eaa8-4ffc-b5f2-dba68c57dd0e": [
+        "rule",
+        "llm",
+        "top-k"
+      ]
+    },
+    "confidence": 0.8,
+    "out_of_scope": false,
+    "out_of_scope_reason": null,
+    "status": "ok"
+  },
+  {
+    "query_id": "q19",
+    "query": "什么是 Python 模块？import 一个模块时发生了什么？",
+    "positive_chunk_ids": [
+      "6dc5595b-bf14-4ed7-97e2-3280cc75a894",
+      "b97d7536-1f5e-415a-b321-e479ec085c4d"
+    ],
+    "annotation_method": "llm+rule+top-k",
+    "selection_methods": {
+      "6dc5595b-bf14-4ed7-97e2-3280cc75a894": [
+        "rule",
+        "llm",
+        "top-k"
+      ],
+      "b97d7536-1f5e-415a-b321-e479ec085c4d": [
+        "rule",
+        "llm",
+        "top-k"
+      ]
+    },
+    "confidence": 0.8,
+    "out_of_scope": false,
+    "out_of_scope_reason": null,
+    "status": "ok"
+  },
+  {
+    "query_id": "q20",
+    "query": "自定义包时 __init__.py 有什么作用？from package import module 和 import package.module 在使用上有什么区别？",
+    "positive_chunk_ids": [
+      "6dc5595b-bf14-4ed7-97e2-3280cc75a894",
+      "b97d7536-1f5e-415a-b321-e479ec085c4d"
+    ],
+    "annotation_method": "llm+rule+top-k",
+    "selection_methods": {
+      "6dc5595b-bf14-4ed7-97e2-3280cc75a894": [
+        "top-k"
+      ],
+      "b97d7536-1f5e-415a-b321-e479ec085c4d": [
+        "rule",
+        "llm",
+        "top-k"
+      ]
+    },
+    "confidence": 0.5,
+    "out_of_scope": false,
+    "out_of_scope_reason": null,
+    "status": "ok"
+  }
+]

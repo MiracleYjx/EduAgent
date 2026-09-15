@@ -1,0 +1,2504 @@
+{
+  "dataset_version": "synthetic-python-basics-v1",
+  "document_id": "97b6cb59-5908-4982-a011-dc13fb2bea75",
+  "chunk_count": 21,
+  "annotation_method": "rule+llm+top-k",
+  "llm_provider": "deepseek",
+  "llm_model": "deepseek-chat",
+  "relevance_threshold_exclusive": 0.55,
+  "top_k": 3,
+  "top_k_min_llm_score": 0.3,
+  "embedding_model": "BAAI/bge-large-zh-v1.5",
+  "query_count": 20,
+  "distribution": {
+    "0": 0,
+    "1": 8,
+    "2-5": 12,
+    "out_of_scope": 0
+  },
+  "query_results": [
+    {
+      "query_id": "q01",
+      "query": "Python 是什么类型的编程语言，它有哪些主要特点？",
+      "threshold": 0.55,
+      "top_k": 3,
+      "top_k_min_llm_score": 0.3,
+      "bge_top3": [
+        {
+          "chunk_id": "7e7eed02-621c-4af2-abb5-987ccabdf7a2",
+          "bge_score": 0.613487
+        },
+        {
+          "chunk_id": "a7105ed4-0c2d-4365-b670-a03ad6111ada",
+          "bge_score": 0.586583
+        },
+        {
+          "chunk_id": "13278529-7781-49ba-a0b1-733798614409",
+          "bge_score": 0.576311
+        }
+      ],
+      "candidates": [
+        {
+          "chunk_id": "7e7eed02-621c-4af2-abb5-987ccabdf7a2",
+          "title": "Python 基础教程",
+          "bge_score": 0.613487,
+          "rule_terms": [
+            "高级",
+            "解释型",
+            "动态类型",
+            "编程语言"
+          ],
+          "llm_relevance_score": 1.0,
+          "llm_reason": "该片段直接回答了 Python 的语言类型（高级、解释型、通用、动态类型）并列举了主要特点（可读性、简洁性、多范式支持、庞大标准库与第三方生态、广泛应用领域），是核心答案来源。",
+          "llm_evidence": "Python 是一种高级、解释型、通用的编程语言。……Python 是动态类型语言，支持多种编程范式，包括面向对象、过程式和函数式编程。它拥有庞大的标准库和第三方库生态系统，广泛应用于 Web 开发、数据分析、人工智能、科学计算和自动化脚本等领域。"
+        },
+        {
+          "chunk_id": "13278529-7781-49ba-a0b1-733798614409",
+          "title": "1.3 第一个 Python 程序",
+          "bge_score": 0.576311,
+          "rule_terms": [],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "该片段讲解第一个 Python 程序的编写与运行，未提及 Python 的语言类型或主要特点，无法回答 Query。",
+          "llm_evidence": "1.3 第一个 Python 程序 …… print() 是 Python 的内置函数，用于将指定的内容输出到控制台。"
+        },
+        {
+          "chunk_id": "a13a06b0-69e0-4ffd-aa52-56f22570c211",
+          "title": "第2章 变量与数据类型",
+          "bge_score": null,
+          "rule_terms": [
+            "动态类型"
+          ],
+          "llm_relevance_score": 0.4,
+          "llm_reason": "该片段仅提到 Python 是动态类型语言这一特点，未说明其语言类型（如高级、解释型、通用）及其他主要特点，只能部分支撑答案。",
+          "llm_evidence": "Python 是动态类型语言，变量的类型可以在运行时改变。"
+        },
+        {
+          "chunk_id": "a7105ed4-0c2d-4365-b670-a03ad6111ada",
+          "title": "2.2 基本数据类型",
+          "bge_score": 0.586583,
+          "rule_terms": [],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "该片段列举 Python 的基本数据类型，未涉及 Python 的语言类型或主要特点，无法回答 Query。",
+          "llm_evidence": "2.2 基本数据类型 Python 有几个内置的基本数据类型：整数（int）……"
+        }
+      ],
+      "selected_positive_chunk_ids": [
+        "7e7eed02-621c-4af2-abb5-987ccabdf7a2"
+      ],
+      "selection_methods": {
+        "7e7eed02-621c-4af2-abb5-987ccabdf7a2": [
+          "rule",
+          "llm",
+          "top-k"
+        ]
+      },
+      "out_of_scope": false,
+      "out_of_scope_reason": null,
+      "status": "insufficient_positive"
+    },
+    {
+      "query_id": "q02",
+      "query": "在 Windows 上装好 Python 后，怎么确认安装成功并能直接在命令行用 python 命令？",
+      "threshold": 0.55,
+      "top_k": 3,
+      "top_k_min_llm_score": 0.3,
+      "bge_top3": [
+        {
+          "chunk_id": "d0552970-a8c6-4f84-837f-6b6410a98301",
+          "bge_score": 0.613934
+        },
+        {
+          "chunk_id": "13278529-7781-49ba-a0b1-733798614409",
+          "bge_score": 0.507461
+        },
+        {
+          "chunk_id": "b97d7536-1f5e-415a-b321-e479ec085c4d",
+          "bge_score": 0.505076
+        }
+      ],
+      "candidates": [
+        {
+          "chunk_id": "d0552970-a8c6-4f84-837f-6b6410a98301",
+          "title": "1.2 安装 Python",
+          "bge_score": 0.613934,
+          "rule_terms": [
+            "安装",
+            "PATH",
+            "命令行",
+            "版本号",
+            "python --version"
+          ],
+          "llm_relevance_score": 1.0,
+          "llm_reason": "该片段直接覆盖 Query 的两个核心需求：安装时勾选 Add Python to PATH 以便在命令行直接使用 Python，以及安装后输入 python --version 或 python3 --version 显示版本号来确认安装成功。提供了完整、可操作的答案。",
+          "llm_evidence": "安装时，请确保勾选“Add Python to PATH”选项，以便在命令行中直接使用 Python。安装完成后，打开终端或命令提示符，输入 python --version 或 python3 --version，如果显示版本号，说明安装成功。"
+        },
+        {
+          "chunk_id": "13278529-7781-49ba-a0b1-733798614409",
+          "title": "1.3 第一个 Python 程序",
+          "bge_score": 0.507461,
+          "rule_terms": [
+            "命令行"
+          ],
+          "llm_relevance_score": 0.2,
+          "llm_reason": "该片段仅演示在命令行运行 python hello.py 来执行程序，虽涉及命令行使用 python 命令，但没有说明如何确认安装成功，也未涉及 PATH 配置或版本验证，与 Query 核心需求关联弱。",
+          "llm_evidence": "在命令行中运行 python hello.py，你将在屏幕上看到输出："
+        },
+        {
+          "chunk_id": "6dc5595b-bf14-4ed7-97e2-3280cc75a894",
+          "title": "第10章 模块与包",
+          "bge_score": null,
+          "rule_terms": [
+            "PATH"
+          ],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "该片段讲解模块导入和模块搜索路径，虽然提到 PATH，但指 Python 模块搜索路径（PYTHONPATH），与 Windows 命令行 python 命令的安装验证无关。",
+          "llm_evidence": "模块搜索路径包括当前目录、PYTHONPATH 和标准库路径。"
+        },
+        {
+          "chunk_id": "b97d7536-1f5e-415a-b321-e479ec085c4d",
+          "title": "10.3 包",
+          "bge_score": 0.505076,
+          "rule_terms": [],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "该片段讲解 Python 包，内容与安装 Python 后的验证方法无关。",
+          "llm_evidence": "包是包含多个模块的目录，其中必须包含 init.py 文件（Python 3.3+ 可选）。"
+        }
+      ],
+      "selected_positive_chunk_ids": [
+        "d0552970-a8c6-4f84-837f-6b6410a98301"
+      ],
+      "selection_methods": {
+        "d0552970-a8c6-4f84-837f-6b6410a98301": [
+          "rule",
+          "llm",
+          "top-k"
+        ]
+      },
+      "out_of_scope": false,
+      "out_of_scope_reason": null,
+      "status": "insufficient_positive"
+    },
+    {
+      "query_id": "q03",
+      "query": "Python 里变量需要提前声明类型吗？赋值的时候会发生什么？",
+      "threshold": 0.55,
+      "top_k": 3,
+      "top_k_min_llm_score": 0.3,
+      "bge_top3": [
+        {
+          "chunk_id": "a13a06b0-69e0-4ffd-aa52-56f22570c211",
+          "bge_score": 0.623127
+        },
+        {
+          "chunk_id": "d7d75c19-2dad-43c3-8155-ce5935f7283d",
+          "bge_score": 0.5668
+        },
+        {
+          "chunk_id": "a7105ed4-0c2d-4365-b670-a03ad6111ada",
+          "bge_score": 0.555742
+        }
+      ],
+      "candidates": [
+        {
+          "chunk_id": "7e7eed02-621c-4af2-abb5-987ccabdf7a2",
+          "title": "Python 基础教程",
+          "bge_score": null,
+          "rule_terms": [
+            "类型",
+            "动态类型"
+          ],
+          "llm_relevance_score": 0.5,
+          "llm_reason": "该片段说明 Python 是动态类型语言，间接回应变量是否需要提前声明类型，但没有解释赋值时会发生什么。",
+          "llm_evidence": "Python 是动态类型语言，支持多种编程范式"
+        },
+        {
+          "chunk_id": "a13a06b0-69e0-4ffd-aa52-56f22570c211",
+          "title": "第2章 变量与数据类型",
+          "bge_score": 0.623127,
+          "rule_terms": [
+            "变量",
+            "声明",
+            "类型",
+            "赋值",
+            "动态类型"
+          ],
+          "llm_relevance_score": 1.0,
+          "llm_reason": "该片段明确回答 Python 不需要声明变量类型，直接赋值即可创建变量，并说明变量类型可在运行时改变。",
+          "llm_evidence": "在 Python 中，你不需要声明变量的类型，直接赋值即可创建变量。……Python 是动态类型语言，变量的类型可以在运行时改变。"
+        },
+        {
+          "chunk_id": "a7105ed4-0c2d-4365-b670-a03ad6111ada",
+          "title": "2.2 基本数据类型",
+          "bge_score": 0.555742,
+          "rule_terms": [
+            "变量",
+            "类型"
+          ],
+          "llm_relevance_score": 0.3,
+          "llm_reason": "该片段介绍基本数据类型，与变量类型相关，但没有直接回答是否需要提前声明类型或赋值时发生什么。",
+          "llm_evidence": "Python 有几个内置的基本数据类型……你可以使用 type() 函数来查看变量的类型"
+        },
+        {
+          "chunk_id": "d7d75c19-2dad-43c3-8155-ce5935f7283d",
+          "title": "2.3 类型转换",
+          "bge_score": 0.5668,
+          "rule_terms": [
+            "类型"
+          ],
+          "llm_relevance_score": 0.2,
+          "llm_reason": "该片段讲显式类型转换，与变量类型主题相关，但不回答声明类型和赋值行为。",
+          "llm_evidence": "有时需要在不同类型之间转换。Python 提供了内置函数进行显式类型转换"
+        },
+        {
+          "chunk_id": "8c832a64-abc2-4a2e-aaea-9da598bfb901",
+          "title": "3.2 比较运算符与逻辑运算符",
+          "bge_score": null,
+          "rule_terms": [
+            "赋值"
+          ],
+          "llm_relevance_score": 0.2,
+          "llm_reason": "该片段包含赋值运算符示例，但未回答变量是否需要声明类型以及赋值时类型如何确定。",
+          "llm_evidence": "除了基本的 =，Python 还支持复合赋值运算符，如 +=、-=、*=、/= 等。"
+        },
+        {
+          "chunk_id": "9c659b1f-443c-4d93-9668-464933558ebd",
+          "title": "5.3 变量作用域",
+          "bge_score": null,
+          "rule_terms": [
+            "变量",
+            "声明",
+            "赋值"
+          ],
+          "llm_relevance_score": 0.1,
+          "llm_reason": "该片段讨论变量作用域，与变量类型声明和赋值机制基本无关。",
+          "llm_evidence": "在函数内部赋值的变量是局部的，除非使用 global 或 nonlocal 声明。"
+        },
+        {
+          "chunk_id": "30d3ba2f-9646-4444-ad02-d544ad1a26e3",
+          "title": "6.2 元组与集合",
+          "bge_score": null,
+          "rule_terms": [
+            "类型"
+          ],
+          "llm_relevance_score": 0.1,
+          "llm_reason": "该片段介绍元组、集合和字典类型，不涉及变量声明或赋值时的类型行为。",
+          "llm_evidence": "元组是不可变的有序序列，用圆括号表示。"
+        },
+        {
+          "chunk_id": "804719f5-eaa8-4ffc-b5f2-dba68c57dd0e",
+          "title": "9.2 捕获与抛出异常",
+          "bge_score": null,
+          "rule_terms": [
+            "类型"
+          ],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "该片段讲异常捕获和抛出，与变量类型声明及赋值行为无关。",
+          "llm_evidence": "可以使用 raise 主动抛出异常，并自定义异常信息。"
+        }
+      ],
+      "selected_positive_chunk_ids": [
+        "a13a06b0-69e0-4ffd-aa52-56f22570c211",
+        "a7105ed4-0c2d-4365-b670-a03ad6111ada"
+      ],
+      "selection_methods": {
+        "a13a06b0-69e0-4ffd-aa52-56f22570c211": [
+          "rule",
+          "llm",
+          "top-k"
+        ],
+        "a7105ed4-0c2d-4365-b670-a03ad6111ada": [
+          "top-k"
+        ]
+      },
+      "out_of_scope": false,
+      "out_of_scope_reason": null,
+      "status": "ok"
+    },
+    {
+      "query_id": "q04",
+      "query": "如果我把字符串 '3.14' 直接和整数相加会怎样？该怎么做类型转换才能正确计算？",
+      "threshold": 0.55,
+      "top_k": 3,
+      "top_k_min_llm_score": 0.3,
+      "bge_top3": [
+        {
+          "chunk_id": "d7d75c19-2dad-43c3-8155-ce5935f7283d",
+          "bge_score": 0.502923
+        },
+        {
+          "chunk_id": "f350786d-fbf5-486a-98df-104445515366",
+          "bge_score": 0.473132
+        },
+        {
+          "chunk_id": "90e45e9b-3053-401f-99c0-cf10e66a73b6",
+          "bge_score": 0.425682
+        }
+      ],
+      "candidates": [
+        {
+          "chunk_id": "13278529-7781-49ba-a0b1-733798614409",
+          "title": "1.3 第一个 Python 程序",
+          "bge_score": null,
+          "rule_terms": [
+            "字符串",
+            "int"
+          ],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "该片段介绍Hello World程序，未涉及字符串与整数相加或类型转换。",
+          "llm_evidence": "print(\"Hello, World!\")"
+        },
+        {
+          "chunk_id": "a13a06b0-69e0-4ffd-aa52-56f22570c211",
+          "title": "第2章 变量与数据类型",
+          "bge_score": null,
+          "rule_terms": [
+            "字符串",
+            "整数"
+          ],
+          "llm_relevance_score": 0.1,
+          "llm_reason": "该片段介绍变量动态类型和数据类型示例，但未说明字符串与整数相加的错误或类型转换方法。",
+          "llm_evidence": "x = 10 name = \"Alice\" is_student = True"
+        },
+        {
+          "chunk_id": "a7105ed4-0c2d-4365-b670-a03ad6111ada",
+          "title": "2.2 基本数据类型",
+          "bge_score": null,
+          "rule_terms": [
+            "字符串",
+            "整数",
+            "int",
+            "float"
+          ],
+          "llm_relevance_score": 0.3,
+          "llm_reason": "该片段列出基本数据类型，明确区分字符串和整数，但未涉及相加错误或类型转换。",
+          "llm_evidence": "整数（int）：如 10, -5, 0 浮点数（float）：如 3.14, -0.5, 2.0 字符串（str）：如 \"hello\", 'Python'"
+        },
+        {
+          "chunk_id": "d7d75c19-2dad-43c3-8155-ce5935f7283d",
+          "title": "2.3 类型转换",
+          "bge_score": 0.502923,
+          "rule_terms": [
+            "字符串",
+            "整数",
+            "类型转换",
+            "int",
+            "float"
+          ],
+          "llm_relevance_score": 0.9,
+          "llm_reason": "该片段讲解显式类型转换，包含int()、float()示例及转换错误提示，直接帮助解答如何将'3.14'转换为数值以正确计算。",
+          "llm_evidence": "num_str = \"123\" num_int = int(num_str) # 转换为整数 num_float = float(num_str) # 转换为浮点数 ... int(\"abc\") 会抛出 ValueError"
+        },
+        {
+          "chunk_id": "f350786d-fbf5-486a-98df-104445515366",
+          "title": "第3章 运算符与表达式",
+          "bge_score": 0.473132,
+          "rule_terms": [
+            "int"
+          ],
+          "llm_relevance_score": 0.4,
+          "llm_reason": "该片段介绍算术运算符，涉及数字相加，但未说明字符串与整数相加的错误或类型转换。",
+          "llm_evidence": "a = 10 b = 3 print(a + b) # 13"
+        },
+        {
+          "chunk_id": "8c832a64-abc2-4a2e-aaea-9da598bfb901",
+          "title": "3.2 比较运算符与逻辑运算符",
+          "bge_score": null,
+          "rule_terms": [
+            "int"
+          ],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "该片段介绍比较和逻辑运算符，与字符串和整数相加或类型转换无关。",
+          "llm_evidence": "x = 5 y = 10 print(x < y) # True"
+        },
+        {
+          "chunk_id": "f42ad0ae-8feb-4bbd-bb7d-9c95d2cc6cb8",
+          "title": "第4章 控制流",
+          "bge_score": null,
+          "rule_terms": [
+            "字符串",
+            "int"
+          ],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "该片段介绍条件语句和循环，不涉及字符串与整数相加或类型转换。",
+          "llm_evidence": "score = 85 if score >= 90: print(\"优秀\")"
+        },
+        {
+          "chunk_id": "f310864b-af52-4360-b2a7-c63042daf680",
+          "title": "4.3 循环中的控制语句",
+          "bge_score": null,
+          "rule_terms": [
+            "字符串",
+            "int"
+          ],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "该片段介绍循环控制语句，与查询无关。",
+          "llm_evidence": "break 用于立即终止整个循环；continue 用于跳过当前迭代"
+        },
+        {
+          "chunk_id": "e486e29b-20eb-4bea-890b-b311a01d40b5",
+          "title": "5.2 参数传递",
+          "bge_score": null,
+          "rule_terms": [
+            "int"
+          ],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "该片段介绍函数参数传递，与字符串和整数相加或类型转换无关。",
+          "llm_evidence": "def power(base, exponent=2): return base ** exponent"
+        },
+        {
+          "chunk_id": "9c659b1f-443c-4d93-9668-464933558ebd",
+          "title": "5.3 变量作用域",
+          "bge_score": null,
+          "rule_terms": [
+            "int"
+          ],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "该片段介绍变量作用域和列表，与查询无关。",
+          "llm_evidence": "x = 10 def change(): global x x = 20"
+        },
+        {
+          "chunk_id": "30d3ba2f-9646-4444-ad02-d544ad1a26e3",
+          "title": "6.2 元组与集合",
+          "bge_score": null,
+          "rule_terms": [
+            "字符串",
+            "int"
+          ],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "该片段介绍元组、集合和字典，与查询无关。",
+          "llm_evidence": "point = (3, 4) x, y = point"
+        },
+        {
+          "chunk_id": "86c395da-3b8d-49e8-a7d0-f4f81f6c4da1",
+          "title": "第7章 字符串处理",
+          "bge_score": null,
+          "rule_terms": [
+            "字符串",
+            "int"
+          ],
+          "llm_relevance_score": 0.1,
+          "llm_reason": "该片段介绍字符串处理和拼接，但未涉及字符串与整数相加的错误或类型转换。",
+          "llm_evidence": "print(s1 + \" \" + s2) # hello world"
+        },
+        {
+          "chunk_id": "90e45e9b-3053-401f-99c0-cf10e66a73b6",
+          "title": "7.3 格式化字符串",
+          "bge_score": 0.425682,
+          "rule_terms": [
+            "字符串",
+            "int"
+          ],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "该片段介绍字符串格式化，与字符串和整数相加或类型转换无关。",
+          "llm_evidence": "print(\"My name is %s, I am %d.\" % (name, age))"
+        },
+        {
+          "chunk_id": "d82d6007-e9ba-4b6c-ba75-8102e48b1758",
+          "title": "第8章 文件操作",
+          "bge_score": null,
+          "rule_terms": [
+            "int"
+          ],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "该片段介绍文件操作，与查询无关。",
+          "llm_evidence": "with open(\"example.txt\", \"w\", encoding=\"utf-8\") as f: f.write(\"Hello, file!\\n\")"
+        },
+        {
+          "chunk_id": "cd81cdfa-b6f8-44d8-8a3a-43c92341661b",
+          "title": "8.3 读取大文件",
+          "bge_score": null,
+          "rule_terms": [
+            "int"
+          ],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "该片段介绍读取大文件，与查询无关。",
+          "llm_evidence": "for line in f: print(line.strip())"
+        },
+        {
+          "chunk_id": "5fe9dc2c-0829-4706-ac2d-cf5682300ba0",
+          "title": "第9章 异常处理",
+          "bge_score": null,
+          "rule_terms": [
+            "int"
+          ],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "该片段介绍异常处理，与字符串和整数相加或类型转换无关。",
+          "llm_evidence": "try: num = int(input(\"请输入一个数字：\")) result = 10 / num"
+        },
+        {
+          "chunk_id": "804719f5-eaa8-4ffc-b5f2-dba68c57dd0e",
+          "title": "9.2 捕获与抛出异常",
+          "bge_score": null,
+          "rule_terms": [
+            "int"
+          ],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "该片段介绍捕获与抛出异常，与查询无关。",
+          "llm_evidence": "def check_age(age): if age < 0: raise ValueError(\"年龄不能为负数\")"
+        },
+        {
+          "chunk_id": "6dc5595b-bf14-4ed7-97e2-3280cc75a894",
+          "title": "第10章 模块与包",
+          "bge_score": null,
+          "rule_terms": [
+            "int"
+          ],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "该片段介绍模块和包，与查询无关。",
+          "llm_evidence": "import math print(math.sqrt(16)) # 4.0"
+        }
+      ],
+      "selected_positive_chunk_ids": [
+        "d7d75c19-2dad-43c3-8155-ce5935f7283d",
+        "f350786d-fbf5-486a-98df-104445515366"
+      ],
+      "selection_methods": {
+        "d7d75c19-2dad-43c3-8155-ce5935f7283d": [
+          "rule",
+          "llm",
+          "top-k"
+        ],
+        "f350786d-fbf5-486a-98df-104445515366": [
+          "top-k"
+        ]
+      },
+      "out_of_scope": false,
+      "out_of_scope_reason": null,
+      "status": "ok"
+    },
+    {
+      "query_id": "q05",
+      "query": "Python 里 / 和 // 这两个运算符有什么区别？",
+      "threshold": 0.55,
+      "top_k": 3,
+      "top_k_min_llm_score": 0.3,
+      "bge_top3": [
+        {
+          "chunk_id": "8c832a64-abc2-4a2e-aaea-9da598bfb901",
+          "bge_score": 0.636232
+        },
+        {
+          "chunk_id": "f350786d-fbf5-486a-98df-104445515366",
+          "bge_score": 0.605556
+        },
+        {
+          "chunk_id": "13278529-7781-49ba-a0b1-733798614409",
+          "bge_score": 0.542276
+        }
+      ],
+      "candidates": [
+        {
+          "chunk_id": "13278529-7781-49ba-a0b1-733798614409",
+          "title": "1.3 第一个 Python 程序",
+          "bge_score": 0.542276,
+          "rule_terms": [],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "该片段介绍第一个 Python 程序，未涉及 / 和 // 运算符的区别。",
+          "llm_evidence": "1.3 第一个 Python 程序 让我们从经典的“Hello, World!”程序开始。"
+        },
+        {
+          "chunk_id": "a7105ed4-0c2d-4365-b670-a03ad6111ada",
+          "title": "2.2 基本数据类型",
+          "bge_score": null,
+          "rule_terms": [
+            "浮点数"
+          ],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "该片段介绍基本数据类型，仅提到浮点数类型，未涉及运算符 / 和 //。",
+          "llm_evidence": "2.2 基本数据类型 Python 有几个内置的基本数据类型： 整数（int）：如 10, -5, 0 浮点数（float）：如 3.14, -0.5, 2.0"
+        },
+        {
+          "chunk_id": "d7d75c19-2dad-43c3-8155-ce5935f7283d",
+          "title": "2.3 类型转换",
+          "bge_score": null,
+          "rule_terms": [
+            "浮点数"
+          ],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "该片段介绍类型转换，未涉及除法运算符的区别。",
+          "llm_evidence": "2.3 类型转换 有时需要在不同类型之间转换。"
+        },
+        {
+          "chunk_id": "f350786d-fbf5-486a-98df-104445515366",
+          "title": "第3章 运算符与表达式",
+          "bge_score": 0.605556,
+          "rule_terms": [
+            "/",
+            "//",
+            "除法",
+            "整除",
+            "浮点数"
+          ],
+          "llm_relevance_score": 1.0,
+          "llm_reason": "该片段明确讲解算术运算符，包含 / 和 // 的示例，并直接说明两者区别：/ 总是返回浮点数，// 返回向下取整的结果。",
+          "llm_evidence": "注意：除法 / 总是返回浮点数，即使能整除。整除 // 返回向下取整的结果。"
+        },
+        {
+          "chunk_id": "8c832a64-abc2-4a2e-aaea-9da598bfb901",
+          "title": "3.2 比较运算符与逻辑运算符",
+          "bge_score": 0.636232,
+          "rule_terms": [
+            "/"
+          ],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "该片段介绍比较与逻辑运算符，未涉及 / 和 // 的区别。",
+          "llm_evidence": "3.2 比较运算符与逻辑运算符 比较运算符用于比较两个值，返回布尔值：==、!=、>、=、<=。"
+        },
+        {
+          "chunk_id": "5fe9dc2c-0829-4706-ac2d-cf5682300ba0",
+          "title": "第9章 异常处理",
+          "bge_score": null,
+          "rule_terms": [
+            "/"
+          ],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "该片段介绍异常处理，仅包含除法异常处理示例，未解释运算符区别。",
+          "llm_evidence": "第9章 异常处理 9.1 异常的概念 异常是程序运行时发生的错误。"
+        },
+        {
+          "chunk_id": "b97d7536-1f5e-415a-b321-e479ec085c4d",
+          "title": "10.3 包",
+          "bge_score": null,
+          "rule_terms": [
+            "/"
+          ],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "该片段介绍包的概念，未涉及运算符。",
+          "llm_evidence": "10.3 包 包是包含多个模块的目录，其中必须包含 init.py 文件（Python 3.3+ 可选）。"
+        }
+      ],
+      "selected_positive_chunk_ids": [
+        "f350786d-fbf5-486a-98df-104445515366"
+      ],
+      "selection_methods": {
+        "f350786d-fbf5-486a-98df-104445515366": [
+          "rule",
+          "llm",
+          "top-k"
+        ]
+      },
+      "out_of_scope": false,
+      "out_of_scope_reason": null,
+      "status": "insufficient_positive"
+    },
+    {
+      "query_id": "q06",
+      "query": "写一个判断闰年的条件，用 and 和 or 组合多个条件时，Python 的短路求值会怎样影响结果？",
+      "threshold": 0.55,
+      "top_k": 3,
+      "top_k_min_llm_score": 0.3,
+      "bge_top3": [
+        {
+          "chunk_id": "8c832a64-abc2-4a2e-aaea-9da598bfb901",
+          "bge_score": 0.466071
+        },
+        {
+          "chunk_id": "f42ad0ae-8feb-4bbd-bb7d-9c95d2cc6cb8",
+          "bge_score": 0.442472
+        },
+        {
+          "chunk_id": "5fe9dc2c-0829-4706-ac2d-cf5682300ba0",
+          "bge_score": 0.426086
+        }
+      ],
+      "candidates": [
+        {
+          "chunk_id": "13278529-7781-49ba-a0b1-733798614409",
+          "title": "1.3 第一个 Python 程序",
+          "bge_score": null,
+          "rule_terms": [
+            "or"
+          ],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "该片段介绍第一个Python程序，内容与闰年判断、逻辑运算符的短路求值无关，无法提供任何实质帮助。",
+          "llm_evidence": ""
+        },
+        {
+          "chunk_id": "d7d75c19-2dad-43c3-8155-ce5935f7283d",
+          "title": "2.3 类型转换",
+          "bge_score": null,
+          "rule_terms": [
+            "or"
+          ],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "该片段讲解类型转换，未涉及条件组合或逻辑运算符短路求值，与Query无关。",
+          "llm_evidence": ""
+        },
+        {
+          "chunk_id": "8c832a64-abc2-4a2e-aaea-9da598bfb901",
+          "title": "3.2 比较运算符与逻辑运算符",
+          "bge_score": 0.466071,
+          "rule_terms": [
+            "and",
+            "or",
+            "短路",
+            "逻辑运算"
+          ],
+          "llm_relevance_score": 0.9,
+          "llm_reason": "该片段介绍了逻辑运算符and、or的用法，并明确说明短路特性（根据前面的结果决定是否计算后面的表达式），直接回答了Query中关于短路求值影响的问题。虽然未给出闰年条件示例，但核心知识点已覆盖，可结合已有条件语句知识实现。",
+          "llm_evidence": "注意：Python 中的逻辑运算符具有短路特性，即 and 和 or 会根据前面的结果决定是否计算后面的表达式。"
+        },
+        {
+          "chunk_id": "f42ad0ae-8feb-4bbd-bb7d-9c95d2cc6cb8",
+          "title": "第4章 控制流",
+          "bge_score": 0.442472,
+          "rule_terms": [
+            "or",
+            "条件"
+          ],
+          "llm_relevance_score": 0.3,
+          "llm_reason": "该片段讲解了条件语句（if/elif/else）的基本用法，是编写闰年判断的基础，但未涉及and/or组合或短路求值，对Query的核心问题帮助有限。",
+          "llm_evidence": ""
+        },
+        {
+          "chunk_id": "f310864b-af52-4360-b2a7-c63042daf680",
+          "title": "4.3 循环中的控制语句",
+          "bge_score": null,
+          "rule_terms": [
+            "or"
+          ],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "该片段介绍循环控制语句break和continue，与闰年条件及逻辑运算符短路求值无关。",
+          "llm_evidence": ""
+        },
+        {
+          "chunk_id": "9c659b1f-443c-4d93-9668-464933558ebd",
+          "title": "5.3 变量作用域",
+          "bge_score": null,
+          "rule_terms": [
+            "or"
+          ],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "该片段讲解变量作用域，与条件组合及短路求值无关。",
+          "llm_evidence": ""
+        },
+        {
+          "chunk_id": "86c395da-3b8d-49e8-a7d0-f4f81f6c4da1",
+          "title": "第7章 字符串处理",
+          "bge_score": null,
+          "rule_terms": [
+            "or"
+          ],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "该片段介绍字符串处理，与Query无关。",
+          "llm_evidence": ""
+        },
+        {
+          "chunk_id": "90e45e9b-3053-401f-99c0-cf10e66a73b6",
+          "title": "7.3 格式化字符串",
+          "bge_score": null,
+          "rule_terms": [
+            "or"
+          ],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "该片段介绍字符串格式化，与闰年判断及短路求值无关。",
+          "llm_evidence": ""
+        },
+        {
+          "chunk_id": "cd81cdfa-b6f8-44d8-8a3a-43c92341661b",
+          "title": "8.3 读取大文件",
+          "bge_score": null,
+          "rule_terms": [
+            "or"
+          ],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "该片段讲解读取大文件，与Query无关。",
+          "llm_evidence": ""
+        },
+        {
+          "chunk_id": "5fe9dc2c-0829-4706-ac2d-cf5682300ba0",
+          "title": "第9章 异常处理",
+          "bge_score": 0.426086,
+          "rule_terms": [
+            "or"
+          ],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "该片段介绍异常处理，与Query无关。",
+          "llm_evidence": ""
+        },
+        {
+          "chunk_id": "804719f5-eaa8-4ffc-b5f2-dba68c57dd0e",
+          "title": "9.2 捕获与抛出异常",
+          "bge_score": null,
+          "rule_terms": [
+            "or"
+          ],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "该片段讲解捕获与抛出异常，与Query无关。",
+          "llm_evidence": ""
+        },
+        {
+          "chunk_id": "6dc5595b-bf14-4ed7-97e2-3280cc75a894",
+          "title": "第10章 模块与包",
+          "bge_score": null,
+          "rule_terms": [
+            "or"
+          ],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "该片段介绍模块与包，与Query无关。",
+          "llm_evidence": ""
+        },
+        {
+          "chunk_id": "b97d7536-1f5e-415a-b321-e479ec085c4d",
+          "title": "10.3 包",
+          "bge_score": null,
+          "rule_terms": [
+            "or"
+          ],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "该片段介绍包的概念，与Query无关。",
+          "llm_evidence": ""
+        }
+      ],
+      "selected_positive_chunk_ids": [
+        "8c832a64-abc2-4a2e-aaea-9da598bfb901",
+        "f42ad0ae-8feb-4bbd-bb7d-9c95d2cc6cb8"
+      ],
+      "selection_methods": {
+        "8c832a64-abc2-4a2e-aaea-9da598bfb901": [
+          "rule",
+          "llm",
+          "top-k"
+        ],
+        "f42ad0ae-8feb-4bbd-bb7d-9c95d2cc6cb8": [
+          "top-k"
+        ]
+      },
+      "out_of_scope": false,
+      "out_of_scope_reason": null,
+      "status": "ok"
+    },
+    {
+      "query_id": "q07",
+      "query": "Python 的 if...elif...else 是怎么执行的，缩进在这里起什么作用？",
+      "threshold": 0.55,
+      "top_k": 3,
+      "top_k_min_llm_score": 0.3,
+      "bge_top3": [
+        {
+          "chunk_id": "f42ad0ae-8feb-4bbd-bb7d-9c95d2cc6cb8",
+          "bge_score": 0.613228
+        },
+        {
+          "chunk_id": "5fe9dc2c-0829-4706-ac2d-cf5682300ba0",
+          "bge_score": 0.559095
+        },
+        {
+          "chunk_id": "13278529-7781-49ba-a0b1-733798614409",
+          "bge_score": 0.543667
+        }
+      ],
+      "candidates": [
+        {
+          "chunk_id": "13278529-7781-49ba-a0b1-733798614409",
+          "title": "1.3 第一个 Python 程序",
+          "bge_score": 0.543667,
+          "rule_terms": [
+            "缩进",
+            "代码块"
+          ],
+          "llm_relevance_score": 0.2,
+          "llm_reason": "该片段主要介绍第一个Python程序，没有涉及if...elif...else的执行流程，仅在末尾泛泛说明缩进用于定义代码块，无法实质回答Query核心问题。",
+          "llm_evidence": "缩进在 Python 中非常重要，它用于定义代码块，而不是像其他语言那样使用大括号。"
+        },
+        {
+          "chunk_id": "f42ad0ae-8feb-4bbd-bb7d-9c95d2cc6cb8",
+          "title": "第4章 控制流",
+          "bge_score": 0.613228,
+          "rule_terms": [
+            "if",
+            "elif",
+            "else",
+            "条件",
+            "缩进",
+            "代码块"
+          ],
+          "llm_relevance_score": 1.0,
+          "llm_reason": "该片段直接给出if、elif、else关键字和示例代码，展示条件按顺序判断、执行对应代码块，并明确说明冒号和缩进是必须的、用缩进表示代码块，完全实质回答Query。",
+          "llm_evidence": "Python 使用 if、elif、else 关键字。 score = 85 if score >= 90: print(\"优秀\") elif score >= 60: print(\"及格\") else: print(\"不及格\") 运行结果：及格 注意：冒号和缩进是必须的。Python 使用缩进来表示代码块，通常用 4 个空格。"
+        },
+        {
+          "chunk_id": "f310864b-af52-4360-b2a7-c63042daf680",
+          "title": "4.3 循环中的控制语句",
+          "bge_score": null,
+          "rule_terms": [
+            "if",
+            "代码块"
+          ],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "该片段主题是循环中的break和continue控制语句，并转入函数定义，完全没有讨论if...elif...else的执行或缩进在条件分支中的作用。",
+          "llm_evidence": "break 用于立即终止整个循环；continue 用于跳过当前迭代，进入下一次迭代。"
+        },
+        {
+          "chunk_id": "5fe9dc2c-0829-4706-ac2d-cf5682300ba0",
+          "title": "第9章 异常处理",
+          "bge_score": 0.559095,
+          "rule_terms": [
+            "else"
+          ],
+          "llm_relevance_score": 0.1,
+          "llm_reason": "该片段讲解异常处理中的try、except、else、finally，其中else是异常处理分支，与if...elif...else条件语句无关，不能回答Query。",
+          "llm_evidence": "Python 使用 try、except、else、finally 进行异常处理。"
+        },
+        {
+          "chunk_id": "804719f5-eaa8-4ffc-b5f2-dba68c57dd0e",
+          "title": "9.2 捕获与抛出异常",
+          "bge_score": null,
+          "rule_terms": [
+            "if"
+          ],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "该片段主题为异常的捕获与抛出，只含一个孤立if判断示例，未讲解if...elif...else执行流程或缩进作用，与Query无关。",
+          "llm_evidence": "if age < 0: raise ValueError(\"年龄不能为负数\")"
+        }
+      ],
+      "selected_positive_chunk_ids": [
+        "f42ad0ae-8feb-4bbd-bb7d-9c95d2cc6cb8"
+      ],
+      "selection_methods": {
+        "f42ad0ae-8feb-4bbd-bb7d-9c95d2cc6cb8": [
+          "rule",
+          "llm",
+          "top-k"
+        ]
+      },
+      "out_of_scope": false,
+      "out_of_scope_reason": null,
+      "status": "insufficient_positive"
+    },
+    {
+      "query_id": "q08",
+      "query": "在一个循环里同时用 break 和 continue，它们分别会怎样改变循环的执行流程？",
+      "threshold": 0.55,
+      "top_k": 3,
+      "top_k_min_llm_score": 0.3,
+      "bge_top3": [
+        {
+          "chunk_id": "f310864b-af52-4360-b2a7-c63042daf680",
+          "bge_score": 0.537082
+        },
+        {
+          "chunk_id": "f42ad0ae-8feb-4bbd-bb7d-9c95d2cc6cb8",
+          "bge_score": 0.447962
+        },
+        {
+          "chunk_id": "d82d6007-e9ba-4b6c-ba75-8102e48b1758",
+          "bge_score": 0.361573
+        }
+      ],
+      "candidates": [
+        {
+          "chunk_id": "f42ad0ae-8feb-4bbd-bb7d-9c95d2cc6cb8",
+          "title": "第4章 控制流",
+          "bge_score": 0.447962,
+          "rule_terms": [
+            "循环",
+            "break",
+            "continue",
+            "跳过"
+          ],
+          "llm_relevance_score": 0.6,
+          "llm_reason": "该片段属于第4章控制流，在4.2循环语句末尾简要提到break提前退出循环、continue跳过当前迭代，但没有详细解释两者对循环执行流程的具体影响，缺乏示例，只能部分回答。",
+          "llm_evidence": "可以使用 break 提前退出循环，continue 跳过当前迭代。"
+        },
+        {
+          "chunk_id": "f310864b-af52-4360-b2a7-c63042daf680",
+          "title": "4.3 循环中的控制语句",
+          "bge_score": 0.537082,
+          "rule_terms": [
+            "循环",
+            "break",
+            "continue",
+            "跳过"
+          ],
+          "llm_relevance_score": 1.0,
+          "llm_reason": "该片段标题即为“循环中的控制语句”，明确说明break立即终止整个循环，continue跳过当前迭代进入下一次迭代，并给出示例演示两者在同一个循环中如何改变执行流程，直接完整回答Query。",
+          "llm_evidence": "break 用于立即终止整个循环；continue 用于跳过当前迭代，进入下一次迭代。"
+        },
+        {
+          "chunk_id": "d82d6007-e9ba-4b6c-ba75-8102e48b1758",
+          "title": "第8章 文件操作",
+          "bge_score": 0.361573,
+          "rule_terms": [],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "该片段属于第8章文件操作，内容与break、continue及循环控制流程无关，不能回答Query。",
+          "llm_evidence": "第8章 文件操作 8.1 打开与关闭文件"
+        }
+      ],
+      "selected_positive_chunk_ids": [
+        "f42ad0ae-8feb-4bbd-bb7d-9c95d2cc6cb8",
+        "f310864b-af52-4360-b2a7-c63042daf680"
+      ],
+      "selection_methods": {
+        "f42ad0ae-8feb-4bbd-bb7d-9c95d2cc6cb8": [
+          "rule",
+          "llm",
+          "top-k"
+        ],
+        "f310864b-af52-4360-b2a7-c63042daf680": [
+          "rule",
+          "llm",
+          "top-k"
+        ]
+      },
+      "out_of_scope": false,
+      "out_of_scope_reason": null,
+      "status": "ok"
+    },
+    {
+      "query_id": "q09",
+      "query": "Python 中怎么定义一个函数？函数如果没有 return 会返回什么？",
+      "threshold": 0.55,
+      "top_k": 3,
+      "top_k_min_llm_score": 0.3,
+      "bge_top3": [
+        {
+          "chunk_id": "f310864b-af52-4360-b2a7-c63042daf680",
+          "bge_score": 0.515069
+        },
+        {
+          "chunk_id": "5fe9dc2c-0829-4706-ac2d-cf5682300ba0",
+          "bge_score": 0.503828
+        },
+        {
+          "chunk_id": "e486e29b-20eb-4bea-890b-b311a01d40b5",
+          "bge_score": 0.497065
+        }
+      ],
+      "candidates": [
+        {
+          "chunk_id": "7e7eed02-621c-4af2-abb5-987ccabdf7a2",
+          "title": "Python 基础教程",
+          "bge_score": null,
+          "rule_terms": [
+            "函数"
+          ],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "该片段介绍Python简介与环境，未涉及函数定义或返回值。",
+          "llm_evidence": ""
+        },
+        {
+          "chunk_id": "13278529-7781-49ba-a0b1-733798614409",
+          "title": "1.3 第一个 Python 程序",
+          "bge_score": null,
+          "rule_terms": [
+            "函数",
+            "定义"
+          ],
+          "llm_relevance_score": 0.1,
+          "llm_reason": "该片段仅提及print()是内置函数，未讲解如何定义函数或return返回行为。",
+          "llm_evidence": "print() 是 Python 的内置函数，用于将指定的内容输出到控制台。"
+        },
+        {
+          "chunk_id": "a7105ed4-0c2d-4365-b670-a03ad6111ada",
+          "title": "2.2 基本数据类型",
+          "bge_score": null,
+          "rule_terms": [
+            "函数",
+            "None"
+          ],
+          "llm_relevance_score": 0.1,
+          "llm_reason": "该片段介绍基本数据类型，提到None类型和type()函数，但未涉及函数定义或返回值。",
+          "llm_evidence": "空值（NoneType）：None"
+        },
+        {
+          "chunk_id": "d7d75c19-2dad-43c3-8155-ce5935f7283d",
+          "title": "2.3 类型转换",
+          "bge_score": null,
+          "rule_terms": [
+            "函数"
+          ],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "该片段讲解类型转换，与函数定义和返回值问题无关。",
+          "llm_evidence": ""
+        },
+        {
+          "chunk_id": "f310864b-af52-4360-b2a7-c63042daf680",
+          "title": "4.3 循环中的控制语句",
+          "bge_score": 0.515069,
+          "rule_terms": [
+            "函数",
+            "定义",
+            "return",
+            "返回值",
+            "None"
+          ],
+          "llm_relevance_score": 1.0,
+          "llm_reason": "该片段包含第5.1节，明确讲解使用def关键字定义函数，并说明如果没有return函数返回None，直接回答Query。",
+          "llm_evidence": "使用 def 关键字定义函数。 def greet(name): ... 如果没有 return，函数返回 None。"
+        },
+        {
+          "chunk_id": "e486e29b-20eb-4bea-890b-b311a01d40b5",
+          "title": "5.2 参数传递",
+          "bge_score": 0.497065,
+          "rule_terms": [
+            "函数",
+            "定义",
+            "return"
+          ],
+          "llm_relevance_score": 0.4,
+          "llm_reason": "该片段讲解参数传递，包含函数定义示例和return语句，但未说明无return时的返回值。",
+          "llm_evidence": "def power(base, exponent=2): return base ** exponent"
+        },
+        {
+          "chunk_id": "9c659b1f-443c-4d93-9668-464933558ebd",
+          "title": "5.3 变量作用域",
+          "bge_score": null,
+          "rule_terms": [
+            "函数"
+          ],
+          "llm_relevance_score": 0.2,
+          "llm_reason": "该片段涉及变量作用域和global声明，不直接回答函数定义或返回值问题。",
+          "llm_evidence": ""
+        },
+        {
+          "chunk_id": "86c395da-3b8d-49e8-a7d0-f4f81f6c4da1",
+          "title": "第7章 字符串处理",
+          "bge_score": null,
+          "rule_terms": [
+            "定义"
+          ],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "该片段讲解字符串处理，与函数定义和返回值无关。",
+          "llm_evidence": ""
+        },
+        {
+          "chunk_id": "d82d6007-e9ba-4b6c-ba75-8102e48b1758",
+          "title": "第8章 文件操作",
+          "bge_score": null,
+          "rule_terms": [
+            "函数"
+          ],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "该片段讲解文件操作，与函数定义和返回值无关。",
+          "llm_evidence": ""
+        },
+        {
+          "chunk_id": "5fe9dc2c-0829-4706-ac2d-cf5682300ba0",
+          "title": "第9章 异常处理",
+          "bge_score": 0.503828,
+          "rule_terms": [],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "该片段讲解异常处理，与函数定义和返回值无关。",
+          "llm_evidence": ""
+        },
+        {
+          "chunk_id": "804719f5-eaa8-4ffc-b5f2-dba68c57dd0e",
+          "title": "9.2 捕获与抛出异常",
+          "bge_score": null,
+          "rule_terms": [
+            "定义"
+          ],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "该片段讲解异常捕获与抛出，与函数定义和返回值无关。",
+          "llm_evidence": ""
+        },
+        {
+          "chunk_id": "6dc5595b-bf14-4ed7-97e2-3280cc75a894",
+          "title": "第10章 模块与包",
+          "bge_score": null,
+          "rule_terms": [
+            "return"
+          ],
+          "llm_relevance_score": 0.2,
+          "llm_reason": "该片段提及创建模块时定义函数，但未讲解函数定义语法或return返回行为。",
+          "llm_evidence": "def greet(name): return f\"Hello, {name}!\""
+        }
+      ],
+      "selected_positive_chunk_ids": [
+        "f310864b-af52-4360-b2a7-c63042daf680",
+        "e486e29b-20eb-4bea-890b-b311a01d40b5"
+      ],
+      "selection_methods": {
+        "f310864b-af52-4360-b2a7-c63042daf680": [
+          "rule",
+          "llm",
+          "top-k"
+        ],
+        "e486e29b-20eb-4bea-890b-b311a01d40b5": [
+          "top-k"
+        ]
+      },
+      "out_of_scope": false,
+      "out_of_scope_reason": null,
+      "status": "ok"
+    },
+    {
+      "query_id": "q10",
+      "query": "为什么函数的默认参数不要用列表这类可变对象？能举个场景说明会出什么问题吗？",
+      "threshold": 0.55,
+      "top_k": 3,
+      "top_k_min_llm_score": 0.3,
+      "bge_top3": [
+        {
+          "chunk_id": "e486e29b-20eb-4bea-890b-b311a01d40b5",
+          "bge_score": 0.482249
+        },
+        {
+          "chunk_id": "9c659b1f-443c-4d93-9668-464933558ebd",
+          "bge_score": 0.471084
+        },
+        {
+          "chunk_id": "f310864b-af52-4360-b2a7-c63042daf680",
+          "bge_score": 0.425733
+        }
+      ],
+      "candidates": [
+        {
+          "chunk_id": "7e7eed02-621c-4af2-abb5-987ccabdf7a2",
+          "title": "Python 基础教程",
+          "bge_score": null,
+          "rule_terms": [
+            "函数"
+          ],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "介绍Python语言概述与环境，未涉及函数默认参数或可变对象问题。",
+          "llm_evidence": ""
+        },
+        {
+          "chunk_id": "13278529-7781-49ba-a0b1-733798614409",
+          "title": "1.3 第一个 Python 程序",
+          "bge_score": null,
+          "rule_terms": [
+            "函数"
+          ],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "第一个Python程序示例，与默认参数可变性无关。",
+          "llm_evidence": ""
+        },
+        {
+          "chunk_id": "a7105ed4-0c2d-4365-b670-a03ad6111ada",
+          "title": "2.2 基本数据类型",
+          "bge_score": null,
+          "rule_terms": [
+            "函数"
+          ],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "只介绍基本数据类型，未讨论函数默认参数。",
+          "llm_evidence": ""
+        },
+        {
+          "chunk_id": "d7d75c19-2dad-43c3-8155-ce5935f7283d",
+          "title": "2.3 类型转换",
+          "bge_score": null,
+          "rule_terms": [
+            "函数"
+          ],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "介绍类型转换，与默认参数可变对象问题无关。",
+          "llm_evidence": ""
+        },
+        {
+          "chunk_id": "f42ad0ae-8feb-4bbd-bb7d-9c95d2cc6cb8",
+          "title": "第4章 控制流",
+          "bge_score": null,
+          "rule_terms": [
+            "列表"
+          ],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "控制流内容，未涉及函数默认参数。",
+          "llm_evidence": ""
+        },
+        {
+          "chunk_id": "f310864b-af52-4360-b2a7-c63042daf680",
+          "title": "4.3 循环中的控制语句",
+          "bge_score": 0.425733,
+          "rule_terms": [
+            "函数"
+          ],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "循环控制语句和函数定义基础，没有默认参数可变对象的讨论。",
+          "llm_evidence": ""
+        },
+        {
+          "chunk_id": "e486e29b-20eb-4bea-890b-b311a01d40b5",
+          "title": "5.2 参数传递",
+          "bge_score": 0.482249,
+          "rule_terms": [
+            "默认参数",
+            "可变对象",
+            "函数"
+          ],
+          "llm_relevance_score": 0.6,
+          "llm_reason": "在参数传递一节中明确警告默认参数在定义时计算、应避免使用可变对象作为默认值，能部分回答为什么，但未举出具体出错场景。",
+          "llm_evidence": "注意：默认参数的值在函数定义时计算，因此避免使用可变对象作为默认值。"
+        },
+        {
+          "chunk_id": "9c659b1f-443c-4d93-9668-464933558ebd",
+          "title": "5.3 变量作用域",
+          "bge_score": 0.471084,
+          "rule_terms": [
+            "可变对象",
+            "列表",
+            "函数"
+          ],
+          "llm_relevance_score": 0.2,
+          "llm_reason": "提到列表是可变对象及其影响，但没有涉及函数默认参数问题。",
+          "llm_evidence": "列表是可变对象，修改会影响原列表。"
+        },
+        {
+          "chunk_id": "30d3ba2f-9646-4444-ad02-d544ad1a26e3",
+          "title": "6.2 元组与集合",
+          "bge_score": null,
+          "rule_terms": [
+            "列表"
+          ],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "元组与集合、字典的不可变性，与函数默认参数无关。",
+          "llm_evidence": ""
+        },
+        {
+          "chunk_id": "d82d6007-e9ba-4b6c-ba75-8102e48b1758",
+          "title": "第8章 文件操作",
+          "bge_score": null,
+          "rule_terms": [
+            "函数"
+          ],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "文件操作内容，与问题无关。",
+          "llm_evidence": ""
+        },
+        {
+          "chunk_id": "cd81cdfa-b6f8-44d8-8a3a-43c92341661b",
+          "title": "8.3 读取大文件",
+          "bge_score": null,
+          "rule_terms": [
+            "列表"
+          ],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "读取大文件，与函数默认参数可变对象问题无关。",
+          "llm_evidence": ""
+        }
+      ],
+      "selected_positive_chunk_ids": [
+        "e486e29b-20eb-4bea-890b-b311a01d40b5"
+      ],
+      "selection_methods": {
+        "e486e29b-20eb-4bea-890b-b311a01d40b5": [
+          "rule",
+          "llm",
+          "top-k"
+        ]
+      },
+      "out_of_scope": false,
+      "out_of_scope_reason": null,
+      "status": "insufficient_positive"
+    },
+    {
+      "query_id": "q11",
+      "query": "列表和元组在可变性上有什么不同？分别适合用在什么场合？",
+      "threshold": 0.55,
+      "top_k": 3,
+      "top_k_min_llm_score": 0.3,
+      "bge_top3": [
+        {
+          "chunk_id": "30d3ba2f-9646-4444-ad02-d544ad1a26e3",
+          "bge_score": 0.458403
+        },
+        {
+          "chunk_id": "9c659b1f-443c-4d93-9668-464933558ebd",
+          "bge_score": 0.432156
+        },
+        {
+          "chunk_id": "e486e29b-20eb-4bea-890b-b311a01d40b5",
+          "bge_score": 0.358085
+        }
+      ],
+      "candidates": [
+        {
+          "chunk_id": "f42ad0ae-8feb-4bbd-bb7d-9c95d2cc6cb8",
+          "title": "第4章 控制流",
+          "bge_score": null,
+          "rule_terms": [
+            "列表"
+          ],
+          "llm_relevance_score": 0.1,
+          "llm_reason": "该片段主要讲解控制流，仅在举例遍历序列时提到列表，没有讨论列表与元组的可变性差异，也没有说明各自适用场合，不能实质回答Query。",
+          "llm_evidence": "for 循环用于遍历序列（如列表、字符串、range 对象）"
+        },
+        {
+          "chunk_id": "e486e29b-20eb-4bea-890b-b311a01d40b5",
+          "title": "5.2 参数传递",
+          "bge_score": 0.358085,
+          "rule_terms": [
+            "可变"
+          ],
+          "llm_relevance_score": 0.05,
+          "llm_reason": "该片段讨论参数传递和可变参数，其中的“可变”指参数数量可变，并非列表/元组的可变性，与Query核心无关。",
+          "llm_evidence": "可变参数：*args 接收任意数量的位置参数"
+        },
+        {
+          "chunk_id": "9c659b1f-443c-4d93-9668-464933558ebd",
+          "title": "5.3 变量作用域",
+          "bge_score": 0.432156,
+          "rule_terms": [
+            "列表",
+            "可变"
+          ],
+          "llm_relevance_score": 0.45,
+          "llm_reason": "该片段末尾明确指出列表是可变对象，并介绍了列表的增删改操作，能部分说明列表的可变性，但没有与元组对比，也没有说明两者分别适合的场合。",
+          "llm_evidence": "列表是可变的有序序列；注意：列表是可变对象，修改会影响原列表。"
+        },
+        {
+          "chunk_id": "30d3ba2f-9646-4444-ad02-d544ad1a26e3",
+          "title": "6.2 元组与集合",
+          "bge_score": 0.458403,
+          "rule_terms": [
+            "列表",
+            "元组",
+            "可变",
+            "不可变"
+          ],
+          "llm_relevance_score": 0.75,
+          "llm_reason": "该片段明确指出元组是不可变的有序序列，并说明元组可作为字典键而列表不能，间接区分了二者可变性差异，也提示了适用场景（如作为字典键），能较实质地回答Query，但未系统说明各自适合的场合。",
+          "llm_evidence": "元组是不可变的有序序列，用圆括号表示。注意：元组可以作为字典的键，而列表不能。"
+        },
+        {
+          "chunk_id": "86c395da-3b8d-49e8-a7d0-f4f81f6c4da1",
+          "title": "第7章 字符串处理",
+          "bge_score": null,
+          "rule_terms": [
+            "可变",
+            "不可变"
+          ],
+          "llm_relevance_score": 0.1,
+          "llm_reason": "该片段讨论字符串处理，虽然提到字符串不可变，但没有涉及列表与元组的可变性对比及适用场合，不能回答Query。",
+          "llm_evidence": "字符串是不可变的，任何修改操作都会返回新字符串。"
+        },
+        {
+          "chunk_id": "cd81cdfa-b6f8-44d8-8a3a-43c92341661b",
+          "title": "8.3 读取大文件",
+          "bge_score": null,
+          "rule_terms": [
+            "列表"
+          ],
+          "llm_relevance_score": 0.05,
+          "llm_reason": "该片段讲解读取大文件及 readlines 返回列表，未讨论列表与元组的可变性差异或适用场合，与Query无关。",
+          "llm_evidence": "readlines() 读取所有行到列表"
+        }
+      ],
+      "selected_positive_chunk_ids": [
+        "9c659b1f-443c-4d93-9668-464933558ebd",
+        "30d3ba2f-9646-4444-ad02-d544ad1a26e3"
+      ],
+      "selection_methods": {
+        "9c659b1f-443c-4d93-9668-464933558ebd": [
+          "top-k"
+        ],
+        "30d3ba2f-9646-4444-ad02-d544ad1a26e3": [
+          "rule",
+          "llm",
+          "top-k"
+        ]
+      },
+      "out_of_scope": false,
+      "out_of_scope_reason": null,
+      "status": "ok"
+    },
+    {
+      "query_id": "q12",
+      "query": "我想统计一段文字里出现了哪些不重复的单词，用哪种数据结构比较合适，怎么用？",
+      "threshold": 0.55,
+      "top_k": 3,
+      "top_k_min_llm_score": 0.3,
+      "bge_top3": [
+        {
+          "chunk_id": "30d3ba2f-9646-4444-ad02-d544ad1a26e3",
+          "bge_score": 0.431386
+        },
+        {
+          "chunk_id": "cd81cdfa-b6f8-44d8-8a3a-43c92341661b",
+          "bge_score": 0.417321
+        },
+        {
+          "chunk_id": "d82d6007-e9ba-4b6c-ba75-8102e48b1758",
+          "bge_score": 0.412659
+        }
+      ],
+      "candidates": [
+        {
+          "chunk_id": "9c659b1f-443c-4d93-9668-464933558ebd",
+          "title": "5.3 变量作用域",
+          "bge_score": null,
+          "rule_terms": [
+            "数据结构"
+          ],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "该片段主要讲解变量作用域以及列表的基本操作，并未涉及集合去重或统计不重复单词的方法，无法实质回答Query。",
+          "llm_evidence": "5.3 变量作用域 Python 中的作用域分为局部作用域、嵌套作用域、全局作用域和内置作用域。"
+        },
+        {
+          "chunk_id": "30d3ba2f-9646-4444-ad02-d544ad1a26e3",
+          "title": "6.2 元组与集合",
+          "bge_score": 0.431386,
+          "rule_terms": [
+            "集合",
+            "不重复",
+            "set"
+          ],
+          "llm_relevance_score": 1.0,
+          "llm_reason": "该片段明确指出集合是无序的不重复元素集，并说明了集合用于去重，这正是回答“统计不重复单词用哪种数据结构”以及“怎么用”的核心依据。",
+          "llm_evidence": "集合是无序的不重复元素集，用花括号或 set() 创建。集合用于去重和成员测试。"
+        },
+        {
+          "chunk_id": "d82d6007-e9ba-4b6c-ba75-8102e48b1758",
+          "title": "第8章 文件操作",
+          "bge_score": 0.412659,
+          "rule_terms": [],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "该片段讲解文件打开与关闭操作，与统计不重复单词应使用的数据结构无关。",
+          "llm_evidence": "第8章 文件操作 8.1 打开与关闭文件 使用 open() 函数打开文件，它返回文件对象。"
+        },
+        {
+          "chunk_id": "cd81cdfa-b6f8-44d8-8a3a-43c92341661b",
+          "title": "8.3 读取大文件",
+          "bge_score": 0.417321,
+          "rule_terms": [],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "该片段讲解读取大文件的逐行处理方式，虽然涉及文件读取，但没有回答应该使用哪种数据结构统计不重复单词。",
+          "llm_evidence": "8.3 读取大文件 对于大文件，应逐行读取以节省内存。"
+        }
+      ],
+      "selected_positive_chunk_ids": [
+        "30d3ba2f-9646-4444-ad02-d544ad1a26e3"
+      ],
+      "selection_methods": {
+        "30d3ba2f-9646-4444-ad02-d544ad1a26e3": [
+          "rule",
+          "llm",
+          "top-k"
+        ]
+      },
+      "out_of_scope": false,
+      "out_of_scope_reason": null,
+      "status": "insufficient_positive"
+    },
+    {
+      "query_id": "q13",
+      "query": "Python 的字符串可不可以修改？如果我调用了 upper()，原来的字符串会变吗？",
+      "threshold": 0.55,
+      "top_k": 3,
+      "top_k_min_llm_score": 0.3,
+      "bge_top3": [
+        {
+          "chunk_id": "86c395da-3b8d-49e8-a7d0-f4f81f6c4da1",
+          "bge_score": 0.596344
+        },
+        {
+          "chunk_id": "90e45e9b-3053-401f-99c0-cf10e66a73b6",
+          "bge_score": 0.559185
+        },
+        {
+          "chunk_id": "d7d75c19-2dad-43c3-8155-ce5935f7283d",
+          "bge_score": 0.523178
+        }
+      ],
+      "candidates": [
+        {
+          "chunk_id": "13278529-7781-49ba-a0b1-733798614409",
+          "title": "1.3 第一个 Python 程序",
+          "bge_score": null,
+          "rule_terms": [
+            "字符串"
+          ],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "该片段介绍第一个 Python 程序和 print 函数，仅提到字符串可用单引号或双引号括起来，未涉及字符串可变性或 upper() 方法。",
+          "llm_evidence": ""
+        },
+        {
+          "chunk_id": "a13a06b0-69e0-4ffd-aa52-56f22570c211",
+          "title": "第2章 变量与数据类型",
+          "bge_score": null,
+          "rule_terms": [
+            "字符串"
+          ],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "该片段讲解变量与赋值，示例中包含字符串变量，但未讨论字符串是否可变，也未提及 upper()。",
+          "llm_evidence": ""
+        },
+        {
+          "chunk_id": "a7105ed4-0c2d-4365-b670-a03ad6111ada",
+          "title": "2.2 基本数据类型",
+          "bge_score": null,
+          "rule_terms": [
+            "字符串"
+          ],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "该片段列举基本数据类型，包含字符串类型，但未说明字符串的可变性或 upper() 方法的行为。",
+          "llm_evidence": ""
+        },
+        {
+          "chunk_id": "d7d75c19-2dad-43c3-8155-ce5935f7283d",
+          "title": "2.3 类型转换",
+          "bge_score": 0.523178,
+          "rule_terms": [
+            "字符串"
+          ],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "该片段讲解类型转换，与字符串可变性和 upper() 方法无关。",
+          "llm_evidence": ""
+        },
+        {
+          "chunk_id": "f42ad0ae-8feb-4bbd-bb7d-9c95d2cc6cb8",
+          "title": "第4章 控制流",
+          "bge_score": null,
+          "rule_terms": [
+            "字符串"
+          ],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "该片段讲解控制流（条件语句和循环），与字符串可变性和 upper() 方法无关。",
+          "llm_evidence": ""
+        },
+        {
+          "chunk_id": "f310864b-af52-4360-b2a7-c63042daf680",
+          "title": "4.3 循环中的控制语句",
+          "bge_score": null,
+          "rule_terms": [
+            "字符串"
+          ],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "该片段讲解循环控制语句和函数定义，与字符串可变性和 upper() 方法无关。",
+          "llm_evidence": ""
+        },
+        {
+          "chunk_id": "9c659b1f-443c-4d93-9668-464933558ebd",
+          "title": "5.3 变量作用域",
+          "bge_score": null,
+          "rule_terms": [
+            "修改"
+          ],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "该片段讲解变量作用域，与字符串可变性和 upper() 方法无关。",
+          "llm_evidence": ""
+        },
+        {
+          "chunk_id": "30d3ba2f-9646-4444-ad02-d544ad1a26e3",
+          "title": "6.2 元组与集合",
+          "bge_score": null,
+          "rule_terms": [
+            "字符串",
+            "不可变"
+          ],
+          "llm_relevance_score": 0.1,
+          "llm_reason": "该片段主要介绍元组、集合和字典，提到了元组不可变，但没有涉及字符串是否可变或 upper() 的行为。",
+          "llm_evidence": "元组是不可变的有序序列，用圆括号表示。"
+        },
+        {
+          "chunk_id": "86c395da-3b8d-49e8-a7d0-f4f81f6c4da1",
+          "title": "第7章 字符串处理",
+          "bge_score": 0.596344,
+          "rule_terms": [
+            "字符串",
+            "修改",
+            "不可变",
+            "upper"
+          ],
+          "llm_relevance_score": 1.0,
+          "llm_reason": "该片段明确说明字符串是不可变的，任何修改操作都会返回新字符串，并指出字符串方法（如 upper()）不会改变原字符串，而是返回新字符串，直接回答了查询的两个问题。",
+          "llm_evidence": "字符串是不可变的，任何修改操作都会返回新字符串。注意：字符串方法不会改变原字符串，而是返回新字符串。"
+        },
+        {
+          "chunk_id": "90e45e9b-3053-401f-99c0-cf10e66a73b6",
+          "title": "7.3 格式化字符串",
+          "bge_score": 0.559185,
+          "rule_terms": [
+            "字符串"
+          ],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "该片段讲解格式化字符串，与字符串可变性和 upper() 方法无关。",
+          "llm_evidence": ""
+        }
+      ],
+      "selected_positive_chunk_ids": [
+        "86c395da-3b8d-49e8-a7d0-f4f81f6c4da1"
+      ],
+      "selection_methods": {
+        "86c395da-3b8d-49e8-a7d0-f4f81f6c4da1": [
+          "rule",
+          "llm",
+          "top-k"
+        ]
+      },
+      "out_of_scope": false,
+      "out_of_scope_reason": null,
+      "status": "insufficient_positive"
+    },
+    {
+      "query_id": "q14",
+      "query": "从 '2024-01-15' 这样的日期字符串里把年、月、日分别取出来，用 split 和格式化怎么做？",
+      "threshold": 0.55,
+      "top_k": 3,
+      "top_k_min_llm_score": 0.3,
+      "bge_top3": [
+        {
+          "chunk_id": "90e45e9b-3053-401f-99c0-cf10e66a73b6",
+          "bge_score": 0.489445
+        },
+        {
+          "chunk_id": "cd81cdfa-b6f8-44d8-8a3a-43c92341661b",
+          "bge_score": 0.434119
+        },
+        {
+          "chunk_id": "86c395da-3b8d-49e8-a7d0-f4f81f6c4da1",
+          "bge_score": 0.425098
+        }
+      ],
+      "candidates": [
+        {
+          "chunk_id": "7e7eed02-621c-4af2-abb5-987ccabdf7a2",
+          "title": "Python 基础教程",
+          "bge_score": null,
+          "rule_terms": [
+            "年"
+          ],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "该片段为Python简介与历史，未涉及字符串split或日期格式化处理，无法回答Query。",
+          "llm_evidence": "Python 是一种高级、解释型、通用的编程语言。"
+        },
+        {
+          "chunk_id": "13278529-7781-49ba-a0b1-733798614409",
+          "title": "1.3 第一个 Python 程序",
+          "bge_score": null,
+          "rule_terms": [
+            "字符串"
+          ],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "该片段介绍第一个Python程序，仅提及字符串引号，未涉及split或日期提取。",
+          "llm_evidence": "字符串可以用单引号或双引号括起来。"
+        },
+        {
+          "chunk_id": "a13a06b0-69e0-4ffd-aa52-56f22570c211",
+          "title": "第2章 变量与数据类型",
+          "bge_score": null,
+          "rule_terms": [
+            "字符串"
+          ],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "该片段介绍变量赋值与命名规则，未涉及split或日期格式化。",
+          "llm_evidence": "变量是用于存储数据的命名位置。"
+        },
+        {
+          "chunk_id": "a7105ed4-0c2d-4365-b670-a03ad6111ada",
+          "title": "2.2 基本数据类型",
+          "bge_score": null,
+          "rule_terms": [
+            "字符串"
+          ],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "该片段介绍基本数据类型，未涉及split或日期提取。",
+          "llm_evidence": "Python 有几个内置的基本数据类型"
+        },
+        {
+          "chunk_id": "d7d75c19-2dad-43c3-8155-ce5935f7283d",
+          "title": "2.3 类型转换",
+          "bge_score": null,
+          "rule_terms": [
+            "字符串"
+          ],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "该片段介绍类型转换，可辅助将拆分后的字符串转为整数，但未直接回答split和格式化提取年月日。",
+          "llm_evidence": "num_int = int(num_str) # 转换为整数"
+        },
+        {
+          "chunk_id": "f42ad0ae-8feb-4bbd-bb7d-9c95d2cc6cb8",
+          "title": "第4章 控制流",
+          "bge_score": null,
+          "rule_terms": [
+            "字符串"
+          ],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "该片段介绍控制流，未涉及split或日期处理。",
+          "llm_evidence": "条件语句允许程序根据条件执行不同的代码块。"
+        },
+        {
+          "chunk_id": "f310864b-af52-4360-b2a7-c63042daf680",
+          "title": "4.3 循环中的控制语句",
+          "bge_score": null,
+          "rule_terms": [
+            "字符串"
+          ],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "该片段介绍循环控制语句，未涉及split或日期提取。",
+          "llm_evidence": "break 用于立即终止整个循环；continue 用于跳过当前迭代"
+        },
+        {
+          "chunk_id": "30d3ba2f-9646-4444-ad02-d544ad1a26e3",
+          "title": "6.2 元组与集合",
+          "bge_score": null,
+          "rule_terms": [
+            "字符串"
+          ],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "该片段介绍元组、集合和字典，未涉及split或日期处理。",
+          "llm_evidence": "元组是不可变的有序序列，用圆括号表示。"
+        },
+        {
+          "chunk_id": "86c395da-3b8d-49e8-a7d0-f4f81f6c4da1",
+          "title": "第7章 字符串处理",
+          "bge_score": 0.425098,
+          "rule_terms": [
+            "字符串",
+            "split"
+          ],
+          "llm_relevance_score": 0.6,
+          "llm_reason": "该片段展示了split()方法的基本用法，可用于按分隔符拆分字符串，是回答Query中split部分的核心依据之一，但未涉及日期字符串提取和格式化。",
+          "llm_evidence": "print(text.split(\",\")) # [' Hello', ' World! ']"
+        },
+        {
+          "chunk_id": "90e45e9b-3053-401f-99c0-cf10e66a73b6",
+          "title": "7.3 格式化字符串",
+          "bge_score": 0.489445,
+          "rule_terms": [
+            "字符串",
+            "格式化"
+          ],
+          "llm_relevance_score": 0.5,
+          "llm_reason": "该片段介绍格式化字符串（包括f-string、format），可用于格式化输出年月日，但未包含split拆分日期字符串的具体做法，需组合第7章其他部分。",
+          "llm_evidence": "print(f\"My name is {name}, I am {age}.\")"
+        },
+        {
+          "chunk_id": "cd81cdfa-b6f8-44d8-8a3a-43c92341661b",
+          "title": "8.3 读取大文件",
+          "bge_score": 0.434119,
+          "rule_terms": [],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "该片段介绍读取大文件，与split和日期字符串处理无关。",
+          "llm_evidence": "对于大文件，应逐行读取以节省内存。"
+        },
+        {
+          "chunk_id": "804719f5-eaa8-4ffc-b5f2-dba68c57dd0e",
+          "title": "9.2 捕获与抛出异常",
+          "bge_score": null,
+          "rule_terms": [
+            "年"
+          ],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "该片段介绍异常捕获与抛出，未涉及split或日期格式化。",
+          "llm_evidence": "可以使用 raise 主动抛出异常，并自定义异常信息。"
+        }
+      ],
+      "selected_positive_chunk_ids": [
+        "86c395da-3b8d-49e8-a7d0-f4f81f6c4da1",
+        "90e45e9b-3053-401f-99c0-cf10e66a73b6"
+      ],
+      "selection_methods": {
+        "86c395da-3b8d-49e8-a7d0-f4f81f6c4da1": [
+          "rule",
+          "llm",
+          "top-k"
+        ],
+        "90e45e9b-3053-401f-99c0-cf10e66a73b6": [
+          "top-k"
+        ]
+      },
+      "out_of_scope": false,
+      "out_of_scope_reason": null,
+      "status": "ok"
+    },
+    {
+      "query_id": "q15",
+      "query": "Python 里打开文件后为什么推荐用 with 语句？",
+      "threshold": 0.55,
+      "top_k": 3,
+      "top_k_min_llm_score": 0.3,
+      "bge_top3": [
+        {
+          "chunk_id": "d82d6007-e9ba-4b6c-ba75-8102e48b1758",
+          "bge_score": 0.575099
+        },
+        {
+          "chunk_id": "13278529-7781-49ba-a0b1-733798614409",
+          "bge_score": 0.533096
+        },
+        {
+          "chunk_id": "f42ad0ae-8feb-4bbd-bb7d-9c95d2cc6cb8",
+          "bge_score": 0.505985
+        }
+      ],
+      "candidates": [
+        {
+          "chunk_id": "d0552970-a8c6-4f84-837f-6b6410a98301",
+          "title": "1.2 安装 Python",
+          "bge_score": null,
+          "rule_terms": [
+            "打开"
+          ],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "该片段讲的是安装 Python，与 with 语句无关，虽然规则命中‘打开’，但语境是打开终端。",
+          "llm_evidence": "安装完成后，打开终端或命令提示符"
+        },
+        {
+          "chunk_id": "13278529-7781-49ba-a0b1-733798614409",
+          "title": "1.3 第一个 Python 程序",
+          "bge_score": 0.533096,
+          "rule_terms": [],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "该片段是第一个 Python 程序，未涉及文件操作或 with 语句。",
+          "llm_evidence": "print() 是 Python 的内置函数"
+        },
+        {
+          "chunk_id": "f42ad0ae-8feb-4bbd-bb7d-9c95d2cc6cb8",
+          "title": "第4章 控制流",
+          "bge_score": 0.505985,
+          "rule_terms": [],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "该片段是控制流，不涉及文件操作和 with 语句。",
+          "llm_evidence": "第4章 控制流"
+        },
+        {
+          "chunk_id": "d82d6007-e9ba-4b6c-ba75-8102e48b1758",
+          "title": "第8章 文件操作",
+          "bge_score": 0.575099,
+          "rule_terms": [
+            "文件",
+            "with",
+            "打开",
+            "关闭"
+          ],
+          "llm_relevance_score": 1.0,
+          "llm_reason": "该片段明确说明使用 with 语句可以自动管理文件关闭，并指出即使发生异常也能确保文件正确关闭，直接回答了为什么推荐用 with 语句。",
+          "llm_evidence": "操作完成后应调用 close() 关闭文件，或使用 with 语句自动管理。……注意：使用 with 可以确保文件正确关闭，即使发生异常。"
+        },
+        {
+          "chunk_id": "cd81cdfa-b6f8-44d8-8a3a-43c92341661b",
+          "title": "8.3 读取大文件",
+          "bge_score": null,
+          "rule_terms": [
+            "文件",
+            "with"
+          ],
+          "llm_relevance_score": 0.3,
+          "llm_reason": "该片段展示使用 with 读取大文件的例子，但并未解释为什么推荐用 with，仅提供用法示例。",
+          "llm_evidence": "with open(\"large_file.txt\", \"r\", encoding=\"utf-8\") as f:"
+        },
+        {
+          "chunk_id": "6dc5595b-bf14-4ed7-97e2-3280cc75a894",
+          "title": "第10章 模块与包",
+          "bge_score": null,
+          "rule_terms": [
+            "文件"
+          ],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "该片段讲模块与包，不涉及文件操作或 with 语句。",
+          "llm_evidence": "第10章 模块与包"
+        },
+        {
+          "chunk_id": "b97d7536-1f5e-415a-b321-e479ec085c4d",
+          "title": "10.3 包",
+          "bge_score": null,
+          "rule_terms": [
+            "文件"
+          ],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "该片段讲包，不涉及文件操作或 with 语句。",
+          "llm_evidence": "10.3 包"
+        }
+      ],
+      "selected_positive_chunk_ids": [
+        "d82d6007-e9ba-4b6c-ba75-8102e48b1758"
+      ],
+      "selection_methods": {
+        "d82d6007-e9ba-4b6c-ba75-8102e48b1758": [
+          "rule",
+          "llm",
+          "top-k"
+        ]
+      },
+      "out_of_scope": false,
+      "out_of_scope_reason": null,
+      "status": "insufficient_positive"
+    },
+    {
+      "query_id": "q16",
+      "query": "要处理一个几 GB 的日志文件，只读模式下一次读一行和一次性 read() 哪种更合适，为什么？",
+      "threshold": 0.55,
+      "top_k": 3,
+      "top_k_min_llm_score": 0.3,
+      "bge_top3": [
+        {
+          "chunk_id": "cd81cdfa-b6f8-44d8-8a3a-43c92341661b",
+          "bge_score": 0.567557
+        },
+        {
+          "chunk_id": "d82d6007-e9ba-4b6c-ba75-8102e48b1758",
+          "bge_score": 0.460065
+        },
+        {
+          "chunk_id": "5fe9dc2c-0829-4706-ac2d-cf5682300ba0",
+          "bge_score": 0.349493
+        }
+      ],
+      "candidates": [
+        {
+          "chunk_id": "d82d6007-e9ba-4b6c-ba75-8102e48b1758",
+          "title": "第8章 文件操作",
+          "bge_score": 0.460065,
+          "rule_terms": [
+            "read",
+            "只读"
+          ],
+          "llm_relevance_score": 0.6,
+          "llm_reason": "片段介绍了文件操作基础与只读模式，并展示了read()一次性读取，但没有直接比较大文件逐行读取与read()的适用性，只能提供背景信息。",
+          "llm_evidence": "with open(\"example.txt\", \"r\", encoding=\"utf-8\") as f:\n    content = f.read()"
+        },
+        {
+          "chunk_id": "cd81cdfa-b6f8-44d8-8a3a-43c92341661b",
+          "title": "8.3 读取大文件",
+          "bge_score": 0.567557,
+          "rule_terms": [
+            "大文件",
+            "read",
+            "readline",
+            "内存"
+          ],
+          "llm_relevance_score": 1.0,
+          "llm_reason": "片段明确针对大文件给出逐行读取以节省内存的建议，并说明read()一次性读取整个文件、readline()读取一行，直接回答了哪种方式更合适及原因。",
+          "llm_evidence": "对于大文件，应逐行读取以节省内存。……注意：read() 一次性读取整个文件，readline() 读取一行，readlines() 读取所有行到列表。"
+        },
+        {
+          "chunk_id": "5fe9dc2c-0829-4706-ac2d-cf5682300ba0",
+          "title": "第9章 异常处理",
+          "bge_score": 0.349493,
+          "rule_terms": [],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "片段主题为异常处理，与处理大日志文件时选择逐行读取还是read()无关。",
+          "llm_evidence": "第9章 异常处理 9.1 异常的概念 异常是程序运行时发生的错误。"
+        }
+      ],
+      "selected_positive_chunk_ids": [
+        "d82d6007-e9ba-4b6c-ba75-8102e48b1758",
+        "cd81cdfa-b6f8-44d8-8a3a-43c92341661b"
+      ],
+      "selection_methods": {
+        "d82d6007-e9ba-4b6c-ba75-8102e48b1758": [
+          "rule",
+          "llm",
+          "top-k"
+        ],
+        "cd81cdfa-b6f8-44d8-8a3a-43c92341661b": [
+          "rule",
+          "llm",
+          "top-k"
+        ]
+      },
+      "out_of_scope": false,
+      "out_of_scope_reason": null,
+      "status": "ok"
+    },
+    {
+      "query_id": "q17",
+      "query": "Python 中 try...except 是用来做什么的？",
+      "threshold": 0.55,
+      "top_k": 3,
+      "top_k_min_llm_score": 0.3,
+      "bge_top3": [
+        {
+          "chunk_id": "5fe9dc2c-0829-4706-ac2d-cf5682300ba0",
+          "bge_score": 0.650538
+        },
+        {
+          "chunk_id": "13278529-7781-49ba-a0b1-733798614409",
+          "bge_score": 0.513684
+        },
+        {
+          "chunk_id": "804719f5-eaa8-4ffc-b5f2-dba68c57dd0e",
+          "bge_score": 0.509732
+        }
+      ],
+      "candidates": [
+        {
+          "chunk_id": "13278529-7781-49ba-a0b1-733798614409",
+          "title": "1.3 第一个 Python 程序",
+          "bge_score": 0.513684,
+          "rule_terms": [],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "该片段介绍第一个 Python 程序和 print 函数，未提及 try...except 或异常处理。",
+          "llm_evidence": ""
+        },
+        {
+          "chunk_id": "d7d75c19-2dad-43c3-8155-ce5935f7283d",
+          "title": "2.3 类型转换",
+          "bge_score": null,
+          "rule_terms": [
+            "错误"
+          ],
+          "llm_relevance_score": 0.2,
+          "llm_reason": "该片段讲类型转换时提到可能引发的错误（如 ValueError），但并未说明 try...except 的用途。",
+          "llm_evidence": "转换时要注意可能引发的错误，例如 int(\"abc\") 会抛出 ValueError。"
+        },
+        {
+          "chunk_id": "86c395da-3b8d-49e8-a7d0-f4f81f6c4da1",
+          "title": "第7章 字符串处理",
+          "bge_score": null,
+          "rule_terms": [
+            "处理"
+          ],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "该片段为字符串处理章节，与 try...except 的用途无关。",
+          "llm_evidence": ""
+        },
+        {
+          "chunk_id": "d82d6007-e9ba-4b6c-ba75-8102e48b1758",
+          "title": "第8章 文件操作",
+          "bge_score": null,
+          "rule_terms": [
+            "异常"
+          ],
+          "llm_relevance_score": 0.2,
+          "llm_reason": "该片段讲文件操作时提到 with 语句可确保文件正确关闭，即使发生异常，但未说明 try...except 的用途。",
+          "llm_evidence": "注意：使用 with 可以确保文件正确关闭，即使发生异常。"
+        },
+        {
+          "chunk_id": "5fe9dc2c-0829-4706-ac2d-cf5682300ba0",
+          "title": "第9章 异常处理",
+          "bge_score": 0.650538,
+          "rule_terms": [
+            "try",
+            "except",
+            "异常",
+            "错误",
+            "处理"
+          ],
+          "llm_relevance_score": 1.0,
+          "llm_reason": "该片段直接讲解异常处理，明确说明 Python 使用 try、except 等进行异常处理，并给出捕获特定异常的例子，能实质回答 try...except 是用来做什么的。",
+          "llm_evidence": "Python 使用 try、except、else、finally 进行异常处理。"
+        },
+        {
+          "chunk_id": "804719f5-eaa8-4ffc-b5f2-dba68c57dd0e",
+          "title": "9.2 捕获与抛出异常",
+          "bge_score": 0.509732,
+          "rule_terms": [
+            "try",
+            "except",
+            "异常",
+            "错误",
+            "处理"
+          ],
+          "llm_relevance_score": 0.9,
+          "llm_reason": "该片段讲解捕获与抛出异常，展示 try...except 捕获异常的用法和注意事项，能帮助理解 try...except 的用途。",
+          "llm_evidence": "try: check_age(-1) except ValueError as e: print(e)"
+        }
+      ],
+      "selected_positive_chunk_ids": [
+        "5fe9dc2c-0829-4706-ac2d-cf5682300ba0",
+        "804719f5-eaa8-4ffc-b5f2-dba68c57dd0e"
+      ],
+      "selection_methods": {
+        "5fe9dc2c-0829-4706-ac2d-cf5682300ba0": [
+          "rule",
+          "llm",
+          "top-k"
+        ],
+        "804719f5-eaa8-4ffc-b5f2-dba68c57dd0e": [
+          "rule",
+          "llm",
+          "top-k"
+        ]
+      },
+      "out_of_scope": false,
+      "out_of_scope_reason": null,
+      "status": "ok"
+    },
+    {
+      "query_id": "q18",
+      "query": "try 里的 else 和 finally 分别在什么时候执行？如果 except 里又抛出了异常会怎样？",
+      "threshold": 0.55,
+      "top_k": 3,
+      "top_k_min_llm_score": 0.3,
+      "bge_top3": [
+        {
+          "chunk_id": "5fe9dc2c-0829-4706-ac2d-cf5682300ba0",
+          "bge_score": 0.650735
+        },
+        {
+          "chunk_id": "804719f5-eaa8-4ffc-b5f2-dba68c57dd0e",
+          "bge_score": 0.524984
+        },
+        {
+          "chunk_id": "f42ad0ae-8feb-4bbd-bb7d-9c95d2cc6cb8",
+          "bge_score": 0.45785
+        }
+      ],
+      "candidates": [
+        {
+          "chunk_id": "d7d75c19-2dad-43c3-8155-ce5935f7283d",
+          "title": "2.3 类型转换",
+          "bge_score": null,
+          "rule_terms": [
+            "抛出"
+          ],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "该片段讲的是类型转换及其可能抛出的 ValueError，没有涉及 try 的 else/finally 执行时机，也没有回答 except 中再抛异常的问题。",
+          "llm_evidence": "int(\"abc\") 会抛出 ValueError。"
+        },
+        {
+          "chunk_id": "f42ad0ae-8feb-4bbd-bb7d-9c95d2cc6cb8",
+          "title": "第4章 控制流",
+          "bge_score": 0.45785,
+          "rule_terms": [
+            "else",
+            "执行"
+          ],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "该片段是普通 if/elif/else 条件语句和循环语句，不是异常处理中的 try-else-finally，不能回答 Query 的核心问题。",
+          "llm_evidence": "if、elif、else 关键字；for 循环和 while 循环。"
+        },
+        {
+          "chunk_id": "d82d6007-e9ba-4b6c-ba75-8102e48b1758",
+          "title": "第8章 文件操作",
+          "bge_score": null,
+          "rule_terms": [
+            "异常"
+          ],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "该片段是文件操作，仅提到 with 可确保文件关闭即使发生异常，没有解释 try 的 else/finally 执行时机或 except 中再抛异常的行为。",
+          "llm_evidence": "使用 with 可以确保文件正确关闭，即使发生异常。"
+        },
+        {
+          "chunk_id": "5fe9dc2c-0829-4706-ac2d-cf5682300ba0",
+          "title": "第9章 异常处理",
+          "bge_score": 0.650735,
+          "rule_terms": [
+            "try",
+            "except",
+            "else",
+            "finally",
+            "异常",
+            "执行"
+          ],
+          "llm_relevance_score": 0.9,
+          "llm_reason": "该片段明确说明 else 在无异常时执行、finally 总是执行，并给出 try/except/else/finally 的完整示例，能直接回答 Query 前两问；但未说明 except 中再抛出异常后会怎样。",
+          "llm_evidence": "注意：else 在无异常时执行，finally 总是执行，常用于资源清理。"
+        },
+        {
+          "chunk_id": "804719f5-eaa8-4ffc-b5f2-dba68c57dd0e",
+          "title": "9.2 捕获与抛出异常",
+          "bge_score": 0.524984,
+          "rule_terms": [
+            "try",
+            "except",
+            "异常",
+            "抛出"
+          ],
+          "llm_relevance_score": 0.7,
+          "llm_reason": "该片段讲解 raise 主动抛出异常、捕获指定异常类型及自定义异常，涉及 except 环境中抛出异常，有助于理解 except 中再抛出异常的情形，但没有直接说明其后续执行规则和 finally 的关系。",
+          "llm_evidence": "可以使用 raise 主动抛出异常；try: check_age(-1) except ValueError as e: print(e)"
+        }
+      ],
+      "selected_positive_chunk_ids": [
+        "5fe9dc2c-0829-4706-ac2d-cf5682300ba0",
+        "804719f5-eaa8-4ffc-b5f2-dba68c57dd0e"
+      ],
+      "selection_methods": {
+        "5fe9dc2c-0829-4706-ac2d-cf5682300ba0": [
+          "rule",
+          "llm",
+          "top-k"
+        ],
+        "804719f5-eaa8-4ffc-b5f2-dba68c57dd0e": [
+          "rule",
+          "llm",
+          "top-k"
+        ]
+      },
+      "out_of_scope": false,
+      "out_of_scope_reason": null,
+      "status": "ok"
+    },
+    {
+      "query_id": "q19",
+      "query": "什么是 Python 模块？import 一个模块时发生了什么？",
+      "threshold": 0.55,
+      "top_k": 3,
+      "top_k_min_llm_score": 0.3,
+      "bge_top3": [
+        {
+          "chunk_id": "6dc5595b-bf14-4ed7-97e2-3280cc75a894",
+          "bge_score": 0.631904
+        },
+        {
+          "chunk_id": "b97d7536-1f5e-415a-b321-e479ec085c4d",
+          "bge_score": 0.562218
+        },
+        {
+          "chunk_id": "13278529-7781-49ba-a0b1-733798614409",
+          "bge_score": 0.491081
+        }
+      ],
+      "candidates": [
+        {
+          "chunk_id": "13278529-7781-49ba-a0b1-733798614409",
+          "title": "1.3 第一个 Python 程序",
+          "bge_score": 0.491081,
+          "rule_terms": [
+            ".py"
+          ],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "该片段介绍第一个Python程序，与Python模块及import机制无关，无法实质回答Query。",
+          "llm_evidence": ""
+        },
+        {
+          "chunk_id": "6dc5595b-bf14-4ed7-97e2-3280cc75a894",
+          "title": "第10章 模块与包",
+          "bge_score": 0.631904,
+          "rule_terms": [
+            "模块",
+            "import",
+            "导入",
+            ".py",
+            "搜索路径"
+          ],
+          "llm_relevance_score": 1.0,
+          "llm_reason": "该片段直接解释模块是包含Python代码的文件，并说明import导入模块及搜索路径，覆盖Query核心问题。",
+          "llm_evidence": "模块是包含 Python 代码的文件。使用 import 导入模块。注意：模块搜索路径包括当前目录、PYTHONPATH 和标准库路径。"
+        },
+        {
+          "chunk_id": "b97d7536-1f5e-415a-b321-e479ec085c4d",
+          "title": "10.3 包",
+          "bge_score": 0.562218,
+          "rule_terms": [
+            "模块",
+            "import",
+            "导入",
+            ".py"
+          ],
+          "llm_relevance_score": 0.6,
+          "llm_reason": "该片段说明包是包含多个模块的目录，涉及导入包中的子模块，与模块概念和import机制部分相关，但未直接解释模块本身及import时发生的过程。",
+          "llm_evidence": "包是包含多个模块的目录，其中必须包含 init.py 文件（Python 3.3+ 可选）。导入包中的模块： from my_package import module1"
+        }
+      ],
+      "selected_positive_chunk_ids": [
+        "6dc5595b-bf14-4ed7-97e2-3280cc75a894",
+        "b97d7536-1f5e-415a-b321-e479ec085c4d"
+      ],
+      "selection_methods": {
+        "6dc5595b-bf14-4ed7-97e2-3280cc75a894": [
+          "rule",
+          "llm",
+          "top-k"
+        ],
+        "b97d7536-1f5e-415a-b321-e479ec085c4d": [
+          "rule",
+          "llm",
+          "top-k"
+        ]
+      },
+      "out_of_scope": false,
+      "out_of_scope_reason": null,
+      "status": "ok"
+    },
+    {
+      "query_id": "q20",
+      "query": "自定义包时 __init__.py 有什么作用？from package import module 和 import package.module 在使用上有什么区别？",
+      "threshold": 0.55,
+      "top_k": 3,
+      "top_k_min_llm_score": 0.3,
+      "bge_top3": [
+        {
+          "chunk_id": "b97d7536-1f5e-415a-b321-e479ec085c4d",
+          "bge_score": 0.687231
+        },
+        {
+          "chunk_id": "6dc5595b-bf14-4ed7-97e2-3280cc75a894",
+          "bge_score": 0.619127
+        },
+        {
+          "chunk_id": "13278529-7781-49ba-a0b1-733798614409",
+          "bge_score": 0.508798
+        }
+      ],
+      "candidates": [
+        {
+          "chunk_id": "7e7eed02-621c-4af2-abb5-987ccabdf7a2",
+          "title": "Python 基础教程",
+          "bge_score": null,
+          "rule_terms": [
+            "包"
+          ],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "该片段介绍Python语言概况，未涉及__init__.py或包导入方式，无法回答Query。",
+          "llm_evidence": ""
+        },
+        {
+          "chunk_id": "d0552970-a8c6-4f84-837f-6b6410a98301",
+          "title": "1.2 安装 Python",
+          "bge_score": null,
+          "rule_terms": [
+            "包"
+          ],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "该片段讲解安装Python和Anaconda，未涉及自定义包或__init__.py。",
+          "llm_evidence": ""
+        },
+        {
+          "chunk_id": "13278529-7781-49ba-a0b1-733798614409",
+          "title": "1.3 第一个 Python 程序",
+          "bge_score": 0.508798,
+          "rule_terms": [],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "该片段是第一个Python程序示例，与包机制无关。",
+          "llm_evidence": ""
+        },
+        {
+          "chunk_id": "90e45e9b-3053-401f-99c0-cf10e66a73b6",
+          "title": "7.3 格式化字符串",
+          "bge_score": null,
+          "rule_terms": [
+            "包"
+          ],
+          "llm_relevance_score": 0.0,
+          "llm_reason": "该片段是字符串格式化内容，不涉及包或导入。",
+          "llm_evidence": ""
+        },
+        {
+          "chunk_id": "6dc5595b-bf14-4ed7-97e2-3280cc75a894",
+          "title": "第10章 模块与包",
+          "bge_score": 0.619127,
+          "rule_terms": [
+            "包",
+            "from",
+            "import",
+            "模块",
+            "目录"
+          ],
+          "llm_relevance_score": 0.3,
+          "llm_reason": "该片段介绍模块导入，举例import math与from math import pi，但未提及自定义包、__init__.py，也未对比from package import module与import package.module在使用上的区别，仅部分相关。",
+          "llm_evidence": "使用 import 导入模块。 import math ... from math import pi ... 应避免使用 from module import * ... 模块搜索路径包括当前目录、PYTHONPATH 和标准库路径。"
+        },
+        {
+          "chunk_id": "b97d7536-1f5e-415a-b321-e479ec085c4d",
+          "title": "10.3 包",
+          "bge_score": 0.687231,
+          "rule_terms": [
+            "包",
+            "__init__.py",
+            "from",
+            "import",
+            "模块",
+            "目录"
+          ],
+          "llm_relevance_score": 0.7,
+          "llm_reason": "该片段以'包'为主题，提及__init__.py文件的存在（但表述为init.py，实际指__init__.py），并说明导入包中模块的语法：from my_package import module1。这直接回应用户关于__init__.py作用的部分问题，以及from package import module的用法。但片段未解释__init__.py的具体作用，也未对比import package.module，因此相关性不是满分。",
+          "llm_evidence": "包是包含多个模块的目录，其中必须包含 init.py 文件（Python 3.3+ 可选）。... 导入包中的模块： from my_package import module1 module1.func() ... 包可以嵌套，使用点号访问子包。"
+        }
+      ],
+      "selected_positive_chunk_ids": [
+        "6dc5595b-bf14-4ed7-97e2-3280cc75a894",
+        "b97d7536-1f5e-415a-b321-e479ec085c4d"
+      ],
+      "selection_methods": {
+        "6dc5595b-bf14-4ed7-97e2-3280cc75a894": [
+          "top-k"
+        ],
+        "b97d7536-1f5e-415a-b321-e479ec085c4d": [
+          "rule",
+          "llm",
+          "top-k"
+        ]
+      },
+      "out_of_scope": false,
+      "out_of_scope_reason": null,
+      "status": "ok"
+    }
+  ]
+}
