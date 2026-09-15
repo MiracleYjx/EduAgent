@@ -39,6 +39,7 @@ from pydantic import (
     ValidationError,
     field_validator,
 )
+from sqlalchemy.orm import Session
 
 from backend.app.ai.embedding.base import BaseEmbeddingProvider
 from backend.app.ai.llm.base import BaseLLMProvider, LLMMessage, LLMMessages
@@ -47,7 +48,12 @@ from backend.app.ai.retrieval.base import DEFAULT_TOP_K, BaseRetriever
 from backend.app.ai.retrieval.reranker import BaseReranker
 from backend.app.core.config import AppSettings, get_settings
 from backend.app.core.retry_policy import ProviderExecutionError
-from backend.app.domain.enums import QuestionType, ReviewStatus, ValidationStatus
+from backend.app.domain.enums import (
+    GradingMode,
+    QuestionType,
+    ReviewStatus,
+    ValidationStatus,
+)
 from backend.app.schemas.ai import GradingResult, NonEmptyText
 from backend.app.services.grading.confidence_policy import ConfidencePolicy
 from backend.app.services.grading.grading_context import (
@@ -58,7 +64,10 @@ from backend.app.services.grading.grading_context import (
     SubjectiveGradingSource,
     build_grading_context,
 )
-from backend.app.services.grading.question_router import normalize_question_type
+from backend.app.services.grading.question_router import (
+    QuestionRouter,
+    normalize_question_type,
+)
 
 #: LLM 响应不是合法 JSON、不是对象或未通过 Schema 校验。
 GRADING_INVALID_LLM_RESPONSE: Final[str] = "GRADING_INVALID_LLM_RESPONSE"
@@ -86,14 +95,35 @@ STRUCTURED_FAILURE_CODES: Final[frozenset[str]] = frozenset(
 
 
 class SubjectiveGradingError(RuntimeError):
-    """主观题评分失败基类；默认按不可重试的业务错误处理。"""
+    """主观题评分失败基类；默认按不可重试的业务错误处理。
+
+    ``retryable`` 默认不可重试；当失败来自 Provider 时，映射会按来源错误的
+    ``info.retryable`` 保真覆盖，避免把不可重试错误当成可重试错误重复提交。
+    """
 
     error_code: ClassVar[str] = GRADING_INVALID_LLM_RESPONSE
-    retryable: ClassVar[bool] = False
+    #: 是否可重试；Provider 分类时按来源错误保真覆盖。
+    retryable: bool = False
 
-    def __init__(self, detail: str) -> None:
+    def __init__(
+        self,
+        detail: str,
+        *,
+        retryable: bool | None = None,
+        source_code: str | None = None,
+        status: str | None = None,
+        attempt_count: int | None = None,
+    ) -> None:
         super().__init__(f"{self.error_code}：{detail}")
         self.detail = detail
+        if retryable is not None:
+            self.retryable = retryable
+        #: Provider 来源错误码（脱敏后），便于诊断与重试决策。
+        self.source_code = source_code
+        #: Provider 脱敏状态值。
+        self.status = status
+        #: Provider 实际尝试次数。
+        self.attempt_count = attempt_count
 
 
 class InvalidLLMResponseError(SubjectiveGradingError):
@@ -121,10 +151,9 @@ class InvalidMaxScoreError(SubjectiveGradingError):
 
 
 class ProviderFailedError(SubjectiveGradingError):
-    """评分 Provider 调用失败；可按重试策略重试。"""
+    """评分 Provider 调用失败；可重试性由来源错误的 ``info.retryable`` 决定。"""
 
     error_code: ClassVar[str] = GRADING_PROVIDER_FAILED
-    retryable: ClassVar[bool] = True
 
 
 class ProviderNotReadyError(SubjectiveGradingError):
@@ -180,6 +209,9 @@ class SubjectiveGradingPayload(BaseModel):
 KNOWN_PAYLOAD_FIELDS: Final[frozenset[str]] = frozenset(
     SubjectiveGradingPayload.model_fields
 )
+
+#: 解析器共用的题型校验器：只接受 Subjective，避免直接调用时生成客观题结果。
+_SUBJECTIVE_ONLY_ROUTER: Final[QuestionRouter] = QuestionRouter()
 
 _SUBJECTIVE_GRADING_SYSTEM_PROMPT: Final[str] = (
     f"{SUBJECTIVE_GRADING_PROMPT_VERSION}\n"
@@ -283,6 +315,11 @@ def parse_subjective_payload(
 
     resolved_max_score = _resolve_max_score(max_score)
     normalized_type = normalize_question_type(question_type)
+    if _SUBJECTIVE_ONLY_ROUTER.route_type(normalized_type) is not GradingMode.SUBJECTIVE:
+        raise GradingModeMismatchError(
+            f"题型 {normalized_type} 属于客观题路径，"
+            "不得使用主观题结构化评分解析器。"
+        )
     payload_map = _load_payload(raw)
     try:
         payload = SubjectiveGradingPayload.model_validate(payload_map)
@@ -390,7 +427,7 @@ class SubjectiveGrader:
 
     async def grade(
         self,
-        session: Any,
+        session: Session,
         source: SubjectiveGradingSource,
         *,
         max_score: Any,
@@ -401,7 +438,11 @@ class SubjectiveGrader:
         require_context: bool = True,
         settings: AppSettings | None = None,
     ) -> GradingResult:
-        """返回经过结构化校验与置信度检查的 :class:`GradingResult`。"""
+        """返回经过结构化校验与置信度检查的 :class:`GradingResult`。
+
+        ``require_context`` 只影响低层上下文组装是否立即报错；正式评分入口**无论该参数取值
+        如何都会强制校验上下文充分性**，绝不在空上下文下调用评分模型。
+        """
 
         resolved_settings = settings if settings is not None else get_settings()
         resolved_max_score = _resolve_max_score(max_score)
@@ -415,6 +456,7 @@ class SubjectiveGrader:
             require_context=require_context,
             settings=resolved_settings,
         )
+        context.ensure_sufficient()
         messages = build_grading_messages(context, max_score=resolved_max_score)
         payload = await self._generate_payload(messages)
         answer_id = (
@@ -453,14 +495,24 @@ class SubjectiveGrader:
                 messages, SubjectiveGradingPayload
             )
         except ProviderExecutionError as exc:
-            code = str(exc.info.code)
-            attempts = int(exc.info.attempt_count)
+            info = exc.info
+            code = str(info.code)
+            failure_detail: dict[str, Any] = {
+                "retryable": bool(info.retryable),
+                "source_code": code,
+                "status": str(info.status),
+                "attempt_count": int(info.attempt_count),
+            }
             if code in STRUCTURED_FAILURE_CODES:
                 raise InvalidLLMResponseError(
-                    f"评分响应未通过结构化校验（来源码 {code}，尝试 {attempts} 次）。"
+                    f"评分响应未通过结构化校验（来源码 {code}，尝试 "
+                    f"{info.attempt_count} 次）。",
+                    **failure_detail,
                 ) from None
             raise ProviderFailedError(
-                f"评分 Provider 调用失败（来源码 {code}，尝试 {attempts} 次）。"
+                f"评分 Provider 调用失败（来源码 {code}，尝试 "
+                f"{info.attempt_count} 次）。",
+                **failure_detail,
             ) from None
         except SubjectiveGradingError:
             raise
