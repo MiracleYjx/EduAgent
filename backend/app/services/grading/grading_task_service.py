@@ -862,6 +862,9 @@ class InlineGradingTaskExecutor:
         error: GradingTaskError,
     ) -> None:
         stored = self._repository.get_task(task_id)
+        if stored is not None and stored.status is GradingTaskStatus.COMPLETED:
+            # 提交回执异常不能推翻已经持久化的结果与终态。
+            return
         if stored is not None:
             self._repository.save_task(
                 stored.model_copy(

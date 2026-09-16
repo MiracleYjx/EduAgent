@@ -365,6 +365,8 @@ class DatabaseGradingRepository:
             self._upsert_exam_result(session, submission, exam_result)
             self._mark_graded(session, submission)
             if task_id is not None:
+                # 生产会话关闭 autoflush；先在当前事务内生成结果主键，再写检查点关联。
+                session.flush()
                 self._write_checkpoint(
                     session,
                     task_id,
