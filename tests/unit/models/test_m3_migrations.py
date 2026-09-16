@@ -37,6 +37,7 @@ from backend.app.domain.enums import (
     QuestionType,
     ReviewStatus,
     ValidationStatus,
+    WorkflowStatus,
 )
 from backend.app.schemas.grading import DiagnosisStatus, ExamResultStatus
 
@@ -48,10 +49,11 @@ EXPECTED_CHAIN: dict[str, str] = {
     "0005_grading_results": "0004_document_chunks",
     "0006_diagnosis_reports": "0005_grading_results",
     "0007_review_records": "0006_diagnosis_reports",
+    "0008_workflow_runs": "0007_review_records",
 }
 
 #: 当前 head（逐个任务向后移动）。
-EXPECTED_HEAD = "0007_review_records"
+EXPECTED_HEAD = "0008_workflow_runs"
 
 
 @dataclass(frozen=True, slots=True)
@@ -329,6 +331,63 @@ REVISION_EXPECTATIONS: tuple[RevisionExpectation, ...] = (
             ),
         ),
     ),
+    RevisionExpectation(
+        revision="0008_workflow_runs",
+        down_revision="0007_review_records",
+        indexes=frozenset(
+            {
+                "ix_workflow_runs_request_id",
+                "ix_workflow_runs_submission_id",
+            }
+        ),
+        tables=(
+            (
+                "workflow_runs",
+                TableExpectation(
+                    columns=(
+                        "workflow_id",
+                        "request_id",
+                        "submission_id",
+                        "current_node",
+                        "current_answer_id",
+                        "status",
+                        "checkpoint",
+                        "pause_reason",
+                        "retry_count",
+                        "resumable",
+                        "exam_result_id",
+                        "id",
+                        "created_at",
+                        "updated_at",
+                    ),
+                    nullable_columns=frozenset(
+                        {
+                            "current_node",
+                            "current_answer_id",
+                            "checkpoint",
+                            "pause_reason",
+                            "exam_result_id",
+                        }
+                    ),
+                    check_constraints=frozenset(
+                        {
+                            "workflow_status",
+                            "ck_workflow_runs_retry_count_non_negative",
+                        }
+                    ),
+                    unique_constraints=frozenset({"uq_workflow_runs_workflow_id"}),
+                    foreign_keys=(
+                        ("submission_id", "submissions.id", "CASCADE"),
+                        ("current_answer_id", "answers.id", "SET NULL"),
+                        ("exam_result_id", "exam_results.id", "SET NULL"),
+                    ),
+                    enum_columns=(
+                        ("status", tuple(item.value for item in WorkflowStatus)),
+                    ),
+                ),
+            ),
+        ),
+    ),
 )
 
 #: 期望迁移中不得出现的应用枚举类（S03：迁移固定当时的字面值）。
@@ -337,6 +396,7 @@ FORBIDDEN_ENUM_CLASSES = (
     QuestionType,
     ReviewStatus,
     ValidationStatus,
+    WorkflowStatus,
     ExamResultStatus,
     DiagnosisStatus,
 )

@@ -158,7 +158,7 @@ Embedding Provider 契约测试通过，并且 Benchmark 可以比较所有要�
 - [X] T061 在 `backend/app/models/diagnosis_report.py` 和 `migrations/versions/` 中创建 `DiagnosisReport` SQLAlchemy 模型及 Alembic 迁移，依赖 T060；关联 `ExamResult`/学生，持久化掌握情况、薄弱知识点、错误原因、学习建议和生成时间
 - [X] T062 在 `backend/app/models/review_record.py` 和 `migrations/versions/` 中创建 `ReviewRecord` SQLAlchemy 模型及 Alembic 迁移，依赖 T060；关联 `GradingResult`/教师，持久化复核前后分数、理由、知识点、操作类型和审查时间
 - [ ] T063 在 `backend/app/models/agent_run.py` 和 `migrations/versions/` 中创建 `AgentRun` SQLAlchemy 模型及 Alembic 迁移，依赖 T015；持久化 Agent 类型、Workflow ID、输入输出摘要、状态、耗时、模型、Prompt 版本、Token 统计和错误摘要
-- [ ] T064 在 `backend/app/models/workflow_run.py` 和 `migrations/versions/` 中创建 `WorkflowRun` SQLAlchemy 模型及 Alembic 迁移，依赖 T015；持久化 `workflow_id`、Submission、当前节点/答案、状态、检查点、暂停原因、重试次数、恢复状态和时间戳
+- [X] T064 在 `backend/app/models/workflow_run.py` 和 `migrations/versions/` 中创建 `WorkflowRun` SQLAlchemy 模型及 Alembic 迁移，依赖 T015；持久化 `workflow_id`、Submission、当前节点/答案、状态、检查点、暂停原因、重试次数、恢复状态和时间戳
 
 **M3 检查点**：核心阅卷无需 Agent 编排即可运行；结果边界结构化、具备置信度意识、
 可审计；五类评分/诊断/复核/运行实体的模型和迁移就绪，并已准备好接入 LangGraph。

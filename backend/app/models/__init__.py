@@ -17,6 +17,7 @@ from backend.app.models.review_record import ReviewRecord
 from backend.app.models.role import Role
 from backend.app.models.submission import Submission
 from backend.app.models.user import User
+from backend.app.models.workflow_run import WorkflowRun
 
 
 def register_models() -> None:
@@ -40,6 +41,7 @@ __all__ = [
     "Role",
     "Submission",
     "User",
+    "WorkflowRun",
     "exam_questions",
     "register_models",
     "user_roles",
