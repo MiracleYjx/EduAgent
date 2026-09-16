@@ -154,7 +154,7 @@ Embedding Provider 契约测试通过，并且 Benchmark 可以比较所有要�
 - [~] T057 [US2] 在 `backend/app/api/results.py` 和 `backend/app/ui/results_view.py` 中提供学生成绩、错题、诊断和知识点掌握情况视图（部分完成：读模型 API、学生/教师授权边界、空态与服务端统计已实现并有契约测试；results_view 已提供可注入加载器及部分结果格式化/刷新接线，**尚未注入生产 ResultsQueryService**，学生诊断、薄弱知识点与掌握度区域尚未完成动态输出绑定；生产结果来源仍依赖 T060 结果持久化与 T061 诊断持久化，未接通时返回 503 GRADING_STORE_NOT_READY）
 - [ ] T058 [US3] 在 `tests/integration/test_grading_pipeline.py` 中增加混合答卷集成测试，证明客观题确定性评分、主观题结构化评分、统一结果和诊断不会提前生成
 - [ ] T059 [US3] 在 `scripts/run_grading_benchmark.py` 中实现可重复的 Zero-shot、RAG 和 Hybrid + Rerank 阅卷 Benchmark，记录数据集、模型、Prompt、指标、结果和分析
-- [ ] T060 在 `backend/app/models/grading_result.py`、`backend/app/models/exam_result.py` 和 `migrations/versions/` 中创建 `GradingResult`、`ExamResult` SQLAlchemy 模型及 Alembic 迁移，依赖 T015；分别关联 `Answer`/`Submission` 和 `Submission`/`Exam`，持久化单题得分、理由、知识点、置信度、校验/复核状态以及整份答卷总分、结果状态和汇总时间
+- [X] T060 在 `backend/app/models/grading_result.py`、`backend/app/models/exam_result.py` 和 `migrations/versions/` 中创建 `GradingResult`、`ExamResult` SQLAlchemy 模型及 Alembic 迁移，依赖 T015；分别关联 `Answer`/`Submission` 和 `Submission`/`Exam`，持久化单题得分、理由、知识点、置信度、校验/复核状态以及整份答卷总分、结果状态和汇总时间
 - [ ] T061 在 `backend/app/models/diagnosis_report.py` 和 `migrations/versions/` 中创建 `DiagnosisReport` SQLAlchemy 模型及 Alembic 迁移，依赖 T060；关联 `ExamResult`/学生，持久化掌握情况、薄弱知识点、错误原因、学习建议和生成时间
 - [ ] T062 在 `backend/app/models/review_record.py` 和 `migrations/versions/` 中创建 `ReviewRecord` SQLAlchemy 模型及 Alembic 迁移，依赖 T060；关联 `GradingResult`/教师，持久化复核前后分数、理由、知识点、操作类型和审查时间
 - [ ] T063 在 `backend/app/models/agent_run.py` 和 `migrations/versions/` 中创建 `AgentRun` SQLAlchemy 模型及 Alembic 迁移，依赖 T015；持久化 Agent 类型、Workflow ID、输入输出摘要、状态、耗时、模型、Prompt 版本、Token 统计和错误摘要
