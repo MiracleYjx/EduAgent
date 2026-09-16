@@ -16,6 +16,7 @@ param(
 
 $ErrorActionPreference = "Stop"
 $serviceNames = @("postgres", "redis", "backend")
+$isolationVerified = $false
 $isolationEnvironment = @{
     "COMPOSE_PROJECT_NAME" = "eduagent-test"
     "POSTGRES_PORT"        = "15432"
@@ -275,6 +276,7 @@ try {
     }
 
     Assert-IsolatedEnvironment
+    $isolationVerified = $true
     Write-Host "开始执行 M0 冒烟验证。"
     Invoke-ComposeCheck -Description "Compose 配置检查" -Arguments @("compose", "config", "--quiet") | Out-Null
     Invoke-ComposeCheck -Description "三容器启动" -Arguments @("compose", "up", "--build", "-d") | Out-Null
@@ -306,6 +308,8 @@ try {
 }
 catch {
     Write-Host "M0 冒烟验证失败：$(ConvertTo-SafeText $_.Exception.Message)" -ForegroundColor Red
-    Write-Diagnostics
+    if ($isolationVerified) {
+        Write-Diagnostics
+    }
     exit 1
 }
