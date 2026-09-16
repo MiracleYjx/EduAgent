@@ -8,6 +8,8 @@ from backend.app.models.document import Document
 from backend.app.models.document_chunk import DocumentChunk
 from backend.app.models.exam import Exam
 from backend.app.models.exam_participant import ExamParticipant
+from backend.app.models.exam_result import ExamResult
+from backend.app.models.grading_result import GradingResult
 from backend.app.models.knowledge_base import KnowledgeBase
 from backend.app.models.question import Question
 from backend.app.models.role import Role
@@ -27,6 +29,8 @@ __all__ = [
     "DocumentChunk",
     "Exam",
     "ExamParticipant",
+    "ExamResult",
+    "GradingResult",
     "KnowledgeBase",
     "Question",
     "Role",
