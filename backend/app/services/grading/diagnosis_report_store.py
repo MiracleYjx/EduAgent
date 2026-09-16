@@ -9,7 +9,7 @@
   不使用 ``DiagnosisService`` 返回的 ``exam-result:{submission_id}`` 应用层标识。
 - **来源时间**：``source_exam_result_updated_at`` 保存生成时消费的
   ``ExamResultDTO.aggregated_at``；读取时与当前 ``ExamResult.aggregated_at`` 比较，
-  不一致返回 ``Stale``，**不允许旧结果生成的报告覆盖新结果**（写入前同样校验）。
+  不一致返回 ``Stale``；保存事务锁定成绩行后校验并写入，防止旧报告覆盖并发更新。
 - **Not Ready 不落库**：整卷尚未形成最终成绩时 ``DiagnosisService`` 返回 ``Not Ready``，
   该状态没有可落库的最终结果，只在响应中返回。
 - **失败保留成绩**：诊断生成失败（``Failed``）时如实记录错误码与 ``retryable``，
@@ -138,7 +138,8 @@ class DiagnosisReportStore:
         """写入 ``Ready``/``Failed`` 报告；来源过期时拒绝覆盖新结果。
 
         报告中由 :class:`DiagnosisService` 填写的应用层 ``exam_result_id`` 在此替换为真实
-        主键；若库中当前结果已更新（``aggregated_at`` 变化），返回 ``Stale`` 状态且不写入。
+        主键；锁定该成绩行直至报告提交，最终状态与来源时间均在锁内校验。
+        来源过期时不写入，返回当前报告或 ``Stale`` 状态。
         """
 
         if report.status not in STORABLE_STATUSES:
@@ -148,11 +149,21 @@ class DiagnosisReportStore:
         try:
             with self._use_session() as session, session.begin():
                 submission_uuid = _as_uuid(report.submission_id)
-                current = self._exam_result_row(session, submission_uuid)
+                current = session.scalars(
+                    select(ExamResult)
+                    .where(ExamResult.submission_id == submission_uuid)
+                    .with_for_update()
+                ).one_or_none()
                 if current is None:
                     raise GradingSubmissionNotFoundError(
                         f"答卷 {report.submission_id} 尚无整卷结果，拒绝写入诊断报告。"
                     )
+                if report.exam_result_id not in {
+                    str(current.id), f"exam-result:{report.submission_id}",
+                }:
+                    raise DiagnosisReportStateError("报告与当前整卷结果主键不一致，拒绝写入。")
+                if not current.is_final:
+                    raise DiagnosisReportStateError("当前成绩尚未最终确认，拒绝写入诊断报告。")
                 source_matches = (
                     report.source_exam_result_updated_at is not None
                     and _normalize(report.source_exam_result_updated_at)
