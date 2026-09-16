@@ -30,6 +30,8 @@ from backend.app.schemas.ai import ConfidenceScore, NonEmptyText
 DecimalScore = Annotated[Decimal, Field(ge=0)]
 #: 单题满分（必须大于零）。
 PositiveDecimalScore = Annotated[Decimal, Field(gt=0)]
+#: 掌握度比例（0 到 1）。
+MasteryRatio = Annotated[Decimal, Field(ge=0, le=1)]
 
 
 class ExamResultStatus(StrEnum):
@@ -192,13 +194,128 @@ class ExamResultDTO(BaseModel):
         return self
 
 
+class DiagnosisStatus(StrEnum):
+    """诊断报告状态。
+
+    - ``Ready``：基于最终 ExamResult 生成，可展示。
+    - ``Not Ready``：整卷尚未形成最终成绩（含待复核、未完成、重新评分与失败题目）。
+    - ``Failed``：平台计算完成但建议生成失败，必须展示失败原因，不得冒充成功。
+    - ``Stale``：ExamResult 已更新，旧报告不再代表当前最终诊断。
+    """
+
+    READY = "Ready"
+    NOT_READY = "Not Ready"
+    FAILED = "Failed"
+    STALE = "Stale"
+
+
+class MasteryByKnowledgePointDTO(BaseModel):
+    """按知识点的掌握度（平台计算字段）。
+
+    掌握度 = 该知识点已确认得分合计 / 该知识点满分合计；分子分母均按题目累加，
+    不使用评分 ``confidence``，且属于本阶段新增业务约定。
+    """
+
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True, frozen=True)
+
+    knowledge_point: NonEmptyText = Field(description="知识点名称。")
+    answered_count: int = Field(ge=1, description="该知识点覆盖的题目数量。")
+    correct_count: int = Field(ge=0, description="该知识点完全正确的题目数量。")
+    awarded_score: DecimalScore = Field(description="该知识点已确认得分合计。")
+    max_score: PositiveDecimalScore = Field(description="该知识点满分合计。")
+    mastery: MasteryRatio = Field(description="掌握度，两位小数。")
+
+
+class WeakKnowledgePointDTO(BaseModel):
+    """低于阈值（新增业务约定，默认 0.60）的薄弱知识点。"""
+
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True, frozen=True)
+
+    knowledge_point: NonEmptyText = Field(description="知识点名称。")
+    reason: NonEmptyText = Field(description="判定原因，含掌握度与阈值。")
+    error_count: int = Field(ge=0, description="未得满分的题目数量。")
+    awarded_score: DecimalScore = Field(description="已确认得分合计。")
+    max_score: PositiveDecimalScore = Field(description="满分合计。")
+    mastery: MasteryRatio = Field(description="掌握度，两位小数。")
+
+
+class DiagnosisReportDTO(BaseModel):
+    """学生学习诊断报告：平台计算字段与 LLM 建议字段分离。
+
+    平台字段：``mastery_by_knowledge_point``、``weak_knowledge_points``、
+    ``error_reasons``、``status``、``generated_at``。
+    LLM 字段：``learning_suggestions``（必须经结构化输出与 Pydantic 校验，允许空集合）。
+    """
+
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True, frozen=True)
+
+    exam_result_id: NonEmptyText | None = Field(
+        default=None,
+        description="关联的整卷结果标识；T061 持久化前为应用层标识。",
+    )
+    submission_id: NonEmptyText = Field(description="答卷标识。")
+    student_id: NonEmptyText = Field(description="学生标识。")
+    status: DiagnosisStatus = Field(description="诊断状态。")
+    mastery_by_knowledge_point: list[MasteryByKnowledgePointDTO] = Field(
+        default_factory=list, description="按知识点的掌握度。"
+    )
+    weak_knowledge_points: list[WeakKnowledgePointDTO] = Field(
+        default_factory=list, description="薄弱知识点。"
+    )
+    error_reasons: list[NonEmptyText] = Field(
+        default_factory=list, description="平台计算的错误原因。"
+    )
+    learning_suggestions: list[NonEmptyText] = Field(
+        default_factory=list, description="LLM 生成的学习建议。"
+    )
+    insufficient_evidence_answer_ids: list[NonEmptyText] = Field(
+        default_factory=list,
+        description="未声明知识点、无法归因为掌握度的答案标识。",
+    )
+    generated_at: datetime | None = Field(
+        default=None, description="报告生成时间；未就绪时为 None。"
+    )
+    source_exam_result_updated_at: datetime | None = Field(
+        default=None,
+        description="生成时所消费的 ExamResult 汇总时间，用于失效判断。",
+    )
+    error_code: str | None = Field(default=None, description="失败错误码。")
+    retryable: bool | None = Field(
+        default=None, description="失败是否可重试；未知时为 None。"
+    )
+    source_code: str | None = Field(
+        default=None, description="来源 Provider 错误码（已脱敏）。"
+    )
+    attempt_count: int | None = Field(
+        default=None, ge=0, description="来源 Provider 尝试次数。"
+    )
+
+    @model_validator(mode="after")
+    def _validate_status_consistency(self) -> DiagnosisReportDTO:
+        """状态与错误、时间字段必须自洽，避免把失败伪装成就绪。"""
+
+        if self.status is DiagnosisStatus.READY:
+            if self.error_code is not None:
+                raise ValueError("就绪诊断不得携带 error_code。")
+            if self.generated_at is None:
+                raise ValueError("就绪诊断必须给出 generated_at。")
+        if self.status is DiagnosisStatus.FAILED and self.error_code is None:
+            raise ValueError("失败诊断必须给出 error_code。")
+        return self
+
+
 __all__ = [
     "ConfidenceDecisionDTO",
     "DecimalScore",
+    "DiagnosisReportDTO",
+    "DiagnosisStatus",
     "ExamResultDTO",
     "ExamResultStatus",
     "ExpectedAnswer",
+    "MasteryByKnowledgePointDTO",
+    "MasteryRatio",
     "PositiveDecimalScore",
     "QuestionResultDTO",
     "SubmissionContext",
+    "WeakKnowledgePointDTO",
 ]
