@@ -268,6 +268,15 @@ def teacher_result_rows(
 
     rows: list[list[str]] = []
     for record in records:
+        student_name = _first_value(record, ("student_name",), None)
+        student_id = _first_value(record, ("student_id",), None)
+        student = _first_value(record, ("student",), None)
+        if student_name not in (None, ""):
+            student_display = student_name
+        elif student_id not in (None, ""):
+            student_display = f"学生 #{student_id}"
+        else:
+            student_display = student
         status = _first_value(record, ("result_status", "status"), None)
         final_score = _first_value(record, ("final_score", "total_score"), None)
         pending_count = _first_value(
@@ -277,7 +286,7 @@ def teacher_result_rows(
         )
         rows.append(
             [
-                _display_value(_first_value(record, ("student_name", "student"), None)),
+                _display_value(student_display),
                 (
                     _display_value(final_score)
                     if _is_final_result(status)

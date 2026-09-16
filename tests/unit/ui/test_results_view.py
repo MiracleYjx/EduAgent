@@ -9,6 +9,7 @@ TCR（2026-09-16，T057 / B06）：原实现只有空态占位，无法证明“
 
 TCR（B05）：原 ``student_result_rows`` 把整卷摘要统计写进四列表格，未渲染服务返回的逐题
 ``items``。新增真实 Pydantic 读模型到视图行的断言，覆盖题序、状态、得分、理由和错题标记。
+教师结果表同时覆盖仅有 ``student_id`` 时的展示回退。
 """
 
 from __future__ import annotations
@@ -257,6 +258,21 @@ def test_student_result_rows_render_each_dto_item_and_mistake_marker() -> None:
     assert rows[1] == ["⚠ 第 2 题", result_status_text(GradingStatus.FINAL), "1", "遗漏一个要点"]
     assert all(len(row) == 4 for row in rows)
     assert all("最终总分" not in row for row in rows)
+
+
+def test_teacher_result_rows_fallback_to_student_id() -> None:
+    """教师 DTO 只有学生标识时，表格显示可读的学生回退文本。"""
+
+    rows = teacher_result_rows([
+        {
+            "student_id": "student-1",
+            "result_status": "Final",
+            "total_score": "88.50",
+            "pending_review_count": 0,
+        }
+    ])
+
+    assert rows[0][0] == "学生 #student-1"
 
 
 # --------------------------------------------------------------------------- #
