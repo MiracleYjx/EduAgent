@@ -149,13 +149,13 @@ def trigger_grading(
 )
 def get_grading_task(
     task_id: str,
-    _: Annotated[User, Depends(require_permission(Permission.VIEW_GRADING_RESULTS))],
+    user: Annotated[User, Depends(require_permission(Permission.VIEW_GRADING_RESULTS))],
     service: Annotated[GradingTaskService, Depends(get_grading_task_service)],
 ) -> GradingTaskStatusDTO:
-    """查询任务状态；任务状态来源为结果存储，未接通时返回 503。"""
+    """查询任务状态；教师身份取自认证上下文并校验课程归属。"""
 
     try:
-        return service.get_task(task_id)
+        return service.get_task(task_id, teacher_id=str(user.id))
     except GradingTaskError as error:
         raise _grading_http_exception(error) from None
 
@@ -167,13 +167,20 @@ def get_grading_task(
 def get_grading_answer_result(
     submission_id: str,
     answer_id: str,
-    _: Annotated[User, Depends(require_permission(Permission.VIEW_GRADING_RESULTS))],
+    user: Annotated[User, Depends(require_permission(Permission.VIEW_GRADING_RESULTS))],
     service: Annotated[GradingTaskService, Depends(get_grading_task_service)],
 ) -> QuestionResultDTO:
-    """返回单题结构化评分（含待复核标识与决策原因）；学生面接口属 T057。"""
+    """返回单题结构化评分（含待复核标识与决策原因）。
+
+    学生面接口属 T057；本端点要求教师身份并先校验答卷所属课程。
+    """
 
     try:
-        return service.get_single_result(submission_id, answer_id)
+        return service.get_single_result(
+            submission_id,
+            answer_id,
+            teacher_id=str(user.id),
+        )
     except GradingTaskError as error:
         raise _grading_http_exception(error) from None
 
