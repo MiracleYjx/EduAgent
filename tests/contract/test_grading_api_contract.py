@@ -18,7 +18,7 @@ from decimal import Decimal
 import gradio as gr
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session
 from sqlalchemy.pool import StaticPool
 
@@ -27,26 +27,49 @@ from backend.app.core.app import create_app
 from backend.app.core.database import Base, get_db
 from backend.app.domain.enums import (
     AnswerStatus,
+    QuestionStatus,
     QuestionType,
     SubmissionStatus,
     UserRole,
 )
-from backend.app.models import Answer, Question, Submission, User
+from backend.app.models import (
+    Answer,
+    ExamResult,
+    GradingResult,
+    Question,
+    Submission,
+    User,
+    WorkflowRun,
+)
+from backend.app.schemas.ai import GradingResult as GradingResultPayload
 from backend.app.schemas.grading import GradingTaskStatus, QuestionResultDTO
 from backend.app.services.auth_service import create_access_token
+from backend.app.services.grading.confidence_policy import ConfidenceDecision
+from backend.app.services.grading.grading_repository import DatabaseGradingRepository
 from backend.app.services.grading.grading_task_service import (
     DatabaseGradingSubmissionReader,
+    DefaultScoringPipeline,
     GradingTargetAnswer,
     GradingTaskService,
+    InlineGradingTaskExecutor,
     NotConfiguredGradingRepository,
     SubmissionSnapshot,
 )
+from backend.app.services.grading.subjective_grader import ProviderNotReadyError
+from backend.app.services.grading.subjective_pipeline import build_subjective_scorer
 from tests.support.grading_doubles import (
     InMemoryGradingRepository,
     NonCallableSubmissionReader,
     RecordingExecutor,
     StubSubmissionReader,
     make_task,
+)
+from tests.support.subjective_grading_doubles import (
+    StubEmbeddingProvider,
+    StubReranker,
+    StubRetriever,
+    StubScoringProvider,
+    make_chunk,
 )
 from tests.unit.services.test_submission_service import (
     add_approved_question,
@@ -588,3 +611,253 @@ def test_single_result_query_denies_teacher_from_other_course(
 
     assert allowed.status_code == 200
     assert denied.status_code == 403
+
+
+# --------------------------------------------------------------------------- #
+# B01～B04：真实仓储装配下的落库、任务状态映射与失败收敛
+# --------------------------------------------------------------------------- #
+
+
+@pytest.fixture
+def mixed_scenario(session: Session) -> dict[str, object]:
+    """一份含一道客观题与一道主观题的已提交答卷。"""
+
+    teacher = add_teacher(session)
+    course = add_course(session, teacher)
+    objective = Question(
+        course_id=course.id,
+        created_by=teacher.id,
+        type=QuestionType.SINGLE_CHOICE,
+        content="下列哪个是不可变类型？",
+        options=["tuple", "list"],
+        reference_answer="tuple",
+        knowledge_points=["数据类型"],
+        score=Decimal("10.00"),
+        status=QuestionStatus.APPROVED,
+    )
+    subjective = Question(
+        course_id=course.id,
+        created_by=teacher.id,
+        type=QuestionType.SHORT_ANSWER,
+        content="解释变量的作用。",
+        reference_answer="变量用于保存数据。",
+        scoring_rubric="说明保存和引用数据即可。",
+        knowledge_points=["变量"],
+        score=Decimal("10.00"),
+        status=QuestionStatus.APPROVED,
+    )
+    session.add_all([objective, subjective])
+    session.commit()
+    exam = add_published_exam(session, course, teacher, [objective.id, subjective.id])
+    student = add_student(session, username="mixed")
+    submission = Submission(
+        exam_id=exam.id,
+        student_id=student.id,
+        status=SubmissionStatus.SUBMITTED,
+        submitted_at=datetime.now(UTC),
+    )
+    session.add(submission)
+    session.flush()
+    objective_answer = Answer(
+        submission_id=submission.id,
+        question_id=objective.id,
+        content="tuple",
+        status=AnswerStatus.SUBMITTED,
+    )
+    subjective_answer = Answer(
+        submission_id=submission.id,
+        question_id=subjective.id,
+        content="变量用于保存数据。",
+        status=AnswerStatus.SUBMITTED,
+    )
+    session.add_all([objective_answer, subjective_answer])
+    session.commit()
+    return {
+        "teacher": teacher,
+        "student": student,
+        "course": course,
+        "exam": exam,
+        "submission": submission,
+        "objective_answer": objective_answer,
+        "subjective_answer": subjective_answer,
+    }
+
+
+def _database_service(
+    session: Session,
+    *,
+    subjective_scorer: object | None = None,
+) -> GradingTaskService:
+    """用真实仓储、真实快照读取器与真实评分管道构造任务服务。
+
+    仅替换外部依赖（主观题评分器或其 Provider）；持久化与任务状态来自
+    :class:`DatabaseGradingRepository`，使用与测试同一个 SQLite 库。
+    """
+
+    engine = session.get_bind()
+    repository = DatabaseGradingRepository(session_factory=lambda: Session(engine))
+    reader = DatabaseGradingSubmissionReader(session_factory=lambda: Session(engine))
+    pipeline = DefaultScoringPipeline(subjective_scorer=subjective_scorer)  # type: ignore[arg-type]
+    return GradingTaskService(
+        repository=repository,
+        reader=reader,
+        executor=InlineGradingTaskExecutor(
+            repository=repository,
+            reader=reader,
+            pipeline=pipeline,
+        ),
+    )
+
+
+def _pending_review_scorer():
+    """返回待复核主观题结果的替身评分器（不调用 LLM）。"""
+
+    def score(
+        snapshot: SubmissionSnapshot,
+        target: GradingTargetAnswer,
+    ) -> tuple[GradingResultPayload, ConfidenceDecision]:
+        return (
+            GradingResultPayload(
+                question_type=target.question_type,
+                score=6.0,
+                max_score=float(target.max_score),
+                reason="说明了数据保存作用。",
+                correct_points=["保存数据"],
+                missing_knowledge_points=["引用数据"],
+                knowledge_points=list(target.knowledge_points),
+                suggestions=["补充变量引用。"],
+                confidence=0.5,
+                validation_status="Validated",
+                review_status="Pending Review",
+                retrieved_context_ids=["chunk-1"],
+                answer_id=target.answer_id,
+                submission_id=snapshot.submission_id,
+            ),
+            ConfidenceDecision(
+                confidence=0.5,
+                threshold=0.8,
+                requires_review=True,
+                review_status="Pending Review",
+                grading_status="Pending Review",
+                reason="置信度低于阈值，进入待人工复核。",
+            ),
+        )
+
+    return score
+
+
+def _trigger(client: TestClient, scenario: dict[str, object], teacher: User) -> dict:
+    """通过真实端点触发阅卷并返回任务状态响应体。"""
+
+    submission = scenario["submission"]
+    assert isinstance(submission, Submission)
+    response = client.post(
+        f"/api/grading/submissions/{submission.id}/trigger",
+        headers=headers(teacher, UserRole.TEACHER),
+        json={"regrade": False},
+    )
+    assert response.status_code == 202
+    return response.json()
+
+
+def test_trigger_persists_results_and_reads_them_from_database(
+    session: Session, mixed_scenario, client_factory
+) -> None:
+    """TCR（2026-09-16，T056）：真实仓储装配下触发阅卷后结果确实落库，
+    任务状态与单题结果均从数据库读取，且任务状态可持久化查询。
+    """
+
+    service = _database_service(
+        session, subjective_scorer=_pending_review_scorer()
+    )
+    client = client_factory(service)
+    body = _trigger(client, mixed_scenario, mixed_scenario["teacher"])
+    submission = mixed_scenario["submission"]
+    objective_answer = mixed_scenario["objective_answer"]
+    subjective_answer = mixed_scenario["subjective_answer"]
+    assert isinstance(submission, Submission)
+    assert isinstance(objective_answer, Answer)
+    assert isinstance(subjective_answer, Answer)
+
+    task = client.get(
+        f"/api/grading/tasks/{body['task_id']}",
+        headers=headers(mixed_scenario["teacher"], UserRole.TEACHER),
+    )
+    objective = client.get(
+        f"/api/grading/submissions/{submission.id}/answers/{objective_answer.id}",
+        headers=headers(mixed_scenario["teacher"], UserRole.TEACHER),
+    )
+    subjective = client.get(
+        f"/api/grading/submissions/{submission.id}/answers/{subjective_answer.id}",
+        headers=headers(mixed_scenario["teacher"], UserRole.TEACHER),
+    )
+
+    assert body["durable"] is True
+    assert task.status_code == 200
+    assert task.json()["status"] == GradingTaskStatus.COMPLETED.value
+    assert task.json()["durable"] is True
+    assert task.json()["graded_answer_count"] == 2
+    assert task.json()["pending_review_answer_count"] == 1
+    assert task.json()["is_final"] is False
+    assert Decimal(objective.json()["score"]) == Decimal("10.00")
+    assert objective.json()["counted"] is True
+    assert subjective.json()["requires_review"] is True
+    assert subjective.json()["counted"] is False
+    assert subjective.json()["decision"]["threshold"] == 0.8
+
+    with Session(session.get_bind()) as check:
+        rows = list(check.scalars(select(GradingResult)))
+        assert len(rows) == 2
+        exam_result = check.scalars(select(ExamResult)).one()
+        assert exam_result.is_final is False
+        assert exam_result.final_total_score is None
+        assert exam_result.confirmed_subtotal == Decimal("10.00")
+        workflow = check.scalars(select(WorkflowRun)).one()
+        assert workflow.status.value == "Paused"
+        assert workflow.pause_reason is not None
+        assert workflow.request_id
+        assert workflow.exam_result_id == exam_result.id
+
+
+def test_subjective_failure_keeps_business_error_code_without_partial_results(
+    session: Session, mixed_scenario, client_factory
+) -> None:
+    """真实主观题链路失败时：任务保留业务错误码、无部分结果、不伪造分数。"""
+
+    engine = session.get_bind()
+    scorer = build_subjective_scorer(
+        session_factory=lambda: Session(engine),
+        settings=build_test_settings(),
+        provider=StubScoringProvider(
+            error=ProviderNotReadyError("评分 Provider 未就绪。")
+        ),
+        retriever=StubRetriever([make_chunk()]),
+        reranker=StubReranker(),
+        embedding_provider=StubEmbeddingProvider(),
+    )
+    client = client_factory(_database_service(session, subjective_scorer=scorer))
+    body = _trigger(client, mixed_scenario, mixed_scenario["teacher"])
+
+    task = client.get(
+        f"/api/grading/tasks/{body['task_id']}",
+        headers=headers(mixed_scenario["teacher"], UserRole.TEACHER),
+    )
+
+    assert task.status_code == 200
+    assert task.json()["status"] == GradingTaskStatus.FAILED.value
+    assert task.json()["error_code"] == "GRADING_PROVIDER_NOT_READY"
+    assert task.json()["retryable"] is False
+
+    submission = mixed_scenario["submission"]
+    assert isinstance(submission, Submission)
+    with Session(session.get_bind()) as check:
+        assert list(check.scalars(select(ExamResult))) == []
+        assert list(check.scalars(select(GradingResult))) == []
+        statuses = {
+            answer.status.value
+            for answer in check.scalars(
+                select(Answer).where(Answer.submission_id == submission.id)
+            )
+        }
+        assert statuses == {"Failed"}
+        assert check.scalars(select(WorkflowRun)).one().status.value == "Failed"

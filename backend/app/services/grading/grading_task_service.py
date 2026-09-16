@@ -10,26 +10,29 @@
    :class:`GradingSubmissionReader` 定义答卷快照读取，
    :class:`ScoringPipeline` 定义单份答卷的评分管道。
 3. **应用服务**（T056）：:class:`GradingTaskService` 负责触发校验、重复触发语义、
-   状态查询与单题结果查询。
+   状态查询、单题结果查询与中断任务收敛。
 
 明确边界与限制（不得夸大）：
 
-- 任务身份统一使用 ``task_id``（UUID4），与 ``submission_id`` 一一对应；本阶段**不是**
-  ``WorkflowRun``（T064），因此不提供跨重启恢复，``durable`` 一律为 ``False``。
-- 生产默认装配 :class:`NotConfiguredGradingRepository`：任何读写都抛
-  :class:`GradingStoreNotReadyError`，由 API 映射为 ``503 GRADING_STORE_NOT_READY``，
-  **不返回虚构 task_id、不写空成功响应**。结果持久化属 T060，任务状态持久化属 T064。
+- 任务身份统一使用 ``task_id``（UUID4），并作为 ``workflow_runs.workflow_id`` 落库；
+  ``durable`` 如实反映任务状态是否已持久化（生产仓储为 ``True``）。本阶段**不是**
+  LangGraph 工作流，检查点是普通后台任务检查点，**不具备 LangGraph 检查点恢复能力**。
+- 生产默认已接通真实结果存储（T060 结果表与 T064 任务状态）：触发入口装配
+  :class:`~backend.app.services.grading.grading_repository.DatabaseGradingRepository`；
+  :class:`NotConfiguredGradingRepository` 仅用于显式未配置场景，任何读写都抛
+  :class:`GradingStoreNotReadyError`（由 API 映射为 ``503 GRADING_STORE_NOT_READY``），
+  **不返回虚构 task_id、不写空成功响应**。
 - 持久进度使用**既有列**（``Submission.status``/``graded_at``、``Answer.status``），由
   :class:`DatabaseGradingProgressUpdater` 在自己的会话中更新，绝不复用请求作用域会话。
 - 未接通的生产执行仍以显式失败表达：:class:`DefaultScoringPipeline` 对客观题给出确定性
-  结果，主观题需要 T069 的阅卷链路，未注入时抛
-  :class:`GradingExecutionNotReadyError`，不伪造评分。
+  结果；主观题由 :mod:`backend.app.services.grading.subjective_pipeline` 适配既有
+  T050 检索上下文、T052 评分器与 T053 置信度策略注入，Provider 未就绪时显式失败，不伪造评分。
 """
 
 from __future__ import annotations
 
 from collections.abc import Callable, Iterator, Mapping, Sequence
-from contextlib import contextmanager
+from contextlib import AbstractContextManager, contextmanager
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from decimal import Decimal
@@ -82,6 +85,10 @@ GRADING_PERMISSION_DENIED: Final[str] = "GRADING_PERMISSION_DENIED"
 GRADING_SUBMISSION_INCOMPLETE: Final[str] = "GRADING_SUBMISSION_INCOMPLETE"
 #: 未预期的执行失败。
 GRADING_TASK_FAILED: Final[str] = "GRADING_TASK_FAILED"
+#: 评分结果携带的答案不属于目标答卷（数据一致性错误，不可重试）。
+GRADING_RESULT_OWNERSHIP_MISMATCH: Final[str] = "GRADING_RESULT_OWNERSHIP_MISMATCH"
+#: 创建任务时缺少 ``request_id``（plan §7 要求贯穿并落库的追踪标识）。
+GRADING_TASK_TRACE_MISSING: Final[str] = "GRADING_TASK_TRACE_MISSING"
 
 #: 允许触发阅卷的答卷状态。
 TRIGGERABLE_SUBMISSION_STATES: Final[frozenset[str]] = frozenset(
@@ -243,6 +250,18 @@ class GradingSubmissionIncompleteError(GradingTaskError):
     error_code = GRADING_SUBMISSION_INCOMPLETE
 
 
+class GradingResultOwnershipError(GradingTaskError):
+    """评分结果携带的答案不属于目标答卷；拒绝写入以免污染他人答卷。"""
+
+    error_code = GRADING_RESULT_OWNERSHIP_MISMATCH
+
+
+class GradingTaskTraceMissingError(GradingTaskError):
+    """创建任务时未提供 ``request_id``；拒绝写入无追踪标识的任务记录。"""
+
+    error_code = GRADING_TASK_TRACE_MISSING
+
+
 @dataclass(frozen=True, slots=True)
 class GradingTargetAnswer:
     """单题阅卷目标：题目定义、标准答案与学生作答的只读快照。"""
@@ -305,12 +324,23 @@ class GradingOutcome:
 class GradingRepository(Protocol):
     """任务状态与结果的读写合同。
 
-    生产实现在 T060（结果表）与 T064（任务状态）之前一律未就绪；测试可注入内存替身，
-    但内存实现不得作为正式成绩事实源。
+    生产实现是 :class:`~backend.app.services.grading.grading_repository.DatabaseGradingRepository`；
+    测试可注入内存替身，但内存实现不得作为正式成绩事实源。
 
     ``ensure_ready()`` 是最小就绪判断：未接通的实现必须先失败，由调用方在读取业务数据、
     创建任务或调用执行器之前抛出，避免业务库异常泄漏为非预期 500。
+
+    写入语义（B01～B03）：
+
+    - ``save_outcome`` 必须在**一次事务**内提交单题结果、决策快照、整卷结果与答卷进度；
+      单题结果按 ``answer_id`` 就地更新，保留主键与既有复核记录关联，不做批量删除；
+    - ``save_task`` 写入任务状态与检查点；任务进入失败状态时同事务更新失败进度；
+    - ``lock_submission`` 提供“检查已有任务—创建任务”所需的短事务互斥；
+    - ``durable`` 如实反映任务状态是否已持久化。
     """
+
+    #: 任务状态是否已持久化（可跨进程重启查询）。
+    durable: bool
 
     def ensure_ready(self) -> None: ...
 
@@ -321,11 +351,29 @@ class GradingRepository(Protocol):
         submission_id: str,
     ) -> GradingTaskStatusDTO | None: ...
 
-    def save_task(self, task: GradingTaskStatusDTO) -> None: ...
+    def save_task(
+        self,
+        task: GradingTaskStatusDTO,
+        *,
+        request_id: str | None = None,
+    ) -> None: ...
+
+    def lock_submission(self, submission_id: str) -> AbstractContextManager[None]: ...
+
+    def mark_interrupted_tasks_failed(self) -> int: ...
 
     def get_exam_result(self, submission_id: str) -> ExamResultDTO | None: ...
 
     def save_exam_result(self, exam_result: ExamResultDTO) -> None: ...
+
+    def save_outcome(
+        self,
+        submission_id: str,
+        outcome: GradingOutcome,
+        *,
+        task_id: str | None = None,
+        answer_order: Sequence[str] | None = None,
+    ) -> None: ...
 
     def get_single_result(
         self,
@@ -341,11 +389,18 @@ class GradingRepository(Protocol):
 
 
 class NotConfiguredGradingRepository:
-    """未接通的结果存储：任何访问都显式未就绪，不伪造结果。"""
+    """未接通的结果存储：任何访问都显式未就绪，不伪造结果。
+
+    生产装配已改用真实仓储；本实现仅用于显式未配置的场景与单测，
+    保证“未接通时返回 503 而非虚构任务或空成功”这一语义仍可验证。
+    """
+
+    #: 未接通时无任何持久化事实。
+    durable: bool = False
 
     def _reject(self) -> NoReturn:
         raise GradingStoreNotReadyError(
-            "结果存储尚未接通（T060/T064 前），无法保存或查询阅卷状态与成绩。"
+            "结果存储尚未接通，无法保存或查询阅卷状态与成绩。"
         )
 
     def ensure_ready(self) -> None:
@@ -360,13 +415,34 @@ class NotConfiguredGradingRepository:
     ) -> GradingTaskStatusDTO | None:
         self._reject()
 
-    def save_task(self, task: GradingTaskStatusDTO) -> None:
+    def save_task(
+        self,
+        task: GradingTaskStatusDTO,
+        *,
+        request_id: str | None = None,
+    ) -> None:
+        self._reject()
+
+    def lock_submission(self, submission_id: str) -> AbstractContextManager[None]:
+        self._reject()
+
+    def mark_interrupted_tasks_failed(self) -> int:
         self._reject()
 
     def get_exam_result(self, submission_id: str) -> ExamResultDTO | None:
         self._reject()
 
     def save_exam_result(self, exam_result: ExamResultDTO) -> None:
+        self._reject()
+
+    def save_outcome(
+        self,
+        submission_id: str,
+        outcome: GradingOutcome,
+        *,
+        task_id: str | None = None,
+        answer_order: Sequence[str] | None = None,
+    ) -> None:
         self._reject()
 
     def get_single_result(
@@ -694,17 +770,27 @@ class InlineGradingTaskExecutor:
         self._clock = clock or (lambda: datetime.now(UTC))
 
     def execute(self, task_id: str, submission_id: str) -> None:
-        """执行任务；失败以任务状态与进度表达，不向后台调度器泄漏异常。"""
+        """执行任务；失败以任务状态与进度表达，不向后台调度器泄漏异常。
+
+        写入顺序（B03）：
+
+        1. 发布 ``Running``（含 ``started_at``）；
+        2. 读取快照并评分，此阶段**不持有写事务**，LLM 调用不阻塞其它写者；
+        3. 以一次 :meth:`GradingRepository.save_outcome` 提交单题结果、决策快照、
+           整卷结果与答卷进度；任何失败整体回滚并转入失败处理，不留部分成功；
+        4. 提交成功后才发布 ``Completed``（存在待复核时工作流落为 ``Paused``）。
+        """
 
         task = self._repository.get_task(task_id)
         if task is None:
             raise GradingTaskNotFoundError(f"任务 {task_id} 不存在。")
+        started_at = task.started_at or self._clock()
         self._repository.save_task(
             task.model_copy(
                 update={
                     "status": GradingTaskStatus.RUNNING,
                     "reused": False,
-                    "started_at": self._clock(),
+                    "started_at": started_at,
                 }
             )
         )
@@ -716,6 +802,12 @@ class InlineGradingTaskExecutor:
             exam_result = outcome.exam_result
             if exam_result is None:
                 raise GradingExecutionNotReadyError("评分管道未返回整卷结果。")
+            self._repository.save_outcome(
+                submission_id,
+                outcome,
+                task_id=task_id,
+                answer_order=tuple(answer.answer_id for answer in snapshot.answers),
+            )
         except GradingTaskError as error:
             self._record_failure(task_id, submission_id, error)
             return
@@ -727,15 +819,12 @@ class InlineGradingTaskExecutor:
             )
             return
 
-        self._repository.save_exam_result(exam_result)
-        for item in exam_result.items:
-            self._repository.save_single_result(submission_id, item)
         self._repository.save_task(
             task.model_copy(
                 update={
                     "status": GradingTaskStatus.COMPLETED,
                     "reused": False,
-                    "started_at": task.started_at or self._clock(),
+                    "started_at": started_at,
                     "finished_at": self._clock(),
                     "expected_answer_count": exam_result.expected_answer_count,
                     "graded_answer_count": exam_result.graded_answer_count,
@@ -814,8 +903,14 @@ class GradingTaskService:
         teacher_id: str,
         regrade: bool = False,
         scheduler: Callable[[str, str], None] | None = None,
+        request_id: str | None = None,
     ) -> GradingTaskStatusDTO:
-        """触发阅卷；仅在真实受理任务时返回任务状态。"""
+        """触发阅卷；仅在真实受理任务时返回任务状态。
+
+        “检查已有任务—创建任务”在 :meth:`GradingRepository.lock_submission` 提供的短事务
+        互斥内完成，避免并发触发为同一答卷创建两个任务并互相覆盖结果。``request_id`` 由
+        触发入口生成（未提供时生成 UUID4）并贯穿任务记录。
+        """
 
         self._repository.ensure_ready()
         snapshot = self._reader.load_for_teacher(submission_id, teacher_id)
@@ -828,27 +923,38 @@ class GradingTaskService:
                 raise GradingTriggerConflictError(
                     "答卷已完成评分，需要显式请求重评。"
                 )
-        existing = self._repository.find_task_for_submission(submission_id)
-        if existing is not None:
-            if existing.status in IN_FLIGHT_TASK_STATES:
-                return existing.model_copy(update={"reused": True})
-            if not regrade:
-                raise GradingTriggerConflictError("该答卷已有已完成的阅卷任务。")
+        trace_id = request_id or str(uuid4())
+        with self._repository.lock_submission(submission_id):
+            existing = self._repository.find_task_for_submission(submission_id)
+            if existing is not None:
+                if existing.status in IN_FLIGHT_TASK_STATES:
+                    return existing.model_copy(update={"reused": True})
+                if not regrade:
+                    raise GradingTriggerConflictError("该答卷已有已完成的阅卷任务。")
 
-        task = GradingTaskStatusDTO(
-            task_id=str(uuid4()),
-            submission_id=submission_id,
-            status=GradingTaskStatus.QUEUED,
-            durable=False,
-            created_at=self._clock(),
-        )
-        self._repository.save_task(task)
+            task = GradingTaskStatusDTO(
+                task_id=str(uuid4()),
+                submission_id=submission_id,
+                status=GradingTaskStatus.QUEUED,
+                durable=self._repository.durable,
+                created_at=self._clock(),
+            )
+            self._repository.save_task(task, request_id=trace_id)
         schedule = scheduler if scheduler is not None else self._scheduler
         if schedule is not None:
             schedule(task.task_id, submission_id)
         else:
             self.executor.execute(task.task_id, submission_id)
         return task
+
+    def recover_interrupted_tasks(self) -> int:
+        """把遗留的进行中任务收敛为中断失败，返回处理条数。
+
+        单进程部署下进程重启后不可能仍有任务在运行；这里如实标记为中断失败，由教师显式
+        请求重评重新执行。**不实现自动恢复队列**，也不宣称具备 LangGraph 检查点恢复能力。
+        """
+
+        return self._repository.mark_interrupted_tasks_failed()
 
     def get_task(self, task_id: str, *, teacher_id: str) -> GradingTaskStatusDTO:
         """查询任务状态。
@@ -913,11 +1019,13 @@ __all__ = [
     "GRADING_NOT_ALLOWED",
     "GRADING_PERMISSION_DENIED",
     "GRADING_RESULT_NOT_FOUND",
+    "GRADING_RESULT_OWNERSHIP_MISMATCH",
     "GRADING_STORE_NOT_READY",
     "GRADING_SUBMISSION_INCOMPLETE",
     "GRADING_SUBMISSION_NOT_FOUND",
     "GRADING_TASK_FAILED",
     "GRADING_TASK_NOT_FOUND",
+    "GRADING_TASK_TRACE_MISSING",
     "GRADING_TRIGGER_CONFLICT",
     "IN_FLIGHT_TASK_STATES",
     "REGREADABLE_SUBMISSION_STATES",
@@ -933,6 +1041,7 @@ __all__ = [
     "GradingProgressUpdater",
     "GradingRepository",
     "GradingResultNotFoundError",
+    "GradingResultOwnershipError",
     "GradingStoreNotReadyError",
     "GradingSubmissionIncompleteError",
     "GradingSubmissionNotFoundError",
@@ -942,6 +1051,7 @@ __all__ = [
     "GradingTaskExecutor",
     "GradingTaskNotFoundError",
     "GradingTaskService",
+    "GradingTaskTraceMissingError",
     "GradingTriggerConflictError",
     "InlineGradingTaskExecutor",
     "NotConfiguredGradingRepository",
