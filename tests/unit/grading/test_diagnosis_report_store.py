@@ -3,6 +3,8 @@
 TCR（2026-09-16，T057 / B05）：诊断必须复用 T055 计算后落库，``exam_result_id`` 取真实主键，
 ``source_exam_result_updated_at`` 取当次消费的汇总时间；旧结果生成的报告不得覆盖新结果，
 ``Not Ready`` 不落库，``Failed`` 保留错误码且不影响已提交成绩。
+
+TCR（B02）：补充保存时成绩已退出最终态的拒绝用例，避免只相信生成时的 DTO 状态。
 """
 
 from __future__ import annotations
@@ -23,6 +25,7 @@ from backend.app.schemas.grading import (
     DiagnosisReportDTO,
     DiagnosisStatus,
     ExamResultDTO,
+    ExamResultStatus,
     MasteryByKnowledgePointDTO,
     SubmissionContext,
     WeakKnowledgePointDTO,
@@ -30,6 +33,7 @@ from backend.app.schemas.grading import (
 from backend.app.services.grading.confidence_policy import ConfidenceDecision
 from backend.app.services.grading.diagnosis_report_store import (
     DiagnosisRecorder,
+    DiagnosisReportStateError,
     DiagnosisReportStore,
 )
 from backend.app.services.grading.grading_repository import DatabaseGradingRepository
@@ -329,6 +333,19 @@ def test_save_refuses_to_overwrite_newer_result(
         assert row.source_exam_result_updated_at.replace(tzinfo=None) == (
             exam_result.aggregated_at.replace(tzinfo=None)
         )
+
+
+def test_save_rejects_result_no_longer_final(engine: Engine, fixture: SubmissionFixture) -> None:
+    exam = _final_exam_result(engine, fixture)
+    with Session(engine) as session, session.begin():
+        row = session.scalars(select(ExamResult)).one()
+        row.is_final = False
+        row.result_status = ExamResultStatus.PENDING_REVIEW
+        row.final_total_score = None
+    with pytest.raises(DiagnosisReportStateError):
+        _store(engine).save(_ready_report(exam))
+    with Session(engine) as session:
+        assert session.scalars(select(DiagnosisReport)).all() == []
 
 
 def test_failed_report_keeps_error_code_and_scores(
