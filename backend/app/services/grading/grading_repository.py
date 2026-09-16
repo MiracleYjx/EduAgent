@@ -14,7 +14,7 @@
   **本次快照的答案顺序**（题序 + ``answer_id`` 序列），读回时复用该顺序，不把数据库自然
   返回顺序当作原卷题序。
 - **事务边界**：:meth:`DatabaseGradingRepository.save_outcome` 在一次事务内提交单题结果、
-  决策快照、整卷结果与答卷进度；提交失败整体回滚，不留下“最终整卷 + 缺失单题”的中间态。
+  决策快照、整卷结果、答卷进度与本轮任务终态；提交失败整体回滚，不留下部分成功。
   ``save_task`` 同样是单事务写入，任务进入失败状态时同事务把答卷答案标记为失败。
 
 状态映射（B04）：API 的 ``GradingTaskStatus`` 与 ``WorkflowStatus`` 不是同一个概念。
@@ -196,8 +196,8 @@ class DatabaseGradingRepository:
     def mark_interrupted_tasks_failed(self) -> int:
         """把遗留的 ``Queued``/``Running`` 任务收敛为中断失败，返回处理条数。
 
-        单进程部署下进程重启不可能存在仍在运行的任务；这里如实标记为中断失败并把对应
-        答案标记为失败，由教师显式请求重评重新执行。不实现自动恢复队列。
+        只收敛本执行器的检查点；其它工作流由所属执行器恢复。已有评分结果或已完成的答案
+        保持原状态，其余答案标记失败，由教师显式请求重评。不实现自动恢复队列。
         """
 
         with self._use_session() as session, session.begin():
@@ -206,7 +206,8 @@ class DatabaseGradingRepository:
                     select(WorkflowRun).where(
                         WorkflowRun.status.in_(
                             (WorkflowStatus.QUEUED, WorkflowStatus.RUNNING)
-                        )
+                        ),
+                        WorkflowRun.checkpoint["kind"].as_string() == CHECKPOINT_KIND,
                     )
                 )
             )
@@ -338,7 +339,7 @@ class DatabaseGradingRepository:
         task_id: str | None = None,
         answer_order: Sequence[str] | None = None,
     ) -> None:
-        """在一次事务内提交单题结果、决策快照、整卷结果、答卷进度与检查点。
+        """在一次事务内提交单题结果、决策快照、整卷结果、进度与任务终态。
 
         任何校验失败或写入异常都会回滚整个事务：不会出现“整卷结果已落库但单题结果缺失”
         的中间态。 ``answer_order`` 是本次快照的答案顺序（题序 + ``answer_id`` 序列），
@@ -543,13 +544,19 @@ class DatabaseGradingRepository:
             submission.status = SubmissionStatus.GRADED
 
     def _mark_answers_failed(self, session: Session, submission_id: UUID) -> None:
-        """把该答卷的全部答案标记为失败（与任务失败状态同事务）。"""
+        """仅把未完成且没有持久化评分的答案标记为失败。"""
 
         submission = session.get(Submission, submission_id)
         if submission is None:
             return
+        saved_answer_ids = set(session.scalars(
+            select(GradingResult.answer_id).where(
+                GradingResult.submission_id == submission_id,
+            )
+        ))
         for answer in submission.answers:
-            answer.status = AnswerStatus.FAILED
+            if answer.status is not AnswerStatus.GRADED and answer.id not in saved_answer_ids:
+                answer.status = AnswerStatus.FAILED
 
     def _write_checkpoint(
         self,
@@ -559,13 +566,18 @@ class DatabaseGradingRepository:
         answer_order: Sequence[str] | None,
         exam_result: ExamResultDTO,
     ) -> None:
-        """把答案顺序与整卷结果指针写入检查点，状态留给完成发布步骤。"""
+        """在结果事务内写入检查点和终态，提交后无需再次发布完成状态。"""
 
         row = session.scalars(
             select(WorkflowRun).where(WorkflowRun.workflow_id == task_id)
         ).one_or_none()
         if row is None:
-            return
+            raise GradingTaskError("保存结果时任务不存在，拒绝部分提交。")
+        if (
+            (row.checkpoint or {}).get("kind") != CHECKPOINT_KIND
+            or row.submission_id != _as_uuid(exam_result.submission_id)
+        ):
+            raise GradingResultOwnershipError("任务不属于本执行器或目标答卷，拒绝写入。")
         checkpoint = dict(row.checkpoint or {})
         checkpoint["kind"] = CHECKPOINT_KIND
         if answer_order is not None:
@@ -578,6 +590,19 @@ class DatabaseGradingRepository:
             )
         ).one_or_none()
         row.checkpoint = checkpoint
+        self._apply_task(row, self._task_dto(row).model_copy(update={
+            "status": GradingTaskStatus.COMPLETED,
+            "reused": False,
+            "finished_at": self._clock(),
+            "expected_answer_count": exam_result.expected_answer_count,
+            "graded_answer_count": exam_result.graded_answer_count,
+            "pending_review_answer_count": exam_result.pending_review_answer_count,
+            "exam_result_status": exam_result.result_status,
+            "is_final": exam_result.is_final,
+            "error_code": None,
+            "error_message": None,
+            "retryable": False,
+        }))
 
     def _apply_task(self, row: WorkflowRun, task: GradingTaskStatusDTO) -> None:
         """把任务 DTO 写入工作流行，并按待复核语义决定 ``Paused``。"""

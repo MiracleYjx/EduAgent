@@ -693,8 +693,8 @@ def test_trigger_passes_request_id_inside_submission_lock() -> None:
     assert task.durable is False
 
 
-def test_executor_commits_outcome_before_publishing_completed() -> None:
-    """单题结果、整卷结果与快照题序一次提交，之后才发布 Completed。"""
+def test_executor_commits_outcome_and_completed_atomically() -> None:
+    """TCR（B01）：终态必须随结果一起提交，禁止独立发布留下中断窗口。"""
 
     repository = InMemoryGradingRepository()
     snapshot = _snapshot()
@@ -714,9 +714,7 @@ def test_executor_commits_outcome_before_publishing_completed() -> None:
 
     assert repository.outcome_calls == [(SUBMISSION_ID, "task-1")]
     assert repository.answer_orders[SUBMISSION_ID] == ("answer-1",)
-    assert repository.calls.index(
-        f"save_outcome:{SUBMISSION_ID}"
-    ) < repository.calls.index("save_task:task-1:Completed")
+    assert "save_task:task-1:Completed" not in repository.calls
     stored = repository.get_task("task-1")
     assert stored is not None
     assert stored.status is GradingTaskStatus.COMPLETED

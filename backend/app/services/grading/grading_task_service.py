@@ -333,7 +333,8 @@ class GradingRepository(Protocol):
 
     写入语义（B01～B03）：
 
-    - ``save_outcome`` 必须在**一次事务**内提交单题结果、决策快照、整卷结果与答卷进度；
+    - ``save_outcome`` 必须在**一次事务**内提交单题结果、决策快照、整卷结果与答卷进度，
+      传入 ``task_id`` 时一并提交本轮完成状态（待复核工作流为 ``Paused``）；
       单题结果按 ``answer_id`` 就地更新，保留主键与既有复核记录关联，不做批量删除；
     - ``save_task`` 写入任务状态与检查点；任务进入失败状态时同事务更新失败进度；
     - ``lock_submission`` 提供“检查已有任务—创建任务”所需的短事务互斥；
@@ -791,8 +792,8 @@ class InlineGradingTaskExecutor:
         1. 发布 ``Running``（含 ``started_at``）；
         2. 读取快照并评分，此阶段**不持有写事务**，LLM 调用不阻塞其它写者；
         3. 以一次 :meth:`GradingRepository.save_outcome` 提交单题结果、决策快照、
-           整卷结果与答卷进度；任何失败整体回滚并转入失败处理，不留部分成功；
-        4. 提交成功后才发布 ``Completed``（存在待复核时工作流落为 ``Paused``）。
+           整卷结果、答卷进度与 ``Completed``（存在待复核时工作流为 ``Paused``）；
+           任何失败整体回滚并转入失败处理，不留部分成功。
         """
 
         task = self._repository.get_task(task_id)
@@ -833,23 +834,6 @@ class InlineGradingTaskExecutor:
             )
             return
 
-        self._repository.save_task(
-            task.model_copy(
-                update={
-                    "status": GradingTaskStatus.COMPLETED,
-                    "reused": False,
-                    "started_at": started_at,
-                    "finished_at": self._clock(),
-                    "expected_answer_count": exam_result.expected_answer_count,
-                    "graded_answer_count": exam_result.graded_answer_count,
-                    "pending_review_answer_count": (
-                        exam_result.pending_review_answer_count
-                    ),
-                    "exam_result_status": exam_result.result_status,
-                    "is_final": exam_result.is_final,
-                }
-            )
-        )
         if self._progress is not None:
             self._progress.mark_completed(submission_id, exam_result)
         if exam_result.is_final:

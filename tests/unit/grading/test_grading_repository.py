@@ -6,6 +6,9 @@ TCR（2026-09-16，T056 / B01～B04）：结果保存必须按 ``answer_id`` 就
 测试使用内存 SQLite（复用 ``tests/unit/models/sqlite_support``）验证仓储行为；
 真实 PostgreSQL 上的约束、类型与迁移一致性由隔离验证库上的
 ``alembic upgrade/check`` 与 pg_catalog 断言覆盖，不由本文件替代。
+
+TCR（B01 修复）：补充提交前中断、提交后重启、异类检查点隔离及历史已保存结果保护，
+防止任务终态与评分分开提交，或启动收敛破坏其它执行器和已有成绩。
 """
 
 from __future__ import annotations
@@ -15,7 +18,7 @@ from datetime import UTC, datetime
 from decimal import Decimal
 
 import pytest
-from sqlalchemy import create_engine, select
+from sqlalchemy import create_engine, event, select
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session
 
@@ -23,6 +26,7 @@ from backend.app.domain.enums import (
     AnswerStatus,
     QuestionType,
     SubmissionStatus,
+    WorkflowStatus,
 )
 from backend.app.models import (
     Answer,
@@ -511,6 +515,10 @@ def test_failed_task_marks_answers_failed_in_same_transaction(
 ) -> None:
     """任务失败时保留错误码与 retryable，并把答卷答案标记为失败。"""
 
+    with Session(engine) as session:
+        for answer in session.scalars(select(Answer)):
+            answer.status = AnswerStatus.SUBMITTED
+        session.commit()
     _save_task(repository, fixture, _task(fixture))
     repository.save_task(
         _task(
@@ -556,6 +564,120 @@ def test_interrupted_tasks_are_converged_to_failure(
     assert stored.error_code == GRADING_TASK_INTERRUPTED
     assert stored.retryable is False
     assert repository.mark_interrupted_tasks_failed() == 0
+
+
+@pytest.mark.parametrize("kind", ["langgraph", "other-executor", None])
+def test_recovery_leaves_foreign_checkpoints_untouched(
+    engine: Engine, fixture: SubmissionFixture,
+    repository: DatabaseGradingRepository, kind: str | None,
+) -> None:
+    checkpoint = {"kind": kind, "state": {"node": "review"}}
+    with Session(engine) as session:
+        session.add(WorkflowRun(
+            workflow_id="foreign-task", request_id="foreign-request",
+            submission_id=fixture.submission_id, status=WorkflowStatus.RUNNING,
+            checkpoint=checkpoint, resumable=True, current_node="review",
+        ))
+        session.commit()
+
+    assert repository.mark_interrupted_tasks_failed() == 0
+    with Session(engine) as session:
+        row = session.scalars(select(WorkflowRun)).one()
+        assert row.status is WorkflowStatus.RUNNING
+        assert row.checkpoint == checkpoint
+        assert row.resumable is True
+        assert row.current_node == "review"
+        assert all(a.status is AnswerStatus.GRADED for a in session.scalars(select(Answer)))
+
+
+@pytest.mark.parametrize("pending_review", [False, True])
+def test_committed_outcome_survives_restart_with_terminal_task(
+    engine: Engine, fixture: SubmissionFixture,
+    repository: DatabaseGradingRepository, pending_review: bool,
+) -> None:
+    _save_task(repository, fixture, _task(fixture, status=GradingTaskStatus.RUNNING))
+    outcome = _outcome(fixture) if pending_review else _outcome(
+        fixture,
+        subjective=_subjective_payload(fixture, confidence=0.9, review_status="Not Required"),
+        decisions={str(fixture.subjective_answer_id): _decision(confidence=0.9, requires_review=False)},
+    )
+    repository.save_outcome(str(fixture.submission_id), outcome, task_id="task-1")
+    # 模拟提交成功后进程退出：重启只重新建立仓储，不另行发布完成状态。
+    restarted = DatabaseGradingRepository(session_factory=lambda: Session(engine))
+    assert restarted.mark_interrupted_tasks_failed() == 0
+    task = restarted.get_task("task-1")
+    assert task is not None and task.status is GradingTaskStatus.COMPLETED
+    assert task.finished_at is not None
+    assert task.graded_answer_count == 2
+    assert task.pending_review_answer_count == int(pending_review)
+    stored = restarted.get_exam_result(str(fixture.submission_id))
+    assert stored is not None and stored.is_final is not pending_review
+    with Session(engine) as session:
+        assert len(session.scalars(select(GradingResult)).all()) == 2
+        assert all(a.status is AnswerStatus.GRADED for a in session.scalars(select(Answer)))
+        row = session.scalars(select(WorkflowRun)).one()
+        assert row.status is (WorkflowStatus.PAUSED if pending_review else WorkflowStatus.COMPLETED)
+
+
+def test_interruption_before_commit_rolls_back_results_progress_and_terminal_task(
+    engine: Engine, fixture: SubmissionFixture, repository: DatabaseGradingRepository,
+) -> None:
+    with Session(engine) as session:
+        for answer in session.scalars(select(Answer)):
+            answer.status = AnswerStatus.SUBMITTED
+        session.commit()
+    _save_task(repository, fixture, _task(fixture, status=GradingTaskStatus.RUNNING))
+
+    class Interrupted(BaseException):
+        """模拟进程退出，跳过执行器普通异常处理。"""
+
+    def interrupted_session() -> Session:
+        session = Session(engine)
+
+        def interrupt_before_commit(active: Session) -> None:
+            active.flush()
+            raise Interrupted()
+
+        event.listen(session, "before_commit", interrupt_before_commit)
+        return session
+
+    interrupted = DatabaseGradingRepository(session_factory=interrupted_session)
+    with pytest.raises(Interrupted):
+        interrupted.save_outcome(str(fixture.submission_id), _outcome(fixture), task_id="task-1")
+    with Session(engine) as session:
+        assert session.scalars(select(GradingResult)).all() == []
+        assert session.scalars(select(ExamResult)).all() == []
+        assert session.scalars(select(WorkflowRun)).one().status is WorkflowStatus.RUNNING
+        assert all(a.status is AnswerStatus.SUBMITTED for a in session.scalars(select(Answer)))
+    assert repository.mark_interrupted_tasks_failed() == 1
+    with Session(engine) as session:
+        assert all(a.status is AnswerStatus.FAILED for a in session.scalars(select(Answer)))
+
+
+def test_recovery_preserves_saved_answers_and_only_fails_unscored_answers(
+    engine: Engine, fixture: SubmissionFixture, repository: DatabaseGradingRepository,
+) -> None:
+    repository.save_outcome(str(fixture.submission_id), _outcome(fixture))
+    _save_task(repository, fixture, _task(fixture, status=GradingTaskStatus.RUNNING))
+    with Session(engine) as session:
+        row = session.scalars(select(GradingResult).where(
+            GradingResult.answer_id == fixture.subjective_answer_id,
+        )).one()
+        session.delete(row)
+        answer = session.get(Answer, fixture.subjective_answer_id)
+        assert answer is not None
+        answer.status = AnswerStatus.GRADING
+        session.commit()
+    before = repository.get_single_result(str(fixture.submission_id), str(fixture.objective_answer_id))
+
+    assert repository.mark_interrupted_tasks_failed() == 1
+    assert repository.get_single_result(
+        str(fixture.submission_id), str(fixture.objective_answer_id),
+    ) == before
+    with Session(engine) as session:
+        assert session.get(Answer, fixture.objective_answer_id).status is AnswerStatus.GRADED
+        assert session.get(Answer, fixture.subjective_answer_id).status is AnswerStatus.FAILED
+        assert session.scalars(select(ExamResult)).one() is not None
 
 
 def test_task_creation_requires_request_id(
