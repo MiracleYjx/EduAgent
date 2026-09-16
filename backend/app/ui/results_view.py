@@ -412,6 +412,7 @@ def _load_teacher_result_records(
 
 
 #: 学生结果接线点：由应用装配注入受权限保护的结果读模型查询调用。
+#: S01：T057 尚未注入生产 ResultsQueryService，未接线时保持空态。
 _student_result_loader: Any | None = None
 #: 教师结果接线点：返回授权范围内的学生成绩记录。
 _teacher_results_loader: Any | None = None
@@ -429,6 +430,10 @@ def configure_results_loaders(
 
     注入的实现必须来自受权限保护的应用查询服务或 API；视图自身不访问数据库，
     也不在组件内重算成绩与平均分。
+
+    S01 完成度声明：本函数只提供接线点与部分结果格式化/刷新接线；应用装配中
+    **尚未注入生产 ResultsQueryService**，学生诊断、薄弱知识点与掌握度区域尚未完成
+    动态输出绑定，未接线时一律保持明确空态。
     """
 
     global _student_result_loader, _teacher_results_loader

@@ -151,7 +151,7 @@ Embedding Provider 契约测试通过，并且 Benchmark 可以比较所有要�
 - [X] T054 [US3] 在 `backend/app/services/grading/result_aggregator.py` 中实现 Objective/Subjective 结果汇总和最终分数计算
 - [X] T055 [US2] 在 `backend/app/services/diagnosis_service.py` 中实现基于已接受或人工复核结果的 Diagnosis Report，包含掌握情况、薄弱知识点、错误原因和学习建议
 - [~] T056 [US3] 在 `backend/app/api/grading.py` 中提供阅卷触发、阅卷状态和单题结构化结果端点（部分完成：接口合同、权限与资源归属、重复触发与错误语义已实现并有契约测试；结果存储 T060、任务状态持久化 T064、主观题执行链路 T069 未接通，生产装配返回 503 GRADING_STORE_NOT_READY）
-- [~] T057 [US2] 在 `backend/app/api/results.py` 和 `backend/app/ui/results_view.py` 中提供学生成绩、错题、诊断和知识点掌握情况视图（部分完成：读模型 API、学生/教师授权边界、空态与服务端统计已实现并有契约测试；UI 接线点已接入受权限保护的查询服务，生产结果来源仍依赖 T060 结果持久化与 T061 诊断持久化，未接通时返回 503 GRADING_STORE_NOT_READY）
+- [~] T057 [US2] 在 `backend/app/api/results.py` 和 `backend/app/ui/results_view.py` 中提供学生成绩、错题、诊断和知识点掌握情况视图（部分完成：读模型 API、学生/教师授权边界、空态与服务端统计已实现并有契约测试；results_view 已提供可注入加载器及部分结果格式化/刷新接线，**尚未注入生产 ResultsQueryService**，学生诊断、薄弱知识点与掌握度区域尚未完成动态输出绑定；生产结果来源仍依赖 T060 结果持久化与 T061 诊断持久化，未接通时返回 503 GRADING_STORE_NOT_READY）
 - [ ] T058 [US3] 在 `tests/integration/test_grading_pipeline.py` 中增加混合答卷集成测试，证明客观题确定性评分、主观题结构化评分、统一结果和诊断不会提前生成
 - [ ] T059 [US3] 在 `scripts/run_grading_benchmark.py` 中实现可重复的 Zero-shot、RAG 和 Hybrid + Rerank 阅卷 Benchmark，记录数据集、模型、Prompt、指标、结果和分析
 - [ ] T060 在 `backend/app/models/grading_result.py`、`backend/app/models/exam_result.py` 和 `migrations/versions/` 中创建 `GradingResult`、`ExamResult` SQLAlchemy 模型及 Alembic 迁移，依赖 T015；分别关联 `Answer`/`Submission` 和 `Submission`/`Exam`，持久化单题得分、理由、知识点、置信度、校验/复核状态以及整份答卷总分、结果状态和汇总时间

@@ -342,6 +342,15 @@ class ResultsQueryService:
         )
 
     def _diagnosis(self, submission: Submission) -> DiagnosisReportDTO:
+        """返回学生诊断（当前存在生成副作用，不是持久化读取）。
+
+        S02 行为声明：未接通结果存储时返回 ``Not Ready``；若注入了 ``diagnosis_service``，
+        本 GET 路径会调用 ``generate()``，即查询会触发一次生成（包含合法 LLM 调用），
+        而不是读取已持久化的诊断报告。T061 接入时必须改为读取已生成报告，
+        并结合当前 ``ExamResult`` 判断有效性，不得在每次查询时重新调用 LLM。
+        本轮不实现诊断持久化、生成任务、缓存或新端点。
+        """
+
         result = self._repository.get_exam_result(str(submission.id))
         if result is None:
             return DiagnosisReportDTO(
