@@ -59,6 +59,9 @@ class ResultsView:
 
     panel: gr.Column
     results_table: gr.Dataframe
+    total_score: gr.Textbox
+    graded_count: gr.Textbox
+    pending_count: gr.Textbox
     weak_points: gr.Markdown
     diagnosis: gr.Markdown
     mastery_table: gr.Dataframe
@@ -113,16 +116,27 @@ def refresh_student_results(
             _ensure_student(state)
         except PermissionDeniedError as error:
             return [], feedback(str(error), "error")
+    payload, message = _load_student_result_payload(exam_id, state)
+    if payload is None:
+        return [], message
+    return student_result_rows(payload), result_availability_text(payload)
+
+
+def _load_student_result_payload(
+    exam_id: str | None, state: Mapping[str, Any] | None
+) -> tuple[Any | None, str]:
+    """通过学生结果接线点读取一次读模型，供表格与摘要共同消费。"""
+
     loader = _student_result_loader
     if loader is None:
-        return [], empty_state(UNAVAILABLE_MESSAGE)
+        return None, empty_state(UNAVAILABLE_MESSAGE)
     try:
         payload = loader(exam_id, state)
     except Exception:  # noqa: BLE001 - 加载失败不得伪装成成绩
-        return [], empty_state(UNAVAILABLE_MESSAGE)
+        return None, empty_state(UNAVAILABLE_MESSAGE)
     if payload is None:
-        return [], empty_state(UNAVAILABLE_MESSAGE)
-    return student_result_rows(payload), result_availability_text(payload)
+        return None, empty_state(UNAVAILABLE_MESSAGE)
+    return payload, ""
 
 
 def refresh_student_diagnosis(
@@ -160,12 +174,22 @@ def refresh_student_diagnosis(
 
 def refresh_student_panel(
     exam_id: str | None = None, state: Mapping[str, Any] | None = None
-) -> tuple[list[list[str]], str, str, list[list[str]], str]:
+) -> tuple[list[list[str]], str, str, str, str, str, list[list[str]], str]:
     """学生结果面板统一刷新：逐题结果、诊断区域与提示一次返回。"""
 
-    rows, message = refresh_student_results(exam_id, state)
+    if state is not None:
+        try:
+            _ensure_student(state)
+        except PermissionDeniedError as error:
+            message = feedback(str(error), "error")
+            return [], "暂无", "暂无", "暂无", "", "", [], message
+    payload, message = _load_student_result_payload(exam_id, state)
+    rows = student_result_rows(payload) if payload is not None else []
+    total, graded, pending = student_summary_values(payload)
     weak_points, diagnosis, mastery = refresh_student_diagnosis(exam_id, state)
-    return rows, weak_points, diagnosis, mastery, message
+    if payload is not None:
+        message = result_availability_text(payload)
+    return rows, total, graded, pending, weak_points, diagnosis, mastery, message
 
 
 def _value(item: Mapping[str, Any] | Any, name: str, default: Any = "") -> Any:
@@ -369,19 +393,19 @@ def create_results_view(session_state: Any | None = None) -> ResultsView:
             refresh = gr.Button("刷新结果", variant="primary")
         gr.Markdown(empty_state(UNAVAILABLE_MESSAGE))
         with gr.Row(elem_classes="result-summary-row"):
-            gr.Textbox(
+            total_score = gr.Textbox(
                 label="总分",
                 value="暂无",
                 interactive=False,
                 elem_classes="result-summary",
             )
-            gr.Textbox(
+            graded_count = gr.Textbox(
                 label="已评分题数",
                 value="暂无",
                 interactive=False,
                 elem_classes="result-summary",
             )
-            gr.Textbox(
+            pending_count = gr.Textbox(
                 label="待复核题数",
                 value="暂无",
                 interactive=False,
@@ -419,6 +443,9 @@ def create_results_view(session_state: Any | None = None) -> ResultsView:
             inputs=[exam, state],
             outputs=[
                 results_table,
+                total_score,
+                graded_count,
+                pending_count,
                 weak_points,
                 diagnosis,
                 mastery_table,
@@ -429,6 +456,9 @@ def create_results_view(session_state: Any | None = None) -> ResultsView:
     return ResultsView(
         panel=panel,
         results_table=results_table,
+        total_score=total_score,
+        graded_count=graded_count,
+        pending_count=pending_count,
         weak_points=weak_points,
         diagnosis=diagnosis,
         mastery_table=mastery_table,
@@ -519,28 +549,46 @@ def configure_results_loaders(
 
 
 def student_result_rows(payload: Mapping[str, Any] | Any) -> list[list[str]]:
-    """把单份结果读模型映射为学生可见行；总分不由视图计算。"""
+    """把服务返回的逐题 ``items`` 映射为四列表格行；总分统计不混入表格。"""
 
+    items = _value(payload, "items", []) or []
+    mistakes = {str(answer_id) for answer_id in (_value(payload, "mistake_answer_ids", []) or [])}
+    rows: list[list[str]] = []
+    for item in items:
+        answer_id = str(_first_value(item, ("answer_id",), ""))
+        order = _first_value(item, ("order", "question_number", "question_no"), "?")
+        question = f"第 {order} 题"
+        if answer_id in mistakes:
+            question = f"⚠ {question}"
+        status = _first_value(item, ("grading_status", "review_status", "status"), None)
+        score = _first_value(item, ("effective_score", "score"), None)
+        feedback_text = _first_value(item, ("reason", "feedback"), None)
+        if feedback_text in (None, ""):
+            suggestions = _value(item, "suggestions", []) or []
+            feedback_text = "；".join(str(value) for value in suggestions) or "未提供"
+        rows.append([
+            question,
+            result_status_text(status) if status is not None else "未提供",
+            _display_value(score, "未评分"),
+            _display_value(feedback_text),
+        ])
+    return rows
+
+
+def student_summary_values(payload: Mapping[str, Any] | Any | None) -> tuple[str, str, str]:
+    """把服务提供的总分、已评分题数和待复核题数映射到摘要区域。"""
+
+    if payload is None:
+        return "暂无", "暂无", "暂无"
     is_final = bool(_value(payload, "is_final", False))
     total = _value(payload, "total_score", None)
-    subtotal = _value(payload, "confirmed_subtotal", None)
+    graded = _value(payload, "graded_answer_count", None)
     pending = _value(payload, "pending_review_count", None)
-    items = _value(payload, "items", []) or []
-    mistakes = _value(payload, "mistake_answer_ids", []) or []
-    status_code = _result_status_code(_value(payload, "result_status", ""))
-    return [
-        [
-            "最终总分",
-            _display_value(total, "待复核，暂无最终总分")
-            if is_final
-            else "待复核，暂无最终总分",
-        ],
-        ["结果状态", result_status_text(status_code)],
-        ["已确认部分小计", _display_value(subtotal, "暂无已确认结果")],
-        ["待复核题目数", "-" if pending is None else str(pending)],
-        ["错题数", str(len(mistakes))],
-        ["已确认逐题数", str(len(items))],
-    ]
+    return (
+        _display_value(total, "待复核，暂无最终总分") if is_final else "待复核，暂无最终总分",
+        _display_value(graded, "暂无"),
+        _display_value(pending, "暂无"),
+    )
 
 
 def result_availability_text(payload: Mapping[str, Any] | Any) -> str:
@@ -853,5 +901,6 @@ __all__ = [
     "result_status_text",
     "review_context_for_record",
     "review_context_is_complete",
+    "student_summary_values",
     "teacher_result_rows",
 ]
