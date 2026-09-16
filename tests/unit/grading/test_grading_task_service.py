@@ -12,11 +12,23 @@ TCR（2026-09-16，T054 / B02）：``ConfidencePolicy.apply()`` 只回填 ``revi
 
 from __future__ import annotations
 
+from collections.abc import Iterator
+from datetime import UTC, datetime
 from decimal import Decimal
 
 import pytest
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session
+from sqlalchemy.pool import StaticPool
 
-from backend.app.domain.enums import QuestionType
+from backend.app.core.database import Base
+from backend.app.domain.enums import (
+    AnswerStatus,
+    ExamStatus,
+    QuestionType,
+    SubmissionStatus,
+)
+from backend.app.models import Answer, Exam, Question, Submission
 from backend.app.schemas.ai import GradingResult
 from backend.app.schemas.grading import (
     ExamResultStatus,
@@ -35,6 +47,7 @@ from backend.app.services.grading.grading_task_service import (
     GRADING_STORE_NOT_READY,
     GRADING_TASK_NOT_FOUND,
     GRADING_TRIGGER_CONFLICT,
+    DatabaseGradingSubmissionReader,
     DecisionRecordingPolicy,
     DefaultScoringPipeline,
     GradingExecutionNotReadyError,
@@ -58,6 +71,13 @@ from tests.support.grading_doubles import (
     StubScoringPipeline,
     StubSubmissionReader,
     make_task,
+)
+from tests.unit.services.test_submission_service import (
+    add_approved_question,
+    add_course,
+    add_published_exam,
+    add_student,
+    add_teacher,
 )
 from tests.unit.settings_helpers import build_test_settings
 
@@ -624,3 +644,162 @@ def test_question_result_dto_reuse_payload_is_serializable() -> None:
         grading_status="Accepted",
         reason="自动接受。",
     ).requires_review is False
+
+
+# --------------------------------------------------------------------------- #
+# B03：快照必须以 Exam.questions 为权威题目集合
+# --------------------------------------------------------------------------- #
+
+
+#: 期望的错误码字面值；避免在红测阶段因新增符号尚不存在而只得到导入失败。
+_INCOMPLETE_CODE = "GRADING_SUBMISSION_INCOMPLETE"
+
+
+def _grading_session() -> Iterator[Session]:
+    """用仓库既有内存 SQLite 方式构造真实数据库会话。"""
+
+    engine = create_engine(
+        "sqlite:///:memory:",
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
+    )
+    Base.metadata.create_all(engine)
+    with Session(engine) as database_session:
+        yield database_session
+    engine.dispose()
+
+
+def _seed_exam(
+    session: Session,
+    *,
+    question_contents: tuple[str, ...] = ("解释变量。",),
+) -> tuple[object, list[object], object]:
+    """创建教师、课程、题目与已发布考试。"""
+
+    teacher = add_teacher(session)
+    course = add_course(session, teacher)
+    question_ids = [
+        add_approved_question(session, course, teacher, content=content)
+        for content in question_contents
+    ]
+    exam = add_published_exam(session, course, teacher, list(question_ids))
+    return exam, list(exam.questions), teacher
+
+
+def _insert_submission(
+    session: Session,
+    exam: object,
+    *,
+    answered_questions: list[object],
+) -> Submission:
+    """直接插入答卷与答案行（绕过提交服务，构造不完整/越界数据）。"""
+
+    student = add_student(session, username="reader")
+    submission = Submission(
+        exam_id=exam.id,
+        student_id=student.id,
+        status=SubmissionStatus.SUBMITTED,
+        submitted_at=datetime.now(UTC),
+    )
+    session.add(submission)
+    session.flush()
+    for question in answered_questions:
+        session.add(
+            Answer(
+                submission_id=submission.id,
+                question_id=question.id,
+                content="变量用于保存数据。",
+                status=AnswerStatus.SUBMITTED,
+            )
+        )
+    session.commit()
+    return submission
+
+
+def test_real_reader_snapshot_follows_exam_question_set() -> None:
+    """完整答卷按考试题目集合与题序生成快照。"""
+
+    for session in _grading_session():
+        exam, questions, _ = _seed_exam(
+            session, question_contents=("解释变量。", "解释作用域。")
+        )
+        submission = _insert_submission(
+            session, exam, answered_questions=questions
+        )
+        reader = DatabaseGradingSubmissionReader(session=session)
+
+        snapshot = reader.load(str(submission.id))
+
+        assert [item.question_id for item in snapshot.answers] == [
+            str(question.id) for question in questions
+        ]
+        context = snapshot.to_context()
+        assert [item.order for item in context.expected_answers] == [1, 2]
+        assert context.submission_id == str(submission.id)
+
+
+def test_real_reader_rejects_missing_answer() -> None:
+    """TCR（2026-09-16，B03）：考试两题仅一条 Answer 时必须显式失败，
+    不得按已有答案反推预期集合后静默给出最终成绩。
+    """
+
+    for session in _grading_session():
+        exam, questions, _ = _seed_exam(
+            session, question_contents=("解释变量。", "解释作用域。")
+        )
+        submission = _insert_submission(
+            session, exam, answered_questions=questions[:1]
+        )
+        reader = DatabaseGradingSubmissionReader(session=session)
+
+        with pytest.raises(Exception) as error:
+            reader.load(str(submission.id))
+
+        assert getattr(error.value, "error_code", None) == _INCOMPLETE_CODE
+        assert getattr(error.value, "retryable", None) is False
+
+
+def test_real_reader_rejects_answer_outside_exam() -> None:
+    """答卷含考试外题目答案时必须显式失败。"""
+
+    for session in _grading_session():
+        exam, questions, teacher = _seed_exam(session)
+        course = exam.course
+        other_question_id = add_approved_question(
+            session, course, teacher, content="另一道题的题干。"
+        )
+        other_question = session.get(Question, other_question_id)
+        assert other_question is not None
+        submission = _insert_submission(
+            session, exam, answered_questions=[*questions, other_question]
+        )
+        reader = DatabaseGradingSubmissionReader(session=session)
+
+        with pytest.raises(Exception) as error:
+            reader.load(str(submission.id))
+
+        assert getattr(error.value, "error_code", None) == _INCOMPLETE_CODE
+
+
+def test_real_reader_rejects_exam_without_questions() -> None:
+    """考试无题时不得生成快照。"""
+
+    for session in _grading_session():
+        exam, questions, teacher = _seed_exam(session)
+        empty_exam = Exam(
+            course_id=exam.course_id,
+            created_by=teacher.id,
+            title="空考试",
+            status=ExamStatus.PUBLISHED,
+        )
+        session.add(empty_exam)
+        session.commit()
+        submission = _insert_submission(
+            session, empty_exam, answered_questions=questions
+        )
+        reader = DatabaseGradingSubmissionReader(session=session)
+
+        with pytest.raises(Exception) as error:
+            reader.load(str(submission.id))
+
+        assert getattr(error.value, "error_code", None) == _INCOMPLETE_CODE

@@ -36,7 +36,6 @@ from decimal import Decimal
 from typing import Final, NoReturn, Protocol
 from uuid import UUID, uuid4
 
-from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from backend.app.core.config import AppSettings
@@ -46,7 +45,7 @@ from backend.app.domain.enums import (
     QuestionType,
     SubmissionStatus,
 )
-from backend.app.models import Answer, Course, Exam, Question, Submission
+from backend.app.models import Answer, Course, Exam, Submission
 from backend.app.schemas.ai import GradingResult
 from backend.app.schemas.grading import (
     ExamResultDTO,
@@ -79,6 +78,8 @@ GRADING_NOT_ALLOWED: Final[str] = "GRADING_NOT_ALLOWED"
 GRADING_TRIGGER_CONFLICT: Final[str] = "GRADING_TRIGGER_CONFLICT"
 #: 当前用户无权访问该答卷所属课程。
 GRADING_PERMISSION_DENIED: Final[str] = "GRADING_PERMISSION_DENIED"
+#: 答卷与考试题目集合不一致（缺题、越界或重复），不可重试。
+GRADING_SUBMISSION_INCOMPLETE: Final[str] = "GRADING_SUBMISSION_INCOMPLETE"
 #: 未预期的执行失败。
 GRADING_TASK_FAILED: Final[str] = "GRADING_TASK_FAILED"
 
@@ -231,6 +232,15 @@ class GradingPermissionError(GradingTaskError):
     """当前用户无权访问该答卷所属课程。"""
 
     error_code = GRADING_PERMISSION_DENIED
+
+
+class GradingSubmissionIncompleteError(GradingTaskError):
+    """答卷与考试题目集合不一致：缺题、越界或重复。
+
+    不可重试；消息只含题目标识，不包含学生答案内容。
+    """
+
+    error_code = GRADING_SUBMISSION_INCOMPLETE
 
 
 @dataclass(frozen=True, slots=True)
@@ -439,44 +449,55 @@ class DatabaseGradingSubmissionReader:
 
     @staticmethod
     def _build_snapshot(session: Session, submission: Submission) -> SubmissionSnapshot:
+        """按考试题目集合生成快照；不完整或越界数据显式失败。
+
+        权威题目集合与题序来自 ``Exam.questions`` 关系列表（现有题序约定），
+        不从已有 ``Answer`` 反推，避免集合被缩小或污染（plan §5.1/§5.2）。
+        不自动创建答案、不补零分、不删除多余答案、不修改冻结作答。
+        """
+
         exam = session.get(Exam, submission.exam_id)
         if exam is None:
             raise GradingSubmissionNotFoundError("答卷关联的考试不存在。")
-        answers = list(
-            session.scalars(
-                select(Answer)
-                .where(Answer.submission_id == submission.id)
-                .order_by(Answer.question_id)
-            )
-        )
-        targets: list[GradingTargetAnswer] = []
-        question_ids = [answer.question_id for answer in answers]
-        questions = {
-            question.id: question
-            for question in session.scalars(
-                select(Question).where(Question.id.in_(question_ids))
-            )
-        }
-        for order, answer in enumerate(answers, start=1):
-            question = questions.get(answer.question_id)
-            if question is None:
-                raise GradingSubmissionNotFoundError(
-                    f"答案 {answer.id} 关联的题目不存在。"
+        questions = list(exam.questions)
+        if not questions:
+            raise GradingSubmissionIncompleteError("考试没有可评分的题目。")
+        expected_ids = {question.id for question in questions}
+        answers_by_question: dict[UUID, Answer] = {}
+        for answer in submission.answers:
+            if answer.question_id not in expected_ids:
+                raise GradingSubmissionIncompleteError(
+                    f"答案不属于当前考试：{answer.question_id}。"
                 )
-            targets.append(
-                GradingTargetAnswer(
-                    order=order,
-                    answer_id=str(answer.id),
-                    question_id=str(question.id),
-                    question_type=question.type,
-                    max_score=_as_decimal(question.score),
-                    knowledge_points=tuple(question.knowledge_points or ()),
-                    content=question.content,
-                    reference_answer=question.reference_answer,
-                    scoring_rubric=question.scoring_rubric,
-                    student_answer=answer.content,
+            if answer.question_id in answers_by_question:
+                raise GradingSubmissionIncompleteError(
+                    f"答卷存在重复答案：{answer.question_id}。"
                 )
+            answers_by_question[answer.question_id] = answer
+        missing = [
+            str(question.id)
+            for question in questions
+            if question.id not in answers_by_question
+        ]
+        if missing:
+            raise GradingSubmissionIncompleteError(
+                f"答卷缺少题目答案：{'、'.join(missing)}。"
             )
+        targets = [
+            GradingTargetAnswer(
+                order=order,
+                answer_id=str(answers_by_question[question.id].id),
+                question_id=str(question.id),
+                question_type=question.type,
+                max_score=_as_decimal(question.score),
+                knowledge_points=tuple(question.knowledge_points or ()),
+                content=question.content,
+                reference_answer=question.reference_answer,
+                scoring_rubric=question.scoring_rubric,
+                student_answer=answers_by_question[question.id].content,
+            )
+            for order, question in enumerate(questions, start=1)
+        ]
         return SubmissionSnapshot(
             submission_id=str(submission.id),
             exam_id=str(exam.id),
@@ -882,6 +903,7 @@ __all__ = [
     "GRADING_PERMISSION_DENIED",
     "GRADING_RESULT_NOT_FOUND",
     "GRADING_STORE_NOT_READY",
+    "GRADING_SUBMISSION_INCOMPLETE",
     "GRADING_SUBMISSION_NOT_FOUND",
     "GRADING_TASK_FAILED",
     "GRADING_TASK_NOT_FOUND",
@@ -901,6 +923,7 @@ __all__ = [
     "GradingRepository",
     "GradingResultNotFoundError",
     "GradingStoreNotReadyError",
+    "GradingSubmissionIncompleteError",
     "GradingSubmissionNotFoundError",
     "GradingSubmissionReader",
     "GradingTargetAnswer",
