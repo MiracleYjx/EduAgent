@@ -16,6 +16,24 @@ param(
 
 $ErrorActionPreference = "Stop"
 $serviceNames = @("postgres", "redis", "backend")
+$isolationEnvironment = @{
+    "COMPOSE_PROJECT_NAME" = "eduagent-test"
+    "POSTGRES_PORT"        = "15432"
+    "REDIS_PORT"           = "16379"
+    "BACKEND_PORT"         = "18000"
+}
+
+function Assert-IsolatedEnvironment {
+    foreach ($name in $isolationEnvironment.Keys) {
+        $actual = [Environment]::GetEnvironmentVariable($name)
+        if ([string]::IsNullOrWhiteSpace($actual)) {
+            throw "M0 冒烟必须设置隔离环境变量 $name；拒绝使用默认 Compose 项目或端口。"
+        }
+        if ($actual -ne $isolationEnvironment[$name]) {
+            throw "M0 冒烟环境变量 $name 必须固定为 $($isolationEnvironment[$name])，当前值不安全。"
+        }
+    }
+}
 
 function ConvertTo-SafeText {
     param(
@@ -256,6 +274,7 @@ try {
         throw "PollIntervalSeconds 必须大于或等于 1。"
     }
 
+    Assert-IsolatedEnvironment
     Write-Host "开始执行 M0 冒烟验证。"
     Invoke-ComposeCheck -Description "Compose 配置检查" -Arguments @("compose", "config", "--quiet") | Out-Null
     Invoke-ComposeCheck -Description "三容器启动" -Arguments @("compose", "up", "--build", "-d") | Out-Null

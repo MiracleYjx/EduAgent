@@ -1,8 +1,14 @@
-"""M0 Docker Compose、数据库迁移和 Redis 连接冒烟测试。"""
+"""M0 Docker Compose、数据库迁移和 Redis 连接冒烟测试。
+
+运行要求：调用前必须显式设置 ``COMPOSE_PROJECT_NAME=eduagent-test``、
+``POSTGRES_PORT=15432``、``REDIS_PORT=16379`` 和 ``BACKEND_PORT=18000``。
+缺少任一隔离配置时跳过并提示，绝不回退到默认 Compose 项目或开发库。
+"""
 
 from __future__ import annotations
 
 import json
+import os
 import shutil
 import subprocess
 from pathlib import Path
@@ -12,6 +18,31 @@ import pytest
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 SMOKE_SCRIPT = PROJECT_ROOT / "scripts" / "smoke_m0.ps1"
+ISOLATION_ENV = {
+    "COMPOSE_PROJECT_NAME": "eduagent-test",
+    "POSTGRES_PORT": "15432",
+    "REDIS_PORT": "16379",
+    "BACKEND_PORT": "18000",
+}
+
+
+def _require_isolated_environment() -> None:
+    """要求 M0 冒烟使用固定的独立 Compose 项目和端口。"""
+
+    missing = [name for name in ISOLATION_ENV if not os.environ.get(name)]
+    if missing:
+        pytest.skip(
+            "M0 冒烟缺少隔离配置（"
+            + ", ".join(missing)
+            + "），已拒绝使用默认 Compose 项目。"
+        )
+    invalid = [
+        f"{name}={os.environ[name]}（应为 {expected}）"
+        for name, expected in ISOLATION_ENV.items()
+        if os.environ[name] != expected
+    ]
+    if invalid:
+        pytest.fail("M0 冒烟隔离配置不符合固定值：" + ", ".join(invalid))
 
 
 def _find_powershell() -> str | None:
@@ -63,7 +94,9 @@ def _docker_daemon_available() -> tuple[bool, str]:
 
 
 def test_m0_smoke_script() -> None:
-    """执行独立 M0 冒烟脚本，并验证真实 /ready 端点返回就绪状态。"""
+    """执行固定隔离的 M0 冒烟脚本，并验证真实 /ready 端点返回就绪状态。"""
+
+    _require_isolated_environment()
 
     if not SMOKE_SCRIPT.exists():
         pytest.fail(f"未找到 M0 冒烟脚本：{SMOKE_SCRIPT}")
