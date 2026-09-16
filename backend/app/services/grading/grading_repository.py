@@ -168,8 +168,10 @@ class DatabaseGradingRepository:
     def lock_submission(self, submission_id: str) -> Iterator[None]:
         """在短事务内锁定答卷行，供“检查已有任务—创建任务”互斥执行。
 
-        仅 PostgreSQL 使用 ``SELECT ... FOR UPDATE``；其它方言（测试用 SQLite）退化为
-        普通读取，不伪装成已加锁。
+        仅 PostgreSQL 使用 ``SELECT ... FOR NO KEY UPDATE``：该锁与插入 ``workflow_runs`` 时对
+        ``submissions`` 的外键 ``FOR KEY SHARE`` 检查兼容，同时仍能阻止并发触发同时创建任务
+        （使用强 ``FOR UPDATE`` 会与子表插入互相阻塞）。其它方言（测试用 SQLite）退化为普通
+        读取，不伪装成已加锁。
         """
 
         with self._use_session() as session:
@@ -182,7 +184,7 @@ class DatabaseGradingRepository:
                 session.execute(
                     select(Submission.id)
                     .where(Submission.id == submission.id)
-                    .with_for_update()
+                    .with_for_update(key_share=True)
                 )
             try:
                 yield
