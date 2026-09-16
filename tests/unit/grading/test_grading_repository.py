@@ -22,6 +22,7 @@ from sqlalchemy import create_engine, event, select
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session
 
+from backend.app.core.database import create_session_factory
 from backend.app.domain.enums import (
     AnswerStatus,
     QuestionType,
@@ -678,6 +679,20 @@ def test_recovery_preserves_saved_answers_and_only_fails_unscored_answers(
         assert session.get(Answer, fixture.objective_answer_id).status is AnswerStatus.GRADED
         assert session.get(Answer, fixture.subjective_answer_id).status is AnswerStatus.FAILED
         assert session.scalars(select(ExamResult)).one() is not None
+
+
+def test_outcome_links_result_with_production_session_settings(
+    engine: Engine, fixture: SubmissionFixture,
+) -> None:
+    """TCR（B01）：生产会话关闭自动刷新，任务仍须在同次提交关联真实结果主键。"""
+    repository = DatabaseGradingRepository(session_factory=create_session_factory(engine))
+    _save_task(repository, fixture, _task(fixture, status=GradingTaskStatus.RUNNING))
+    repository.save_outcome(str(fixture.submission_id), _outcome(fixture), task_id="task-1")
+    with Session(engine) as session:
+        workflow = session.scalars(select(WorkflowRun)).one()
+        result = session.scalars(select(ExamResult)).one()
+        assert workflow.exam_result_id == result.id
+        assert workflow.status is WorkflowStatus.PAUSED
 
 
 def test_task_creation_requires_request_id(

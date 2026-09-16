@@ -762,6 +762,28 @@ def test_executor_failure_during_commit_keeps_error_code_without_partial_result(
     assert progress.failed == [(SUBMISSION_ID, GRADING_RESULT_OWNERSHIP_MISMATCH)]
 
 
+def test_commit_acknowledgement_failure_does_not_rewrite_committed_outcome() -> None:
+    """TCR（B01）：提交已成功但回执异常时，以持久化终态为准，不改写为失败。"""
+    class LostAcknowledgementRepository(InMemoryGradingRepository):
+        def save_outcome(self, submission_id, outcome, **kwargs):
+            super().save_outcome(submission_id, outcome, **kwargs)
+            raise RuntimeError("提交回执中断")
+
+    repository = LostAcknowledgementRepository()
+    snapshot = _snapshot()
+    outcome = _outcome(snapshot, (_result_for("answer-1"),))
+    progress = RecordingProgressUpdater()
+    executor = InlineGradingTaskExecutor(
+        repository=repository, reader=StubSubmissionReader({SUBMISSION_ID: snapshot}),
+        pipeline=StubScoringPipeline(outcome), progress_updater=progress,
+    )
+    repository.save_task(make_task("task-1", SUBMISSION_ID, status=GradingTaskStatus.QUEUED))
+    executor.execute("task-1", SUBMISSION_ID)
+    assert repository.get_task("task-1").status is GradingTaskStatus.COMPLETED
+    assert repository.get_exam_result(SUBMISSION_ID) == outcome.exam_result
+    assert progress.failed == []
+
+
 def test_recover_interrupted_tasks_converges_running_tasks() -> None:
     """启动阶段把遗留进行中任务收敛为中断失败，已完成任务不受影响。"""
 
