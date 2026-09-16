@@ -6,15 +6,25 @@ TCR（2026-09-16，T057 / B06）：原实现只有空态占位，无法证明“
 总分或平均分。
 
 测试只断言视图对外行为，不复制服务内部实现。
+
+TCR（B05）：原 ``student_result_rows`` 把整卷摘要统计写进四列表格，未渲染服务返回的逐题
+``items``。新增真实 Pydantic 读模型到视图行的断言，覆盖题序、状态、得分、理由和错题标记。
 """
 
 from __future__ import annotations
 
 from collections.abc import Generator
+from decimal import Decimal
 from typing import Any
 
 import pytest
 
+from backend.app.domain.enums import GradingStatus, QuestionType
+from backend.app.schemas.grading import (
+    ExamResultStatus,
+    QuestionResultDTO,
+    SubmissionResultDTO,
+)
 from backend.app.ui.results_diagnosis import (
     DIAGNOSIS_NOT_READY_MESSAGE,
     DIAGNOSIS_STALE_MESSAGE,
@@ -58,7 +68,13 @@ def _pending_review_payload() -> dict[str, Any]:
         "confirmed_subtotal": "4.00",
         "confirmed_subtotal_label": "已确认部分小计（不含待复核）。",
         "pending_review_count": 1,
-        "items": [],
+        "graded_answer_count": 0,
+        "items": [{
+            "order": 1,
+            "answer_id": "answer-pending",
+            "grading_status": "Pending Review",
+            "reason": "答案待人工复核",
+        }],
         "mistake_answer_ids": [],
     }
 
@@ -76,7 +92,13 @@ def _final_payload() -> dict[str, Any]:
         "total_score": "88.50",
         "confirmed_subtotal": "88.50",
         "pending_review_count": 0,
-        "items": [{"answer_id": "answer-1"}],
+        "items": [{
+            "order": 1,
+            "answer_id": "answer-1",
+            "grading_status": "Final",
+            "effective_score": "88.50",
+            "reason": "答案已确认",
+        }],
         "mistake_answer_ids": ["answer-2"],
     }
 
@@ -176,6 +198,65 @@ def test_student_result_rows_do_not_derive_status_from_score() -> None:
     rendered = "\n".join(" | ".join(cell for cell in row) for row in rows)
 
     assert "60.00" not in rendered
+
+
+def test_student_result_rows_render_each_dto_item_and_mistake_marker() -> None:
+    """真实逐题读模型映射为四列行，错题带视觉标记，摘要不混入表格。"""
+
+    items = [
+        QuestionResultDTO(
+            order=1,
+            answer_id="answer-1",
+            question_id="question-1",
+            question_type=QuestionType.SINGLE_CHOICE,
+            max_score=Decimal(2),
+            score=Decimal(2),
+            effective_score=Decimal(2),
+            counted=True,
+            grading_status=GradingStatus.FINAL,
+            review_status="Not Required",
+            validation_status="Validated",
+            reason="答案正确",
+        ),
+        QuestionResultDTO(
+            order=2,
+            answer_id="answer-2",
+            question_id="question-2",
+            question_type=QuestionType.SHORT_ANSWER,
+            max_score=Decimal(3),
+            score=Decimal(1),
+            effective_score=Decimal(1),
+            counted=True,
+            grading_status=GradingStatus.FINAL,
+            review_status="Not Required",
+            validation_status="Validated",
+            reason="遗漏一个要点",
+        ),
+    ]
+    payload = SubmissionResultDTO(
+        submission_id="submission-1",
+        exam_id="exam-1",
+        exam_title="期中测验",
+        student_id="student-1",
+        result_status=ExamResultStatus.FINAL,
+        is_final=True,
+        total_score=Decimal(3),
+        confirmed_subtotal=Decimal(3),
+        total_max_score=Decimal(5),
+        expected_answer_count=2,
+        graded_answer_count=2,
+        pending_review_count=0,
+        items=items,
+        mistake_answer_ids=["answer-2"],
+    )
+
+    rows = student_result_rows(payload)
+
+    assert len(rows) == 2
+    assert rows[0] == ["第 1 题", result_status_text(GradingStatus.FINAL), "2", "答案正确"]
+    assert rows[1] == ["⚠ 第 2 题", result_status_text(GradingStatus.FINAL), "1", "遗漏一个要点"]
+    assert all(len(row) == 4 for row in rows)
+    assert all("最终总分" not in row for row in rows)
 
 
 # --------------------------------------------------------------------------- #
@@ -339,11 +420,14 @@ def test_student_panel_returns_rows_and_diagnosis_sections() -> None:
         student_diagnosis_loader=lambda exam_id, state: (_ready_report(), False),
     )
 
-    rows, weak_points, diagnosis, mastery, message = refresh_student_panel(
+    rows, total, graded, pending, weak_points, diagnosis, mastery, message = refresh_student_panel(
         "exam-1", _STUDENT_STATE
     )
 
     assert rows
+    assert total == "待复核，暂无最终总分"
+    assert graded == "0"
+    assert pending == "1"
     assert weak_points and mastery
     assert PENDING_REVIEW_MESSAGE in message
     assert PENDING_FINAL_MESSAGE in diagnosis
