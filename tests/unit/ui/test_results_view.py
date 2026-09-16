@@ -10,15 +10,21 @@ TCR（2026-09-16，T057 / B06）：原实现只有空态占位，无法证明“
 TCR（B05）：原 ``student_result_rows`` 把整卷摘要统计写进四列表格，未渲染服务返回的逐题
 ``items``。新增真实 Pydantic 读模型到视图行的断言，覆盖题序、状态、得分、理由和错题标记。
 教师结果表同时覆盖仅有 ``student_id`` 时的展示回退。
+
+TCR（B05 补充）：经真实 Gradio 刷新事件和组件序列化验证逐题四列与摘要接线，覆盖最终、
+待复核和尚无成绩三种读模型，防止空态被误报为待复核；不启动服务器或访问外部服务。
 """
 
 from __future__ import annotations
 
+import asyncio
 from collections.abc import Generator
 from decimal import Decimal
 from typing import Any
 
+import gradio as gr
 import pytest
+from gradio.state_holder import SessionState
 
 from backend.app.domain.enums import GradingStatus, QuestionType
 from backend.app.schemas.grading import (
@@ -36,6 +42,7 @@ from backend.app.ui.results_view import (
     TEACHER_UNAVAILABLE_MESSAGE,
     UNAVAILABLE_MESSAGE,
     configure_results_loaders,
+    create_results_view,
     refresh_student_diagnosis,
     refresh_student_panel,
     refresh_student_results,
@@ -201,8 +208,9 @@ def test_student_result_rows_do_not_derive_status_from_score() -> None:
     assert "60.00" not in rendered
 
 
-def test_student_result_rows_render_each_dto_item_and_mistake_marker() -> None:
-    """真实逐题读模型映射为四列行，错题带视觉标记，摘要不混入表格。"""
+@pytest.mark.parametrize("result_state", ["final", "pending", "not_ready"])
+def test_student_panel_renders_dto_through_gradio_components(result_state: str) -> None:
+    """真实读模型经过刷新回调与组件序列化，逐题、错题与摘要各归其位。"""
 
     items = [
         QuestionResultDTO(
@@ -250,14 +258,58 @@ def test_student_result_rows_render_each_dto_item_and_mistake_marker() -> None:
         items=items,
         mistake_answer_ids=["answer-2"],
     )
+    if result_state == "pending":
+        payload = SubmissionResultDTO.model_validate({
+            **payload.model_dump(),
+            "result_status": ExamResultStatus.PENDING_REVIEW,
+            "is_final": False,
+            "total_score": None,
+            "expected_answer_count": 3,
+            "pending_review_count": 1,
+        })
+    elif result_state == "not_ready":
+        payload = SubmissionResultDTO(
+            submission_id="submission-1", exam_id="exam-1", exam_title="期中测验",
+            student_id="student-1", not_ready_reason="阅卷结果尚未生成。",
+        )
+    requests = []
 
-    rows = student_result_rows(payload)
+    def load_result(exam_id, state):
+        requests.append((exam_id, state))
+        return payload
 
-    assert len(rows) == 2
-    assert rows[0] == ["第 1 题", result_status_text(GradingStatus.FINAL), "2", "答案正确"]
-    assert rows[1] == ["⚠ 第 2 题", result_status_text(GradingStatus.FINAL), "1", "遗漏一个要点"]
+    configure_results_loaders(student_loader=load_result)
+    with gr.Blocks(analytics_enabled=False) as app:
+        state_component = gr.State(_STUDENT_STATE)
+        view = create_results_view(state_component)
+    callback = next(fn for fn in app.fns.values() if fn.fn is refresh_student_panel)
+    callback.inputs[0].choices = [("期中测验", "exam-1")]
+    state = SessionState(app)
+    state[state_component._id] = _STUDENT_STATE
+    response = asyncio.run(app.process_api(callback, ["exam-1", None], state=state))
+    rendered = dict(zip((component._id for component in callback.outputs), response["data"], strict=True))
+    table = rendered[view.results_table._id]
+    rows = table["data"]
+
+    assert requests == [("exam-1", _STUDENT_STATE)]
+    assert table["headers"] == ["题号", "状态", "得分", "反馈"]
+    if result_state == "not_ready":
+        assert rows == []
+        assert rendered[view.total_score._id] == "暂无最终成绩"
+        assert rendered[view.graded_count._id] == rendered[view.pending_count._id] == "暂无"
+        assert "阅卷结果尚未生成" in rendered[view.message._id]
+        return
+    assert rows == [
+        ["第 1 题", result_status_text(GradingStatus.FINAL), "2", "答案正确"],
+        ["⚠ 第 2 题", result_status_text(GradingStatus.FINAL), "1", "遗漏一个要点"],
+    ]
     assert all(len(row) == 4 for row in rows)
     assert all("最终总分" not in row for row in rows)
+    assert rendered[view.total_score._id] == (
+        "3" if result_state == "final" else "待复核，暂无最终总分"
+    )
+    assert rendered[view.graded_count._id] == "2"
+    assert rendered[view.pending_count._id] == ("0" if result_state == "final" else "1")
 
 
 def test_teacher_result_rows_fallback_to_student_id() -> None:

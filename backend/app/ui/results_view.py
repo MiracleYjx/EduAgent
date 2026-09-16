@@ -593,8 +593,13 @@ def student_summary_values(payload: Mapping[str, Any] | Any | None) -> tuple[str
     total = _value(payload, "total_score", None)
     graded = _value(payload, "graded_answer_count", None)
     pending = _value(payload, "pending_review_count", None)
+    awaiting_review = _is_pending_review(_value(payload, "result_status", None)) or bool(pending)
+    total_text = (
+        _display_value(total, "暂无最终成绩") if is_final
+        else "待复核，暂无最终总分" if awaiting_review else "暂无最终成绩"
+    )
     return (
-        _display_value(total, "待复核，暂无最终总分") if is_final else "待复核，暂无最终总分",
+        total_text,
         _display_value(graded, "暂无"),
         _display_value(pending, "暂无"),
     )
