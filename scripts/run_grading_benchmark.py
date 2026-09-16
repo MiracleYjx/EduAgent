@@ -20,7 +20,8 @@
   ``grading_summary.csv``；只记录数据集、模型、Prompt 版本、策略、指标与耗时，
   **不写密钥、不写完整 Prompt、不写学生答案原文**。
 - **失败也如实落盘**：单样本失败记录 ``status=failed`` 与脱敏错误码，不写假分数；
-  Provider 未就绪时整体运行标记为失败并保留原因。
+  未执行样本单独记录，不参与失败率。全失败为 ``failed``，部分失败为 ``partial_failed``，
+  两者均非零退出。调用数统计实际发起的评分请求，不包含 Provider 内部重试。
 
 用法（自检，无需外部服务）::
 
@@ -156,7 +157,9 @@ class StrategyRun:
     elapsed_ms: float = 0.0
     predictions: list[dict[str, Any]] = field(default_factory=list)
     failures: list[dict[str, Any]] = field(default_factory=list)
+    not_executed: list[dict[str, Any]] = field(default_factory=list)
     metrics: dict[str, Any] = field(default_factory=dict)
+    fatal_error: Exception | None = None
 
 
 class StubEmbeddingProvider(BaseEmbeddingProvider):
@@ -431,8 +434,8 @@ async def run_strategy(
             if strategy == "hybrid_rerank" and context.candidate_count:
                 run.rerank_calls += 1
             messages = build_grading_messages(context, max_score=float(case.max_score))
-            payload = await _generate(provider, messages)
             run.provider_calls += 1
+            payload = await _generate(provider, messages)
             result = parse_subjective_payload(
                 payload.model_dump(),
                 question_type=case.question_type,
@@ -446,18 +449,21 @@ async def run_strategy(
             run.failures.append(_failure_record(case, getattr(error, "error_code", "GRADING_FAILED")))
             continue
         except ProviderNotReady as error:
-            run.status = "failed"
             run.error_code = str(error)
+            run.failures.append(_failure_record(case, run.error_code))
             break
-        except (EmbeddingProviderNotReadyError, RerankProviderNotReadyError):
-            # 延迟初始化失败同样终止整批，不能被 Zero-shot 的成功掩盖。
-            raise
-        except EmbeddingProviderError as error:
-            run.status = "failed"
+        except (EmbeddingProviderNotReadyError, RerankProviderNotReadyError) as error:
+            # 先保留失败样本，再维持 B03 的整批中止语义。
             run.error_code = error.error_code
+            run.failures.append(_failure_record(case, run.error_code))
+            run.fatal_error = error
+            break
+        except EmbeddingProviderError as error:
+            run.error_code = error.error_code
+            run.failures.append(_failure_record(case, run.error_code))
             break
         except Exception as error:  # noqa: BLE001 - 统一收敛为脱敏失败
-            run.failures.append(_failure_record(case, f"UNEXPECTED_{type(error).__name__}"))
+            run.failures.append(_failure_record(case, _error_code(error)))
             continue
         run.predictions.append(
             {
@@ -477,6 +483,17 @@ async def run_strategy(
                 "retrieved_context_ids": list(result.retrieved_context_ids),
             }
         )
+    attempted = len(run.predictions) + len(run.failures)
+    run.not_executed = [
+        {"sample_id": case.sample_id, "status": "not_executed"}
+        for case in cases[attempted:]
+    ]
+    run.status = (
+        "failed" if not run.predictions
+        else "partial_failed" if run.failures or run.not_executed else "completed"
+    )
+    if run.error_code is None and run.failures:
+        run.error_code = run.failures[0]["error_code"]
     run.elapsed_ms = round((clock() - started) * 1000, 3)
     run.metrics = compute_metrics(run.predictions, total=len(cases), failures=len(run.failures))
     return run
@@ -491,7 +508,14 @@ async def _generate(
     try:
         return await provider.generate_structured(messages, SubjectiveGradingPayload)
     except Exception as error:  # noqa: BLE001 - 未就绪按显式失败处理
-        raise ProviderNotReady(type(error).__name__) from None
+        raise ProviderNotReady(_error_code(error)) from None
+
+
+def _error_code(error: Exception) -> str:
+    """保留来源业务错误码；未知异常仅记录类型，不记录敏感正文。"""
+
+    return str(getattr(error, "error_code", None) or getattr(error, "code", None)
+               or type(error).__name__)
 
 
 class ProviderNotReady(RuntimeError):
@@ -519,6 +543,7 @@ def compute_metrics(
     MAE/RMSE 的量纲是与教师评分一致的分数量纲（数据集 score_scale），一致率定义为
     预测分与教师评分绝对差不超过 ``AGREEMENT_TOLERANCE``（1 分）的样本占比；
     有效样本集合为同时具备教师评分与预测分的样本。
+    失败率分母为已成功或失败的样本数，不包含中止后未执行的样本。
     """
 
     paired = [
@@ -530,7 +555,12 @@ def compute_metrics(
         "sample_total": total,
         "scored_count": len(predictions),
         "failure_count": failures,
-        "failure_rate": round(failures / total, 4) if total else None,
+        "attempted_count": len(predictions) + failures,
+        "not_executed_count": total - len(predictions) - failures,
+        "failure_rate": (
+            round(failures / (len(predictions) + failures), 4)
+            if predictions or failures else None
+        ),
         "effective_sample_count": len(paired),
         "mae": None,
         "rmse": None,
@@ -754,10 +784,13 @@ async def _run_strategies(
                 "elapsed_ms": run.elapsed_ms,
                 "predictions": run.predictions,
                 "failures": run.failures,
+                "not_executed": run.not_executed,
                 "metrics": run.metrics,
                 "retriever": type(retriever).__name__ if retriever is not None else None,
                 "reranker": reranker.describe() if reranker is not None else None,
             })
+            if run.fatal_error is not None:
+                raise run.fatal_error
 
 
 def run_benchmark(
@@ -814,10 +847,11 @@ def run_benchmark(
             record["error_code"] = getattr(error, "error_code", f"GRADING_BENCHMARK_SETUP_FAILED_{type(error).__name__}")
         write_run_records(record, results_dir=results_dir, run_id=resolved_run_id)
         return record, resolved_run_id
+    runs = record["runs"]
     record["status"] = (
-        "failed"
-        if all(run["status"] == "failed" for run in record["runs"])
-        else "completed"
+        "failed" if not any(run["predictions"] for run in runs)
+        else "completed" if all(run["status"] == "completed" for run in runs)
+        else "partial_failed"
     )
     write_run_records(record, results_dir=results_dir, run_id=resolved_run_id)
     return record, resolved_run_id
