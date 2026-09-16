@@ -448,16 +448,20 @@ def test_trigger_reports_store_not_ready() -> None:
 
 
 def test_task_status_and_single_result_not_found() -> None:
-    """未知任务与缺失单题结果均返回明确未找到。"""
+    """未知任务与缺失单题结果均返回明确未找到（合同新增 teacher_id 参数）。"""
 
     service = _service()
 
     with pytest.raises(GradingTaskNotFoundError) as task_error:
-        service.get_task("task-unknown")
+        service.get_task("task-unknown", teacher_id=TEACHER_ID)
     assert task_error.value.error_code == GRADING_TASK_NOT_FOUND
 
     with pytest.raises(GradingResultNotFoundError) as result_error:
-        service.get_single_result(SUBMISSION_ID, "answer-1")
+        service.get_single_result(
+            SUBMISSION_ID,
+            "answer-1",
+            teacher_id=TEACHER_ID,
+        )
     assert result_error.value.error_code == GRADING_RESULT_NOT_FOUND
 
 

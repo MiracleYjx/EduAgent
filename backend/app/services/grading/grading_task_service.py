@@ -820,21 +820,37 @@ class GradingTaskService:
             self.executor.execute(task.task_id, submission_id)
         return task
 
-    def get_task(self, task_id: str) -> GradingTaskStatusDTO:
-        """查询任务状态；不存在时显式未找到。"""
+    def get_task(self, task_id: str, *, teacher_id: str) -> GradingTaskStatusDTO:
+        """查询任务状态。
+
+        先取得定位答卷所需的任务元数据，再按 ``task.submission_id`` 校验教师课程归属；
+        授权通过后才返回任务内容（plan §5.2、FR-036/FR-039）。
+
+        :param teacher_id: 认证上下文中的教师标识；不做可省略的绕过分支。
+        """
 
         task = self._repository.get_task(task_id)
         if task is None:
             raise GradingTaskNotFoundError(f"任务 {task_id} 不存在。")
+        self._reader.load_for_teacher(task.submission_id, teacher_id)
         return task
 
     def get_single_result(
         self,
         submission_id: str,
         answer_id: str,
+        *,
+        teacher_id: str,
     ) -> QuestionResultDTO:
-        """查询单题结构化结果；不存在时显式未找到。"""
+        """查询单题结构化结果。
 
+        先校验教师对该答卷所属课程的访问权限，再查询该答卷下的 ``answer_id``；
+        不得仅凭权限守位就返回他课程结果。
+
+        :param teacher_id: 认证上下文中的教师标识；不做可省略的绕过分支。
+        """
+
+        self._reader.load_for_teacher(submission_id, teacher_id)
         result = self._repository.get_single_result(submission_id, answer_id)
         if result is None:
             raise GradingResultNotFoundError(

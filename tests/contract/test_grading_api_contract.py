@@ -35,6 +35,7 @@ from backend.app.models import Answer, Question, Submission, User
 from backend.app.schemas.grading import GradingTaskStatus, QuestionResultDTO
 from backend.app.services.auth_service import create_access_token
 from backend.app.services.grading.grading_task_service import (
+    DatabaseGradingSubmissionReader,
     GradingTargetAnswer,
     GradingTaskService,
     SubmissionSnapshot,
@@ -455,3 +456,101 @@ def test_default_dependency_reports_store_not_ready(scenario, client_factory) ->
     assert status.status_code == 503
     assert result.status_code == 503
     assert triggered.json()["detail"]["error_code"] == "GRADING_STORE_NOT_READY"
+
+
+# --------------------------------------------------------------------------- #
+# B01：任务查询与单题结果查询必须校验教师课程归属
+# --------------------------------------------------------------------------- #
+
+
+def _real_service(
+    session: Session,
+    repository: InMemoryGradingRepository | None = None,
+) -> tuple[GradingTaskService, InMemoryGradingRepository, RecordingExecutor]:
+    """用真实快照读取器（内存 SQLite）构造任务服务。"""
+
+    resolved = repository if repository is not None else InMemoryGradingRepository()
+    recorder = RecordingExecutor()
+    service = GradingTaskService(
+        repository=resolved,
+        reader=DatabaseGradingSubmissionReader(session=session),
+        executor=recorder,
+        clock=lambda: datetime(2026, 9, 16, 12, 0, tzinfo=UTC),
+    )
+    return service, resolved, recorder
+
+
+def _other_teacher(session: Session) -> User:
+    """创建不属于本课程的其他教师。"""
+
+    return add_user(
+        session,
+        UserRole.TEACHER,
+        username="other",
+        email="other@example.com",
+    )
+
+
+def test_task_query_denies_teacher_from_other_course(
+    session: Session, scenario, client_factory
+) -> None:
+    """TCR（2026-09-16，B01）：任务查询必须校验课程归属；旧实现只用
+    VIEW_GRADING_RESULTS 守位，其他课程教师可直接读到任务详情。
+
+    修复前预期：越权教师得到 200（越权可读）；修复后：403。
+    """
+
+    service, repository, _ = _real_service(session)
+    submission_id = str(scenario["submission"].id)
+    repository.save_task(make_task("task-1", submission_id))
+    client = client_factory(service)
+
+    allowed = client.get(
+        "/api/grading/tasks/task-1",
+        headers=headers(scenario["teacher"], UserRole.TEACHER),
+    )
+    denied = client.get(
+        "/api/grading/tasks/task-1",
+        headers=headers(_other_teacher(session), UserRole.TEACHER),
+    )
+
+    assert allowed.status_code == 200
+    assert denied.status_code == 403
+
+
+def test_single_result_query_denies_teacher_from_other_course(
+    session: Session, scenario, client_factory
+) -> None:
+    """TCR（2026-09-16，B01）：单题结果查询同样必须校验课程归属。
+
+    修复前预期：越权教师得到 200（越权可读）；修复后：403。
+    """
+
+    service, repository, _ = _real_service(session)
+    submission = scenario["submission"]
+    answer = scenario["answer"]
+    repository.save_single_result(
+        str(submission.id),
+        QuestionResultDTO(
+            order=1,
+            answer_id=str(answer.id),
+            question_id=str(answer.question_id),
+            question_type=QuestionType.SHORT_ANSWER,
+            max_score=Decimal("10.00"),
+            score=Decimal("8.00"),
+            effective_score=Decimal("8.00"),
+            counted=True,
+            grading_status="Accepted",
+            review_status="Not Required",
+            validation_status="Validated",
+            reason="评分理由。",
+        ),
+    )
+    client = client_factory(service)
+    path = f"/api/grading/submissions/{submission.id}/answers/{answer.id}"
+
+    allowed = client.get(path, headers=headers(scenario["teacher"], UserRole.TEACHER))
+    denied = client.get(path, headers=headers(_other_teacher(session), UserRole.TEACHER))
+
+    assert allowed.status_code == 200
+    assert denied.status_code == 403
