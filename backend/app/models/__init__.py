@@ -1,6 +1,7 @@
 """EduAgent 业务持久化模型。"""
 
 from backend.app.core.database import Base
+from backend.app.models.agent_run import AgentRun
 from backend.app.models.answer import Answer
 from backend.app.models.associations import exam_questions, user_roles
 from backend.app.models.course import Course
@@ -25,6 +26,7 @@ def register_models() -> None:
 
 
 __all__ = [
+    "AgentRun",
     "Answer",
     "Base",
     "Course",
