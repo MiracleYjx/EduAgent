@@ -126,6 +126,25 @@ class QuestionResultDTO(BaseModel):
     missing_knowledge_points: list[NonEmptyText] = Field(
         default_factory=list, description="学生答案缺失的知识点。"
     )
+    correct_points: list[NonEmptyText] = Field(
+        default_factory=list,
+        description="学生答案命中的正确要点；保持原顺序且不去重。",
+    )
+    suggestions: list[NonEmptyText] = Field(
+        default_factory=list,
+        description="面向学生的学习建议；保持原顺序且不去重。",
+    )
+    retrieved_context_ids: list[NonEmptyText] = Field(
+        default_factory=list,
+        description="评分使用的课程知识片段标识；保持原顺序与重复关系。",
+    )
+    confidence: ConfidenceScore | None = Field(
+        default=None,
+        description="原评分置信度；缺评分结果时为 None，不用决策字段替代。",
+    )
+    submission_id: NonEmptyText | None = Field(
+        default=None, description="关联答卷标识，使单题结果自描述归属。"
+    )
     decision: ConfidenceDecisionDTO | None = Field(
         default=None, description="本次评分的置信度决策；客观题与人工结论为空。"
     )

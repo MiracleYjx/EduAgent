@@ -21,6 +21,7 @@ from backend.app.schemas.ai import GradingResult
 from backend.app.schemas.grading import (
     ExamResultStatus,
     ExpectedAnswer,
+    QuestionResultDTO,
     SubmissionContext,
 )
 from backend.app.services.grading.confidence_policy import ConfidenceDecision
@@ -546,3 +547,161 @@ def test_aggregation_never_calls_llm_provider(
 
     assert aggregated.result_status is ExamResultStatus.FINAL
     assert aggregated.final_total_score == Decimal("16.00")
+
+
+# --------------------------------------------------------------------------- #
+# B02：汇总必须保留原 GradingResult 的评分字段
+# --------------------------------------------------------------------------- #
+
+_POINTS = ["要点二", "要点一"]
+_SUGGESTIONS = ["建议 B", "建议 A"]
+_CONTEXT_IDS = ["chunk-2", "chunk-1", "chunk-2"]
+
+
+def _rich_result(
+    answer_id: str,
+    *,
+    score: str = "8",
+    max_score: str = "10",
+    question_type: QuestionType = OBJECTIVE,
+    confidence: float = 0.9,
+    review_status: str = "Not Required",
+    validation_status: str = "Validated",
+) -> GradingResult:
+    """构造带完整评分字段的单题结果（列表顺序故意非字典序且含重复项）。"""
+
+    return GradingResult(
+        question_type=question_type,
+        score=float(score),
+        max_score=float(max_score),
+        reason="评分理由。",
+        correct_points=list(_POINTS),
+        missing_knowledge_points=["缺失要点"],
+        knowledge_points=[KNOWLEDGE_POINT],
+        suggestions=list(_SUGGESTIONS),
+        confidence=confidence,
+        validation_status=validation_status,
+        review_status=review_status,
+        retrieved_context_ids=list(_CONTEXT_IDS),
+        answer_id=answer_id,
+        submission_id=SUBMISSION_ID,
+    )
+
+
+def _single_item(
+    result: GradingResult,
+    *,
+    decisions: dict[str, ConfidenceDecision] | None = None,
+) -> QuestionResultDTO:
+    """用真实汇总器把单题结果转为逐题读模型条目。"""
+
+    aggregated = _aggregator().aggregate(
+        _context(
+            _expected(
+                1,
+                result.answer_id or "answer-1",
+                question_type=result.question_type,
+                max_score=str(result.max_score),
+            )
+        ),
+        results=[result],
+        decisions=decisions or {},
+    )
+    return aggregated.items[0]
+
+
+def _assert_original_fields_preserved(
+    item: QuestionResultDTO,
+    *,
+    confidence: float,
+) -> None:
+    """断言原始评分字段逐项保留，顺序与重复关系不变。"""
+
+    assert item.confidence == confidence
+    assert list(item.correct_points) == _POINTS
+    assert list(item.suggestions) == _SUGGESTIONS
+    assert list(item.retrieved_context_ids) == _CONTEXT_IDS
+    assert item.submission_id == SUBMISSION_ID
+
+
+def test_objective_item_preserves_original_fields() -> None:
+    """TCR（2026-09-16，B02）：客观题汇总后仍保留原 confidence 与列表。"""
+
+    item = _single_item(_rich_result("answer-1", question_type=OBJECTIVE, confidence=1.0))
+
+    _assert_original_fields_preserved(item, confidence=1.0)
+
+
+def test_subjective_auto_accepted_item_preserves_original_confidence() -> None:
+    """主观题自动接受时保留原置信度，不被决策阈值替代。"""
+
+    item = _single_item(
+        _rich_result("answer-1", question_type=SUBJECTIVE, confidence=0.55),
+        decisions={"answer-1": _accepted("answer-1", confidence=0.55)},
+    )
+
+    _assert_original_fields_preserved(item, confidence=0.55)
+
+
+def test_pending_review_item_preserves_original_fields() -> None:
+    """待复核条目不因“不计入总分”而丢失评分信息。"""
+
+    item = _single_item(
+        _rich_result(
+            "answer-1",
+            question_type=SUBJECTIVE,
+            confidence=0.42,
+            review_status="Pending Review",
+        )
+    )
+
+    assert item.counted is False
+    _assert_original_fields_preserved(item, confidence=0.42)
+
+
+def test_human_confirmed_item_preserves_original_fields() -> None:
+    """人工确认后仍保留原评分信息，不用人工结论替代原字段。"""
+
+    item = _single_item(
+        _rich_result(
+            "answer-1",
+            question_type=SUBJECTIVE,
+            confidence=0.35,
+            review_status="Confirmed",
+        )
+    )
+
+    assert item.counted is True
+    _assert_original_fields_preserved(item, confidence=0.35)
+
+
+def test_human_modified_item_preserves_original_fields() -> None:
+    """人工修改后保留原评分信息与列表顺序。"""
+
+    item = _single_item(
+        _rich_result(
+            "answer-1",
+            question_type=SUBJECTIVE,
+            confidence=0.28,
+            review_status="Modified",
+        )
+    )
+
+    _assert_original_fields_preserved(item, confidence=0.28)
+
+
+def test_missing_item_uses_empty_placeholders() -> None:
+    """缺结果占位使用 confidence=None 与空列表，不得伪装成真实评分。"""
+
+    aggregated = _aggregator().aggregate(
+        _context(_expected(1, "answer-1"), _expected(2, "answer-2")),
+        results=[_rich_result("answer-1")],
+        decisions={},
+    )
+    missing = aggregated.items[1]
+
+    assert missing.missing is True
+    assert missing.confidence is None
+    assert list(missing.correct_points) == []
+    assert list(missing.suggestions) == []
+    assert list(missing.retrieved_context_ids) == []
