@@ -465,6 +465,48 @@ def test_task_status_and_single_result_not_found() -> None:
     assert result_error.value.error_code == GRADING_RESULT_NOT_FOUND
 
 
+def test_executor_persists_original_grading_fields() -> None:
+    """TCR（2026-09-16，B02）：执行器保存的汇总条目必须保留原评分字段，
+    否则单题查询与后续复核拿不到 confidence、要点与溯源信息。
+    """
+
+    repository = InMemoryGradingRepository()
+    snapshot = _snapshot()
+    result = GradingResult(
+        question_type=QuestionType.SINGLE_CHOICE,
+        score=6.0,
+        max_score=10.0,
+        reason="评分理由。",
+        correct_points=["要点二", "要点一"],
+        missing_knowledge_points=["缺失要点"],
+        knowledge_points=["知识点 A"],
+        suggestions=["建议 B", "建议 A"],
+        confidence=0.77,
+        retrieved_context_ids=["chunk-2", "chunk-1", "chunk-2"],
+        answer_id="answer-1",
+        submission_id=SUBMISSION_ID,
+    )
+    outcome = _outcome(snapshot, (result,))
+    executor = InlineGradingTaskExecutor(
+        repository=repository,
+        reader=StubSubmissionReader({SUBMISSION_ID: snapshot}),
+        pipeline=StubScoringPipeline(outcome),
+    )
+    repository.save_task(
+        make_task("task-1", SUBMISSION_ID, status=GradingTaskStatus.QUEUED)
+    )
+
+    executor.execute("task-1", SUBMISSION_ID)
+    stored = repository.get_single_result(SUBMISSION_ID, "answer-1")
+
+    assert stored is not None
+    assert stored.confidence == 0.77
+    assert list(stored.correct_points) == ["要点二", "要点一"]
+    assert list(stored.suggestions) == ["建议 B", "建议 A"]
+    assert list(stored.retrieved_context_ids) == ["chunk-2", "chunk-1", "chunk-2"]
+    assert stored.submission_id == SUBMISSION_ID
+
+
 def test_executor_persists_outcome_and_progress() -> None:
     """执行器写入整卷结果、单题结果与进度状态。"""
 

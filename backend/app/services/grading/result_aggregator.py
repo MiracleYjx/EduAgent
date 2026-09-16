@@ -210,12 +210,13 @@ class ResultAggregator:
             result = indexed.get(entry.answer_id)
             if result is None:
                 missing.append(entry.answer_id)
-                items.append(self._missing_item(entry))
+                items.append(self._missing_item(entry, context.submission_id))
                 continue
             item = self._evaluate_item(
                 entry,
                 result,
                 resolved_decisions.get(entry.answer_id),
+                context.submission_id,
             )
             items.append(item)
             if item.counted:
@@ -297,8 +298,15 @@ class ResultAggregator:
             indexed[answer_id] = result
         return indexed
 
-    def _missing_item(self, entry: ExpectedAnswer) -> QuestionResultDTO:
-        """构造缺少结果时的逐题占位明细。"""
+    def _missing_item(
+        self,
+        entry: ExpectedAnswer,
+        submission_id: str,
+    ) -> QuestionResultDTO:
+        """构造缺少结果时的逐题占位明细。
+
+        占位条目使用 ``confidence=None`` 与空列表，不得用默认值掩盖真实评分字段丢失。
+        """
 
         return QuestionResultDTO(
             order=entry.order,
@@ -310,6 +318,7 @@ class ResultAggregator:
             missing=True,
             grading_status="Pending",
             knowledge_points=list(entry.knowledge_points),
+            submission_id=submission_id,
         )
 
     def _evaluate_item(
@@ -317,6 +326,7 @@ class ResultAggregator:
         entry: ExpectedAnswer,
         result: GradingResult,
         decision: ConfidenceDecision | None,
+        submission_id: str,
     ) -> QuestionResultDTO:
         """判定单题结果并返回逐题明细。"""
 
@@ -371,6 +381,11 @@ class ResultAggregator:
             reason=result.reason,
             knowledge_points=list(entry.knowledge_points),
             missing_knowledge_points=list(result.missing_knowledge_points),
+            correct_points=list(result.correct_points),
+            suggestions=list(result.suggestions),
+            retrieved_context_ids=list(result.retrieved_context_ids),
+            confidence=result.confidence,
+            submission_id=submission_id,
             decision=decision_dto,
         )
 
