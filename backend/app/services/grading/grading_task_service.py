@@ -51,6 +51,7 @@ from backend.app.domain.enums import (
 from backend.app.models import Answer, Course, Exam, Submission
 from backend.app.schemas.ai import GradingResult
 from backend.app.schemas.grading import (
+    DiagnosisReportDTO,
     ExamResultDTO,
     GradingTaskStatus,
     GradingTaskStatusDTO,
@@ -606,6 +607,16 @@ class GradingProgressUpdater(Protocol):
     def mark_failed(self, submission_id: str, error_code: str) -> None: ...
 
 
+class GradingDiagnosisRecorder(Protocol):
+    """最终整卷结果形成后的诊断生成与保存合同（B05）。
+
+    实现须在最终成绩提交成功后才被调用；生成失败只能影响诊断报告本身，
+    不得回滚已提交的成绩与汇总事实。
+    """
+
+    def record(self, exam_result: ExamResultDTO) -> DiagnosisReportDTO | None: ...
+
+
 class DatabaseGradingProgressUpdater:
     """使用既有 ``Submission``/``Answer`` 列记录持久进度。"""
 
@@ -752,6 +763,7 @@ class InlineGradingTaskExecutor:
     """默认执行器：读取快照、运行评分管道、写入结果与持久进度。
 
     :param progress_updater: 进度更新实现；``None`` 时跳过持久进度更新。
+    :param diagnosis_recorder: 诊断生成与保存入口（B05）；``None`` 时不生成诊断。
     """
 
     def __init__(
@@ -761,12 +773,14 @@ class InlineGradingTaskExecutor:
         reader: GradingSubmissionReader,
         pipeline: ScoringPipeline,
         progress_updater: GradingProgressUpdater | None = None,
+        diagnosis_recorder: GradingDiagnosisRecorder | None = None,
         clock: Callable[[], datetime] | None = None,
     ) -> None:
         self._repository = repository
         self._reader = reader
         self._pipeline = pipeline
         self._progress = progress_updater
+        self._diagnosis = diagnosis_recorder
         self._clock = clock or (lambda: datetime.now(UTC))
 
     def execute(self, task_id: str, submission_id: str) -> None:
@@ -838,6 +852,24 @@ class InlineGradingTaskExecutor:
         )
         if self._progress is not None:
             self._progress.mark_completed(submission_id, exam_result)
+        if exam_result.is_final:
+            self._record_diagnosis(exam_result)
+
+    def _record_diagnosis(self, exam_result: ExamResultDTO) -> None:
+        """最终成绩提交成功后生成并保存诊断报告（B05）。
+
+        仅当整卷已形成最终成绩时调用；诊断生成失败只影响诊断报告（由存储层按
+        ``Failed`` 记录），**不回滚已提交的成绩与汇总事实**，也不向调度器泄漏异常。
+        """
+
+        recorder = self._diagnosis
+        if recorder is None:
+            return
+        try:
+            recorder.record(exam_result)
+        except GradingTaskError:
+            # 存储未就绪等基础设施问题不得抹掉已经提交的成绩与汇总事实。
+            return
 
     def _record_failure(
         self,
@@ -1034,6 +1066,7 @@ __all__ = [
     "DatabaseGradingSubmissionReader",
     "DecisionRecordingPolicy",
     "DefaultScoringPipeline",
+    "GradingDiagnosisRecorder",
     "GradingExecutionNotReadyError",
     "GradingNotAllowedError",
     "GradingOutcome",

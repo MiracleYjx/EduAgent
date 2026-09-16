@@ -18,7 +18,7 @@ from decimal import Decimal
 import gradio as gr
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session
 from sqlalchemy.pool import StaticPool
 
@@ -31,13 +31,22 @@ from backend.app.domain.enums import (
     SubmissionStatus,
     UserRole,
 )
-from backend.app.models import Answer, Submission, User
+from backend.app.models import Answer, DiagnosisReport, ExamResult, Submission, User
 from backend.app.schemas.grading import (
+    ConfidenceDecisionDTO,
+    DiagnosisReportDTO,
+    DiagnosisStatus,
     ExamResultDTO,
     ExamResultStatus,
+    MasteryByKnowledgePointDTO,
     QuestionResultDTO,
 )
 from backend.app.services.auth_service import create_access_token
+from backend.app.services.grading.diagnosis_report_store import DiagnosisReportStore
+from backend.app.services.grading.grading_repository import DatabaseGradingRepository
+from backend.app.services.grading.grading_task_service import (
+    NotConfiguredGradingRepository,
+)
 from tests.support.grading_doubles import InMemoryGradingRepository
 from tests.unit.services.test_submission_service import (
     add_approved_question,
@@ -353,10 +362,21 @@ def test_result_endpoints_enforce_role_and_course_boundaries(
     )
 
 
-def test_results_endpoints_report_store_not_ready(client_factory, scenario) -> None:
-    """未配置结果存储时返回 503，不返回空成功结果。"""
+def test_results_endpoints_report_store_not_ready(
+    session: Session, client_factory, scenario
+) -> None:
+    """未接通结果存储时返回 503，不返回空成功结果。
 
-    client = client_factory()
+    TCR（2026-09-16，T057）：生产装配已改用真实仓储，因此这里**显式注入**未接通的存储
+    固定该语义；生产路径的就绪判断由 ``DatabaseGradingRepository.ensure_ready`` 的测试覆盖，
+    不再依赖本机数据库是否已迁移。
+    """
+
+    service = ResultsQueryService(
+        repository=NotConfiguredGradingRepository(),
+        session=session,
+    )
+    client = client_factory(service)
     student_headers = headers(scenario["student_a"], UserRole.STUDENT)
     teacher_headers = headers(scenario["teacher"], UserRole.TEACHER)
 
@@ -368,3 +388,175 @@ def test_results_endpoints_report_store_not_ready(client_factory, scenario) -> N
     assert student.status_code == 503
     assert teacher.status_code == 503
     assert student.json()["detail"]["error_code"] == "GRADING_STORE_NOT_READY"
+
+
+# --------------------------------------------------------------------------- #
+# T057：真实仓储读取成绩 + 只读诊断（含过期判定）
+# --------------------------------------------------------------------------- #
+
+
+def _t057_service(
+    session: Session,
+) -> tuple[ResultsQueryService, DatabaseGradingRepository, DiagnosisReportStore]:
+    """用真实仓储与真实诊断存储构造读模型服务。"""
+
+    engine = session.get_bind()
+    repository = DatabaseGradingRepository(session_factory=lambda: Session(engine))
+    store = DiagnosisReportStore(session_factory=lambda: Session(engine))
+    return (
+        ResultsQueryService(
+            repository=repository,
+            session_factory=lambda: Session(engine),
+            diagnosis_store=store,
+        ),
+        repository,
+        store,
+    )
+
+
+def _t057_final_result(
+    session: Session, scenario
+) -> tuple[ExamResultDTO, str]:
+    """构造一份真实答卷对应的最终整卷结果 DTO。"""
+
+    submission = scenario["submissions"]["a"]
+    answer = session.scalars(
+        select(Answer).where(Answer.submission_id == submission.id)
+    ).one()
+    return (
+        ExamResultDTO(
+            submission_id=str(submission.id),
+            exam_id=str(submission.exam_id),
+            student_id=str(submission.student_id),
+            result_status=ExamResultStatus.FINAL,
+            is_final=True,
+            final_total_score=Decimal("8.00"),
+            confirmed_subtotal=Decimal("8.00"),
+            confirmed_subtotal_label="已确认部分小计。",
+            total_max_score=Decimal("10.00"),
+            expected_answer_count=1,
+            graded_answer_count=1,
+            counted_answer_count=1,
+            pending_review_answer_count=0,
+            items=[
+                QuestionResultDTO(
+                    order=1,
+                    answer_id=str(answer.id),
+                    question_id=str(answer.question_id),
+                    question_type=QuestionType.SHORT_ANSWER,
+                    max_score=Decimal("10.00"),
+                    score=Decimal("8.00"),
+                    effective_score=Decimal("8.00"),
+                    counted=True,
+                    grading_status="Accepted",
+                    review_status="Not Required",
+                    validation_status="Validated",
+                    reason="评分理由。",
+                    confidence=0.9,
+                    submission_id=str(submission.id),
+                    decision=ConfidenceDecisionDTO(
+                        confidence=0.9,
+                        threshold=0.8,
+                        requires_review=False,
+                        review_status="Not Required",
+                        grading_status="Accepted",
+                        reason="置信度不低于阈值，自动接受。",
+                    ),
+                )
+            ],
+            aggregated_at=datetime(2026, 9, 16, 12, 0, tzinfo=UTC),
+        ),
+        str(answer.id),
+    )
+
+
+def _t057_ready_report(exam_result: ExamResultDTO) -> DiagnosisReportDTO:
+    """构造 Ready 诊断报告。"""
+
+    return DiagnosisReportDTO(
+        exam_result_id=f"exam-result:{exam_result.submission_id}",
+        submission_id=exam_result.submission_id,
+        student_id=exam_result.student_id,
+        status=DiagnosisStatus.READY,
+        mastery_by_knowledge_point=[
+            MasteryByKnowledgePointDTO(
+                knowledge_point="变量",
+                answered_count=1,
+                correct_count=0,
+                awarded_score=Decimal("8.00"),
+                max_score=Decimal("10.00"),
+                mastery=Decimal("0.80"),
+            )
+        ],
+        weak_knowledge_points=[],
+        error_reasons=["question-1：未得满分。"],
+        learning_suggestions=["复习变量作用域。"],
+        generated_at=datetime(2026, 9, 16, 12, 0, tzinfo=UTC),
+        source_exam_result_updated_at=exam_result.aggregated_at,
+    )
+
+
+def test_student_result_reads_from_database_and_diagnosis_is_read_only(
+    session: Session, scenario, client_factory
+) -> None:
+    """TCR（2026-09-16，T057）：成绩读自 ExamResult/GradingResult；诊断 GET 只读，
+    连续调用不新增诊断行、不触发生成。
+    """
+
+    service, repository, store = _t057_service(session)
+    exam_result, answer_id = _t057_final_result(session, scenario)
+    repository.save_exam_result(exam_result)
+    store.save(_t057_ready_report(exam_result))
+    client = client_factory(service)
+    student_headers = headers(scenario["student_a"], UserRole.STUDENT)
+    submission_id = exam_result.submission_id
+
+    detail = client.get(
+        f"/api/results/me/submissions/{submission_id}", headers=student_headers
+    )
+    first = client.get(
+        f"/api/results/me/submissions/{submission_id}/diagnosis",
+        headers=student_headers,
+    )
+    second = client.get(
+        f"/api/results/me/submissions/{submission_id}/diagnosis",
+        headers=student_headers,
+    )
+
+    assert detail.status_code == 200
+    assert Decimal(detail.json()["total_score"]) == Decimal("8.00")
+    assert detail.json()["items"][0]["answer_id"] == answer_id
+    assert detail.json()["is_final"] is True
+    assert first.status_code == 200
+    assert first.json()["status"] == "Ready"
+    assert first.json()["learning_suggestions"] == ["复习变量作用域。"]
+    assert first.json()["mastery_by_knowledge_point"][0]["mastery"] == "0.80"
+    assert second.json()["status"] == "Ready"
+    with Session(session.get_bind()) as check:
+        assert len(list(check.scalars(select(DiagnosisReport)))) == 1
+
+
+def test_diagnosis_returns_stale_after_new_aggregation(
+    session: Session, scenario, client_factory
+) -> None:
+    """重新汇总后旧诊断为过期，不被旧结果覆盖。"""
+
+    service, repository, store = _t057_service(session)
+    exam_result, _ = _t057_final_result(session, scenario)
+    repository.save_exam_result(exam_result)
+    store.save(_t057_ready_report(exam_result))
+    client = client_factory(service)
+    student_headers = headers(scenario["student_a"], UserRole.STUDENT)
+    submission_id = exam_result.submission_id
+    with Session(session.get_bind()) as update, update.begin():
+        row = update.scalars(select(ExamResult)).one()
+        row.aggregated_at = exam_result.aggregated_at + timedelta(minutes=1)
+
+    response = client.get(
+        f"/api/results/me/submissions/{submission_id}/diagnosis",
+        headers=student_headers,
+    )
+
+    assert response.json()["status"] == "Stale"
+    with Session(session.get_bind()) as check:
+        assert len(list(check.scalars(select(DiagnosisReport)))) == 1

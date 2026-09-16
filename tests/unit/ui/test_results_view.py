@@ -15,10 +15,18 @@ from typing import Any
 
 import pytest
 
+from backend.app.ui.results_diagnosis import (
+    DIAGNOSIS_NOT_READY_MESSAGE,
+    DIAGNOSIS_STALE_MESSAGE,
+    PENDING_FINAL_MESSAGE,
+)
 from backend.app.ui.results_view import (
+    PENDING_REVIEW_MESSAGE,
     TEACHER_UNAVAILABLE_MESSAGE,
     UNAVAILABLE_MESSAGE,
     configure_results_loaders,
+    refresh_student_diagnosis,
+    refresh_student_panel,
     refresh_student_results,
     refresh_teacher_results,
     result_status_text,
@@ -168,3 +176,174 @@ def test_student_result_rows_do_not_derive_status_from_score() -> None:
     rendered = "\n".join(" | ".join(cell for cell in row) for row in rows)
 
     assert "60.00" not in rendered
+
+
+# --------------------------------------------------------------------------- #
+# T057：诊断、薄弱知识点与掌握度区域的动态输出绑定
+# --------------------------------------------------------------------------- #
+
+
+#: 学生会话状态：通过视图的学生守卫（含访问令牌与学生角色）。
+_STUDENT_STATE: dict[str, Any] = {
+    "access_token": "token",
+    "user_id": "student-1",
+    "roles": ["Student"],
+}
+
+def _ready_report(**overrides: Any) -> dict[str, Any]:
+    """构造 Ready 诊断读模型（含平台字段与建议）。"""
+
+    payload: dict[str, Any] = {
+        "status": "Ready",
+        "mastery_by_knowledge_point": [
+            {
+                "knowledge_point": "变量",
+                "answered_count": 2,
+                "correct_count": 1,
+                "awarded_score": "10.00",
+                "max_score": "20.00",
+                "mastery": "0.50",
+            }
+        ],
+        "weak_knowledge_points": [
+            {
+                "knowledge_point": "变量",
+                "reason": "掌握度 0.50 低于阈值 0.60。",
+                "error_count": 1,
+                "awarded_score": "10.00",
+                "max_score": "20.00",
+                "mastery": "0.50",
+            }
+        ],
+        "error_reasons": ["question-2：缺少要点 引用数据（得分 5.00/10.00）。"],
+        "learning_suggestions": ["复习变量的引用方式。"],
+        "generated_at": "2026-09-16T12:00:00+00:00",
+        "source_exam_result_updated_at": "2026-09-16T12:00:00+00:00",
+    }
+    payload.update(overrides)
+    return payload
+
+
+def test_student_diagnosis_sections_use_loader_payload() -> None:
+    """薄弱知识点、错误原因与掌握度区域直接由诊断读模型驱动。"""
+
+    configure_results_loaders(
+        student_diagnosis_loader=lambda exam_id, state: (_ready_report(), True)
+    )
+
+    weak_points, diagnosis, mastery = refresh_student_diagnosis(
+        "exam-1", _STUDENT_STATE
+    )
+
+    assert "变量" in weak_points
+    assert "0.50" in weak_points
+    assert "复习变量的引用方式。" in diagnosis
+    assert mastery == [["变量", "2", "1", "10.00", "20.00", "0.50"]]
+
+
+def test_student_diagnosis_marks_unconfirmed_result() -> None:
+    """成绩未最终确认时明确说明诊断只覆盖已确认部分。"""
+
+    configure_results_loaders(
+        student_diagnosis_loader=lambda exam_id, state: (_ready_report(), False)
+    )
+
+    _, diagnosis, _ = refresh_student_diagnosis("exam-1", _STUDENT_STATE)
+
+    assert PENDING_FINAL_MESSAGE in diagnosis
+
+
+@pytest.mark.parametrize(
+    "status,expected",
+    [("Not Ready", DIAGNOSIS_NOT_READY_MESSAGE), ("Stale", DIAGNOSIS_STALE_MESSAGE)],
+)
+def test_student_diagnosis_reports_empty_and_stale_states(
+    status: str, expected: str
+) -> None:
+    """未生成与过期的诊断给出明确说明，不展示掌握度表格。"""
+
+    configure_results_loaders(
+        student_diagnosis_loader=lambda exam_id, state, status=status: (
+            _ready_report(status=status),
+            True,
+        )
+    )
+
+    weak_points, diagnosis, mastery = refresh_student_diagnosis(
+        "exam-1", _STUDENT_STATE
+    )
+
+    assert expected in diagnosis
+    assert expected in weak_points
+    assert mastery == []
+
+
+def test_student_diagnosis_reports_failure_code_without_mastery() -> None:
+    """诊断失败时展示错误码，并不用掌握度数据冒充结论。"""
+
+    configure_results_loaders(
+        student_diagnosis_loader=lambda exam_id, state: (
+            _ready_report(status="Failed", error_code="DIAGNOSIS_PROVIDER_NOT_READY"),
+            True,
+        )
+    )
+
+    _, diagnosis, mastery = refresh_student_diagnosis(
+        "exam-1", _STUDENT_STATE
+    )
+
+    assert "DIAGNOSIS_PROVIDER_NOT_READY" in diagnosis
+    assert mastery == []
+
+
+def test_student_diagnosis_loader_failure_keeps_empty_state() -> None:
+    """诊断加载失败时保留明确空态，不展示旧结论。"""
+
+    def _boom(exam_id: str | None, state: Any) -> Any:
+        raise RuntimeError("boom")
+
+    configure_results_loaders(student_diagnosis_loader=_boom)
+
+    _, diagnosis, mastery = refresh_student_diagnosis(
+        "exam-1", _STUDENT_STATE
+    )
+
+    assert UNAVAILABLE_MESSAGE in diagnosis
+    assert mastery == []
+
+
+def test_student_diagnosis_requires_student_role() -> None:
+    """非学生身份不得读取诊断，未接线时同样保持空态。"""
+
+    configure_results_loaders(
+        student_diagnosis_loader=lambda exam_id, state: (_ready_report(), True)
+    )
+
+    _, diagnosis, _ = refresh_student_diagnosis(
+        "exam-1", {"access_token": "token", "roles": ["Teacher"]}
+    )
+    assert UNAVAILABLE_MESSAGE in diagnosis
+
+    configure_results_loaders()
+    _, diagnosis, _ = refresh_student_diagnosis(
+        "exam-1", _STUDENT_STATE
+    )
+    assert UNAVAILABLE_MESSAGE in diagnosis
+
+
+def test_student_panel_returns_rows_and_diagnosis_sections() -> None:
+    """面板刷新一次返回逐题结果、诊断区域与提示。"""
+
+    configure_results_loaders(
+        student_loader=lambda exam_id, state: _pending_review_payload(),
+        student_diagnosis_loader=lambda exam_id, state: (_ready_report(), False),
+    )
+
+    rows, weak_points, diagnosis, mastery, message = refresh_student_panel(
+        "exam-1", _STUDENT_STATE
+    )
+
+    assert rows
+    assert weak_points and mastery
+    assert PENDING_REVIEW_MESSAGE in message
+    assert PENDING_FINAL_MESSAGE in diagnosis

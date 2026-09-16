@@ -788,6 +788,86 @@ def test_recover_interrupted_tasks_converges_running_tasks() -> None:
     assert done.status is GradingTaskStatus.COMPLETED
 
 
+def test_executor_records_diagnosis_only_for_final_result() -> None:
+    """B05：仅在最终成绩提交成功后生成诊断；非最终结果不生成。"""
+
+    class RecordingDiagnosisRecorder:
+        """记录诊断生成调用的替身。"""
+
+        def __init__(self) -> None:
+            self.recorded: list[str] = []
+
+        def record(self, exam_result: object) -> None:
+            submission_id = exam_result.submission_id
+            self.recorded.append(str(submission_id))
+
+    repository = InMemoryGradingRepository()
+    snapshot = _snapshot()
+    outcome = _outcome(snapshot, (_result_for("answer-1"),))
+    recorder = RecordingDiagnosisRecorder()
+    executor = InlineGradingTaskExecutor(
+        repository=repository,
+        reader=StubSubmissionReader({SUBMISSION_ID: snapshot}),
+        pipeline=StubScoringPipeline(outcome),
+        diagnosis_recorder=recorder,
+    )
+    repository.save_task(
+        make_task("task-1", SUBMISSION_ID, status=GradingTaskStatus.QUEUED)
+    )
+
+    executor.execute("task-1", SUBMISSION_ID)
+    assert recorder.recorded == [SUBMISSION_ID]
+
+    pending_snapshot = _snapshot(answers=(_subjective_answer(),))
+    pending_result = GradingResult(
+        question_type=QuestionType.SHORT_ANSWER,
+        score=6.0,
+        max_score=8.0,
+        reason="评分理由。",
+        correct_points=[],
+        missing_knowledge_points=["知识点 A"],
+        knowledge_points=["知识点 A"],
+        suggestions=["继续练习。"],
+        confidence=0.5,
+        review_status="Pending Review",
+        answer_id="answer-1",
+        submission_id=SUBMISSION_ID,
+    )
+    pending_decision = ConfidenceDecision(
+        confidence=0.5,
+        threshold=0.8,
+        requires_review=True,
+        review_status="Pending Review",
+        grading_status="Pending Review",
+        reason="置信度低于阈值，进入待人工复核。",
+    )
+    pending_exam_result = ResultAggregator().aggregate(
+        pending_snapshot.to_context(),
+        results=[pending_result],
+        decisions={"answer-1": pending_decision},
+    )
+    assert pending_exam_result.is_final is False
+    pending_executor = InlineGradingTaskExecutor(
+        repository=repository,
+        reader=StubSubmissionReader({SUBMISSION_ID: pending_snapshot}),
+        pipeline=StubScoringPipeline(
+            GradingOutcome(
+                results=(pending_result,),
+                decisions={"answer-1": pending_decision},
+                exam_result=pending_exam_result,
+            )
+        ),
+        diagnosis_recorder=recorder,
+    )
+    repository.save_task(
+        make_task("task-2", SUBMISSION_ID, status=GradingTaskStatus.QUEUED)
+    )
+
+    pending_executor.execute("task-2", SUBMISSION_ID)
+
+    assert recorder.recorded == [SUBMISSION_ID]
+
+
 # --------------------------------------------------------------------------- #
 # B03：快照与持久化的既有读取用例（跟随下方 helper）
 # --------------------------------------------------------------------------- #
