@@ -41,9 +41,11 @@ from backend.app.services.grading.confidence_policy import (
     ManualReviewStateError,
     NotValidatedResultError,
 )
+from backend.app.services.grading.grading_repository import GRADING_TASK_INTERRUPTED
 from backend.app.services.grading.grading_task_service import (
     GRADING_EXECUTION_NOT_READY,
     GRADING_RESULT_NOT_FOUND,
+    GRADING_RESULT_OWNERSHIP_MISMATCH,
     GRADING_STORE_NOT_READY,
     GRADING_TASK_NOT_FOUND,
     GRADING_TRIGGER_CONFLICT,
@@ -53,6 +55,7 @@ from backend.app.services.grading.grading_task_service import (
     GradingExecutionNotReadyError,
     GradingOutcome,
     GradingResultNotFoundError,
+    GradingResultOwnershipError,
     GradingStoreNotReadyError,
     GradingTargetAnswer,
     GradingTaskNotFoundError,
@@ -668,6 +671,126 @@ def _grading_session() -> Iterator[Session]:
     with Session(engine) as database_session:
         yield database_session
     engine.dispose()
+
+
+# --------------------------------------------------------------------------- #
+# B01～B04：整批提交、追踪标识、并发锁与中断收敛
+# --------------------------------------------------------------------------- #
+
+
+def test_trigger_passes_request_id_inside_submission_lock() -> None:
+    """触发在短事务锁内检查/创建任务，并把 request_id 交给仓储。"""
+
+    repository = InMemoryGradingRepository()
+    service = _service(repository=repository)
+
+    task = service.trigger(
+        SUBMISSION_ID, teacher_id=TEACHER_ID, request_id="request-fixed"
+    )
+
+    assert repository.request_ids[task.task_id] == "request-fixed"
+    assert f"lock_submission:{SUBMISSION_ID}" in repository.calls
+    assert task.durable is False
+
+
+def test_executor_commits_outcome_before_publishing_completed() -> None:
+    """单题结果、整卷结果与快照题序一次提交，之后才发布 Completed。"""
+
+    repository = InMemoryGradingRepository()
+    snapshot = _snapshot()
+    outcome = _outcome(snapshot, (_result_for("answer-1"),))
+    progress = RecordingProgressUpdater()
+    executor = InlineGradingTaskExecutor(
+        repository=repository,
+        reader=StubSubmissionReader({SUBMISSION_ID: snapshot}),
+        pipeline=StubScoringPipeline(outcome),
+        progress_updater=progress,
+    )
+    repository.save_task(
+        make_task("task-1", SUBMISSION_ID, status=GradingTaskStatus.QUEUED)
+    )
+
+    executor.execute("task-1", SUBMISSION_ID)
+
+    assert repository.outcome_calls == [(SUBMISSION_ID, "task-1")]
+    assert repository.answer_orders[SUBMISSION_ID] == ("answer-1",)
+    assert repository.calls.index(
+        f"save_outcome:{SUBMISSION_ID}"
+    ) < repository.calls.index("save_task:task-1:Completed")
+    stored = repository.get_task("task-1")
+    assert stored is not None
+    assert stored.status is GradingTaskStatus.COMPLETED
+    assert progress.completed == [(SUBMISSION_ID, "Final")]
+
+
+def test_executor_failure_during_commit_keeps_error_code_without_partial_result() -> None:
+    """提交阶段失败时进入失败处理：任务失败、无整卷结果、错误码保真。"""
+
+    class FailingCommitRepository(InMemoryGradingRepository):
+        """在整批提交时显式失败的替身，用于验证失败收敛。"""
+
+        def save_outcome(
+            self,
+            submission_id: str,
+            outcome: GradingOutcome,
+            *,
+            task_id: str | None = None,
+            answer_order: object = None,
+        ) -> None:
+            raise GradingResultOwnershipError("答案不属于目标答卷，拒绝写入。")
+
+    repository = FailingCommitRepository()
+    snapshot = _snapshot()
+    outcome = _outcome(snapshot, (_result_for("answer-1"),))
+    progress = RecordingProgressUpdater()
+    executor = InlineGradingTaskExecutor(
+        repository=repository,
+        reader=StubSubmissionReader({SUBMISSION_ID: snapshot}),
+        pipeline=StubScoringPipeline(outcome),
+        progress_updater=progress,
+    )
+    repository.save_task(
+        make_task("task-1", SUBMISSION_ID, status=GradingTaskStatus.QUEUED)
+    )
+
+    executor.execute("task-1", SUBMISSION_ID)
+
+    stored = repository.get_task("task-1")
+    assert stored is not None
+    assert stored.status is GradingTaskStatus.FAILED
+    assert stored.error_code == GRADING_RESULT_OWNERSHIP_MISMATCH
+    assert stored.retryable is False
+    assert repository.get_exam_result(SUBMISSION_ID) is None
+    assert progress.failed == [(SUBMISSION_ID, GRADING_RESULT_OWNERSHIP_MISMATCH)]
+
+
+def test_recover_interrupted_tasks_converges_running_tasks() -> None:
+    """启动阶段把遗留进行中任务收敛为中断失败，已完成任务不受影响。"""
+
+    repository = InMemoryGradingRepository()
+    repository.save_task(
+        make_task("task-running", SUBMISSION_ID, status=GradingTaskStatus.RUNNING)
+    )
+    repository.save_task(
+        make_task("task-done", SUBMISSION_ID, status=GradingTaskStatus.COMPLETED)
+    )
+    service = _service(repository=repository)
+
+    assert service.recover_interrupted_tasks() == 1
+
+    interrupted = repository.get_task("task-running")
+    assert interrupted is not None
+    assert interrupted.status is GradingTaskStatus.FAILED
+    assert interrupted.error_code == GRADING_TASK_INTERRUPTED
+    assert interrupted.retryable is False
+    done = repository.get_task("task-done")
+    assert done is not None
+    assert done.status is GradingTaskStatus.COMPLETED
+
+
+# --------------------------------------------------------------------------- #
+# B03：快照与持久化的既有读取用例（跟随下方 helper）
+# --------------------------------------------------------------------------- #
 
 
 def _seed_exam(

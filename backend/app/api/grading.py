@@ -9,8 +9,12 @@ FR-033～FR-037。
   并沿 Submission → Exam → Course 校验课程归属；仅 Admin 不获得教师业务权限。
 - 触发是异步受理：真实调度成功才返回 ``202`` 与 ``task_id``；结果存储或执行链路未接通
   时返回 ``503``，**不返回虚构任务标识**。
-- 本批的 ``task_id`` 不是 ``WorkflowRun``（T064），不提供跨重启恢复；响应中的
-  ``durable`` 如实为 ``False``。
+- 生产装配为真实仓储（``workflow_runs``/``grading_results``/``exam_results``）+ 真实主观题
+  评分链路 + 后台任务执行器（:func:`build_production_grading_service`）；结果存储未迁移或
+  不可连接时由仓储的 ``ensure_ready`` 显式失败。
+- 任务状态已落库（``workflow_runs``），因此 ``durable`` 为 ``True``；进程中断后的遗留任务
+  由启动阶段收敛为中断失败（:func:`recover_interrupted_grading_tasks`），需显式重评，
+  **不提供自动恢复队列，也不具备 LangGraph 检查点恢复能力**。
 
 错误语义：401 未认证（认证中间件）、403 无权限或跨课程、404 资源不存在、
 409 状态冲突（草稿答卷、未请求重评）、422 输入非法、503 依赖未就绪。
@@ -19,12 +23,14 @@ FR-033～FR-037。
 from __future__ import annotations
 
 from typing import Annotated
+from uuid import uuid4
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from pydantic import BaseModel, ConfigDict
-from sqlalchemy.orm import Session
+from sqlalchemy.exc import SQLAlchemyError
 
-from backend.app.core.database import get_db
+from backend.app.core.config import AppSettings, ConfigurationError
+from backend.app.core.database import get_session_factory
 from backend.app.core.security import require_permission
 from backend.app.domain.permissions import Permission
 from backend.app.models import User
@@ -32,11 +38,13 @@ from backend.app.schemas.grading import (
     GradingTaskStatusDTO,
     QuestionResultDTO,
 )
+from backend.app.services.grading.grading_repository import DatabaseGradingRepository
 from backend.app.services.grading.grading_task_service import (
     GRADING_EXECUTION_NOT_READY,
     GRADING_NOT_ALLOWED,
     GRADING_PERMISSION_DENIED,
     GRADING_RESULT_NOT_FOUND,
+    GRADING_RESULT_OWNERSHIP_MISMATCH,
     GRADING_STORE_NOT_READY,
     GRADING_SUBMISSION_INCOMPLETE,
     GRADING_SUBMISSION_NOT_FOUND,
@@ -48,8 +56,8 @@ from backend.app.services.grading.grading_task_service import (
     GradingTaskError,
     GradingTaskService,
     InlineGradingTaskExecutor,
-    NotConfiguredGradingRepository,
 )
+from backend.app.services.grading.subjective_pipeline import build_subjective_scorer
 
 router = APIRouter(prefix="/api/grading", tags=["AI 阅卷"])
 
@@ -61,6 +69,7 @@ _ERROR_STATUS: dict[str, int] = {
     GRADING_PERMISSION_DENIED: 403,
     GRADING_NOT_ALLOWED: 409,
     GRADING_SUBMISSION_INCOMPLETE: 409,
+    GRADING_RESULT_OWNERSHIP_MISMATCH: 409,
     GRADING_TRIGGER_CONFLICT: 409,
     GRADING_STORE_NOT_READY: 503,
     GRADING_EXECUTION_NOT_READY: 503,
@@ -75,31 +84,60 @@ class TriggerGradingRequest(BaseModel):
     regrade: bool = False
 
 
-def get_grading_task_service(
-    request: Request,
-    session: Annotated[Session, Depends(get_db)],
-) -> GradingTaskService:
+def get_grading_task_service(request: Request) -> GradingTaskService:
     """装配阅卷任务服务。
 
-    生产默认使用 :class:`NotConfiguredGradingRepository`：结果存储与任务状态持久化属
-    T060/T064，未接通前一律返回 503；测试或后续集成可通过
-    ``app.state.grading_task_service`` 注入显式装配。
+    生产装配使用真实仓储、真实主观题评分链路与后台任务执行器；结果存储未迁移或不可连接时
+    由 ``ensure_ready`` 显式失败，经错误映射返回 ``503 GRADING_STORE_NOT_READY``。测试可通过
+    ``app.state.grading_task_service`` 或依赖覆盖注入替身。
     """
 
     configured = getattr(request.app.state, "grading_task_service", None)
     if configured is not None:
         return configured
-    repository = NotConfiguredGradingRepository()
-    reader = DatabaseGradingSubmissionReader(session=session)
+    return build_production_grading_service()
+
+
+def build_production_grading_service(
+    settings: AppSettings | None = None,
+) -> GradingTaskService:
+    """构造生产阅卷任务服务：真实仓储 + 真实评分管道 + 后台任务执行器。
+
+    进度与结果在同一事务内由仓储写入，因此这里**不注入**独立的进度更新器，避免提交后再
+    用第二个事务重复写同一批进度。主观题评分器自建并关闭会话，LLM 调用不持有写事务。
+    """
+
+    session_factory = get_session_factory()
+    repository = DatabaseGradingRepository(session_factory=session_factory)
+    reader = DatabaseGradingSubmissionReader(session_factory=session_factory)
+    pipeline = DefaultScoringPipeline(
+        subjective_scorer=build_subjective_scorer(
+            session_factory=session_factory,
+            settings=settings,
+        )
+    )
     return GradingTaskService(
         repository=repository,
         reader=reader,
         executor=InlineGradingTaskExecutor(
             repository=repository,
             reader=reader,
-            pipeline=DefaultScoringPipeline(),
+            pipeline=pipeline,
         ),
     )
+
+
+def recover_interrupted_grading_tasks() -> int:
+    """启动阶段把遗留的进行中任务收敛为中断失败，返回处理条数。
+
+    结果存储未接通（未迁移、不可连接或配置不完整）时跳过并返回 0：启动阶段的收敛不得
+    阻断应用启动；此时也不存在可收敛的持久化任务事实。
+    """
+
+    try:
+        return build_production_grading_service().recover_interrupted_tasks()
+    except (GradingTaskError, SQLAlchemyError, ConfigurationError):
+        return 0
 
 
 def _grading_http_exception(error: GradingTaskError) -> HTTPException:
@@ -135,6 +173,7 @@ def trigger_grading(
             submission_id,
             teacher_id=str(user.id),
             regrade=payload.regrade,
+            request_id=str(uuid4()),
             scheduler=lambda task_id, target_submission: background_tasks.add_task(
                 service.executor.execute,
                 task_id,
@@ -190,6 +229,8 @@ def get_grading_answer_result(
 __all__ = [
     "GRADING_TASK_FAILED",
     "TriggerGradingRequest",
+    "build_production_grading_service",
     "get_grading_task_service",
+    "recover_interrupted_grading_tasks",
     "router",
 ]

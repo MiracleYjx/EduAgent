@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
+
 import gradio as gr
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
@@ -12,7 +15,12 @@ from backend.app.api.admin import router as admin_router
 from backend.app.api.auth import router as auth_router
 from backend.app.api.courses import router as courses_router
 from backend.app.api.exams import router as exams_router
-from backend.app.api.grading import router as grading_router
+from backend.app.api.grading import (
+    recover_interrupted_grading_tasks,
+)
+from backend.app.api.grading import (
+    router as grading_router,
+)
 from backend.app.api.knowledge_bases import router as knowledge_bases_router
 from backend.app.api.questions import router as questions_router
 from backend.app.api.results import router as results_router
@@ -51,6 +59,18 @@ def create_gradio_app() -> gr.Blocks:
     return build_gradio_app()
 
 
+@asynccontextmanager
+async def _application_lifespan(_app: FastAPI) -> AsyncIterator[None]:
+    """应用生命周期：启动阶段收敛遗留阅卷任务。
+
+    结果存储未迁移或不可连接时跳过，不阻断启动；本阶段只把遗留的进行中任务标为中断失败，
+    不实现自动恢复队列。
+    """
+
+    recover_interrupted_grading_tasks()
+    yield
+
+
 def create_app(
     *,
     settings: AppSettings | None = None,
@@ -65,7 +85,11 @@ def create_app(
             "与迁移 0004 的 vector(1024) 定义不一致。",
             fields=("EMBEDDING_DIMENSION",),
         )
-    app = FastAPI(title="EduAgent", version="0.1.0")
+    app = FastAPI(
+        title="EduAgent",
+        version="0.1.0",
+        lifespan=_application_lifespan,
+    )
     app.state.settings = runtime_settings
     app.add_middleware(AuthenticationMiddleware)
     app.include_router(auth_router)

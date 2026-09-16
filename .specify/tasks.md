@@ -150,7 +150,7 @@ Embedding Provider 契约测试通过，并且 Benchmark 可以比较所有要�
 - [X] T053 [US3] 在 `backend/app/services/grading/confidence_policy.py` 中实现可配置的置信度阈值策略和 Pending Review 决策
 - [X] T054 [US3] 在 `backend/app/services/grading/result_aggregator.py` 中实现 Objective/Subjective 结果汇总和最终分数计算
 - [X] T055 [US2] 在 `backend/app/services/diagnosis_service.py` 中实现基于已接受或人工复核结果的 Diagnosis Report，包含掌握情况、薄弱知识点、错误原因和学习建议
-- [~] T056 [US3] 在 `backend/app/api/grading.py` 中提供阅卷触发、阅卷状态和单题结构化结果端点（部分完成：接口合同、权限与资源归属、重复触发与错误语义已实现并有契约测试；结果存储 T060、任务状态持久化 T064、主观题执行链路 T069 未接通，生产装配返回 503 GRADING_STORE_NOT_READY）
+- [X] T056 [US3] 在 `backend/app/api/grading.py` 中提供阅卷触发、阅卷状态和单题结构化结果端点（已完成：接口合同、权限与资源归属、重复触发与错误语义保持原有契约；结果与任务状态已接通真实仓储：单题结果按 `answer_id` 就地更新并保留复核记录关联，整批产出（单题结果 + 决策快照 + 整卷结果 + 答卷进度）在同一事务内提交且提交成功后才发布完成状态，任务状态落库 `workflow_runs`（待复核写 `Paused` 并记录原因，检查点保存快照题序、计数与脱敏错误信息），`request_id` 由触发入口生成并贯穿，遗留进行中任务在启动阶段收敛为中断失败；主观题评分链路由 `subjective_pipeline` 装配 T050 检索上下文、T052 评分器与 T053 置信度策略，Provider 未就绪时保留既有业务错误码且不伪造分数）
 - [~] T057 [US2] 在 `backend/app/api/results.py` 和 `backend/app/ui/results_view.py` 中提供学生成绩、错题、诊断和知识点掌握情况视图（部分完成：读模型 API、学生/教师授权边界、空态与服务端统计已实现并有契约测试；results_view 已提供可注入加载器及部分结果格式化/刷新接线，**尚未注入生产 ResultsQueryService**，学生诊断、薄弱知识点与掌握度区域尚未完成动态输出绑定；生产结果来源仍依赖 T060 结果持久化与 T061 诊断持久化，未接通时返回 503 GRADING_STORE_NOT_READY）
 - [ ] T058 [US3] 在 `tests/integration/test_grading_pipeline.py` 中增加混合答卷集成测试，证明客观题确定性评分、主观题结构化评分、统一结果和诊断不会提前生成
 - [ ] T059 [US3] 在 `scripts/run_grading_benchmark.py` 中实现可重复的 Zero-shot、RAG 和 Hybrid + Rerank 阅卷 Benchmark，记录数据集、模型、Prompt、指标、结果和分析

@@ -11,6 +11,8 @@ TCR（2026-09-16，T056 / B01、B04）：T056 需要可注入的结果存储与�
 
 from __future__ import annotations
 
+from collections.abc import Iterator, Sequence
+from contextlib import contextmanager
 from datetime import UTC, datetime
 
 from backend.app.schemas.grading import (
@@ -19,22 +21,37 @@ from backend.app.schemas.grading import (
     GradingTaskStatusDTO,
     QuestionResultDTO,
 )
+from backend.app.services.grading.grading_repository import (
+    GRADING_TASK_INTERRUPTED,
+    INTERRUPTED_TASK_MESSAGE,
+)
 from backend.app.services.grading.grading_task_service import (
     GradingOutcome,
     GradingPermissionError,
     GradingSubmissionNotFoundError,
+    GradingTaskError,
     SubmissionSnapshot,
 )
 
 
 class InMemoryGradingRepository:
-    """仅测试使用的内存结果存储；进程内、重启即失。"""
+    """仅测试使用的内存结果存储；进程内、重启即失。
+
+    ``durable`` 为 ``False`` 且不实现真实行锁：内存替身不承担并发与持久化验证，
+    这两项由 :class:`DatabaseGradingRepository` 的测试覆盖。
+    """
+
+    #: 内存替身的任务状态不落库，重启即失。
+    durable: bool = False
 
     def __init__(self) -> None:
         self.tasks: dict[str, GradingTaskStatusDTO] = {}
         self.exam_results: dict[str, ExamResultDTO] = {}
         self.single_results: dict[tuple[str, str], QuestionResultDTO] = {}
         self.calls: list[str] = []
+        self.request_ids: dict[str, str] = {}
+        self.answer_orders: dict[str, tuple[str, ...]] = {}
+        self.outcome_calls: list[tuple[str, str | None]] = []
 
     def ensure_ready(self) -> None:
         """内存替身始终就绪；生产存储的就绪判断由 NotConfigured 实现负责。"""
@@ -53,9 +70,66 @@ class InMemoryGradingRepository:
             return None
         return max(candidates, key=lambda task: task.created_at)
 
-    def save_task(self, task: GradingTaskStatusDTO) -> None:
+    def save_task(
+        self,
+        task: GradingTaskStatusDTO,
+        *,
+        request_id: str | None = None,
+    ) -> None:
         self.calls.append(f"save_task:{task.task_id}:{task.status.value}")
+        if request_id is not None:
+            self.request_ids[task.task_id] = request_id
         self.tasks[task.task_id] = task.model_copy(update={"reused": False})
+
+    @contextmanager
+    def lock_submission(self, submission_id: str) -> Iterator[None]:
+        """内存替身不提供真实行锁；仅记录调用供合同断言。"""
+
+        self.calls.append(f"lock_submission:{submission_id}")
+        yield
+
+    def mark_interrupted_tasks_failed(self) -> int:
+        """把替身中遗留的进行中任务标记为中断失败，返回处理条数。"""
+
+        interrupted = 0
+        for task_id, task in list(self.tasks.items()):
+            if task.status not in (
+                GradingTaskStatus.QUEUED,
+                GradingTaskStatus.RUNNING,
+            ):
+                continue
+            self.tasks[task_id] = task.model_copy(
+                update={
+                    "status": GradingTaskStatus.FAILED,
+                    "error_code": GRADING_TASK_INTERRUPTED,
+                    "error_message": INTERRUPTED_TASK_MESSAGE,
+                    "retryable": False,
+                }
+            )
+            interrupted += 1
+        self.calls.append(f"mark_interrupted_tasks_failed:{interrupted}")
+        return interrupted
+
+    def save_outcome(
+        self,
+        submission_id: str,
+        outcome: GradingOutcome,
+        *,
+        task_id: str | None = None,
+        answer_order: Sequence[str] | None = None,
+    ) -> None:
+        """内存替身按整批语义写入：整卷结果、单题结果与快照题序一次到位。"""
+
+        self.calls.append(f"save_outcome:{submission_id}")
+        self.outcome_calls.append((submission_id, task_id))
+        exam_result = outcome.exam_result
+        if exam_result is None:
+            raise GradingTaskError("整批保存缺少整卷结果，拒绝写入。")
+        if answer_order is not None:
+            self.answer_orders[submission_id] = tuple(answer_order)
+        self.exam_results[submission_id] = exam_result
+        for item in exam_result.items:
+            self.single_results[(submission_id, item.answer_id)] = item
 
     def get_exam_result(self, submission_id: str) -> ExamResultDTO | None:
         self.calls.append(f"get_exam_result:{submission_id}")
