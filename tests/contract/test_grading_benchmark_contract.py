@@ -3,19 +3,35 @@
 TCR（2026-09-16，T059 / B06、B07）：Benchmark 需要独立的实验入口（不复用正式评分入口的
 上下文充分性强制检查）、完整样本与明确指标口径，并在缺少教师 Ground Truth 时如实标注
 指标不可计算；失败必须写入失败状态与错误码，不写假分数，也不记录学生答案原文。
+
+TCR（B03）：真实模式不得使用自检检索/Embedding/重排替身；新增组件类型、未就绪失败、
+共享 Provider 事件循环测试。外部模型调用用替身验证，不以此声明模型效果。
 """
 
 from __future__ import annotations
 
+import asyncio
 import json
+import subprocess
+import sys
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
 
 import pytest
 
+from backend.app.ai.embedding import factory as embedding_factory
+from backend.app.ai.embedding.base import EmbeddingProviderNotReadyError
+from backend.app.ai.embedding.providers.bge import BgeEmbeddingProvider
+from backend.app.ai.retrieval.hybrid_search import HybridSearchRetriever
+from backend.app.ai.retrieval.reranker import (
+    LLMRerankAdapter,
+    RerankProviderNotReadyError,
+)
+from backend.app.ai.retrieval.vector_search import VectorSearchRetriever
 from scripts import run_grading_benchmark as benchmark
 from scripts.run_grading_benchmark import SelfTestScoringProvider
+from tests.unit.settings_helpers import build_test_settings
 
 
 class OutOfRangeProvider(SelfTestScoringProvider):
@@ -210,3 +226,115 @@ def test_repeated_runs_append_csv_summary(results_dir: Path) -> None:
     lines = (results_dir / benchmark.SUMMARY_FILENAME).read_text(encoding="utf-8").splitlines()
     assert len(lines) == 1 + 2 * len(benchmark.STRATEGIES)
     assert record["runs"][0]["metrics"]["sample_total"] > 0
+
+
+def test_shared_provider_uses_one_loop_for_all_samples_and_strategies(results_dir: Path) -> None:
+    loops = []
+
+    class LoopBoundProvider(SelfTestScoringProvider):
+        async def generate_structured(self, messages, schema, **kwargs):
+            loops.append(asyncio.get_running_loop())
+            if loops[-1] is not loops[0]:
+                raise RuntimeError("共享客户端跨事件循环调用")
+            return await super().generate_structured(messages, schema, **kwargs)
+
+    record = _run(results_dir, LoopBoundProvider())
+    assert all(run["status"] == "completed" for run in record["runs"])
+    assert len(loops) == 3 * record["dataset"]["sample_count"]
+    assert len(set(loops)) == 1
+
+
+def test_real_mode_embedding_not_ready_fails_without_stub_fallback(
+    results_dir: Path, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls = []
+
+    def not_ready(settings=None):
+        calls.append(settings)
+        raise EmbeddingProviderNotReadyError("测试环境未安装模型")
+
+    monkeypatch.setattr(embedding_factory, "create_embedding_provider", not_ready)
+    record, _ = benchmark.run_benchmark(
+        mode="real", provider=SelfTestScoringProvider(), results_dir=results_dir,
+        settings=build_test_settings(),
+    )
+    assert record["status"] == "failed"
+    assert record["error_code"] == "EMBEDDING_PROVIDER_NOT_READY"
+    assert len(calls) == 1
+    assert record["runs"] == []
+
+
+@pytest.mark.parametrize("strategy", ["zero_shot", "rag", "hybrid_rerank"])
+def test_real_mode_selects_production_retrievers_and_reranker(strategy: str) -> None:
+    settings = build_test_settings(rerank_provider="llm", rerank_max_candidates=5)
+    retriever, reranker = benchmark.build_retrieval_components(
+        "real", strategy, settings=settings, provider=SelfTestScoringProvider(),
+    )
+    assert not isinstance(retriever, benchmark.StubRetriever)
+    assert not isinstance(reranker, benchmark.IdentityReranker)
+    if strategy == "zero_shot":
+        assert retriever is None and reranker is None
+    elif strategy == "rag":
+        assert isinstance(retriever, VectorSearchRetriever)
+        assert reranker is None
+    else:
+        assert isinstance(retriever, HybridSearchRetriever)
+        assert retriever.candidate_k == 5
+        assert isinstance(reranker, LLMRerankAdapter)
+        assert reranker.max_candidates == 5
+
+
+def test_embedding_modes_use_factory_or_selftest_stub(monkeypatch: pytest.MonkeyPatch) -> None:
+    settings = build_test_settings(embedding_provider="bge", embedding_dimension=1024)
+    calls = []
+    bge = BgeEmbeddingProvider(dimension=1024, model_loader=lambda _: object())
+
+    def create(actual_settings):
+        calls.append(actual_settings)
+        return bge
+
+    monkeypatch.setattr(embedding_factory, "create_embedding_provider", create)
+    assert benchmark.build_embedding("real", settings) is bge
+    assert calls == [settings]
+    assert isinstance(benchmark.build_embedding("selftest", settings), benchmark.StubEmbeddingProvider)
+    retriever, reranker = benchmark.build_retrieval_components(
+        "selftest", "hybrid_rerank", settings=settings, provider=SelfTestScoringProvider(),
+    )
+    assert isinstance(retriever, benchmark.StubRetriever)
+    assert isinstance(reranker, benchmark.IdentityReranker)
+
+
+@pytest.mark.parametrize("component", ["embedding", "reranker"])
+def test_lazy_component_not_ready_cannot_be_hidden_by_zero_shot_success(
+    results_dir: Path, monkeypatch: pytest.MonkeyPatch, component: str,
+) -> None:
+    """TCR（B03）：工厂返回后才发现未就绪时，同样不能报告整批成功。"""
+    error_type = (EmbeddingProviderNotReadyError if component == "embedding"
+                  else RerankProviderNotReadyError)
+
+    async def not_ready(*args, **kwargs):
+        raise error_type("延迟初始化未就绪")
+
+    if component == "embedding":
+        monkeypatch.setattr(benchmark.StubEmbeddingProvider, "embed_query", not_ready)
+    else:
+        monkeypatch.setattr(benchmark.IdentityReranker, "rerank_async", not_ready)
+    record = _run(results_dir)
+    assert record["status"] == "failed"
+    assert record["error_code"] == error_type.error_code
+
+
+def test_script_entrypoint_runs_selftest(results_dir: Path) -> None:
+    """TCR（B03）：直接执行脚本也必须能导入复用的 M2 语料工具。"""
+    completed = subprocess.run(
+        [sys.executable, str(benchmark.REPO_ROOT / "scripts/run_grading_benchmark.py"),
+         "--mode", "selftest", "--results-dir", str(results_dir),
+         "--run-id", "b03-cli", "--limit", "1"],
+        cwd=benchmark.REPO_ROOT, capture_output=True, text=True,
+        encoding="utf-8", errors="replace", timeout=30, check=False,
+    )
+    assert completed.returncode == 0, completed.stderr
+    record = json.loads((results_dir / "grading_b03-cli.json").read_text(encoding="utf-8"))
+    assert record["status"] == "completed"
+    assert len(record["runs"]) == 3
+    assert all(run["provider_calls"] == 1 for run in record["runs"])

@@ -26,7 +26,7 @@
 
     python scripts/run_grading_benchmark.py --mode selftest
 
-真实模型评测（需要 LLM 配置）::
+真实模型评测（需要 LLM、Embedding 配置，以及按 M2 流程摄取为 Ready 的评测语料）::
 
     python scripts/run_grading_benchmark.py --mode real
 """
@@ -34,12 +34,14 @@
 from __future__ import annotations
 
 import argparse
+import asyncio
 import csv
 import json
 import math
 import sys
 import time
 from collections.abc import Callable, Iterable, Mapping, Sequence
+from contextlib import ExitStack
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from decimal import ROUND_HALF_UP, Decimal
@@ -47,18 +49,37 @@ from pathlib import Path
 from typing import Any, Final
 from uuid import uuid4
 
-from backend.app.ai.embedding.base import BaseEmbeddingProvider
+from sqlalchemy.orm import Session
+
+if __package__ in {None, ""}:
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from backend.app.ai.embedding import factory as embedding_factory
+from backend.app.ai.embedding.base import (
+    BaseEmbeddingProvider,
+    EmbeddingProviderError,
+    EmbeddingProviderNotReadyError,
+)
 from backend.app.ai.llm.base import BaseLLMProvider
 from backend.app.ai.llm.factory import create_llm_provider
 from backend.app.ai.retrieval.base import (
     DEFAULT_TOP_K,
     BaseRetriever,
+    RetrievalFilters,
     RetrievalMode,
     RetrievedChunk,
+    get_retriever,
 )
-from backend.app.ai.retrieval.reranker import BaseReranker
+from backend.app.ai.retrieval.reranker import (
+    DEFAULT_CROSS_ENCODER_MODEL,
+    BaseReranker,
+    RerankProviderNotReadyError,
+    build_reranker,
+)
 from backend.app.core.config import AppSettings, get_settings
+from backend.app.core.database import create_database_engine
 from backend.app.domain.enums import QuestionType
+from backend.app.models import Document
 from backend.app.services.grading.grading_context import (
     GradingContext,
     GradingContextError,
@@ -73,9 +94,11 @@ from backend.app.services.grading.subjective_grader import (
     build_grading_messages,
     parse_subjective_payload,
 )
+from scripts.run_retrieval_benchmark import _load_ingested_corpus
 
 REPO_ROOT: Final[Path] = Path(__file__).resolve().parents[1]
 DATASET_PATH: Final[Path] = REPO_ROOT / "benchmark" / "corpus" / "grading_samples.json"
+CORPUS_PATH: Final[Path] = REPO_ROOT / "benchmark" / "corpus" / "chunks.json"
 RESULTS_DIR: Final[Path] = REPO_ROOT / "benchmark" / "results"
 SUMMARY_FILENAME: Final[str] = "grading_summary.csv"
 
@@ -91,7 +114,7 @@ NO_GROUND_TRUTH_REASON: Final[str] = (
 #: 一致率判定容差（分数单位：分）。
 AGREEMENT_TOLERANCE: Final[Decimal] = Decimal("1.00")
 
-#: 自检使用的课程标识（Benchmark 不读写业务库，仅用于通过输入校验）。
+#: 仅自检使用固定课程标识；真实模式从已摄取资料读取所属课程。
 BENCHMARK_COURSE_ID: Final[str] = "00000000-0000-0000-0000-000000000059"
 
 #: 自检语料：供 RAG / Hybrid 路径检索的最小片段集合。
@@ -305,12 +328,14 @@ def _optional_decimal(value: Any) -> Decimal | None:
     return Decimal(str(value))
 
 
-def _source_for(case: GradingCase) -> SubjectiveGradingSource:
+def _source_for(
+    case: GradingCase, *, course_id: str = BENCHMARK_COURSE_ID,
+) -> SubjectiveGradingSource:
     """构造评分输入（学生答案不写入结果文件）。"""
 
     return SubjectiveGradingSource(
         question_type=case.question_type,
-        course_id=BENCHMARK_COURSE_ID,
+        course_id=course_id,
         question_content=case.question,
         reference_answer=case.reference_answer,
         student_answer=case.student_answer,
@@ -326,13 +351,17 @@ async def _build_context(
     strategy: str,
     case: GradingCase,
     *,
-    retriever: BaseRetriever,
-    reranker: BaseReranker,
+    retriever: BaseRetriever | None,
+    reranker: BaseReranker | None,
     embedding: BaseEmbeddingProvider,
+    settings: AppSettings,
+    session: Session | None = None,
+    course_id: str = BENCHMARK_COURSE_ID,
+    filters: RetrievalFilters | None = None,
 ) -> GradingContext:
     """按策略组装输入上下文；Zero-shot 不检索。"""
 
-    source = _source_for(case)
+    source = _source_for(case, course_id=course_id)
     if strategy == "zero_shot":
         return GradingContext(
             source=source,
@@ -346,12 +375,14 @@ async def _build_context(
         )
     mode = RetrievalMode.VECTOR_ONLY if strategy == "rag" else RetrievalMode.HYBRID_RERANK
     return await build_grading_context(
-        None,  # type: ignore[arg-type] - 自检检索实现不访问会话
+        session,  # type: ignore[arg-type] - 仅自检允许不提供数据库会话
         source,
         mode=mode,
         retriever=retriever,
         reranker=reranker,
         embedding_provider=embedding,
+        filters=filters,
+        settings=settings,
         require_context=False,
     )
 
@@ -364,38 +395,43 @@ def _empty_filters() -> Any:
     return RetrievalFilters()
 
 
-def run_strategy(
+async def run_strategy(
     strategy: str,
     cases: Sequence[GradingCase],
     *,
     provider: BaseLLMProvider,
-    retriever: BaseRetriever,
-    reranker: BaseReranker,
+    retriever: BaseRetriever | None,
+    reranker: BaseReranker | None,
     embedding: BaseEmbeddingProvider,
     settings: AppSettings,
+    session: Session | None = None,
+    course_id: str = BENCHMARK_COURSE_ID,
+    filters: RetrievalFilters | None = None,
     clock: Callable[[], float] = time.perf_counter,
 ) -> StrategyRun:
     """执行一路策略；逐样本记录预测或失败，不写假分数。"""
-
-    import asyncio
 
     run = StrategyRun(strategy=strategy)
     started = clock()
     for case in cases:
         try:
-            context = asyncio.run(
-                _build_context(
-                    strategy,
-                    case,
-                    retriever=retriever,
-                    reranker=reranker,
-                    embedding=embedding,
-                )
+            context = await _build_context(
+                strategy,
+                case,
+                retriever=retriever,
+                reranker=reranker,
+                embedding=embedding,
+                settings=settings,
+                session=session,
+                course_id=course_id,
+                filters=filters,
             )
+            if strategy != "zero_shot":
+                run.retrieval_calls += 1
+            if strategy == "hybrid_rerank" and context.candidate_count:
+                run.rerank_calls += 1
             messages = build_grading_messages(context, max_score=float(case.max_score))
-            payload = asyncio.run(
-                _generate(provider, messages)
-            )
+            payload = await _generate(provider, messages)
             run.provider_calls += 1
             result = parse_subjective_payload(
                 payload.model_dump(),
@@ -412,6 +448,13 @@ def run_strategy(
         except ProviderNotReady as error:
             run.status = "failed"
             run.error_code = str(error)
+            break
+        except (EmbeddingProviderNotReadyError, RerankProviderNotReadyError):
+            # 延迟初始化失败同样终止整批，不能被 Zero-shot 的成功掩盖。
+            raise
+        except EmbeddingProviderError as error:
+            run.status = "failed"
+            run.error_code = error.error_code
             break
         except Exception as error:  # noqa: BLE001 - 统一收敛为脱敏失败
             run.failures.append(_failure_record(case, f"UNEXPECTED_{type(error).__name__}"))
@@ -434,8 +477,6 @@ def run_strategy(
                 "retrieved_context_ids": list(result.retrieved_context_ids),
             }
         )
-    run.retrieval_calls = int(getattr(retriever, "calls", 0))
-    run.rerank_calls = int(getattr(reranker, "calls", 0))
     run.elapsed_ms = round((clock() - started) * 1000, 3)
     run.metrics = compute_metrics(run.predictions, total=len(cases), failures=len(run.failures))
     return run
@@ -595,18 +636,135 @@ def write_run_records(
     return json_path, csv_path
 
 
-def build_provider(mode: str) -> BaseLLMProvider:
+def build_provider(mode: str, settings: AppSettings | None = None) -> BaseLLMProvider:
     """按模式构造 Provider：真实模式使用既有工厂，未就绪时显式失败。"""
 
     if mode == "selftest":
         return SelfTestScoringProvider()
-    return create_llm_provider()
+    return create_llm_provider(settings)
+
+
+def build_embedding(mode: str, settings: AppSettings) -> BaseEmbeddingProvider:
+    """替身只用于自检；真实模式复用 T035 工厂并保留未就绪错误码。"""
+
+    if mode == "selftest":
+        return StubEmbeddingProvider()
+    return embedding_factory.create_embedding_provider(settings)
+
+
+def build_retrieval_components(
+    mode: str, strategy: str, *, settings: AppSettings, provider: BaseLLMProvider,
+) -> tuple[BaseRetriever | None, BaseReranker | None]:
+    """复用 M2 检索与重排；异步上下文组装负责调用 rerank_async。"""
+
+    if mode == "selftest":
+        return StubRetriever(), IdentityReranker()
+    if strategy == "zero_shot":
+        return None, None
+    if strategy == "rag":
+        return get_retriever(RetrievalMode.VECTOR_ONLY), None
+    kwargs: dict[str, Any] = {"max_candidates": settings.rerank_max_candidates}
+    if settings.rerank_provider in {"llm", "openai_compatible"}:
+        kwargs.update(
+            provider=provider,
+            model=settings.rerank_model or settings.deepseek_model,
+            timeout=settings.rerank_timeout_seconds,
+        )
+    else:
+        kwargs["model"] = settings.rerank_model or DEFAULT_CROSS_ENCODER_MODEL
+    return (
+        get_retriever(
+            RetrievalMode.HYBRID,
+            candidate_k=settings.rerank_max_candidates,
+            vector_weight=settings.hybrid_vector_weight,
+        ),
+        build_reranker(settings.rerank_provider, **kwargs),
+    )
+
+
+class BenchmarkCorpusNotReady(RuntimeError):
+    """评测资料未按 M2 摄取完成，不能以空语料冒充真实检索。"""
+
+
+def load_corpus_scope(
+    session: Session, corpus_path: Path,
+) -> tuple[str, RetrievalFilters, dict[str, Any]]:
+    """复用 M2 manifest/Ready 校验，只读既有资料并限定检索范围。"""
+
+    try:
+        manifest = json.loads(corpus_path.read_text(encoding="utf-8"))
+        if not isinstance(manifest, Mapping) or not manifest.get("chunks"):
+            raise ValueError("评测语料为空")
+        document_id, chunk_ids = _load_ingested_corpus(session, {"corpus": manifest})
+        document = session.get(Document, document_id)
+        assert document is not None
+        return (
+            str(document.course_id),
+            RetrievalFilters(document_ids=(document_id,)),
+            {"version": manifest.get("dataset_version"),
+             "document_id": str(document_id), "chunk_count": len(chunk_ids)},
+        )
+    except Exception as error:  # noqa: BLE001 - 只保留失败类型，不输出连接信息或正文
+        raise BenchmarkCorpusNotReady(type(error).__name__) from None
+
+
+async def _run_strategies(
+    record: dict[str, Any], cases: Sequence[GradingCase], *, mode: str,
+    settings: AppSettings, strategies: Sequence[str], corpus_path: Path,
+    provider: BaseLLMProvider | None,
+) -> None:
+    """工厂创建、全部查询、重排和评分共享一次事件循环；数据库资源在结束时释放。"""
+
+    embedding = build_embedding(mode, settings)
+    record["embedding"] = embedding.describe()
+    record["retrieval_config"] = {
+        "candidate_k": settings.rerank_max_candidates,
+        "vector_weight": settings.hybrid_vector_weight,
+        "rerank_provider": settings.rerank_provider if mode == "real" else "selftest-identity",
+    }
+    with ExitStack() as resources:
+        session = None
+        course_id = BENCHMARK_COURSE_ID
+        filters = None
+        if mode == "real" and any(strategy != "zero_shot" for strategy in strategies):
+            engine = create_database_engine(settings)
+            resources.callback(engine.dispose)
+            session = resources.enter_context(Session(engine))
+            course_id, filters, record["corpus"] = load_corpus_scope(session, corpus_path)
+        try:
+            active_provider = provider if provider is not None else build_provider(mode, settings)
+        except Exception as error:  # noqa: BLE001 - 未配置时明确失败
+            raise ProviderNotReady(f"GRADING_PROVIDER_NOT_READY_{type(error).__name__}") from None
+        for strategy in strategies:
+            retriever, reranker = build_retrieval_components(
+                mode, strategy, settings=settings, provider=active_provider,
+            )
+            run = await run_strategy(
+                strategy, cases, provider=active_provider, retriever=retriever,
+                reranker=reranker, embedding=embedding, settings=settings,
+                session=session, course_id=course_id, filters=filters,
+            )
+            record["runs"].append({
+                "strategy": strategy,
+                "status": run.status,
+                "error_code": run.error_code,
+                "provider_calls": run.provider_calls,
+                "retrieval_calls": run.retrieval_calls,
+                "rerank_calls": run.rerank_calls,
+                "elapsed_ms": run.elapsed_ms,
+                "predictions": run.predictions,
+                "failures": run.failures,
+                "metrics": run.metrics,
+                "retriever": type(retriever).__name__ if retriever is not None else None,
+                "reranker": reranker.describe() if reranker is not None else None,
+            })
 
 
 def run_benchmark(
     *,
     mode: str = "selftest",
     dataset_path: Path = DATASET_PATH,
+    corpus_path: Path = CORPUS_PATH,
     results_dir: Path = RESULTS_DIR,
     run_id: str | None = None,
     provider: BaseLLMProvider | None = None,
@@ -616,6 +774,8 @@ def run_benchmark(
 ) -> tuple[dict[str, Any], str]:
     """执行三路对比并落盘；返回 (结果记录, run_id)。"""
 
+    if mode not in {"selftest", "real"} or any(s not in STRATEGIES for s in strategies):
+        raise ValueError("不支持的评测模式或策略")
     dataset = load_dataset(dataset_path)
     cases = build_cases(dataset)
     if limit is not None:
@@ -640,38 +800,20 @@ def run_benchmark(
         "note": "不记录密钥、完整 Prompt 与学生答案原文；策略间对比不代表评分质量优劣。",
     }
     try:
-        active_provider = provider if provider is not None else build_provider(mode)
-    except Exception as error:  # noqa: BLE001 - Provider 未就绪如实记录
+        asyncio.run(_run_strategies(
+            record, cases, mode=mode, settings=resolved_settings, strategies=strategies,
+            corpus_path=corpus_path, provider=provider,
+        ))
+    except Exception as error:  # noqa: BLE001 - 装配失败仍保存脱敏报告，不降级为替身
         record["status"] = "failed"
-        record["error_code"] = f"GRADING_PROVIDER_NOT_READY_{type(error).__name__}"
+        if isinstance(error, BenchmarkCorpusNotReady):
+            record["error_code"] = "GRADING_BENCHMARK_CORPUS_NOT_READY"
+        elif isinstance(error, ProviderNotReady):
+            record["error_code"] = str(error)
+        else:
+            record["error_code"] = getattr(error, "error_code", f"GRADING_BENCHMARK_SETUP_FAILED_{type(error).__name__}")
         write_run_records(record, results_dir=results_dir, run_id=resolved_run_id)
         return record, resolved_run_id
-    for strategy in strategies:
-        retriever = StubRetriever()
-        reranker = IdentityReranker()
-        run = run_strategy(
-            strategy,
-            cases,
-            provider=active_provider,
-            retriever=retriever,
-            reranker=reranker,
-            embedding=StubEmbeddingProvider(),
-            settings=resolved_settings,
-        )
-        record["runs"].append(
-            {
-                "strategy": strategy,
-                "status": run.status,
-                "error_code": run.error_code,
-                "provider_calls": run.provider_calls,
-                "retrieval_calls": run.retrieval_calls,
-                "rerank_calls": run.rerank_calls,
-                "elapsed_ms": run.elapsed_ms,
-                "predictions": run.predictions,
-                "failures": run.failures,
-                "metrics": run.metrics,
-            }
-        )
     record["status"] = (
         "failed"
         if all(run["status"] == "failed" for run in record["runs"])
@@ -710,6 +852,7 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="阅卷策略 Benchmark（T059）")
     parser.add_argument("--mode", choices=("selftest", "real"), default="selftest")
     parser.add_argument("--dataset", type=Path, default=DATASET_PATH)
+    parser.add_argument("--corpus", type=Path, default=CORPUS_PATH, help="已摄取的 M2 语料清单")
     parser.add_argument("--results-dir", type=Path, default=RESULTS_DIR)
     parser.add_argument("--run-id", default=None)
     parser.add_argument("--limit", type=int, default=None)
@@ -731,6 +874,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     record, run_id = run_benchmark(
         mode=args.mode,
         dataset_path=args.dataset,
+        corpus_path=args.corpus,
         results_dir=args.results_dir,
         run_id=args.run_id,
         strategies=strategies,
