@@ -47,10 +47,11 @@ MIGRATIONS_DIR = PROJECT_ROOT / "migrations"
 EXPECTED_CHAIN: dict[str, str] = {
     "0005_grading_results": "0004_document_chunks",
     "0006_diagnosis_reports": "0005_grading_results",
+    "0007_review_records": "0006_diagnosis_reports",
 }
 
 #: 当前 head（逐个任务向后移动）。
-EXPECTED_HEAD = "0006_diagnosis_reports"
+EXPECTED_HEAD = "0007_review_records"
 
 
 @dataclass(frozen=True, slots=True)
@@ -267,6 +268,62 @@ REVISION_EXPECTATIONS: tuple[RevisionExpectation, ...] = (
                     ),
                     enum_columns=(
                         ("status", tuple(item.value for item in DiagnosisStatus)),
+                    ),
+                ),
+            ),
+        ),
+    ),
+    RevisionExpectation(
+        revision="0007_review_records",
+        down_revision="0006_diagnosis_reports",
+        indexes=frozenset(
+            {
+                "ix_review_records_grading_result_id",
+                "ix_review_records_reviewer_id",
+            }
+        ),
+        tables=(
+            (
+                "review_records",
+                TableExpectation(
+                    columns=(
+                        "grading_result_id",
+                        "reviewer_id",
+                        "decision",
+                        "original_score",
+                        "original_reason",
+                        "original_knowledge_points",
+                        "final_score",
+                        "final_reason",
+                        "final_knowledge_points",
+                        "comment",
+                        "id",
+                        "created_at",
+                        "updated_at",
+                    ),
+                    nullable_columns=frozenset(
+                        {
+                            "final_score",
+                            "final_reason",
+                            "final_knowledge_points",
+                            "comment",
+                        }
+                    ),
+                    check_constraints=frozenset(
+                        {
+                            "review_decision",
+                            "ck_review_records_decision_operable",
+                            "ck_review_records_original_score_non_negative",
+                            "ck_review_records_final_score_non_negative",
+                        }
+                    ),
+                    unique_constraints=frozenset(),
+                    foreign_keys=(
+                        ("grading_result_id", "grading_results.id", "CASCADE"),
+                        ("reviewer_id", "users.id", "RESTRICT"),
+                    ),
+                    enum_columns=(
+                        ("decision", tuple(item.value for item in ReviewStatus)),
                     ),
                 ),
             ),

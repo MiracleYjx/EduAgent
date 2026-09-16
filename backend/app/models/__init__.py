@@ -13,6 +13,7 @@ from backend.app.models.exam_result import ExamResult
 from backend.app.models.grading_result import GradingResult
 from backend.app.models.knowledge_base import KnowledgeBase
 from backend.app.models.question import Question
+from backend.app.models.review_record import ReviewRecord
 from backend.app.models.role import Role
 from backend.app.models.submission import Submission
 from backend.app.models.user import User
@@ -35,6 +36,7 @@ __all__ = [
     "GradingResult",
     "KnowledgeBase",
     "Question",
+    "ReviewRecord",
     "Role",
     "Submission",
     "User",
