@@ -304,6 +304,72 @@ class DiagnosisReportDTO(BaseModel):
         return self
 
 
+class GradingTaskStatus(StrEnum):
+    """阅卷任务运行时状态。
+
+    与整卷结果状态分离：``Completed`` 只表示任务执行完成，不代表成绩已最终确认。
+    本阶段不是 ``WorkflowRun``（T064），因此不具备跨重启恢复能力。
+    """
+
+    QUEUED = "Queued"
+    RUNNING = "Running"
+    COMPLETED = "Completed"
+    FAILED = "Failed"
+
+
+class GradingTaskStatusDTO(BaseModel):
+    """阅卷任务状态读模型。
+
+    ``durable`` 必须如实反映持久性：T060/T064 前任务句柄只存在于当前进程的存储实现中，
+    调用方不得把它当作可跨重启查询的事实源。
+    """
+
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True, frozen=True)
+
+    task_id: NonEmptyText = Field(description="任务标识。")
+    submission_id: NonEmptyText = Field(description="关联答卷标识。")
+    status: GradingTaskStatus = Field(description="任务运行时状态。")
+    durable: bool = Field(
+        default=False, description="任务状态是否已持久化；T060/T064 前为 False。"
+    )
+    reused: bool = Field(
+        default=False, description="是否复用了同一答卷已有的进行中任务。"
+    )
+    created_at: datetime = Field(description="任务创建时间。")
+    started_at: datetime | None = Field(default=None, description="开始执行时间。")
+    finished_at: datetime | None = Field(default=None, description="结束时间。")
+    expected_answer_count: int | None = Field(
+        default=None, ge=0, description="预期题目数量。"
+    )
+    graded_answer_count: int | None = Field(
+        default=None, ge=0, description="已评分题目数量。"
+    )
+    pending_review_answer_count: int | None = Field(
+        default=None, ge=0, description="待人工复核题目数量。"
+    )
+    exam_result_status: ExamResultStatus | None = Field(
+        default=None, description="整卷结果状态；未产出时为 None。"
+    )
+    is_final: bool | None = Field(
+        default=None, description="整卷是否已形成最终成绩；未产出时为 None。"
+    )
+    error_code: str | None = Field(default=None, description="失败错误码。")
+    error_message: str | None = Field(default=None, description="脱敏失败说明。")
+    retryable: bool | None = Field(
+        default=None, description="失败是否可重试；未失败时为 None。"
+    )
+
+    @model_validator(mode="after")
+    def _validate_status_consistency(self) -> GradingTaskStatusDTO:
+        """失败必须有错误码，完成不得携带错误码。"""
+
+        if self.status is GradingTaskStatus.FAILED and self.error_code is None:
+            raise ValueError("失败任务必须给出 error_code。")
+        if self.status is GradingTaskStatus.COMPLETED and self.error_code is not None:
+            raise ValueError("完成任务不得携带 error_code。")
+        return self
+
+
 __all__ = [
     "ConfidenceDecisionDTO",
     "DecimalScore",
@@ -312,6 +378,8 @@ __all__ = [
     "ExamResultDTO",
     "ExamResultStatus",
     "ExpectedAnswer",
+    "GradingTaskStatus",
+    "GradingTaskStatusDTO",
     "MasteryByKnowledgePointDTO",
     "MasteryRatio",
     "PositiveDecimalScore",
