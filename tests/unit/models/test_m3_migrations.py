@@ -46,10 +46,11 @@ MIGRATIONS_DIR = PROJECT_ROOT / "migrations"
 #: 批次迁移链：revision -> down_revision（逐个任务向后追加）。
 EXPECTED_CHAIN: dict[str, str] = {
     "0005_grading_results": "0004_document_chunks",
+    "0006_diagnosis_reports": "0005_grading_results",
 }
 
 #: 当前 head（逐个任务向后移动）。
-EXPECTED_HEAD = "0005_grading_results"
+EXPECTED_HEAD = "0006_diagnosis_reports"
 
 
 @dataclass(frozen=True, slots=True)
@@ -201,6 +202,71 @@ REVISION_EXPECTATIONS: tuple[RevisionExpectation, ...] = (
                             "result_status",
                             tuple(item.value for item in ExamResultStatus),
                         ),
+                    ),
+                ),
+            ),
+        ),
+    ),
+    RevisionExpectation(
+        revision="0006_diagnosis_reports",
+        down_revision="0005_grading_results",
+        indexes=frozenset(
+            {
+                "ix_diagnosis_reports_exam_result_id",
+                "ix_diagnosis_reports_submission_id",
+                "ix_diagnosis_reports_student_id",
+                "ix_diagnosis_reports_student_generated",
+            }
+        ),
+        tables=(
+            (
+                "diagnosis_reports",
+                TableExpectation(
+                    columns=(
+                        "exam_result_id",
+                        "submission_id",
+                        "student_id",
+                        "status",
+                        "mastery_by_knowledge_point",
+                        "weak_knowledge_points",
+                        "error_reasons",
+                        "learning_suggestions",
+                        "insufficient_evidence_answer_ids",
+                        "error_code",
+                        "retryable",
+                        "source_code",
+                        "attempt_count",
+                        "generated_at",
+                        "source_exam_result_updated_at",
+                        "id",
+                        "created_at",
+                        "updated_at",
+                    ),
+                    nullable_columns=frozenset(
+                        {
+                            "error_code",
+                            "retryable",
+                            "source_code",
+                            "attempt_count",
+                            "generated_at",
+                            "source_exam_result_updated_at",
+                        }
+                    ),
+                    check_constraints=frozenset(
+                        {
+                            "diagnosis_status",
+                            "ck_diagnosis_reports_attempt_count_non_negative",
+                            "ck_diagnosis_reports_status_consistency",
+                        }
+                    ),
+                    unique_constraints=frozenset(),
+                    foreign_keys=(
+                        ("exam_result_id", "exam_results.id", "CASCADE"),
+                        ("submission_id", "submissions.id", "CASCADE"),
+                        ("student_id", "users.id", "RESTRICT"),
+                    ),
+                    enum_columns=(
+                        ("status", tuple(item.value for item in DiagnosisStatus)),
                     ),
                 ),
             ),
