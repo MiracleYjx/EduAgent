@@ -6,6 +6,9 @@ TCR（2026-09-16，T059 / B06、B07）：Benchmark 需要独立的实验入口�
 
 TCR（B03）：真实模式不得使用自检检索/Embedding/重排替身；新增组件类型、未就绪失败、
 共享 Provider 事件循环测试。外部模型调用用替身验证，不以此声明模型效果。
+
+TCR（B04）：补齐全失败、部分失败、调用中断与未执行样本的统计断言，验证来源错误码、
+持久化报告和命令行退出码一致，避免失败被报告为成功。
 """
 
 from __future__ import annotations
@@ -29,6 +32,7 @@ from backend.app.ai.retrieval.reranker import (
     RerankProviderNotReadyError,
 )
 from backend.app.ai.retrieval.vector_search import VectorSearchRetriever
+from backend.app.core.retry_policy import ProviderErrorInfo, ProviderExecutionError
 from scripts import run_grading_benchmark as benchmark
 from scripts.run_grading_benchmark import SelfTestScoringProvider
 from tests.unit.settings_helpers import build_test_settings
@@ -195,6 +199,65 @@ def test_provider_failure_marks_run_failed_with_error_code(results_dir: Path) ->
         assert run["status"] == "failed"
         assert run["error_code"] == "RuntimeError"
         assert run["predictions"] == []
+
+
+@pytest.mark.parametrize("kind", ["invalid", "provider", "partial", "mixed"])
+def test_failure_status_counts_and_cli_agree(
+    results_dir: Path, monkeypatch: pytest.MonkeyPatch, kind: str,
+) -> None:
+    """真实入口生成报告：失败率仅统计执行过的样本，失败退出码不可为零。"""
+
+    class FailingProvider(SelfTestScoringProvider):
+        def __init__(self):
+            super().__init__()
+            self.attempts = 0
+
+        async def generate_structured(self, messages, schema, **kwargs):
+            self.attempts += 1
+            if kind == "provider":
+                raise ProviderExecutionError(ProviderErrorInfo(
+                    code="ProviderTimeout", message="敏感内容不得写入结果", attempt_count=3,
+                ))
+            payload = await super().generate_structured(messages, schema, **kwargs)
+            if kind == "invalid" or (kind == "partial" and self.attempts % 4 == 1) or (
+                kind == "mixed" and self.attempts <= 4
+            ):
+                return payload.model_copy(update={"score": 1e6})
+            return payload
+
+    provider = FailingProvider()
+    monkeypatch.setattr(benchmark, "build_provider", lambda *args: provider)
+    exit_code = benchmark.main([
+        "--mode", "selftest", "--results-dir", str(results_dir), "--run-id", "b04",
+    ])
+    record = json.loads((results_dir / "grading_b04.json").read_text(encoding="utf-8"))
+    assert exit_code == 1
+    assert record["status"] == ("partial_failed" if kind in {"partial", "mixed"} else "failed")
+    assert sum(run["provider_calls"] for run in record["runs"]) == provider.attempts
+    for index, run in enumerate(record["runs"]):
+        metrics = run["metrics"]
+        success = 3 if kind == "partial" else (4 if kind == "mixed" and index > 0 else 0)
+        failed = 1 if kind in {"provider", "partial"} else (4 - success)
+        skipped = 3 if kind == "provider" else 0
+        assert metrics["sample_total"] == success + failed + skipped == 4
+        assert metrics["scored_count"] == len(run["predictions"]) == success
+        assert metrics["failure_count"] == len(run["failures"]) == failed
+        assert metrics["not_executed_count"] == len(run["not_executed"]) == skipped
+        assert metrics["attempted_count"] == success + failed
+        assert metrics["failure_rate"] == failed / (success + failed)
+        assert run["provider_calls"] == success + failed
+        expected = "completed" if not failed else ("partial_failed" if success else "failed")
+        assert run["status"] == expected
+        for failure in run["failures"]:
+            assert failure["error_code"] == (
+                "ProviderTimeout" if kind == "provider" else "GRADING_SCORE_OUT_OF_RANGE"
+            )
+        sample_ids = [item["sample_id"] for group in (
+            "predictions", "failures", "not_executed",
+        ) for item in run[group]]
+        assert len(set(sample_ids)) == 4
+        assert all(item["status"] == "not_executed" for item in run["not_executed"])
+    assert "敏感内容不得写入结果" not in json.dumps(record, ensure_ascii=False)
 
 
 def test_results_omit_prompts_and_student_answers(results_dir: Path) -> None:
