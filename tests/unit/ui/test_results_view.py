@@ -13,6 +13,9 @@ TCR（B05）：原 ``student_result_rows`` 把整卷摘要统计写进四列表�
 
 TCR（B05 补充）：经真实 Gradio 刷新事件和组件序列化验证逐题四列与摘要接线，覆盖最终、
 待复核和尚无成绩三种读模型，防止空态被误报为待复核；不启动服务器或访问外部服务。
+
+TCR（教师字段）：用生产 StudentResultSummaryDTO 验证只有 student_id 的记录，并验证
+姓名、标识、兼容 student 字段的优先级，防止再次显示“未提供”或误用旧字段。
 """
 
 from __future__ import annotations
@@ -30,6 +33,7 @@ from backend.app.domain.enums import GradingStatus, QuestionType
 from backend.app.schemas.grading import (
     ExamResultStatus,
     QuestionResultDTO,
+    StudentResultSummaryDTO,
     SubmissionResultDTO,
 )
 from backend.app.ui.results_diagnosis import (
@@ -316,15 +320,30 @@ def test_teacher_result_rows_fallback_to_student_id() -> None:
     """教师 DTO 只有学生标识时，表格显示可读的学生回退文本。"""
 
     rows = teacher_result_rows([
-        {
-            "student_id": "student-1",
-            "result_status": "Final",
-            "total_score": "88.50",
-            "pending_review_count": 0,
-        }
+        StudentResultSummaryDTO(
+            submission_id="submission-1",
+            exam_id="exam-1",
+            exam_title="期中测验",
+            student_id="student-1",
+            result_status=ExamResultStatus.FINAL,
+            is_final=True,
+            total_score=Decimal("88.50"),
+            pending_review_count=0,
+        )
     ])
 
     assert rows[0][0] == "学生 #student-1"
+
+
+@pytest.mark.parametrize("fields,expected", [
+    ({"student_name": "张同学", "student_id": "student-1", "student": "旧称呼"}, "张同学"),
+    ({"student_name": "", "student_id": "student-1", "student": "旧称呼"}, "学生 #student-1"),
+    ({"student_name": None, "student_id": None, "student": "旧称呼"}, "旧称呼"),
+])
+def test_teacher_student_label_uses_contract_priority(fields: dict[str, Any], expected: str) -> None:
+    """展示优先使用姓名，其次真实学生标识，最后兼容 student 字段。"""
+
+    assert teacher_result_rows([fields])[0][0] == expected
 
 
 # --------------------------------------------------------------------------- #
