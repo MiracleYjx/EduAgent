@@ -1,0 +1,4 @@
+run_id,created_at,mode,dataset_version,model,prompt_version,strategy,status,error_code,sample_total,scored_count,failure_count,failure_rate,effective_sample_count,mae,rmse,agreement_rate,provider_calls,retrieval_calls,rerank_calls,elapsed_ms
+selftest-t059,2026-09-16T12:11:57.739534+00:00,selftest,t059-v1,selftest-stub,subjective-grading-v1,zero_shot,completed,,4,4,0,0.0,0,,,,4,0,0,26.507
+selftest-t059,2026-09-16T12:11:57.739534+00:00,selftest,t059-v1,selftest-stub,subjective-grading-v1,rag,completed,,4,4,0,0.0,0,,,,4,4,0,19.252
+selftest-t059,2026-09-16T12:11:57.739534+00:00,selftest,t059-v1,selftest-stub,subjective-grading-v1,hybrid_rerank,completed,,4,4,0,0.0,0,,,,4,4,4,14.741

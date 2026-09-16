@@ -1,0 +1,310 @@
+{
+  "created_at": "2026-09-16T12:11:57.739534+00:00",
+  "dataset": {
+    "label_source": "synthetic_reference",
+    "name": "grading_samples",
+    "sample_count": 4,
+    "score_scale": "0-10",
+    "version": "t059-v1"
+  },
+  "ground_truth": {
+    "reason": "缺少教师人工评分 Ground Truth：MAE/RMSE/一致率不可计算，此处只报告三路相对调用与耗时表现。",
+    "synthetic_reference_count": 4,
+    "teacher_labeled_count": 0,
+    "teacher_labels_available": false
+  },
+  "mode": "selftest",
+  "model": "selftest-stub",
+  "note": "不记录密钥、完整 Prompt 与学生答案原文；策略间对比不代表评分质量优劣。",
+  "prompt_version": "subjective-grading-v1",
+  "run_id": "selftest-t059",
+  "runs": [
+    {
+      "elapsed_ms": 26.507,
+      "error_code": null,
+      "failures": [],
+      "metrics": {
+        "agreement_rate": null,
+        "effective_sample_count": 0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mae": null,
+        "metrics_unavailable_reason": "缺少教师人工评分 Ground Truth：MAE/RMSE/一致率不可计算，此处只报告三路相对调用与耗时表现。",
+        "rmse": null,
+        "sample_total": 4,
+        "scored_count": 4
+      },
+      "predictions": [
+        {
+          "confidence": 0.8,
+          "knowledge_points": [
+            "变量"
+          ],
+          "label_source": "synthetic_reference",
+          "max_score": "10.00",
+          "predicted_score": "1.0",
+          "reference_score": "6.00",
+          "retrieved_context_ids": [],
+          "sample_id": "g-001",
+          "status": "completed",
+          "teacher_score": null
+        },
+        {
+          "confidence": 0.8,
+          "knowledge_points": [
+            "函数",
+            "参数"
+          ],
+          "label_source": "synthetic_reference",
+          "max_score": "10.00",
+          "predicted_score": "0.6",
+          "reference_score": "10.00",
+          "retrieved_context_ids": [],
+          "sample_id": "g-002",
+          "status": "completed",
+          "teacher_score": null
+        },
+        {
+          "confidence": 0.8,
+          "knowledge_points": [
+            "默认参数",
+            "可变对象"
+          ],
+          "label_source": "synthetic_reference",
+          "max_score": "10.00",
+          "predicted_score": "0.6",
+          "reference_score": "7.00",
+          "retrieved_context_ids": [],
+          "sample_id": "g-003",
+          "status": "completed",
+          "teacher_score": null
+        },
+        {
+          "confidence": 0.8,
+          "knowledge_points": [
+            "列表推导式",
+            "循环"
+          ],
+          "label_source": "synthetic_reference",
+          "max_score": "10.00",
+          "predicted_score": "0.6",
+          "reference_score": "6.00",
+          "retrieved_context_ids": [],
+          "sample_id": "g-004",
+          "status": "completed",
+          "teacher_score": null
+        }
+      ],
+      "provider_calls": 4,
+      "rerank_calls": 0,
+      "retrieval_calls": 0,
+      "status": "completed",
+      "strategy": "zero_shot"
+    },
+    {
+      "elapsed_ms": 19.252,
+      "error_code": null,
+      "failures": [],
+      "metrics": {
+        "agreement_rate": null,
+        "effective_sample_count": 0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mae": null,
+        "metrics_unavailable_reason": "缺少教师人工评分 Ground Truth：MAE/RMSE/一致率不可计算，此处只报告三路相对调用与耗时表现。",
+        "rmse": null,
+        "sample_total": 4,
+        "scored_count": 4
+      },
+      "predictions": [
+        {
+          "confidence": 0.8,
+          "knowledge_points": [
+            "变量"
+          ],
+          "label_source": "synthetic_reference",
+          "max_score": "10.00",
+          "predicted_score": "1.0",
+          "reference_score": "6.00",
+          "retrieved_context_ids": [
+            "chunk-1",
+            "chunk-2",
+            "chunk-3",
+            "chunk-4"
+          ],
+          "sample_id": "g-001",
+          "status": "completed",
+          "teacher_score": null
+        },
+        {
+          "confidence": 0.8,
+          "knowledge_points": [
+            "函数",
+            "参数"
+          ],
+          "label_source": "synthetic_reference",
+          "max_score": "10.00",
+          "predicted_score": "1.0",
+          "reference_score": "10.00",
+          "retrieved_context_ids": [
+            "chunk-1",
+            "chunk-2",
+            "chunk-3",
+            "chunk-4"
+          ],
+          "sample_id": "g-002",
+          "status": "completed",
+          "teacher_score": null
+        },
+        {
+          "confidence": 0.8,
+          "knowledge_points": [
+            "默认参数",
+            "可变对象"
+          ],
+          "label_source": "synthetic_reference",
+          "max_score": "10.00",
+          "predicted_score": "1.0",
+          "reference_score": "7.00",
+          "retrieved_context_ids": [
+            "chunk-1",
+            "chunk-2",
+            "chunk-3",
+            "chunk-4"
+          ],
+          "sample_id": "g-003",
+          "status": "completed",
+          "teacher_score": null
+        },
+        {
+          "confidence": 0.8,
+          "knowledge_points": [
+            "列表推导式",
+            "循环"
+          ],
+          "label_source": "synthetic_reference",
+          "max_score": "10.00",
+          "predicted_score": "1.0",
+          "reference_score": "6.00",
+          "retrieved_context_ids": [
+            "chunk-1",
+            "chunk-2",
+            "chunk-3",
+            "chunk-4"
+          ],
+          "sample_id": "g-004",
+          "status": "completed",
+          "teacher_score": null
+        }
+      ],
+      "provider_calls": 4,
+      "rerank_calls": 0,
+      "retrieval_calls": 4,
+      "status": "completed",
+      "strategy": "rag"
+    },
+    {
+      "elapsed_ms": 14.741,
+      "error_code": null,
+      "failures": [],
+      "metrics": {
+        "agreement_rate": null,
+        "effective_sample_count": 0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mae": null,
+        "metrics_unavailable_reason": "缺少教师人工评分 Ground Truth：MAE/RMSE/一致率不可计算，此处只报告三路相对调用与耗时表现。",
+        "rmse": null,
+        "sample_total": 4,
+        "scored_count": 4
+      },
+      "predictions": [
+        {
+          "confidence": 0.8,
+          "knowledge_points": [
+            "变量"
+          ],
+          "label_source": "synthetic_reference",
+          "max_score": "10.00",
+          "predicted_score": "1.0",
+          "reference_score": "6.00",
+          "retrieved_context_ids": [
+            "chunk-1",
+            "chunk-2",
+            "chunk-3",
+            "chunk-4"
+          ],
+          "sample_id": "g-001",
+          "status": "completed",
+          "teacher_score": null
+        },
+        {
+          "confidence": 0.8,
+          "knowledge_points": [
+            "函数",
+            "参数"
+          ],
+          "label_source": "synthetic_reference",
+          "max_score": "10.00",
+          "predicted_score": "1.0",
+          "reference_score": "10.00",
+          "retrieved_context_ids": [
+            "chunk-1",
+            "chunk-2",
+            "chunk-3",
+            "chunk-4"
+          ],
+          "sample_id": "g-002",
+          "status": "completed",
+          "teacher_score": null
+        },
+        {
+          "confidence": 0.8,
+          "knowledge_points": [
+            "默认参数",
+            "可变对象"
+          ],
+          "label_source": "synthetic_reference",
+          "max_score": "10.00",
+          "predicted_score": "1.0",
+          "reference_score": "7.00",
+          "retrieved_context_ids": [
+            "chunk-1",
+            "chunk-2",
+            "chunk-3",
+            "chunk-4"
+          ],
+          "sample_id": "g-003",
+          "status": "completed",
+          "teacher_score": null
+        },
+        {
+          "confidence": 0.8,
+          "knowledge_points": [
+            "列表推导式",
+            "循环"
+          ],
+          "label_source": "synthetic_reference",
+          "max_score": "10.00",
+          "predicted_score": "1.0",
+          "reference_score": "6.00",
+          "retrieved_context_ids": [
+            "chunk-1",
+            "chunk-2",
+            "chunk-3",
+            "chunk-4"
+          ],
+          "sample_id": "g-004",
+          "status": "completed",
+          "teacher_score": null
+        }
+      ],
+      "provider_calls": 4,
+      "rerank_calls": 4,
+      "retrieval_calls": 4,
+      "status": "completed",
+      "strategy": "hybrid_rerank"
+    }
+  ],
+  "status": "completed"
+}

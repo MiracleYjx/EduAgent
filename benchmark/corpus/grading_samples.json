@@ -1,0 +1,63 @@
+{
+  "metadata": {
+    "name": "grading_samples",
+    "version": "t059-v1",
+    "label_source": "synthetic_reference",
+    "score_scale": "0-10",
+    "note": "教师人工评分尚未标注：teacher_score 为 null，MAE/RMSE 与一致率不可计算；reference_score 仅为合成参考分，不等同于教师评分。"
+  },
+  "samples": [
+    {
+      "sample_id": "g-001",
+      "question_type": "SHORT_ANSWER",
+      "question": "解释变量在程序中的作用。",
+      "reference_answer": "变量用于保存数据，并可在后续语句中引用。",
+      "scoring_rubric": "说明“保存数据”与“引用数据”两点即可给满分。",
+      "student_answer": "变量可以保存数据。",
+      "max_score": "10.00",
+      "knowledge_points": ["变量"],
+      "reference_score": "6.00",
+      "teacher_score": null,
+      "label_source": "synthetic_reference"
+    },
+    {
+      "sample_id": "g-002",
+      "question_type": "SHORT_ANSWER",
+      "question": "解释函数参数默认值的作用。",
+      "reference_answer": "默认值让调用方可以省略该参数，未传参时使用默认值。",
+      "scoring_rubric": "说明“可省略参数”与“未传参使用默认值”两点。",
+      "student_answer": "调用时可以省略该参数，函数会使用默认值。",
+      "max_score": "10.00",
+      "knowledge_points": ["函数", "参数"],
+      "reference_score": "10.00",
+      "teacher_score": null,
+      "label_source": "synthetic_reference"
+    },
+    {
+      "sample_id": "g-003",
+      "question_type": "ESSAY",
+      "question": "说明可变对象作为函数默认参数的常见问题。",
+      "reference_answer": "默认参数只在定义时求值一次，可变默认值会被多次调用共享，导致状态意外累积。",
+      "scoring_rubric": "指出“定义时求值一次”“共享同一对象”“状态累积”三点中至少两点。",
+      "student_answer": "默认值只创建一次，多次调用会共用同一个对象。",
+      "max_score": "10.00",
+      "knowledge_points": ["默认参数", "可变对象"],
+      "reference_score": "7.00",
+      "teacher_score": null,
+      "label_source": "synthetic_reference"
+    },
+    {
+      "sample_id": "g-004",
+      "question_type": "ESSAY",
+      "question": "说明列表推导式与循环构建列表的差异。",
+      "reference_answer": "列表推导式在单个表达式内构建列表，通常更快且更简洁；循环构建可包含更复杂的分支与副作用。",
+      "scoring_rubric": "说明“单表达式构建”“性能或简洁性”“复杂逻辑可读性”中至少两点。",
+      "student_answer": "列表推导式写起来更简洁，速度也更快。",
+      "max_score": "10.00",
+      "knowledge_points": ["列表推导式", "循环"],
+      "reference_score": "6.00",
+      "teacher_score": null,
+      "label_source": "synthetic_reference"
+    }
+  ]
+}
