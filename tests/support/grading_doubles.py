@@ -36,10 +36,14 @@ class InMemoryGradingRepository:
         self.single_results: dict[tuple[str, str], QuestionResultDTO] = {}
         self.calls: list[str] = []
 
+    def ensure_ready(self) -> None:
+        """内存替身始终就绪；生产存储的就绪判断由 NotConfigured 实现负责。"""
+
+        self.calls.append("ensure_ready")
+
     def get_task(self, task_id: str) -> GradingTaskStatusDTO | None:
         self.calls.append(f"get_task:{task_id}")
         return self.tasks.get(task_id)
-
     def find_task_for_submission(self, submission_id: str) -> GradingTaskStatusDTO | None:
         self.calls.append(f"find_task_for_submission:{submission_id}")
         candidates = [
@@ -134,6 +138,29 @@ class StubScoringPipeline:
         return self.outcome
 
 
+class NonCallableSubmissionReader:
+    """被调用即失败的快照读取器替身。
+
+    用于证明未就绪路径不会读取业务答卷数据；任何调用都会被记录并显式失败。
+    """
+
+    def __init__(self) -> None:
+        self.load_calls = 0
+        self.teacher_load_calls = 0
+
+    def load(self, submission_id: str) -> SubmissionSnapshot:
+        self.load_calls += 1
+        raise AssertionError("未就绪路径不得读取业务答卷数据。")
+
+    def load_for_teacher(
+        self,
+        submission_id: str,
+        teacher_id: str,
+    ) -> SubmissionSnapshot:
+        self.teacher_load_calls += 1
+        raise AssertionError("未就绪路径不得读取业务答卷数据。")
+
+
 class RecordingExecutor:
     """记录调度与执行调用的执行器替身。
 
@@ -198,6 +225,7 @@ def make_task(
 
 __all__ = [
     "InMemoryGradingRepository",
+    "NonCallableSubmissionReader",
     "RecordingExecutor",
     "RecordingProgressUpdater",
     "StubScoringPipeline",
