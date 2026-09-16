@@ -133,7 +133,9 @@ class AppSettings(BaseSettings):
     #: Hybrid 检索中向量路的权重 α；关键词路占 1-α。
     hybrid_vector_weight: float = Field(default=0.5, ge=0.0, le=1.0)
     #: 单次 Rerank 的候选上限，用于控制 LLM token 消耗。
-    rerank_max_candidates: int = Field(default=20, gt=0)
+    rerank_max_candidates: int = Field(default=5, gt=0)
+    #: 该上限同时决定主观题评分链路（backend/app/services/grading/grading_context.py）
+    #: Hybrid 的每路召回数与融合候选数，调小会同步收缩召回、融合与重排规模。
     #: LLM Rerank 单次调用超时（秒）。
     rerank_timeout_seconds: float = Field(default=30.0, gt=0)
     JWT_SECRET_KEY: SecretStr

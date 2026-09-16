@@ -11,4 +11,32 @@
 
 from __future__ import annotations
 
-__all__: list[str] = []
+from backend.app.schemas.grading import (
+    ConfidenceDecisionDTO,
+    ExamResultDTO,
+    ExamResultStatus,
+    ExpectedAnswer,
+    QuestionResultDTO,
+    SubmissionContext,
+)
+from backend.app.services.grading.grading_task_service import (
+    DecisionRecordingPolicy,
+    RecordedDecision,
+)
+from backend.app.services.grading.result_aggregator import (
+    GradingAggregationError,
+    ResultAggregator,
+)
+
+__all__: list[str] = [
+    "ConfidenceDecisionDTO",
+    "DecisionRecordingPolicy",
+    "ExamResultDTO",
+    "ExamResultStatus",
+    "ExpectedAnswer",
+    "GradingAggregationError",
+    "QuestionResultDTO",
+    "RecordedDecision",
+    "ResultAggregator",
+    "SubmissionContext",
+]

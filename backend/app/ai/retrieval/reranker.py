@@ -59,7 +59,8 @@ RERANK_ERROR_MESSAGES: Final[dict[str, str]] = {
 }
 
 #: 候选数量上限：控制单次 LLM 重排的 token 消耗。
-DEFAULT_MAX_CANDIDATES: Final[int] = 20
+DEFAULT_MAX_CANDIDATES: Final[int] = 5
+#: 与 AppSettings.rerank_max_candidates 默认值保持一致（方案 A：20 -> 5）。
 #: LLM 重排默认超时（秒）。
 DEFAULT_TIMEOUT_SECONDS: Final[float] = 30.0
 #: Cross Encoder 默认模型（本地部署时按 Benchmark 结果替换）。
