@@ -370,6 +370,107 @@ class GradingTaskStatusDTO(BaseModel):
         return self
 
 
+class StudentResultSummaryDTO(BaseModel):
+    """成绩列表条目；教师面额外填充 ``student_id``。
+
+    未生成最终成绩时 ``total_score`` 为 ``None``，并以 ``not_ready_reason`` 明确空态原因，
+    不得用 0 分或 0 替代。
+    """
+
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True, frozen=True)
+
+    submission_id: NonEmptyText = Field(description="答卷标识。")
+    exam_id: NonEmptyText = Field(description="考试标识。")
+    exam_title: NonEmptyText = Field(description="考试名称。")
+    student_id: NonEmptyText | None = Field(
+        default=None, description="学生标识；教师面查询时填充。"
+    )
+    submitted_at: datetime | None = Field(default=None, description="提交时间。")
+    result_status: ExamResultStatus | None = Field(
+        default=None, description="整卷结果状态；尚无结果时为 None。"
+    )
+    is_final: bool | None = Field(
+        default=None, description="是否已形成最终成绩；尚无结果时为 None。"
+    )
+    total_score: DecimalScore | None = Field(
+        default=None, description="最终总分；未最终确认时为 None。"
+    )
+    confirmed_subtotal: DecimalScore | None = Field(
+        default=None, description="已确认部分小计。"
+    )
+    pending_review_count: int | None = Field(
+        default=None, ge=0, description="待人工复核题目数量。"
+    )
+    not_ready_reason: str | None = Field(
+        default=None, description="结果未就绪的明确原因。"
+    )
+
+
+class SubmissionResultDTO(BaseModel):
+    """单份答卷的结果读模型；学生面与教师面共用，差别在授权与条目过滤。"""
+
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True, frozen=True)
+
+    submission_id: NonEmptyText = Field(description="答卷标识。")
+    exam_id: NonEmptyText = Field(description="考试标识。")
+    exam_title: NonEmptyText = Field(description="考试名称。")
+    student_id: NonEmptyText = Field(description="学生标识。")
+    result_status: ExamResultStatus | None = Field(
+        default=None, description="整卷结果状态。"
+    )
+    is_final: bool | None = Field(default=None, description="是否已形成最终成绩。")
+    total_score: DecimalScore | None = Field(
+        default=None, description="最终总分；未最终确认时为 None。"
+    )
+    confirmed_subtotal: DecimalScore | None = Field(
+        default=None, description="已确认部分小计，不得当作最终总分。"
+    )
+    confirmed_subtotal_label: str | None = Field(
+        default=None, description="已确认部分小计的展示文案。"
+    )
+    total_max_score: PositiveDecimalScore | None = Field(
+        default=None, description="整卷满分。"
+    )
+    expected_answer_count: int | None = Field(default=None, ge=0)
+    graded_answer_count: int | None = Field(default=None, ge=0)
+    pending_review_count: int | None = Field(default=None, ge=0)
+    items: list[QuestionResultDTO] = Field(
+        default_factory=list, description="允许展示的逐题结果。"
+    )
+    mistake_answer_ids: list[NonEmptyText] = Field(
+        default_factory=list, description="已确认未得满分的题目；不含待复核题目。"
+    )
+    diagnosis_status: DiagnosisStatus | None = Field(
+        default=None, description="诊断状态；未生成时为 None。"
+    )
+    diagnosis: DiagnosisReportDTO | None = Field(
+        default=None, description="诊断报告；未就绪时为 None。"
+    )
+    not_ready_reason: str | None = Field(
+        default=None, description="结果未就绪的明确原因。"
+    )
+
+
+class TeacherExamResultSummaryDTO(BaseModel):
+    """教师考试结果摘要；平均分只统计最终成绩。"""
+
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True, frozen=True)
+
+    exam_id: NonEmptyText = Field(description="考试标识。")
+    submitted_count: int = Field(default=0, ge=0, description="已提交答卷数量。")
+    final_count: int = Field(default=0, ge=0, description="已形成最终成绩的数量。")
+    pending_review_count: int = Field(default=0, ge=0, description="待复核题目数量合计。")
+    average_of_final_scores: DecimalScore | None = Field(
+        default=None, description="仅基于最终成绩的平均分；无最终成绩时为 None。"
+    )
+    not_ready: bool = Field(
+        default=False, description="是否存在尚无结果的答卷或依赖未接通。"
+    )
+    not_ready_reason: str | None = Field(
+        default=None, description="未就绪的明确原因，不得用 0 分或 0 人代替。"
+    )
+
+
 __all__ = [
     "ConfidenceDecisionDTO",
     "DecimalScore",
@@ -384,6 +485,9 @@ __all__ = [
     "MasteryRatio",
     "PositiveDecimalScore",
     "QuestionResultDTO",
+    "StudentResultSummaryDTO",
     "SubmissionContext",
+    "SubmissionResultDTO",
+    "TeacherExamResultSummaryDTO",
     "WeakKnowledgePointDTO",
 ]

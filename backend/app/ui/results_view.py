@@ -105,7 +105,16 @@ def refresh_student_results(
             _ensure_student(state)
         except PermissionDeniedError as error:
             return [], feedback(str(error), "error")
-    return [], empty_state(UNAVAILABLE_MESSAGE)
+    loader = _student_result_loader
+    if loader is None:
+        return [], empty_state(UNAVAILABLE_MESSAGE)
+    try:
+        payload = loader(exam_id, state)
+    except Exception:  # noqa: BLE001 - 加载失败不得伪装成成绩
+        return [], empty_state(UNAVAILABLE_MESSAGE)
+    if payload is None:
+        return [], empty_state(UNAVAILABLE_MESSAGE)
+    return student_result_rows(payload), result_availability_text(payload)
 
 
 def _value(item: Mapping[str, Any] | Any, name: str, default: Any = "") -> Any:
@@ -390,7 +399,80 @@ def _load_teacher_result_records(
             _ensure_teacher(state)
         except PermissionDeniedError as error:
             return [], feedback(str(error), "error")
-    return [], empty_state(TEACHER_UNAVAILABLE_MESSAGE)
+    loader = _teacher_results_loader
+    if loader is None:
+        return [], empty_state(TEACHER_UNAVAILABLE_MESSAGE)
+    try:
+        records = loader(course_id, exam_id, state)
+    except Exception:  # noqa: BLE001 - 加载失败不得伪装成成绩
+        return [], empty_state(TEACHER_UNAVAILABLE_MESSAGE)
+    if records is None:
+        return [], empty_state(TEACHER_UNAVAILABLE_MESSAGE)
+    return list(records), ""
+
+
+#: 学生结果接线点：由应用装配注入受权限保护的结果读模型查询调用。
+_student_result_loader: Any | None = None
+#: 教师结果接线点：返回授权范围内的学生成绩记录。
+_teacher_results_loader: Any | None = None
+
+#: 待复核结果提示文案；待复核不得伪装成最终成绩。
+PENDING_REVIEW_MESSAGE = "成绩待人工复核：待复核题目不计入最终总分。"
+
+
+def configure_results_loaders(
+    *,
+    student_loader: Any | None = None,
+    teacher_loader: Any | None = None,
+) -> None:
+    """注入结果查询接线点（传 ``None`` 表示恢复空态）。
+
+    注入的实现必须来自受权限保护的应用查询服务或 API；视图自身不访问数据库，
+    也不在组件内重算成绩与平均分。
+    """
+
+    global _student_result_loader, _teacher_results_loader
+    _student_result_loader = student_loader
+    _teacher_results_loader = teacher_loader
+
+
+def student_result_rows(payload: Mapping[str, Any] | Any) -> list[list[str]]:
+    """把单份结果读模型映射为学生可见行；总分不由视图计算。"""
+
+    is_final = bool(_value(payload, "is_final", False))
+    total = _value(payload, "total_score", None)
+    subtotal = _value(payload, "confirmed_subtotal", None)
+    pending = _value(payload, "pending_review_count", None)
+    items = _value(payload, "items", []) or []
+    mistakes = _value(payload, "mistake_answer_ids", []) or []
+    status_code = _result_status_code(_value(payload, "result_status", ""))
+    return [
+        [
+            "最终总分",
+            _display_value(total, "待复核，暂无最终总分")
+            if is_final
+            else "待复核，暂无最终总分",
+        ],
+        ["结果状态", result_status_text(status_code)],
+        ["已确认部分小计", _display_value(subtotal, "暂无已确认结果")],
+        ["待复核题目数", "-" if pending is None else str(pending)],
+        ["错题数", str(len(mistakes))],
+        ["已确认逐题数", str(len(items))],
+    ]
+
+
+def result_availability_text(payload: Mapping[str, Any] | Any) -> str:
+    """返回结果可用性文案；待复核或无结果时显式标注。"""
+
+    reason = _value(payload, "not_ready_reason", None)
+    if reason:
+        return empty_state(str(reason))
+    status_code = _result_status_code(_value(payload, "result_status", ""))
+    pending = _value(payload, "pending_review_count", 0) or 0
+    is_final = bool(_value(payload, "is_final", False))
+    if _is_pending_review(status_code) or (not is_final and pending):
+        return PENDING_REVIEW_MESSAGE
+    return ""
 
 
 def create_teacher_results_view(
