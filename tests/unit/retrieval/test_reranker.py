@@ -554,3 +554,60 @@ def test_sync_reranker_inherits_async_compatibility() -> None:
     candidates = [_candidate("chunk-a"), _candidate("chunk-b")]
     results = asyncio.run(reranker.rerank_async("查询", candidates, top_k=1))
     assert [item.chunk_id for item in results] == ["chunk-b"]
+
+
+def test_rerank_max_candidates_default_is_five() -> None:
+    """
+    TCR（2026-09-16，B07，方案 A）：候选上限默认值从 20 调整为 5，运行时事实源是
+    ``AppSettings``；公开默认常量必须与之一致，避免只改常量而运行时仍取旧值。
+    """
+
+    settings = build_test_settings()
+
+    assert settings.rerank_max_candidates == 5
+    assert reranker_module.DEFAULT_MAX_CANDIDATES == 5
+
+
+def test_rerank_max_candidates_default_resolution_reads_settings(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """未显式传参时，候选上限来自运行配置而不是硬编码常量。"""
+
+    settings = build_test_settings(rerank_max_candidates=7)
+    monkeypatch.setattr(reranker_module, "get_settings", lambda: settings)
+
+    assert reranker_module._resolve_max_candidates(None) == 7
+
+
+def test_rerank_max_candidates_explicit_argument_still_wins(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """显式参数优先级保持不变，不引入全局硬限制。"""
+
+    settings = build_test_settings(rerank_max_candidates=5)
+    monkeypatch.setattr(reranker_module, "get_settings", lambda: settings)
+
+    assert reranker_module._resolve_max_candidates(20) == 20
+
+
+def test_rerank_settings_override_limits_candidates(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """配置为 3 时，送入 LLM 重排的候选被限制在 3 个以内。"""
+
+    candidates = [_candidate(f"chunk-{index}") for index in range(12)]
+    selected = candidates[:3]
+    scores = {candidate.chunk_id: 0.5 for candidate in selected}
+    settings = build_test_settings(rerank_max_candidates=3)
+    monkeypatch.setattr(reranker_module, "get_settings", lambda: settings)
+    provider = StubLLMProvider(response=_llm_response(scores))
+    adapter = LLMRerankAdapter(provider=provider)
+
+    results = adapter.rerank("查询", candidates, top_k=2)
+
+    assert provider.prompt.count("chunk_id=") == 3
+    assert adapter.describe()["max_candidates"] == 3
+    assert len(results) == 2
+    assert {item.chunk_id for item in results} <= {
+        candidate.chunk_id for candidate in selected
+    }
