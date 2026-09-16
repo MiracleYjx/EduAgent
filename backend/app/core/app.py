@@ -15,6 +15,7 @@ from backend.app.api.exams import router as exams_router
 from backend.app.api.grading import router as grading_router
 from backend.app.api.knowledge_bases import router as knowledge_bases_router
 from backend.app.api.questions import router as questions_router
+from backend.app.api.results import router as results_router
 from backend.app.api.submissions import exam_submission_router
 from backend.app.api.submissions import router as submissions_router
 from backend.app.core.config import (
@@ -74,6 +75,7 @@ def create_app(
     app.include_router(questions_router)
     app.include_router(exams_router)
     app.include_router(grading_router)
+    app.include_router(results_router)
     app.include_router(submissions_router)
     app.include_router(exam_submission_router)
 
