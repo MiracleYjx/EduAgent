@@ -50,10 +50,11 @@ EXPECTED_CHAIN: dict[str, str] = {
     "0006_diagnosis_reports": "0005_grading_results",
     "0007_review_records": "0006_diagnosis_reports",
     "0008_workflow_runs": "0007_review_records",
+    "0009_agent_runs": "0008_workflow_runs",
 }
 
 #: 当前 head（逐个任务向后移动）。
-EXPECTED_HEAD = "0008_workflow_runs"
+EXPECTED_HEAD = "0009_agent_runs"
 
 
 @dataclass(frozen=True, slots=True)
@@ -383,6 +384,87 @@ REVISION_EXPECTATIONS: tuple[RevisionExpectation, ...] = (
                     ),
                     enum_columns=(
                         ("status", tuple(item.value for item in WorkflowStatus)),
+                    ),
+                ),
+            ),
+        ),
+    ),
+    RevisionExpectation(
+        revision="0009_agent_runs",
+        down_revision="0008_workflow_runs",
+        indexes=frozenset(
+            {
+                "ix_agent_runs_request_id",
+                "ix_agent_runs_user_id",
+                "ix_agent_runs_workflow_id",
+            }
+        ),
+        tables=(
+            (
+                "agent_runs",
+                TableExpectation(
+                    columns=(
+                        "agent_type",
+                        "workflow_id",
+                        "request_id",
+                        "user_id",
+                        "input_summary",
+                        "output_summary",
+                        "validation_status",
+                        "status",
+                        "latency_ms",
+                        "model",
+                        "prompt_version",
+                        "input_tokens",
+                        "output_tokens",
+                        "total_tokens",
+                        "error_code",
+                        "error_message",
+                        "error_retryable",
+                        "id",
+                        "created_at",
+                        "updated_at",
+                    ),
+                    nullable_columns=frozenset(
+                        {
+                            "workflow_id",
+                            "user_id",
+                            "input_summary",
+                            "output_summary",
+                            "validation_status",
+                            "latency_ms",
+                            "model",
+                            "prompt_version",
+                            "input_tokens",
+                            "output_tokens",
+                            "total_tokens",
+                            "error_code",
+                            "error_message",
+                            "error_retryable",
+                        }
+                    ),
+                    check_constraints=frozenset(
+                        {
+                            "agent_validation_status",
+                            "ck_agent_runs_status_trace_value",
+                            "ck_agent_runs_latency_non_negative",
+                            "ck_agent_runs_token_counts_non_negative",
+                        }
+                    ),
+                    unique_constraints=frozenset(),
+                    foreign_keys=(
+                        (
+                            "workflow_id",
+                            "workflow_runs.workflow_id",
+                            "SET NULL",
+                        ),
+                        ("user_id", "users.id", "RESTRICT"),
+                    ),
+                    enum_columns=(
+                        (
+                            "validation_status",
+                            tuple(item.value for item in ValidationStatus),
+                        ),
                     ),
                 ),
             ),
