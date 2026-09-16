@@ -38,10 +38,12 @@ from backend.app.services.grading.grading_task_service import (
     DatabaseGradingSubmissionReader,
     GradingTargetAnswer,
     GradingTaskService,
+    NotConfiguredGradingRepository,
     SubmissionSnapshot,
 )
 from tests.support.grading_doubles import (
     InMemoryGradingRepository,
+    NonCallableSubmissionReader,
     RecordingExecutor,
     StubSubmissionReader,
     make_task,
@@ -516,6 +518,38 @@ def test_task_query_denies_teacher_from_other_course(
 
     assert allowed.status_code == 200
     assert denied.status_code == 403
+
+
+def test_trigger_without_configured_store_never_reads_business_data(
+    scenario, client_factory
+) -> None:
+    """TCR（2026-09-16，B04）：默认未配置结果存储时，触发必须在读取业务答卷、
+    创建任务与调用执行器之前返回 503 GRADING_STORE_NOT_READY。
+
+    修复前预期：先读业务库（读取器报错并泄漏 500）；修复后：503 且零副作用。
+    """
+
+    reader = NonCallableSubmissionReader()
+    recorder = RecordingExecutor()
+    service = GradingTaskService(
+        repository=NotConfiguredGradingRepository(),
+        reader=reader,
+        executor=recorder,
+    )
+    client = client_factory(service)
+    submission_id = str(scenario["submission"].id)
+
+    response = client.post(
+        f"/api/grading/submissions/{submission_id}/trigger",
+        headers=headers(scenario["teacher"], UserRole.TEACHER),
+        json={"regrade": False},
+    )
+
+    assert response.status_code == 503
+    assert response.json()["detail"]["error_code"] == "GRADING_STORE_NOT_READY"
+    assert reader.teacher_load_calls == 0
+    assert reader.load_calls == 0
+    assert recorder.executed == []
 
 
 def test_single_result_query_denies_teacher_from_other_course(

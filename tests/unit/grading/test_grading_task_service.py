@@ -66,6 +66,7 @@ from backend.app.services.grading.result_aggregator import ResultAggregator
 from backend.app.services.grading.subjective_grader import SubjectiveGrader
 from tests.support.grading_doubles import (
     InMemoryGradingRepository,
+    NonCallableSubmissionReader,
     RecordingExecutor,
     RecordingProgressUpdater,
     StubScoringPipeline,
@@ -803,3 +804,29 @@ def test_real_reader_rejects_exam_without_questions() -> None:
             reader.load(str(submission.id))
 
         assert getattr(error.value, "error_code", None) == _INCOMPLETE_CODE
+
+
+def test_trigger_requires_store_readiness_before_reading_submission() -> None:
+    """TCR（2026-09-16，B04）：结果存储未配置时必须在读取业务答卷前失败，
+    否则业务库读取异常会泄漏为非预期 500，而非约定的
+    ``503 GRADING_STORE_NOT_READY``。
+
+    修复前预期：先调用读取器（AssertionError）；修复后：GradingStoreNotReadyError，
+    且执行器与评分调用次数均为 0。
+    """
+
+    reader = NonCallableSubmissionReader()
+    recorder = RecordingExecutor()
+    service = GradingTaskService(
+        repository=NotConfiguredGradingRepository(),
+        reader=reader,
+        executor=recorder,
+    )
+
+    with pytest.raises(GradingStoreNotReadyError) as error:
+        service.trigger(SUBMISSION_ID, teacher_id=TEACHER_ID)
+
+    assert error.value.error_code == GRADING_STORE_NOT_READY
+    assert reader.teacher_load_calls == 0
+    assert reader.load_calls == 0
+    assert recorder.executed == []

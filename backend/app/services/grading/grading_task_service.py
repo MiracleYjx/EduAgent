@@ -307,7 +307,12 @@ class GradingRepository(Protocol):
 
     生产实现在 T060（结果表）与 T064（任务状态）之前一律未就绪；测试可注入内存替身，
     但内存实现不得作为正式成绩事实源。
+
+    ``ensure_ready()`` 是最小就绪判断：未接通的实现必须先失败，由调用方在读取业务数据、
+    创建任务或调用执行器之前抛出，避免业务库异常泄漏为非预期 500。
     """
+
+    def ensure_ready(self) -> None: ...
 
     def get_task(self, task_id: str) -> GradingTaskStatusDTO | None: ...
 
@@ -342,6 +347,9 @@ class NotConfiguredGradingRepository:
         raise GradingStoreNotReadyError(
             "结果存储尚未接通（T060/T064 前），无法保存或查询阅卷状态与成绩。"
         )
+
+    def ensure_ready(self) -> None:
+        self._reject()
 
     def get_task(self, task_id: str) -> GradingTaskStatusDTO | None:
         self._reject()
@@ -809,6 +817,7 @@ class GradingTaskService:
     ) -> GradingTaskStatusDTO:
         """触发阅卷；仅在真实受理任务时返回任务状态。"""
 
+        self._repository.ensure_ready()
         snapshot = self._reader.load_for_teacher(submission_id, teacher_id)
         if snapshot.status not in TRIGGERABLE_SUBMISSION_STATES:
             if snapshot.status not in REGREADABLE_SUBMISSION_STATES:
@@ -850,6 +859,7 @@ class GradingTaskService:
         :param teacher_id: 认证上下文中的教师标识；不做可省略的绕过分支。
         """
 
+        self._repository.ensure_ready()
         task = self._repository.get_task(task_id)
         if task is None:
             raise GradingTaskNotFoundError(f"任务 {task_id} 不存在。")
@@ -871,6 +881,7 @@ class GradingTaskService:
         :param teacher_id: 认证上下文中的教师标识；不做可省略的绕过分支。
         """
 
+        self._repository.ensure_ready()
         self._reader.load_for_teacher(submission_id, teacher_id)
         result = self._repository.get_single_result(submission_id, answer_id)
         if result is None:
