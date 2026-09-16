@@ -130,6 +130,16 @@ class InMemoryGradingRepository:
         self.exam_results[submission_id] = exam_result
         for item in exam_result.items:
             self.single_results[(submission_id, item.answer_id)] = item
+        if task_id is not None:
+            self.tasks[task_id] = self.tasks[task_id].model_copy(update={
+                "status": GradingTaskStatus.COMPLETED,
+                "finished_at": datetime.now(UTC),
+                "expected_answer_count": exam_result.expected_answer_count,
+                "graded_answer_count": exam_result.graded_answer_count,
+                "pending_review_answer_count": exam_result.pending_review_answer_count,
+                "exam_result_status": exam_result.result_status,
+                "is_final": exam_result.is_final,
+            })
 
     def get_exam_result(self, submission_id: str) -> ExamResultDTO | None:
         self.calls.append(f"get_exam_result:{submission_id}")
