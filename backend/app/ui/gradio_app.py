@@ -71,6 +71,7 @@ from backend.app.ui.question_generation_view import (
     create_question_generation_view,
 )
 from backend.app.ui.question_view import QuestionView, create_question_view
+from backend.app.ui.results_loaders import configure_production_results_loaders
 from backend.app.ui.results_view import (
     ResultsView,
     TeacherResultsView,
@@ -2315,6 +2316,8 @@ def _guard_view_callback(
 def create_gradio_app() -> gr.Blocks:
     """创建共享外壳；会话与各页面输入在当前浏览器会话内保持。"""
 
+    # T057：注入生产结果与诊断加载器（学生按授权答卷定位 submission_id，诊断只读）。
+    configure_production_results_loaders()
     with gr.Blocks(title="EduAgent 教学评测平台", fill_width=True) as demo:
         session_state = gr.State(empty_login_state())
         navigation_state = gr.State(

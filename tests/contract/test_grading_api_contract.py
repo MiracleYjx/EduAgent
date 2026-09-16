@@ -459,9 +459,20 @@ def test_single_result_endpoint_returns_validated_result(
 
 
 def test_default_dependency_reports_store_not_ready(scenario, client_factory) -> None:
-    """未配置结果存储时拒绝返回虚构任务，三个端点均返回 503。"""
+    """未配置结果存储时拒绝返回虚构任务，三个端点均返回 503。
 
-    client = client_factory()
+    TCR（2026-09-16，T056）：生产装配已改用真实仓储，因此这里**显式注入**未接通存储来
+    固定该语义；生产路径的就绪判断由 ``DatabaseGradingRepository.ensure_ready`` 的测试覆盖，
+    不再依赖本机数据库是否已迁移。
+    """
+
+    repository = NotConfiguredGradingRepository()
+    service = GradingTaskService(
+        repository=repository,
+        reader=NonCallableSubmissionReader(),
+        executor=RecordingExecutor(),
+    )
+    client = client_factory(service)
     submission = scenario["submission"]
     answer = scenario["answer"]
     teacher_headers = headers(scenario["teacher"], UserRole.TEACHER)

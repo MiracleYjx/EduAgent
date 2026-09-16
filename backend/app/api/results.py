@@ -18,7 +18,6 @@ plan.md §5.2、tasks.md 的 T111/T112（服务端事实来源与最终成绩统
 
 from __future__ import annotations
 
-import asyncio
 from collections.abc import Callable, Iterator
 from contextlib import contextmanager
 from decimal import ROUND_HALF_UP, Decimal
@@ -29,7 +28,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from backend.app.core.database import get_db
+from backend.app.core.database import get_session_factory
 from backend.app.core.security import require_permission
 from backend.app.domain.permissions import Permission
 from backend.app.models import Course, Exam, Submission, User
@@ -41,10 +40,9 @@ from backend.app.schemas.grading import (
     SubmissionResultDTO,
     TeacherExamResultSummaryDTO,
 )
-from backend.app.services.diagnosis_service import (
-    DIAGNOSIS_NOT_READY,
-    DiagnosisService,
-)
+from backend.app.services.diagnosis_service import DIAGNOSIS_NOT_READY
+from backend.app.services.grading.diagnosis_report_store import DiagnosisReportStore
+from backend.app.services.grading.grading_repository import DatabaseGradingRepository
 from backend.app.services.grading.grading_task_service import (
     GRADING_EXECUTION_NOT_READY,
     GRADING_NOT_ALLOWED,
@@ -58,7 +56,6 @@ from backend.app.services.grading.grading_task_service import (
     GradingRepository,
     GradingSubmissionNotFoundError,
     GradingTaskError,
-    NotConfiguredGradingRepository,
 )
 
 router = APIRouter(prefix="/api/results", tags=["成绩与诊断"])
@@ -86,7 +83,8 @@ class ResultsQueryService:
     :param repository: 任务与结果存储；生产默认未就绪（T060 前返回 503）。
     :param session: 单会话用法；与 ``session_factory`` 二选一。
     :param session_factory: 自建会话用法（UI 或后台）；不复用请求作用域会话。
-    :param diagnosis_service: 诊断服务；``None`` 时诊断端点返回明确的未就绪状态。
+    :param diagnosis_store: 诊断报告读写存储；``None`` 时诊断端点返回明确的未就绪状态。
+        诊断读取永远只读，不触发生成与 LLM 调用。
     """
 
     def __init__(
@@ -95,14 +93,14 @@ class ResultsQueryService:
         repository: GradingRepository,
         session: Session | None = None,
         session_factory: Callable[[], Session] | None = None,
-        diagnosis_service: DiagnosisService | None = None,
+        diagnosis_store: DiagnosisReportStore | None = None,
     ) -> None:
         if session is None and session_factory is None:
             raise ValueError("必须提供 session 或 session_factory。")
         self._repository = repository
         self._session = session
         self._session_factory = session_factory
-        self._diagnosis_service = diagnosis_service
+        self._diagnosis_store = diagnosis_store
 
     @contextmanager
     def _use_session(self) -> Iterator[Session]:
@@ -121,6 +119,7 @@ class ResultsQueryService:
     def list_student_results(self, student_id: str) -> list[StudentResultSummaryDTO]:
         """列出学生自己的答卷结果摘要。"""
 
+        self._repository.ensure_ready()
         with self._use_session() as session:
             submissions = self._submissions_for_student(session, student_id)
             return [self._summary(session, item) for item in submissions]
@@ -132,6 +131,7 @@ class ResultsQueryService:
     ) -> SubmissionResultDTO:
         """读取学生自己的答卷结果；仅返回已确认条目。"""
 
+        self._repository.ensure_ready()
         with self._use_session() as session:
             submission = self._require_submission(session, submission_id)
             self._ensure_student_owner(submission, student_id)
@@ -144,6 +144,7 @@ class ResultsQueryService:
     ) -> DiagnosisReportDTO:
         """读取学生自己的诊断报告；未就绪时返回明确状态。"""
 
+        self._repository.ensure_ready()
         with self._use_session() as session:
             submission = self._require_submission(session, submission_id)
             self._ensure_student_owner(submission, student_id)
@@ -158,6 +159,7 @@ class ResultsQueryService:
     ) -> list[StudentResultSummaryDTO]:
         """列出授权课程下某场考试的学生结果摘要。"""
 
+        self._repository.ensure_ready()
         with self._use_session() as session:
             exam = self._require_owned_exam(session, exam_id, teacher_id)
             submissions = list(
@@ -177,6 +179,7 @@ class ResultsQueryService:
     ) -> TeacherExamResultSummaryDTO:
         """汇总考试结果；平均分只统计最终成绩。"""
 
+        self._repository.ensure_ready()
         with self._use_session() as session:
             exam = self._require_owned_exam(session, exam_id, teacher_id)
             submissions = list(
@@ -342,49 +345,50 @@ class ResultsQueryService:
         )
 
     def _diagnosis(self, submission: Submission) -> DiagnosisReportDTO:
-        """返回学生诊断（当前存在生成副作用，不是持久化读取）。
+        """读取已持久化的诊断报告；GET 只读，不触发生成与 LLM 调用。
 
-        S02 行为声明：未接通结果存储时返回 ``Not Ready``；若注入了 ``diagnosis_service``，
-        本 GET 路径会调用 ``generate()``，即查询会触发一次生成（包含合法 LLM 调用），
-        而不是读取已持久化的诊断报告。T061 接入时必须改为读取已生成报告，
-        并结合当前 ``ExamResult`` 判断有效性，不得在每次查询时重新调用 LLM。
-        本轮不实现诊断持久化、生成任务、缓存或新端点。
+        - 尚未生成报告：返回 ``Not Ready`` 空态，不落库；
+        - 报告来源汇总时间与当前 ``ExamResult.aggregated_at`` 不一致：返回 ``Stale``；
+        - ``Failed`` 报告如实返回错误码，已提交成绩不受影响。
         """
 
         result = self._repository.get_exam_result(str(submission.id))
-        if result is None:
+        if self._diagnosis_store is None:
             return DiagnosisReportDTO(
                 submission_id=str(submission.id),
                 student_id=str(submission.student_id),
                 status=DiagnosisStatus.NOT_READY,
                 error_code=DIAGNOSIS_NOT_READY,
                 retryable=False,
+                source_exam_result_updated_at=(
+                    None if result is None else result.aggregated_at
+                ),
             )
-        if self._diagnosis_service is None:
-            return DiagnosisReportDTO(
-                submission_id=str(submission.id),
-                student_id=str(submission.student_id),
-                status=DiagnosisStatus.NOT_READY,
-                error_code=DIAGNOSIS_NOT_READY,
-                retryable=False,
-                source_exam_result_updated_at=result.aggregated_at,
-            )
-        return asyncio.run(self._diagnosis_service.generate(result))
+        return self._diagnosis_store.read(str(submission.id), result)
 
 
-def get_results_query_service(
-    request: Request,
-    session: Annotated[Session, Depends(get_db)],
-) -> ResultsQueryService:
-    """装配结果读模型服务；生产默认未接通结果存储。"""
+def build_production_results_query_service() -> ResultsQueryService:
+    """构造生产结果读模型服务：真实仓储读取成绩 + 只读诊断读取。
+
+    结果事实来源是 ``exam_results``/``grading_results``；诊断来自持久化 ``diagnosis_reports``，
+    GET 路径不会调用 T055 生成，也不产生 LLM 调用。
+    """
+
+    session_factory = get_session_factory()
+    return ResultsQueryService(
+        repository=DatabaseGradingRepository(session_factory=session_factory),
+        session_factory=session_factory,
+        diagnosis_store=DiagnosisReportStore(session_factory=session_factory),
+    )
+
+
+def get_results_query_service(request: Request) -> ResultsQueryService:
+    """装配结果读模型服务；生产使用真实仓储与只读诊断存储。"""
 
     configured = getattr(request.app.state, "results_query_service", None)
     if configured is not None:
         return configured
-    return ResultsQueryService(
-        repository=NotConfiguredGradingRepository(),
-        session=session,
-    )
+    return build_production_results_query_service()
 
 
 def _results_http_exception(error: GradingTaskError) -> HTTPException:
@@ -518,6 +522,7 @@ __all__ = [
     "RESULT_NOT_READY_REASON",
     "TEACHER_NOT_READY_REASON",
     "ResultsQueryService",
+    "build_production_results_query_service",
     "get_results_query_service",
     "router",
 ]

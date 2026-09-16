@@ -16,6 +16,11 @@ import gradio as gr
 from backend.app.domain.enums import UserRole
 from backend.app.domain.permissions import PermissionDeniedError, normalize_role
 from backend.app.ui.layout_view import empty_state, feedback, status_text
+from backend.app.ui.results_diagnosis import (
+    MASTERY_HEADERS,
+    MASTERY_TABLE_DATATYPES,
+    diagnosis_sections,
+)
 
 RESULT_HEADERS = ("题号", "状态", "得分", "反馈")
 TEACHER_RESULT_HEADERS = ("学生", "总分", "结果状态", "待复核数")
@@ -54,6 +59,9 @@ class ResultsView:
 
     panel: gr.Column
     results_table: gr.Dataframe
+    weak_points: gr.Markdown
+    diagnosis: gr.Markdown
+    mastery_table: gr.Dataframe
     message: gr.Markdown
 
 
@@ -115,6 +123,49 @@ def refresh_student_results(
     if payload is None:
         return [], empty_state(UNAVAILABLE_MESSAGE)
     return student_result_rows(payload), result_availability_text(payload)
+
+
+def refresh_student_diagnosis(
+    exam_id: str | None = None, state: Mapping[str, Any] | None = None
+) -> tuple[str, str, list[list[str]]]:
+    """读取学生授权诊断并映射为 (薄弱知识点, 错误原因与建议, 掌握度表格)。
+
+    加载器可以返回诊断读模型，或返回 ``(诊断读模型, 是否最终成绩)`` 二元组；依赖未就绪、
+    加载失败或报告缺失时给出明确空态，不把未生成或过期的诊断伪装成结论。诊断读取只读
+    已持久化报告，不会触发生成与 LLM 调用。
+    """
+
+    unauthorised = False
+    if state is not None:
+        try:
+            _ensure_student(state)
+        except PermissionDeniedError:
+            unauthorised = True
+    loader = _student_diagnosis_loader
+    payload: Any = None
+    if not unauthorised and loader is not None:
+        try:
+            payload = loader(exam_id, state)
+        except Exception:  # noqa: BLE001 - 诊断加载失败不得伪装成结论
+            payload = None
+    if unauthorised or payload is None:
+        message = empty_state(UNAVAILABLE_MESSAGE)
+        return message, message, []
+    if isinstance(payload, tuple):
+        report, is_final = payload
+    else:
+        report, is_final = payload, False
+    return diagnosis_sections(report, is_final=bool(is_final))
+
+
+def refresh_student_panel(
+    exam_id: str | None = None, state: Mapping[str, Any] | None = None
+) -> tuple[list[list[str]], str, str, list[list[str]], str]:
+    """学生结果面板统一刷新：逐题结果、诊断区域与提示一次返回。"""
+
+    rows, message = refresh_student_results(exam_id, state)
+    weak_points, diagnosis, mastery = refresh_student_diagnosis(exam_id, state)
+    return rows, weak_points, diagnosis, mastery, message
 
 
 def _value(item: Mapping[str, Any] | Any, name: str, default: Any = "") -> Any:
@@ -349,18 +400,40 @@ def create_results_view(session_state: Any | None = None) -> ResultsView:
             with gr.Tab("错题与诊断"), gr.Row(equal_height=False):
                 with gr.Column(scale=1):
                     gr.Markdown("### 薄弱知识点")
-                    gr.Markdown(empty_state("暂无可展示的掌握度数据。"))
+                    weak_points = gr.Markdown(
+                        empty_state("暂无可展示的掌握度数据。")
+                    )
+                    mastery_table = gr.Dataframe(
+                        headers=list(MASTERY_HEADERS),
+                        datatype=list(MASTERY_TABLE_DATATYPES),
+                        value=[],
+                        interactive=False,
+                        label="知识点掌握度",
+                    )
                 with gr.Column(scale=1):
                     gr.Markdown("### 错误原因与学习建议")
-                    gr.Markdown(empty_state("诊断报告尚未生成"))
+                    diagnosis = gr.Markdown(empty_state("诊断报告尚未生成"))
         message = gr.Markdown(empty_state("暂无可展示的诊断"))
         refresh.click(
-            refresh_student_results,
+            refresh_student_panel,
             inputs=[exam, state],
-            outputs=[results_table, message],
+            outputs=[
+                results_table,
+                weak_points,
+                diagnosis,
+                mastery_table,
+                message,
+            ],
             show_progress="hidden",
         )
-    return ResultsView(panel=panel, results_table=results_table, message=message)
+    return ResultsView(
+        panel=panel,
+        results_table=results_table,
+        weak_points=weak_points,
+        diagnosis=diagnosis,
+        mastery_table=mastery_table,
+        message=message,
+    )
 
 
 def _ensure_teacher(state: Mapping[str, Any]) -> None:
@@ -417,6 +490,9 @@ _student_result_loader: Any | None = None
 #: 教师结果接线点：返回授权范围内的学生成绩记录。
 _teacher_results_loader: Any | None = None
 
+#: 学生诊断接线点：返回已持久化诊断报告；只读，不触发生成与 LLM 调用。
+_student_diagnosis_loader: Any | None = None
+
 #: 待复核结果提示文案；待复核不得伪装成最终成绩。
 PENDING_REVIEW_MESSAGE = "成绩待人工复核：待复核题目不计入最终总分。"
 
@@ -424,6 +500,7 @@ PENDING_REVIEW_MESSAGE = "成绩待人工复核：待复核题目不计入最终
 def configure_results_loaders(
     *,
     student_loader: Any | None = None,
+    student_diagnosis_loader: Any | None = None,
     teacher_loader: Any | None = None,
 ) -> None:
     """注入结果查询接线点（传 ``None`` 表示恢复空态）。
@@ -431,13 +508,13 @@ def configure_results_loaders(
     注入的实现必须来自受权限保护的应用查询服务或 API；视图自身不访问数据库，
     也不在组件内重算成绩与平均分。
 
-    S01 完成度声明：本函数只提供接线点与部分结果格式化/刷新接线；应用装配中
-    **尚未注入生产 ResultsQueryService**，学生诊断、薄弱知识点与掌握度区域尚未完成
-    动态输出绑定，未接线时一律保持明确空态。
+    应用装配（``gradio_app``）已注入生产 ``ResultsQueryService`` 派生的结果与诊断加载器；
+    学生诊断、薄弱知识点与掌握度区域随真实数据变化，未接线时一律保持明确空态。
     """
 
-    global _student_result_loader, _teacher_results_loader
+    global _student_result_loader, _student_diagnosis_loader, _teacher_results_loader
     _student_result_loader = student_loader
+    _student_diagnosis_loader = student_diagnosis_loader
     _teacher_results_loader = teacher_loader
 
 
