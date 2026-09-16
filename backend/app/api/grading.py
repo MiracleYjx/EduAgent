@@ -38,6 +38,11 @@ from backend.app.schemas.grading import (
     GradingTaskStatusDTO,
     QuestionResultDTO,
 )
+from backend.app.services.diagnosis_service import DiagnosisService
+from backend.app.services.grading.diagnosis_report_store import (
+    DiagnosisRecorder,
+    DiagnosisReportStore,
+)
 from backend.app.services.grading.grading_repository import DatabaseGradingRepository
 from backend.app.services.grading.grading_task_service import (
     GRADING_EXECUTION_NOT_READY,
@@ -105,6 +110,9 @@ def build_production_grading_service(
 
     进度与结果在同一事务内由仓储写入，因此这里**不注入**独立的进度更新器，避免提交后再
     用第二个事务重复写同一批进度。主观题评分器自建并关闭会话，LLM 调用不持有写事务。
+
+    最终成绩提交成功后，执行器调用 :class:`DiagnosisRecorder` 生成并保存诊断报告（B05）；
+    诊断失败只影响报告本身，不回滚已提交的成绩与汇总事实。
     """
 
     session_factory = get_session_factory()
@@ -123,6 +131,10 @@ def build_production_grading_service(
             repository=repository,
             reader=reader,
             pipeline=pipeline,
+            diagnosis_recorder=DiagnosisRecorder(
+                store=DiagnosisReportStore(session_factory=session_factory),
+                service=DiagnosisService(),
+            ),
         ),
     )
 
