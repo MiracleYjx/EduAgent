@@ -12,6 +12,10 @@ TCR（2026-09-14，H05）：新增 RERANK_MODEL 配置到实际调用的测试�
 模型选择测试；缺依赖用例改为注入缺依赖状态，安装本地运行依赖后仍验证同一错误契约。
 真实调用发现提示未声明输出结构，补充提示包含 JSON 字段契约的断言，避免只传入
 本地校验器却未告知远端模型输出格式。
+
+TCR（2026-09-17，M04）：显式配置与全局配置不同时，真实 Reranker 工厂必须用显式配置
+创建 LLM Provider，并在既有事件循环路径中实际调用该 Provider；防止只验证配置参数却
+遗漏适配器内部再次读取全局配置的问题。
 """
 
 from __future__ import annotations
@@ -391,6 +395,47 @@ def test_rerank_model_configuration_reaches_llm_call(monkeypatch) -> None:
     override = build_reranker(provider=provider, model="显式模型")
     override.rerank("课程查询", [_candidate("chunk-a")])
     assert provider.calls[-1]["model"] == "显式模型"
+
+
+def test_explicit_settings_create_and_call_local_rerank_provider(monkeypatch) -> None:
+    """真实工厂使用显式配置创建 Provider，并通过异步入口调用该实例。"""
+
+    local_settings = build_test_settings(
+        rerank_provider="llm",
+        rerank_model="local-rerank-model",
+        rerank_max_candidates=3,
+    )
+    global_settings = build_test_settings(
+        rerank_provider="llm",
+        rerank_model="global-rerank-model",
+        rerank_max_candidates=5,
+    )
+    local_provider = StubLLMProvider(
+        response=_llm_response({"chunk-a": 0.8})
+    )
+    global_provider = StubLLMProvider(
+        response=_llm_response({"chunk-a": 0.1})
+    )
+
+    monkeypatch.setattr(reranker_module, "get_settings", lambda: global_settings)
+    monkeypatch.setattr(
+        reranker_module,
+        "create_llm_provider",
+        lambda settings=None: (
+            local_provider if settings is local_settings else global_provider
+        ),
+    )
+
+    adapter = build_reranker(settings=local_settings)
+    results = asyncio.run(
+        adapter.rerank_async("课程查询", [_candidate("chunk-a")], top_k=1)
+    )
+
+    assert results[0].rerank_score == pytest.approx(0.8)
+    assert adapter.model_name == "local-rerank-model"
+    assert adapter.describe()["max_candidates"] == 3
+    assert len(local_provider.calls) == 1
+    assert global_provider.calls == []
 
 
 def test_manual_cross_encoder_route_uses_its_own_model(monkeypatch) -> None:

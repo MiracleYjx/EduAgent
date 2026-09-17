@@ -454,11 +454,11 @@ class SubjectiveGrader:
             reranker=reranker,
             embedding_provider=embedding_provider,
             require_context=require_context,
-            settings=resolved_settings,
+            settings=settings,
         )
         context.ensure_sufficient()
         messages = build_grading_messages(context, max_score=resolved_max_score)
-        payload = await self._generate_payload(messages)
+        payload = await self._generate_payload(messages, settings=resolved_settings)
         answer_id = (
             str(source.answer_id) if source.answer_id is not None else None
         )
@@ -479,13 +479,15 @@ class SubjectiveGrader:
     async def _generate_payload(
         self,
         messages: LLMMessages,
+        *,
+        settings: AppSettings,
     ) -> SubjectiveGradingPayload:
         """调用 Provider 获取结构化评分 Payload，并把失败分类为业务错误码。"""
 
         provider = self._provider
         if provider is None:
             try:
-                provider = create_llm_provider()
+                provider = create_llm_provider(settings)
             except Exception:  # noqa: BLE001 - 未就绪不得静默降级
                 raise ProviderNotReadyError(
                     "评分 Provider 未就绪，请检查 LLM_PROVIDER 与模型配置。"
