@@ -20,12 +20,16 @@
 - **失败原因保留**：每个问题都带原因码、脱敏中文说明与字段名，供教师退回修订使用。
 - **落库可用性**：分值按 M1 ``question_service`` 的口径检查（有限正数、最多两位小数、
   不超过 999999.99），避免候选通过校验后在 T075 落库失败。
+- **评分标准基础检查**：只排除“仅分值/占位”与“未写明得分依据”两类明显不可用的表达，
+  允许“正确选项得满分，其余不得分”这类明确规则；本模块**不声称已证明教学内容正确**，
+  也不引入模型复审或通用自然语言解析，最终判断由教师完成。
 - **落库接线属 T075**：候选审核状态写入 ``QuestionService`` 与出题 API/UI 由 T075 负责；
   ``ValidationActor.TEACHER`` 只表示流程角色，不代表已完成身份与课程授权校验。
 """
 
 from __future__ import annotations
 
+import re
 from collections.abc import Mapping, Sequence
 from decimal import Decimal, InvalidOperation
 from enum import StrEnum
@@ -98,6 +102,29 @@ VALIDATOR_RESULT_STATUSES: Final[frozenset[QuestionStatus]] = frozenset(
 #: 分值量化单位与上限；与 M1 ``question_service`` 的落库约定一致。
 SCORE_QUANTUM: Final[Decimal] = Decimal("0.01")
 MAX_CANDIDATE_SCORE: Final[Decimal] = Decimal("999999.99")
+
+#: 评分标准中表明“分值与得分依据”的基础标记；用于筛查空洞占位文本。
+#: 仅做有限、可解释的基础检查，不使用自然语言解析，也不证明教学内容正确。
+RUBRIC_ALLOCATION_MARKERS: Final[tuple[str, ...]] = (
+    "满分",
+    "得分",
+    "扣分",
+    "不得分",
+    "不给分",
+    "给分",
+    "分值",
+    "要点",
+    "答对",
+    "答错",
+    "正确",
+    "错误",
+    "部分分",
+)
+
+#: 仅分值/标点/空白类字符；剔除后无实质内容即视为“只写分值或占位”。
+_RUBRIC_PUNCTUATION_PATTERN: Final = re.compile(
+    r"[\d\s\.,，、;；:：%％/\\\-—_()（）\[\]【】]+"
+)
 
 #: 无需额外答案编码约束的题型（学生通过文本控件作答）。
 _TEXT_ANSWER_TYPES: Final[frozenset[QuestionType]] = frozenset(
@@ -322,18 +349,38 @@ def _answer_encoding_issue(candidate: QuestionCandidate) -> QuestionValidationIs
     return None
 
 
-def _rubric_issue(candidate: QuestionCandidate) -> QuestionValidationIssue | None:
-    """检查评分标准是否可用：必须写明可分配的分值数字。
+def _is_score_or_placeholder_only(rubric: str) -> bool:
+    """判断评分标准是否只包含分值/占位内容（如“1”“2 分”“100％”）。"""
 
-    可用性下限采用“至少包含一个数字”的客观规则：只有明确的分值（如“2 分”）才能让教师和
-    评分链路复用该标准；没有分值的描述无法直接使用，应退回修订。
+    stripped = _RUBRIC_PUNCTUATION_PATTERN.sub("", rubric).replace("分", "")
+    return not stripped.strip()
+
+
+def _rubric_issue(candidate: QuestionCandidate) -> QuestionValidationIssue | None:
+    """检查评分标准是否可用：必须有可分配的分值或得分依据，且不是空洞占位。
+
+    基础检查只排除“仅分值/占位”与“未写明得分依据”两类明显不可用的表达，
+    **不声称已证明教学内容正确**，也不引入模型复审或通用自然语言解析；最终判断由教师完成。
     """
 
     rubric = candidate.scoring_rubric.strip()
-    if not rubric or not any(character.isdigit() for character in rubric):
+    if not rubric:
         return _issue(
             QUESTION_RUBRIC_UNUSABLE,
-            "评分标准必须写明可分配的分值数字（如“每个要点 2 分”），当前内容不可用。",
+            "评分标准为空，无法按标准评分。",
+            "scoring_rubric",
+        )
+    if _is_score_or_placeholder_only(rubric):
+        return _issue(
+            QUESTION_RUBRIC_UNUSABLE,
+            "评分标准不能只写分值或占位内容，需要写明得分依据。",
+            "scoring_rubric",
+        )
+    if not any(marker in rubric for marker in RUBRIC_ALLOCATION_MARKERS):
+        return _issue(
+            QUESTION_RUBRIC_UNUSABLE,
+            "评分标准未写明可分配的分值或得分依据（例如“正确选项得满分，其余不得分”），"
+            "当前内容不可用。",
             "scoring_rubric",
         )
     return None
@@ -531,6 +578,7 @@ __all__ = [
     "QUESTION_SCORE_NOT_STORABLE",
     "QUESTION_STATUS_TRANSITION_BLOCKED",
     "QUESTION_UNKNOWN_COURSE_EVIDENCE",
+    "RUBRIC_ALLOCATION_MARKERS",
     "SCORE_QUANTUM",
     "TEACHER_ONLY_STATUSES",
     "VALIDATOR_RESULT_STATUSES",

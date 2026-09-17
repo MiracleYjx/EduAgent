@@ -181,12 +181,35 @@ def test_unknown_course_evidence_needs_revision() -> None:
 
 
 def test_unusable_rubric_needs_revision() -> None:
-    """评分标准必须给出可分配的分值或要点，否则不可用。"""
+    """评分标准必须给出可分配的分值或得分依据，否则不可用。"""
 
     result = _validate(_candidate(scoring_rubric="请按标准评分。"))
 
     assert result.status is QuestionStatus.NEEDS_REVISION
     assert QUESTION_RUBRIC_UNUSABLE in _issue_codes(result)
+
+
+def test_rubric_with_explicit_allocation_but_no_digits_is_usable() -> None:
+    """M02：明确的分值分配规则（无论是否含数字）都是可用的。"""
+
+    for rubric in (
+        "正确选项得满分，其余不得分。",
+        "答对全部要点得满分。",
+        "要点齐全得分，缺一要点扣一半。",
+        "参考答案正确即给分，部分正确按要点给分。",
+    ):
+        result = _validate(_candidate(scoring_rubric=rubric))
+        assert result.status is QuestionStatus.PENDING_REVIEW, rubric
+        assert result.issues == ()
+
+
+def test_digit_only_or_placeholder_rubric_needs_revision() -> None:
+    """M02：仅数字、数字加单位与空洞占位表达都不可用。"""
+
+    for rubric in ("1", "2 分", "100％", "（略）", "见参考答案。"):
+        result = _validate(_candidate(scoring_rubric=rubric))
+        assert result.status is QuestionStatus.NEEDS_REVISION, rubric
+        assert QUESTION_RUBRIC_UNUSABLE in _issue_codes(result)
 
 
 @pytest.mark.parametrize(
