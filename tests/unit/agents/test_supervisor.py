@@ -19,11 +19,20 @@ Workflow”，`.specify/contracts/agent-workflow.md` 规定置信度低于阈值
 7. 失败输出使用脱敏错误码、`retryable=False`，且不得声明需要人工复核；
 8. 决策是纯函数：同输入同输出，不访问数据库与 Provider。
 
+验收修复（H01）附加覆盖内容：
+9. 整卷收尾的就绪判定只看真实 `ExamResultDTO`/`DiagnosisReportDTO`：整卷已最终确认、无缺题/失败/未校验题目、
+   诊断 `Ready` 且经 `DiagnosisService.is_current` 判定对应当前整卷结果时才能 `finish`；
+10. 诊断 `Not Ready`/`Failed`/`Stale`、旧版本 `Ready` 诊断、诊断属于其它答卷、整卷未最终确认、缺题或自造字典
+   均保留 `SUPERVISOR_FINALIZE_NOT_READY`；整卷仍有待复核题目时返回 `pause`；
+11. 逐题最终结果集合必须非空且数量与预期题目数量一致，不能用“对象非空”代替状态判断。
+
 执行方法（先红后绿）：``python -m pytest tests/unit/agents -q``；实现前本文件因模块缺失而失败。
 """
 
 from __future__ import annotations
 
+from datetime import UTC, datetime, timedelta
+from decimal import Decimal
 from pathlib import Path
 from typing import Any
 
@@ -38,7 +47,14 @@ from backend.app.ai.agents.state import (
 )
 from backend.app.domain.enums import QuestionType, ReviewStatus, ValidationStatus
 from backend.app.schemas.ai import GradingResult
-from backend.app.schemas.grading import ConfidenceDecisionDTO
+from backend.app.schemas.grading import (
+    ConfidenceDecisionDTO,
+    DiagnosisReportDTO,
+    DiagnosisStatus,
+    ExamResultDTO,
+    ExamResultStatus,
+    QuestionResultDTO,
+)
 
 
 def _grading_result(*, review_status: str = "Not Required") -> GradingResult:
@@ -76,6 +92,95 @@ def _confidence_decision(
     )
 
 
+#: 整卷汇总时间；诊断就绪判定需要与之比对。
+_AGGREGATED_AT = datetime(2026, 9, 18, 8, 0, tzinfo=UTC)
+
+
+def _question_result(
+    answer_id: str = "answer-1",
+    *,
+    order: int = 1,
+    requires_review: bool = False,
+    counted: bool = True,
+) -> QuestionResultDTO:
+    """构造逐题汇总结果；未计入总分的题目按“缺结果”表示。"""
+
+    return QuestionResultDTO(
+        order=order,
+        answer_id=answer_id,
+        question_id=f"question-{order}",
+        question_type=QuestionType.SINGLE_CHOICE,
+        max_score=Decimal(2),
+        score=Decimal(2) if counted else None,
+        effective_score=Decimal(2) if counted else None,
+        counted=counted,
+        missing=not counted,
+        requires_review=requires_review,
+        grading_status="Accepted" if counted else "Missing",
+    )
+
+
+def _exam_result(
+    *,
+    items: list[QuestionResultDTO] | None = None,
+    is_final: bool = True,
+    pending_review: int = 0,
+    missing: list[str] | None = None,
+    failed: list[str] | None = None,
+    not_validated: list[str] | None = None,
+    expected_answer_count: int = 1,
+    aggregated_at: datetime = _AGGREGATED_AT,
+) -> ExamResultDTO:
+    """构造真实整卷结果 DTO；默认是已最终确认的单题整卷。"""
+
+    resolved_items = list(items) if items is not None else [_question_result()]
+    return ExamResultDTO(
+        submission_id="submission-1",
+        exam_id="exam-1",
+        student_id="student-1",
+        result_status=ExamResultStatus.FINAL if is_final else ExamResultStatus.PENDING,
+        is_final=is_final,
+        final_total_score=Decimal(2) if is_final else None,
+        confirmed_subtotal=Decimal(2),
+        confirmed_subtotal_label="已确认 2 分",
+        total_max_score=Decimal(2),
+        expected_answer_count=expected_answer_count,
+        graded_answer_count=len([item for item in resolved_items if not item.missing]),
+        counted_answer_count=len([item for item in resolved_items if item.counted]),
+        pending_review_answer_count=pending_review,
+        missing_answer_ids=list(missing or ()),
+        failed_answer_ids=list(failed or ()),
+        not_validated_answer_ids=list(not_validated or ()),
+        items=resolved_items,
+        aggregated_at=aggregated_at,
+    )
+
+
+def _diagnosis(
+    exam_result: ExamResultDTO,
+    *,
+    status: DiagnosisStatus = DiagnosisStatus.READY,
+    source_updated_at: datetime | None = None,
+    submission_id: str | None = None,
+    generated_at: datetime | None = None,
+) -> DiagnosisReportDTO:
+    """构造诊断报告 DTO；默认与整卷结果对应且已就绪。"""
+
+    if generated_at is None and status is DiagnosisStatus.READY:
+        generated_at = _AGGREGATED_AT + timedelta(minutes=5)
+    return DiagnosisReportDTO(
+        exam_result_id=f"exam-result:{exam_result.submission_id}",
+        submission_id=submission_id or exam_result.submission_id,
+        student_id=exam_result.student_id,
+        status=status,
+        source_exam_result_updated_at=(
+            source_updated_at if source_updated_at is not None else exam_result.aggregated_at
+        ),
+        generated_at=generated_at,
+        error_code="DIAGNOSIS_PROVIDER_FAILED" if status is DiagnosisStatus.FAILED else None,
+    )
+
+
 def _agent_input(**overrides: Any) -> AgentInput:
     """构造 Supervisor 输入信封；默认是客观题评分任务。"""
 
@@ -89,17 +194,25 @@ def _agent_input(**overrides: Any) -> AgentInput:
     return AgentInput(**payload)
 
 
-def _finalize_state(**overrides: Any) -> dict[str, Any]:
-    """构造整卷只读快照；默认只有逐题最终结果。"""
+def _finalize_state(
+    *,
+    exam_result: ExamResultDTO | Any = None,
+    diagnosis: DiagnosisReportDTO | Any = None,
+    final_results: list[QuestionResultDTO] | None = None,
+) -> dict[str, Any]:
+    """构造整卷只读快照；默认是“整卷最终确认 + 诊断与当前结果对应”的真实 DTO。"""
 
-    state: dict[str, Any] = {
+    resolved_exam = exam_result if exam_result is not None else _exam_result()
+    return {
         "workflow_id": "workflow-1",
         "request_id": "request-1",
         "submission_id": "submission-1",
-        "final_results": [{"order": 1}],
+        "exam_result": resolved_exam,
+        "diagnosis": (
+            diagnosis if diagnosis is not None else _diagnosis(resolved_exam)
+        ),
+        "final_results": list(final_results if final_results is not None else [_question_result()]),
     }
-    state.update(overrides)
-    return state
 
 
 def test_route_table_covers_every_task_kind() -> None:
@@ -319,8 +432,75 @@ def test_review_task_without_grading_result_fails() -> None:
     assert output.error.error_code == SUPERVISOR_MISSING_GRADING_RESULT
 
 
-def test_finalize_requires_unified_result_and_diagnosis() -> None:
-    """整卷收尾必须等汇总结果与诊断齐备（二者由 T072 产生），否则显式失败。"""
+def test_finalize_finishes_only_with_final_result_and_current_diagnosis() -> None:
+    """整卷最终确认且诊断对应当前结果时才能 finish（H01 就绪判定基线）。"""
+
+    from backend.app.ai.agents.supervisor import AgentTaskKind, SupervisorAgent
+
+    output = SupervisorAgent().decide(
+        AgentTaskKind.FINALIZE,
+        _agent_input(question_type=None),
+        workflow_state=_finalize_state(),
+    )
+
+    assert output.status is AgentStatus.SUCCESS
+    decision = output.supervisor_decision
+    assert decision is not None
+    assert decision.action is SupervisorAction.FINISH
+    assert decision.next_agent is None
+    assert decision.tool_names == []
+
+
+def test_finalize_rejects_plain_dicts_as_results() -> None:
+    """自造字典不能代替真实 DTO：对象非空不等于结果就绪。"""
+
+    from backend.app.ai.agents.supervisor import (
+        SUPERVISOR_FINALIZE_NOT_READY,
+        AgentTaskKind,
+        SupervisorAgent,
+    )
+
+    output = SupervisorAgent().decide(
+        AgentTaskKind.FINALIZE,
+        _agent_input(question_type=None),
+        workflow_state=_finalize_state(
+            exam_result={"items": []},
+            diagnosis={"status": "Ready"},
+        ),
+    )
+
+    assert output.status is AgentStatus.FAILURE
+    assert output.error is not None
+    assert output.error.error_code == SUPERVISOR_FINALIZE_NOT_READY
+
+
+def test_finalize_requires_final_exam_result() -> None:
+    """整卷尚未形成最终成绩时不得结束流程。"""
+
+    from backend.app.ai.agents.supervisor import (
+        SUPERVISOR_FINALIZE_NOT_READY,
+        AgentTaskKind,
+        SupervisorAgent,
+    )
+
+    exam_result = _exam_result(is_final=False, items=[_question_result(counted=False)])
+    output = SupervisorAgent().decide(
+        AgentTaskKind.FINALIZE,
+        _agent_input(question_type=None),
+        workflow_state=_finalize_state(
+            exam_result=exam_result,
+            diagnosis=_diagnosis(exam_result, status=DiagnosisStatus.NOT_READY),
+            final_results=[_question_result(counted=False)],
+        ),
+    )
+
+    assert output.status is AgentStatus.FAILURE
+    assert output.error is not None
+    assert output.error.error_code == SUPERVISOR_FINALIZE_NOT_READY
+
+
+def test_finalize_fails_when_answers_are_missing() -> None:
+    """缺题（缺结果、失败或未通过校验）时不得结束流程。"""
 
     from backend.app.ai.agents.supervisor import (
         SUPERVISOR_FINALIZE_NOT_READY,
@@ -329,26 +509,139 @@ def test_finalize_requires_unified_result_and_diagnosis() -> None:
     )
 
     agent = SupervisorAgent()
-    not_ready = agent.decide(
+    missing_item = _question_result(counted=False)
+    missing_exam = _exam_result(
+        items=[missing_item],
+        is_final=False,
+        missing=["answer-1"],
+        expected_answer_count=2,
+    )
+    missing_output = agent.decide(
         AgentTaskKind.FINALIZE,
         _agent_input(question_type=None),
-        workflow_state=_finalize_state(),
+        workflow_state=_finalize_state(
+            exam_result=missing_exam,
+            diagnosis=_diagnosis(missing_exam, status=DiagnosisStatus.NOT_READY),
+            final_results=[missing_item],
+        ),
     )
-    assert not_ready.status is AgentStatus.FAILURE
-    assert not_ready.error is not None
-    assert not_ready.error.error_code == SUPERVISOR_FINALIZE_NOT_READY
+    assert missing_output.error is not None
+    assert missing_output.error.error_code == SUPERVISOR_FINALIZE_NOT_READY
 
-    ready = agent.decide(
+    # 逐题最终结果数量少于预期题目数量同样不得收尾。
+    short_output = agent.decide(
         AgentTaskKind.FINALIZE,
         _agent_input(question_type=None),
-        workflow_state=_finalize_state(exam_result={"items": []}, diagnosis={"status": "Ready"}),
+        workflow_state=_finalize_state(
+            exam_result=_exam_result(expected_answer_count=2),
+            final_results=[_question_result()],
+        ),
     )
-    assert ready.status is AgentStatus.SUCCESS
-    decision = ready.supervisor_decision
+    assert short_output.status is AgentStatus.FAILURE
+    assert short_output.error is not None
+    assert short_output.error.error_code == SUPERVISOR_FINALIZE_NOT_READY
+
+    failed_exam = _exam_result(failed=["answer-1"], is_final=False)
+    failed_output = agent.decide(
+        AgentTaskKind.FINALIZE,
+        _agent_input(question_type=None),
+        workflow_state=_finalize_state(
+            exam_result=failed_exam,
+            diagnosis=_diagnosis(failed_exam, status=DiagnosisStatus.NOT_READY),
+        ),
+    )
+    assert failed_output.error is not None
+    assert failed_output.error.error_code == SUPERVISOR_FINALIZE_NOT_READY
+
+    not_validated_exam = _exam_result(not_validated=["answer-1"], is_final=False)
+    not_validated_output = agent.decide(
+        AgentTaskKind.FINALIZE,
+        _agent_input(question_type=None),
+        workflow_state=_finalize_state(
+            exam_result=not_validated_exam,
+            diagnosis=_diagnosis(not_validated_exam, status=DiagnosisStatus.NOT_READY),
+        ),
+    )
+    assert not_validated_output.error is not None
+    assert not_validated_output.error.error_code == SUPERVISOR_FINALIZE_NOT_READY
+
+
+def test_finalize_pauses_when_review_is_pending() -> None:
+    """整卷仍有待人工复核题目时返回 pause，而不是失败或结束。"""
+
+    from backend.app.ai.agents.supervisor import AgentTaskKind, SupervisorAgent
+
+    exam_result = _exam_result(is_final=False, pending_review=1)
+    output = SupervisorAgent().decide(
+        AgentTaskKind.FINALIZE,
+        _agent_input(question_type=None),
+        workflow_state=_finalize_state(
+            exam_result=exam_result,
+            diagnosis=_diagnosis(exam_result, status=DiagnosisStatus.NOT_READY),
+        ),
+    )
+
+    assert output.status is AgentStatus.PENDING_REVIEW
+    assert output.requires_review is True
+    assert output.error is None
+    decision = output.supervisor_decision
     assert decision is not None
-    assert decision.action is SupervisorAction.FINISH
-    assert decision.next_agent is None
-    assert decision.tool_names == []
+    assert decision.action is SupervisorAction.PAUSE
+
+
+def test_finalize_fails_on_not_ready_or_failed_diagnosis() -> None:
+    """诊断 Not Ready / Failed 均不得当作就绪。"""
+
+    from backend.app.ai.agents.supervisor import (
+        SUPERVISOR_FINALIZE_NOT_READY,
+        AgentTaskKind,
+        SupervisorAgent,
+    )
+
+    agent = SupervisorAgent()
+    exam_result = _exam_result()
+    for status in (DiagnosisStatus.NOT_READY, DiagnosisStatus.FAILED):
+        output = agent.decide(
+            AgentTaskKind.FINALIZE,
+            _agent_input(question_type=None),
+            workflow_state=_finalize_state(
+                exam_result=exam_result,
+                diagnosis=_diagnosis(exam_result, status=status),
+            ),
+        )
+        assert output.status is AgentStatus.FAILURE
+        assert output.error is not None
+        assert output.error.error_code == SUPERVISOR_FINALIZE_NOT_READY
+
+
+def test_finalize_fails_on_stale_or_old_diagnosis() -> None:
+    """诊断 Stale、旧版本 Ready（汇总时间不同）或属于其它答卷时不得收尾。"""
+
+    from backend.app.ai.agents.supervisor import (
+        SUPERVISOR_FINALIZE_NOT_READY,
+        AgentTaskKind,
+        SupervisorAgent,
+    )
+
+    agent = SupervisorAgent()
+    exam_result = _exam_result()
+    cases = (
+        _diagnosis(exam_result, status=DiagnosisStatus.STALE),
+        _diagnosis(exam_result, source_updated_at=_AGGREGATED_AT - timedelta(minutes=30)),
+        _diagnosis(exam_result, submission_id="submission-2"),
+    )
+    for diagnosis in cases:
+        output = agent.decide(
+            AgentTaskKind.FINALIZE,
+            _agent_input(question_type=None),
+            workflow_state=_finalize_state(
+                exam_result=exam_result,
+                diagnosis=diagnosis,
+            ),
+        )
+        assert output.status is AgentStatus.FAILURE
+        assert output.error is not None
+        assert output.error.error_code == SUPERVISOR_FINALIZE_NOT_READY
 
 
 def test_finalize_without_workflow_state_fails() -> None:
