@@ -42,7 +42,10 @@ from backend.app.schemas.grading import (
     TeacherExamResultSummaryDTO,
 )
 from backend.app.services.diagnosis_service import DIAGNOSIS_NOT_READY
-from backend.app.services.grading.diagnosis_report_store import DiagnosisReportStore
+from backend.app.services.grading.diagnosis_report_store import (
+    DIAGNOSIS_STORE_NOT_READY,
+    DiagnosisReportStore,
+)
 from backend.app.services.grading.grading_repository import DatabaseGradingRepository
 from backend.app.services.grading.grading_task_service import (
     GRADING_EXECUTION_NOT_READY,
@@ -75,6 +78,7 @@ _ERROR_STATUS: dict[str, int] = {
     GRADING_TRIGGER_CONFLICT: 409,
     GRADING_STORE_NOT_READY: 503,
     GRADING_EXECUTION_NOT_READY: 503,
+    DIAGNOSIS_STORE_NOT_READY: 503,
 }
 
 
@@ -231,6 +235,7 @@ class ResultsQueryService:
     ) -> SubmissionResultDTO:
         """教师读取授权课程内某位学生的结果；包含待复核条目以便复核。"""
 
+        self._repository.ensure_ready()
         with self._use_session() as session:
             exam = self._require_owned_exam(session, exam_id, teacher_id)
             submission = self._require_submission(session, submission_id)

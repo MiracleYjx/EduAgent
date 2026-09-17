@@ -10,6 +10,10 @@ TCR（2026-09-16，T057 / B05、B06）：新增学生成绩/错题/诊断/知识
 TCR（2026-09-17，M03）：摘要此前把草稿计入已提交数。新增草稿与已提交生命周期
 混合场景，验证 Submitted/Graded/Reviewed 均计入统计，Draft 不影响提交数、平均分和
 未就绪标志；同时锁定结果列表仍保留草稿原有空态，不改变列表展示合同。
+
+TCR（2026-09-17，M05）：教师详情此前漏掉结果仓储就绪检查，诊断仓储错误也会落为 500。
+新增真实仓储缺表场景，分别验证未迁移结果存储与诊断存储返回 503，并保留来源错误码；
+失败响应不得用空成绩或 Not Ready 空态伪装成功。
 """
 
 from __future__ import annotations
@@ -35,7 +39,14 @@ from backend.app.domain.enums import (
     SubmissionStatus,
     UserRole,
 )
-from backend.app.models import Answer, DiagnosisReport, ExamResult, Submission, User
+from backend.app.models import (
+    Answer,
+    DiagnosisReport,
+    ExamResult,
+    Submission,
+    User,
+    WorkflowRun,
+)
 from backend.app.schemas.grading import (
     ConfidenceDecisionDTO,
     DiagnosisReportDTO,
@@ -46,7 +57,10 @@ from backend.app.schemas.grading import (
     QuestionResultDTO,
 )
 from backend.app.services.auth_service import create_access_token
-from backend.app.services.grading.diagnosis_report_store import DiagnosisReportStore
+from backend.app.services.grading.diagnosis_report_store import (
+    DIAGNOSIS_STORE_NOT_READY,
+    DiagnosisReportStore,
+)
 from backend.app.services.grading.grading_repository import DatabaseGradingRepository
 from backend.app.services.grading.grading_task_service import (
     NotConfiguredGradingRepository,
@@ -544,6 +558,52 @@ def _t057_ready_report(exam_result: ExamResultDTO) -> DiagnosisReportDTO:
         generated_at=datetime(2026, 9, 16, 12, 0, tzinfo=UTC),
         source_exam_result_updated_at=exam_result.aggregated_at,
     )
+
+
+def test_teacher_detail_reports_unmigrated_result_store_as_503(
+    session: Session, scenario, client_factory
+) -> None:
+    """教师详情同样执行真实仓储就绪检查，缺迁移表时不返回空成绩。"""
+
+    service, _, _ = _t057_service(session)
+    session.commit()
+    WorkflowRun.__table__.drop(session.get_bind())
+    client = client_factory(service)
+    teacher_headers = headers(scenario["teacher"], UserRole.TEACHER)
+    exam = scenario["exam"]
+    submission = scenario["submissions"]["a"]
+
+    response = client.get(
+        f"/api/results/exams/{exam.id}/submissions/{submission.id}",
+        headers=teacher_headers,
+    )
+
+    assert response.status_code == 503
+    assert response.json()["detail"]["error_code"] == "GRADING_STORE_NOT_READY"
+    assert "total_score" not in response.json()
+
+
+def test_diagnosis_store_unavailable_maps_to_503_with_source_code(
+    session: Session, scenario, client_factory
+) -> None:
+    """诊断表不可用时保留诊断来源码并返回 503，不返回 Not Ready 空态。"""
+
+    service, repository, _ = _t057_service(session)
+    exam_result, _ = _t057_final_result(session, scenario)
+    repository.save_exam_result(exam_result)
+    session.commit()
+    DiagnosisReport.__table__.drop(session.get_bind())
+    client = client_factory(service)
+    student_headers = headers(scenario["student_a"], UserRole.STUDENT)
+
+    response = client.get(
+        f"/api/results/me/submissions/{exam_result.submission_id}/diagnosis",
+        headers=student_headers,
+    )
+
+    assert response.status_code == 503
+    assert response.json()["detail"]["error_code"] == DIAGNOSIS_STORE_NOT_READY
+    assert "status" not in response.json()
 
 
 def test_student_result_reads_from_database_and_diagnosis_is_read_only(
