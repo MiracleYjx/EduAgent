@@ -22,7 +22,7 @@ FR-030（客观题必须是确定性规则、不得调用 LLM）、FR-032（主�
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from enum import StrEnum
 from types import MappingProxyType
 from typing import Final
@@ -38,6 +38,13 @@ from backend.app.ai.agents.state import (
 )
 from backend.app.ai.workflows.state import GradingWorkflowState
 from backend.app.domain.enums import GradingMode, ReviewStatus
+from backend.app.schemas.grading import (
+    DiagnosisReportDTO,
+    ExamResultDTO,
+    ExamResultStatus,
+    QuestionResultDTO,
+)
+from backend.app.services.diagnosis_service import DiagnosisService
 from backend.app.services.grading.question_router import (
     QuestionRouter,
     normalize_question_type,
@@ -73,11 +80,6 @@ SUPERVISOR_ERROR_MESSAGES: Final[Mapping[str, str]] = MappingProxyType(
 
 #: 路由决策版本；路由规则或工具集合变化时必须递增。
 SUPERVISOR_ROUTING_VERSION: Final[str] = "1"
-
-#: 整卷收尾必须就绪的状态字段；由 T072 的汇总与诊断节点写入。
-FINALIZE_READY_STATE_FIELDS: Final[frozenset[str]] = frozenset(
-    {"final_results", "exam_result", "diagnosis"}
-)
 
 #: 待人工复核信号：评分的复核状态取值。
 PENDING_REVIEW_SIGNALS: Final[frozenset[str]] = frozenset(
@@ -168,18 +170,6 @@ def normalize_task_kind(value: AgentTaskKind | str) -> AgentTaskKind:
     raise ValueError(SUPERVISOR_ERROR_MESSAGES[SUPERVISOR_INVALID_INPUT])
 
 
-def _is_ready_state_value(value: object) -> bool:
-    """判断整卷快照字段是否已就绪：``None``、空集合与空白文本都视为未就绪。"""
-
-    if value is None:
-        return False
-    if isinstance(value, str):
-        return bool(value.strip())
-    if isinstance(value, Mapping | list | tuple | set | frozenset):
-        return bool(value)
-    return True
-
-
 class SupervisorAgent:
     """根据任务种类、输入信封与只读整卷快照给出路由与流程控制决策。
 
@@ -188,6 +178,8 @@ class SupervisorAgent:
 
     def __init__(self, *, router: QuestionRouter | None = None) -> None:
         self._router = router if router is not None else QuestionRouter()
+        # 只复用 M3 的“诊断是否对应当前整卷结果”判定，不复制评分汇总算法。
+        self._diagnosis_service = DiagnosisService()
 
     def decide(
         self,
@@ -289,23 +281,58 @@ class SupervisorAgent:
         self,
         workflow_state: GradingWorkflowState | Mapping[str, object] | None,
     ) -> AgentOutput:
-        """整卷收尾：必须同时具备逐题结果、整卷结果与诊断，才允许结束流程。"""
+        """整卷收尾：按真实结果与诊断状态判定就绪，未就绪一律不得结束流程。
+
+        就绪条件（全部满足才返回 ``finish``）：
+
+        1. ``exam_result`` 是 :class:`ExamResultDTO` 且已最终确认（``is_final`` 为真且
+           ``result_status`` 为 ``Final``）；
+        2. 无缺题、评分失败或未通过结构化校验的题目（不把“对象非空”当成就绪）；
+        3. ``final_results`` 为非空 :class:`QuestionResultDTO` 序列，且数量与预期题目数量一致；
+        4. ``diagnosis`` 是 :class:`DiagnosisReportDTO`，并由 M3 ``DiagnosisService.is_current``
+           判定对应当前整卷结果（``Not Ready``/``Failed``/``Stale`` 与旧版本 ``Ready`` 均不就绪）。
+
+        整卷仍有待人工复核题目时返回 ``pause``；其余未就绪情况保留
+        ``SUPERVISOR_FINALIZE_NOT_READY`` 失败语义。
+        """
 
         if not isinstance(workflow_state, Mapping):
             return self._failure(
                 SUPERVISOR_MISSING_WORKFLOW_STATE,
                 SUPERVISOR_ERROR_MESSAGES[SUPERVISOR_MISSING_WORKFLOW_STATE],
             )
-        missing = sorted(
-            field_name
-            for field_name in FINALIZE_READY_STATE_FIELDS
-            if not _is_ready_state_value(workflow_state.get(field_name))
-        )
-        if missing:
-            return self._failure(
-                SUPERVISOR_FINALIZE_NOT_READY,
-                SUPERVISOR_ERROR_MESSAGES[SUPERVISOR_FINALIZE_NOT_READY],
-            )
+        exam_result = workflow_state.get("exam_result")
+        if not isinstance(exam_result, ExamResultDTO):
+            return self._not_ready()
+        if exam_result.pending_review_answer_count > 0 or any(
+            item.requires_review for item in exam_result.items
+        ):
+            return self._paused()
+        if (
+            not exam_result.is_final
+            or exam_result.result_status is not ExamResultStatus.FINAL
+            or exam_result.missing_answer_ids
+            or exam_result.failed_answer_ids
+            or exam_result.not_validated_answer_ids
+        ):
+            return self._not_ready()
+
+        final_results = workflow_state.get("final_results")
+        if (
+            not isinstance(final_results, Sequence)
+            or isinstance(final_results, (str, bytes))
+            or not final_results
+            or not all(isinstance(item, QuestionResultDTO) for item in final_results)
+            or len(final_results) != exam_result.expected_answer_count
+        ):
+            return self._not_ready()
+
+        diagnosis = workflow_state.get("diagnosis")
+        if not isinstance(diagnosis, DiagnosisReportDTO):
+            return self._not_ready()
+        if not self._diagnosis_service.is_current(diagnosis, exam_result):
+            return self._not_ready()
+
         return AgentOutput(
             agent_type=AgentType.SUPERVISOR,
             status=AgentStatus.SUCCESS,
@@ -313,8 +340,16 @@ class SupervisorAgent:
             supervisor_decision=SupervisorDecision(
                 action=SupervisorAction.FINISH,
                 tool_names=[],
-                reason="逐题结果、整卷结果与诊断均已生成，无需继续调度。",
+                reason="逐题结果已最终确认、整卷结果与诊断均对应当前结果，无需继续调度。",
             ),
+        )
+
+    def _not_ready(self) -> AgentOutput:
+        """整卷、逐题结果或诊断尚未就绪；保留显式失败语义。"""
+
+        return self._failure(
+            SUPERVISOR_FINALIZE_NOT_READY,
+            SUPERVISOR_ERROR_MESSAGES[SUPERVISOR_FINALIZE_NOT_READY],
         )
 
     def _route(
@@ -392,7 +427,6 @@ class SupervisorAgent:
 
 
 __all__ = [
-    "FINALIZE_READY_STATE_FIELDS",
     "GRADING_TOOLS_BY_MODE",
     "MISSING_INPUT_ERROR_CODES",
     "PENDING_REVIEW_SIGNALS",
