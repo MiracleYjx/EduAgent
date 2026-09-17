@@ -175,7 +175,7 @@ Pending Review，Teacher 复核后 Workflow 恢复并生成最终诊断。
 - [X] T065 在 `backend/app/ai/agents/state.py` 和 `backend/app/ai/workflows/state.py` 中定义共用 Agent 输入/输出类型和 LangGraph 状态，包括 Workflow ID、当前答案、上下文 ID、评分结果、置信度、复核状态、最终结果、诊断和错误；依赖 T060-T064 的持久化实体边界
 - [X] T066 [P] [US1] 在 `backend/app/ai/agents/supervisor.py` 中实现 Supervisor Agent 的路由和工具选择决策
 - [X] T067 [US1] 在 `backend/app/ai/agents/question_agent.py` 中实现 Question Agent 的检索、候选生成 Prompt 和结构化候选输出
-- [ ] T068 [US1] 在 `backend/app/services/question_validator.py` 中实现 Question Validator 和候选题目状态转换，保留 Candidate Generation 并阻止 Automatic Publishing
+- [X] T068 [US1] 在 `backend/app/services/question_validator.py` 中实现 Question Validator 和候选题目状态转换，保留 Candidate Generation 并阻止 Automatic Publishing
 - [ ] T069 [US3] 在 `backend/app/ai/agents/grading_agent.py` 中围绕上下文检索、评分校验和置信度输出实现 Grading Agent 编排
 - [ ] T070 [US3] 在 `backend/app/ai/agents/reviewer_agent.py` 中实现 Reviewer Agent 对分数、理由和知识点的检查，以及重新评分决策
 - [ ] T071 [US3] 在 `tests/unit/workflows/test_grading_workflow.py` 中增加失败优先的 LangGraph 路由测试，覆盖 Load Submission、Classify Question、Objective Rule Grade、Subjective Retrieve/Grade、Structured Validation、Confidence Check、Accept 和 Pending Review
