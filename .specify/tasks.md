@@ -173,7 +173,7 @@ LangGraph 自动阅卷 Workflow，同时完成 AI 出题候选生成和教师审
 Pending Review，Teacher 复核后 Workflow 恢复并生成最终诊断。
 
 - [X] T065 在 `backend/app/ai/agents/state.py` 和 `backend/app/ai/workflows/state.py` 中定义共用 Agent 输入/输出类型和 LangGraph 状态，包括 Workflow ID、当前答案、上下文 ID、评分结果、置信度、复核状态、最终结果、诊断和错误；依赖 T060-T064 的持久化实体边界
-- [ ] T066 [P] [US1] 在 `backend/app/ai/agents/supervisor.py` 中实现 Supervisor Agent 的路由和工具选择决策
+- [X] T066 [P] [US1] 在 `backend/app/ai/agents/supervisor.py` 中实现 Supervisor Agent 的路由和工具选择决策
 - [ ] T067 [US1] 在 `backend/app/ai/agents/question_agent.py` 中实现 Question Agent 的检索、候选生成 Prompt 和结构化候选输出
 - [ ] T068 [US1] 在 `backend/app/services/question_validator.py` 中实现 Question Validator 和候选题目状态转换，保留 Candidate Generation 并阻止 Automatic Publishing
 - [ ] T069 [US3] 在 `backend/app/ai/agents/grading_agent.py` 中围绕上下文检索、评分校验和置信度输出实现 Grading Agent 编排
