@@ -31,6 +31,7 @@ from typing import Any, ClassVar, Final, Protocol, cast
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from backend.app.ai.agents.state import (
@@ -99,6 +100,8 @@ QUESTION_EMBEDDING_PROVIDER_FAILED: Final[str] = "QUESTION_EMBEDDING_PROVIDER_FA
 QUESTION_RETRIEVAL_UNSUPPORTED_DIALECT: Final[str] = "QUESTION_RETRIEVAL_UNSUPPORTED_DIALECT"
 #: 检索输入或查询失败。
 QUESTION_RETRIEVAL_FAILED: Final[str] = "QUESTION_RETRIEVAL_FAILED"
+#: 检索查询在数据库层失败（缺表/迁移未就绪等结构性故障）。
+QUESTION_RETRIEVAL_DATABASE_FAILED: Final[str] = "QUESTION_RETRIEVAL_DATABASE_FAILED"
 
 #: 提示版本；作为系统提示首行的稳定前缀。
 QUESTION_GENERATION_PROMPT_VERSION: Final[str] = "question-generation-v1"
@@ -230,6 +233,16 @@ class ProviderNotReadyError(QuestionGenerationError):
     """出题 Provider 未配置或未就绪；不得静默降级。"""
 
     error_code: ClassVar[str] = QUESTION_PROVIDER_NOT_READY
+
+
+class RetrievalDatabaseFailedError(QuestionGenerationError):
+    """检索查询在数据库层失败（缺表、迁移未就绪等结构性故障）。
+
+    只保留异常类名作为来源码，不携带 SQL 语句、表名或连接信息；此类故障需运维处理，
+    因此固定为不可重试，不把数据库异常一律当作可重试错误。
+    """
+
+    error_code: ClassVar[str] = QUESTION_RETRIEVAL_DATABASE_FAILED
 
 
 def _truncate(text: str, budget: int) -> str:
@@ -465,25 +478,28 @@ async def build_generation_context(
         settings=settings,
     )
     if resolved_mode is RetrievalMode.HYBRID:
-        candidates = cast("_HybridLikeRetriever", active_retriever).search(
+        candidates = _execute_search(
+            cast("_HybridLikeRetriever", active_retriever),
             session,
             RetrievalQuery(text=query_text, embedding=tuple(embedding)),
-            top_k=limit,
-            filters=filters,
+            limit,
+            filters,
         )
     elif resolved_mode is RetrievalMode.VECTOR_ONLY:
-        candidates = active_retriever.search(
+        candidates = _execute_search(
+            active_retriever,
             session,
             tuple(embedding),
-            top_k=limit,
-            filters=filters,
+            limit,
+            filters,
         )
     else:
-        candidates = active_retriever.search(
+        candidates = _execute_search(
+            active_retriever,
             session,
             query_text,
-            top_k=limit,
-            filters=filters,
+            limit,
+            filters,
         )
     written, final_context = _compose_final_context(candidates)
     context = QuestionGenerationContext(
@@ -528,6 +544,29 @@ def _resolve_provider_model(provider: BaseLLMProvider) -> str | None:
         if isinstance(value, str) and value.strip():
             return value.strip()
     return None
+
+
+def _execute_search(
+    retriever: Any,
+    session: Session,
+    query: Any,
+    limit: int,
+    filters: RetrievalFilters,
+) -> list[RetrievedChunk]:
+    """在检索调用边界执行查询，并把已知数据库查询异常转为脱敏业务错误。
+
+    - 检索层自己的业务异常（输入非法、方言不支持等）原样传出，保持既有分类与可重试语义；
+    - SQLAlchemy 查询异常只保留异常类名作为来源码，不传递 SQL、表名或连接信息；
+      这类故障属结构性故障，固定不可重试，不把所有数据库异常统一标为可重试。
+    """
+
+    try:
+        return retriever.search(session, query, top_k=limit, filters=filters)
+    except SQLAlchemyError as exc:
+        raise RetrievalDatabaseFailedError(
+            "课程检索查询失败，请检查数据库迁移与连接状态。",
+            source_code=type(exc).__name__,
+        ) from None
 
 
 class QuestionAgent:
@@ -712,6 +751,14 @@ class QuestionAgent:
         """构造脱敏失败输出；失败不得同时声明需要人工复核。"""
 
         source_code = getattr(error, "source_code", None) if error is not None else None
+        if (
+            source_code is None
+            and error is not None
+            # 外部依赖（Embedding/检索）异常用 error_code 作为来源码；
+            # 本模块自己的业务错误不再重复携带平台错误码。
+            and not isinstance(error, QuestionGenerationError)
+        ):
+            source_code = getattr(error, "error_code", None)
         attempt_count = (
             getattr(error, "attempt_count", None) if error is not None else None
         )
@@ -744,6 +791,7 @@ __all__ = [
     "QUESTION_NOT_CANDIDATE_STATUS",
     "QUESTION_PROVIDER_FAILED",
     "QUESTION_PROVIDER_NOT_READY",
+    "QUESTION_RETRIEVAL_DATABASE_FAILED",
     "QUESTION_RETRIEVAL_FAILED",
     "QUESTION_RETRIEVAL_UNSUPPORTED_DIALECT",
     "QUESTION_TYPE_MISMATCH",
@@ -761,6 +809,7 @@ __all__ = [
     "QuestionGenerationError",
     "QuestionGenerationPayload",
     "QuestionTypeMismatchError",
+    "RetrievalDatabaseFailedError",
     "UnknownSourceContextError",
     "build_generation_context",
     "build_generation_messages",
