@@ -45,6 +45,7 @@ from backend.app.schemas.grading import (
     QuestionResultDTO,
 )
 from backend.app.services.diagnosis_service import DiagnosisService
+from backend.app.services.grading.confidence_policy import HUMAN_DECIDED_REVIEW_STATES
 from backend.app.services.grading.question_router import (
     QuestionRouter,
     normalize_question_type,
@@ -84,6 +85,15 @@ SUPERVISOR_ROUTING_VERSION: Final[str] = "1"
 #: 待人工复核信号：评分的复核状态取值。
 PENDING_REVIEW_SIGNALS: Final[frozenset[str]] = frozenset(
     {ReviewStatus.PENDING_REVIEW.value}
+)
+
+#: 需要重新评分：允许对应评分调度，但不得当作最终接受。
+REGRADE_REVIEW_STATUS: Final[str] = ReviewStatus.RE_GRADE.value
+
+#: 已形成人工/最终结论的复核状态；历史自动决策不得覆盖它们。
+#: 复用 M3 `HUMAN_DECIDED_REVIEW_STATES`，仅把 `Re-grade` 单独拆出。
+FINAL_ACCEPT_REVIEW_STATUSES: Final[frozenset[str]] = frozenset(
+    HUMAN_DECIDED_REVIEW_STATES - {REGRADE_REVIEW_STATUS}
 )
 
 
@@ -170,7 +180,71 @@ def normalize_task_kind(value: AgentTaskKind | str) -> AgentTaskKind:
     raise ValueError(SUPERVISOR_ERROR_MESSAGES[SUPERVISOR_INVALID_INPUT])
 
 
+def _normalize_review_status(value: object) -> str | None:
+    """把复核状态取值归一为文本（兼容枚举与字符串）；无法识别时返回 ``None``。"""
+
+    if isinstance(value, ReviewStatus):
+        return value.value
+    if isinstance(value, str) and value.strip():
+        return value.strip()
+    return None
+
+
+def _review_statuses(
+    agent_input: AgentInput,
+    workflow_state: GradingWorkflowState | Mapping[str, object] | None,
+) -> list[str]:
+    """收集当前题的权威复核状态，按具体程度排序（整卷槽位 → 逐题结果 → 调用输入）。"""
+
+    statuses: list[str] = []
+    current_answer_id = agent_input.answer_id
+    if isinstance(workflow_state, Mapping):
+        status = _normalize_review_status(workflow_state.get("review_status"))
+        if status is not None:
+            statuses.append(status)
+        raw_answer_id = workflow_state.get("current_answer_id")
+        if isinstance(raw_answer_id, str) and raw_answer_id.strip():
+            current_answer_id = raw_answer_id.strip()
+        results = workflow_state.get("grading_results")
+        if isinstance(results, Mapping) and current_answer_id is not None:
+            entry = results.get(current_answer_id)
+            entry_status = _normalize_review_status(getattr(entry, "review_status", None))
+            if entry_status is None and isinstance(entry, Mapping):
+                entry_status = _normalize_review_status(entry.get("review_status"))
+            if entry_status is not None:
+                statuses.append(entry_status)
+    if agent_input.grading_result is not None:
+        status = _normalize_review_status(agent_input.grading_result.review_status)
+        if status is not None:
+            statuses.append(status)
+    return statuses
+
+
+def _exam_result_has_pending_review(exam_result: ExamResultDTO) -> bool:
+    """判断整卷是否仍存在待人工复核的题目（H02：权威复核状态优先）。
+
+    - 平台汇总的 ``pending_review_answer_count`` 是首选信号；
+    - 逐题已有权威状态时：``Pending Review`` 计入待复核，``Confirmed``/``Modified``/``Final``
+      与需要重新评分的 ``Re-grade`` 不计入；
+    - 逐题无权威状态时才回退到历史 ``requires_review`` 标记。
+    """
+
+    if exam_result.pending_review_answer_count > 0:
+        return True
+    for item in exam_result.items:
+        status = _normalize_review_status(item.review_status)
+        if status in FINAL_ACCEPT_REVIEW_STATUSES or status == REGRADE_REVIEW_STATUS:
+            continue
+        if status in PENDING_REVIEW_SIGNALS or (status is None and item.requires_review):
+            return True
+    return False
+
+
 class SupervisorAgent:
+    """根据任务种类、输入信封与只读整卷快照给出路由与流程控制决策。
+
+    :param router: 题型分流器；默认使用无状态 :class:`QuestionRouter`，与 M3 评分链路口径一致。
+    """
     """根据任务种类、输入信封与只读整卷快照给出路由与流程控制决策。
 
     :param router: 题型分流器；默认使用无状态 :class:`QuestionRouter`，与 M3 评分链路口径一致。
@@ -304,9 +378,7 @@ class SupervisorAgent:
         exam_result = workflow_state.get("exam_result")
         if not isinstance(exam_result, ExamResultDTO):
             return self._not_ready()
-        if exam_result.pending_review_answer_count > 0 or any(
-            item.requires_review for item in exam_result.items
-        ):
+        if _exam_result_has_pending_review(exam_result):
             return self._paused()
         if (
             not exam_result.is_final
@@ -409,27 +481,36 @@ class SupervisorAgent:
         agent_input: AgentInput,
         workflow_state: GradingWorkflowState | Mapping[str, object] | None,
     ) -> bool:
-        """检测待人工复核信号；只看既有字段，不重新判定置信度阈值。"""
+        """检测待人工复核信号；权威复核状态优先于历史自动决策。
 
+        判定顺序（H02）：
+
+        1. 当前题权威复核状态为 ``Confirmed``/``Modified``/``Final`` 时，教师或最终结论已成立，
+           历史 ``requires_review=True`` 不得重新暂停（复用 M3 ``HUMAN_DECIDED_REVIEW_STATES`` 口径）；
+        2. 权威状态为 ``Pending Review`` 时暂停；
+        3. 权威状态为 ``Re-grade`` 时允许重新评分调度，不暂停，也不视为最终接受；
+        4. 无任何权威状态时才回退到历史自动决策。
+
+        历史 ``confidence``/``threshold``/``requires_review`` 只读，不重新判定、不修改。
+        """
+
+        statuses = _review_statuses(agent_input, workflow_state)
+        if any(status in FINAL_ACCEPT_REVIEW_STATUSES for status in statuses):
+            return False
+        if any(status in PENDING_REVIEW_SIGNALS for status in statuses):
+            return True
+        if any(status == REGRADE_REVIEW_STATUS for status in statuses):
+            return False
         decision = agent_input.confidence_decision
-        if decision is not None and decision.requires_review:
-            return True
-        grading_result = agent_input.grading_result
-        if grading_result is not None and grading_result.review_status in (
-            PENDING_REVIEW_SIGNALS
-        ):
-            return True
-        if isinstance(workflow_state, Mapping):
-            state_review = workflow_state.get("review_status")
-            if isinstance(state_review, str) and state_review in PENDING_REVIEW_SIGNALS:
-                return True
-        return False
+        return bool(decision is not None and decision.requires_review)
 
 
 __all__ = [
+    "FINAL_ACCEPT_REVIEW_STATUSES",
     "GRADING_TOOLS_BY_MODE",
     "MISSING_INPUT_ERROR_CODES",
     "PENDING_REVIEW_SIGNALS",
+    "REGRADE_REVIEW_STATUS",
     "SUPERVISOR_ERROR_MESSAGES",
     "SUPERVISOR_FINALIZE_NOT_READY",
     "SUPERVISOR_INVALID_INPUT",
