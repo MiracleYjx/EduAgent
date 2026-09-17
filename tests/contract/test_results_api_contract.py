@@ -6,6 +6,10 @@ TCR（2026-09-16，T057 / B05、B06）：新增学生成绩/错题/诊断/知识
 授权边界；真实成绩来源仍依赖 T060。
 
 本文件只断言对外契约。
+
+TCR（2026-09-17，M03）：摘要此前把草稿计入已提交数。新增草稿与已提交生命周期
+混合场景，验证 Submitted/Graded/Reviewed 均计入统计，Draft 不影响提交数、平均分和
+未就绪标志；同时锁定结果列表仍保留草稿原有空态，不改变列表展示合同。
 """
 
 from __future__ import annotations
@@ -307,6 +311,52 @@ def test_teacher_results_do_not_fake_zero_average(
     assert body["average_of_final_scores"] is None
     assert body["not_ready"] is True
     assert body["not_ready_reason"]
+
+
+@pytest.mark.parametrize(
+    "submitted_status",
+    [SubmissionStatus.SUBMITTED, SubmissionStatus.GRADED, SubmissionStatus.REVIEWED],
+)
+def test_teacher_summary_excludes_drafts_from_submitted_statistics(
+    session: Session, scenario, client_factory, submitted_status: SubmissionStatus
+) -> None:
+    """草稿不计为已提交，也不把已有最终成绩的摘要变成未就绪。"""
+
+    submitted = scenario["submissions"]["a"]
+    draft = scenario["submissions"]["b"]
+    submitted.status = submitted_status
+    draft.status = SubmissionStatus.DRAFT
+    draft.submitted_at = None
+    session.commit()
+    repository = InMemoryGradingRepository()
+    _store_final_result(repository, submitted)
+    client = client_factory(_service(session, repository))
+    teacher_headers = headers(scenario["teacher"], UserRole.TEACHER)
+    exam_id = scenario["exam"].id
+
+    summary = client.get(
+        f"/api/results/exams/{exam_id}/summary", headers=teacher_headers
+    )
+
+    assert summary.status_code == 200
+    body = summary.json()
+    assert body["submitted_count"] == 1
+    assert body["final_count"] == 1
+    assert body["pending_review_count"] == 0
+    assert body["average_of_final_scores"] == "8.00"
+    assert body["not_ready"] is False
+    assert body["not_ready_reason"] is None
+    listed = client.get(
+        f"/api/results/exams/{exam_id}/submissions", headers=teacher_headers
+    )
+    assert listed.status_code == 200
+    assert len(listed.json()) == 2
+    draft_entry = next(
+        item for item in listed.json() if item["submission_id"] == str(draft.id)
+    )
+    assert draft_entry["submitted_at"] is None
+    assert draft_entry["total_score"] is None
+    assert draft_entry["not_ready_reason"]
 
 
 def test_teacher_summary_averages_only_final_scores(
