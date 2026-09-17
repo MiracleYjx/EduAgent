@@ -34,9 +34,9 @@ from collections.abc import Mapping, Sequence
 from decimal import Decimal, InvalidOperation
 from enum import StrEnum
 from types import MappingProxyType
-from typing import ClassVar, Final
+from typing import ClassVar, Final, Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from backend.app.domain.enums import QuestionStatus, QuestionType
 from backend.app.schemas.ai import QuestionCandidate
@@ -66,6 +66,8 @@ QUESTION_NOT_CANDIDATE: Final[str] = "QUESTION_NOT_CANDIDATE"
 QUESTION_STATUS_TRANSITION_BLOCKED: Final[str] = "QUESTION_STATUS_TRANSITION_BLOCKED"
 #: Agent 或校验器试图自动发布候选题。
 QUESTION_AUTOMATIC_PUBLISH_BLOCKED: Final[str] = "QUESTION_AUTOMATIC_PUBLISH_BLOCKED"
+#: 候选题目为空，无法进入教师审核。
+QUESTION_EMPTY_CANDIDATE_BATCH: Final[str] = "QUESTION_EMPTY_CANDIDATE_BATCH"
 
 #: 候选题必须处于的生成状态（复用 M1 ``QuestionStatus``）。
 CANDIDATE_GENERATION_STATUS: Final[str] = QuestionStatus.CANDIDATE_GENERATION.value
@@ -95,6 +97,7 @@ TEACHER_ONLY_STATUSES: Final[frozenset[QuestionStatus]] = frozenset(
 )
 
 #: 校验结果允许表达的审核状态；永不包含可发布状态。
+ValidatorResultStatus = Literal[QuestionStatus.PENDING_REVIEW, QuestionStatus.NEEDS_REVISION]
 VALIDATOR_RESULT_STATUSES: Final[frozenset[QuestionStatus]] = frozenset(
     {QuestionStatus.PENDING_REVIEW, QuestionStatus.NEEDS_REVISION}
 )
@@ -173,14 +176,30 @@ class QuestionValidationIssue(BaseModel):
 
 
 class CandidateValidationResult(BaseModel):
-    """单个候选题的校验结果；``status`` 是审核状态，不是 DTO 上的状态字段。"""
+    """单个候选题的校验结果；``status`` 是审核状态，不是 DTO 上的状态字段。
+
+    字段层把状态限制为 ``Pending Review``/``Needs Revision``，并在模型层强制状态与失败原因自洽：
+    ``Pending Review`` 不得携带 ``issues``，``Needs Revision`` 必须保留非空 ``issues``。
+    """
 
     model_config = ConfigDict(extra="forbid", frozen=True)
 
-    status: QuestionStatus = Field(description="建议的审核状态。")
+    status: ValidatorResultStatus = Field(
+        description="建议的审核状态；只能是 Pending Review 或 Needs Revision。"
+    )
     issues: tuple[QuestionValidationIssue, ...] = Field(
         default=(), description="失败原因；为空表示校验通过。"
     )
+
+    @model_validator(mode="after")
+    def _validate_status_issue_consistency(self) -> CandidateValidationResult:
+        """状态与失败原因必须自洽，避免“待审核带错误”或“待修订无原因”。"""
+
+        if self.status is QuestionStatus.PENDING_REVIEW and self.issues:
+            raise ValueError("Pending Review 结果不得携带失败原因。")
+        if self.status is QuestionStatus.NEEDS_REVISION and not self.issues:
+            raise ValueError("Needs Revision 结果必须保留失败原因。")
+        return self
 
     @property
     def is_valid(self) -> bool:
@@ -190,7 +209,11 @@ class CandidateValidationResult(BaseModel):
 
 
 class CandidateBatchValidation(BaseModel):
-    """一次生成的整批校验结果：逐题结果 + 整批条件问题。"""
+    """一次生成的整批校验结果：逐题结果 + 整批条件问题。
+
+    空集合不代表成功：无 ``results`` 且无 ``issues`` 的批次在模型层直接拒绝，避免把“没有题目”
+    当成“全部通过”。
+    """
 
     model_config = ConfigDict(extra="forbid", frozen=True)
 
@@ -201,14 +224,26 @@ class CandidateBatchValidation(BaseModel):
         default=(), description="整批条件问题（难度匹配、知识点覆盖）。"
     )
 
+    @model_validator(mode="after")
+    def _validate_non_empty(self) -> CandidateBatchValidation:
+        """空批次必须给出明确原因，不得表示为成功。"""
+
+        if not self.results and not self.issues:
+            raise ValueError("空候选批次必须给出明确原因，不能视为校验通过。")
+        return self
+
     @property
     def is_valid(self) -> bool:
-        """返回整批是否可以进入 ``Pending Review``。"""
+        """返回整批是否可以进入 ``Pending Review``；空批次一律不算通过。"""
 
-        return not self.issues and all(result.is_valid for result in self.results)
+        return (
+            bool(self.results)
+            and not self.issues
+            and all(result.is_valid for result in self.results)
+        )
 
     @property
-    def status(self) -> QuestionStatus:
+    def status(self) -> ValidatorResultStatus:
         """返回整批建议的审核状态。"""
 
         return (
@@ -490,7 +525,7 @@ class QuestionValidator:
             if issue is not None:
                 issues.append(issue)
 
-        status = (
+        status: ValidatorResultStatus = (
             QuestionStatus.PENDING_REVIEW if not issues else QuestionStatus.NEEDS_REVISION
         )
         return CandidateValidationResult(status=status, issues=tuple(issues))
@@ -517,6 +552,13 @@ class QuestionValidator:
             for candidate in candidates
         )
         batch_issues = self._batch_issues(candidates, generation_request)
+        if not results and not batch_issues:
+            batch_issues = (
+                _issue(
+                    QUESTION_EMPTY_CANDIDATE_BATCH,
+                    "候选题目为空，无法进入教师审核。",
+                ),
+            )
         return CandidateBatchValidation(results=results, issues=batch_issues)
 
     @staticmethod
@@ -571,6 +613,7 @@ __all__ = [
     "QUESTION_ANSWER_ENCODING_INCOMPATIBLE",
     "QUESTION_AUTOMATIC_PUBLISH_BLOCKED",
     "QUESTION_DIFFICULTY_MISMATCH",
+    "QUESTION_EMPTY_CANDIDATE_BATCH",
     "QUESTION_KNOWLEDGE_POINT_UNCOVERED",
     "QUESTION_MISSING_COURSE_EVIDENCE",
     "QUESTION_NOT_CANDIDATE",
@@ -590,5 +633,6 @@ __all__ = [
     "QuestionValidatorError",
     "StatusTransitionBlockedError",
     "ValidationActor",
+    "ValidatorResultStatus",
     "plan_transition",
 ]
