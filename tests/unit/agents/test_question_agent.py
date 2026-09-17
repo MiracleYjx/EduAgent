@@ -34,14 +34,21 @@ from collections.abc import Coroutine
 from typing import Any
 from uuid import UUID
 
+from sqlalchemy import create_engine, select
+from sqlalchemy.orm import Session
+
 from backend.app.ai.agents.question_agent import (
     QUESTION_CANDIDATE_COUNT_MISMATCH,
+    QUESTION_EMBEDDING_PROVIDER_NOT_READY,
     QUESTION_GENERATION_PROMPT_VERSION,
     QUESTION_INSUFFICIENT_CONTEXT,
     QUESTION_INVALID_INPUT,
     QUESTION_INVALID_LLM_RESPONSE,
     QUESTION_MISSING_GENERATION_REQUEST,
     QUESTION_PROVIDER_FAILED,
+    QUESTION_RETRIEVAL_DATABASE_FAILED,
+    QUESTION_RETRIEVAL_FAILED,
+    QUESTION_RETRIEVAL_UNSUPPORTED_DIALECT,
     QUESTION_TYPE_MISMATCH,
     QUESTION_UNKNOWN_SOURCE_CONTEXT,
     QuestionAgent,
@@ -58,8 +65,17 @@ from backend.app.ai.agents.state import (
     AgentType,
     QuestionGenerationRequest,
 )
+from backend.app.ai.embedding.base import EmbeddingProviderNotReadyError
 from backend.app.ai.llm.deepseek import DeepSeekProvider
-from backend.app.ai.retrieval.base import RetrievalMode, RetrievalQuery, RetrievedChunk
+from backend.app.ai.retrieval.base import (
+    DEFAULT_TOP_K,
+    RetrievalFilters,
+    RetrievalInputError,
+    RetrievalMode,
+    RetrievalQuery,
+    RetrievalUnsupportedDialectError,
+    RetrievedChunk,
+)
 from backend.app.ai.retrieval.hybrid_search import HybridSearchRetriever
 from backend.app.core.retry_policy import (
     ProviderErrorInfo,
@@ -67,6 +83,7 @@ from backend.app.core.retry_policy import (
     RetryPolicy,
 )
 from backend.app.domain.enums import QuestionType, ValidationStatus
+from backend.app.models import DocumentChunk
 from tests.support.question_generation_doubles import (
     COURSE_UUID,
     StubEmbeddingProvider,
@@ -116,6 +133,8 @@ def _generate(
     agent_input: AgentInput | None = None,
     chunks: list[RetrievedChunk] | None = None,
     settings: Any | None = None,
+    retriever: Any | None = None,
+    embedding: Any | None = None,
 ) -> Any:
     """用替身检索与 Embedding 驱动一次生成。"""
 
@@ -123,8 +142,14 @@ def _generate(
         QuestionAgent(provider=provider).generate(
             None,  # type: ignore[arg-type] - 替身检索不需要真实会话
             agent_input if agent_input is not None else _input(),
-            retriever=StubRetriever(chunks if chunks is not None else [make_chunk("chunk-1")]),
-            embedding_provider=StubEmbeddingProvider(),
+            retriever=(
+                retriever
+                if retriever is not None
+                else StubRetriever(chunks if chunks is not None else [make_chunk("chunk-1")])
+            ),
+            embedding_provider=(
+                embedding if embedding is not None else StubEmbeddingProvider()
+            ),
             settings=settings if settings is not None else build_test_settings(),
         )
     )
@@ -175,6 +200,140 @@ class _FakeClient:
 
     def __init__(self, content: str) -> None:
         self.chat = _FakeChat(content)
+
+
+class _FailingRetriever:
+    """总是抛出指定检索异常的替身；记录是否被调用。"""
+
+    def __init__(self, error: Exception) -> None:
+        self.error = error
+        self.calls = 0
+
+    def search(
+        self,
+        session: Any,
+        query: Any,
+        *,
+        top_k: int = DEFAULT_TOP_K,
+        filters: RetrievalFilters | None = None,
+    ) -> list[RetrievedChunk]:
+        self.calls += 1
+        raise self.error
+
+
+class _FailingEmbeddingProvider:
+    """总是抛出指定 Embedding 异常的替身。"""
+
+    def __init__(self, error: Exception) -> None:
+        self.error = error
+
+    async def embed_query(self, text: str) -> list[float]:
+        raise self.error
+
+    async def embed_documents(self, texts: Any) -> list[list[float]]:
+        raise self.error
+
+
+class _RealQueryRetriever:
+    """在真实数据库会话上执行一次真实查询的检索替身。
+
+    用于复现“检索缺表”故障：非 PostgreSQL 方言会在 tsvector 检索入口被显式拒绝，
+    因此由替身在真实 SQLAlchemy 会话（内存 SQLite、未建表）上执行真实查询，
+    从而产生真实的 ``sqlalchemy.exc.OperationalError``。
+    """
+
+    def __init__(self, session: Session) -> None:
+        self.session = session
+        self.calls = 0
+
+    def search(
+        self,
+        session: Any,
+        query: Any,
+        *,
+        top_k: int = DEFAULT_TOP_K,
+        filters: RetrievalFilters | None = None,
+    ) -> list[RetrievedChunk]:
+        self.calls += 1
+        self.session.execute(select(DocumentChunk)).all()
+        return []
+
+
+def test_embedding_not_ready_keeps_source_code() -> None:
+    """M01：Embedding 未就绪必须保留来源错误码，不丢失诊断信息。"""
+
+    output = _generate(
+        StubQuestionProvider(),
+        embedding=_FailingEmbeddingProvider(
+            EmbeddingProviderNotReadyError("缺少本地向量依赖。")
+        ),
+    )
+
+    assert output.status is AgentStatus.FAILURE
+    assert output.error is not None
+    assert output.error.error_code == QUESTION_EMBEDDING_PROVIDER_NOT_READY
+    assert output.error.source_code == "EMBEDDING_PROVIDER_NOT_READY"
+    assert output.error.retryable is False
+
+
+def test_retrieval_unsupported_dialect_keeps_source_code() -> None:
+    """M01：检索方言不支持时必须保留来源码与不可重试语义。"""
+
+    output = _generate(
+        StubQuestionProvider(),
+        retriever=_FailingRetriever(
+            RetrievalUnsupportedDialectError("当前数据库方言不支持。")
+        ),
+    )
+
+    assert output.status is AgentStatus.FAILURE
+    assert output.error is not None
+    assert output.error.error_code == QUESTION_RETRIEVAL_UNSUPPORTED_DIALECT
+    assert output.error.source_code == "RETRIEVAL_UNSUPPORTED_DIALECT"
+    assert output.error.retryable is False
+
+
+def test_retrieval_input_failure_keeps_source_code() -> None:
+    """M01：检索输入非法同样保留来源码，而不是只留下平台错误码。"""
+
+    output = _generate(
+        StubQuestionProvider(),
+        retriever=_FailingRetriever(RetrievalInputError("查询文本不能为空。")),
+    )
+
+    assert output.status is AgentStatus.FAILURE
+    assert output.error is not None
+    assert output.error.error_code == QUESTION_RETRIEVAL_FAILED
+    assert output.error.source_code == "RETRIEVAL_INVALID_INPUT"
+    assert output.error.retryable is False
+
+
+def test_real_query_failure_is_mapped_to_desensitized_failure() -> None:
+    """M01：真实检索查询失败必须转为脱敏失败，不泄露 SQL、表名与连接信息。"""
+
+    engine = create_engine("sqlite://")
+    with Session(engine) as session:
+        retriever = _RealQueryRetriever(session)
+        output = _run(
+            QuestionAgent(provider=StubQuestionProvider()).generate(
+                session,
+                _input(),
+                retriever=retriever,
+                embedding_provider=StubEmbeddingProvider(),
+                settings=build_test_settings(),
+            )
+        )
+
+    assert retriever.calls == 1
+    assert output.status is AgentStatus.FAILURE
+    assert output.error is not None
+    assert output.error.error_code == QUESTION_RETRIEVAL_DATABASE_FAILED
+    # 数据库异常属于结构性故障，不得一律标为可重试。
+    assert output.error.retryable is False
+    assert output.error.source_code == "OperationalError"
+    assert "document_chunks" not in output.error.message
+    assert "select" not in output.error.message.lower()
+    assert "sqlite" not in output.error.message.lower()
 
 
 def test_build_generation_query_keeps_teacher_constraints() -> None:
