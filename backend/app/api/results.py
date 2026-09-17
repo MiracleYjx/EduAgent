@@ -30,6 +30,7 @@ from sqlalchemy.orm import Session
 
 from backend.app.core.database import get_session_factory
 from backend.app.core.security import require_permission
+from backend.app.domain.enums import SubmissionStatus
 from backend.app.domain.permissions import Permission
 from backend.app.models import Course, Exam, Submission, User
 from backend.app.schemas.grading import (
@@ -177,14 +178,23 @@ class ResultsQueryService:
         teacher_id: str,
         exam_id: str,
     ) -> TeacherExamResultSummaryDTO:
-        """汇总考试结果；平均分只统计最终成绩。"""
+        """汇总已提交生命周期的答卷；平均分只统计最终成绩，草稿不参与。"""
 
         self._repository.ensure_ready()
         with self._use_session() as session:
             exam = self._require_owned_exam(session, exam_id, teacher_id)
             submissions = list(
                 session.scalars(
-                    select(Submission).where(Submission.exam_id == exam.id)
+                    select(Submission).where(
+                        Submission.exam_id == exam.id,
+                        Submission.status.in_(
+                            (
+                                SubmissionStatus.SUBMITTED,
+                                SubmissionStatus.GRADED,
+                                SubmissionStatus.REVIEWED,
+                            )
+                        ),
+                    )
                 )
             )
             finals: list[Decimal] = []
