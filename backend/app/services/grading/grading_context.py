@@ -30,7 +30,10 @@ from uuid import UUID
 from sqlalchemy.orm import Session
 
 from backend.app.ai.embedding.base import BaseEmbeddingProvider
-from backend.app.ai.embedding.factory import get_embedding_provider
+from backend.app.ai.embedding.factory import (
+    create_embedding_provider,
+    get_embedding_provider,
+)
 from backend.app.ai.retrieval.base import (
     DEFAULT_TOP_K,
     BaseRetriever,
@@ -461,13 +464,17 @@ def _resolve_retriever(
     *,
     candidate_k: int,
     retriever: BaseRetriever | None,
+    settings: AppSettings | None,
 ) -> BaseRetriever:
     """按模式解析检索实现；只传各构造器支持的参数。"""
 
     if retriever is not None:
         return retriever
     if mode in {RetrievalMode.HYBRID, RetrievalMode.HYBRID_RERANK}:
-        return get_retriever(RetrievalMode.HYBRID, candidate_k=candidate_k)
+        kwargs: dict[str, Any] = {"candidate_k": candidate_k}
+        if settings is not None:
+            kwargs["vector_weight"] = settings.hybrid_vector_weight
+        return get_retriever(RetrievalMode.HYBRID, **kwargs)
     # vector_only / keyword_only 的构造器不接受候选数参数。
     return get_retriever(mode)
 
@@ -577,13 +584,19 @@ async def build_grading_context(
         RetrievalMode.HYBRID_RERANK,
         RetrievalMode.VECTOR_ONLY,
     }:
-        provider = embedding_provider or get_embedding_provider()
+        if embedding_provider is not None:
+            provider = embedding_provider
+        elif settings is not None:
+            provider = create_embedding_provider(resolved_settings)
+        else:
+            provider = get_embedding_provider()
         embedding = await provider.embed_query(query_text)
 
     active_retriever = _resolve_retriever(
         resolved_mode,
         candidate_k=resolved_candidate_k,
         retriever=retriever,
+        settings=settings,
     )
     search_query = _build_search_query(
         resolved_mode,
@@ -612,7 +625,12 @@ async def build_grading_context(
 
     ranked: list[RetrievedChunk] = list(candidates)
     if resolved_mode is RetrievalMode.HYBRID_RERANK and ranked:
-        active_reranker = reranker if reranker is not None else build_reranker()
+        if reranker is not None:
+            active_reranker = reranker
+        elif settings is not None:
+            active_reranker = build_reranker(settings=resolved_settings)
+        else:
+            active_reranker = build_reranker()
         ranked = await active_reranker.rerank_async(query_text, ranked, limit)
 
     written, final_context = _compose_final_context(ranked)

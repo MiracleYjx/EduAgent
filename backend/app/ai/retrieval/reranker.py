@@ -45,7 +45,7 @@ from backend.app.ai.retrieval.base import (
     resolve_filters,
 )
 from backend.app.ai.retrieval.hybrid_search import DEFAULT_CANDIDATE_K
-from backend.app.core.config import get_settings
+from backend.app.core.config import AppSettings, get_settings
 
 #: Rerank 相关失败码。
 RERANK_INVALID_INPUT: Final[str] = "RERANK_INVALID_INPUT"
@@ -245,6 +245,7 @@ class LLMRerankAdapter(BaseReranker):
         model: str | None = None,
         max_candidates: int | None = None,
         timeout: float | None = None,
+        settings: AppSettings | None = None,
     ) -> None:
         self.model_name = model or "provider-default"
         self.max_candidates = _resolve_max_candidates(max_candidates)
@@ -254,7 +255,11 @@ class LLMRerankAdapter(BaseReranker):
             self._provider = provider
         else:
             try:
-                self._provider = create_llm_provider()
+                self._provider = (
+                    create_llm_provider(settings)
+                    if settings is not None
+                    else create_llm_provider()
+                )
             except Exception as exc:  # 未就绪必须明确失败
                 raise RerankProviderNotReadyError(
                     f"LLM Rerank 依赖的 LLM Provider 未就绪：{type(exc).__name__}。"
@@ -451,23 +456,38 @@ def _resolve_timeout(value: float | None) -> float:
     return float(raw)
 
 
-def build_reranker(name: str | None = None, **kwargs: Any) -> BaseReranker:
+def build_reranker(
+    name: str | None = None,
+    *,
+    settings: AppSettings | None = None,
+    **kwargs: Any,
+) -> BaseReranker:
     """按 ``RERANK_PROVIDER`` 创建 Rerank 适配器；未知或未配置时明确失败。
 
-    ``name`` 是 ``RERANK_PROVIDER`` 取值（未提供时读取配置）；其余参数透传给具体适配器。
+    ``name`` 是 ``RERANK_PROVIDER`` 取值（未提供时读取配置）；显式 ``settings`` 贯穿
+    Provider、模型、候选上限与超时，其余参数仍保持最高优先级并透传给具体适配器。
     """
 
-    resolved = name if name is not None else get_settings().rerank_provider
+    runtime_settings = settings if settings is not None else get_settings()
+    resolved = name if name is not None else runtime_settings.rerank_provider
     normalized = (resolved or "").strip().lower()
+    if normalized in {"llm", "openai_compatible", "cross_encoder"}:
+        kwargs.setdefault("max_candidates", runtime_settings.rerank_max_candidates)
     if normalized in {"llm", "openai_compatible", "cross_encoder"} and "model" not in kwargs:
-        settings = get_settings()
         # 显式切换路线时不套用另一条路线的模型；显式 model 参数始终优先。
-        configured_model = settings.rerank_model if normalized == settings.rerank_provider else None
+        configured_model = (
+            runtime_settings.rerank_model
+            if normalized == runtime_settings.rerank_provider
+            else None
+        )
         if configured_model:
             kwargs["model"] = configured_model
         elif normalized in {"llm", "openai_compatible"}:
-            kwargs["model"] = settings.deepseek_model
+            kwargs["model"] = runtime_settings.deepseek_model
     if normalized in {"llm", "openai_compatible"}:
+        kwargs.setdefault("timeout", runtime_settings.rerank_timeout_seconds)
+        if settings is not None:
+            kwargs.setdefault("settings", runtime_settings)
         return LLMRerankAdapter(**kwargs)
     if normalized == "cross_encoder":
         return CrossEncoderRerankAdapter(**kwargs)

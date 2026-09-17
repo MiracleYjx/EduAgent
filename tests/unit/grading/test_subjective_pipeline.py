@@ -3,6 +3,10 @@
 TCR（2026-09-16，T056 / B02、B03）：主观题评分器必须把**当次**置信度决策交给调用方，
 以便仓储写入决策快照；既有业务错误码与 ``retryable`` 必须原样保留；上下文不足或
 Provider 未就绪时显式失败，绝不伪造分数。
+
+TCR（2026-09-17，M04）：显式 ``AppSettings`` 必须贯穿评分 Provider、Embedding、
+Hybrid Retriever、Reranker 与置信策略。新增局部配置和全局配置不同的场景，直接断言
+实际被调用的是局部配置创建的组件；仅检查工厂参数不足以证明运行链路没有回落到全局配置。
 """
 
 from __future__ import annotations
@@ -15,6 +19,8 @@ from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session
 
 from backend.app.domain.enums import QuestionType
+from backend.app.services.grading import grading_context as grading_context_module
+from backend.app.services.grading import subjective_grader as subjective_grader_module
 from backend.app.services.grading.grading_context import GradingContextError
 from backend.app.services.grading.grading_task_service import (
     GradingTargetAnswer,
@@ -132,6 +138,94 @@ def test_scorer_returns_result_with_recorded_decision(
     assert decision.confidence == 0.9
     assert decision.requires_review is False
     assert len(provider.calls) == 1
+
+
+def test_explicit_settings_select_actual_scoring_components(
+    engine: Engine,
+    fixture: SubmissionFixture,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """局部配置必须选择并实际调用整条评分链路中的局部组件。"""
+
+    local_settings = build_test_settings(
+        deepseek_model="local-score-model",
+        embedding_model="local-embedding-model",
+        rerank_provider="llm",
+        rerank_model="local-rerank-model",
+        rerank_max_candidates=3,
+        hybrid_vector_weight=0.75,
+        confidence_threshold=0.95,
+    )
+    global_settings = build_test_settings(
+        deepseek_model="global-score-model",
+        embedding_model="global-embedding-model",
+        rerank_provider="llm",
+        rerank_model="global-rerank-model",
+        rerank_max_candidates=5,
+        hybrid_vector_weight=0.2,
+        confidence_threshold=0.1,
+    )
+    local_provider = StubScoringProvider(score=6.0, confidence=0.9)
+    global_provider = StubScoringProvider(score=1.0, confidence=0.99)
+    local_embedding = StubEmbeddingProvider((0.1, 0.2, 0.3))
+    global_embedding = StubEmbeddingProvider((0.9, 0.8, 0.7))
+    local_retriever = StubRetriever([make_chunk("local-chunk")])
+    global_retriever = StubRetriever([make_chunk("global-chunk")])
+    local_reranker = StubReranker()
+    global_reranker = StubReranker()
+
+    monkeypatch.setattr(subjective_grader_module, "get_settings", lambda: global_settings)
+    monkeypatch.setattr(grading_context_module, "get_settings", lambda: global_settings)
+
+    def create_scoring_provider(settings=None):
+        return local_provider if settings is local_settings else global_provider
+
+    def create_embedding_provider(settings=None):
+        return local_embedding if settings is local_settings else global_embedding
+
+    def get_retriever(_mode, **kwargs):
+        if kwargs == {"candidate_k": 3, "vector_weight": 0.75}:
+            return local_retriever
+        return global_retriever
+
+    def build_reranker(*, settings=None, **_kwargs):
+        return local_reranker if settings is local_settings else global_reranker
+
+    monkeypatch.setattr(
+        subjective_grader_module, "create_llm_provider", create_scoring_provider
+    )
+    monkeypatch.setattr(
+        grading_context_module,
+        "create_embedding_provider",
+        create_embedding_provider,
+        raising=False,
+    )
+    monkeypatch.setattr(
+        grading_context_module,
+        "get_embedding_provider",
+        lambda: global_embedding,
+    )
+    monkeypatch.setattr(grading_context_module, "get_retriever", get_retriever)
+    monkeypatch.setattr(grading_context_module, "build_reranker", build_reranker)
+
+    score = build_subjective_scorer(
+        session_factory=lambda: Session(engine),
+        settings=local_settings,
+    )
+    result, decision = score(_snapshot(fixture), _target(fixture))
+
+    assert result.score == 6.0
+    assert result.retrieved_context_ids == ["local-chunk"]
+    assert result.review_status == "Pending Review"
+    assert decision.threshold == 0.95
+    assert len(local_provider.calls) == 1
+    assert len(local_embedding.queries) == 1
+    assert len(local_retriever.calls) == 1
+    assert len(local_reranker.calls) == 1
+    assert global_provider.calls == []
+    assert global_embedding.queries == []
+    assert global_retriever.calls == []
+    assert global_reranker.calls == []
 
 
 def test_low_confidence_result_enters_pending_review(
