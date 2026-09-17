@@ -36,6 +36,8 @@ from decimal import Decimal
 from pathlib import Path
 from typing import Any
 
+import pytest
+
 from backend.app.ai.agents import supervisor
 from backend.app.ai.agents.state import (
     AgentInput,
@@ -102,6 +104,7 @@ def _question_result(
     order: int = 1,
     requires_review: bool = False,
     counted: bool = True,
+    review_status: str | None = None,
 ) -> QuestionResultDTO:
     """构造逐题汇总结果；未计入总分的题目按“缺结果”表示。"""
 
@@ -117,6 +120,7 @@ def _question_result(
         missing=not counted,
         requires_review=requires_review,
         grading_status="Accepted" if counted else "Missing",
+        review_status=review_status,
     )
 
 
@@ -199,11 +203,14 @@ def _finalize_state(
     exam_result: ExamResultDTO | Any = None,
     diagnosis: DiagnosisReportDTO | Any = None,
     final_results: list[QuestionResultDTO] | None = None,
+    review_status: Any = None,
+    grading_results: dict[str, Any] | None = None,
+    current_answer_id: str | None = None,
 ) -> dict[str, Any]:
     """构造整卷只读快照；默认是“整卷最终确认 + 诊断与当前结果对应”的真实 DTO。"""
 
     resolved_exam = exam_result if exam_result is not None else _exam_result()
-    return {
+    state: dict[str, Any] = {
         "workflow_id": "workflow-1",
         "request_id": "request-1",
         "submission_id": "submission-1",
@@ -213,6 +220,13 @@ def _finalize_state(
         ),
         "final_results": list(final_results if final_results is not None else [_question_result()]),
     }
+    if review_status is not None:
+        state["review_status"] = review_status
+    if grading_results is not None:
+        state["grading_results"] = grading_results
+    if current_answer_id is not None:
+        state["current_answer_id"] = current_answer_id
+    return state
 
 
 def test_route_table_covers_every_task_kind() -> None:
@@ -703,3 +717,196 @@ def test_supervisor_module_does_not_import_database_or_provider() -> None:
     assert "sqlalchemy" not in source
     assert "backend.app.models" not in source
     assert "ai.llm" not in source
+
+
+def test_teacher_confirmed_decision_is_not_overridden_by_history() -> None:
+    """H02：教师已确认时，历史低置信度不得重新暂停工作流。
+
+    契约依据：`tests/unit/workflows/test_workflow_state.py::
+    test_teacher_decision_may_supersede_automatic_decision` 与 `HUMAN_DECIDED_REVIEW_STATES`。
+    """
+
+    from backend.app.ai.agents.supervisor import AgentTaskKind, SupervisorAgent
+
+    agent_input = _agent_input(
+        question_type=QuestionType.SHORT_ANSWER,
+        grading_result=_grading_result(review_status=ReviewStatus.CONFIRMED.value),
+        confidence_decision=_confidence_decision(
+            requires_review=True,
+            review_status=ReviewStatus.PENDING_REVIEW.value,
+        ),
+    )
+    output = SupervisorAgent().decide(AgentTaskKind.GRADING, agent_input)
+
+    assert output.status is AgentStatus.SUCCESS
+    assert output.requires_review is False
+    decision = output.supervisor_decision
+    assert decision is not None
+    assert decision.action is SupervisorAction.ROUTE
+    assert decision.next_agent is AgentType.GRADING
+    # 历史自动决策字段原样保留，不通过删除记录或改为 False 绕过暂停。
+    assert agent_input.confidence_decision is not None
+    assert agent_input.confidence_decision.requires_review is True
+    assert agent_input.confidence_decision.threshold == 0.7
+    # Agent 不得自行生成教师结论。
+    assert output.review_status is None
+
+
+@pytest.mark.parametrize(
+    "review_status",
+    [
+        ReviewStatus.CONFIRMED.value,
+        ReviewStatus.MODIFIED.value,
+        ReviewStatus.FINAL.value,
+    ],
+)
+def test_human_decided_statuses_are_authoritative(review_status: str) -> None:
+    """H02：Confirmed/Modified/Final 均为权威结论，历史 requires_review 不再触发 pause。"""
+
+    from backend.app.ai.agents.supervisor import AgentTaskKind, SupervisorAgent
+
+    state = _finalize_state(review_status=review_status)
+    output = SupervisorAgent().decide(
+        AgentTaskKind.GRADING,
+        _agent_input(
+            question_type=QuestionType.SHORT_ANSWER,
+            grading_result=_grading_result(review_status=review_status),
+            confidence_decision=_confidence_decision(
+                requires_review=True,
+                review_status=ReviewStatus.PENDING_REVIEW.value,
+            ),
+        ),
+        workflow_state=state,
+    )
+
+    assert output.status is AgentStatus.SUCCESS
+    assert output.requires_review is False
+
+
+def test_state_level_and_per_answer_review_status_are_authoritative() -> None:
+    """H02：整卷槽位与逐题结果里的教师结论都能压过历史自动决策。"""
+
+    from backend.app.ai.agents.supervisor import AgentTaskKind, SupervisorAgent
+
+    agent_input = _agent_input(
+        question_type=QuestionType.SHORT_ANSWER,
+        grading_result=_grading_result(review_status=ReviewStatus.PENDING_REVIEW.value),
+        confidence_decision=_confidence_decision(
+            requires_review=True,
+            review_status=ReviewStatus.PENDING_REVIEW.value,
+        ),
+    )
+    state = _finalize_state(
+        review_status=ReviewStatus.MODIFIED,
+        current_answer_id="answer-1",
+        grading_results={
+            "answer-1": _grading_result(review_status=ReviewStatus.CONFIRMED.value)
+        },
+    )
+    output = SupervisorAgent().decide(AgentTaskKind.GRADING, agent_input, workflow_state=state)
+
+    assert output.status is AgentStatus.SUCCESS
+    assert output.requires_review is False
+
+
+def test_finalize_completes_after_teacher_decision_with_history_preserved() -> None:
+    """H02：教师结论后仍可完成整卷收尾，历史决策保留且不写入教师结论。"""
+
+    from backend.app.ai.agents.supervisor import AgentTaskKind, SupervisorAgent
+
+    agent_input = _agent_input(
+        question_type=None,
+        grading_result=_grading_result(review_status=ReviewStatus.CONFIRMED.value),
+        confidence_decision=_confidence_decision(
+            requires_review=True,
+            review_status=ReviewStatus.PENDING_REVIEW.value,
+        ),
+    )
+    output = SupervisorAgent().decide(
+        AgentTaskKind.FINALIZE,
+        agent_input,
+        workflow_state=_finalize_state(review_status=ReviewStatus.CONFIRMED),
+    )
+
+    assert output.status is AgentStatus.SUCCESS
+    decision = output.supervisor_decision
+    assert decision is not None
+    assert decision.action is SupervisorAction.FINISH
+    assert output.review_status is None
+    assert agent_input.confidence_decision is not None
+    assert agent_input.confidence_decision.requires_review is True
+
+
+def test_regrade_schedules_grading_without_pausing() -> None:
+    """H02：Re-grade 需要重新评分，可调度评分，但不暂停也不等于最终接受。"""
+
+    from backend.app.ai.agents.supervisor import (
+        SUPERVISOR_FINALIZE_NOT_READY,
+        AgentTaskKind,
+        SupervisorAgent,
+    )
+
+    agent = SupervisorAgent()
+    regrade_input = _agent_input(
+        question_type=QuestionType.SHORT_ANSWER,
+        grading_result=_grading_result(review_status=ReviewStatus.RE_GRADE.value),
+        confidence_decision=_confidence_decision(
+            requires_review=True,
+            review_status=ReviewStatus.RE_GRADE.value,
+        ),
+    )
+    routed = agent.decide(AgentTaskKind.GRADING, regrade_input)
+    assert routed.status is AgentStatus.SUCCESS
+    assert routed.requires_review is False
+    decision = routed.supervisor_decision
+    assert decision is not None
+    assert decision.action is SupervisorAction.ROUTE
+    assert decision.next_agent is AgentType.GRADING
+
+    # 重新评分不算最终接受：整卷未最终确认时依然不得收尾。
+    # 逐题权威状态为 Re-grade，因此不计入“待人工复核”，但仍不能收尾。
+    exam_result = _exam_result(
+        is_final=False,
+        items=[
+            _question_result(
+                counted=False,
+                review_status=ReviewStatus.RE_GRADE.value,
+            )
+        ],
+    )
+    not_finished = agent.decide(
+        AgentTaskKind.FINALIZE,
+        regrade_input,
+        workflow_state=_finalize_state(
+            exam_result=exam_result,
+            diagnosis=_diagnosis(exam_result, status=DiagnosisStatus.NOT_READY),
+            final_results=[],
+            review_status=ReviewStatus.RE_GRADE,
+        ),
+    )
+    assert not_finished.status is AgentStatus.FAILURE
+    assert not_finished.error is not None
+    assert not_finished.error.error_code == SUPERVISOR_FINALIZE_NOT_READY
+
+
+def test_unreviewed_low_confidence_still_pauses() -> None:
+    """H02：没有权威教师结论时，历史低置信度仍然暂停等待人工复核。"""
+
+    from backend.app.ai.agents.supervisor import AgentTaskKind, SupervisorAgent
+
+    output = SupervisorAgent().decide(
+        AgentTaskKind.GRADING,
+        _agent_input(
+            question_type=QuestionType.SHORT_ANSWER,
+            confidence_decision=_confidence_decision(
+                requires_review=True,
+                review_status=ReviewStatus.PENDING_REVIEW.value,
+            ),
+        ),
+    )
+
+    assert output.status is AgentStatus.PENDING_REVIEW
+    assert output.requires_review is True
+    decision = output.supervisor_decision
+    assert decision is not None
+    assert decision.action is SupervisorAction.PAUSE
