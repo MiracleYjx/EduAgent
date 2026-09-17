@@ -46,6 +46,7 @@ from backend.app.services.question_validator import (
     QUESTION_ANSWER_ENCODING_INCOMPATIBLE,
     QUESTION_AUTOMATIC_PUBLISH_BLOCKED,
     QUESTION_DIFFICULTY_MISMATCH,
+    QUESTION_EMPTY_CANDIDATE_BATCH,
     QUESTION_KNOWLEDGE_POINT_UNCOVERED,
     QUESTION_MISSING_COURSE_EVIDENCE,
     QUESTION_NOT_CANDIDATE,
@@ -57,6 +58,7 @@ from backend.app.services.question_validator import (
     AutomaticPublishingBlockedError,
     CandidateBatchValidation,
     CandidateValidationResult,
+    QuestionValidationIssue,
     QuestionValidator,
     StatusTransitionBlockedError,
     ValidationActor,
@@ -266,6 +268,59 @@ def test_batch_checks_difficulty_and_knowledge_coverage() -> None:
     )
     assert matching.status is QuestionStatus.PENDING_REVIEW
     assert matching.issues == ()
+
+
+def test_empty_batch_cannot_be_pending_review() -> None:
+    """M03：空批次不得被视为成功，必须给出明确原因。"""
+
+    batch = QuestionValidator().validate_candidates(
+        [],
+        retrieved_context_ids=_WHITELIST,
+        generation_request=None,
+    )
+
+    assert isinstance(batch, CandidateBatchValidation)
+    assert batch.status is QuestionStatus.NEEDS_REVISION
+    assert batch.is_valid is False
+    assert QUESTION_EMPTY_CANDIDATE_BATCH in {issue.code for issue in batch.issues}
+    assert batch.results == ()
+
+
+def test_batch_model_rejects_empty_success() -> None:
+    """M03：批次模型本身不得把“空集合且无原因”表示为成功。"""
+
+    with pytest.raises(ValidationError):
+        CandidateBatchValidation()
+
+    valid_result = _validate(_candidate())
+    batch = CandidateBatchValidation(results=(valid_result,))
+    assert batch.is_valid is True
+    assert batch.status is QuestionStatus.PENDING_REVIEW
+
+
+def test_result_model_rejects_publishable_status() -> None:
+    """M03：单题结果状态只能为 Pending Review 或 Needs Revision。"""
+
+    for status in (QuestionStatus.APPROVED, QuestionStatus.PUBLISHED):
+        with pytest.raises(ValidationError):
+            CandidateValidationResult(status=status)
+
+
+def test_result_model_enforces_status_and_issues_consistency() -> None:
+    """M03：Pending Review 不得携带原因，Needs Revision 必须保留原因。"""
+
+    issue = QuestionValidationIssue(code="QUESTION_TEST_ISSUE", message="需要修订。")
+    with pytest.raises(ValidationError):
+        CandidateValidationResult(status=QuestionStatus.PENDING_REVIEW, issues=(issue,))
+    with pytest.raises(ValidationError):
+        CandidateValidationResult(status=QuestionStatus.NEEDS_REVISION)
+    assert (
+        CandidateValidationResult(
+            status=QuestionStatus.NEEDS_REVISION,
+            issues=(issue,),
+        ).is_valid
+        is False
+    )
 
 
 def test_batch_is_invalid_when_any_candidate_needs_revision() -> None:
