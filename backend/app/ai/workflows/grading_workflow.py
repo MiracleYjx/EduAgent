@@ -1085,8 +1085,12 @@ class GradingWorkflow:
         两种情况都**保留**已形成的整卷结果，也不写假诊断。
         """
 
-        retryable = isinstance(error, ProviderExecutionError) and bool(error.info.retryable)
-        if retryable and self._interrupt_enabled and error is not None:
+        provider_error = error if isinstance(error, ProviderExecutionError) else None
+        if (
+            provider_error is not None
+            and bool(provider_error.info.retryable)
+            and self._interrupt_enabled
+        ):
             return {
                 "current_node": GENERATE_DIAGNOSIS,
                 "status": WorkflowStatus.PAUSED,
@@ -1094,8 +1098,8 @@ class GradingWorkflow:
                     error_code=GRADING_WORKFLOW_DIAGNOSIS_FAILED,
                     message="诊断生成失败（可重试），已保留整卷结果。",
                     retryable=True,
-                    source_code=str(error.info.code),
-                    attempt_count=int(error.info.attempt_count),
+                    source_code=str(provider_error.info.code),
+                    attempt_count=int(provider_error.info.attempt_count),
                 ),
                 "pause_reason": "诊断生成失败且属可重试系统错误，已保留整卷结果，等待重试诊断。",
                 "resumable": True,
