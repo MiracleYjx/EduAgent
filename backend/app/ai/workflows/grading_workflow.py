@@ -595,6 +595,17 @@ class GradingWorkflow:
             return result.review_status not in ACCEPTED_REVIEW_STATES
         return True
 
+    def _normalize_run_control(self, patch: dict[str, Any]) -> dict[str, Any]:
+        """无恢复支撑时不得声明可恢复：T071 交接助手默认置真的 ``resumable`` 在此下调。
+
+        这里只下调 `resumable`，不改 `pause_reason`/`status`：暂停事实仍如实记录，
+        但“可恢复”必须有检查点支撑（否则就是无恢复入口的假声明）。
+        """
+
+        if not self._interrupt_enabled:
+            patch["resumable"] = False
+        return patch
+
     def _record_result(
         self,
         state: Mapping[str, Any],
@@ -806,7 +817,7 @@ class GradingWorkflow:
                 answer_id=target.answer_id,
             )
         )
-        return patch
+        return self._normalize_run_control(patch)
 
     async def _node_structured_validation(self, state: Mapping[str, Any]) -> dict[str, Any]:
         """`Structured Validation`：只复核 T069 已完成的校验结论，不重新解析载荷。"""
@@ -965,7 +976,7 @@ class GradingWorkflow:
                 keep_results=True,
             )
         patch["error"] = None
-        return patch
+        return self._normalize_run_control(patch)
 
     async def _node_regrade(self, state: Mapping[str, Any]) -> dict[str, Any]:
         """`Re-grade`：在预算内回到该题的评分节点；重评不清除待复核事实。"""
