@@ -701,6 +701,41 @@ class _StubGradingAgent:
         raise AssertionError("图必须逐题调用 grade_answer_async，不得调用整卷 score。")
 
 
+class _RecordingReviewer:
+    """记录复核调用的替身：默认沿用真实 ReviewerAgent，可强制指定决策分支。"""
+
+    def __init__(self, decision: str | None = None) -> None:
+        self.calls: list[str] = []
+        self._decision = decision
+        self._inner = ReviewerAgent()
+
+    def review(self, grading_result: Any, confidence_decision: Any, **kwargs: Any) -> Any:
+        self.calls.append(str(kwargs.get("answer_id")))
+        invocation = self._inner.review(grading_result, confidence_decision, **kwargs)
+        if self._decision is None or invocation.output.review_outcome is None:
+            return invocation
+        outcome = invocation.output.review_outcome
+        revised = (
+            grading_result.model_copy(update={"review_status": "Not Required"})
+            if self._decision == "revise"
+            else None
+        )
+        return AgentInvocation(
+            request_id=invocation.request_id,
+            workflow_id=invocation.workflow_id,
+            output=invocation.output.model_copy(
+                update={
+                    "review_outcome": outcome.model_copy(
+                        update={
+                            "decision": self._decision,
+                            "revised_grading_result": revised,
+                        }
+                    )
+                }
+            ),
+        )
+
+
 class _StubDiagnosisService:
     """诊断服务替身：可配置失败，并记录调用次数。"""
 
@@ -956,6 +991,166 @@ def test_t072_regrade_replaces_decision_and_keeps_review_requirement() -> None:
     assert resumed.interrupted is True
     assert not state.get("final_results")
     assert state.get("diagnosis") is None
+
+
+def test_t072_checkpoint_records_pause_facts_and_resume_runs_reviewer() -> None:
+    """H02：检查点必须保存暂停事实；同线程恢复经过 Reviewer 且不重复评分。
+
+    TCR：
+    - 必要性：仅写内存字段后调用 `interrupt()` 不足以证明暂停事实真的进入检查点，
+      也无法证明恢复会经过复核环节且已完成题目不被重复评分；
+    - 契约依据：`plan.md` §5（人工复核可中断、可恢复）、`agent-workflow.md`
+      （低置信度暂停、仅教师可确认、恢复保留原运行轨迹）；
+    - 覆盖行为：中断后 `get_state` 含 `Paused`/`pause_reason`/`current_answer_id`/`resumable`；
+      恢复后 Reviewer 被调用一次、评分服务不增加调用；`accept` 后仍为待复核。
+    """
+
+    objective = _objective_target()
+    subjective = _subjective_target()
+    snapshot = _snapshot(objective, subjective)
+    objective_grader = _RecordingObjectiveGrader()
+    subjective_grader = _RecordingSubjectiveGrader(
+        _result(subjective, snapshot, confidence=0.3)
+    )
+    reviewer = _RecordingReviewer()
+    diagnosis = _StubDiagnosisService()
+    workflow = _workflow(
+        snapshot,
+        agent=_agent(
+            objective_grader=objective_grader,
+            subjective_grader=subjective_grader,
+            settings=_settings(confidence_threshold=0.8),
+        ),
+        reviewer=reviewer,
+        diagnosis=diagnosis,
+        checkpointer=InMemorySaver(),
+    )
+
+    paused = _run(
+        workflow.run_async(
+            request_id=REQUEST_ID,
+            workflow_id=WORKFLOW_ID,
+            submission_id=snapshot.submission_id,
+            thread_id="thread-h02",
+        )
+    )
+    assert paused.interrupted is True
+
+    checkpoint = workflow.compiled.get_state(
+        {"configurable": {"thread_id": "thread-h02"}}
+    ).values
+    assert checkpoint["status"] is WorkflowStatus.PAUSED
+    assert str(checkpoint["pause_reason"]).strip()
+    assert checkpoint["current_answer_id"] == subjective.answer_id
+    assert checkpoint["resumable"] is True
+    assert checkpoint["workflow_id"] == WORKFLOW_ID
+    assert len(subjective_grader.calls) == 1
+    assert reviewer.calls == []
+
+    resumed = _run(workflow.resume_async(thread_id="thread-h02"))
+
+    # 恢复后经过 Reviewer（accept），但仍停在待复核：建议不得代替教师确认。
+    assert reviewer.calls == [subjective.answer_id]
+    assert resumed.interrupted is True
+    assert len(subjective_grader.calls) == 1
+    assert len(objective_grader.calls) == 1
+    assert resumed.state["status"] is WorkflowStatus.PAUSED
+    assert resumed.state["review_status"] == "Pending Review"
+    assert not resumed.state.get("final_results")
+    assert resumed.state.get("diagnosis") is None
+    assert diagnosis.calls == 0
+    workflow_state_to_json(resumed.state)
+
+
+def test_t072_reviewer_advice_never_replaces_teacher_decision() -> None:
+    """S03：完整轨迹（Pending Review → interrupt → 教师恢复 → Reviewer → 分支）不得自动放行。"""
+
+    for forced in ("accept", "revise"):
+        objective = _objective_target()
+        subjective = _subjective_target()
+        snapshot = _snapshot(objective, subjective)
+        reviewer = _RecordingReviewer(forced)
+        diagnosis = _StubDiagnosisService()
+        workflow = _workflow(
+            snapshot,
+            agent=_agent(
+                objective_grader=_RecordingObjectiveGrader(),
+                subjective_grader=_RecordingSubjectiveGrader(
+                    _result(subjective, snapshot, confidence=0.3)
+                ),
+                settings=_settings(confidence_threshold=0.8),
+            ),
+            reviewer=reviewer,
+            diagnosis=diagnosis,
+            checkpointer=InMemorySaver(),
+        )
+        thread_id = f"thread-s03-{forced}"
+
+        _run(
+            workflow.run_async(
+                request_id=REQUEST_ID,
+                workflow_id=WORKFLOW_ID,
+                submission_id=snapshot.submission_id,
+                thread_id=thread_id,
+            )
+        )
+        after_review = _run(workflow.resume_async(thread_id=thread_id))
+
+        assert reviewer.calls == [subjective.answer_id], forced
+        assert after_review.interrupted is True, forced
+        assert after_review.state["status"] is WorkflowStatus.PAUSED, forced
+        assert after_review.pending_answer_ids == (subjective.answer_id,), forced
+        assert not after_review.state.get("final_results"), forced
+        assert diagnosis.calls == 0, forced
+
+        # 只有教师结论才能推进到最终成绩与诊断；且沿用原 thread_id。
+        workflow.mark_teacher_decision(
+            thread_id=thread_id,
+            answer_id=subjective.answer_id,
+            review_status="Confirmed",
+        )
+        finished = _run(workflow.resume_async(thread_id=thread_id))
+
+        assert finished.interrupted is False, forced
+        assert finished.state["status"] is WorkflowStatus.COMPLETED, forced
+        assert finished.state["exam_result"].is_final is True, forced
+        assert finished.state["diagnosis"] is not None, forced
+        assert diagnosis.calls == 1, forced
+        workflow_state_to_json(finished.state)
+
+
+def test_t072_without_checkpointer_is_explicitly_not_resumable() -> None:
+    """H02：未注入检查点时不得声称可恢复：`resumable` 不为真且恢复入口显式拒绝。"""
+
+    objective = _objective_target()
+    subjective = _subjective_target()
+    snapshot = _snapshot(objective, subjective)
+    workflow = _workflow(
+        snapshot,
+        agent=_agent(
+            objective_grader=_RecordingObjectiveGrader(),
+            subjective_grader=_RecordingSubjectiveGrader(
+                _result(subjective, snapshot, confidence=0.3)
+            ),
+            settings=_settings(confidence_threshold=0.8),
+        ),
+    )
+
+    outcome = _run(
+        workflow.run_async(
+            request_id=REQUEST_ID,
+            workflow_id=WORKFLOW_ID,
+            submission_id=snapshot.submission_id,
+        )
+    )
+
+    assert outcome.interrupted is False
+    assert outcome.state["status"] is WorkflowStatus.PAUSED
+    assert outcome.state["resumable"] is False
+    assert str(outcome.state["pause_reason"]).strip()
+    workflow_state_to_json(outcome.state)
+    with pytest.raises(GradingWorkflowError):
+        _run(workflow.resume_async(thread_id="thread-h02"))
 
 
 def test_t072_objective_answer_accepts_without_confidence_decision() -> None:
