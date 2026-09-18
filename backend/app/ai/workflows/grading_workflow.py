@@ -76,6 +76,7 @@ from backend.app.ai.workflows.grading_handoff import (
 )
 from backend.app.ai.workflows.state import ANSWER_SLOT_FIELDS, GradingWorkflowState
 from backend.app.core.config import AppSettings
+from backend.app.core.retry_policy import ProviderExecutionError
 from backend.app.domain.enums import (
     GradingMode,
     ReviewStatus,
@@ -1076,6 +1077,40 @@ class GradingWorkflow:
             )
         return patch
 
+    def _diagnosis_failure(self, error: Exception | None) -> dict[str, Any]:
+        """诊断失败的状态：只有“可重试 + 有恢复支撑”才用暂停，否则显式失败。
+
+        可重试系统错误（Provider 超时/限流等）且已注入检查点时，暂停并指明恢复节点为
+        ``Generate Diagnosis``；不可重试或缺少恢复支撑时不得用 ``Paused`` 掩盖没有恢复入口的失败。
+        两种情况都**保留**已形成的整卷结果，也不写假诊断。
+        """
+
+        retryable = isinstance(error, ProviderExecutionError) and bool(error.info.retryable)
+        if retryable and self._interrupt_enabled and error is not None:
+            return {
+                "current_node": GENERATE_DIAGNOSIS,
+                "status": WorkflowStatus.PAUSED,
+                "error": AgentError(
+                    error_code=GRADING_WORKFLOW_DIAGNOSIS_FAILED,
+                    message="诊断生成失败（可重试），已保留整卷结果。",
+                    retryable=True,
+                    source_code=str(error.info.code),
+                    attempt_count=int(error.info.attempt_count),
+                ),
+                "pause_reason": "诊断生成失败且属可重试系统错误，已保留整卷结果，等待重试诊断。",
+                "resumable": True,
+                "diagnosis": None,
+            }
+        return {
+            **self._failure(
+                GRADING_WORKFLOW_DIAGNOSIS_FAILED,
+                "诊断生成失败且不可重试（或本运行没有恢复支撑），已保留整卷结果。",
+                current_node=GENERATE_DIAGNOSIS,
+                keep_results=True,
+            ),
+            "diagnosis": None,
+        }
+
     async def _node_generate_diagnosis(self, state: Mapping[str, Any]) -> dict[str, Any]:
         """`Generate Diagnosis`：M3 诊断服务；未就绪/失败时保留整卷结果并显式报告。"""
 
@@ -1083,32 +1118,18 @@ class GradingWorkflow:
         service = self._deps.diagnosis_service
         if not diagnosis_allowed(state) or service is None or exam_result is None:
             return {
-                "current_node": GENERATE_DIAGNOSIS,
-                "status": WorkflowStatus.PAUSED,
-                "error": AgentError(
-                    error_code=GRADING_WORKFLOW_DIAGNOSIS_FAILED,
-                    message="诊断服务未就绪或缺少最终整卷结果，未生成诊断报告。",
-                    retryable=False,
+                **self._failure(
+                    GRADING_WORKFLOW_DIAGNOSIS_FAILED,
+                    "诊断服务未接线，或整卷结果尚未最终确认，未生成诊断报告。",
+                    current_node=GENERATE_DIAGNOSIS,
+                    keep_results=True,
                 ),
-                "pause_reason": "诊断未就绪：整卷结果尚未最终确认或诊断服务未接线。",
-                "resumable": self._interrupt_enabled,
                 "diagnosis": None,
             }
         try:
             report = await service.generate(exam_result)
-        except Exception:  # noqa: BLE001 - 统一收敛为脱敏失败，保留整卷结果
-            return {
-                "current_node": GENERATE_DIAGNOSIS,
-                "status": WorkflowStatus.PAUSED,
-                "error": AgentError(
-                    error_code=GRADING_WORKFLOW_DIAGNOSIS_FAILED,
-                    message="诊断生成失败，已保留已形成的整卷结果。",
-                    retryable=False,
-                ),
-                "pause_reason": "诊断生成失败，整卷结果保留，等待重试。",
-                "resumable": self._interrupt_enabled,
-                "diagnosis": None,
-            }
+        except Exception as error:  # noqa: BLE001 - 统一收敛为脱敏失败，保留整卷结果
+            return self._diagnosis_failure(error)
         return {
             "diagnosis": report,
             "current_node": GENERATE_DIAGNOSIS,

@@ -56,6 +56,7 @@ from backend.app.ai.workflows.grading_workflow import (
     DEFAULT_MAX_REGRADES_PER_ANSWER,
     GRADING_WORKFLOW_AGGREGATION_FAILED,
     GRADING_WORKFLOW_ASYNC_REQUIRED,
+    GRADING_WORKFLOW_DIAGNOSIS_FAILED,
     GRADING_WORKFLOW_IDENTITY_MISMATCH,
     GRADING_WORKFLOW_INVALID_INPUT,
     GRADING_WORKFLOW_MISSING_DECISION,
@@ -67,6 +68,7 @@ from backend.app.ai.workflows.grading_workflow import (
 )
 from backend.app.ai.workflows.state import workflow_state_to_json
 from backend.app.core.config import AppSettings
+from backend.app.core.retry_policy import ProviderErrorInfo, ProviderExecutionError
 from backend.app.domain.enums import GradingMode, QuestionType, WorkflowStatus
 from backend.app.schemas.ai import GradingResult
 from backend.app.schemas.grading import (
@@ -1153,6 +1155,89 @@ def test_t072_without_checkpointer_is_explicitly_not_resumable() -> None:
         _run(workflow.resume_async(thread_id="thread-h02"))
 
 
+def test_t072_non_retryable_diagnosis_failure_is_failed_not_paused() -> None:
+    """H03：不可重试的诊断失败必须显式失败（不能用 `Paused` 掩盖无恢复入口的错误）。"""
+
+    objective = _objective_target()
+    snapshot = _snapshot(objective)
+    result = _result(objective, snapshot, score=2.0, confidence=1.0)
+    agent = _StubGradingAgent(results={objective.answer_id: result})
+    diagnosis = _StubDiagnosisService(error=RuntimeError("诊断 Provider 未就绪。"))
+
+    outcome = _run(
+        _workflow(snapshot, agent=agent, diagnosis=diagnosis).run_async(
+            request_id=REQUEST_ID,
+            workflow_id=WORKFLOW_ID,
+            submission_id=snapshot.submission_id,
+        )
+    )
+
+    state = outcome.state
+    assert state["exam_result"] is not None
+    assert state["exam_result"].is_final is True
+    assert state["status"] is WorkflowStatus.FAILED
+    assert state["error"] is not None
+    assert state["error"].error_code == GRADING_WORKFLOW_DIAGNOSIS_FAILED
+    assert state["error"].retryable is False
+    assert state["resumable"] is False
+    assert state.get("diagnosis") is None
+    assert diagnosis.calls == 1
+    workflow_state_to_json(state)
+
+
+def test_t072_retryable_diagnosis_failure_pauses_only_with_recovery_support() -> None:
+    """H03：可重试诊断失败在有检查点时暂停并指明恢复节点；无检查点时仍为失败。"""
+
+    objective = _objective_target()
+    snapshot = _snapshot(objective)
+    result = _result(objective, snapshot, score=2.0, confidence=1.0)
+    retryable_error = ProviderExecutionError(
+        ProviderErrorInfo(
+            code="ProviderTimeout",
+            message="诊断 Provider 超时。",
+            attempt_count=2,
+            retryable=True,
+            status="ProviderTimeout",
+        )
+    )
+
+    checks = (
+        (InMemorySaver(), "thread-h03", WorkflowStatus.PAUSED, True),
+        (None, None, WorkflowStatus.FAILED, False),
+    )
+    for checkpointer, thread_id, expected_status, expected_resumable in checks:
+        diagnosis = _StubDiagnosisService(error=retryable_error)
+        workflow = _workflow(
+            snapshot,
+            agent=_StubGradingAgent(results={objective.answer_id: result}),
+            diagnosis=diagnosis,
+            checkpointer=checkpointer,
+        )
+        outcome = _run(
+            workflow.run_async(
+                request_id=REQUEST_ID,
+                workflow_id=WORKFLOW_ID,
+                submission_id=snapshot.submission_id,
+                thread_id=thread_id,
+            )
+        )
+        state = outcome.state
+
+        assert state["status"] is expected_status, thread_id
+        assert state["resumable"] is expected_resumable, thread_id
+        # 已形成的整卷结果必须保留，且不得写假诊断。
+        assert state["exam_result"].is_final is True, thread_id
+        assert state.get("diagnosis") is None, thread_id
+        assert state["error"] is not None, thread_id
+        assert state["error"].error_code == GRADING_WORKFLOW_DIAGNOSIS_FAILED, thread_id
+        if expected_status is WorkflowStatus.PAUSED:
+            assert state["current_node"] == "generate_diagnosis", thread_id
+            assert str(state["pause_reason"]).strip(), thread_id
+            assert state["error"].retryable is True, thread_id
+            assert state["error"].source_code == "ProviderTimeout", thread_id
+        workflow_state_to_json(state)
+
+
 def test_t072_objective_answer_accepts_without_confidence_decision() -> None:
     """T072：客观题经校验后直接接受，不读取不存在的决策快照（B04）。"""
 
@@ -1360,33 +1445,6 @@ def test_t072_aggregation_failure_never_returns_partial_result() -> None:
     assert blocked.state["status"] is WorkflowStatus.FAILED
     assert blocked.state["error"].error_code == GRADING_WORKFLOW_INVALID_INPUT
     assert blocked.state.get("exam_result") is None
-
-
-def test_t072_diagnosis_failure_keeps_exam_result() -> None:
-    """T072：诊断失败不得抹去已形成的整卷结果，且必须保留脱敏错误（B06）。"""
-
-    objective = _objective_target()
-    snapshot = _snapshot(objective)
-    result = _result(objective, snapshot, score=2.0, confidence=1.0)
-    agent = _StubGradingAgent(results={objective.answer_id: result})
-    diagnosis = _StubDiagnosisService(error=RuntimeError("诊断 Provider 未就绪。"))
-
-    outcome = _run(
-        _workflow(snapshot, agent=agent, diagnosis=diagnosis).run_async(
-            request_id=REQUEST_ID,
-            workflow_id=WORKFLOW_ID,
-            submission_id=snapshot.submission_id,
-        )
-    )
-
-    state = outcome.state
-    assert state["exam_result"] is not None
-    assert state["exam_result"].is_final is True
-    assert state["status"] is WorkflowStatus.PAUSED
-    assert state["error"] is not None
-    assert state.get("diagnosis") is None
-    assert diagnosis.calls == 1
-    workflow_state_to_json(state)
 
 
 def test_t072_identity_mismatch_fails_and_clears_stale_state() -> None:
