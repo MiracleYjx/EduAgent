@@ -833,6 +833,12 @@ class GradingWorkflow:
                         "reason": f"{decision.reason}重评后仍需教师复核。",
                     }
                 )
+                # 人工复核未解除时，最新评分结果也必须保持 Pending Review：
+                # 否则 T054 汇总会因“结果自动接受但决策要求复核”而拒绝整卷。
+                results[answer_id] = result.model_copy(
+                    update={"review_status": ReviewStatus.PENDING_REVIEW.value}
+                )
+                patch["grading_results"] = results
             else:
                 decisions[answer_id] = decision
             patch["confidence_decisions"] = decisions
