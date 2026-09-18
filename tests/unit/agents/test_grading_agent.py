@@ -689,6 +689,127 @@ def test_duplicate_answer_ids_never_produce_partial_success() -> None:
         agent.score(repeated)
 
 
+def test_local_settings_win_over_global_configuration(monkeypatch: pytest.MonkeyPatch) -> None:
+    """H02：注入的局部配置决定阈值，且不读取全局配置（M04 配置贯穿的延续）。
+
+    TCR：
+    - 必要性：T069 的四个入口都接受显式 `settings`，若任一层回退到全局 `get_settings()`，
+      M04 的“局部配置与全局配置不一致”缺陷会重现；
+    - 契约依据：`plan.md` §4 Agent 分工的配置贯穿要求与 H02（同一 `AppSettings` 贯穿
+      ConfidencePolicy 与评分器）；
+    - 覆盖行为：把全局配置工厂替换为“被调用即记录”的替身，注入阈值 0.9 而全局为 0.1 时，
+      决策快照阈值为 0.9（进入 Pending Review），且全局工厂一次也未被访问。
+    """
+
+    calls: list[str] = []
+
+    def _global_settings() -> AppSettings:
+        calls.append("get_settings")
+        return _settings(confidence_threshold=0.1)
+
+    monkeypatch.setattr(
+        "backend.app.services.grading.confidence_policy.get_settings",
+        _global_settings,
+    )
+    target = _subjective_target()
+    snapshot = _snapshot(target)
+    subjective = _RecordingSubjectiveGrader(_subjective_result(target, snapshot, confidence=0.5))
+    output = _agent(
+        subjective_grader=subjective,
+        settings=_settings(confidence_threshold=0.9),
+    ).grade_answer(snapshot, target, request_id="request-1").output
+
+    assert calls == []
+    assert output.confidence_decision is not None
+    assert output.confidence_decision.threshold == 0.9
+    assert output.status is AgentStatus.PENDING_REVIEW
+
+
+def test_per_call_settings_override_constructor_settings() -> None:
+    """H02：逐次 `settings` 优先于构造期配置，且不改变构造期配置（不传时仍用构造期值）。"""
+
+    target = _subjective_target()
+    snapshot = _snapshot(target)
+    agent = _agent(
+        subjective_grader=_RecordingSubjectiveGrader(
+            _subjective_result(target, snapshot, confidence=0.5)
+        ),
+        settings=_settings(confidence_threshold=0.2),
+    )
+
+    strict = agent.grade_answer(
+        snapshot,
+        target,
+        request_id="request-1",
+        settings=_settings(confidence_threshold=0.9),
+    ).output
+    lenient = agent.grade_answer(snapshot, target, request_id="request-1").output
+
+    assert strict.confidence_decision is not None
+    assert strict.confidence_decision.threshold == 0.9
+    assert strict.status is AgentStatus.PENDING_REVIEW
+    assert lenient.confidence_decision is not None
+    assert lenient.confidence_decision.threshold == 0.2
+    assert lenient.status is AgentStatus.SUCCESS
+
+
+def test_settings_reach_every_resolved_component_once(monkeypatch: pytest.MonkeyPatch) -> None:
+    """H02：未注入的组件由同一 `AppSettings` 解析，且检索与重排各一次、不重复装配。
+
+    验证链路：注入的评分器替身不参与本用例；Provider/Embedding/Reranker 走 M3 既有工厂，
+    工厂收到的必须是同一个 `AppSettings` 实例（`is` 断言），并被真实调用一次。
+    """
+
+    from backend.app.services.grading import grading_context
+    from backend.app.services.grading import (
+        subjective_grader as subjective_grader_module,
+    )
+
+    settings = _settings(confidence_threshold=0.8)
+    embedding = StubEmbeddingProvider()
+    reranker = StubReranker()
+    provider = StubScoringProvider(score=8.0, confidence=0.95)
+    seen: dict[str, AppSettings | None] = {}
+
+    def _embedding_factory(passed: AppSettings | None) -> StubEmbeddingProvider:
+        seen["embedding"] = passed
+        return embedding
+
+    def _reranker_factory(*, settings: AppSettings | None = None) -> StubReranker:
+        seen["reranker"] = settings
+        return reranker
+
+    def _provider_factory(passed: AppSettings | None = None) -> StubScoringProvider:
+        seen["provider"] = passed
+        return provider
+
+    monkeypatch.setattr(grading_context, "create_embedding_provider", _embedding_factory)
+    monkeypatch.setattr(grading_context, "build_reranker", _reranker_factory)
+    monkeypatch.setattr(subjective_grader_module, "create_llm_provider", _provider_factory)
+
+    target = _subjective_target()
+    snapshot = _snapshot(target)
+    retriever = StubRetriever([make_chunk("chunk-1")])
+    output = _agent(
+        retriever=retriever,
+        reranker=None,
+        embedding_provider=None,
+        provider=None,
+        settings=settings,
+    ).grade_answer(snapshot, target, request_id="request-1").output
+
+    assert output.status is AgentStatus.SUCCESS
+    assert output.grading_result is not None
+    assert output.grading_result.score == 8.0
+    # 三个工厂都只收到同一个 AppSettings 实例，且各被调用一次。
+    assert seen == {"embedding": settings, "reranker": settings, "provider": settings}
+    assert all(value is settings for value in seen.values())
+    assert len(retriever.calls) == 1
+    assert len(reranker.calls) == 1
+    assert len(provider.calls) == 1
+    assert provider.calls[0]["schema"] is SubjectiveGradingPayload
+
+
 def test_real_services_satisfy_agent_orchestration_contract() -> None:
     """真实服务满足 Agent 编排契约：客观题复用既有评分器，主观题接受检索与会话关键字。
 

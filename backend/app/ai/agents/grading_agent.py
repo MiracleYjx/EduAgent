@@ -15,6 +15,11 @@ FR-031/FR-032（主观题必须带检索上下文并结构化输出）、FR-035/
   返回非空 ``exam_result``，任一题失败即抛出 :class:`GradingAgentError`，**不返回部分成功**；
   ``score`` 是 M3 ``ScoringPipeline`` 同步合同的包装（无运行中事件循环时用 ``asyncio.run``）。
   不修改 M3 ``DefaultScoringPipeline``：它仍是 T056 装配路径，本模块是 Agent 级、可异步的实现。
+- **配置装配与优先级（H02）**：优先级固定为“显式组件 > 逐次 ``settings`` > 构造期 ``settings`` >
+  全局配置”。四个公开入口（``grade_answer``/``grade_answer_async``/``score``/``score_async``）都接受
+  可选 ``settings``（不传时行为不变）；生效的同一个 ``AppSettings`` 同时用于决策策略与
+  ``SubjectiveGrader.grade``，Provider/Embedding/Retriever/Reranker 由 M3 既有链路按该配置解析，
+  本模块不再另建第二套装配。
 - **逐题入口是 Graph 合同（H01）**：T072 的图节点必须逐题调用 :meth:`GradingAgent.grade_answer_async`
   （或同步 :meth:`GradingAgent.grade_answer`）并自行推进题序；``score_async`` 只是既有
   ``ScoringPipeline`` 的整卷兼容入口，节点内不得调用它后再自行逐题循环。逐题入口每题只调用一次
@@ -262,17 +267,19 @@ class GradingAgent:
         request_id: str,
         workflow_id: str | None = None,
         session: Session | None = None,
+        settings: AppSettings | None = None,
     ) -> AgentInvocation:
         """同步单题入口；事件循环内必须使用 :meth:`grade_answer_async`。
 
         本入口是 T072 图节点的逐题合同：一次调用只处理一道题，调用方自行维护题序；
         不接受整卷快照的批量语义（批量兼容入口是 :meth:`score`）。
+        ``settings`` 为本次调用的可选配置覆盖，优先于构造期配置。
         """
 
         request_id, workflow_id = normalize_trace_context(request_id, workflow_id)
         _ensure_no_running_loop()
         outcome = asyncio.run(
-            self._grade_answer(snapshot, target, session=session, settings=None)
+            self._grade_answer(snapshot, target, session=session, settings=settings)
         )
         return AgentInvocation(request_id=request_id, workflow_id=workflow_id, output=outcome.output)
 
@@ -284,27 +291,40 @@ class GradingAgent:
         request_id: str,
         workflow_id: str | None = None,
         session: Session | None = None,
+        settings: AppSettings | None = None,
     ) -> AgentInvocation:
         """异步单题入口：直接 ``await`` 主观题评分，不嵌套 ``asyncio.run``。
 
         与 :meth:`grade_answer` 同为 T072 图节点的逐题合同：每题调用一次，调用方负责推进题序
         与下一次迭代；图节点不得改用整卷 :meth:`score_async` 后再自行逐题循环。
+        ``settings`` 为本次调用的可选配置覆盖，优先于构造期配置。
         """
 
         request_id, workflow_id = normalize_trace_context(request_id, workflow_id)
-        outcome = await self._grade_answer(snapshot, target, session=session, settings=None)
+        outcome = await self._grade_answer(snapshot, target, session=session, settings=settings)
         return AgentInvocation(request_id=request_id, workflow_id=workflow_id, output=outcome.output)
 
-    def score(self, snapshot: SubmissionSnapshot) -> GradingOutcome:
+    def score(
+        self,
+        snapshot: SubmissionSnapshot,
+        *,
+        settings: AppSettings | None = None,
+    ) -> GradingOutcome:
         """既有的 ``ScoringPipeline`` 同步合同；整卷编排的同步包装。
 
         仅供整体阅卷调用（批量兼容入口），不是 T072 图节点接口。
+        ``settings`` 为本次调用的可选配置覆盖，优先于构造期配置。
         """
 
         _ensure_no_running_loop()
-        return asyncio.run(self.score_async(snapshot))
+        return asyncio.run(self.score_async(snapshot, settings=settings))
 
-    async def score_async(self, snapshot: SubmissionSnapshot) -> GradingOutcome:
+    async def score_async(
+        self,
+        snapshot: SubmissionSnapshot,
+        *,
+        settings: AppSettings | None = None,
+    ) -> GradingOutcome:
         """整卷编排：逐题分流 → 既有评分服务 → 汇总一次；任一步失败即抛出。
 
         不返回部分成功：任一题失败时抛出 :class:`GradingAgentError`，调用方不得把不完整结果
@@ -323,7 +343,7 @@ class GradingAgent:
         results: list[GradingResult] = []
         decisions: dict[str, ConfidenceDecision] = {}
         for target in snapshot.answers:
-            outcome = await self._grade_answer(snapshot, target, session=None, settings=None)
+            outcome = await self._grade_answer(snapshot, target, session=None, settings=settings)
             if outcome.result is None:
                 raise self._as_error(outcome.output)
             results.append(outcome.result)
@@ -438,7 +458,7 @@ class GradingAgent:
                 source = build_subjective_source(snapshot, target)
             except (GradingContextError, ValueError) as error:
                 return self._failure_from_exception(error)
-            resolved_settings = self._settings if self._settings is not None else settings
+            resolved_settings = settings if settings is not None else self._settings
             policy = self._resolved_policy(resolved_settings)
             recording = DecisionRecordingPolicy(policy=policy, settings=resolved_settings)
             grader: SubjectiveGraderLike = (
