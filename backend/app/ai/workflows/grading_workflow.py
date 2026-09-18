@@ -602,7 +602,12 @@ class GradingWorkflow:
         *,
         answer_id: str,
     ) -> dict[str, Any]:
-        """把逐题结果与决策写入整卷集合：按 ``answer_id`` 替换，禁止追加重复计分。"""
+        """把逐题结果与决策写入整卷集合：按 ``answer_id`` 替换，禁止追加重复计分。
+
+        决策快照始终替换为**本次**事实（置信度/阈值/评分状态），因此不会给 T074 提供过期数据；
+        若该题已开启人工复核，只在最新快照上保留 ``requires_review=True`` 与
+        ``review_status=Pending Review``，直到教师结论写入（H04）。
+        """
 
         result = output.grading_result
         if not isinstance(result, GradingResult):
@@ -613,10 +618,20 @@ class GradingWorkflow:
         decision = output.confidence_decision
         if isinstance(decision, ConfidenceDecisionDTO):
             decisions = dict(state.get("confidence_decisions") or {})
-            # 已记录的待复核决策不被覆盖：重评不得自动解除人工复核要求。
-            if decisions.get(answer_id) is None or not self._pending_decision(
-                {**state, "current_answer_id": answer_id}
-            ):
+            # T065：集合以 ``answer_id`` 为键、重评按答案替换，旧快照不得残留。
+            # 已开启的人工复核要求不自动解除：最新事实照写，要求改用 ``review_status`` 表达。
+            open_review = (
+                self._pending_decision({**state, "current_answer_id": answer_id}) is not None
+            )
+            if open_review:
+                decisions[answer_id] = decision.model_copy(
+                    update={
+                        "requires_review": True,
+                        "review_status": ReviewStatus.PENDING_REVIEW.value,
+                        "reason": f"{decision.reason}重评后仍需教师复核。",
+                    }
+                )
+            else:
                 decisions[answer_id] = decision
             patch["confidence_decisions"] = decisions
         return patch
