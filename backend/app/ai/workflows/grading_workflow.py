@@ -35,6 +35,7 @@ from __future__ import annotations
 import asyncio
 from collections.abc import Callable, Iterator, Mapping
 from dataclasses import dataclass
+from decimal import Decimal
 from types import MappingProxyType
 from typing import Any, Final, cast
 
@@ -114,6 +115,10 @@ GRADING_WORKFLOW_REGRADE_BUDGET_EXHAUSTED: Final[str] = "GRADING_WORKFLOW_REGRAD
 GRADING_WORKFLOW_AGGREGATION_FAILED: Final[str] = "GRADING_WORKFLOW_AGGREGATION_FAILED"
 #: 诊断未接线或生成失败；保留已形成的整卷结果。
 GRADING_WORKFLOW_DIAGNOSIS_FAILED: Final[str] = "GRADING_WORKFLOW_DIAGNOSIS_FAILED"
+#: 教师决策载荷非法（状态不允许、缺/多修订结果、跨工作流或答案不存在）。
+GRADING_WORKFLOW_INVALID_TEACHER_DECISION: Final[str] = "GRADING_WORKFLOW_INVALID_TEACHER_DECISION"
+#: 教师决策基于已变更的复核状态（防陈旧覆盖）。
+GRADING_WORKFLOW_STALE_TEACHER_DECISION: Final[str] = "GRADING_WORKFLOW_STALE_TEACHER_DECISION"
 #: 当前线程已有事件循环，必须使用异步入口。
 GRADING_WORKFLOW_ASYNC_REQUIRED: Final[str] = "GRADING_WORKFLOW_ASYNC_REQUIRED"
 
@@ -127,6 +132,19 @@ LIST_SLOT_FIELDS: Final[frozenset[str]] = frozenset(
 
 #: 默认重评预算：每题最多 1 次业务重评（0 表示禁止重评）。
 DEFAULT_MAX_REGRADES_PER_ANSWER: Final[int] = 1
+
+#: 允许教师写入的复核状态（T074 复核服务的合法载荷）。
+TEACHER_REVIEW_STATES: Final[frozenset[str]] = frozenset(
+    {
+        ReviewStatus.CONFIRMED.value,
+        ReviewStatus.MODIFIED.value,
+        ReviewStatus.FINAL.value,
+        ReviewStatus.RE_GRADE.value,
+    }
+)
+
+#: 只有 `Modified` 允许携带修订后的评分结果。
+TEACHER_REVISION_STATE: Final[str] = ReviewStatus.MODIFIED.value
 
 #: 图版本；节点集合、边或状态映射变化时必须递增。
 GRADING_WORKFLOW_VERSION: Final[str] = "1"
@@ -179,6 +197,35 @@ class GradingWorkflowDeps:
     session: Any = None
     settings: AppSettings | None = None
     max_regrades: int = DEFAULT_MAX_REGRADES_PER_ANSWER
+
+
+def _same_max_score(left: object, right: object) -> bool:
+    """比较满分是否等价；两侧都必须能转成十进制数值。"""
+
+    try:
+        return Decimal(str(left)) == Decimal(str(right))
+    except (ArithmeticError, ValueError):
+        return False
+
+
+@dataclass(frozen=True, slots=True)
+class TeacherReviewDecision:
+    """教师复核决策的交接载荷（T074 复核服务的固定输入契约）。
+
+    :param workflow_id: 所属工作流；必须与检查点中的身份一致（防跨工作流写入）。
+    :param thread_id: 被恢复的线程标识。
+    :param answer_id: 被结论的题目；必须已有评分结果（防凭空确认或覆盖其他答案）。
+    :param review_status: `Confirmed`/`Modified`/`Final`/`Re-grade` 之一。
+    :param revised_result: 仅 `Modified` 允许携带的修订结果（必须经 Pydantic 校验且身份/满分一致）。
+    :param expected_review_status: 期望的当前复核状态；不匹配即拒绝（防陈旧覆盖）。
+    """
+
+    workflow_id: str
+    thread_id: str
+    answer_id: str
+    review_status: str
+    revised_result: GradingResult | None = None
+    expected_review_status: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -310,6 +357,43 @@ class GradingWorkflow:
         )
         return self._to_result(raw)
 
+    def apply_teacher_decision(
+        self,
+        decision: TeacherReviewDecision,
+        *,
+        resume: bool = False,
+    ) -> GradingWorkflowResult | None:
+        """写入教师决策；``resume=True`` 时按原 ``thread_id`` 继续运行（FR-036）。
+
+        同步入口：事件循环内调用会显式报错（与 :meth:`run` 一致）；需要 await 时用
+        :meth:`apply_teacher_decision_async`。
+        """
+
+        self._apply_teacher_decision_state(decision)
+        if not resume:
+            return None
+        try:
+            asyncio.get_running_loop()
+        except RuntimeError:
+            return asyncio.run(self.resume_async(thread_id=decision.thread_id))
+        raise GradingWorkflowError(
+            "当前线程已有事件循环，请使用 await apply_teacher_decision_async(...)。",
+            error_code=GRADING_WORKFLOW_ASYNC_REQUIRED,
+        )
+
+    async def apply_teacher_decision_async(
+        self,
+        decision: TeacherReviewDecision,
+        *,
+        resume: bool = False,
+    ) -> GradingWorkflowResult | None:
+        """异步版本：写入教师决策，可选立即恢复原运行。"""
+
+        self._apply_teacher_decision_state(decision)
+        if not resume:
+            return None
+        return await self.resume_async(thread_id=decision.thread_id)
+
     def mark_teacher_decision(
         self,
         *,
@@ -317,34 +401,123 @@ class GradingWorkflow:
         answer_id: str,
         review_status: str,
     ) -> None:
-        """把教师结论写入检查点状态（**T074 落地前的交接缝**）。
+        """兼容入口：按检查点身份写入“仅状态”的教师结论。
 
-        T074 的复核服务将负责真实持久化与权限校验；本方法只把教师结论写进本题结果与决策快照，
-        用于让待复核题解除暂停并进入最终成绩，避免用字段写入代替人工授权。
+        T074 的复核服务应使用 :class:`TeacherReviewDecision` 固定契约（可携带 `Modified`
+        修订结果，并防陈旧/跨工作流写入）；本方法只覆盖只改状态的简单情形。
         """
 
+        config = self._config(thread_id)
+        if config is None:
+            raise GradingWorkflowError("未注入检查点时无法写入教师结论。")
+        current = dict(self._compiled.get_state(config).values)
+        self.apply_teacher_decision(
+            TeacherReviewDecision(
+                workflow_id=str(current.get("workflow_id") or ""),
+                thread_id=thread_id,
+                answer_id=answer_id,
+                review_status=review_status,
+            )
+        )
+
+    def _apply_teacher_decision_state(self, decision: TeacherReviewDecision) -> None:
+        """校验并写入教师决策：只影响该答案，防跨工作流/陈旧/凭空确认。"""
+
+        if not isinstance(decision, TeacherReviewDecision):
+            raise GradingWorkflowError(
+                "教师决策必须是 TeacherReviewDecision。",
+                error_code=GRADING_WORKFLOW_INVALID_TEACHER_DECISION,
+            )
         if self._checkpointer is None:
             raise GradingWorkflowError("未注入检查点时无法写入教师结论。")
-        config = self._config(thread_id)
+        if decision.review_status not in TEACHER_REVIEW_STATES:
+            raise GradingWorkflowError(
+                "教师决策只允许 Confirmed/Modified/Final/Re-grade。",
+                error_code=GRADING_WORKFLOW_INVALID_TEACHER_DECISION,
+            )
+        if decision.review_status == TEACHER_REVISION_STATE and decision.revised_result is None:
+            raise GradingWorkflowError(
+                "Modified 必须携带经校验的修订评分结果。",
+                error_code=GRADING_WORKFLOW_INVALID_TEACHER_DECISION,
+            )
+        if decision.review_status != TEACHER_REVISION_STATE and decision.revised_result is not None:
+            raise GradingWorkflowError(
+                "只有 Modified 可以携带修订评分结果。",
+                error_code=GRADING_WORKFLOW_INVALID_TEACHER_DECISION,
+            )
+        config = self._config(decision.thread_id)
         if config is None:  # pragma: no cover - 上方已拒绝无检查点情形
             raise GradingWorkflowError("未注入检查点时无法写入教师结论。")
         current = dict(self._compiled.get_state(config).values)
-        results = dict(current.get("grading_results") or {})
-        result = results.get(answer_id)
-        if not isinstance(result, GradingResult):
+        if str(current.get("workflow_id") or "") != decision.workflow_id:
             raise GradingWorkflowError(
-                "教师结论只能写入已有评分结果的题目，不存在的结果不得凭空确认。"
+                "教师决策的 workflow_id 与检查点身份不一致，拒绝跨工作流写入。",
+                error_code=GRADING_WORKFLOW_INVALID_TEACHER_DECISION,
             )
-        results[answer_id] = result.model_copy(update={"review_status": review_status})
-        updates: dict[str, Any] = {"grading_results": results, "review_status": review_status}
+        results = dict(current.get("grading_results") or {})
+        target_result = results.get(decision.answer_id)
+        if not isinstance(target_result, GradingResult):
+            raise GradingWorkflowError(
+                "教师结论只能写入已有评分结果的题目，不存在的结果不得凭空确认。",
+                error_code=GRADING_WORKFLOW_INVALID_TEACHER_DECISION,
+            )
         decisions = dict(current.get("confidence_decisions") or {})
-        decision = decisions.get(answer_id)
-        if isinstance(decision, ConfidenceDecisionDTO):
-            decisions[answer_id] = decision.model_copy(
-                update={"requires_review": False, "review_status": review_status}
+        existing = decisions.get(decision.answer_id)
+        current_status = (
+            existing.review_status
+            if isinstance(existing, ConfidenceDecisionDTO)
+            else target_result.review_status
+        )
+        if (
+            decision.expected_review_status is not None
+            and decision.expected_review_status != current_status
+        ):
+            raise GradingWorkflowError(
+                "教师决策基于已变更的复核状态，拒绝陈旧覆盖。",
+                error_code=GRADING_WORKFLOW_STALE_TEACHER_DECISION,
+            )
+        if decision.revised_result is not None:
+            self._validate_revised_result(decision.revised_result, decision.answer_id)
+            results[decision.answer_id] = decision.revised_result.model_copy(
+                update={"review_status": decision.review_status}
+            )
+        else:
+            results[decision.answer_id] = target_result.model_copy(
+                update={"review_status": decision.review_status}
+            )
+        updates: dict[str, Any] = {
+            "grading_results": results,
+            "review_status": decision.review_status,
+        }
+        if isinstance(existing, ConfidenceDecisionDTO):
+            decisions[decision.answer_id] = existing.model_copy(
+                update={
+                    "requires_review": False,
+                    "review_status": decision.review_status,
+                    "reason": f"教师复核结论：{decision.review_status}。",
+                }
             )
             updates["confidence_decisions"] = decisions
-        self._compiled.update_state(config, updates)
+        # 必须声明 `as_node`：否则检查点会把增量算作“上一个节点”的产出并固定它自己的后继，
+        # 从而绕开 `pending_review` 的条件边（教师 Re-grade 就不会回到评分节点）。
+        self._compiled.update_state(config, updates, as_node=PENDING_REVIEW)
+
+    def _validate_revised_result(self, revised: GradingResult, answer_id: str) -> None:
+        """修订结果必须属于该题且题型/满分一致；不得借修订替换其他题目的结果。"""
+
+        target = self._target_for_answer(answer_id)
+        mismatched = (
+            target is None
+            or revised.answer_id != target.answer_id
+            or revised.submission_id != self._deps.snapshot.submission_id
+            or str(revised.question_type) != str(target.question_type)
+            or not _same_max_score(revised.max_score, target.max_score)
+        )
+        if mismatched:
+            raise GradingWorkflowError(
+                "修订结果与该题的答案/答卷/题型/满分不一致，拒绝写入。",
+                error_code=GRADING_WORKFLOW_INVALID_TEACHER_DECISION,
+            )
 
     # ------------------------------------------------------------------ 图装配
 
@@ -390,7 +563,11 @@ class GradingWorkflow:
         graph.add_conditional_edges(
             PENDING_REVIEW,
             self._route_after_pending,
-            {REVIEWER_AGENT: REVIEWER_AGENT, NEXT_ANSWER: NEXT_ANSWER},
+            {
+                REVIEWER_AGENT: REVIEWER_AGENT,
+                REGRADE: REGRADE,
+                NEXT_ANSWER: NEXT_ANSWER,
+            },
         )
         graph.add_conditional_edges(
             REVIEWER_AGENT,
@@ -569,7 +746,7 @@ class GradingWorkflow:
         return None
 
     def _pending_decision(self, state: Mapping[str, Any]) -> ConfidenceDecisionDTO | None:
-        """返回当前题已记录的待复核决策（重评不得覆盖它，B01）。"""
+        """返回当前题已记录、且尚未被教师结论结束的决策快照。"""
 
         answer_id = state.get("current_answer_id")
         decisions = state.get("confidence_decisions") or {}
@@ -578,6 +755,19 @@ class GradingWorkflow:
             decision.review_status not in ACCEPTED_REVIEW_STATES
         ):
             return decision
+        return None
+
+    def _authoritative_review_status(self, state: Mapping[str, Any]) -> str | None:
+        """返回当前题的权威复核状态：决策快照优先，其次评分结果本身。"""
+
+        answer_id = state.get("current_answer_id")
+        decisions = state.get("confidence_decisions") or {}
+        decision = decisions.get(answer_id) if isinstance(decisions, Mapping) else None
+        if isinstance(decision, ConfidenceDecisionDTO):
+            return decision.review_status
+        result = state.get("grading_result")
+        if isinstance(result, GradingResult):
+            return result.review_status
         return None
 
     def _needs_human_review(self, state: Mapping[str, Any]) -> bool:
@@ -896,6 +1086,16 @@ class GradingWorkflow:
         """`Pending Review`：真正中断等待人工复核；已有教师结论时才继续推进。"""
 
         answer_id = str(state.get("current_answer_id") or "")
+        if self._authoritative_review_status(state) == ReviewStatus.RE_GRADE.value:
+            # 教师要求重新评分：不在此暂停，由 `regrade` 节点在预算内重新调度。
+            return {
+                "current_node": PENDING_REVIEW,
+                "status": WorkflowStatus.RUNNING,
+                "review_status": ReviewStatus.RE_GRADE,
+                "pause_reason": None,
+                "resumable": False,
+                "error": None,
+            }
         if not self._needs_human_review(state):
             decisions = state.get("confidence_decisions") or {}
             decision = decisions.get(answer_id) if isinstance(decisions, Mapping) else None
@@ -1176,8 +1376,10 @@ class GradingWorkflow:
         )
 
     def _route_after_pending(self, state: Mapping[str, Any]) -> str:
-        """仍需人工复核时先取复核建议；已有教师结论时直接推进。"""
+        """教师要求重评时回到评分节点；仍需复核时先取建议；已有结论则推进。"""
 
+        if self._authoritative_review_status(state) == ReviewStatus.RE_GRADE.value:
+            return REGRADE
         return NEXT_ANSWER if not self._needs_human_review(state) else REVIEWER_AGENT
 
     def _route_after_reviewer(self, state: Mapping[str, Any]) -> str:
@@ -1226,17 +1428,22 @@ __all__ = [
     "GRADING_WORKFLOW_DIAGNOSIS_FAILED",
     "GRADING_WORKFLOW_IDENTITY_MISMATCH",
     "GRADING_WORKFLOW_INVALID_INPUT",
+    "GRADING_WORKFLOW_INVALID_TEACHER_DECISION",
     "GRADING_WORKFLOW_MISSING_ANSWER",
     "GRADING_WORKFLOW_MISSING_DECISION",
     "GRADING_WORKFLOW_REGRADE_BUDGET_EXHAUSTED",
     "GRADING_WORKFLOW_RESULT_NOT_VALIDATED",
+    "GRADING_WORKFLOW_STALE_TEACHER_DECISION",
     "GRADING_WORKFLOW_UNSUPPORTED_QUESTION_TYPE",
     "GRADING_WORKFLOW_VERSION",
     "LIST_SLOT_FIELDS",
+    "TEACHER_REVIEW_STATES",
+    "TEACHER_REVISION_STATE",
     "GradingWorkflow",
     "GradingWorkflowDeps",
     "GradingWorkflowError",
     "GradingWorkflowResult",
+    "TeacherReviewDecision",
     "cleared_slots",
     "confidence_decision_from_snapshot",
 ]
