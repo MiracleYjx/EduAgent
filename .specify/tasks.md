@@ -181,7 +181,7 @@ Pending Review，Teacher 复核后 Workflow 恢复并生成最终诊断。
 - [X] T071 [US3] 在 `tests/unit/workflows/test_grading_workflow.py` 中增加失败优先的 LangGraph 路由测试，覆盖 Load Submission、Classify Question、Objective Rule Grade、Subjective Retrieve/Grade、Structured Validation、Confidence Check、Accept 和 Pending Review
 - [X] T072 [US3] 在 `backend/app/ai/workflows/grading_workflow.py` 中实现 LangGraph 阅卷节点和条件边，包括逐题迭代、统一结果和 Generate Diagnosis
 - [X] T073 [US3] 在 `backend/app/services/workflow_checkpoint.py` 中实现基于 T064 `WorkflowRun` 模型的检查点、暂停原因、重试次数和可恢复状态持久化
-- [ ] T074 [US3] 在 `backend/app/services/review_service.py` 中实现 Pending Review 恢复、Teacher 确认/修改、Reviewer Agent 重新评分和最终结果持久化
+- [X] T074 [US3] 在 `backend/app/services/review_service.py` 中实现 Pending Review 恢复、Teacher 确认/修改、Reviewer Agent 重新评分和最终结果持久化
 - [ ] T075 [P] [US1] 在 `backend/app/api/question_generation.py` 和 `backend/app/ui/question_generation_view.py` 中提供 AI 出题请求和候选题目审核操作
 - [ ] T076 [US3] 在 `backend/app/api/workflow.py` 中提供 LangGraph 阅卷启动、状态查询和恢复操作
 - [ ] T077 [US3] 在 `backend/app/api/reviews.py` 和 `backend/app/ui/review_view.py` 中提供低置信度评分详情以及 Teacher 确认/修改操作
