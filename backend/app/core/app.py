@@ -25,6 +25,7 @@ from backend.app.api.knowledge_bases import router as knowledge_bases_router
 from backend.app.api.question_generation import router as question_generation_router
 from backend.app.api.questions import router as questions_router
 from backend.app.api.results import router as results_router
+from backend.app.api.reviews import router as reviews_router
 from backend.app.api.submissions import exam_submission_router
 from backend.app.api.submissions import router as submissions_router
 from backend.app.api.workflow import router as workflow_router
@@ -103,6 +104,7 @@ def create_app(
     app.include_router(exams_router)
     app.include_router(grading_router)
     app.include_router(results_router)
+    app.include_router(reviews_router)
     app.include_router(submissions_router)
     app.include_router(exam_submission_router)
     app.include_router(workflow_router)
