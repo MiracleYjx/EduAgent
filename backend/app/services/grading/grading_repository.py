@@ -314,14 +314,7 @@ class DatabaseGradingRepository:
         同样按 ``answer_id`` 就地更新，不做批量删除。
         """
 
-        payloads: list[GradingResultPayload] = []
-        decisions: dict[str, ConfidenceDecision] = {}
-        for item in exam_result.items:
-            if item.score is None:
-                continue
-            payloads.append(_payload_from_item(item))
-            if item.decision is not None:
-                decisions[item.answer_id] = _decision_from_dto(item.decision)
+        payloads, decisions = _exam_result_payloads(exam_result)
         self.save_outcome(
             exam_result.submission_id,
             GradingOutcome(
@@ -330,6 +323,24 @@ class DatabaseGradingRepository:
                 exam_result=exam_result,
             ),
         )
+
+    def save_exam_result_within(self, session: Session, exam_result: ExamResultDTO) -> None:
+        """在调用方事务内写入整卷结果与逐题结果（不提交、不关闭会话）。
+
+        供复核服务把“复核记录 + 单题结果 + 当前整卷结果”写入同一事务；映射口径与
+        :meth:`save_exam_result` 完全一致（共用同一载荷构造），避免两处各写一份结果映射。
+        """
+
+        submission = session.get(Submission, _as_uuid(exam_result.submission_id))
+        if submission is None:
+            raise GradingSubmissionNotFoundError(
+                f"答卷 {exam_result.submission_id} 不存在。"
+            )
+        payloads, decisions = _exam_result_payloads(exam_result)
+        for payload in payloads:
+            self._upsert_result(session, submission, payload, decisions)
+        self._upsert_exam_result(session, submission, exam_result)
+        self._mark_graded(session, submission)
 
     def save_outcome(
         self,
@@ -873,6 +884,22 @@ class DatabaseGradingRepository:
             for question in exam.questions
             if str(question.id) in answers
         )
+
+
+def _exam_result_payloads(
+    exam_result: ExamResultDTO,
+) -> tuple[list[GradingResultPayload], dict[str, ConfidenceDecision]]:
+    """由整卷结果构造逐题结果载荷与决策快照（跳过没有分数的条目）。"""
+
+    payloads: list[GradingResultPayload] = []
+    decisions: dict[str, ConfidenceDecision] = {}
+    for item in exam_result.items:
+        if item.score is None:
+            continue
+        payloads.append(_payload_from_item(item))
+        if item.decision is not None:
+            decisions[item.answer_id] = _decision_from_dto(item.decision)
+    return payloads, decisions
 
 
 def _payload_from_item(item: QuestionResultDTO) -> GradingResultPayload:

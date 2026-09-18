@@ -625,6 +625,39 @@ class WorkflowCheckpointStore(_SessionBoundStore):
         只有在持久 runtime 检查点存在且能按同一 ``thread_id`` 读回时才可能为真。
         """
 
+        with self._use_session() as session:
+            try:
+                row = self.save_checkpoint_within(
+                    session,
+                    workflow_id,
+                    state,
+                    current_node,
+                    pause_reason,
+                    thread_id=thread_id,
+                )
+                session.commit()
+            except Exception:
+                session.rollback()
+                raise
+            session.refresh(row)
+            return row
+
+    def save_checkpoint_within(
+        self,
+        session: Session,
+        workflow_id: str,
+        state: Mapping[str, Any],
+        current_node: str,
+        pause_reason: str | None = None,
+        *,
+        thread_id: str | None = None,
+    ) -> WorkflowRun:
+        """在调用方事务内写入业务状态快照（不提交、不关闭会话）。
+
+        校验、身份绑定与 ``resumable`` 门禁与 :meth:`save_checkpoint` 完全一致；供复核服务把
+        “复核记录 + 单题结果 + 当前整卷结果 + 工作流业务状态”写入同一事务。
+        """
+
         run_id = _required_text(workflow_id, "workflow_id")
         node = _required_text(current_node, "current_node")
         if not isinstance(state, Mapping) or not state:
@@ -676,51 +709,44 @@ class WorkflowCheckpointStore(_SessionBoundStore):
             and normalized.get("resumable") is True
         )
 
-        with self._use_session() as session:
-            try:
-                row = self._find(session, run_id)
-                if row is None:
-                    row = WorkflowRun(
-                        workflow_id=run_id,
-                        request_id=request_id,
-                        submission_id=submission_id,
-                    )
-                    session.add(row)
-                elif row.submission_id != submission_id or row.request_id != request_id:
-                    raise WorkflowCheckpointOwnershipError(
-                        "检查点已属于其它答卷或其它请求，拒绝覆盖既有运行记录。"
-                    )
-                envelope = _envelope(row)
-                bound_thread = runtime_thread_id(envelope)
-                if (
-                    resolved_thread is not None
-                    and bound_thread is not None
-                    and bound_thread != resolved_thread
-                ):
-                    raise WorkflowCheckpointRuntimeError(
-                        "runtime 检查点已绑定其它 thread_id，拒绝在同一运行记录上改写线程身份。"
-                    )
-                envelope.update(payload)
-                row.request_id = request_id
-                row.submission_id = submission_id
-                row.current_node = node
-                row.current_answer_id = current_answer_id
-                row.status = resolved_status
-                row.checkpoint = envelope
-                row.pause_reason = stored_pause
-                row.retry_count = retry_count
-                session.flush()
-                row.resumable = declared_resumable and self._runtime_available(
-                    session,
-                    thread_id=resolved_thread,
-                    run_id=run_id,
-                )
-                session.commit()
-            except Exception:
-                session.rollback()
-                raise
-            session.refresh(row)
-            return row
+        row = self._find(session, run_id)
+        if row is None:
+            row = WorkflowRun(
+                workflow_id=run_id,
+                request_id=request_id,
+                submission_id=submission_id,
+            )
+            session.add(row)
+        elif row.submission_id != submission_id or row.request_id != request_id:
+            raise WorkflowCheckpointOwnershipError(
+                "检查点已属于其它答卷或其它请求，拒绝覆盖既有运行记录。"
+            )
+        envelope = _envelope(row)
+        bound_thread = runtime_thread_id(envelope)
+        if (
+            resolved_thread is not None
+            and bound_thread is not None
+            and bound_thread != resolved_thread
+        ):
+            raise WorkflowCheckpointRuntimeError(
+                "runtime 检查点已绑定其它 thread_id，拒绝在同一运行记录上改写线程身份。"
+            )
+        envelope.update(payload)
+        row.request_id = request_id
+        row.submission_id = submission_id
+        row.current_node = node
+        row.current_answer_id = current_answer_id
+        row.status = resolved_status
+        row.checkpoint = envelope
+        row.pause_reason = stored_pause
+        row.retry_count = retry_count
+        session.flush()
+        row.resumable = declared_resumable and self._runtime_available(
+            session,
+            thread_id=resolved_thread,
+            run_id=run_id,
+        )
+        return row
 
     def load_checkpoint(self, workflow_id: str) -> WorkflowRun | None:
         """按 ``workflow_id`` 读取运行记录；不存在返回 ``None``（不补占位行）。"""
