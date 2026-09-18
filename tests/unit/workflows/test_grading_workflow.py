@@ -59,12 +59,15 @@ from backend.app.ai.workflows.grading_workflow import (
     GRADING_WORKFLOW_DIAGNOSIS_FAILED,
     GRADING_WORKFLOW_IDENTITY_MISMATCH,
     GRADING_WORKFLOW_INVALID_INPUT,
+    GRADING_WORKFLOW_INVALID_TEACHER_DECISION,
     GRADING_WORKFLOW_MISSING_DECISION,
     GRADING_WORKFLOW_REGRADE_BUDGET_EXHAUSTED,
     GRADING_WORKFLOW_RESULT_NOT_VALIDATED,
+    GRADING_WORKFLOW_STALE_TEACHER_DECISION,
     GradingWorkflow,
     GradingWorkflowDeps,
     GradingWorkflowError,
+    TeacherReviewDecision,
 )
 from backend.app.ai.workflows.state import workflow_state_to_json
 from backend.app.core.config import AppSettings
@@ -1236,6 +1239,175 @@ def test_t072_retryable_diagnosis_failure_pauses_only_with_recovery_support() ->
             assert state["error"].retryable is True, thread_id
             assert state["error"].source_code == "ProviderTimeout", thread_id
         workflow_state_to_json(state)
+
+
+def _paused_subjective_workflow(
+    thread_id: str,
+    *,
+    reviewer: Any = None,
+) -> tuple[Any, Any, Any]:
+    """构造“主客观混合、主观题待复核”的已中断工作流，供教师决策用例复用。"""
+
+    objective = _objective_target()
+    subjective = _subjective_target()
+    snapshot = _snapshot(objective, subjective)
+    objective_grader = _RecordingObjectiveGrader()
+    subjective_grader = _RecordingSubjectiveGrader(
+        _result(subjective, snapshot, confidence=0.3)
+    )
+    diagnosis = _StubDiagnosisService()
+    workflow = _workflow(
+        snapshot,
+        agent=_agent(
+            objective_grader=objective_grader,
+            subjective_grader=subjective_grader,
+            settings=_settings(confidence_threshold=0.8),
+        ),
+        reviewer=reviewer,
+        diagnosis=diagnosis,
+        checkpointer=InMemorySaver(),
+    )
+    paused = _run(
+        workflow.run_async(
+            request_id=REQUEST_ID,
+            workflow_id=WORKFLOW_ID,
+            submission_id=snapshot.submission_id,
+            thread_id=thread_id,
+        )
+    )
+    assert paused.interrupted is True
+    return workflow, snapshot, paused
+
+
+def test_t072_teacher_decision_contract_rejects_invalid_payloads() -> None:
+    """H04：教师决策载荷必须校验状态、答案存在性、修订结果与陈旧覆盖。"""
+
+    workflow, snapshot, _ = _paused_subjective_workflow("thread-h04-invalid")
+    base = {
+        "workflow_id": WORKFLOW_ID,
+        "thread_id": "thread-h04-invalid",
+        "answer_id": "answer-2",
+        "review_status": "Confirmed",
+    }
+    revised = _result(
+        _subjective_target(),
+        snapshot,
+        score=4.0,
+        confidence=0.3,
+    )
+    cases = (
+        ({**base, "workflow_id": "workflow-9"}, GRADING_WORKFLOW_INVALID_TEACHER_DECISION),
+        ({**base, "answer_id": "answer-9"}, GRADING_WORKFLOW_INVALID_TEACHER_DECISION),
+        ({**base, "review_status": "Pending Review"}, GRADING_WORKFLOW_INVALID_TEACHER_DECISION),
+        ({**base, "review_status": "Modified"}, GRADING_WORKFLOW_INVALID_TEACHER_DECISION),
+        ({**base, "revised_result": revised}, GRADING_WORKFLOW_INVALID_TEACHER_DECISION),
+        ({**base, "expected_review_status": "Not Required"}, GRADING_WORKFLOW_STALE_TEACHER_DECISION),
+    )
+    for payload, expected_code in cases:
+        with pytest.raises(GradingWorkflowError) as error:
+            workflow.apply_teacher_decision(TeacherReviewDecision(**payload))
+        assert str(error.value.error_code) == expected_code, payload
+
+    # 非法修订结果（身份/满分不一致）同样被拒。
+    foreign = _result(_subjective_target(), snapshot, score=4.0, confidence=0.3, answer_id="answer-other")
+    with pytest.raises(GradingWorkflowError) as error:
+        workflow.apply_teacher_decision(
+            TeacherReviewDecision(
+                workflow_id=WORKFLOW_ID,
+                thread_id="thread-h04-invalid",
+                answer_id="answer-2",
+                review_status="Modified",
+                revised_result=foreign,
+            )
+        )
+    assert str(error.value.error_code) == GRADING_WORKFLOW_INVALID_TEACHER_DECISION
+
+
+def test_t072_teacher_modified_replaces_only_that_answer_and_resumes() -> None:
+    """H04：`Modified` 只替换该题结果并恢复继续；其他答案与重评次数不受影响。"""
+
+    import backend.app.ai.workflows.grading_workflow as workflow_module
+
+    workflow, snapshot, _ = _paused_subjective_workflow("thread-h04-modified")
+    revised = _result(_subjective_target(), snapshot, score=4.0, confidence=0.3)
+
+    outcome = workflow.apply_teacher_decision(
+        TeacherReviewDecision(
+            workflow_id=WORKFLOW_ID,
+            thread_id="thread-h04-modified",
+            answer_id="answer-2",
+            review_status="Modified",
+            revised_result=revised,
+            expected_review_status="Pending Review",
+        ),
+        resume=True,
+    )
+
+    assert outcome is not None
+    assert outcome.interrupted is False
+    assert outcome.state["status"] is WorkflowStatus.COMPLETED
+    assert outcome.state["exam_result"].is_final is True
+    assert outcome.state["grading_results"]["answer-2"].score == 4.0
+    assert outcome.state["grading_results"]["answer-2"].review_status == "Modified"
+    # 其他答案的结果不被教师决策改写。
+    assert outcome.state["grading_results"]["answer-1"].score == 1.5
+    assert outcome.state["diagnosis"] is not None
+    assert workflow_module.TEACHER_REVIEW_STATES == {
+        "Confirmed",
+        "Modified",
+        "Final",
+        "Re-grade",
+    }
+    workflow_state_to_json(outcome.state)
+
+
+def test_t072_teacher_regrade_keeps_answer_out_of_final_results() -> None:
+    """H04：教师要求 `Re-grade` 时不作为最终接受，恢复后回到评分节点并重新暂停。"""
+
+    objective = _objective_target()
+    subjective = _subjective_target()
+    snapshot = _snapshot(objective, subjective)
+    subjective_grader = _RecordingSubjectiveGrader(
+        _result(subjective, snapshot, confidence=0.3)
+    )
+    diagnosis = _StubDiagnosisService()
+    workflow = _workflow(
+        snapshot,
+        agent=_agent(
+            objective_grader=_RecordingObjectiveGrader(),
+            subjective_grader=subjective_grader,
+            settings=_settings(confidence_threshold=0.8),
+        ),
+        diagnosis=diagnosis,
+        checkpointer=InMemorySaver(),
+    )
+    _run(
+        workflow.run_async(
+            request_id=REQUEST_ID,
+            workflow_id=WORKFLOW_ID,
+            submission_id=snapshot.submission_id,
+            thread_id="thread-h04-regrade",
+        )
+    )
+
+    outcome = workflow.apply_teacher_decision(
+        TeacherReviewDecision(
+            workflow_id=WORKFLOW_ID,
+            thread_id="thread-h04-regrade",
+            answer_id=subjective.answer_id,
+            review_status="Re-grade",
+            expected_review_status="Pending Review",
+        ),
+        resume=True,
+    )
+
+    assert outcome is not None
+    assert len(subjective_grader.calls) == 2
+    assert outcome.state["retry_count"] == 1
+    assert outcome.interrupted is True
+    assert outcome.state["status"] is WorkflowStatus.PAUSED
+    assert not outcome.state.get("final_results")
+    assert diagnosis.calls == 0
 
 
 def test_t072_objective_answer_accepts_without_confidence_decision() -> None:
