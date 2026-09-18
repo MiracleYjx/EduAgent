@@ -27,6 +27,7 @@ from backend.app.api.questions import router as questions_router
 from backend.app.api.results import router as results_router
 from backend.app.api.submissions import exam_submission_router
 from backend.app.api.submissions import router as submissions_router
+from backend.app.api.workflow import router as workflow_router
 from backend.app.core.config import (
     EMBEDDING_DIMENSION_DEFAULT,
     AppSettings,
@@ -104,6 +105,7 @@ def create_app(
     app.include_router(results_router)
     app.include_router(submissions_router)
     app.include_router(exam_submission_router)
+    app.include_router(workflow_router)
 
     @app.exception_handler(RequestValidationError)
     async def validation_error_handler(
