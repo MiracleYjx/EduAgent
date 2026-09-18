@@ -69,7 +69,7 @@ from backend.app.schemas.grading import (
     DiagnosisReportDTO,
     DiagnosisStatus,
 )
-from backend.app.services.auth_service import create_access_token, hash_password
+from backend.app.services.auth_service import create_access_token
 from backend.app.services.grading.grading_task_service import (
     DatabaseGradingSubmissionReader,
     GradingTargetAnswer,
@@ -80,6 +80,7 @@ from backend.app.services.workflow_checkpoint import (
     WorkflowCheckpointStore,
 )
 from tests.unit.models.sqlite_support import seed_submission
+from tests.unit.services.test_submission_service import add_user
 from tests.unit.settings_helpers import build_test_settings
 
 FIXED_NOW = datetime(2026, 9, 18, 10, 0, tzinfo=UTC)
@@ -289,18 +290,12 @@ def _users(env: dict[str, Any]) -> dict[str, User]:
 
 
 def _add_user(env: dict[str, Any], *, username: str, role: UserRole) -> User:
-    """新增一个账号（用于跨课程/越权用例）。"""
+    """新增带指定角色的账号（跨课程/越权用例）。"""
 
     with Session(env["engine"]) as session:
-        user = User(
-            username=username,
-            email=f"{username}@example.com",
-            password_hash=hash_password("正确密码"),
+        return add_user(
+            session, role, username=username, email=f"{username}@example.com"
         )
-        session.add(user)
-        session.commit()
-        session.refresh(user)
-        return user
 
 
 def _runs(env: dict[str, Any]) -> list[WorkflowRun]:
