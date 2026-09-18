@@ -29,6 +29,7 @@ from backend.app.ai.agents.reviewer_agent import (
     REVIEWER_EMPTY_REASON,
     REVIEWER_HUMAN_DECISION_PRESENT,
     REVIEWER_INVALID_INPUT,
+    REVIEWER_INVALID_KNOWLEDGE_POINTS,
     REVIEWER_RESULT_MISMATCH,
     REVIEWER_RESULT_NOT_VALIDATED,
     ReviewerAgent,
@@ -96,6 +97,18 @@ def _decision(
         review_status=review_status,
         grading_status=grading_status,
         reason=reason,
+    )
+
+
+def _result_with_points(
+    *,
+    correct: list[str],
+    missing: list[str],
+) -> GradingResult:
+    """构造要点列表被改写的评分结果（绕过结构化校验以外的字段不变）。"""
+
+    return GradingResult.model_construct(
+        **{**_result().model_dump(), "correct_points": correct, "missing_knowledge_points": missing}
     )
 
 
@@ -376,6 +389,74 @@ def test_state_patch_only_carries_control_fields_and_serializes() -> None:
         reviewer_output_to_state_patch(regrade, current_answer_id="   ")
     with pytest.raises(ReviewerAgentError):
         reviewer_output_to_state_patch("not-an-invocation", current_answer_id="answer-2")  # type: ignore[arg-type]
+
+
+def test_revise_is_limited_to_allowed_automatic_states() -> None:
+    """H03：`revise` 只能写允许的自动复核状态，且除 `review_status` 外全部字段不变。"""
+
+    stale = _result(review_status="Pending Review")
+    output = _review(stale, _decision(review_status="Not Required"))
+
+    assert output.review_outcome is not None
+    assert output.review_outcome.decision is ReviewDecision.REVISE
+    revised = output.review_outcome.revised_grading_result
+    assert revised is not None
+    assert revised.review_status in {"Not Required", "Pending Review"}
+    assert revised.review_status not in {"Confirmed", "Modified", "Final", "Re-grade"}
+
+    original_fields = stale.model_dump()
+    revised_fields = revised.model_dump()
+    assert set(original_fields) == set(revised_fields)
+    unchanged = {
+        field
+        for field in original_fields
+        if original_fields[field] == revised_fields[field]
+    }
+    assert unchanged == set(original_fields) - {"review_status"}
+
+
+def test_knowledge_point_invariants_trigger_regrade() -> None:
+    """H03：要点列表自相矛盾或越出题目声明时转 `regrade`（Reviewer 不改分）。"""
+
+    cases = (
+        # 同一要点既命中又缺失。
+        _result_with_points(correct=["保存数据"], missing=["保存数据"]),
+        # 同一要点重复出现。
+        _result_with_points(correct=["保存数据", "保存数据"], missing=["引用数据"]),
+        # 要点越出题目声明的知识点。
+        _result_with_points(correct=["未声明的要点"], missing=["引用数据"]),
+    )
+    for index, case in enumerate(cases):
+        overrides = {} if index < 2 else {"knowledge_points": ("保存数据", "引用数据")}
+        output = ReviewerAgent().review(
+            case,
+            _decision(),
+            request_id="request-1",
+            **overrides,
+        ).output
+        assert output.review_outcome is not None, index
+        assert output.review_outcome.decision is ReviewDecision.REGRADE, index
+        assert output.review_outcome.revised_grading_result is None, index
+        assert "重新评分" in output.review_outcome.reason, index
+
+
+def test_non_text_knowledge_points_are_rejected() -> None:
+    """H03：要点或题目声明含非文本/空白元素时脱敏失败，不产出复核结论。"""
+
+    hollow = GradingResult.model_construct(
+        **{**_result().model_dump(), "correct_points": [1]}
+    )
+    assert _review(hollow, _decision()).error is not None
+    assert _review(hollow, _decision()).error.error_code == REVIEWER_INVALID_KNOWLEDGE_POINTS
+
+    blank_declared = ReviewerAgent().review(
+        _result(),
+        _decision(),
+        request_id="request-1",
+        knowledge_points=("   ",),
+    ).output
+    assert blank_declared.error is not None
+    assert blank_declared.error.error_code == REVIEWER_INVALID_KNOWLEDGE_POINTS
 
 
 def test_reviewer_module_does_not_call_llm_or_write_database() -> None:
