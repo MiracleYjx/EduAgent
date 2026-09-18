@@ -657,7 +657,9 @@ def test_regrade_decision_returns_to_grading_without_closing_review(env: ReviewE
     assert outcome.workflow_status is WorkflowStatus.PAUSED
     assert outcome.interrupted is True
     assert outcome.pending_answer_ids == (env.subjective_answer_id,)
-    assert outcome.resumable is True
+    # H02：本用例的图使用内存检查点，运行记录中没有持久 runtime 检查点，
+    # 因此检查点存储不再声明可恢复（修复 1 收紧了 resumable 的写入条件）。
+    assert outcome.resumable is False
     assert outcome.exam_result is None
     assert outcome.exam_result_persisted is False
     assert writer.saved == []
@@ -670,7 +672,8 @@ def test_regrade_decision_returns_to_grading_without_closing_review(env: ReviewE
     row = _checkpoint_store(env).load_checkpoint(WORKFLOW_ID)
     assert row is not None
     assert row.status is WorkflowStatus.PAUSED
-    assert row.resumable is True
+    # 同上：内存检查点不构成持久恢复支撑，检查点不再声明可恢复。
+    assert row.resumable is False
     assert row.pause_reason is not None
 
 
