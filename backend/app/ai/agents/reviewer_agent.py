@@ -23,6 +23,7 @@ FR-035~FR-037（置信度阈值、待复核与教师最终确认）。
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from decimal import Decimal
 from typing import Final
 
@@ -57,6 +58,8 @@ REVIEWER_RESULT_NOT_VALIDATED: Final[str] = "REVIEWER_RESULT_NOT_VALIDATED"
 REVIEWER_RESULT_MISMATCH: Final[str] = "REVIEWER_RESULT_MISMATCH"
 #: 评分理由为空白，无法复核（防御性检查：结构化校验应已拒绝）。
 REVIEWER_EMPTY_REASON: Final[str] = "REVIEWER_EMPTY_REASON"
+#: 知识点列表不合法（非文本、空白元素或非法的题目声明）。
+REVIEWER_INVALID_KNOWLEDGE_POINTS: Final[str] = "REVIEWER_INVALID_KNOWLEDGE_POINTS"
 #: 结果或决策已带教师人工复核结论，Agent 不得覆盖。
 REVIEWER_HUMAN_DECISION_PRESENT: Final[str] = "REVIEWER_HUMAN_DECISION_PRESENT"
 
@@ -80,6 +83,20 @@ def _blank(value: object) -> bool:
     """判断文本是否为空白；非文本一律视为空白（防御性）。"""
 
     return not isinstance(value, str) or not value.strip()
+
+
+def _invalid_items(values: object) -> bool:
+    """判断列表是否含非文本或空白元素；不可迭代同样视为非法。"""
+
+    if isinstance(values, (str, bytes)) or not isinstance(values, Sequence):
+        return True
+    return any(_blank(item) for item in values)
+
+
+def _normalized(values: Sequence[str]) -> list[str]:
+    """把要点列表归一为去空白的文本列表，便于逐项比较。"""
+
+    return [item.strip() for item in values]
 
 
 def _same_score(left: object, right: object) -> bool:
@@ -113,11 +130,13 @@ class ReviewerAgent:
         answer_id: str | None = None,
         submission_id: str | None = None,
         max_score: float | Decimal | None = None,
+        knowledge_points: Sequence[str] | None = None,
     ) -> AgentInvocation:
         """复核单题评分结果，返回带追溯标识的 :class:`AgentInvocation`。
 
         ``question_type``/``answer_id``/``submission_id``/``max_score`` 用于交叉校验结果身份；
-        未给出的字段不做比较（不推断、不补默认值）。
+        未给出的字段不做比较（不推断、不补默认值）。``knowledge_points`` 为题目声明的知识点，
+        用于校验结果的要点列表是否越出声明范围；未给出时不做该项校验。
         """
 
         request_id, workflow_id = normalize_trace_context(request_id, workflow_id)
@@ -131,6 +150,7 @@ class ReviewerAgent:
                 answer_id=answer_id,
                 submission_id=submission_id,
                 max_score=max_score,
+                knowledge_points=knowledge_points,
             ),
         )
 
@@ -176,6 +196,7 @@ class ReviewerAgent:
         answer_id: str | None,
         submission_id: str | None,
         max_score: float | Decimal | None,
+        knowledge_points: Sequence[str] | None = None,
     ) -> AgentOutput:
         """按"异常输入 → regrade → revise → accept"的优先级给出决策。"""
 
@@ -198,6 +219,11 @@ class ReviewerAgent:
             return self._failure(
                 REVIEWER_EMPTY_REASON,
                 "评分理由为空白，缺少可复核的依据说明。",
+            )
+        if not self._knowledge_points_usable(result, declared=knowledge_points):
+            return self._failure(
+                REVIEWER_INVALID_KNOWLEDGE_POINTS,
+                "命中的要点、缺失的要点或题目声明的知识点含非法元素，无法复核。",
             )
         if (
             result.review_status in HUMAN_DECIDED_REVIEW_STATES
@@ -250,8 +276,21 @@ class ReviewerAgent:
                 requires_review=False,
             )
 
+        conflict = self._knowledge_point_conflict(result, declared=knowledge_points)
+        if conflict is not None:
+            return self._success(
+                result,
+                ReviewerOutcome(decision=ReviewDecision.REGRADE, reason=conflict),
+                requires_review=bool(decision.requires_review),
+            )
+
         # 决策应用不一致：只对齐允许的自动复核状态，不改分数、理由与知识点。
         if result.review_status != decision.review_status:
+            if decision.review_status not in AUTOMATIC_REVIEW_STATES:
+                return self._failure(
+                    REVIEWER_HUMAN_DECISION_PRESENT,
+                    "置信度决策携带教师人工复核结论，Agent 不得写入该状态。",
+                )
             revised = result.model_copy(update={"review_status": decision.review_status})
             return self._success(
                 result,
@@ -277,6 +316,58 @@ class ReviewerAgent:
             ),
             requires_review=bool(decision.requires_review),
         )
+
+    @staticmethod
+    def _knowledge_points_usable(
+        result: GradingResult,
+        *,
+        declared: Sequence[str] | None,
+    ) -> bool:
+        """知识点列表必须是文本列表且不含空白项；声明的知识点同样要求。"""
+
+        for values in (
+            result.knowledge_points,
+            result.correct_points,
+            result.missing_knowledge_points,
+        ):
+            if _invalid_items(values):
+                return False
+        return declared is None or not _invalid_items(declared)
+
+    @staticmethod
+    def _knowledge_point_conflict(
+        result: GradingResult,
+        *,
+        declared: Sequence[str] | None,
+    ) -> str | None:
+        """只校验可验证的字段不变量；不做语义判定，也不推断应得分数。
+
+        不变量：同一要点不得既命中又缺失；要点列表不得重复；声明的知识点范围内不得越出。
+        命中任一违反即视为事实自相矛盾，且 Reviewer 不改分，因此交由 ``regrade`` 重新评分。
+        """
+
+        hits = _normalized(result.correct_points)
+        misses = _normalized(result.missing_knowledge_points)
+        combined = hits + misses
+        overlaps = sorted(set(hits) & set(misses))
+        if overlaps:
+            return (
+                "命中的要点与缺失的要点存在交集，评分依据自相矛盾，"
+                "无法用复核状态对齐修复，需要重新评分。"
+            )
+        duplicates = sorted({item for item in combined if combined.count(item) > 1})
+        if duplicates:
+            return (
+                "要点列表存在重复项，评分依据不可信，需要重新评分。"
+            )
+        if declared is not None:
+            allowed = set(_normalized(declared))
+            outside = sorted({item for item in combined if item not in allowed})
+            if outside:
+                return (
+                    "要点列表包含题目未声明的知识点，评分依据越出本题范围，需要重新评分。"
+                )
+        return None
 
     def _resolve_mode(self, result: GradingResult) -> GradingMode | None:
         """复用 M3 分流器判断客观/主观；无法分流时返回 ``None``（不猜测）。"""
@@ -383,6 +474,7 @@ __all__ = [
     "REVIEWER_EMPTY_REASON",
     "REVIEWER_HUMAN_DECISION_PRESENT",
     "REVIEWER_INVALID_INPUT",
+    "REVIEWER_INVALID_KNOWLEDGE_POINTS",
     "REVIEWER_RESULT_MISMATCH",
     "REVIEWER_RESULT_NOT_VALIDATED",
     "ReviewerAgent",
