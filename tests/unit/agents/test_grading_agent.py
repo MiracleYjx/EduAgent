@@ -64,7 +64,10 @@ from backend.app.services.grading.grading_task_service import (
     SubmissionSnapshot,
 )
 from backend.app.services.grading.objective_grader import ObjectiveGrader
-from backend.app.services.grading.result_aggregator import ResultAggregator
+from backend.app.services.grading.result_aggregator import (
+    DuplicateResultError,
+    ResultAggregator,
+)
 from backend.app.services.grading.subjective_grader import (
     SUBJECTIVE_GRADING_PROMPT_VERSION,
     SubjectiveGrader,
@@ -623,6 +626,67 @@ def test_objective_and_subjective_use_same_settings_for_confidence() -> None:
     assert lenient.confidence_decision is not None
     assert lenient.confidence_decision.threshold == 0.2
     assert lenient.status is AgentStatus.SUCCESS
+
+
+def test_per_answer_entry_scores_each_answer_exactly_once() -> None:
+    """H01：逐题入口是 Graph 合同——每题一次调用、答案标识与结果一致，且不触发整卷汇总。
+
+    TCR：
+    - 必要性：`score_async` 是整卷兼容入口，若不固定逐题合同，T072 节点可能在整卷编排之上再自行
+      逐题循环，导致同一题被评分两次；
+    - 契约依据：`plan.md` §5 的逐题迭代（Next Answer）与 `.specify/contracts/agent-workflow.md`，
+      以及 H01 要求“每个答案只被评分一次、`current_answer_id` 与结果 ID 一致”；
+    - 覆盖行为：按题循环调用 `grade_answer_async` 时，客观/主观评分服务各被调用一次、题数一致；
+      逐题入口不调用 `ResultAggregator`；返回结果的答案标识与入参题目标识逐题一致。
+    """
+
+    objective = _objective_target()
+    subjective = _subjective_target()
+    snapshot = _snapshot(objective, subjective)
+    objective_grader = _RecordingObjectiveGrader()
+    subjective_grader = _RecordingSubjectiveGrader(_subjective_result(subjective, snapshot))
+    aggregator = _CountingAggregator()
+    agent = _agent(
+        objective_grader=objective_grader,
+        subjective_grader=subjective_grader,
+        aggregator=aggregator,
+    )
+
+    async def _walk() -> list[Any]:
+        return [
+            await agent.grade_answer_async(
+                snapshot,
+                target,
+                request_id="request-1",
+                workflow_id="workflow-1",
+            )
+            for target in snapshot.answers
+        ]
+
+    invocations = _run(_walk())
+
+    assert len(objective_grader.calls) == 1
+    assert len(subjective_grader.calls) == 1
+    # 逐题入口不验收整卷：汇总与统一结果属 T072 的 `unified_result` 节点职责。
+    assert aggregator.calls == 0
+    assert [invocation.workflow_id for invocation in invocations] == ["workflow-1"] * 2
+    for target, invocation in zip(snapshot.answers, invocations, strict=True):
+        assert invocation.output.grading_result is not None
+        assert invocation.output.grading_result.answer_id == target.answer_id
+
+
+def test_duplicate_answer_ids_never_produce_partial_success() -> None:
+    """H01：整卷入口遇到重复答案标识时不得返回部分成功（复用 M3 既有去重规则）。"""
+
+    objective = _objective_target()
+    repeated = _snapshot(objective, objective)
+    agent = _agent(
+        objective_grader=_RecordingObjectiveGrader(),
+        aggregator=_CountingAggregator(),
+    )
+
+    with pytest.raises(DuplicateResultError):
+        agent.score(repeated)
 
 
 def test_real_services_satisfy_agent_orchestration_contract() -> None:

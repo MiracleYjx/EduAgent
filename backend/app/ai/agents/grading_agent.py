@@ -15,6 +15,11 @@ FR-031/FR-032（主观题必须带检索上下文并结构化输出）、FR-035/
   返回非空 ``exam_result``，任一题失败即抛出 :class:`GradingAgentError`，**不返回部分成功**；
   ``score`` 是 M3 ``ScoringPipeline`` 同步合同的包装（无运行中事件循环时用 ``asyncio.run``）。
   不修改 M3 ``DefaultScoringPipeline``：它仍是 T056 装配路径，本模块是 Agent 级、可异步的实现。
+- **逐题入口是 Graph 合同（H01）**：T072 的图节点必须逐题调用 :meth:`GradingAgent.grade_answer_async`
+  （或同步 :meth:`GradingAgent.grade_answer`）并自行推进题序；``score_async`` 只是既有
+  ``ScoringPipeline`` 的整卷兼容入口，节点内不得调用它后再自行逐题循环。逐题入口每题只调用一次
+  评分服务，``current_answer_id`` 恒取该题 ``grading_result.answer_id``；重复 ``answer_id`` 由 M3
+  ``ResultAggregator`` 拒绝（``DuplicateResultError``），本模块不另立第二套去重规则。
 - **异步边界**：``*_async`` 直接 ``await SubjectiveGrader.grade()``；不调用内含 ``asyncio.run``
   的 ``build_subjective_scorer()``。同步入口在已有事件循环时抛
   ``GRADING_AGENT_ASYNC_REQUIRED``，绝不嵌套 ``asyncio.run``（与 T044 的做法一致）。
@@ -258,7 +263,11 @@ class GradingAgent:
         workflow_id: str | None = None,
         session: Session | None = None,
     ) -> AgentInvocation:
-        """同步单题入口；事件循环内必须使用 :meth:`grade_answer_async`。"""
+        """同步单题入口；事件循环内必须使用 :meth:`grade_answer_async`。
+
+        本入口是 T072 图节点的逐题合同：一次调用只处理一道题，调用方自行维护题序；
+        不接受整卷快照的批量语义（批量兼容入口是 :meth:`score`）。
+        """
 
         request_id, workflow_id = normalize_trace_context(request_id, workflow_id)
         _ensure_no_running_loop()
@@ -276,14 +285,21 @@ class GradingAgent:
         workflow_id: str | None = None,
         session: Session | None = None,
     ) -> AgentInvocation:
-        """异步单题入口：直接 ``await`` 主观题评分，不嵌套 ``asyncio.run``。"""
+        """异步单题入口：直接 ``await`` 主观题评分，不嵌套 ``asyncio.run``。
+
+        与 :meth:`grade_answer` 同为 T072 图节点的逐题合同：每题调用一次，调用方负责推进题序
+        与下一次迭代；图节点不得改用整卷 :meth:`score_async` 后再自行逐题循环。
+        """
 
         request_id, workflow_id = normalize_trace_context(request_id, workflow_id)
         outcome = await self._grade_answer(snapshot, target, session=session, settings=None)
         return AgentInvocation(request_id=request_id, workflow_id=workflow_id, output=outcome.output)
 
     def score(self, snapshot: SubmissionSnapshot) -> GradingOutcome:
-        """既有的 ``ScoringPipeline`` 同步合同；整卷编排的同步包装。"""
+        """既有的 ``ScoringPipeline`` 同步合同；整卷编排的同步包装。
+
+        仅供整体阅卷调用（批量兼容入口），不是 T072 图节点接口。
+        """
 
         _ensure_no_running_loop()
         return asyncio.run(self.score_async(snapshot))
@@ -293,6 +309,10 @@ class GradingAgent:
 
         不返回部分成功：任一题失败时抛出 :class:`GradingAgentError`，调用方不得把不完整结果
         当作整卷成绩；汇总仍由 M3 :class:`ResultAggregator` 完成（含低置信度不计分规则）。
+
+        本入口是整卷兼容层（实现既有 ``ScoringPipeline`` 合同）：T072 图节点逐题调用
+        :meth:`grade_answer_async`，不得先调用本入口再自行逐题循环，否则同一题会被评分两次。
+        答案集合重复时由 M3 :class:`ResultAggregator` 报 ``DuplicateResultError``，不在此另设去重。
         """
 
         if not isinstance(snapshot, SubmissionSnapshot):
