@@ -649,10 +649,12 @@ class _StubGradingAgent:
         *,
         results: dict[str, GradingResult],
         decisions: dict[str, ConfidenceDecisionDTO] | None = None,
+        later_decisions: dict[str, ConfidenceDecisionDTO] | None = None,
         subjects: dict[str, QuestionType] | None = None,
     ) -> None:
         self._results = results
         self._decisions = decisions or {}
+        self._later_decisions = later_decisions or {}
         self._subjects = subjects or {}
         self.calls: list[str] = []
 
@@ -666,9 +668,16 @@ class _StubGradingAgent:
         session: Any = None,
         settings: AppSettings | None = None,
     ) -> AgentInvocation:
+        repeat = self.calls.count(target.answer_id)
         self.calls.append(target.answer_id)
         result = self._results[target.answer_id]
-        decision = self._decisions.get(target.answer_id)
+        if repeat == 0:
+            decision = self._decisions.get(target.answer_id)
+        else:
+            decision = self._later_decisions.get(
+                target.answer_id,
+                self._decisions.get(target.answer_id),
+            )
         requires_review = bool(decision.requires_review) if decision is not None else False
         return AgentInvocation(
             request_id=request_id,
@@ -882,6 +891,71 @@ def test_t072_low_confidence_pauses_and_resumes_without_rescoring() -> None:
     assert len(subjective_grader.calls) == 1
     assert diagnosis.calls == 1
     workflow_state_to_json(finished.state)
+
+
+def test_t072_regrade_replaces_decision_and_keeps_review_requirement() -> None:
+    """H01：重评后决策快照按答案替换为最新事实，人工复核要求用 review_status 表达。
+
+    TCR：
+    - 必要性：T065 要求 `confidence_decisions` 以 `answer_id` 为键且重评按答案替换；
+      若保留触发复核的旧快照，状态中的置信度事实会与重评结果不一致，并把过期数据交给 T074；
+    - 契约依据：`workflows/state.py`（集合按答案替换、不得残留旧状态）、`agent-workflow.md`
+      （低置信度必须暂停且仅教师可确认）、复核 H01；
+    - 覆盖行为：重评后该答案的决策置信度为最新值（而非旧值）、仍保持 `requires_review=True`
+      与 `Pending Review`、集合键不增长，且未产生最终成绩与诊断。
+    """
+
+    subjective = _subjective_target()
+    snapshot = _snapshot(subjective)
+    fresh_result = _result(subjective, snapshot, confidence=0.9)
+    stale_decision = ConfidenceDecisionDTO(
+        confidence=0.3,
+        threshold=0.8,
+        requires_review=True,
+        review_status="Pending Review",
+        grading_status="Pending",
+        reason="置信度低于阈值。",
+    )
+    fresh_decision = ConfidenceDecisionDTO(
+        confidence=0.9,
+        threshold=0.8,
+        requires_review=False,
+        review_status="Not Required",
+        grading_status="Accepted",
+        reason="置信度达标。",
+    )
+    agent = _StubGradingAgent(
+        results={subjective.answer_id: fresh_result},
+        decisions={subjective.answer_id: stale_decision},
+        later_decisions={subjective.answer_id: fresh_decision},
+    )
+    workflow = _workflow(snapshot, agent=agent, checkpointer=InMemorySaver())
+
+    first = _run(
+        workflow.run_async(
+            request_id=REQUEST_ID,
+            workflow_id=WORKFLOW_ID,
+            submission_id=snapshot.submission_id,
+            thread_id="thread-h01",
+        )
+    )
+    assert first.interrupted is True
+
+    resumed = _run(workflow.resume_async(thread_id="thread-h01"))
+
+    state = resumed.state
+    decisions = state["confidence_decisions"]
+    assert list(decisions) == [subjective.answer_id]
+    # 最新事实被写入（不是触发复核的旧快照），同时保留人工复核要求。
+    assert decisions[subjective.answer_id].confidence == 0.9
+    assert decisions[subjective.answer_id].threshold == 0.8
+    assert decisions[subjective.answer_id].requires_review is True
+    assert decisions[subjective.answer_id].review_status == "Pending Review"
+    assert len(state["grading_results"]) == 1
+    assert state["retry_count"] == 1
+    assert resumed.interrupted is True
+    assert not state.get("final_results")
+    assert state.get("diagnosis") is None
 
 
 def test_t072_objective_answer_accepts_without_confidence_decision() -> None:
