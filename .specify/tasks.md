@@ -186,7 +186,7 @@ Pending Review，Teacher 复核后 Workflow 恢复并生成最终诊断。
 - [X] T076 [US3] 在 `backend/app/api/workflow.py` 中提供 LangGraph 阅卷启动、状态查询和恢复操作
 - [X] T077 [US3] 在 `backend/app/api/reviews.py` 和 `backend/app/ui/review_view.py` 中提供低置信度评分详情以及 Teacher 确认/修改操作
 - [X] T078 [P] [US1] 在 `tests/integration/test_question_generation_workflow.py` 中增加 Question Agent 契约和教师审核集成覆盖
-- [ ] T079 [US3] 在 `tests/integration/test_langgraph_grading_workflow.py` 中增加完整自动阅卷 Workflow 集成覆盖，包括客观/主观路由、结构化校验失败、低置信度暂停、Teacher 恢复、重新评分和诊断
+- [X] T079 [US3] 在 `tests/integration/test_langgraph_grading_workflow.py` 中增加完整自动阅卷 Workflow 集成覆盖，包括客观/主观路由、结构化校验失败、低置信度暂停、Teacher 恢复、重新评分和诊断
 
 **M4 检查点**：完整 AI 路径具备状态管理和追踪能力：Question Agent 生成可审核候选题，
 Grading Workflow 支持条件路由以及 Human-in-the-loop 暂停与恢复。
