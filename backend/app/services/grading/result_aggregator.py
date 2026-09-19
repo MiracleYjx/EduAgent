@@ -47,6 +47,7 @@ from backend.app.schemas.grading import (
     QuestionResultDTO,
     SubmissionContext,
 )
+from backend.app.services.grading.confidence_mapping import confidence_decision_snapshot
 from backend.app.services.grading.confidence_policy import ConfidenceDecision
 
 #: 汇总失败的通用错误码。
@@ -433,7 +434,7 @@ class ResultAggregator:
                 f"答案 {entry.answer_id} 的置信度决策要求人工复核，"
                 "但结果仍标记为自动接受，状态不可信。"
             )
-        return _decision_dto(decision)
+        return confidence_decision_snapshot(decision)
 
     def _resolve_status(
         self,
@@ -451,19 +452,6 @@ class ResultAggregator:
         if is_final:
             return ExamResultStatus.FINAL
         return ExamResultStatus.PENDING
-
-
-def _decision_dto(decision: ConfidenceDecision) -> ConfidenceDecisionDTO:
-    """把既有决策对象转换为可序列化快照。"""
-
-    return ConfidenceDecisionDTO(
-        confidence=decision.confidence,
-        threshold=decision.threshold,
-        requires_review=decision.requires_review,
-        review_status=decision.review_status,
-        grading_status=decision.grading_status,
-        reason=decision.reason,
-    )
 
 
 __all__ = [

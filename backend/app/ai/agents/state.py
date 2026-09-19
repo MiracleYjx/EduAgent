@@ -34,6 +34,7 @@ from backend.app.schemas.ai import (
     QuestionCandidate,
 )
 from backend.app.schemas.grading import ConfidenceDecisionDTO, SubmissionContext
+from backend.app.services.grading.confidence_mapping import confidence_decision_snapshot
 from backend.app.services.grading.confidence_policy import (
     HUMAN_DECIDED_REVIEW_STATES,
     ConfidenceDecision,
@@ -366,22 +367,6 @@ class AgentOutput(BaseModel):
             raise ValueError("Agent 不得输出带人工复核结论的评分结果。")
 
         return self
-
-
-def confidence_decision_snapshot(decision: ConfidenceDecision) -> ConfidenceDecisionDTO:
-    """把 T053 的决策事实对象转换为可序列化快照。
-
-    只做字段搬运，不重新判定阈值，也不改变 ``requires_review``/``review_status``。
-    """
-
-    return ConfidenceDecisionDTO(
-        confidence=decision.confidence,
-        threshold=decision.threshold,
-        requires_review=decision.requires_review,
-        review_status=decision.review_status,
-        grading_status=decision.grading_status,
-        reason=decision.reason,
-    )
 
 
 def confidence_decision_from_snapshot(snapshot: ConfidenceDecisionDTO) -> ConfidenceDecision:
