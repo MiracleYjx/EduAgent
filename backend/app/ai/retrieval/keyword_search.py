@@ -19,10 +19,11 @@ from __future__ import annotations
 from collections.abc import Sequence
 from typing import Any, ClassVar, Final, Literal, cast
 
-from sqlalchemy import Select, func, select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 from sqlalchemy.sql.elements import ColumnElement
 
+from backend.app.ai.retrieval._filters import apply_retrieval_filters
 from backend.app.ai.retrieval.base import (
     DEFAULT_TOP_K,
     BaseRetriever,
@@ -36,8 +37,7 @@ from backend.app.ai.retrieval.base import (
     resolve_dialect_name,
     resolve_filters,
 )
-from backend.app.domain.enums import DocumentStatus
-from backend.app.models import Document, DocumentChunk
+from backend.app.models import DocumentChunk
 
 POSTGRES_DIALECT: Final[str] = "postgresql"
 
@@ -91,7 +91,7 @@ class KeywordSearchRetriever(BaseRetriever):
             func.ts_rank(DocumentChunk.search_vector, tsquery),
         ).label("rank")
         statement = (
-            self._apply_filters(
+            apply_retrieval_filters(
                 select(DocumentChunk, rank).where(
                     DocumentChunk.search_vector.is_not(None),
                     DocumentChunk.search_vector.op("@@")(tsquery),
@@ -121,29 +121,6 @@ class KeywordSearchRetriever(BaseRetriever):
             else func.websearch_to_tsquery
         )
         return cast("ColumnElement[Any]", builder(self.ts_config, text_query))
-
-    @staticmethod
-    def _apply_filters(
-        statement: Select[Any],
-        scope: RetrievalFilters,
-    ) -> Select[Any]:
-        """先排除非 Ready 文档，再按课程、知识库与资料范围收窄查询。"""
-
-        statement = statement.join(
-            Document, Document.id == DocumentChunk.document_id,
-        ).where(Document.status == DocumentStatus.READY)
-        if scope.course_ids:
-            statement = statement.where(DocumentChunk.course_id.in_(scope.course_ids))
-        if scope.knowledge_base_ids:
-            statement = statement.where(
-                DocumentChunk.knowledge_base_id.in_(scope.knowledge_base_ids)
-            )
-        if scope.document_ids:
-            statement = statement.where(
-                DocumentChunk.document_id.in_(scope.document_ids)
-            )
-        return statement
-
 
 __all__ = [
     "DEFAULT_TS_CONFIG",

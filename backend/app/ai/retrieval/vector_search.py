@@ -17,12 +17,13 @@ from __future__ import annotations
 
 import math
 from collections.abc import Sequence
-from typing import Any, ClassVar, Final, cast
+from typing import ClassVar, Final, cast
 
-from sqlalchemy import Float, Select, select, text
+from sqlalchemy import Float, select, text
 from sqlalchemy.orm import Session
 from sqlalchemy.sql.elements import ColumnElement
 
+from backend.app.ai.retrieval._filters import apply_retrieval_filters
 from backend.app.ai.retrieval.base import (
     DEFAULT_TOP_K,
     BaseRetriever,
@@ -35,8 +36,7 @@ from backend.app.ai.retrieval.base import (
     resolve_dialect_name,
     resolve_filters,
 )
-from backend.app.domain.enums import DocumentStatus
-from backend.app.models import Document, DocumentChunk
+from backend.app.models import DocumentChunk
 
 POSTGRES_DIALECT: Final[str] = "postgresql"
 
@@ -114,7 +114,7 @@ class VectorSearchRetriever(BaseRetriever):
             session.execute(text("SET LOCAL enable_bitmapscan = off"))
         distance = cosine_distance_expression(vector).label("distance")
         statement = (
-            self._apply_filters(
+            apply_retrieval_filters(
                 select(DocumentChunk, distance).where(DocumentChunk.embedding.is_not(None)),
                 scope,
             )
@@ -140,7 +140,7 @@ class VectorSearchRetriever(BaseRetriever):
     ) -> list[RetrievedChunk]:
         """非 PostgreSQL 方言的精确基线：在 Python 中计算余弦相似度。"""
 
-        statement = self._apply_filters(
+        statement = apply_retrieval_filters(
             select(DocumentChunk).where(DocumentChunk.embedding.is_not(None)),
             scope,
         )
@@ -155,29 +155,6 @@ class VectorSearchRetriever(BaseRetriever):
             RetrievedChunk.from_document_chunk(chunk, rank=rank, semantic_score=score)
             for rank, (chunk, score) in enumerate(scored[:limit])
         ]
-
-    @staticmethod
-    def _apply_filters(
-        statement: Select[Any],
-        scope: RetrievalFilters,
-    ) -> Select[Any]:
-        """先排除非 Ready 文档，再按课程、知识库与资料范围收窄查询。"""
-
-        statement = statement.join(
-            Document, Document.id == DocumentChunk.document_id,
-        ).where(Document.status == DocumentStatus.READY)
-        if scope.course_ids:
-            statement = statement.where(DocumentChunk.course_id.in_(scope.course_ids))
-        if scope.knowledge_base_ids:
-            statement = statement.where(
-                DocumentChunk.knowledge_base_id.in_(scope.knowledge_base_ids)
-            )
-        if scope.document_ids:
-            statement = statement.where(
-                DocumentChunk.document_id.in_(scope.document_ids)
-            )
-        return statement
-
 
 __all__ = [
     "POSTGRES_DIALECT",
