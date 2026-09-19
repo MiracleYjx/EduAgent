@@ -459,12 +459,17 @@ class GradingAgent:
             except (GradingContextError, ValueError) as error:
                 return self._failure_from_exception(error)
             resolved_settings = settings if settings is not None else self._settings
-            policy = self._resolved_policy(resolved_settings)
+            # 仅默认评分器与默认策略共用评分器内产生的决策记录。
+            reuse_recorded_decision = self._subjective_grader is None and self._policy is None
+            policy = None if reuse_recorded_decision else self._resolved_policy(resolved_settings)
             recording = DecisionRecordingPolicy(policy=policy, settings=resolved_settings)
             grader: SubjectiveGraderLike = (
                 self._subjective_grader
                 if self._subjective_grader is not None
-                else SubjectiveGrader(provider=self._provider, policy=policy)
+                else SubjectiveGrader(
+                    provider=self._provider,
+                    policy=recording if reuse_recorded_decision else policy,
+                )
             )
             try:
                 result = await grader.grade(
@@ -490,7 +495,8 @@ class GradingAgent:
             if isinstance(checked, _AnswerOutcome):
                 return checked
             try:
-                applied = recording.apply(checked)
+                # 注入路径仍由 Agent 执行原有末端确认，不假设评分器已记录决策。
+                applied = checked if reuse_recorded_decision else recording.apply(checked)
             except ConfidencePolicyError as error:
                 return self._failure_from_exception(error)
             decision = recording.decision_for(target.answer_id)

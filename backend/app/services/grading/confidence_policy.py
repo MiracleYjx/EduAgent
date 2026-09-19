@@ -206,10 +206,15 @@ class ConfidencePolicy:
         )
 
     def apply(self, result: GradingResult) -> GradingResult:
-        """把决策回填到新生成的自动评分结果。
+        """回填自动评分状态，拒绝未校验结果与已有人工结论。"""
 
-        只修改 ``review_status``；拒绝非 ``Validated`` 输入与已有人工结论的结果。
-        """
+        updated, _ = self._apply_with_decision(result)
+        return updated
+
+    def _apply_with_decision(
+        self, result: GradingResult,
+    ) -> tuple[GradingResult, ConfidenceDecision]:
+        """完成一次校验、判定与回填，并交回实际使用的决策。"""
 
         if result.validation_status != ValidationStatus.VALIDATED.value:
             raise NotValidatedResultError(
@@ -222,7 +227,8 @@ class ConfidencePolicy:
                 "自动策略不得覆盖。"
             )
         decision = self.evaluate(result.confidence, question_type=result.question_type)
-        return result.model_copy(update={"review_status": decision.review_status})
+        updated = result.model_copy(update={"review_status": decision.review_status})
+        return updated, decision
 
 
 __all__ = [

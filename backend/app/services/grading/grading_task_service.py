@@ -2,9 +2,9 @@
 
 本模块是 M3 阅卷链路的应用/适配层，包含三层职责：
 
-1. **决策记录**（T054）：:class:`DecisionRecordingPolicy` 复用既有
-   :meth:`ConfidencePolicy.evaluate` 的判定记录本次 :class:`ConfidenceDecision`，
-   再交给 :meth:`ConfidencePolicy.apply` 回填 ``review_status``。
+1. **决策记录**（T054）：:class:`DecisionRecordingPolicy` 保存默认策略实际用于回填
+   ``review_status`` 的同一份 :class:`ConfidenceDecision`，只进行一次判定。
+   显式注入的策略仍按既有 ``evaluate`` / ``apply`` 合同调用。
 2. **执行与存储边界**（T056）：:class:`GradingTaskExecutor` 定义任务执行入口，
    :class:`GradingRepository` 定义结果与任务状态的读写合同，
    :class:`GradingSubmissionReader` 定义答卷快照读取，
@@ -125,6 +125,7 @@ class DecisionRecordingPolicy:
         *,
         settings: AppSettings | None = None,
     ) -> None:
+        self._uses_default_policy = policy is None
         self._policy = policy if policy is not None else ConfidencePolicy(settings=settings)
         self._records: list[RecordedDecision] = []
 
@@ -162,11 +163,15 @@ class DecisionRecordingPolicy:
         避免把被拒绝的输入当作已完成检查。
         """
 
-        decision = self._policy.evaluate(
-            result.confidence,
-            question_type=result.question_type,
-        )
-        updated = self._policy.apply(result)
+        if self._uses_default_policy:
+            updated, decision = self._policy._apply_with_decision(result)
+        else:
+            # 显式策略可能覆盖任一方法，保留原调用顺序及其返回结果。
+            decision = self._policy.evaluate(
+                result.confidence,
+                question_type=result.question_type,
+            )
+            updated = self._policy.apply(result)
         self._records.append(
             RecordedDecision(answer_id=result.answer_id, decision=decision)
         )
