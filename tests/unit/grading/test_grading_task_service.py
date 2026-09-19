@@ -1053,3 +1053,77 @@ def test_trigger_requires_store_readiness_before_reading_submission() -> None:
     assert reader.teacher_load_calls == 0
     assert reader.load_calls == 0
     assert recorder.executed == []
+
+
+@pytest.mark.parametrize(
+    ("confidence", "expected_status"),
+    [(0.799, "Pending Review"), (0.8, "Not Required"), (0.95, "Not Required")],
+)
+def test_default_recording_reuses_single_decision(
+    monkeypatch: pytest.MonkeyPatch, confidence: float, expected_status: str,
+) -> None:
+    """默认记录器保存真实回填使用的那次决策，边界值不重复判定。"""
+
+    decisions: list[ConfidenceDecision] = []
+    original_evaluate = ConfidencePolicy.evaluate
+
+    def observe_evaluate(policy, value, *, question_type=None):
+        decision = original_evaluate(policy, value, question_type=question_type)
+        decisions.append(decision)
+        return decision
+
+    monkeypatch.setattr(ConfidencePolicy, "evaluate", observe_evaluate)
+    recording = DecisionRecordingPolicy(
+        settings=build_test_settings(confidence_threshold=0.8),
+    )
+    result = _result(confidence=confidence)
+
+    updated = recording.apply(result)
+
+    assert len(decisions) == 1
+    assert recording.decision_for("answer-1") is decisions[0]
+    assert updated.review_status == decisions[0].review_status == expected_status
+    assert updated.model_dump(exclude={"review_status"}) == result.model_dump(
+        exclude={"review_status"},
+    )
+    assert result.review_status == "Not Required"
+
+
+@pytest.mark.parametrize("reject", [False, True])
+def test_recording_preserves_injected_policy(reject: bool) -> None:
+    """显式策略的覆盖方法、调用顺序与拒绝后不记录的行为不变。"""
+
+    events: list[str] = []
+    decisions: list[ConfidenceDecision] = []
+
+    class CustomPolicy(ConfidencePolicy):
+        def evaluate(self, value, *, question_type=None):
+            events.append("evaluate")
+            decision = super().evaluate(value, question_type=question_type)
+            decisions.append(decision)
+            return decision
+
+        def apply(self, result):
+            events.append("apply")
+            if reject:
+                raise ManualReviewStateError("自定义策略拒绝此结果。")
+            updated = super().apply(result)
+            return updated.model_copy(update={"suggestions": ["自定义策略的建议"]})
+
+    recording = DecisionRecordingPolicy(
+        policy=CustomPolicy(threshold=0.95),
+        settings=build_test_settings(confidence_threshold=0.1),
+    )
+    if reject:
+        with pytest.raises(ManualReviewStateError, match="自定义策略拒绝"):
+            recording.apply(_result(confidence=0.9))
+        assert events == ["evaluate", "apply"]
+        assert recording.decisions == ()
+        return
+
+    updated = recording.apply(_result(confidence=0.9))
+
+    assert events == ["evaluate", "apply", "evaluate"]
+    assert recording.decision_for("answer-1") is decisions[0]
+    assert updated.review_status == "Pending Review"
+    assert updated.suggestions == ["自定义策略的建议"]

@@ -32,6 +32,7 @@ from __future__ import annotations
 import asyncio
 import inspect
 from collections.abc import Coroutine
+from dataclasses import asdict
 from decimal import Decimal
 from typing import Any
 
@@ -57,7 +58,10 @@ from backend.app.core.config import AppSettings
 from backend.app.core.retry_policy import ProviderErrorInfo, ProviderExecutionError
 from backend.app.domain.enums import QuestionType, ValidationStatus, WorkflowStatus
 from backend.app.schemas.ai import GradingResult
-from backend.app.services.grading.confidence_policy import ConfidenceDecision
+from backend.app.services.grading.confidence_policy import (
+    ConfidenceDecision,
+    ConfidencePolicy,
+)
 from backend.app.services.grading.grading_task_service import (
     GradingOutcome,
     GradingTargetAnswer,
@@ -904,3 +908,102 @@ def test_confidence_decision_snapshot_reuses_m3_facts() -> None:
         decision.requires_review,
         decision.review_status,
     )
+
+
+@pytest.mark.parametrize(
+    ("confidence", "expected_status"),
+    [(0.799, AgentStatus.PENDING_REVIEW), (0.8, AgentStatus.SUCCESS),
+     (0.95, AgentStatus.SUCCESS)],
+)
+def test_default_grader_reuses_single_decision(
+    monkeypatch: pytest.MonkeyPatch, confidence: float, expected_status: AgentStatus,
+) -> None:
+    """真实默认评分器一次判定并回填，Agent 原样使用结果和六字段决策。"""
+
+    decisions: list[ConfidenceDecision] = []
+    graded_results: list[GradingResult] = []
+    original_evaluate = ConfidencePolicy.evaluate
+    original_grade = SubjectiveGrader.grade
+
+    def observe_evaluate(policy, value, *, question_type=None):
+        decision = original_evaluate(policy, value, question_type=question_type)
+        decisions.append(decision)
+        return decision
+
+    async def observe_grade(grader, *args, **kwargs):
+        result = await original_grade(grader, *args, **kwargs)
+        graded_results.append(result)
+        return result
+
+    def reject_global_settings():
+        raise AssertionError("显式配置存在时不得读取全局置信度配置。")
+
+    monkeypatch.setattr(ConfidencePolicy, "evaluate", observe_evaluate)
+    monkeypatch.setattr(SubjectiveGrader, "grade", observe_grade)
+    monkeypatch.setattr(
+        "backend.app.services.grading.confidence_policy.get_settings",
+        reject_global_settings,
+    )
+    target = _subjective_target()
+    snapshot = _snapshot(target)
+    provider = StubScoringProvider(score=8.0, confidence=confidence)
+    agent = _agent(provider=provider, settings=_settings(confidence_threshold=0.99))
+
+    output = agent.grade_answer(
+        snapshot, target, request_id="request-single-decision",
+        settings=_settings(confidence_threshold=0.8),
+    ).output
+
+    assert output.error is None
+    assert output.status is expected_status
+    assert len(decisions) == len(graded_results) == len(provider.calls) == 1
+    assert output.grading_result is graded_results[0]
+    assert output.confidence_decision is not None
+    assert output.confidence_decision.model_dump() == asdict(decisions[0])
+    assert decisions[0].threshold == 0.8
+    assert graded_results[0].review_status == decisions[0].review_status
+    assert output.requires_review is decisions[0].requires_review
+
+
+@pytest.mark.parametrize("custom_grader", [False, True])
+def test_agent_preserves_injected_policy(custom_grader: bool) -> None:
+    """注入策略仍执行原覆盖逻辑，自定义评分器仍经过 Agent 末端确认。"""
+
+    events: list[str] = []
+    marker = "（自定义策略）"
+
+    class CustomPolicy(ConfidencePolicy):
+        def evaluate(self, value, *, question_type=None):
+            events.append("evaluate")
+            return super().evaluate(value, question_type=question_type)
+
+        def apply(self, result):
+            events.append("apply")
+            updated = super().apply(result)
+            return updated.model_copy(update={"reason": updated.reason + marker})
+
+    target = _subjective_target()
+    snapshot = _snapshot(target)
+    subjective = (
+        _RecordingSubjectiveGrader(_subjective_result(target, snapshot, confidence=0.9))
+        if custom_grader else None
+    )
+    output = _agent(
+        subjective_grader=subjective,
+        policy=CustomPolicy(threshold=0.95),
+        provider=StubScoringProvider(confidence=0.9),
+        settings=_settings(confidence_threshold=0.1),
+    ).grade_answer(snapshot, target, request_id="request-injected-policy").output
+
+    assert output.error is None
+    assert output.status is AgentStatus.PENDING_REVIEW
+    assert output.confidence_decision is not None
+    assert output.confidence_decision.threshold == 0.95
+    assert output.grading_result is not None
+    assert output.grading_result.reason.count(marker) == (1 if custom_grader else 2)
+    if custom_grader:
+        assert subjective is not None
+        assert len(subjective.calls) == 1
+        assert events == ["evaluate", "apply", "evaluate"]
+    else:
+        assert events == ["apply", "evaluate", "evaluate", "apply", "evaluate"]
