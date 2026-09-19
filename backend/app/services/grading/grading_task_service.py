@@ -23,7 +23,7 @@
   :class:`GradingStoreNotReadyError`（由 API 映射为 ``503 GRADING_STORE_NOT_READY``），
   **不返回虚构 task_id、不写空成功响应**。
 - 持久进度使用**既有列**（``Submission.status``/``graded_at``、``Answer.status``），由
-  :class:`DatabaseGradingProgressUpdater` 在自己的会话中更新，绝不复用请求作用域会话。
+  生产仓储与单题结果、决策快照、整卷结果及任务终态在同一事务内提交。
 - 未接通的生产执行仍以显式失败表达：:class:`DefaultScoringPipeline` 对客观题给出确定性
   结果；主观题由 :mod:`backend.app.services.grading.subjective_pipeline` 适配既有
   T050 检索上下文、T052 评分器与 T053 置信度策略注入，Provider 未就绪时显式失败，不伪造评分。
@@ -43,7 +43,6 @@ from sqlalchemy.orm import Session
 
 from backend.app.core.config import AppSettings
 from backend.app.domain.enums import (
-    AnswerStatus,
     GradingMode,
     QuestionType,
     SubmissionStatus,
@@ -618,67 +617,6 @@ class GradingDiagnosisRecorder(Protocol):
     def record(self, exam_result: ExamResultDTO) -> DiagnosisReportDTO | None: ...
 
 
-class DatabaseGradingProgressUpdater:
-    """使用既有 ``Submission``/``Answer`` 列记录持久进度。"""
-
-    def __init__(
-        self,
-        *,
-        session_factory: Callable[[], Session] | None = None,
-        clock: Callable[[], datetime] | None = None,
-    ) -> None:
-        self._session_factory = session_factory
-        self._clock = clock or (lambda: datetime.now(UTC))
-
-    @contextmanager
-    def _use_session(self) -> Iterator[Session]:
-        if self._session_factory is None:
-            raise GradingStoreNotReadyError(
-                "进度更新需要可用的会话工厂，当前未接通持久化。"
-            )
-        session = self._session_factory()
-        try:
-            yield session
-        finally:
-            session.close()
-
-    def mark_running(self, submission_id: str) -> None:
-        with self._use_session() as session:
-            submission = self._require_submission(session, submission_id)
-            for answer in submission.answers:
-                answer.status = AnswerStatus.GRADING
-            session.commit()
-
-    def mark_completed(
-        self,
-        submission_id: str,
-        exam_result: ExamResultDTO,
-    ) -> None:
-        with self._use_session() as session:
-            submission = self._require_submission(session, submission_id)
-            moment = self._clock()
-            for answer in submission.answers:
-                answer.status = AnswerStatus.GRADED
-            submission.graded_at = moment
-            if submission.status is SubmissionStatus.SUBMITTED:
-                submission.status = SubmissionStatus.GRADED
-            session.commit()
-
-    def mark_failed(self, submission_id: str, error_code: str) -> None:
-        with self._use_session() as session:
-            submission = self._require_submission(session, submission_id)
-            for answer in submission.answers:
-                answer.status = AnswerStatus.FAILED
-            session.commit()
-
-    @staticmethod
-    def _require_submission(session: Session, submission_id: str) -> Submission:
-        submission = session.get(Submission, _as_uuid(submission_id))
-        if submission is None:
-            raise GradingSubmissionNotFoundError(f"答卷 {submission_id} 不存在。")
-        return submission
-
-
 class ScoringPipeline(Protocol):
     """单份答卷的评分管道合同；T069 的阅卷 Agent 将实现同一合同。"""
 
@@ -1049,7 +987,6 @@ __all__ = [
     "IN_FLIGHT_TASK_STATES",
     "REGREADABLE_SUBMISSION_STATES",
     "TRIGGERABLE_SUBMISSION_STATES",
-    "DatabaseGradingProgressUpdater",
     "DatabaseGradingSubmissionReader",
     "DecisionRecordingPolicy",
     "DefaultScoringPipeline",
