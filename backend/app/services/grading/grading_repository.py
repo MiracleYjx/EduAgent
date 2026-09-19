@@ -64,6 +64,7 @@ from backend.app.schemas.grading import (
     QuestionResultDTO,
     SubmissionContext,
 )
+from backend.app.services.grading.confidence_mapping import confidence_decision_snapshot
 from backend.app.services.grading.confidence_policy import ConfidenceDecision
 from backend.app.services.grading.grading_task_service import (
     GradingOutcome,
@@ -1017,19 +1018,6 @@ def _student_id_of(session: Session, submission_id: UUID) -> UUID:
     return student_id
 
 
-def _decision_dto(decision: ConfidenceDecision) -> ConfidenceDecisionDTO:
-    """把决策对象转换为可读写快照 DTO。"""
-
-    return ConfidenceDecisionDTO(
-        confidence=decision.confidence,
-        threshold=decision.threshold,
-        requires_review=decision.requires_review,
-        review_status=decision.review_status,
-        grading_status=decision.grading_status,
-        reason=decision.reason,
-    )
-
-
 def _attach_decision(
     item: QuestionResultDTO,
     decision: ConfidenceDecision | None,
@@ -1042,7 +1030,7 @@ def _attach_decision(
 
     if decision is None:
         return item
-    return item.model_copy(update={"decision": _decision_dto(decision)})
+    return item.model_copy(update={"decision": confidence_decision_snapshot(decision)})
 
 
 def _as_uuid(value: str | UUID) -> UUID:
