@@ -142,3 +142,29 @@
 - 新增/修改测试：图级用例改为标记语义（`Running` + `current_node=generate_diagnosis` + `diagnosis is None`，`exam_result.is_final` 与 `final_results` 仍齐全）；两个旧“图内诊断失败”用例换为 `diagnosis_failure_patch` 单元用例与真实存储的服务级用例；教师复核路径的用例改为“诊断由记录器补齐且运行 `Completed`”。新契约用例共 4 条：`test_start_generates_diagnosis_only_after_result_commit`（正向：`Completed` + 真实诊断表 `Ready` 行 + 只在 `is_final` 上调用）、`test_diagnosis_retryable_failure_keeps_committed_grades`、`test_diagnosis_hard_failure_keeps_committed_grades_and_fails`、`test_low_confidence_pause_does_not_generate_diagnosis`（非最终成绩零调用且无诊断行）。
 - 反向验证：把三份生产文件（`api/workflow.py`、`ai/workflows/grading_workflow.py`、`services/review_service.py`）暂存回到旧实现后，新增正向用例确定性失败：`AssertionError: assert 'Failed' == 'Completed'`——旧实现下诊断在结果事务提交前执行，`DiagnosisReportStore` 因“尚无整卷结果/未最终确认”拒绝落库，正是 H01 的失败形态；弹出暂存后按行尾归一化的 SHA-256 核对三份文件与修改稿一致。
 - 失败处理验证：可重试 Provider 错误且有持久 runtime 检查点 → `Paused` + `resumable=True` + 暂停原因；不可重试或无恢复支撑 → `Failed` + 脱敏错误码；两种情况都保留已提交成绩且诊断表无行（不伪造 `Ready`、不写空报告）。
+
+## P1.4.1 启动收敛：结果已提交但诊断未生成的遗留运行
+
+日期：2026-09-21。范围：M4 执行器侧新增启动收敛，把“已有最终整卷结果、状态里无 Ready 诊断”的遗留 `Running` 运行改为可恢复的诊断待生成态，并在应用启动钩子（M3 收敛之后）接入；不改评分算法、不改 T072 图节点、不改 T073 Checkpointer 接口、不改 P1.2 事务写入与 P1.3 诊断顺序、不新增列与 Worker。
+
+### 背景与必要性
+
+P1.3 之后诊断在结果事务提交后生成：进程若恰好在两者之间中断，`WorkflowRun` 会停在 `Running` 且 `resumable=False`，恢复入口直接 409，诊断再也不会被补上。既有启动收敛 `GradingRepository.mark_interrupted_tasks_failed()` 只处理 `checkpoint['kind']=background-task-checkpoint` 的 M3 行（其 docstring 明确“M4 LangGraph 运行由所属执行器恢复”），而 M4 侧没有对应入口，所以这一形态此前无人收敛。
+
+### 测试变更
+
+| 测试变更 | 必要性 | 覆盖内容 |
+| --- | --- | --- |
+| 新增 `test_startup_recovery_turns_diagnosis_pending_run_resumable` | 需要证明“遗留 Running → 可恢复 → 只补诊断”的完整链路 | 用 monkeypatch 让 `_finalize_diagnosis` 跳过（模拟进程在诊断前中断，不手写业务结果行），得 `Running` + `is_final=True` + 无诊断的遗留态；收敛后 `Paused`/`resumable`/暂停原因，整卷结果不变；走正式恢复端点后 `Completed`、诊断表一条 `Ready`、逐题结果与 `retry_count` 不变（不重评），再收敛返回 0（幂等） |
+| 新增 `test_startup_recovery_leaves_runs_without_final_result_untouched` | 防止收敛误动其他遗留运行 | 无最终成绩的 `Running` M4 行保持 `Running`、`resumable=False`，不产生诊断行 |
+
+不放宽断言的措施：正向用例同时断言“收敛前确实是 Running+无诊断”“收敛后成绩不变”“恢复后诊断行真实存在且 `Ready`”“恢复后不重评（`retry_count` 不变）”，任一环缺失都会失败；反向用例断言行状态与可恢复标记都不变。
+
+不新增镜像实现：用例只调用公开入口（正式启动/恢复端点）与公开方法（`recover_diagnosis_pending_runs`、`restore_state`、仓储读接口），没有为测试重写一份收敛逻辑，也不手写 `grading_results`/`exam_results`/`diagnosis_reports` 行。
+
+### 验证记录
+
+- 全量门禁：`pytest tests/ -q` 为 **1340 通过、1 跳过**（M0 冒烟因未启用容器参数而跳过，与 P1.3 基线相比新增 2 条用例）；`mypy backend/app/` 通过（125 个源文件）；`ruff check backend/ tests/` 全部通过。
+- 正向链路已实测：正式启动端点把整卷结果提交后运行停在 `Running`（模拟在诊断前中断），`recover_diagnosis_pending_runs()` 返回 1 并把该行改为 `Paused` + `resumable=True` + 暂停原因，整卷结果仍为 `is_final=True`；随后走正式恢复端点返回 200/`Completed`，诊断表出现且仅出现一条 `Ready` 行，`_finalize_diagnosis` 的替代仅用于模拟中断（恢复前已 `undo`），恢复后逐题得分不变、`retry_count` 仍为 0（未重评）；再收敛一次返回 0（幂等，已完成行不再被触碰）。
+- 反向链路已实测：无最终成绩的遗留 `Running` M4 行收敛前后均为 `Running`、`resumable=False`、无诊断行。
+- 既有 M3 收敛未受影响：`mark_interrupted_tasks_failed()` 仍只处理 `background-task-checkpoint` 行，本步未修改它；启动钩子只是在其后追加 M4 收敛，存储未就绪时返回 0、不阻断启动。

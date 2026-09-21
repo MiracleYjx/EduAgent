@@ -1110,3 +1110,104 @@ def test_low_confidence_pause_does_not_generate_diagnosis(
     assert _diagnosis_rows(env) == []
     stored = _repository(env).get_exam_result(str(env["fixture"].submission_id))
     assert stored is not None and stored.is_final is False
+
+
+# ---------------------------------------------------------------- P1.4.1 启动收敛
+
+
+def test_startup_recovery_turns_diagnosis_pending_run_resumable(
+    env: dict[str, Any], client_factory: Any, monkeypatch: Any
+) -> None:
+    """P1.4.1：结果已提交但诊断未生成的遗留运行被收敛为可恢复；恢复只补诊断、不重评。"""
+
+    recorder = _ReadyDiagnosisService()
+    agent = _AcceptedSubjectiveAgent(submission_id=str(env["fixture"].submission_id))
+    service = _service(env, agent=agent, diagnosis_service=_diagnosis_adapter(env, recorder))
+    client = client_factory(service)
+
+    async def _crash_before_diagnosis(*args: Any, **kwargs: Any) -> Any:
+        """模拟进程在“结果事务已提交、诊断生成”之间中断：只跳过诊断。"""
+
+        return kwargs["row"]
+
+    monkeypatch.setattr(
+        "backend.app.api.workflow.WorkflowService._finalize_diagnosis",
+        _crash_before_diagnosis,
+    )
+    body = _start(client, env).json()
+
+    # 遗留形态：整卷结果已提交且最终，但运行停在 Running、没有任何诊断。
+    assert body["status"] == WorkflowStatus.RUNNING.value
+    run = _runs(env)[0]
+    assert run.status is WorkflowStatus.RUNNING
+    stored = _repository(env).get_exam_result(str(env["fixture"].submission_id))
+    assert stored is not None and stored.is_final is True
+    assert recorder.calls == []
+    assert _diagnosis_rows(env) == []
+    graded_before = _repository(env).get_single_result(
+        str(env["fixture"].submission_id), str(env["fixture"].subjective_answer_id)
+    )
+    assert graded_before is not None
+
+    # 启动收敛：这一行被改判为可恢复的诊断待生成态，成绩一字不改。
+    assert service.recover_diagnosis_pending_runs() == 1
+    recovered = _runs(env)[0]
+    assert recovered.status is WorkflowStatus.PAUSED
+    assert recovered.resumable is True
+    assert recovered.pause_reason
+    still_stored = _repository(env).get_exam_result(str(env["fixture"].submission_id))
+    assert still_stored is not None and still_stored.is_final is True
+
+    # 恢复入口：图已结束，只补诊断；运行 Completed、诊断可读、逐题结果与重评计数都不变。
+    monkeypatch.undo()
+    response = client.post(
+        f"/api/workflow/runs/{run.workflow_id}/resume",
+        headers=_headers(_users(env)["teacher"], UserRole.TEACHER),
+        json={},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["status"] == WorkflowStatus.COMPLETED.value
+    assert len(recorder.calls) == 1 and recorder.calls[0].is_final is True
+    rows = _diagnosis_rows(env)
+    assert len(rows) == 1 and rows[0].status is DiagnosisStatus.READY
+    started_again = _repository(env).get_single_result(
+        str(env["fixture"].submission_id), str(env["fixture"].subjective_answer_id)
+    )
+    assert started_again is not None and started_again.score == graded_before.score
+    restored = _store(env).restore_state(run.workflow_id)
+    assert restored["status"] is WorkflowStatus.COMPLETED
+    assert restored["retry_count"] == 0
+    # 收敛幂等：已完成且有 Ready 诊断的行不再被触碰。
+    assert service.recover_diagnosis_pending_runs() == 0
+    assert _runs(env)[0].status is WorkflowStatus.COMPLETED
+
+
+def test_startup_recovery_leaves_runs_without_final_result_untouched(
+    env: dict[str, Any], client_factory: Any
+) -> None:
+    """P1.4.1 反向：不具备补齐条件的遗留 Running 行原样保留（不标失败也不宣告可恢复）。"""
+
+    service = _service(env)
+    _store(env).save_checkpoint(
+        "grading-legacy-running",
+        {
+            "workflow_id": "grading-legacy-running",
+            "request_id": "request-legacy-running",
+            "submission_id": str(env["fixture"].submission_id),
+            "status": WorkflowStatus.RUNNING,
+            "current_node": "grade_answer",
+            "retry_count": 0,
+            "confidence_decisions": {},
+            "grading_results": {},
+        },
+        "grade_answer",
+        thread_id="thread-legacy-running",
+    )
+
+    assert service.recover_diagnosis_pending_runs() == 0
+    row = _store(env).load_checkpoint("grading-legacy-running")
+    assert row is not None
+    assert row.status is WorkflowStatus.RUNNING
+    assert row.resumable is False
+    assert _diagnosis_rows(env) == []

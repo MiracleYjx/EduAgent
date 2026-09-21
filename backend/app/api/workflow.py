@@ -43,6 +43,7 @@ from uuid import UUID, uuid4
 from fastapi import APIRouter, Depends, Header, HTTPException, Request
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import select
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from backend.app.ai.agents.grading_agent import GradingAgent
@@ -55,7 +56,7 @@ from backend.app.ai.workflows.grading_workflow import (
     TeacherReviewDecision,
     diagnosis_failure_patch,
 )
-from backend.app.core.config import AppSettings
+from backend.app.core.config import AppSettings, ConfigurationError
 from backend.app.core.database import get_session_factory
 from backend.app.core.security import (
     get_user_roles,
@@ -128,6 +129,10 @@ WORKFLOW_RUN_ALREADY_COMPLETED: str = "WORKFLOW_RUN_ALREADY_COMPLETED"
 WORKFLOW_RUN_REGRADE_UNSUPPORTED: str = "WORKFLOW_RUN_REGRADE_UNSUPPORTED"
 WORKFLOW_REVIEW_DECISION_REQUIRED: str = "WORKFLOW_REVIEW_DECISION_REQUIRED"
 WORKFLOW_RUN_NOT_RESUMABLE: str = "WORKFLOW_RUN_NOT_RESUMABLE"
+#: 启动收敛的暂停原因：结果已提交但诊断未生成的遗留运行（P1.4），恢复时只补诊断不重评。
+DIAGNOSIS_PENDING_PAUSE_REASON: str = (
+    "进程中断：整卷结果已提交，诊断待生成；恢复时只补诊断，不重评题目。"
+)
 WORKFLOW_DIAGNOSIS_FAILED: str = "WORKFLOW_DIAGNOSIS_FAILED"
 
 #: 错误码到 HTTP 状态码的映射；未列出的错误按 500 处理并保持脱敏。
@@ -665,6 +670,69 @@ class WorkflowService:
             message="运行已按原线程恢复。",
         )
 
+    def recover_diagnosis_pending_runs(self) -> int:
+        """启动收敛：把“结果已提交、诊断未生成”的遗留运行转为可恢复的诊断待生成态。
+
+        P1.3 之后诊断在结果事务提交后生成：进程若恰好在两者之间中断，``WorkflowRun`` 会停在
+        ``Running`` 且不可恢复，诊断再也不会被补上。本方法只处理这类**已有最终整卷结果、但状态
+        里还没有 Ready 诊断**的 M4 运行：改写为 ``Paused`` + 暂停原因 + ``resumable=True``（节点
+        指向 ``Generate Diagnosis``）。从恢复入口恢复时图已结束，只会补诊断、不重评题目。
+
+        其余 ``Running`` 行原样保留：M3 后台任务的中断失败仍由
+        ``GradingRepository.mark_interrupted_tasks_failed`` 负责，非最终成绩或状态不可用的运行
+        也不具备补齐条件。
+
+        :returns: 被收敛（改写为可恢复）的运行条数。
+        """
+
+        self._ensure_ready()
+        with self._use_session() as session:
+            candidates = [
+                (row.workflow_id, checkpoint_thread_id(row))
+                for row in session.scalars(
+                    select(WorkflowRun)
+                    .where(WorkflowRun.status == WorkflowStatus.RUNNING)
+                    .where(run_kind_criteria())
+                    .order_by(WorkflowRun.created_at, WorkflowRun.id)
+                )
+            ]
+        recovered = 0
+        for workflow_id, thread_id in candidates:
+            if not thread_id or not self._checkpoints.runtime_ready(workflow_id, thread_id):
+                continue
+            try:
+                state = self._checkpoints.restore_state(workflow_id)
+            except WorkflowCheckpointError:
+                continue
+            exam_result = state.get("exam_result")
+            if not isinstance(exam_result, ExamResultDTO) or not exam_result.is_final:
+                continue
+            diagnosis = state.get("diagnosis")
+            if (
+                isinstance(diagnosis, DiagnosisReportDTO)
+                and diagnosis.status is DiagnosisStatus.READY
+            ):
+                continue
+            updated = dict(state)
+            updated.update(
+                {
+                    "status": WorkflowStatus.PAUSED,
+                    "current_node": GENERATE_DIAGNOSIS,
+                    "error": None,
+                    "pause_reason": DIAGNOSIS_PENDING_PAUSE_REASON,
+                    "resumable": True,
+                }
+            )
+            self._checkpoints.save_checkpoint(
+                workflow_id,
+                updated,
+                GENERATE_DIAGNOSIS,
+                DIAGNOSIS_PENDING_PAUSE_REASON,
+                thread_id=thread_id,
+            )
+            recovered += 1
+        return recovered
+
     async def _resume_with_teacher_decision(
         self,
         *,
@@ -1172,6 +1240,19 @@ def build_production_review_service(settings: AppSettings | None = None) -> Revi
         workflow_provider=workflow_service.workflow_for_run,
         session_factory=session_factory,
     )
+
+
+def recover_diagnosis_pending_runs(settings: AppSettings | None = None) -> int:
+    """启动阶段把“结果已提交、诊断未生成”的遗留运行转为可恢复的诊断待生成态。
+
+    结果存储未接通（未迁移、不可连接或配置不完整）时跳过并返回 0：启动阶段的收敛不得阻断应用
+    启动；此时也不存在可收敛的持久化运行事实。
+    """
+
+    try:
+        return build_production_workflow_service(settings).recover_diagnosis_pending_runs()
+    except (WorkflowCheckpointError, GradingTaskError, SQLAlchemyError, ConfigurationError):
+        return 0
 
 
 def get_workflow_service(request: Request) -> WorkflowService:
