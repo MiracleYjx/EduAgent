@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import inspect
 import os
 from collections.abc import Callable, Iterable, Mapping, Sequence
 from copy import deepcopy
@@ -2299,8 +2300,7 @@ def _guard_view_callback(
 ) -> Callable[..., Any]:
     """业务视图每次操作前核验真实会话，再交回原有角色和资源守卫。"""
 
-    @wraps(fn)
-    def guarded(*args: Any, **kwargs: Any) -> Any:
+    def authenticated_arguments(args: tuple[Any, ...]) -> list[Any]:
         values = list(args)
         try:
             values[state_index] = _authenticated_state(values[state_index])
@@ -2308,6 +2308,20 @@ def _guard_view_callback(
             raise gr.Error("登录状态已失效，请退出后重新登录。") from None
         except SQLAlchemyError:
             raise gr.Error("系统暂时无法连接数据库，请稍后重试。") from None
+        return values
+
+    if inspect.iscoroutinefunction(fn):
+
+        @wraps(fn)
+        async def guarded_async(*args: Any, **kwargs: Any) -> Any:
+            values = authenticated_arguments(args)
+            return await fn(*values, **kwargs)
+
+        return guarded_async
+
+    @wraps(fn)
+    def guarded(*args: Any, **kwargs: Any) -> Any:
+        values = authenticated_arguments(args)
         return fn(*values, **kwargs)
 
     return guarded
