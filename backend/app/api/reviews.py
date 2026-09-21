@@ -81,6 +81,7 @@ from backend.app.services.review_service import (
 from backend.app.services.workflow_checkpoint import (
     WorkflowCheckpointError,
     checkpoint_thread_id,
+    run_kind_criteria,
     runtime_has_checkpoint,
 )
 
@@ -551,9 +552,12 @@ class ReviewQueryService:
                         .order_by(ReviewRecord.created_at, ReviewRecord.id)
                     )
                 )
+                # 复核详情只认本执行器（M4 工作流）的运行：M3 后台任务行没有 LangGraph 线程，
+                # 不能拿来拼装恢复身份（H05）。
                 run = session.scalars(
                     select(WorkflowRun)
                     .where(WorkflowRun.submission_id == submission.id)
+                    .where(run_kind_criteria())
                     .order_by(WorkflowRun.created_at.desc(), WorkflowRun.id)
                     .limit(1)
                 ).first()

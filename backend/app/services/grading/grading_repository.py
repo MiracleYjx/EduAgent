@@ -101,6 +101,8 @@ WORKFLOW_TO_TASK_STATUS: Final[Mapping[WorkflowStatus, GradingTaskStatus]] = {
 }
 
 #: 检查点类型标识：普通后台任务检查点，不宣称 LangGraph 恢复能力。
+#: 同一张 ``workflow_runs`` 表里的 M4 LangGraph 工作流把 T065 业务状态载荷写在同一个 JSON 列，
+#: 归属 kind 不同；本仓储的读写都必须带该 kind 过滤，不读也不覆盖其它执行器的行（H05）。
 CHECKPOINT_KIND: Final[str] = "background-task-checkpoint"
 
 #: 存在待人工复核题目时的暂停原因。
@@ -113,6 +115,17 @@ INTERRUPTED_TASK_MESSAGE: Final[str] = "进程中断导致任务未完成，请�
 
 #: 进程中断任务的错误码。
 GRADING_TASK_INTERRUPTED: Final[str] = "GRADING_TASK_INTERRUPTED"
+
+
+def _is_own_checkpoint(row: WorkflowRun) -> bool:
+    """判断运行行是否属于本执行器（M3 后台任务检查点）。
+
+    M4 LangGraph 工作流与 M3 后台任务共用 ``workflow_runs``，但归属 kind 不同：本仓储的读取
+    入口一律先过这道判断，避免把 M4 运行当成后台任务返回（H05）。
+    """
+
+    envelope = row.checkpoint
+    return isinstance(envelope, Mapping) and envelope.get("kind") == CHECKPOINT_KIND
 
 
 class DatabaseGradingRepository:
@@ -197,8 +210,9 @@ class DatabaseGradingRepository:
     def mark_interrupted_tasks_failed(self) -> int:
         """把遗留的 ``Queued``/``Running`` 任务收敛为中断失败，返回处理条数。
 
-        只收敛本执行器的检查点；其它工作流由所属执行器恢复。已有评分结果或已完成的答案
-        保持原状态，其余答案标记失败，由教师显式请求重评。不实现自动恢复队列。
+        只收敛 ``checkpoint['kind']`` 为本执行器 M3 kind 的任务；M4 LangGraph 运行由所属执行器
+        恢复。已有评分结果或已完成的答案保持原状态，其余答案标记失败，由教师显式请求重评。
+        不实现自动恢复队列。
         """
 
         with self._use_session() as session, session.begin():
@@ -224,13 +238,13 @@ class DatabaseGradingRepository:
 
     # ------------------------------------------------------------ 任务状态
     def get_task(self, task_id: str) -> GradingTaskStatusDTO | None:
-        """按任务标识读取任务状态；不存在时返回 ``None``。"""
+        """按任务标识读取任务状态；不存在或不属于本执行器时返回 ``None``。"""
 
         with self._use_session() as session:
             row = session.scalars(
                 select(WorkflowRun).where(WorkflowRun.workflow_id == task_id)
             ).one_or_none()
-            if row is None:
+            if row is None or not _is_own_checkpoint(row):
                 return None
             return self._task_dto(row)
 
@@ -238,13 +252,18 @@ class DatabaseGradingRepository:
         self,
         submission_id: str,
     ) -> GradingTaskStatusDTO | None:
-        """返回该答卷最近一次任务（含重评产生的历史任务）。"""
+        """返回该答卷最近一次任务（含重评产生的历史任务）；只读本执行器的 M3 kind。
+
+        同一张 ``workflow_runs`` 表还存放 M4 LangGraph 工作流运行：那些行没有 M3 任务快照，
+        不属于本执行器的任务，必须被过滤掉（H05）。
+        """
 
         with self._use_session() as session:
             rows = list(
                 session.scalars(
                     select(WorkflowRun).where(
-                        WorkflowRun.submission_id == _as_uuid(submission_id)
+                        WorkflowRun.submission_id == _as_uuid(submission_id),
+                        WorkflowRun.checkpoint["kind"].as_string() == CHECKPOINT_KIND,
                     )
                 )
             )

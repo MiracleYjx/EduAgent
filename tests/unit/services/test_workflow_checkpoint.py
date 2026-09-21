@@ -39,7 +39,7 @@ from decimal import Decimal
 from typing import Any
 
 import pytest
-from sqlalchemy import create_engine, event
+from sqlalchemy import create_engine, event, select
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session
 
@@ -80,6 +80,7 @@ from backend.app.schemas.grading import (
     ExamResultDTO,
     ExamResultStatus,
 )
+from backend.app.services.grading.grading_repository import CHECKPOINT_KIND
 from backend.app.services.grading.grading_task_service import (
     GradingTargetAnswer,
     SubmissionSnapshot,
@@ -99,6 +100,7 @@ from backend.app.services.workflow_checkpoint import (
     WORKFLOW_CHECKPOINT_STATE_INVALID,
     WORKFLOW_CHECKPOINT_STORE_NOT_READY,
     WORKFLOW_CHECKPOINT_THREAD_UNBOUND,
+    WORKFLOW_RUN_KIND,
     DatabaseCheckpointSaver,
     WorkflowCheckpointCompletionError,
     WorkflowCheckpointError,
@@ -111,6 +113,7 @@ from backend.app.services.workflow_checkpoint import (
     WorkflowCheckpointThreadUnboundError,
     checkpoint_thread_id,
     pending_review_answer_ids,
+    run_kind_criteria,
     runtime_checkpoint_ids,
     runtime_has_checkpoint,
     runtime_pending_write_count,
@@ -1328,3 +1331,77 @@ def test_cross_instance_resume_recovers_original_workflow(file_env: CheckpointEn
     assert DEFAULT_RUNTIME_HISTORY_LIMIT >= 2
     with Session(env.engine) as probe:
         assert probe.query(WorkflowRun).count() == 1
+
+
+def test_saved_checkpoint_carries_workflow_owner_kind(env: CheckpointEnv) -> None:
+    """检查点必须写入本执行器（M4 工作流）的归属 kind，与 M3 后台任务行区分。"""
+
+    store = _store(env)
+    row = store.save_checkpoint(
+        WORKFLOW_ID, _initial_state(env), LOAD_SUBMISSION, thread_id=THREAD_ID
+    )
+
+    payload: dict[str, Any] = dict(row.checkpoint or {})
+    assert payload["kind"] == WORKFLOW_RUN_KIND
+    assert WORKFLOW_RUN_KIND == WORKFLOW_STATE_PAYLOAD_KIND
+    assert WORKFLOW_RUN_KIND != CHECKPOINT_KIND
+    assert payload["version"] == WORKFLOW_STATE_PAYLOAD_VERSION
+    # 归属过滤条件必须能选中本执行器的行：M4 的启动/恢复查询按该条件限定范围。
+    with Session(env.engine) as probe:
+        selected = list(probe.scalars(select(WorkflowRun).where(run_kind_criteria())))
+    assert [item.workflow_id for item in selected] == [WORKFLOW_ID]
+
+
+def test_save_checkpoint_rejects_foreign_executor_row(env: CheckpointEnv) -> None:
+    """M3 后台任务行不属于本执行器：M4 不得在同一运行记录上写业务状态（H05）。"""
+
+    store = _store(env)
+    foreign: dict[str, Any] = {"kind": CHECKPOINT_KIND, "task": {"created_at": None}}
+    with Session(env.engine) as session:
+        session.add(
+            WorkflowRun(
+                workflow_id=WORKFLOW_ID,
+                request_id=REQUEST_ID,
+                submission_id=env.fixture.submission_id,
+                status=WorkflowStatus.RUNNING,
+                checkpoint=dict(foreign),
+                current_node="score",
+            )
+        )
+        session.commit()
+
+    with pytest.raises(WorkflowCheckpointOwnershipError) as error:
+        store.save_checkpoint(
+            WORKFLOW_ID, _initial_state(env), LOAD_SUBMISSION, thread_id=THREAD_ID
+        )
+
+    assert error.value.error_code == WORKFLOW_CHECKPOINT_OWNERSHIP_MISMATCH
+    with Session(env.engine) as probe:
+        row = probe.scalars(
+            select(WorkflowRun).where(WorkflowRun.workflow_id == WORKFLOW_ID)
+        ).one()
+        assert row.checkpoint == foreign
+        assert row.current_node == "score"
+        assert row.status is WorkflowStatus.RUNNING
+
+
+def test_list_resumable_ignores_foreign_executor_rows(env: CheckpointEnv) -> None:
+    """可恢复列表只列本执行器的运行：M3 后台任务行即使标记可恢复也不出现（H05）。"""
+
+    store = _store(env)
+    with Session(env.engine) as session:
+        session.add(
+            WorkflowRun(
+                workflow_id="background-task-legacy",
+                request_id="background-request",
+                submission_id=env.fixture.submission_id,
+                status=WorkflowStatus.RUNNING,
+                checkpoint={"kind": CHECKPOINT_KIND, "task": {}},
+                resumable=True,
+                current_node="score",
+            )
+        )
+        session.commit()
+
+    assert store.list_resumable() == []
+    assert store.list_resumable("background-task-legacy") == []

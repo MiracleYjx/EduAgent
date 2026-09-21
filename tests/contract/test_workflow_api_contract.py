@@ -70,6 +70,7 @@ from backend.app.schemas.grading import (
     DiagnosisStatus,
 )
 from backend.app.services.auth_service import create_access_token
+from backend.app.services.grading.grading_repository import CHECKPOINT_KIND
 from backend.app.services.grading.grading_task_service import (
     DatabaseGradingSubmissionReader,
     GradingTargetAnswer,
@@ -437,6 +438,49 @@ def test_repeated_start_reuses_active_run(env: dict[str, Any], client_factory: A
     assert body["thread_id"] == first["thread_id"]
     assert body["reused"] is True
     assert len(_runs(env)) == 1
+
+
+def test_start_ignores_background_task_run_for_same_submission(
+    env: dict[str, Any], client_factory: Any
+) -> None:
+    """M3 后台任务行不参与 M4 幂等启动：同一答卷仍创建本执行器的运行并按其复用（H05）。"""
+
+    with Session(env["engine"]) as session:
+        session.add(
+            WorkflowRun(
+                workflow_id="background-task-1",
+                request_id="background-request",
+                submission_id=env["fixture"].submission_id,
+                status=WorkflowStatus.PAUSED,
+                checkpoint={
+                    "kind": CHECKPOINT_KIND,
+                    "task": {},
+                    "current_node": "score",
+                },
+                pause_reason="存在待人工复核题目：本轮评分已完成，成绩尚未最终确认。",
+                current_node="score",
+            )
+        )
+        session.commit()
+    client = client_factory(_service(env))
+
+    response = _start(client, env)
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["reused"] is False
+    assert body["workflow_id"] != "background-task-1"
+    runs = _runs(env)
+    assert len(runs) == 2
+    legacy = next(row for row in runs if row.workflow_id == "background-task-1")
+    assert legacy.status is WorkflowStatus.PAUSED
+    assert (legacy.checkpoint or {})["kind"] == CHECKPOINT_KIND
+
+    repeated = _start(client, env)
+    assert repeated.status_code == 200
+    assert repeated.json()["reused"] is True
+    assert repeated.json()["workflow_id"] == body["workflow_id"]
+    assert len(_runs(env)) == 2
 
 
 def test_start_rejects_draft_submission(env: dict[str, Any], client_factory: Any) -> None:
