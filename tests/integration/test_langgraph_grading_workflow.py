@@ -27,6 +27,7 @@ from sqlalchemy.orm import Session
 
 from backend.app.ai.agents.grading_agent import GradingAgent
 from backend.app.ai.llm.base import BaseLLMProvider, LLMMessage
+from backend.app.ai.workflows.grading_workflow import GradingWorkflow
 from backend.app.api.results import ResultsQueryService, get_results_query_service
 from backend.app.api.reviews import (
     ReviewDecisionService,
@@ -568,6 +569,87 @@ def test_low_confidence_result_enters_real_review_queue(
     assert pending["pending_review_count"] == 1
     assert len(pending["items"]) == 3
     assert pending["items"][2]["missing"] is True
+
+
+@pytest.mark.parametrize("action", ["confirm", "modify"])
+def test_decision_retry_returns_original_record_and_live_pending_count(
+    env: ReviewEnv, action: str
+) -> None:
+    """真实 PostgreSQL/API 落库后跨实例重试，仅返回原记录及当前待复核数。"""
+
+    with _api_client(env, scoring_provider=SequenceScoringProvider([0.3, 0.3])) as first:
+        started = _start(first, env)
+        assert started.status_code == 200
+        body = _confirm_body(env, started.json()["workflow_id"])
+        body["action"] = action
+        if action == "modify":
+            body.update(score="8.50", reason="教师补充评分理由。")
+        saved = first.client.post(
+            "/api/reviews/decisions", headers=_teacher_headers(env), json=body
+        )
+        assert saved.status_code == 200
+        assert saved.json()["pending_review_count"] == 1
+        record_id = saved.json()["review_record_id"]
+    scoring = SequenceScoringProvider([])
+    with _api_client(env, scoring_provider=scoring) as second:
+        retry = second.client.post(
+            "/api/reviews/decisions", headers=_teacher_headers(env), json=body
+        )
+        assert retry.status_code == 200
+        assert retry.json()["review_record_id"] == record_id
+        assert retry.json()["pending_review_count"] == 1
+        assert scoring.calls == []
+        with Session(env.engine) as session:
+            assert len(list(session.scalars(select(ReviewRecord)))) == 1
+        next_body = _confirm_body(env, body["workflow_id"])
+        next_body["answer_id"] = env.paper.subjective_answer_ids[1]
+        final = second.client.post(
+            "/api/reviews/decisions", headers=_teacher_headers(env), json=next_body
+        )
+        assert final.status_code == 200
+        assert final.json()["workflow_status"] == WorkflowStatus.COMPLETED.value
+        retry = second.client.post(
+            "/api/reviews/decisions", headers=_teacher_headers(env), json=body
+        )
+        assert retry.status_code == 200
+        assert retry.json()["review_record_id"] == record_id
+        assert retry.json()["pending_review_count"] == 0
+        assert retry.json()["resume_status"] == "succeeded"
+        assert scoring.calls == []
+    with Session(env.engine) as session:
+        assert len(list(session.scalars(select(ReviewRecord)))) == 2
+
+
+def test_saved_decision_counts_database_pending_after_resume_failure(
+    solo_env: ReviewEnv, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """决定事务已提交、图恢复失败时，计数反映已修改评分而不是旧图 Pending。"""
+
+    async def fail_resume(*_args: Any, **_kwargs: Any) -> Any:
+        raise RuntimeError("测试注入恢复失败。")
+
+    with _api_client(solo_env, scoring_provider=SequenceScoringProvider([0.3])) as harness:
+        started = _start(harness, solo_env)
+        assert started.status_code == 200
+        body = _confirm_body(solo_env, started.json()["workflow_id"])
+        body.update(action="modify", score="8.00", reason="教师修订。")
+        monkeypatch.setattr(GradingWorkflow, "apply_teacher_decision_async", fail_resume)
+        saved = harness.client.post(
+            "/api/reviews/decisions", headers=_teacher_headers(solo_env), json=body
+        )
+        assert saved.status_code == 200
+        assert saved.json()["decision_saved"] is True
+        assert saved.json()["resume_status"] == "failed"
+        assert saved.json()["pending_review_count"] == 0
+        retry = harness.client.post(
+            "/api/reviews/decisions", headers=_teacher_headers(solo_env), json=body
+        )
+        assert retry.status_code == 200
+        assert retry.json()["review_record_id"] == saved.json()["review_record_id"]
+        assert retry.json()["pending_review_count"] == 0
+    with Session(solo_env.engine) as session:
+        assert len(list(session.scalars(select(ReviewRecord)))) == 1
+        assert session.scalars(select(GradingResult)).one().review_status is ReviewStatus.MODIFIED
 
 
 def test_invalid_structured_result_fails_without_fake_result(
