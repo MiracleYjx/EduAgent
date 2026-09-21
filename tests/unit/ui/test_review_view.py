@@ -21,8 +21,11 @@ from datetime import UTC, datetime
 from decimal import Decimal
 from typing import Any
 
+import gradio as gr
 import pytest
+from gradio.state_holder import SessionState
 
+import backend.app.ui.gradio_app as gradio_app_module
 from backend.app.api.reviews import (
     ReviewDecisionOutcomeDTO,
     ReviewDetailDTO,
@@ -33,6 +36,7 @@ from backend.app.api.reviews import (
 )
 from backend.app.domain.enums import QuestionType, ReviewStatus, WorkflowStatus
 from backend.app.ui import review_view as view
+from backend.app.ui.gradio_app import create_gradio_app
 
 #: 学生会话状态：用于验证视图守卫。
 _STUDENT_STATE: dict[str, Any] = {
@@ -221,7 +225,7 @@ def reset_loaders() -> Any:
 class _SelectEvent:
     """模拟 Gradio 选择事件。"""
 
-    def __init__(self, index: int) -> None:
+    def __init__(self, index: int | tuple[int, int]) -> None:
         self.index = index
 
 
@@ -300,11 +304,148 @@ def _items() -> list[dict[str, Any]]:
     return [_queue_item().model_dump(mode="json"), _queue_item("a-2").model_dump(mode="json")]
 
 
+@pytest.fixture(scope="module")
+def registered_review_callback() -> tuple[gr.Blocks, Any]:
+    """从完整应用取得经过认证守卫包装的复核选择回调。"""
+
+    app = create_gradio_app()
+    callbacks = [
+        block_fn
+        for block_fn in app.fns.values()
+        if getattr(block_fn.fn, "__name__", None) == "select_review_item"
+    ]
+    assert len(callbacks) == 1
+    return app, callbacks[0]
+
+
+def _run_registered_select(
+    app: gr.Blocks,
+    callback: Any,
+    *,
+    items: list[dict[str, Any]],
+    index: Any,
+    selected: bool = True,
+) -> tuple[dict[str, Any], SessionState]:
+    """经 Gradio 预处理和事件注入执行已注册回调。"""
+
+    state = SessionState(app)
+    state[callback.inputs[0]._id] = items
+    state[callback.inputs[1]._id] = _TEACHER_STATE
+    event = gr.EventData(
+        None,
+        {
+            "index": index,
+            "value": None,
+            "row_value": None,
+            "col_value": None,
+            "selected": selected,
+        },
+    )
+    response = asyncio.run(
+        app.process_api(
+            callback,
+            [None, None],
+            state=state,
+            event_data=event,
+        )
+    )
+    return response, state
+
+
+def test_registered_select_uses_row_from_two_dimensional_index(
+    registered_review_callback: tuple[gr.Blocks, Any],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Dataframe 二维索引经真实事件装配后只使用 row。"""
+
+    app, callback = registered_review_callback
+    assert len(callback.inputs) == 2
+    assert callback.inputs[0].value == []
+    assert callback.inputs[1].value["access_token"] == ""
+    monkeypatch.setattr(gradio_app_module, "_authenticated_state", lambda state: state)
+    loaders = _StubLoaders()
+    _install(loaders)
+
+    _response, state = _run_registered_select(
+        app,
+        callback,
+        items=_items(),
+        index=(1, 3),
+    )
+
+    assert loaders.calls == [
+        (
+            "detail",
+            {"submission_id": "submission-1", "answer_id": "a-2"},
+        )
+    ]
+    assert state[callback.outputs[8]._id]["answer_id"] == "a-2"
+
+
+def test_registered_select_keeps_integer_index(
+    registered_review_callback: tuple[gr.Blocks, Any],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """一维整数索引经真实事件装配后仍选择对应行。"""
+
+    app, callback = registered_review_callback
+    monkeypatch.setattr(gradio_app_module, "_authenticated_state", lambda state: state)
+    loaders = _StubLoaders()
+    _install(loaders)
+
+    _response, state = _run_registered_select(
+        app,
+        callback,
+        items=_items(),
+        index=0,
+    )
+
+    assert loaders.calls[0][1]["answer_id"] == "answer-1"
+    assert state[callback.outputs[8]._id]["answer_id"] == "answer-1"
+
+
+@pytest.mark.parametrize(
+    ("index", "selected", "has_items"),
+    [
+        (None, True, True),
+        ((-1, 0), True, True),
+        ((2, 0), True, True),
+        ((0, 0), False, True),
+        ((0, 0), True, False),
+    ],
+)
+def test_registered_select_returns_empty_state_for_invalid_selection(
+    registered_review_callback: tuple[gr.Blocks, Any],
+    monkeypatch: pytest.MonkeyPatch,
+    index: Any,
+    selected: bool,
+    has_items: bool,
+) -> None:
+    """空选择、取消、负值及越界都返回明确空态。"""
+
+    app, callback = registered_review_callback
+    monkeypatch.setattr(gradio_app_module, "_authenticated_state", lambda state: state)
+    loaders = _StubLoaders()
+    _install(loaders)
+
+    response, state = _run_registered_select(
+        app,
+        callback,
+        items=_items() if has_items else [],
+        index=index,
+        selected=selected,
+    )
+
+    assert loaders.calls == []
+    assert state[callback.outputs[8]._id] is None
+    assert view.NO_SELECTION_MESSAGE in response["data"][11]
+
+
 def test_select_item_renders_dual_pane_detail() -> None:
     """选中记录后渲染学生答案、AI 评分、题目依据与检索依据。"""
 
     _install(_StubLoaders())
-    render = view.select_review_item(_SelectEvent(0), _items(), _TEACHER_STATE)
+    render = view.select_review_item(_items(), _TEACHER_STATE, _SelectEvent(0))
 
     header, answer, score, reason = render[0], render[1], render[2], render[3]
     knowledge_points, reference_answer, rubric, evidence = (
@@ -335,7 +476,7 @@ def test_select_item_without_items_is_empty_state() -> None:
     """没有条目时不返回选中项，操作保持禁用。"""
 
     _install(_StubLoaders())
-    render = view.select_review_item(_SelectEvent(0), [], _TEACHER_STATE)
+    render = view.select_review_item([], _TEACHER_STATE, _SelectEvent(0))
 
     assert render[8] is None
     assert _interactive(render[9]) is False and _interactive(render[10]) is False
@@ -353,7 +494,7 @@ def test_select_item_disables_actions_when_decided() -> None:
         )
     )
     items = [_queue_item(review_status=ReviewStatus.CONFIRMED).model_dump(mode="json")]
-    render = view.select_review_item(_SelectEvent(0), items, _TEACHER_STATE)
+    render = view.select_review_item(items, _TEACHER_STATE, _SelectEvent(0))
 
     assert _interactive(render[9]) is False and _interactive(render[10]) is False
     assert view.NOT_PENDING_MESSAGE in render[11]

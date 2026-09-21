@@ -355,19 +355,31 @@ def _load_detail(
 
 
 def select_review_item(
-    evt: gr.SelectData,
     queue_items: Sequence[Mapping[str, Any]] | None,
-    state: Mapping[str, Any] | None = None,
+    state: Mapping[str, Any] | None,
+    evt: gr.SelectData,
 ) -> tuple[Any, ...]:
     """选中队列记录：加载权威详情并按状态启用或禁用操作。"""
 
     items = list(queue_items or [])
-    index = int(getattr(evt, "index", 0) or 0)
+    raw_index = getattr(evt, "index", None)
+    if isinstance(raw_index, (tuple, list)):
+        raw_index = raw_index[0] if raw_index else None
+    index = (
+        raw_index
+        if isinstance(raw_index, int) and not isinstance(raw_index, bool)
+        else None
+    )
     try:
         _ensure_teacher(state)
     except PermissionDeniedError as error:
         return _detail_render(None, _error_message(error))
-    if not items or index >= len(items):
+    if (
+        not getattr(evt, "selected", True)
+        or index is None
+        or index < 0
+        or index >= len(items)
+    ):
         return _detail_render(None, feedback(NO_SELECTION_MESSAGE, "warning"))
     return _render_detail_for(items[index], state)
 
@@ -623,7 +635,7 @@ def create_review_view(session_state: Any | None = None) -> ReviewView:
         )
         queue.select(
             fn=select_review_item,
-            inputs=[queue, queue_items, state],
+            inputs=[queue_items, state],
             outputs=[
                 detail_header,
                 answer,
