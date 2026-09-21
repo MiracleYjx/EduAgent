@@ -35,6 +35,9 @@
   并清空 ``review_status``。两者都拒绝在缺少可用状态快照时伪造状态，并原样保留 ``runtime`` 段。
 - **身份一致**：同一 ``workflow_id`` 只能绑定一个 ``submission_id``、一个 ``request_id`` 与一个
   LangGraph ``thread_id``；跨答卷、跨请求或跨线程的覆盖一律拒绝。
+- **执行归属**：本模块只读写 T065 业务状态载荷（``kind`` 为 T065 载荷 kind）的运行行。同一张
+  ``workflow_runs`` 表里的 M3 后台任务检查点（``background-task-checkpoint``）不属于本执行器：
+  既不进入恢复列表与线程解析，也不允许被本模块覆盖；反之 M3 的查询也只读自己的 kind。
 - **不为运行记录编造线程**：``thread_id`` 与 ``workflow_id`` 可以不同（T072 允许），因此
   saver 按“内存缓存 → ``workflow_id`` 精确匹配 → ``runtime``/业务载荷中的线程绑定”三层解析
   运行记录；解析不到时显式要求调用方先创建运行记录或 ``bind_thread()``，不静默写到别的行。
@@ -74,6 +77,7 @@ from sqlalchemy.orm import Session
 from backend.app.ai.agents.state import AgentError
 from backend.app.ai.workflows.grading_handoff import ACCEPTED_REVIEW_STATES
 from backend.app.ai.workflows.state import (
+    WORKFLOW_STATE_PAYLOAD_KIND,
     GradingWorkflowState,
     WorkflowStateError,
     workflow_state_from_checkpoint_payload,
@@ -108,6 +112,13 @@ WORKFLOW_CHECKPOINT_FAILED: Final[str] = "WORKFLOW_CHECKPOINT_FAILED"
 CHECKPOINT_THREAD_ID_KEY: Final[str] = "thread_id"
 #: 载荷中记录本次落库时间的附加键。
 CHECKPOINT_SAVED_AT_KEY: Final[str] = "saved_at"
+#: 载荷中标识执行归属的键；M3 后台任务在该键上写 ``background-task-checkpoint``。
+CHECKPOINT_KIND_KEY: Final[str] = "kind"
+#: 本执行器（M4 LangGraph 工作流）的运行归属 kind，与 T065 业务状态载荷 kind 同源：
+#: 能按该 kind 读出业务状态的行就属于本执行器。M3 后台任务检查点使用
+#: ``grading_repository.CHECKPOINT_KIND``（``background-task-checkpoint``）。
+#: 两类检查点共用 ``workflow_runs`` 表，因此两侧的读写都必须带 kind 过滤，不互相覆盖。
+WORKFLOW_RUN_KIND: Final[str] = WORKFLOW_STATE_PAYLOAD_KIND
 #: 就绪检查所需的表。
 REQUIRED_TABLES: Final[tuple[str, ...]] = ("workflow_runs",)
 #: 载荷必须给出的身份字段（与 T065 ``IDENTITY_STATE_FIELDS`` 一致）。
@@ -291,6 +302,38 @@ def pending_review_answer_ids(state: Mapping[str, Any]) -> tuple[str, ...]:
 
 
 # ---------------------------------------------------------------- runtime 载荷
+
+def run_kind_criteria() -> Any:
+    """返回“属于本执行器（M4 LangGraph 工作流）”的运行行过滤条件。
+
+    ``workflow_runs`` 由 M3 后台任务与 M4 工作流共用：M3 写 ``background-task-checkpoint``，
+    M4 写 T065 业务状态载荷 kind。任何按答卷、线程或全表扫描运行行的查询都必须带该条件，
+    避免把另一个执行器的行当成自己的工作流。
+    """
+
+    return WorkflowRun.checkpoint[CHECKPOINT_KIND_KEY].as_string() == WORKFLOW_RUN_KIND
+
+
+def _ensure_run_owned(row: WorkflowRun) -> None:
+    """确认既有运行行属于本执行器；M3 后台任务或其它执行器的行一律拒绝写入。
+
+    没有任何检查点内容的行（例如刚由其它入口创建、尚未写入业务状态的运行记录）按本执行器的
+    行处理：真正写入时会由 T065 状态载荷补上归属 kind。
+    """
+
+    envelope = row.checkpoint
+    stored_kind = (
+        envelope.get(CHECKPOINT_KIND_KEY) if isinstance(envelope, Mapping) else None
+    )
+    if stored_kind is not None and stored_kind != WORKFLOW_RUN_KIND:
+        raise WorkflowCheckpointOwnershipError(
+            f"运行记录 {row.workflow_id} 的检查点 kind 为 {stored_kind!r}，"
+            f"不属于本执行器（{WORKFLOW_RUN_KIND!r}），拒绝写入。"
+        )
+
+
+# ---------------------------------------------------------------- runtime 载荷
+
 
 def _envelope(row: WorkflowRun) -> dict[str, Any]:
     """返回运行记录载荷的**深拷贝**；空值或非映射按空载荷处理。
@@ -531,7 +574,9 @@ class _SessionBoundStore:
             cached[thread_id] = row.workflow_id
             return row
         candidates = session.scalars(
-            select(WorkflowRun).order_by(WorkflowRun.updated_at.desc())
+            select(WorkflowRun)
+            .where(run_kind_criteria())
+            .order_by(WorkflowRun.updated_at.desc())
         ).all()
         for candidate in candidates:
             envelope = candidate.checkpoint
@@ -717,10 +762,12 @@ class WorkflowCheckpointStore(_SessionBoundStore):
                 submission_id=submission_id,
             )
             session.add(row)
-        elif row.submission_id != submission_id or row.request_id != request_id:
-            raise WorkflowCheckpointOwnershipError(
-                "检查点已属于其它答卷或其它请求，拒绝覆盖既有运行记录。"
-            )
+        else:
+            _ensure_run_owned(row)
+            if row.submission_id != submission_id or row.request_id != request_id:
+                raise WorkflowCheckpointOwnershipError(
+                    "检查点已属于其它答卷或其它请求，拒绝覆盖既有运行记录。"
+                )
         envelope = _envelope(row)
         bound_thread = runtime_thread_id(envelope)
         if (
@@ -758,7 +805,7 @@ class WorkflowCheckpointStore(_SessionBoundStore):
     def list_resumable(self, workflow_id: str | None = None) -> list[WorkflowRun]:
         """列出可恢复的运行记录；给出 ``workflow_id`` 时只筛该工作流。"""
 
-        criteria: list[Any] = [WorkflowRun.resumable.is_(True)]
+        criteria: list[Any] = [WorkflowRun.resumable.is_(True), run_kind_criteria()]
         if workflow_id is not None:
             criteria.append(WorkflowRun.workflow_id == _required_text(workflow_id, "workflow_id"))
         with self._use_session() as session:
@@ -1199,7 +1246,9 @@ class DatabaseCheckpointSaver(_SessionBoundStore, BaseCheckpointSaver[str]):
                 targets.extend(
                     (row, None)
                     for row in session.scalars(
-                        select(WorkflowRun).order_by(WorkflowRun.updated_at.desc())
+                        select(WorkflowRun)
+                        .where(run_kind_criteria())
+                        .order_by(WorkflowRun.updated_at.desc())
                     ).all()
                     if isinstance(row.checkpoint, Mapping)
                 )
@@ -1475,6 +1524,7 @@ class DatabaseCheckpointSaver(_SessionBoundStore, BaseCheckpointSaver[str]):
 
 __all__ = [
     "CHECKPOINT_IDENTITY_FIELDS",
+    "CHECKPOINT_KIND_KEY",
     "CHECKPOINT_SAVED_AT_KEY",
     "CHECKPOINT_THREAD_ID_KEY",
     "DEFAULT_RUNTIME_HISTORY_LIMIT",
@@ -1492,6 +1542,7 @@ __all__ = [
     "WORKFLOW_CHECKPOINT_STATE_INVALID",
     "WORKFLOW_CHECKPOINT_STORE_NOT_READY",
     "WORKFLOW_CHECKPOINT_THREAD_UNBOUND",
+    "WORKFLOW_RUN_KIND",
     "DatabaseCheckpointSaver",
     "WorkflowCheckpointCompletionError",
     "WorkflowCheckpointError",
@@ -1505,6 +1556,7 @@ __all__ = [
     "WorkflowCheckpointThreadUnboundError",
     "checkpoint_thread_id",
     "pending_review_answer_ids",
+    "run_kind_criteria",
     "runtime_checkpoint_ids",
     "runtime_has_checkpoint",
     "runtime_namespaces",

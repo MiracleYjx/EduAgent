@@ -22,6 +22,7 @@ from sqlalchemy import create_engine, event, select
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session
 
+from backend.app.ai.workflows.state import WORKFLOW_STATE_PAYLOAD_KIND
 from backend.app.core.database import create_session_factory
 from backend.app.domain.enums import (
     AnswerStatus,
@@ -589,6 +590,43 @@ def test_recovery_leaves_foreign_checkpoints_untouched(
         assert row.resumable is True
         assert row.current_node == "review"
         assert all(a.status is AnswerStatus.GRADED for a in session.scalars(select(Answer)))
+
+
+def test_task_queries_ignore_other_executor_runs(
+    engine: Engine,
+    fixture: SubmissionFixture,
+    repository: DatabaseGradingRepository,
+) -> None:
+    """任务查询只读 M3 kind：同答卷的 M4 工作流运行不得被当成后台任务（H05）。"""
+
+    with Session(engine) as session:
+        session.add(WorkflowRun(
+            workflow_id="grading-m4-run", request_id="m4-request",
+            submission_id=fixture.submission_id, status=WorkflowStatus.RUNNING,
+            checkpoint={
+                "kind": WORKFLOW_STATE_PAYLOAD_KIND,
+                "version": "1",
+                "state": {"status": "Running"},
+            },
+            current_node="grade",
+        ))
+        session.commit()
+
+    assert repository.get_task("grading-m4-run") is None
+    assert repository.find_task_for_submission(str(fixture.submission_id)) is None
+    assert repository.mark_interrupted_tasks_failed() == 0
+
+    _save_task(repository, fixture, _task(fixture))
+    stored = repository.find_task_for_submission(str(fixture.submission_id))
+    assert stored is not None
+    assert stored.task_id == "task-1"
+
+    with Session(engine) as session:
+        row = session.scalars(
+            select(WorkflowRun).where(WorkflowRun.workflow_id == "grading-m4-run")
+        ).one()
+        assert row.status is WorkflowStatus.RUNNING
+        assert (row.checkpoint or {})["kind"] == WORKFLOW_STATE_PAYLOAD_KIND
 
 
 @pytest.mark.parametrize("pending_review", [False, True])

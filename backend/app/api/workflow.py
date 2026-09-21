@@ -7,6 +7,9 @@ T061 诊断记录器、T069 阅卷 Agent、T072 图与教师决策契约、T073 
 
 - **幂等启动**：以“同一答卷的活动运行”为幂等边界。重复启动复用既有 ``workflow_id``/
   ``thread_id``，不为同一答卷并行创建两个活动运行；草稿答卷或已完成运行显式返回 409。
+- **执行归属**：``workflow_runs`` 由 M3 后台任务与 M4 工作流共用。本模块只读写 kind 为 T065
+  业务状态载荷的 M4 运行行（:func:`run_kind_criteria`）；M3 后台任务检查点不参与 M4 的幂等
+  启动、状态判定与恢复，反之 M3 的查询也只读自己的 kind。
 - **公开状态事实源**：``WorkflowRun`` 行（业务状态载荷）是 API 状态事实源；LangGraph runtime
   检查点只供恢复使用，不序列化给客户端。``resumable=True`` 之前必须用
   :meth:`WorkflowCheckpointStore.runtime_ready` 确认同一 ``thread_id`` 的持久 runtime 检查点真实存在。
@@ -102,6 +105,7 @@ from backend.app.services.workflow_checkpoint import (
     WorkflowCheckpointStore,
     checkpoint_thread_id,
     pending_review_answer_ids,
+    run_kind_criteria,
 )
 
 router = APIRouter(prefix="/api/workflow", tags=["阅卷工作流"])
@@ -732,12 +736,17 @@ class WorkflowService:
         )
 
     def _latest_run(self, submission_id: str) -> WorkflowRun | None:
-        """读取该答卷最近一次运行记录。"""
+        """读取该答卷最近一次运行记录；只读属于本执行器（M4 工作流）的行。
+
+        同一张 ``workflow_runs`` 表还存放 M3 后台任务检查点：那些行不是 M4 的运行，因此不能
+        参与本模块的幂等启动与状态判定。
+        """
 
         with self._use_session() as session:
             return session.scalars(
                 select(WorkflowRun)
                 .where(WorkflowRun.submission_id == _as_uuid(submission_id))
+                .where(run_kind_criteria())
                 .order_by(WorkflowRun.created_at.desc(), WorkflowRun.id)
                 .limit(1)
             ).first()

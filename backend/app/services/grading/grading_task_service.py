@@ -343,6 +343,8 @@ class GradingRepository(Protocol):
     - ``save_task`` 写入任务状态与检查点；任务进入失败状态时同事务更新失败进度；
     - ``lock_submission`` 提供“检查已有任务—创建任务”所需的短事务互斥；
     - ``durable`` 如实反映任务状态是否已持久化。
+    - ``get_task``/``find_task_for_submission`` 只返回本执行器写入的 M3 后台任务：同一张
+      ``workflow_runs`` 表里的 M4 LangGraph 工作流运行必须被过滤掉，不得当成后台任务读取。
     """
 
     #: 任务状态是否已持久化（可跨进程重启查询）。
@@ -350,12 +352,16 @@ class GradingRepository(Protocol):
 
     def ensure_ready(self) -> None: ...
 
-    def get_task(self, task_id: str) -> GradingTaskStatusDTO | None: ...
+    def get_task(self, task_id: str) -> GradingTaskStatusDTO | None:
+        """按任务标识读取任务；不属于本执行器（如 M4 工作流运行）时返回 ``None``。"""
+        ...
 
     def find_task_for_submission(
         self,
         submission_id: str,
-    ) -> GradingTaskStatusDTO | None: ...
+    ) -> GradingTaskStatusDTO | None:
+        """按答卷读取本执行器的最近一次任务；M4 工作流运行不参与匹配。"""
+        ...
 
     def save_task(
         self,

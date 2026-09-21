@@ -67,6 +67,7 @@ from backend.app.models import (
 )
 from backend.app.schemas.grading import ConfidenceDecisionDTO
 from backend.app.services.auth_service import create_access_token
+from backend.app.services.grading.grading_repository import CHECKPOINT_KIND
 from backend.app.services.review_service import ReviewOutcome
 from backend.app.services.workflow_checkpoint import WorkflowCheckpointStore
 from tests.unit.models.sqlite_support import seed_submission
@@ -573,6 +574,40 @@ def test_detail_returns_authoritative_facts(env: dict[str, Any], client_factory:
         question = session.get(Question, env["fixture"].subjective_question_id)
         assert question is not None
         assert Decimal(body["max_score"]) == question.score
+
+
+def test_detail_ignores_background_task_run_for_same_submission(
+    env: dict[str, Any], client_factory: Any
+) -> None:
+    """复核详情只认 M4 运行身份：更新的 M3 后台任务行不得顶替线程与工作流状态（H05）。"""
+
+    with Session(env["engine"]) as session:
+        session.add(
+            WorkflowRun(
+                workflow_id="background-task-1",
+                request_id="background-request",
+                submission_id=env["fixture"].submission_id,
+                status=WorkflowStatus.COMPLETED,
+                checkpoint={
+                    "kind": CHECKPOINT_KIND,
+                    "task": {},
+                    "current_node": "aggregate",
+                },
+                current_node="aggregate",
+            )
+        )
+        session.commit()
+    client = client_factory()
+
+    response = client.get(
+        _detail_url(env), headers=_headers(_users(env)["teacher"], UserRole.TEACHER)
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["workflow_id"] == WORKFLOW_ID
+    assert body["thread_id"] == THREAD_ID
+    assert body["workflow_status"] == WorkflowStatus.PAUSED.value
 
 
 def test_detail_evidence_is_course_scoped(env: dict[str, Any], client_factory: Any) -> None:
