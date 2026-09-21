@@ -52,3 +52,33 @@
 - 聚焦回归：`pytest tests/unit/ui/test_review_view.py tests/unit/ui/test_gradio_app.py -q` 为 **31 通过**；二维 `(row, column)`、一维整数、空索引、取消选择、负值、越界及空队列均经实际 `Blocks.process_api` 事件装配验证。
 - 全量门禁：`pytest tests/ -q` 为 **1352 通过、1 跳过、7 条既有警告**；`mypy backend/app/` 通过（125 个源码文件）；`ruff check backend/ tests/` 通过。
 - 唯一跳过项仍为 M0 容器冒烟所需的独立 Compose 项目与端口配置，与本次 UI 事件修复无关。
+
+## P2.3 接通教师结果页筛选、统计、诊断与复核上下文
+
+日期：2026-09-21。范围：只扩展结果视图及其生产 loaders，接通教师授权课程/考试、学生结果、服务端统计、持久化诊断和待复核跳转上下文；不修改 `ResultsQueryService`、认证 wrapper、复核视图、Gradio 外壳或业务服务。
+
+### 变更前事实与必要性
+
+- 教师页课程、考试下拉固定为空且不可操作；生产 loader 只在已有 `exam_id` 时调用 `list_exam_results`，用户无法从页面形成该输入。
+- 刷新回调只展示结果行，已提交数、最终成绩数、待复核数和平均分全部保持“暂无”，没有消费 `ResultsQueryService.get_exam_summary`。
+- 选中学生时诊断固定为空态，也没有通过教师授权详情校验后读取持久化 `DiagnosisReport`。
+- 待复核按钮已有跨页面导航框架，但结果记录没有 `workflow_id/submission_id/answer_id` 的权威组合，无法把真实待复核对象交给复核页。
+
+### 测试变更
+
+| 测试变更 | 必要性 | 覆盖内容 |
+| --- | --- | --- |
+| 教师筛选与结果事件测试 | 需要证明下拉联动和列表不是裸函数或手工替身制造 | 由 `configure_production_results_loaders()` 注入实际 loader，在隔离数据库及真实 `CourseService`、`ExamService`、`ResultsQueryService` 上，经已注册 Gradio callback 验证课程选择加载考试、考试选择加载学生结果 |
+| 服务端统计一致性测试 | 禁止 UI 重新计算平均分和计数 | 对比页面四项摘要与 `ResultsQueryService.get_exam_summary` 返回值逐项一致 |
+| 诊断显示与空态测试 | 诊断必须来自持久化报告 | 用真实 `DiagnosisReportStore` 写入/读取 Ready 报告；无报告的授权答卷保持明确空态 |
+| 待复核上下文测试 | 跨页入口必须绑定真实运行和答案 | 用真实 `ReviewQueryService` 读取待复核项，断言页面状态携带 `workflow_id/submission_id/answer_id`，按钮仅在上下文完整时可用 |
+
+测试不调用 `configure_results_loaders(...lambda...)` 注入手工 stub；只把生产服务构造器指向测试隔离数据库，loader、查询服务、仓储与 Gradio 事件装配均使用真实实现。
+
+### 验证记录
+
+- 实际生产配置注入课程、考试、结果、统计和诊断 loader；测试只将会话工厂切换到隔离数据库，并经已注册 Gradio callback 的 `process_api` 验证联动和展示。
+- 聚焦回归：`pytest tests/unit/ui/test_results_view.py tests/unit/ui/test_results_loaders.py tests/unit/ui/test_gradio_app.py tests/integration/test_teacher_results_ui.py -q` 为 **40 通过**；新增 5 项验收全部通过。
+- 服务端统计四项与 `ResultsQueryService.get_exam_summary` 逐项一致；诊断来自 `DiagnosisReportStore`；待复核上下文来自 `ReviewQueryService`，包含 `workflow_id/exam_id/submission_id/answer_id`。
+- 全量门禁：`pytest tests/ -q` 为 **1357 通过、1 跳过、7 条既有警告**；`mypy backend/app/` 通过（125 个源码文件）；`ruff check backend/ tests/` 通过。
+- 唯一跳过项仍为 M0 容器冒烟所需的独立 Compose 项目与端口配置，与本次教师结果页接通无关。

@@ -49,8 +49,8 @@ _RESULT_STATUS_PRESENTATIONS: Mapping[str, tuple[str, str]] = {
     "failed": ("✕", "处理失败"),
 }
 
-# T110 以考试、答卷和题目定位复核项；答案标识有则随上下文传递，没有也不阻断入口。
-_REVIEW_CONTEXT_KEYS = ("exam_id", "submission_id", "question_id")
+# T110 以真实运行、考试、答卷和答案定位复核项，不用题目替代答案身份。
+_REVIEW_CONTEXT_KEYS = ("workflow_id", "exam_id", "submission_id", "answer_id")
 
 
 @dataclass(frozen=True)
@@ -320,6 +320,7 @@ def review_context_for_record(
 
     context: dict[str, Any] = {}
     aliases = {
+        "workflow_id": ("workflow_id",),
         "exam_id": ("exam_id", "exam"),
         "submission_id": ("submission_id", "submission"),
         "answer_id": ("answer_id", "grading_result_id", "result_id"),
@@ -383,6 +384,218 @@ def _empty_teacher_panel_values() -> tuple[Any, ...]:
         None,
         gr.update(interactive=False),
         empty_state(TEACHER_UNAVAILABLE_MESSAGE),
+    )
+
+
+def refresh_teacher_courses(
+    state: Mapping[str, Any] | None,
+) -> tuple[Any, str]:
+    """加载当前教师的授权课程，并选择服务返回的第一项。"""
+
+    try:
+        _ensure_teacher(state or {})
+        if _teacher_courses_loader is None:
+            raise RuntimeError("教师课程加载器未接线。")
+        records = _teacher_courses_loader(state)
+    except Exception:  # noqa: BLE001 - 外部查询失败统一保持明确空态
+        return (
+            gr.update(choices=[], value=None, interactive=False),
+            empty_state(TEACHER_UNAVAILABLE_MESSAGE),
+        )
+    choices = [
+        (
+            _display_value(_first_value(record, ("name",), None), "未命名课程"),
+            str(_first_value(record, ("id", "course_id"), "")),
+        )
+        for record in records or ()
+        if str(_first_value(record, ("id", "course_id"), "")).strip()
+    ]
+    if not choices:
+        return (
+            gr.update(choices=[], value=None, interactive=False),
+            empty_state("当前教师暂无授权课程。"),
+        )
+    return (
+        gr.update(choices=choices, value=choices[0][1], interactive=True),
+        feedback(f"已加载 {len(choices)} 门授权课程。", "info"),
+    )
+
+
+def refresh_teacher_exams(
+    course_id: str | None,
+    state: Mapping[str, Any] | None,
+) -> tuple[Any, str]:
+    """按所选授权课程加载考试，并选择服务返回的第一项。"""
+
+    if not str(course_id or "").strip():
+        return (
+            gr.update(choices=[], value=None, interactive=False),
+            empty_state("请先选择课程。"),
+        )
+    try:
+        _ensure_teacher(state or {})
+        if _teacher_exams_loader is None:
+            raise RuntimeError("教师考试加载器未接线。")
+        records = _teacher_exams_loader(course_id, state)
+    except Exception:  # noqa: BLE001 - 外部查询失败统一保持明确空态
+        return (
+            gr.update(choices=[], value=None, interactive=False),
+            empty_state(TEACHER_UNAVAILABLE_MESSAGE),
+        )
+    choices = [
+        (
+            _display_value(_first_value(record, ("title", "name"), None), "未命名考试"),
+            str(_first_value(record, ("id", "exam_id"), "")),
+        )
+        for record in records or ()
+        if str(_first_value(record, ("id", "exam_id"), "")).strip()
+    ]
+    if not choices:
+        return (
+            gr.update(choices=[], value=None, interactive=False),
+            empty_state("所选课程暂无考试。"),
+        )
+    return (
+        gr.update(choices=choices, value=choices[0][1], interactive=True),
+        feedback(f"已加载 {len(choices)} 场考试。", "info"),
+    )
+
+
+def teacher_summary_values(
+    summary: Mapping[str, Any] | Any | None,
+) -> tuple[str, str, str, str]:
+    """逐项展示服务端统计，不从学生结果列表重新计算。"""
+
+    if summary is None:
+        return "暂无", "暂无", "暂无", "暂无"
+    return (
+        _display_value(_value(summary, "submitted_count", None), "暂无"),
+        _display_value(_value(summary, "final_count", None), "暂无"),
+        _display_value(_value(summary, "pending_review_count", None), "暂无"),
+        _display_value(_value(summary, "average_of_final_scores", None), "暂无"),
+    )
+
+
+def _load_teacher_summary(
+    course_id: str | None,
+    exam_id: str | None,
+    state: Mapping[str, Any] | None,
+) -> tuple[Any | None, str]:
+    """读取服务端统计及其未就绪说明。"""
+
+    if _teacher_summary_loader is None:
+        return None, empty_state(TEACHER_UNAVAILABLE_MESSAGE)
+    try:
+        summary = _teacher_summary_loader(course_id, exam_id, state)
+    except Exception:  # noqa: BLE001 - 统计失败不得由 UI 自行补算
+        return None, empty_state(TEACHER_UNAVAILABLE_MESSAGE)
+    if summary is None:
+        return None, empty_state(TEACHER_UNAVAILABLE_MESSAGE)
+    reason = _value(summary, "not_ready_reason", None)
+    return summary, empty_state(str(reason)) if reason else ""
+
+
+def refresh_teacher_panel(
+    course_id: str | None,
+    exam_id: str | None,
+    state: Mapping[str, Any] | None,
+) -> tuple[Any, ...]:
+    """刷新教师学生结果和服务端统计，并清空旧的学生选择。"""
+
+    records, availability = _load_teacher_result_records(course_id, exam_id, state)
+    summary, summary_message = _load_teacher_summary(course_id, exam_id, state)
+    values = list(_empty_teacher_panel_values())
+    values[0] = teacher_result_rows(records)
+    values[1] = list(records)
+    values[2:6] = list(teacher_summary_values(summary))
+    values[6] = gr.update(visible=not bool(records))
+    values[-1] = availability or summary_message
+    if not values[-1] and not records:
+        values[-1] = empty_state(TEACHER_STUDENT_EMPTY_MESSAGE)
+    return tuple(values)
+
+
+def select_teacher_result(
+    records: Sequence[Mapping[str, Any] | Any],
+    exam_id: str | None,
+    state: Mapping[str, Any] | None,
+    event: gr.SelectData,
+) -> tuple[Any, ...]:
+    """展示所选学生诊断，并绑定真实待复核运行与答案上下文。"""
+
+    try:
+        _ensure_teacher(state or {})
+        raw_index = event.index
+        if isinstance(raw_index, (tuple, list)):
+            raw_index = raw_index[0] if raw_index else None
+        if (
+            not event.selected
+            or not isinstance(raw_index, int)
+            or isinstance(raw_index, bool)
+            or not 0 <= raw_index < len(records)
+        ):
+            raise ValueError("学生选择已失效，请重新选择。")
+        record = records[raw_index]
+    except (PermissionDeniedError, TypeError, ValueError) as error:
+        return (
+            empty_state("尚未选择学生。"),
+            empty_state(TEACHER_DIAGNOSIS_EMPTY_MESSAGE),
+            [],
+            gr.update(visible=True),
+            None,
+            gr.update(interactive=False),
+            feedback(str(error), "error"),
+        )
+
+    context = review_context_for_record(record)
+    is_reviewable = _record_has_pending_review(record) and _has_review_context(context)
+    student_name = _first_value(record, ("student_name", "student"), None)
+    student_id = _first_value(record, ("student_id",), None)
+    student_display = (
+        student_name
+        if student_name not in (None, "")
+        else f"学生 #{student_id}" if student_id not in (None, "") else None
+    )
+    diagnosis = empty_state(TEACHER_DIAGNOSIS_EMPTY_MESSAGE)
+    mastery: list[list[str]] = []
+    loader = _teacher_diagnosis_loader
+    if loader is not None:
+        try:
+            payload = loader(
+                exam_id,
+                _first_value(record, ("submission_id",), None),
+                student_id,
+                state,
+            )
+        except Exception:  # noqa: BLE001 - 诊断读取失败保持明确空态
+            payload = None
+        if payload is not None:
+            if isinstance(payload, tuple):
+                report, is_final = payload
+            else:
+                report = payload
+                is_final = bool(_value(record, "is_final", False))
+            weak_points, diagnosis_detail, mastery = diagnosis_sections(
+                report,
+                is_final=bool(is_final),
+            )
+            diagnosis = f"{weak_points}\n\n{diagnosis_detail}"
+
+    return (
+        f"**当前学生：** {_display_value(student_display)}",
+        diagnosis,
+        mastery,
+        gr.update(visible=not bool(mastery)),
+        context if context else None,
+        gr.update(interactive=is_reviewable),
+        (
+            feedback(
+                "已选择学生；待复核项已绑定真实 Workflow、答卷与答案上下文。",
+                "info",
+            )
+            if is_reviewable
+            else feedback("当前学生暂无可进入阅卷复核的完整待复核结果。", "info")
+        ),
     )
 
 
@@ -528,6 +741,12 @@ def _load_teacher_result_records(
 _student_result_loader: Any | None = None
 #: 教师结果接线点：返回授权范围内的学生成绩记录。
 _teacher_results_loader: Any | None = None
+#: 教师授权课程与考试接线点。
+_teacher_courses_loader: Any | None = None
+_teacher_exams_loader: Any | None = None
+#: 教师考试统计与所选学生诊断接线点；统计由服务端产生，诊断只读持久化报告。
+_teacher_summary_loader: Any | None = None
+_teacher_diagnosis_loader: Any | None = None
 
 #: 学生诊断接线点：返回已持久化诊断报告；只读，不触发生成与 LLM 调用。
 _student_diagnosis_loader: Any | None = None
@@ -540,7 +759,11 @@ def configure_results_loaders(
     *,
     student_loader: Any | None = None,
     student_diagnosis_loader: Any | None = None,
+    teacher_courses_loader: Any | None = None,
+    teacher_exams_loader: Any | None = None,
     teacher_loader: Any | None = None,
+    teacher_summary_loader: Any | None = None,
+    teacher_diagnosis_loader: Any | None = None,
 ) -> None:
     """注入结果查询接线点（传 ``None`` 表示恢复空态）。
 
@@ -551,10 +774,16 @@ def configure_results_loaders(
     学生诊断、薄弱知识点与掌握度区域随真实数据变化，未接线时一律保持明确空态。
     """
 
-    global _student_result_loader, _student_diagnosis_loader, _teacher_results_loader
+    global _student_result_loader, _student_diagnosis_loader
+    global _teacher_courses_loader, _teacher_exams_loader, _teacher_results_loader
+    global _teacher_summary_loader, _teacher_diagnosis_loader
     _student_result_loader = student_loader
     _student_diagnosis_loader = student_diagnosis_loader
+    _teacher_courses_loader = teacher_courses_loader
+    _teacher_exams_loader = teacher_exams_loader
     _teacher_results_loader = teacher_loader
+    _teacher_summary_loader = teacher_summary_loader
+    _teacher_diagnosis_loader = teacher_diagnosis_loader
 
 
 def student_result_rows(payload: Mapping[str, Any] | Any) -> list[list[str]]:
@@ -658,15 +887,15 @@ def create_teacher_results_view(
                 label="课程",
                 choices=[],
                 value=None,
-                interactive=False,
-                info="教师查询契约就绪后提供课程筛选。",
+                interactive=True,
+                info="点击刷新后加载当前教师授权课程。",
             )
             exam = gr.Dropdown(
                 label="考试",
                 choices=[],
                 value=None,
-                interactive=False,
-                info="教师查询契约就绪后提供考试筛选。",
+                interactive=True,
+                info="选择课程后加载该课程考试。",
             )
         message = gr.Markdown(empty_state(TEACHER_UNAVAILABLE_MESSAGE))
         with gr.Row(elem_classes="teacher-summary-row"):
@@ -762,75 +991,6 @@ def create_teacher_results_view(
                     empty_state("暂无可展示的知识点分布数据。")
                 )
 
-        def refresh_panel(
-            course_id: str | None,
-            exam_id: str | None,
-            current_state: Mapping[str, Any],
-        ) -> tuple[Any, ...]:
-            """刷新教师结果工作台，并在契约未就绪时恢复所有空态。"""
-
-            records, availability = _load_teacher_result_records(
-                course_id, exam_id, current_state
-            )
-            values = list(_empty_teacher_panel_values())
-            values[0] = teacher_result_rows(records)
-            values[1] = list(records)
-            values[6] = gr.update(visible=not bool(records))
-            values[-1] = availability
-            return tuple(values)
-
-        def select_result(
-            records: Sequence[Mapping[str, Any] | Any],
-            current_state: Mapping[str, Any],
-            event: gr.SelectData,
-        ) -> tuple[Any, ...]:
-            """绑定学生行和复核上下文，不把内部标识显示在成绩表中。"""
-
-            try:
-                _ensure_teacher(current_state)
-                index = (
-                    event.index[0]
-                    if isinstance(event.index, (tuple, list))
-                    else event.index
-                )
-                if (
-                    not event.selected
-                    or not isinstance(index, int)
-                    or not 0 <= index < len(records)
-                ):
-                    raise ValueError("学生选择已失效，请重新选择。")
-                record = records[index]
-                context = review_context_for_record(record)
-                is_reviewable = _record_has_pending_review(
-                    record
-                ) and _has_review_context(context)
-                student_name = _first_value(record, ("student_name", "student"), "")
-                return (
-                    f"**当前学生：** {_display_value(student_name)}",
-                    empty_state(TEACHER_DIAGNOSIS_EMPTY_MESSAGE),
-                    context if context else None,
-                    gr.update(interactive=is_reviewable),
-                    (
-                        feedback(
-                            "已选择学生；待复核项将使用服务返回的考试、答卷和题目上下文。",
-                            "info",
-                        )
-                        if is_reviewable
-                        else feedback(
-                            "当前学生暂无可进入阅卷复核的完整待复核结果。",
-                            "info",
-                        )
-                    ),
-                )
-            except (PermissionDeniedError, TypeError, ValueError) as error:
-                return (
-                    empty_state("尚未选择学生。"),
-                    empty_state(TEACHER_DIAGNOSIS_EMPTY_MESSAGE),
-                    None,
-                    gr.update(interactive=False),
-                    feedback(str(error), "error"),
-                )
-
         refresh_outputs = [
             results_table,
             result_records,
@@ -850,21 +1010,35 @@ def create_teacher_results_view(
             message,
         ]
         results_table.select(
-            select_result,
-            inputs=[result_records, state],
+            select_teacher_result,
+            inputs=[result_records, exam, state],
             outputs=[
                 selected_student,
                 diagnosis,
+                knowledge_table,
+                knowledge_table_empty,
                 review_context,
                 review_button,
                 message,
             ],
             show_progress="hidden",
         )
-        refresh.click(
-            refresh_panel,
+        course.change(
+            refresh_teacher_exams,
+            inputs=[course, state],
+            outputs=[exam, message],
+            show_progress="hidden",
+        )
+        exam.change(
+            refresh_teacher_panel,
             inputs=[course, exam, state],
             outputs=refresh_outputs,
+            show_progress="hidden",
+        )
+        refresh.click(
+            refresh_teacher_courses,
+            inputs=[state],
+            outputs=[course, message],
             show_progress="hidden",
         )
     return TeacherResultsView(
@@ -911,10 +1085,15 @@ __all__ = [
     "create_results_view",
     "create_teacher_results_view",
     "refresh_student_results",
+    "refresh_teacher_courses",
+    "refresh_teacher_exams",
+    "refresh_teacher_panel",
     "refresh_teacher_results",
     "result_status_text",
     "review_context_for_record",
     "review_context_is_complete",
+    "select_teacher_result",
     "student_summary_values",
     "teacher_result_rows",
+    "teacher_summary_values",
 ]
