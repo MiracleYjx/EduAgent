@@ -24,6 +24,7 @@ from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from pathlib import Path
 from typing import Any
+from uuid import UUID, uuid4
 
 import gradio as gr
 import pytest
@@ -68,7 +69,10 @@ from backend.app.models import (
 from backend.app.schemas.grading import ConfidenceDecisionDTO
 from backend.app.services.auth_service import create_access_token
 from backend.app.services.grading.grading_repository import CHECKPOINT_KIND
-from backend.app.services.review_service import ReviewOutcome
+from backend.app.services.review_service import (
+    REVIEW_SERVICE_STALE_ROUND,
+    ReviewOutcome,
+)
 from backend.app.services.workflow_checkpoint import WorkflowCheckpointStore
 from tests.unit.models.sqlite_support import seed_submission
 from tests.unit.services.test_submission_service import add_user
@@ -94,6 +98,7 @@ class _StubReviewService:
         actor_id: str,
         actor_role: UserRole | str,
         comment: str | None = None,
+        expected_review_round_id: UUID | None = None,
     ) -> ReviewOutcome:
         self.calls.append(
             {
@@ -101,6 +106,7 @@ class _StubReviewService:
                 "actor_id": actor_id,
                 "actor_role": actor_role,
                 "comment": comment,
+                "expected_review_round_id": expected_review_round_id,
             }
         )
         if self.outcome is not None:
@@ -678,6 +684,7 @@ def test_confirm_decision_delegates_with_authoritative_identity(
     body = response.json()
     assert body["decision"] == ReviewStatus.CONFIRMED.value
     assert body["decision_saved"] is True
+    assert body["idempotency_degraded"] is True
     assert body["resume_status"] == "succeeded"
     assert body["review_record_id"] == "record-1"
     assert stub.calls
@@ -690,6 +697,49 @@ def test_confirm_decision_delegates_with_authoritative_identity(
     assert decision.expected_review_status == ReviewStatus.PENDING_REVIEW.value
     assert stub.calls[0]["comment"] == "核对无误。"
     assert stub.calls[0]["actor_role"] == UserRole.TEACHER
+
+
+def test_decision_rejects_wrong_review_round(env: dict[str, Any], client_factory: Any) -> None:
+    """轮次不匹配在写入前返回明确 409，不消费当前 Pending。"""
+
+    stub = _StubReviewService()
+    client = client_factory(decision=_decision_service(env, stub))
+    headers = _headers(_users(env)["teacher"], UserRole.TEACHER)
+    detail = client.get(_detail_url(env), headers=headers).json()
+    assert detail["pending_review_round_id"] is not None
+    response = client.post(
+        "/api/reviews/decisions", headers=headers,
+        json=_decision_body(env, expected_review_round_id=str(uuid4())),
+    )
+    assert response.status_code == 409
+    assert response.json()["detail"]["error_code"] == REVIEW_SERVICE_STALE_ROUND
+    assert not stub.calls
+    assert client.get(_detail_url(env), headers=headers).json() == detail
+
+
+@pytest.mark.parametrize("legacy", [False, True])
+def test_missing_round_explicitly_reports_degraded_mode(
+    env: dict[str, Any], client_factory: Any, legacy: bool
+) -> None:
+    """旧客户端对新轮次或历史 NULL 都保持兼容，并明确标记降级。"""
+
+    if legacy:
+        with Session(env["engine"]) as session:
+            grading = session.get(GradingResult, env["grading"].id)
+            assert grading is not None
+            grading.pending_review_round_id = None
+            session.commit()
+    stub = _StubReviewService()
+    client = client_factory(decision=_decision_service(env, stub))
+    response = client.post(
+        "/api/reviews/decisions",
+        headers=_headers(_users(env)["teacher"], UserRole.TEACHER),
+        json=_decision_body(env, expected_review_round_id=None),
+    )
+    assert response.status_code == 200
+    assert response.json()["idempotency_degraded"] is True
+    assert len(stub.calls) == 1
+    assert stub.calls[0]["expected_review_round_id"] is None
 
 
 def test_modify_decision_only_accepts_score_and_reason(
@@ -991,7 +1041,9 @@ def test_duplicate_reports_current_pending_count(
             **{
                 column.name: getattr(env["grading"], column.name)
                 for column in GradingResult.__table__.columns
-                if column.name not in {"id", "answer_id", "created_at", "updated_at"}
+                if column.name not in {
+                    "id", "answer_id", "created_at", "updated_at", "pending_review_round_id"
+                }
             },
             answer_id=env["fixture"].objective_answer_id,
         )

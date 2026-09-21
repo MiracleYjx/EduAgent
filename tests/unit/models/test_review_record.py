@@ -37,6 +37,7 @@ REVIEW_COLUMNS = [
     "grading_result_id",
     "reviewer_id",
     "decision",
+    "review_round_id",
     "original_score",
     "original_reason",
     "original_knowledge_points",

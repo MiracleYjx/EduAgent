@@ -40,3 +40,41 @@
 - 反向验证：在独立 Python 进程中只用内存替换 `ReviewDecisionService.submit` 为基线 `54c760d` 的方法，4 个 H04 反例均以“返回旧 review_record_id”失败；未改动工作区生产文件。
 - 最终门禁：`pytest tests/ -q` 为 **1374 通过、1 跳过、7 条既有警告**，相对 P2.3 净增 17 项；全部新增/扩展验收及既有 PostgreSQL 并发、跨 Session 恢复、事务回滚测试通过。唯一跳过项为 M0 冒烟缺少独立 Compose 项目/端口配置。
 - `mypy backend/app/` 通过（125 个源码文件）；`ruff check backend/ tests/` 通过；生产差异仅限两个授权文件，复核短事务 `_apply_decision` 未修改。
+
+## P3.1.1 持久化复核轮次
+
+日期：2026-09-21。范围：两个模型、`0010_review_round_ids` 迁移、复核 API/服务及对应测试；不改结果仓储、诊断、Workflow 图或 UI。
+
+### 变更前事实与必要性
+
+- 同一运行/答案重新 Pending 时，同内容的上一轮迟到请求与新决定无法仅凭 P3.1 字段区分。
+- Pending 状态实际由结果仓储的 ORM 赋值写入；在模型状态变更事件上维护轮次，可覆盖原有仓储路径而不改 P1 事务逻辑。初次 Pending、从非 Pending 转入时生成 UUID4；重复保存同一 Pending 保留轮次，离开 Pending 清空。
+- 复核服务使用条件 UPDATE，必须显式清空轮次、持锁核对轮次，并将轮次加入原子条件，不能只在 API 预检，否则 Pending→Accepted→Pending 的并发变化仍可绕过。
+
+### 测试变更计划
+
+| 测试范围 | 必要性与覆盖 |
+| --- | --- |
+| 模型结构及状态转换 | 精确更新列/索引断言；验证首次/再次 Pending 的 UUID4、重复保存稳定、非 Pending 清空、回滚后轮次不变 |
+| API/真实服务幂等 | 同轮次同内容返回原记录；新轮次同内容写新记录；过期/随机轮次返回 409；审计记录保留已消费轮次 |
+| 核心反例 | 第一轮 Modified→结果被覆盖→第二轮 Pending→相同内容 Modified；旧轮次请求不影响新 Pending，新轮次请求确实落库 |
+| 事务内轮次守卫 | 请求预检后发生 Pending→Accepted→Pending，原状态相同而 round 不同仍须拒绝，不产生额外记录 |
+| 旧客户端/历史行 | None 保留 P3.1 兼容语义，回执明确 idempotency_degraded；历史 NULL 不伪造回填，严格轮次不能匹配历史 NULL |
+| PostgreSQL 迁移 | 隔离 schema 上执行真实 Alembic upgrade head / downgrade -1 / 再 upgrade，验证列类型/可空/普通索引、历史数据 NULL、业务数据不变；更新迁移链 head 断言 |
+
+### 兼容策略
+
+- `expected_review_round_id=None` 是明确兼容模式：按当前状态受理，仍核对 P3.1 的动作、score/reason、expected 状态及最新记录；不能提供跨轮次迟到请求保护，响应 `idempotency_degraded=True`。现有 UI 暂不传轮次，因此继续兼容模式，本批不改 UI。
+- 迁移不给历史行生成 UUID；已有 Pending 且轮次 NULL 的行维持 legacy，只有下一次真实进入 Pending 才生成新轮次。
+- 复核队列/详情暴露当前轮次，审计与决定回执返回记录轮次，供新客户端原样回传。严格模式下，已被新一轮覆盖的旧轮次请求返回 409，而非声称新一轮已处理。
+
+### 验证记录
+
+- 模型生命周期：`test_pending_round_is_stable_until_a_new_pending_transition` 验证 UUID4、同轮次稳定、离开 Pending 清空、再次进入换号及事务回滚；`test_legacy_pending_round_stays_null_until_a_new_transition` 验证迁移 NULL 不因加载/重复保存被回填。
+- 核心反例：`test_same_content_in_new_round_creates_record_and_rejects_late_retry` 使用真实复核事务与图，第一轮 Modified 保存后注入恢复失败，再由 Re-grade 覆盖并产生第二轮 Pending；第一轮请求被拒绝，第二轮相同 score/reason 产生独立 Modified 记录，两条审计分别保存各自 round_id。两轮同轮次重试均返回原记录。
+- `test_locked_round_check_rejects_pending_aba` 同时覆盖严格及旧客户端模式：预检之后发生 Pending→Confirmed→Pending，事务持锁时拒绝旧轮次，无额外审计记录。API 错误轮次用例返回 `409/REVIEW_SERVICE_STALE_ROUND`。
+- 兼容降级与历史 NULL：`test_missing_round_explicitly_reports_degraded_mode`、`test_legacy_null_round_is_recorded_without_fake_backfill` 验证 `idempotency_degraded=True`、真实历史审计仍 NULL，以及显式 UUID 不能消费历史 NULL。
+- PostgreSQL 正式 API 的既有 confirm/modify 跨实例重试测试改为传递详情给出的 round_id，验证原记录/轮次保持一致、严格模式不降级、待复核数量仍随权威结果变化。
+- 真实 Alembic CLI 在随机 `test_review_round_*` schema 执行 `upgrade 0009_agent_runs`，准备旧数据后执行 `upgrade head`、`downgrade -1`、再次 `upgrade head`，全部成功；断言 UUID/nullable/普通索引、历史两列 NULL、降级后原业务行仍在。测试结束删除自身 schema，默认业务 schema 未迁移。
+- 最终门禁：`pytest tests/ -q` 为 **1385 通过、1 跳过、8 条警告**，净增 11 项；唯一跳过项仍为缺少独立 Compose 参数的 M0 冒烟。`mypy backend/app/` 通过（125 个源码文件）；`ruff check backend/ tests/` 及新增迁移文件检查通过。
+- 生产改动限于授权的两个模型、复核 API/服务和新增迁移；结果仓储、诊断顺序、Workflow 图及 P2 UI 均未修改。

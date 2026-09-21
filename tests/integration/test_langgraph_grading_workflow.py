@@ -581,6 +581,13 @@ def test_decision_retry_returns_original_record_and_live_pending_count(
         started = _start(first, env)
         assert started.status_code == 200
         body = _confirm_body(env, started.json()["workflow_id"])
+        detail = first.client.get(
+            f"/api/reviews/queue/{env.paper.submission_id}/answers/{body['answer_id']}",
+            headers=_teacher_headers(env),
+        ).json()
+        round_id = detail["pending_review_round_id"]
+        assert round_id is not None and UUID(round_id).version == 4
+        body["expected_review_round_id"] = round_id
         body["action"] = action
         if action == "modify":
             body.update(score="8.50", reason="教师补充评分理由。")
@@ -589,6 +596,8 @@ def test_decision_retry_returns_original_record_and_live_pending_count(
         )
         assert saved.status_code == 200
         assert saved.json()["pending_review_count"] == 1
+        assert saved.json()["review_round_id"] == round_id
+        assert saved.json()["idempotency_degraded"] is False
         record_id = saved.json()["review_record_id"]
     scoring = SequenceScoringProvider([])
     with _api_client(env, scoring_provider=scoring) as second:
@@ -598,6 +607,8 @@ def test_decision_retry_returns_original_record_and_live_pending_count(
         assert retry.status_code == 200
         assert retry.json()["review_record_id"] == record_id
         assert retry.json()["pending_review_count"] == 1
+        assert retry.json()["review_round_id"] == round_id
+        assert retry.json()["idempotency_degraded"] is False
         assert scoring.calls == []
         with Session(env.engine) as session:
             assert len(list(session.scalars(select(ReviewRecord)))) == 1

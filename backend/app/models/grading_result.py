@@ -9,6 +9,8 @@
   :class:`backend.app.schemas.grading.ConfidenceDecisionDTO`。
 - 列表字段（正确要点、缺失知识点、知识点、学习建议、检索片段标识）保留原始顺序与重复，
   不做去重或排序。
+- ``pending_review_round_id`` 在进入 Pending Review 时生成 UUID4，同轮次保存保持不变，
+  离开 Pending 时清空；历史 Pending 的 NULL 不自动回填。
 
 缺结果的题目不会写入 0 分占位行：没有评分行本身即表示“尚未收到结果”，
 避免把“缺失”伪装成“零分”。
@@ -17,7 +19,7 @@
 from __future__ import annotations
 
 from decimal import Decimal
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from sqlalchemy import (
     JSON,
@@ -29,8 +31,10 @@ from sqlalchemy import (
     Numeric,
     Text,
     UniqueConstraint,
+    Uuid,
+    event,
 )
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, attributes, mapped_column
 
 from backend.app.domain.enums import (
     GradingStatus,
@@ -131,6 +135,9 @@ class GradingResult(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         default=ReviewStatus.NOT_REQUIRED,
         nullable=False,
     )
+    pending_review_round_id: Mapped[UUID | None] = mapped_column(
+        Uuid(), nullable=True, index=True
+    )
     decision_confidence: Mapped[float | None] = mapped_column(Float(53))
     decision_threshold: Mapped[float | None] = mapped_column(Float(53))
     decision_requires_review: Mapped[bool | None] = mapped_column(Boolean)
@@ -141,6 +148,26 @@ class GradingResult(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         enum_type(GradingStatus, "grading_decision_grading_status")
     )
     decision_reason: Mapped[str | None] = mapped_column(Text)
+
+
+@event.listens_for(GradingResult.review_status, "set", active_history=True)
+def _update_pending_review_round(
+    target: GradingResult,
+    value: ReviewStatus,
+    oldvalue: ReviewStatus | attributes.LoaderCallableStatus,
+    _initiator: attributes.AttributeEventToken,
+) -> None:
+    """现有 ORM 写入进入 Pending 时创建轮次；重复保存和历史 NULL 不换号。
+
+    ORM 加载不触发 set，迁移留下的 NULL 因而保持历史语义。
+    Core UPDATE 不经过此事件；复核服务的条件更新显式清空轮次。
+    """
+
+    if value == ReviewStatus.PENDING_REVIEW:
+        if oldvalue != ReviewStatus.PENDING_REVIEW:
+            target.pending_review_round_id = uuid4()
+    else:
+        target.pending_review_round_id = None
 
 
 __all__ = ["DECISION_SNAPSHOT_COLUMNS", "GradingResult"]

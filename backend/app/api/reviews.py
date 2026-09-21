@@ -74,9 +74,11 @@ from backend.app.services.review_service import (
     REVIEW_SERVICE_PERMISSION_DENIED,
     REVIEW_SERVICE_REVISION_REQUIRED,
     REVIEW_SERVICE_STALE_DECISION,
+    REVIEW_SERVICE_STALE_ROUND,
     ReviewOutcome,
     ReviewService,
     ReviewServiceError,
+    ReviewStaleRoundError,
     find_matching_review_record,
 )
 from backend.app.services.workflow_checkpoint import (
@@ -114,6 +116,7 @@ _ERROR_STATUS: dict[str, int] = {
     REVIEW_DECISION_WORKFLOW_MISMATCH: 409,
     REVIEW_DECISION_STALE: 409,
     REVIEW_SERVICE_STALE_DECISION: 409,
+    REVIEW_SERVICE_STALE_ROUND: 409,
     REVIEW_SERVICE_CONFLICT: 409,
     REVIEW_SERVICE_IDENTITY_MISMATCH: 409,
     REVIEW_DECISION_REVISION_REQUIRED: 422,
@@ -244,6 +247,7 @@ class ReviewQueueItemDTO(BaseModel):
     score: Decimal | None = None
     confidence: float | None = None
     review_status: ReviewStatus
+    pending_review_round_id: UUID | None = None
     requires_review: bool
     updated_at: datetime
 
@@ -263,6 +267,7 @@ class ReviewRecordDTO(BaseModel):
     review_record_id: str
     reviewer_id: str
     decision: ReviewStatus
+    review_round_id: UUID | None = None
     original_score: Decimal
     original_reason: str
     original_knowledge_points: list[str] = Field(default_factory=list)
@@ -299,6 +304,7 @@ class ReviewDetailDTO(BaseModel):
     confidence: float | None = None
     validation_status: str | None = None
     review_status: ReviewStatus
+    pending_review_round_id: UUID | None = None
     requires_review: bool
     retrieved_context_ids: list[str] = Field(default_factory=list)
     evidence: list[ReviewEvidenceDTO] = Field(default_factory=list)
@@ -313,7 +319,11 @@ class ReviewDetailDTO(BaseModel):
 
 
 class TeacherDecisionRequest(BaseModel):
-    """教师决策请求；只允许本批 UI 支持的字段（B09）。"""
+    """教师决策请求；轮次从复核详情原样回传。
+
+    expected_review_round_id=None 为旧客户端兼容模式：按当前状态受理，沿用
+    P3.1 幂等字段，但无法识别跨轮次迟到重试；回执明确标记 idempotency_degraded。
+    """
 
     model_config = ConfigDict(extra="forbid")
 
@@ -328,6 +338,9 @@ class TeacherDecisionRequest(BaseModel):
     )
     expected_review_status: ReviewStatus | None = Field(
         default=None, description="期望的当前复核状态；不匹配即拒绝，防陈旧覆盖。"
+    )
+    expected_review_round_id: UUID | None = Field(
+        default=None, description="期望的待复核轮次；None 降级为旧客户端兼容模式。"
     )
 
     @field_validator("reason", "comment", mode="before")
@@ -351,6 +364,8 @@ class ReviewDecisionOutcomeDTO(BaseModel):
     decision: ReviewStatus
     decision_saved: bool
     review_record_id: str | None = None
+    review_round_id: UUID | None = None
+    idempotency_degraded: bool = False
     resume_status: Literal["succeeded", "pending", "failed"] = "pending"
     resume_error_code: str | None = None
     workflow_status: WorkflowStatus
@@ -512,6 +527,7 @@ class ReviewQueryService:
             score=result.score,
             confidence=float(result.confidence),
             review_status=result.review_status,
+            pending_review_round_id=result.pending_review_round_id,
             requires_review=bool(
                 result.decision_requires_review
                 if result.decision_requires_review is not None
@@ -594,6 +610,7 @@ class ReviewQueryService:
             confidence=float(result.confidence),
             validation_status=result.validation_status.value,
             review_status=result.review_status,
+            pending_review_round_id=result.pending_review_round_id,
             requires_review=bool(
                 result.decision_requires_review
                 if result.decision_requires_review is not None
@@ -624,7 +641,8 @@ class ReviewQueryService:
             raise ReviewQueryPermissionError("无权访问该答卷所属课程。")
 
     def find_recorded_decision(
-        self, teacher_id: str, decision: TeacherReviewDecision
+        self, teacher_id: str, decision: TeacherReviewDecision,
+        expected_review_round_id: UUID | None = None,
     ) -> ReviewRecordDTO | None:
         """授权详情读取后，核验最新记录是否仍代表本次请求的决定。"""
 
@@ -639,7 +657,8 @@ class ReviewQueryService:
                 if run is None:
                     return None
                 record = find_matching_review_record(
-                    session, run=run, decision=decision, actor_id=teacher_id
+                    session, run=run, decision=decision, actor_id=teacher_id,
+                    expected_review_round_id=expected_review_round_id,
                 )
                 return self._record_dto(record) if record is not None else None
         except SQLAlchemyError as error:
@@ -673,6 +692,7 @@ class ReviewQueryService:
             review_record_id=str(record.id),
             reviewer_id=str(record.reviewer_id),
             decision=record.decision,
+            review_round_id=record.review_round_id,
             original_score=record.original_score,
             original_reason=record.original_reason,
             original_knowledge_points=list(record.original_knowledge_points or []),
@@ -817,6 +837,14 @@ class ReviewDecisionService:
             raise ReviewDecisionStaleError(
                 "教师决定必须基于 Pending Review 状态，请刷新后重试。"
             )
+        expected_round = payload.expected_review_round_id
+        degraded = expected_round is None
+        if (
+            detail.review_status is ReviewStatus.PENDING_REVIEW
+            and expected_round is not None
+            and detail.pending_review_round_id != expected_round
+        ):
+            raise ReviewStaleRoundError("复核轮次已变化，请刷新待复核详情后重试。")
         decision = _teacher_decision(
             workflow_id=workflow_id,
             thread_id=thread_id,
@@ -826,7 +854,7 @@ class ReviewDecisionService:
             expected_review_status=expected_status.value,
         )
         duplicate = (
-            self._query.find_recorded_decision(teacher_id, decision)
+            self._query.find_recorded_decision(teacher_id, decision, expected_round)
             if detail.review_status is not ReviewStatus.PENDING_REVIEW
             else None
         )
@@ -838,6 +866,8 @@ class ReviewDecisionService:
                 decision=decision_status,
                 decision_saved=True,
                 review_record_id=duplicate.review_record_id,
+                review_round_id=duplicate.review_round_id,
+                idempotency_degraded=degraded,
                 resume_status=(
                     "succeeded" if workflow_status is WorkflowStatus.COMPLETED else "pending"
                 ),
@@ -858,6 +888,7 @@ class ReviewDecisionService:
             actor_id=str(teacher_id),
             actor_role=UserRole.TEACHER,
             comment=payload.comment,
+            expected_review_round_id=expected_round,
         )
         if not isinstance(outcome, ReviewOutcome):  # pragma: no cover - 契约保护
             raise ReviewDecisionNotReadyError("复核服务返回了非预期的决策结果。")
@@ -868,6 +899,8 @@ class ReviewDecisionService:
             decision=outcome.decision,
             decision_saved=True,
             review_record_id=outcome.review_record_id,
+            review_round_id=outcome.review_round_id,
+            idempotency_degraded=degraded,
             resume_status=_resume_status(outcome),
             resume_error_code=outcome.resume_error_code,
             workflow_status=outcome.workflow_status,

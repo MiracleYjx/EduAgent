@@ -100,6 +100,8 @@ REVIEW_SERVICE_REVISION_REQUIRED: Final[str] = "REVIEW_SERVICE_REVISION_REQUIRED
 REVIEW_SERVICE_PERMISSION_DENIED: Final[str] = "REVIEW_SERVICE_PERMISSION_DENIED"
 #: 复核状态已变更，拒绝陈旧覆盖。
 REVIEW_SERVICE_STALE_DECISION: Final[str] = "REVIEW_SERVICE_STALE_DECISION"
+#: 复核轮次已改变；旧轮次请求不得消费新的 Pending Review。
+REVIEW_SERVICE_STALE_ROUND: Final[str] = "REVIEW_SERVICE_STALE_ROUND"
 #: 事务内的原子状态比较失败（并发复核冲突）。
 REVIEW_SERVICE_CONFLICT: Final[str] = "REVIEW_SERVICE_CONFLICT"
 #: 工作流/线程/答案身份不一致（含跨工作流写入）。
@@ -153,6 +155,12 @@ class ReviewStaleDecisionError(ReviewServiceError):
     """教师决策基于已变更的复核状态。"""
 
     error_code = REVIEW_SERVICE_STALE_DECISION
+
+
+class ReviewStaleRoundError(ReviewStaleDecisionError):
+    """请求轮次与当前待复核轮次不一致。"""
+
+    error_code = REVIEW_SERVICE_STALE_ROUND
 
 
 class ReviewConflictError(ReviewServiceError):
@@ -234,6 +242,7 @@ class ReviewOutcome:
     exam_result_persisted: bool
     diagnosis: DiagnosisReportDTO | None
     diagnosis_error_code: str | None
+    review_round_id: UUID | None = None
 
 
 class ReviewResultWriter(Protocol):
@@ -411,6 +420,7 @@ class DatabaseReviewRecordStore:
             grading_result_id=row.id,
             reviewer_id=_as_uuid(request.reviewer_id, "reviewer_id"),
             decision=request.decision,
+            review_round_id=row.pending_review_round_id,
             original_score=row.score,
             original_reason=row.reason,
             original_knowledge_points=list(row.knowledge_points or []),
@@ -430,11 +440,12 @@ def find_matching_review_record(
     run: WorkflowRun,
     decision: TeacherReviewDecision,
     actor_id: str,
+    expected_review_round_id: UUID | None = None,
 ) -> ReviewRecord | None:
     """只复用当前仍生效的最新结论；本函数在调用方完成授权后使用。
 
-    记录没有运行外键，创建时间只用于排除旧运行的记录。再次进入 Pending Review
-    一律走新决定流程；同一运行内同内容的迟到重试需要将来持久化轮次才能区分。
+    记录没有运行外键，创建时间仍用于排除旧运行记录。提供轮次时必须匹配
+    最新记录的轮次；None 是旧客户端兼容模式，沿用 P3.1 的状态和内容校验。
     """
 
     if decision.workflow_id != run.workflow_id or decision.expected_review_status not in (
@@ -462,6 +473,10 @@ def find_matching_review_record(
         or record.created_at < run.created_at
         or str(record.reviewer_id) != actor_id
         or record.decision.value != decision.review_status
+        or (
+            expected_review_round_id is not None
+            and record.review_round_id != expected_review_round_id
+        )
     ):
         return None
     if record.decision is ReviewStatus.RE_GRADE:
@@ -493,6 +508,7 @@ class _PreparedDecision:
     current_review_status: str | None
     recorded_status: str | None
     already_recorded: bool
+    observed_review_round_id: UUID | None
 
 
 @dataclass(frozen=True, slots=True)
@@ -500,6 +516,7 @@ class _DecisionResult:
     """短事务的产物：复核记录、投影后的整卷结果与落库情况。"""
 
     review_record_id: str
+    review_round_id: UUID | None
     exam_result: ExamResultDTO | None
     exam_result_persisted: bool
 
@@ -549,11 +566,19 @@ class ReviewService:
         actor_id: str,
         actor_role: UserRole | str,
         comment: str | None = None,
+        expected_review_round_id: UUID | None = None,
     ) -> ReviewOutcome:
-        """提交教师结论：短事务落库，然后在事务外恢复原工作流。"""
+        """提交教师结论：短事务落库，然后在事务外恢复原工作流。
+
+        expected_review_round_id=None 保留旧客户端兼容语义，不能识别跨轮次迟到
+        请求；无论是否提供轮次，都在持锁后核对预检观察到的轮次，防止事务间换轮。
+        """
 
         self._ensure_ready()
-        prepared = self._prepare(decision, actor_id=actor_id, actor_role=actor_role)
+        prepared = self._prepare(
+            decision, actor_id=actor_id, actor_role=actor_role,
+            expected_review_round_id=expected_review_round_id,
+        )
         if prepared.already_recorded:
             decided: _DecisionResult | None = None
         else:
@@ -572,6 +597,7 @@ class ReviewService:
         actor_id: str,
         actor_role: UserRole | str,
         comment: str | None = None,
+        expected_review_round_id: UUID | None = None,
     ) -> ReviewOutcome:
         """同步入口：无运行中事件循环时包装 ``asyncio.run``，否则显式报错。"""
 
@@ -584,6 +610,7 @@ class ReviewService:
                     actor_id=actor_id,
                     actor_role=actor_role,
                     comment=comment,
+                    expected_review_round_id=expected_review_round_id,
                 )
             )
         raise ReviewServiceError(
@@ -597,6 +624,7 @@ class ReviewService:
         *,
         actor_id: str,
         actor_role: UserRole | str,
+        expected_review_round_id: UUID | None = None,
     ) -> ReviewOutcome:
         """重试入口：结论已落库但恢复未完成时幂等恢复，不重复写复核记录。"""
 
@@ -606,6 +634,7 @@ class ReviewService:
             actor_id=actor_id,
             actor_role=actor_role,
             allow_recorded=True,
+            expected_review_round_id=expected_review_round_id,
         )
         if prepared.already_recorded:
             # 结论已生效：重试只恢复运行，不再要求 `expected_review_status`
@@ -624,6 +653,7 @@ class ReviewService:
         *,
         actor_id: str,
         actor_role: UserRole | str,
+        expected_review_round_id: UUID | None = None,
     ) -> ReviewOutcome:
         """同步入口：无运行中事件循环时包装 ``asyncio.run``，否则显式报错。"""
 
@@ -635,6 +665,7 @@ class ReviewService:
                     decision,
                     actor_id=actor_id,
                     actor_role=actor_role,
+                    expected_review_round_id=expected_review_round_id,
                 )
             )
         raise ReviewServiceError(
@@ -651,6 +682,7 @@ class ReviewService:
         actor_id: str,
         actor_role: UserRole | str,
         expected_review_status: str | None = None,
+        expected_review_round_id: UUID | None = None,
         comment: str | None = None,
     ) -> ReviewOutcome:
         """把 T070 Reviewer 的 ``regrade`` 决策翻译为教师 ``Re-grade`` 结论并调度重评。
@@ -672,6 +704,7 @@ class ReviewService:
             actor_id=actor_id,
             actor_role=actor_role,
             comment=comment,
+            expected_review_round_id=expected_review_round_id,
         )
 
     def request_regrade(
@@ -683,6 +716,7 @@ class ReviewService:
         actor_id: str,
         actor_role: UserRole | str,
         expected_review_status: str | None = None,
+        expected_review_round_id: UUID | None = None,
         comment: str | None = None,
     ) -> ReviewOutcome:
         """同步入口：无运行中事件循环时包装 ``asyncio.run``，否则显式报错。"""
@@ -698,6 +732,7 @@ class ReviewService:
                     actor_id=actor_id,
                     actor_role=actor_role,
                     expected_review_status=expected_review_status,
+                    expected_review_round_id=expected_review_round_id,
                     comment=comment,
                 )
             )
@@ -791,6 +826,7 @@ class ReviewService:
         actor_id: str,
         actor_role: UserRole | str,
         allow_recorded: bool = False,
+        expected_review_round_id: UUID | None = None,
     ) -> _PreparedDecision:
         """完成权限、身份、防陈旧与修订结果校验，返回可直接写入的上下文。"""
 
@@ -828,11 +864,12 @@ class ReviewService:
             raise ReviewAnswerNotFoundError("该答案不属于注入的答卷快照，拒绝写入复核结论。")
         if decision.revised_result is not None:
             self._validate_revised_result(decision.revised_result, target, submission_id)
-        db_status = self._row_review_status(submission_id, decision.answer_id)
-        if db_status is None:
+        db_review = self._row_review_state(submission_id, decision.answer_id)
+        if db_review is None:
             raise ReviewAnswerNotFoundError(
                 "该题目还没有评分结果行，复核记录不得凭空创建。"
             )
+        db_status, round_id = db_review
         already_recorded = decision.review_status == db_status
         if allow_recorded and already_recorded:
             with self._open_session() as session:
@@ -840,7 +877,8 @@ class ReviewService:
                 stored_run = session.get(WorkflowRun, run.id)
                 record = (
                     find_matching_review_record(
-                        session, run=stored_run, decision=decision, actor_id=operator_id
+                        session, run=stored_run, decision=decision, actor_id=operator_id,
+                        expected_review_round_id=expected_review_round_id,
                     )
                     if stored_run is not None
                     else None
@@ -856,7 +894,10 @@ class ReviewService:
                 current_review_status=state_status,
                 recorded_status=db_status,
                 already_recorded=True,
+                observed_review_round_id=round_id,
             )
+        if expected_review_round_id is not None and expected_review_round_id != round_id:
+            raise ReviewStaleRoundError("复核轮次已变化，请刷新待复核详情后重试。")
         if allow_recorded and db_status != ReviewStatus.PENDING_REVIEW.value:
             raise ReviewStaleDecisionError(
                 "当前评分已被其它决定覆盖，拒绝恢复旧结论。"
@@ -874,16 +915,19 @@ class ReviewService:
             current_review_status=state_status,
             recorded_status=db_status,
             already_recorded=False,
+            observed_review_round_id=round_id,
         )
 
-    def _row_review_status(self, submission_id: str, answer_id: str) -> str | None:
-        """读取评分行当前的复核状态（原子比较的权威基准）。"""
+    def _row_review_state(
+        self, submission_id: str, answer_id: str
+    ) -> tuple[str, UUID | None] | None:
+        """一起读取评分状态和轮次，作为事务内原子比较的基准。"""
 
         with self._open_session() as session:
             row = self._grading_row(session, submission_id, answer_id)
             if row is None:
                 return None
-            return row.review_status.value
+            return row.review_status.value, row.pending_review_round_id
 
     # ------------------------------------------------------------------ 短事务
 
@@ -951,6 +995,8 @@ class ReviewService:
                         "该题目的复核状态已被其它请求修改（当前 "
                         f"{row.review_status.value}），拒绝覆盖；请刷新后重试。"
                     )
+                if row.pending_review_round_id != prepared.observed_review_round_id:
+                    raise ReviewStaleRoundError("复核轮次已被其它请求更新，拒绝消费新的待复核轮次。")
                 # 先写复核记录：存储件在更新前读取评分行，得到真正的“复核前事实”。
                 # 若后面的原子更新失败，整个事务回滚，记录不会残留。
                 record = self._require_records().save_within(
@@ -970,6 +1016,8 @@ class ReviewService:
                         .where(
                             GradingResultRow.id == row.id,
                             GradingResultRow.review_status == observed,
+                            GradingResultRow.pending_review_round_id
+                            == prepared.observed_review_round_id,
                         )
                         .values(self._row_updates(row, decision, status))
                     ),
@@ -996,6 +1044,7 @@ class ReviewService:
                 raise
             return _DecisionResult(
                 review_record_id=str(record.id),
+                review_round_id=record.review_round_id,
                 exam_result=exam_result,
                 exam_result_persisted=persisted,
             )
@@ -1022,7 +1071,7 @@ class ReviewService:
         """
 
         revised = decision.revised_result
-        updates: dict[str, Any] = {"review_status": status}
+        updates: dict[str, Any] = {"review_status": status, "pending_review_round_id": None}
         carried_confidence = row.decision_confidence
         carried_threshold = row.decision_threshold
         if carried_confidence is not None and carried_threshold is not None:
@@ -1220,6 +1269,7 @@ class ReviewService:
             answer_id=decision.answer_id,
             decision=ReviewStatus(decision.review_status),
             review_record_id=None if decided is None else decided.review_record_id,
+            review_round_id=None if decided is None else decided.review_round_id,
             workflow_status=_run_status(state_final) or run.status,
             interrupted=bool(getattr(result, "interrupted", False)),
             pending_answer_ids=pending,
@@ -1252,6 +1302,7 @@ class ReviewService:
             answer_id=decision.answer_id,
             decision=ReviewStatus(decision.review_status),
             review_record_id=None if decided is None else decided.review_record_id,
+            review_round_id=None if decided is None else decided.review_round_id,
             workflow_status=(row.status if row is not None else WorkflowStatus.PAUSED),
             interrupted=False,
             pending_answer_ids=(decision.answer_id,),
@@ -1462,6 +1513,7 @@ __all__ = [
     "REVIEW_SERVICE_PERMISSION_DENIED",
     "REVIEW_SERVICE_REVISION_REQUIRED",
     "REVIEW_SERVICE_STALE_DECISION",
+    "REVIEW_SERVICE_STALE_ROUND",
     "REVIEW_SERVICE_WORKFLOW_NOT_FOUND",
     "DatabaseReviewRecordStore",
     "ReviewAggregationError",
@@ -1481,6 +1533,7 @@ __all__ = [
     "ReviewServiceError",
     "ReviewServiceNotReadyError",
     "ReviewStaleDecisionError",
+    "ReviewStaleRoundError",
     "ReviewWorkflowNotFoundError",
     "TeacherDecisionWorkflow",
     "find_matching_review_record",
