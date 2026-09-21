@@ -51,7 +51,13 @@ from backend.app.ai.embedding.factory import (
     create_embedding_provider,
     get_embedding_provider,
 )
-from backend.app.ai.llm.base import BaseLLMProvider, LLMMessage, LLMMessages
+from backend.app.ai.llm.base import (
+    BaseLLMProvider,
+    LLMMessage,
+    LLMMessages,
+    LLMProviderMetadata,
+    describe_llm_provider,
+)
 from backend.app.ai.llm.factory import create_llm_provider
 from backend.app.ai.retrieval.base import (
     DEFAULT_TOP_K,
@@ -537,16 +543,6 @@ def _dedupe_preserving_order(values: Sequence[str]) -> list[str]:
     return kept
 
 
-def _resolve_provider_model(provider: BaseLLMProvider) -> str | None:
-    """读取 Provider 实际提供的模型标识；无法获取时返回 ``None``，不从全局配置猜测。"""
-
-    for attribute in ("model_name", "model"):
-        value = getattr(provider, attribute, None)
-        if isinstance(value, str) and value.strip():
-            return value.strip()
-    return None
-
-
 def _execute_search(
     retriever: Any,
     session: Session,
@@ -641,12 +637,11 @@ class QuestionAgent:
 
         messages = build_generation_messages(request, context)
         try:
-            payload = await self._generate_payload(messages, settings=resolved_settings)
+            payload, metadata = await self._generate_payload(messages, settings=resolved_settings)
             candidates = self._validate_candidates(payload, request, context)
         except QuestionGenerationError as exc:
             return self._failure(exc.error_code, exc.detail, error=exc)
 
-        provider = self._provider
         return AgentOutput(
             agent_type=AgentType.QUESTION,
             status=AgentStatus.SUCCESS,
@@ -656,8 +651,8 @@ class QuestionAgent:
             validation_status=ValidationStatus.VALIDATED,
             question_candidates=candidates,
             retrieved_context_ids=list(context.retrieved_context_ids),
-            model=_resolve_provider_model(provider) if provider is not None else None,
-            prompt_version=QUESTION_GENERATION_PROMPT_VERSION,
+            model=metadata["model"],
+            prompt_version=metadata["prompt_version"],
         )
 
     async def _generate_payload(
@@ -665,7 +660,7 @@ class QuestionAgent:
         messages: LLMMessages,
         *,
         settings: AppSettings,
-    ) -> QuestionGenerationPayload:
+    ) -> tuple[QuestionGenerationPayload, LLMProviderMetadata]:
         """调用 Provider 获取结构化候选；失败按结构化失败/调用故障分类。"""
 
         provider = self._provider
@@ -705,7 +700,9 @@ class QuestionAgent:
             raise ProviderFailedError("出题 Provider 调用失败。") from None
         if not isinstance(result, QuestionGenerationPayload):
             raise InvalidGenerationResponseError("出题 Provider 未返回约定的结构化结果。")
-        return result
+        return result, describe_llm_provider(
+            provider, prompt_version=QUESTION_GENERATION_PROMPT_VERSION,
+        )
 
     def _validate_candidates(
         self,

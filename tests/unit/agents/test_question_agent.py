@@ -20,7 +20,7 @@ Question Agent → Pydantic Schema → Question Validator → 教师审核 → �
 6. 来源白名单为真正写入最终 Prompt 的片段：虚构、跨课程、被预算截断的引用一律拒绝，
    有效引用去重保序，缺失引用留空交由 T068 判定；
 7. 候选数量与题型必须符合教师条件，候选状态必须保持 `Candidate Generation`（禁止自动发布）；
-8. `model` 追踪字段只在 Provider 能提供标识时记录，不从全局配置猜测。
+8. P4.2 TCR：`model` 来自本次实际 Provider，无标识时记录 unknown，不从配置猜测。
 
 执行方法（先红后绿）：``python -m pytest tests/unit/agents -q``；实现前本文件因模块缺失而失败。
 本仓库测试约定：异步入口在同步用例中用 ``asyncio.run`` 驱动，不启用 pytest-asyncio 标记。
@@ -673,15 +673,48 @@ def test_real_provider_rejects_free_text_and_schema_violations() -> None:
 
 
 def test_model_field_only_recorded_when_provider_exposes_identifier() -> None:
-    """`model` 只记录 Provider 实际提供的标识，注入替身无法提供时保持 None。"""
+    """P4.2：`model` 只记录实际标识，注入替身无法提供时明确为 unknown。"""
 
     output = _generate(StubQuestionProvider(candidates=[make_candidate()]))
-    assert output.model is None
+    assert output.model == "unknown"
 
     output = _generate(
         StubQuestionProvider(candidates=[make_candidate()], model_name="stub-model-v1")
     )
     assert output.model == "stub-model-v1"
+
+
+def test_default_question_provider_metadata_is_per_call(monkeypatch: Any) -> None:
+    """默认解析实例必须回传模型；同一 Agent 的下一次调用不可沿用前次身份。"""
+
+    from backend.app.ai.agents import question_agent as module
+
+    providers = [
+        StubQuestionProvider(candidates=[make_candidate()], model_name="resolved-question-v2"),
+        StubQuestionProvider(candidates=[make_candidate()], model_name="  "),
+    ]
+    settings = build_test_settings(deepseek_model="configured-model-must-not-appear")
+    seen = []
+
+    def resolve(passed):
+        seen.append(passed)
+        return providers[len(seen) - 1]
+
+    monkeypatch.setattr(module, "create_llm_provider", resolve)
+    agent = QuestionAgent()
+    outputs = [
+        _run(agent.generate(
+            None, _input(), retriever=StubRetriever([make_chunk("chunk-1")]),
+            embedding_provider=StubEmbeddingProvider(), settings=settings,
+        ))
+        for _ in providers
+    ]
+    assert [output.model for output in outputs] == ["resolved-question-v2", "unknown"]
+    assert all(output.status is AgentStatus.SUCCESS for output in outputs)
+    assert all(output.prompt_version == QUESTION_GENERATION_PROMPT_VERSION for output in outputs)
+    assert all(value is settings for value in seen)
+    assert len(seen) == 2
+    assert all(len(provider.calls) == 1 for provider in providers)
 
 
 def test_retriever_resolution_uses_same_settings_and_prefers_injection() -> None:

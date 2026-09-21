@@ -336,7 +336,7 @@ def test_subjective_answer_orchestrates_existing_grader_once() -> None:
     assert invocation.workflow_id == "workflow-1"
     assert output.status is AgentStatus.SUCCESS
     assert output.validation_status is ValidationStatus.VALIDATED
-    assert output.prompt_version == SUBJECTIVE_GRADING_PROMPT_VERSION
+    assert output.prompt_version == "unknown"  # 替身评分器没有实际 Prompt 回执。
     assert len(subjective.calls) == 1
     call = subjective.calls[0]
     assert call["source"].answer_id == "answer-2"
@@ -812,6 +812,53 @@ def test_settings_reach_every_resolved_component_once(monkeypatch: pytest.Monkey
     assert len(reranker.calls) == 1
     assert len(provider.calls) == 1
     assert provider.calls[0]["schema"] is SubjectiveGradingPayload
+
+
+def test_default_grading_provider_metadata_is_per_call(monkeypatch: pytest.MonkeyPatch) -> None:
+    """P4.2：真实评分器解析的实例是唯一身份源，不缓存模型、不重新构造 Provider。"""
+
+    from backend.app.services.grading import subjective_grader as module
+
+    providers = [StubScoringProvider(), StubScoringProvider()]
+    providers[0].model_name = "resolved-grading-v2"
+    providers[1].model_name = ""
+    settings = _settings(deepseek_model="configured-model-must-not-appear")
+    seen = []
+
+    def resolve(passed):
+        seen.append(passed)
+        return providers[len(seen) - 1]
+
+    monkeypatch.setattr(module, "create_llm_provider", resolve)
+    agent = _agent(settings=settings)
+    target = _subjective_target()
+    snapshot = _snapshot(target)
+    outputs = [
+        agent.grade_answer(snapshot, target, request_id=f"metadata-{index}").output
+        for index in range(2)
+    ]
+    assert [output.model for output in outputs] == ["resolved-grading-v2", "unknown"]
+    assert all(output.status is AgentStatus.SUCCESS for output in outputs)
+    assert all(output.prompt_version == SUBJECTIVE_GRADING_PROMPT_VERSION for output in outputs)
+    assert len(seen) == 2
+    assert all(value is settings for value in seen)
+    assert all(len(provider.calls) == 1 for provider in providers)
+
+
+def test_injected_grader_does_not_claim_unused_provider_metadata() -> None:
+    """替身评分器未调用 Agent 的 Provider，不能把该 Provider 名义模型写入结果。"""
+
+    target = _subjective_target()
+    snapshot = _snapshot(target)
+    provider = StubScoringProvider()
+    provider.model_name = "unused-provider-model"
+    grader = _RecordingSubjectiveGrader(_subjective_result(target, snapshot))
+    output = _agent(subjective_grader=grader, provider=provider).grade_answer(
+        snapshot, target, request_id="metadata-unused",
+    ).output
+    assert output.model == "unknown"
+    assert output.prompt_version == "unknown"
+    assert provider.calls == []
 
 
 def test_real_services_satisfy_agent_orchestration_contract() -> None:
