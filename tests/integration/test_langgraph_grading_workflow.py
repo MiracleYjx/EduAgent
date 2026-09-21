@@ -309,8 +309,17 @@ class DiagnosisDouble:
         )
 
     def record(self, exam_result: ExamResultDTO) -> DiagnosisReportDTO:
+        """同步记录入口：不启动事件循环（调用方已在运行中的循环内）。"""
+
         self.record_calls.append(exam_result)
-        return asyncio.run(self.generate(exam_result))
+        return DiagnosisReportDTO(
+            submission_id=exam_result.submission_id,
+            student_id=exam_result.student_id,
+            status=DiagnosisStatus.READY,
+            generated_at=FIXED_NOW,
+            source_exam_result_updated_at=exam_result.aggregated_at,
+            learning_suggestions=["继续复习相关知识点。"],
+        )
 
 
 def _snapshot(env: ReviewEnv) -> SubmissionSnapshot:
@@ -371,15 +380,13 @@ def _workflow(
     env: ReviewEnv,
     agent: GradingAgent,
     saver: DatabaseCheckpointSaver,
-    diagnosis: DiagnosisDouble,
 ) -> GradingWorkflow:
-    """装配真实 LangGraph 图和持久化检查点。"""
+    """装配真实 LangGraph 图和持久化检查点；诊断由 M4 服务层在结果事务提交后生成（P1.3）。"""
 
     return GradingWorkflow(
         GradingWorkflowDeps(
             snapshot=_snapshot(env),
             agent=agent,
-            diagnosis_service=diagnosis,
             settings=build_test_settings(confidence_threshold=THRESHOLD),
         ),
         checkpointer=saver,
@@ -491,7 +498,7 @@ def test_mixed_submission_runs_real_graph_and_keeps_objective_deterministic(
         request_id=REQUEST_ID,
         thread_id=THREAD_ID,
     )
-    workflow = _workflow(env, agent, saver, diagnosis)
+    workflow = _workflow(env, agent, saver)
     result = asyncio.run(
         workflow.run_async(
             request_id=REQUEST_ID,
@@ -502,10 +509,13 @@ def test_mixed_submission_runs_real_graph_and_keeps_objective_deterministic(
     )
 
     assert result.interrupted is False
-    assert result.state["status"] is WorkflowStatus.COMPLETED
+    # P1.3：图只标记“诊断待生成”；Completed 与诊断由 M4 服务层在结果事务提交后写入。
+    assert result.state["status"] is WorkflowStatus.RUNNING
+    assert result.state["current_node"] == "generate_diagnosis"
     assert result.state["exam_result"].is_final is True
     assert result.state["final_results"] == result.state["exam_result"].items
-    assert result.state["diagnosis"] is not None
+    assert result.state["diagnosis"] is None
+    assert diagnosis.generate_calls == []
     assert len(provider.calls) == len(env.paper.subjective_answer_ids)
     assert len(retriever.calls) == len(env.paper.subjective_answer_ids)
     assert len(embedding.queries) == len(env.paper.subjective_answer_ids)
@@ -538,7 +548,7 @@ def test_structured_validation_failure_stops_before_final_results(
 
     provider = InvalidStructuredProvider()
     agent, _, _, _ = _agent(solo_env, provider)
-    diagnosis = DiagnosisDouble()
+    DiagnosisDouble()
     saver = _saver(solo_env)
     store = _seed_checkpoint(
         solo_env,
@@ -546,7 +556,7 @@ def test_structured_validation_failure_stops_before_final_results(
         request_id=f"{REQUEST_ID}-invalid",
         thread_id=f"{THREAD_ID}-invalid",
     )
-    workflow = _workflow(solo_env, agent, saver, diagnosis)
+    workflow = _workflow(solo_env, agent, saver)
     result = asyncio.run(
         workflow.run_async(
             request_id=f"{REQUEST_ID}-invalid",
@@ -593,7 +603,7 @@ def test_review_service_regrades_then_teacher_confirmation_unlocks_diagnosis(
         request_id=request_id,
         thread_id=thread_id,
     )
-    workflow = _workflow(env, agent, saver, diagnosis)
+    workflow = _workflow(env, agent, saver)
     paused = asyncio.run(
         workflow.run_async(
             request_id=request_id,
@@ -643,7 +653,7 @@ def test_review_service_regrades_then_teacher_confirmation_unlocks_diagnosis(
     assert regraded.workflow_status is WorkflowStatus.PAUSED
     assert regraded.exam_result is not None and regraded.exam_result.is_final is False
     assert regraded.diagnosis is None
-    assert diagnosis.generate_calls == []
+    assert diagnosis.record_calls == []
     assert len(provider.calls) == 2
 
     confirmed = service.submit_decision(
@@ -662,7 +672,7 @@ def test_review_service_regrades_then_teacher_confirmation_unlocks_diagnosis(
     assert confirmed.exam_result is not None and confirmed.exam_result.is_final is True
     assert confirmed.exam_result.final_total_score is not None
     assert confirmed.diagnosis is not None
-    assert len(diagnosis.generate_calls) == 1
+    assert len(diagnosis.record_calls) == 1
     assert len(provider.calls) == 3
     with Session(env.engine) as session:
         records = list(session.scalars(select(ReviewRecord)))
@@ -697,7 +707,7 @@ def test_cross_instance_resume_uses_postgres_runtime_checkpoint(
         request_id=request_id,
         thread_id=thread_id,
     )
-    workflow_a = _workflow(solo_env, agent_a, saver_a, diagnosis_a)
+    workflow_a = _workflow(solo_env, agent_a, saver_a)
     paused = asyncio.run(
         workflow_a.run_async(
             request_id=request_id,
@@ -725,7 +735,7 @@ def test_cross_instance_resume_uses_postgres_runtime_checkpoint(
     agent_b, _, _, _ = _agent(solo_env, provider_b)
     diagnosis_b = DiagnosisDouble()
     saver_b = _saver(solo_env)
-    workflow_b = _workflow(solo_env, agent_b, saver_b, diagnosis_b)
+    workflow_b = _workflow(solo_env, agent_b, saver_b)
     service_b = _review_service(solo_env, workflow_b, diagnosis_b)
     resumed = service_b.submit_decision(
         TeacherReviewDecision(
@@ -744,9 +754,9 @@ def test_cross_instance_resume_uses_postgres_runtime_checkpoint(
     assert resumed.exam_result is not None and resumed.exam_result.is_final is True
     assert resumed.diagnosis is not None
     assert provider_b.calls == []
-    assert len(diagnosis_b.generate_calls) == 1
-    assert diagnosis_b.generate_calls[0].submission_id == resumed.exam_result.submission_id
-    assert diagnosis_b.generate_calls[0].is_final is True
+    assert len(diagnosis_b.record_calls) == 1
+    assert diagnosis_b.record_calls[0].submission_id == resumed.exam_result.submission_id
+    assert diagnosis_b.record_calls[0].is_final is True
     with Session(solo_env.engine) as session:
         assert session.scalars(select(WorkflowRun)).one().status is WorkflowStatus.COMPLETED
 
@@ -769,7 +779,7 @@ def test_concurrent_teacher_decisions_only_one_updates_postgres_row(
         request_id=request_id,
         thread_id=thread_id,
     )
-    workflow = _workflow(solo_env, agent, saver, diagnosis)
+    workflow = _workflow(solo_env, agent, saver)
     paused = asyncio.run(
         workflow.run_async(
             request_id=request_id,

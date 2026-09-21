@@ -939,3 +939,174 @@ def _record_decision(env: dict[str, Any], *, reviewer_id: Any) -> ReviewRecord:
         session.commit()
         session.refresh(record)
         return record
+
+
+# ---------------------------------------------------------------- P1.3 诊断顺序
+
+
+class _FailingDiagnosisService:
+    """P1.3 诊断失败替身：调用即抛出给定异常（不落库、不返回 Ready）。"""
+
+    def __init__(self, error: BaseException) -> None:
+        self.error = error
+        self.calls: list[Any] = []
+
+    async def generate(self, exam_result: Any) -> Any:
+        self.calls.append(exam_result)
+        raise self.error
+
+
+class _ReadyDiagnosisService:
+    """P1.3 就绪诊断替身：按生产契约带上应用层 ``exam_result_id``，供真实存储落库。"""
+
+    def __init__(self) -> None:
+        self.calls: list[Any] = []
+
+    async def generate(self, exam_result: Any) -> DiagnosisReportDTO:
+        self.calls.append(exam_result)
+        return DiagnosisReportDTO(
+            exam_result_id=f"exam-result:{exam_result.submission_id}",
+            submission_id=exam_result.submission_id,
+            student_id=exam_result.student_id,
+            status=DiagnosisStatus.READY,
+            generated_at=FIXED_NOW,
+            source_exam_result_updated_at=exam_result.aggregated_at,
+        )
+
+
+def _diagnosis_adapter(env: dict[str, Any], service: Any) -> Any:
+    """按生产顺序装配诊断：M4 服务 → DiagnosisRecorderAdapter → 真实诊断存储（P1.3）。"""
+
+    from backend.app.api.workflow import DiagnosisRecorderAdapter
+    from backend.app.services.grading.diagnosis_report_store import DiagnosisReportStore
+
+    return DiagnosisRecorderAdapter(
+        store=DiagnosisReportStore(session_factory=lambda: Session(env["engine"])),
+        service=service,
+    )
+
+
+def _diagnosis_rows(env: dict[str, Any]) -> list[Any]:
+    """读取该答卷在诊断表里的行（真实存储写入的事实）。"""
+
+    from backend.app.models import DiagnosisReport
+
+    with Session(env["engine"]) as session:
+        return list(
+            session.scalars(
+                select(DiagnosisReport).where(
+                    DiagnosisReport.submission_id == env["fixture"].submission_id
+                )
+            )
+        )
+
+
+def _accepted_service(env: dict[str, Any], *, diagnosis_service: Any) -> WorkflowService:
+    """高置信度全部接受的启动入口（整卷结果为最终成绩）。"""
+
+    return _service(
+        env,
+        agent=_AcceptedSubjectiveAgent(submission_id=str(env["fixture"].submission_id)),
+        diagnosis_service=diagnosis_service,
+    )
+
+
+def test_start_generates_diagnosis_only_after_result_commit(
+    env: dict[str, Any], client_factory: Any
+) -> None:
+    """P1.3 正向：结果事务提交后才生成 Ready 诊断；诊断可读且运行 Completed。"""
+
+    recorder = _ReadyDiagnosisService()
+    client = client_factory(
+        _accepted_service(env, diagnosis_service=_diagnosis_adapter(env, recorder))
+    )
+
+    body = _start(client, env).json()
+
+    assert body["status"] == WorkflowStatus.COMPLETED.value
+    # 只在最终成绩上生成诊断。
+    assert len(recorder.calls) == 1
+    assert recorder.calls[0].is_final is True
+    stored = _repository(env).get_exam_result(str(env["fixture"].submission_id))
+    assert stored is not None and stored.is_final is True
+    rows = _diagnosis_rows(env)
+    assert len(rows) == 1
+    assert rows[0].status is DiagnosisStatus.READY
+    assert rows[0].exam_result_id is not None
+    assert _runs(env)[0].status is WorkflowStatus.COMPLETED
+
+
+def test_diagnosis_retryable_failure_keeps_committed_grades(
+    env: dict[str, Any], client_factory: Any
+) -> None:
+    """P1.3 反向：可重试诊断失败不回滚成绩；运行进入 Paused + resumable，且不写 Ready 诊断。"""
+
+    from backend.app.core.retry_policy import ProviderErrorInfo, ProviderExecutionError
+
+    failure = ProviderExecutionError(
+        ProviderErrorInfo(
+            code="ProviderTimeout",
+            message="诊断 Provider 超时。",
+            attempt_count=2,
+            retryable=True,
+            status="ProviderTimeout",
+        )
+    )
+    client = client_factory(
+        _accepted_service(
+            env, diagnosis_service=_diagnosis_adapter(env, _FailingDiagnosisService(failure))
+        )
+    )
+
+    body = _start(client, env).json()
+
+    assert body["status"] == WorkflowStatus.PAUSED.value
+    stored = _repository(env).get_exam_result(str(env["fixture"].submission_id))
+    assert stored is not None and stored.is_final is True
+    assert _diagnosis_rows(env) == []
+    run = _runs(env)[0]
+    assert run.status is WorkflowStatus.PAUSED
+    assert run.resumable is True
+    assert run.pause_reason
+
+
+def test_diagnosis_hard_failure_keeps_committed_grades_and_fails(
+    env: dict[str, Any], client_factory: Any
+) -> None:
+    """P1.3 反向：不可重试诊断失败保留成绩并如实 Failed（不伪造 Ready、不写空诊断）。"""
+
+    client = client_factory(
+        _accepted_service(
+            env,
+            diagnosis_service=_diagnosis_adapter(
+                env, _FailingDiagnosisService(RuntimeError("诊断服务不可用。"))
+            ),
+        )
+    )
+
+    body = _start(client, env).json()
+
+    assert body["status"] == WorkflowStatus.FAILED.value
+    stored = _repository(env).get_exam_result(str(env["fixture"].submission_id))
+    assert stored is not None and stored.is_final is True
+    assert _diagnosis_rows(env) == []
+    run = _runs(env)[0]
+    assert run.status is WorkflowStatus.FAILED
+    assert run.resumable is False
+
+
+def test_low_confidence_pause_does_not_generate_diagnosis(
+    env: dict[str, Any], client_factory: Any
+) -> None:
+    """P1.3 反向：低置信度暂停（非最终成绩）不调用诊断、更不写诊断记录。"""
+
+    recorder = _ReadyDiagnosisService()
+    client = client_factory(_service(env, diagnosis_service=_diagnosis_adapter(env, recorder)))
+
+    body = _start(client, env).json()
+
+    assert body["status"] == WorkflowStatus.PAUSED.value
+    assert recorder.calls == []
+    assert _diagnosis_rows(env) == []
+    stored = _repository(env).get_exam_result(str(env["fixture"].submission_id))
+    assert stored is not None and stored.is_final is False

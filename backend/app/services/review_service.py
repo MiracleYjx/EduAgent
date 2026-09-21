@@ -1129,11 +1129,13 @@ class ReviewService:
             self._require_writer().save_exam_result(exam_result)
             persisted = True
         diagnosis, diagnosis_error = self._resolve_diagnosis(state_after, exam_result, pending)
-        state_final = (
-            state_after
-            if diagnosis_error is None
-            else self._diagnosis_failure_state(state_after, diagnosis_error)
-        )
+        if diagnosis_error is not None:
+            state_final = self._diagnosis_failure_state(state_after, diagnosis_error)
+        elif diagnosis is not None:
+            state_final = self._completed_state(state_after, diagnosis)
+        else:
+            # 无最终成绩或仍待复核：沿用图状态（图只标记“诊断待生成”）。
+            state_final = dict(state_after)
         run = self._sync_checkpoint(state_final, thread_id=decision.thread_id)
         return ReviewOutcome(
             workflow_id=prepared.run.workflow_id,
@@ -1228,6 +1230,22 @@ class ReviewService:
             return recorder.record(exam_result), None
         except Exception as error:  # noqa: BLE001 - 保留最终成绩并如实报告诊断失败
             return None, error
+
+    def _completed_state(
+        self,
+        state_after: Mapping[str, Any],
+        diagnosis: DiagnosisReportDTO,
+    ) -> dict[str, Any]:
+        """诊断成功后的终态（P1.3）：图内只标记“诊断待生成”，完成态由本服务落诊断后写。"""
+
+        state: dict[str, Any] = dict(state_after)
+        state["current_node"] = GENERATE_DIAGNOSIS
+        state["diagnosis"] = diagnosis
+        state["status"] = WorkflowStatus.COMPLETED
+        state["pause_reason"] = None
+        state["resumable"] = False
+        state["error"] = None
+        return state
 
     def _diagnosis_failure_state(
         self,

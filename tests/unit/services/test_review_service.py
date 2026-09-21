@@ -540,16 +540,12 @@ def _workflow(
     *,
     agent: Any,
     checkpointer: Any,
-    diagnosis_service: Any = _DEFAULT,
 ) -> GradingWorkflow:
-    """构造 T072 图工作流，注入给定 Checkpointer；诊断服务可显式传 None 表示未接线。"""
+    """构造 T072 图工作流，注入给定 Checkpointer；诊断由复核服务在结果提交后负责（P1.3）。"""
 
     deps = GradingWorkflowDeps(
         snapshot=_snapshot(env),
         agent=agent,
-        diagnosis_service=(
-            _StubDiagnosisService() if diagnosis_service is _DEFAULT else diagnosis_service
-        ),
         settings=build_test_settings(confidence_threshold=THRESHOLD),
     )
     return GradingWorkflow(deps, checkpointer=checkpointer)
@@ -585,7 +581,6 @@ def _pause_run(
     *,
     agent: _StubGradingAgent,
     saver: DatabaseCheckpointSaver | InMemorySaver,
-    diagnosis_service: Any = _DEFAULT,
     persist: bool = True,
 ) -> tuple[GradingWorkflow, dict[str, Any], ExamResultDTO | None]:
     """运行到待复核暂停，并把业务状态快照（必要时还有整卷结果）落库。"""
@@ -603,9 +598,7 @@ def _pause_run(
         LOAD_SUBMISSION,
         thread_id=THREAD_ID,
     )
-    workflow = _workflow(
-        env, agent=agent, checkpointer=saver, diagnosis_service=diagnosis_service
-    )
+    workflow = _workflow(env, agent=agent, checkpointer=saver)
     paused = _run(
         workflow.run_async(
             request_id=REQUEST_ID,
@@ -1050,7 +1043,7 @@ def test_concurrent_decisions_only_one_wins(env: ReviewEnv) -> None:
 
 
 def test_final_decision_forms_final_result_and_uses_graph_diagnosis(solo_env: ReviewEnv) -> None:
-    """最后一题确认后形成最终成绩；诊断以图内重新生成为准，不重复生成。"""
+    """最后一题确认后形成最终成绩；诊断由复核服务在结果提交后生成一次（P1.3）。"""
 
     env = solo_env
     answer_id = str(env.paper.first_answer_id)
@@ -1058,8 +1051,7 @@ def test_final_decision_forms_final_result_and_uses_graph_diagnosis(solo_env: Re
         submission_id=str(env.paper.submission_id), low_confidence_answer_ids={answer_id}
     )
     saver = _saver(env)
-    graph_diagnosis = _StubDiagnosisService()
-    workflow, _, _ = _pause_run(env, agent=agent, saver=saver, diagnosis_service=graph_diagnosis)
+    workflow, _, _ = _pause_run(env, agent=agent, saver=saver)
     recorder = _RecordingDiagnosisRecorder()
     service = _service(env, workflow=workflow, diagnosis=recorder)
 
@@ -1081,9 +1073,8 @@ def test_final_decision_forms_final_result_and_uses_graph_diagnosis(solo_env: Re
     assert checkpoint.status is WorkflowStatus.COMPLETED
     assert checkpoint.resumable is False
     assert checkpoint.exam_result_id == exam_result.id
-    # 图内诊断已由恢复后的 Generate Diagnosis 节点重新生成，T061 不重复生成。
-    assert len(graph_diagnosis.calls) == 1
-    assert recorder.calls == []
+    # P1.3：图只标记“诊断待生成”，复核路径的诊断由 T061 记录器补齐一次。
+    assert len(recorder.calls) == 1
     assert outcome.diagnosis is not None and outcome.diagnosis.status is DiagnosisStatus.READY
     assert outcome.diagnosis_error_code is None
 
@@ -1091,10 +1082,9 @@ def test_final_decision_forms_final_result_and_uses_graph_diagnosis(solo_env: Re
 # ---------------------------------------------------------------- 诊断失败
 
 
-def test_graph_diagnosis_retryable_failure_keeps_final_result_and_pauses(
-    solo_env: ReviewEnv,
-) -> None:
-    """图内诊断可重试失败：最终成绩保留，运行以 Paused + resumable 表达。"""
+
+def test_diagnosis_hard_failure_keeps_final_result_and_fails(solo_env: ReviewEnv) -> None:
+    """诊断不可重试失败（记录器未接线）：最终成绩保留，运行标记 Failed 且不宣称可恢复（P1.3）。"""
 
     env = solo_env
     answer_id = str(env.paper.first_answer_id)
@@ -1106,47 +1096,13 @@ def test_graph_diagnosis_retryable_failure_keeps_final_result_and_pauses(
         env,
         agent=agent,
         saver=saver,
-        diagnosis_service=_StubDiagnosisService(error=_retryable_provider_error()),
     )
-    recorder = _RecordingDiagnosisRecorder()
-    service = _service(env, workflow=workflow, diagnosis=recorder)
-
-    outcome = service.submit_decision(
-        _decision_payload(env, review_status=ReviewStatus.CONFIRMED.value),
-        actor_id=env.owner_id,
-        actor_role=UserRole.TEACHER,
-    )
-
-    assert outcome.exam_result is not None and outcome.exam_result.is_final is True
-    assert outcome.workflow_status is WorkflowStatus.PAUSED
-    assert outcome.resumable is True
-    exam_result = _exam_result_row(env)
-    assert exam_result is not None and exam_result.is_final is True
-    assert exam_result.final_total_score == Decimal("6.00")
-    checkpoint = _checkpoint_row(env)
-    assert checkpoint.status is WorkflowStatus.PAUSED
-    assert checkpoint.pause_reason is not None
-    assert runtime_has_checkpoint(checkpoint.checkpoint, THREAD_ID) is True
-    # 图内没有可用诊断，T061 记录器补齐一次（不是空成功，也不是空诊断）。
-    assert recorder.calls and len(recorder.calls) == 1
-
-
-def test_graph_diagnosis_hard_failure_keeps_final_result_and_fails(solo_env: ReviewEnv) -> None:
-    """图内诊断不可重试失败：最终成绩保留，运行标记 Failed 且不宣称可恢复。"""
-
-    env = solo_env
-    answer_id = str(env.paper.first_answer_id)
-    agent = _StubGradingAgent(
-        submission_id=str(env.paper.submission_id), low_confidence_answer_ids={answer_id}
-    )
-    saver = _saver(env)
-    workflow, _, _ = _pause_run(
+    # 图已不再生成诊断（P1.3），不可重试失败必须由记录器如实报告（不接线即拒绝空成功）。
+    service = _service(
         env,
-        agent=agent,
-        saver=saver,
-        diagnosis_service=_StubDiagnosisService(error=ValueError("诊断服务不可用。")),
+        workflow=workflow,
+        diagnosis=_RecordingDiagnosisRecorder(error=ValueError("诊断服务不可用。")),
     )
-    service = _service(env, workflow=workflow)
 
     outcome = service.submit_decision(
         _decision_payload(env, review_status=ReviewStatus.CONFIRMED.value),
@@ -1176,8 +1132,8 @@ def test_recorder_retryable_failure_marks_paused_with_error_code(solo_env: Revie
         submission_id=str(env.paper.submission_id), low_confidence_answer_ids={answer_id}
     )
     saver = _saver(env)
-    # 图内诊断未接线 → 图以“诊断失败且保留结果”结束；T061 记录器再以可重试错误失败。
-    workflow, _, _ = _pause_run(env, agent=agent, saver=saver, diagnosis_service=None)
+    # P1.3：图只标记“诊断待生成”；T061 记录器再以可重试错误失败，运行必须如实进入 Paused。
+    workflow, _, _ = _pause_run(env, agent=agent, saver=saver)
     recorder = _RecordingDiagnosisRecorder(error=_retryable_provider_error())
     service = _service(env, workflow=workflow, diagnosis=recorder)
 

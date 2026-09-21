@@ -32,6 +32,7 @@ T061 诊断记录器、T069 阅卷 Agent、T072 图与教师决策契约、T073 
 from __future__ import annotations
 
 import asyncio
+import inspect
 from collections.abc import Callable, Iterator, Mapping, Sequence
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
@@ -46,12 +47,13 @@ from sqlalchemy.orm import Session
 
 from backend.app.ai.agents.grading_agent import GradingAgent
 from backend.app.ai.agents.state import confidence_decision_from_snapshot
-from backend.app.ai.workflows.grading_handoff import LOAD_SUBMISSION
+from backend.app.ai.workflows.grading_handoff import GENERATE_DIAGNOSIS, LOAD_SUBMISSION
 from backend.app.ai.workflows.grading_workflow import (
     GradingWorkflow,
     GradingWorkflowDeps,
     GradingWorkflowError,
     TeacherReviewDecision,
+    diagnosis_failure_patch,
 )
 from backend.app.core.config import AppSettings
 from backend.app.core.database import get_session_factory
@@ -71,6 +73,7 @@ from backend.app.schemas.ai import GradingResult as GradingResultPayload
 from backend.app.schemas.grading import (
     ConfidenceDecisionDTO,
     DiagnosisReportDTO,
+    DiagnosisStatus,
     ExamResultDTO,
 )
 from backend.app.services.diagnosis_service import DiagnosisService
@@ -344,7 +347,6 @@ def _workflow_deps(
     *,
     snapshot: Any,
     agent: Any,
-    diagnosis_service: Any,
     session_factory: Callable[[], Session] | None,
     settings: AppSettings | None,
 ) -> GradingWorkflowDeps:
@@ -353,7 +355,6 @@ def _workflow_deps(
     return GradingWorkflowDeps(
         snapshot=snapshot,
         agent=agent,
-        diagnosis_service=diagnosis_service,
         session_factory=session_factory,
         settings=settings,
     )
@@ -487,7 +488,6 @@ class WorkflowService:
         deps = _workflow_deps(
             snapshot=snapshot,
             agent=self._agent,
-            diagnosis_service=self._diagnosis_service,
             session_factory=self._session_factory,
             settings=self._settings,
         )
@@ -575,7 +575,7 @@ class WorkflowService:
             submission_id=str(submission_id),
             thread_id=thread_id,
         )
-        row = self._persist_outcome(
+        row = await self._persist_outcome(
             workflow_id=workflow_id,
             state=result.state,
             thread_id=thread_id,
@@ -649,7 +649,7 @@ class WorkflowService:
         saver.bind_thread(thread_id, row.workflow_id)
         workflow = self._build_workflow(snapshot, saver)
         result = await workflow.resume_async(thread_id=thread_id)
-        updated = self._persist_outcome(
+        updated = await self._persist_outcome(
             workflow_id=row.workflow_id,
             state=result.state,
             thread_id=thread_id,
@@ -758,7 +758,7 @@ class WorkflowService:
             raise WorkflowNotReadyError("结果存储未接线：无法写入阅卷成绩与运行状态。")
         return self._repository
 
-    def _persist_outcome(
+    async def _persist_outcome(
         self,
         *,
         workflow_id: str,
@@ -771,7 +771,8 @@ class WorkflowService:
         不能只写业务状态：待复核成绩、最终成绩与失败事实都必须落库，否则复核队列与结果读模型
         看不到本轮结论。三种事实分支由 ``save_workflow_outcome`` 区分；``is_final=False`` 表示
         成绩待教师复核。工作流状态在同一事务内由 ``save_checkpoint_within`` 写入，包含当前节点、
-        暂停原因、线程信息与恢复状态；任一步失败整体回滚。
+        暂停原因、线程信息与恢复状态；任一步失败整体回滚。事务提交后按 ``is_final`` 生成诊断并写
+        终态（P1.3，见 :meth:`_finalize_diagnosis`）。
         """
 
         payload = dict(state)
@@ -780,7 +781,7 @@ class WorkflowService:
         results, decisions, exam_result = _outcome_state_facts(payload, snapshot)
         submission_id = str(payload.get("submission_id") or "")
         try:
-            return self._outcome_repository().save_workflow_outcome(
+            row = self._outcome_repository().save_workflow_outcome(
                 submission_id,
                 context=snapshot.to_context(),
                 results=results,
@@ -797,6 +798,118 @@ class WorkflowService:
             )
         except GradingTaskError as error:
             raise _grading_error(error) from None
+        except WorkflowCheckpointError as error:
+            raise WorkflowNotReadyError(
+                "运行状态写入失败：检查点存储未就绪。",
+                source_code=error.error_code,
+            ) from error
+        # P1.3：结果事务已提交；诊断必须晚于该提交，且只有最终成绩才生成诊断。
+        return await self._finalize_diagnosis(
+            workflow_id=workflow_id,
+            state=payload,
+            thread_id=thread_id,
+            exam_result=exam_result,
+            row=row,
+        )
+
+    async def _finalize_diagnosis(
+        self,
+        *,
+        workflow_id: str,
+        state: Mapping[str, Any],
+        thread_id: str,
+        exam_result: ExamResultDTO | None,
+        row: WorkflowRun,
+    ) -> WorkflowRun:
+        """结果事务提交后生成诊断并写终态（P1.3）。
+
+        顺序与门槛：整卷结果已提交 → ``is_final=True`` → 调用诊断服务（其存储要求成绩行已存在且
+        最终确认）→ 写 ``Completed``。非最终成绩（低置信度待复核）不生成诊断；诊断失败不回滚已
+        提交成绩，只写真实失败或可恢复状态，且不放非 Ready 诊断、不写空报告。
+        """
+
+        if exam_result is None or not exam_result.is_final:
+            return row
+        existing = state.get("diagnosis")
+        if isinstance(existing, DiagnosisReportDTO) and existing.status is DiagnosisStatus.READY:
+            return row
+        service = self._diagnosis_service
+        if service is None:
+            return self._write_diagnosis_state(
+                workflow_id=workflow_id,
+                state=state,
+                thread_id=thread_id,
+                failure=RuntimeError("诊断服务未接线。"),
+            )
+        try:
+            produced = service.generate(exam_result)
+            report = await produced if inspect.isawaitable(produced) else produced
+        except Exception as error:  # noqa: BLE001 - 统一收敛为脱敏失败，保留已提交成绩
+            return self._write_diagnosis_state(
+                workflow_id=workflow_id, state=state, thread_id=thread_id, failure=error
+            )
+        if not isinstance(report, DiagnosisReportDTO) or report.status is not DiagnosisStatus.READY:
+            return self._write_diagnosis_state(
+                workflow_id=workflow_id,
+                state=state,
+                thread_id=thread_id,
+                failure=RuntimeError("诊断未生成可落库的 Ready 报告。"),
+            )
+        updated = dict(state)
+        updated.update(
+            {
+                "status": WorkflowStatus.COMPLETED,
+                "current_node": GENERATE_DIAGNOSIS,
+                "diagnosis": report,
+                "error": None,
+                "pause_reason": None,
+                "resumable": False,
+            }
+        )
+        return self._save_diagnosis_state(
+            workflow_id, updated, thread_id=thread_id, pause_reason=None
+        )
+
+    def _write_diagnosis_state(
+        self,
+        *,
+        workflow_id: str,
+        state: Mapping[str, Any],
+        thread_id: str,
+        failure: Exception,
+    ) -> WorkflowRun:
+        """诊断失败：保留已提交成绩，只写失败或可恢复状态（不伪造 Ready、不写空报告）。"""
+
+        recovery_supported = self._checkpoints.runtime_ready(workflow_id, thread_id)
+        patch = diagnosis_failure_patch(failure, recovery_supported=recovery_supported)
+        updated = dict(state)
+        updated.update(patch)
+        pause_reason = patch.get("pause_reason")
+        return self._save_diagnosis_state(
+            workflow_id,
+            updated,
+            thread_id=thread_id,
+            pause_reason=str(pause_reason) if pause_reason else None,
+        )
+
+    def _save_diagnosis_state(
+        self,
+        workflow_id: str,
+        state: Mapping[str, Any],
+        *,
+        thread_id: str,
+        pause_reason: str | None,
+    ) -> WorkflowRun:
+        """写入诊断阶段的业务状态；检查点未就绪时显式报未就绪（成绩不回滚）。"""
+
+        try:
+            return self._checkpoints.save_checkpoint(
+                workflow_id,
+                state,
+                GENERATE_DIAGNOSIS,
+                pause_reason,
+                thread_id=thread_id,
+            )
         except WorkflowCheckpointError as error:
             raise WorkflowNotReadyError(
                 "运行状态写入失败：检查点存储未就绪。",
