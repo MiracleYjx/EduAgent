@@ -657,6 +657,11 @@ class DatabaseGradingRepository:
         row.confirmed_subtotal = _as_decimal(exam_result.confirmed_subtotal)
         row.total_max_score = _as_decimal(exam_result.total_max_score)
         row.aggregated_at = exam_result.aggregated_at
+        # P3.3：消费唯一整卷写入点的最终性；与结果同事务，不绑定教师动作或图恢复阶段。
+        # 重写 final 可自然补齐尚未 Reviewed 的答卷，既有 Reviewed 及其时间保持不变。
+        if row.is_final and submission.status is not SubmissionStatus.REVIEWED:
+            submission.status = SubmissionStatus.REVIEWED
+            submission.reviewed_at = self._clock()
 
     def _mark_graded(self, session: Session, submission: Submission) -> None:
         """在同一事务内更新答卷与答案进度（不属于任何评分结果重算）。"""

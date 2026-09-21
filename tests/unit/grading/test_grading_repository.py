@@ -707,7 +707,8 @@ def test_save_workflow_outcome_writes_results_and_state_in_one_transaction(
         assert all(a.status is AnswerStatus.GRADED for a in session.scalars(select(Answer)))
         submission = session.get(Submission, fixture.submission_id)
         assert submission is not None
-        assert submission.status is SubmissionStatus.GRADED
+        assert submission.status is SubmissionStatus.REVIEWED
+        assert submission.reviewed_at is not None
         assert submission.graded_at is not None
         assert session.scalars(select(WorkflowRun)).one().exam_result_id == exam.id
 
@@ -834,6 +835,12 @@ def test_committed_outcome_survives_restart_with_terminal_task(
     stored = restarted.get_exam_result(str(fixture.submission_id))
     assert stored is not None and stored.is_final is not pending_review
     with Session(engine) as session:
+        submission = session.get(Submission, fixture.submission_id)
+        assert submission is not None
+        assert submission.status is (
+            SubmissionStatus.GRADED if pending_review else SubmissionStatus.REVIEWED
+        )
+        assert (submission.reviewed_at is not None) is not pending_review
         assert len(session.scalars(select(GradingResult)).all()) == 2
         assert all(a.status is AnswerStatus.GRADED for a in session.scalars(select(Answer)))
         row = session.scalars(select(WorkflowRun)).one()

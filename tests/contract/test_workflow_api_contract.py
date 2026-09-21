@@ -639,7 +639,8 @@ def test_start_persists_final_result_for_accepted_run(
         )
         submission = session.get(Submission, env["fixture"].submission_id)
         assert submission is not None
-        assert submission.status is SubmissionStatus.GRADED
+        assert submission.status is SubmissionStatus.REVIEWED
+        assert submission.reviewed_at is not None
         assert submission.graded_at is not None
 
 
@@ -1222,6 +1223,14 @@ def test_startup_recovery_turns_diagnosis_pending_run_resumable(
     )
     assert graded_before is not None
 
+    # P3.3：模拟旧版留下的“final 已提交但生命周期缺失”，不修改成绩或运行事实。
+    with Session(env["engine"]) as session:
+        submission = session.get(Submission, env["fixture"].submission_id)
+        assert submission is not None
+        submission.status = SubmissionStatus.GRADED
+        submission.reviewed_at = None
+        session.commit()
+
     # 启动收敛：这一行被改判为可恢复的诊断待生成态，成绩一字不改。
     assert service.recover_diagnosis_pending_runs() == 1
     recovered = _runs(env)[0]
@@ -1251,6 +1260,11 @@ def test_startup_recovery_turns_diagnosis_pending_run_resumable(
     restored = _store(env).restore_state(run.workflow_id)
     assert restored["status"] is WorkflowStatus.COMPLETED
     assert restored["retry_count"] == 0
+    with Session(env["engine"]) as session:
+        submission = session.get(Submission, env["fixture"].submission_id)
+        assert submission is not None
+        assert submission.status is SubmissionStatus.REVIEWED
+        assert submission.reviewed_at is not None
     # 收敛幂等：已完成且有 Ready 诊断的行不再被触碰。
     assert service.recover_diagnosis_pending_runs() == 0
     assert _runs(env)[0].status is WorkflowStatus.COMPLETED
