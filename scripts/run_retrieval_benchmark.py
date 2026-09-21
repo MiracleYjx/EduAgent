@@ -2,8 +2,8 @@
 
 按 ``.specify/plan.md`` §2 的规范分别运行 ``vector_only``、``keyword_only``、``hybrid`` 与
 ``hybrid_rerank``，把每次运行的完整结果写入 ``benchmark/results/``。默认加载
-``benchmark/corpus/`` 下已摄取的 Python 教材、Query 和语义标注；保留旧合成数据入口供
-既有契约测试使用：
+``--manifest`` 指定 setup_benchmark_corpus.py 生成的隔离教材、Query 和标注快照；
+不再要求数据库预置旧 UUID。保留旧合成数据入口供既有契约测试使用：
 
 - 单次运行：``retrieval_<run_id>_<config>.json``（含元数据、指标、逐查询结果与失败原因）。
 - 横向比较：``retrieval_summary.csv``（每次运行一行，失败运行同样写入状态与错误码）。
@@ -25,6 +25,7 @@ import hashlib
 import json
 import math
 import platform
+import re
 import sys
 import time
 from collections.abc import Mapping, Sequence
@@ -32,13 +33,17 @@ from dataclasses import dataclass, replace
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from sqlalchemy import func, select, text
 from sqlalchemy.orm import Session
 
+if __package__ in {None, ""}:
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
 from backend.app.ai.embedding.base import BaseEmbeddingProvider
 from backend.app.ai.embedding.factory import create_embedding_provider
+from backend.app.ai.llm.base import describe_llm_provider
 from backend.app.ai.retrieval.base import (
     RetrievalFilters,
     RetrievalMode,
@@ -46,7 +51,11 @@ from backend.app.ai.retrieval.base import (
     RetrievedChunk,
     get_retriever,
 )
-from backend.app.ai.retrieval.reranker import BaseReranker, HybridRerankRetriever
+from backend.app.ai.retrieval.reranker import (
+    BaseReranker,
+    HybridRerankRetriever,
+    LLMRerankAdapter,
+)
 from backend.app.core.config import get_settings
 from backend.app.core.database import create_database_engine
 from backend.app.domain.enums import DocumentStatus, UserRole
@@ -139,6 +148,19 @@ class IdentityReranker(BaseReranker):
             for index, candidate in enumerate(candidates)
         ]
         return _with_ranks(rescored[:top_k])
+
+
+class _LoopBoundReranker(BaseReranker):
+    """Benchmark 同步检索桥接共享循环，避免多查询重复 asyncio.run 关闭 SDK 循环。"""
+
+    def __init__(self, delegate: BaseReranker, runner: asyncio.Runner) -> None:
+        self.delegate = delegate
+        self.runner = runner
+
+    def rerank(
+        self, query: str, candidates: Sequence[RetrievedChunk], top_k: int = 5,
+    ) -> list[RetrievedChunk]:
+        return self.runner.run(self.delegate.rerank_async(query, candidates, top_k))
 
 
 def _replace_score(candidate: RetrievedChunk, score: float) -> RetrievedChunk:
@@ -319,7 +341,12 @@ def _make_embedding_provider(self_test: bool) -> BaseEmbeddingProvider:
     """构造 Embedding Provider：自检使用确定性替身，否则使用运行配置。"""
 
     if self_test:
-        return StubHashEmbeddingProvider()
+        # CLI (__main__) 与初始化脚本导入路径一致，元数据描述同一个真实类。
+        from scripts.run_retrieval_benchmark import (
+            StubHashEmbeddingProvider as StubProvider,
+        )
+
+        return StubProvider()
     return create_embedding_provider()
 
 
@@ -414,12 +441,18 @@ def _build_retriever(
     config: RetrievalMode,
     *,
     self_test: bool,
+    runner: asyncio.Runner | None = None,
 ) -> Any:
     """按模式构造检索实现；hybrid_rerank 注入自检替身或运行配置的 Reranker。"""
 
     if config is RetrievalMode.HYBRID_RERANK:
+        reranker: BaseReranker | None = IdentityReranker() if self_test else None
+        if runner is not None:
+            from backend.app.ai.retrieval.reranker import build_reranker
+
+            reranker = _LoopBoundReranker(reranker or build_reranker(), runner)
         return HybridRerankRetriever(
-            reranker=IdentityReranker() if self_test else None,
+            reranker=reranker,
             fusion_top_k=20,
         )
     return get_retriever(config)
@@ -435,6 +468,7 @@ def run_config(
     *,
     top_k: int,
     self_test: bool,
+    retriever: Any = None,
 ) -> ConfigRun:
     """在给定模式上执行全部查询并汇总指标。"""
 
@@ -451,7 +485,8 @@ def run_config(
     query_vectors: Sequence[Sequence[float]] = vectors or [() for _ in cases]
     per_query: list[dict[str, Any]] = []
     try:
-        retriever = _build_retriever(config, self_test=self_test)
+        if retriever is None:
+            retriever = _build_retriever(config, self_test=self_test)
         for index, (case, vector) in enumerate(
             zip(cases, query_vectors, strict=False)
         ):
@@ -509,6 +544,7 @@ def write_run_records(
     prompt_version: str | None,
     top_k: int,
     analysis: str,
+    reproducibility: Mapping[str, Any] | None = None,
 ) -> Path:
     """写入单次运行 JSON（失败运行同样写入错误状态）并追加汇总行。"""
 
@@ -534,6 +570,8 @@ def write_run_records(
         "results": run.per_query,
         "analysis": analysis,
     }
+    if reproducibility is not None:
+        payload["reproducibility"] = dict(reproducibility)
     result_path = output_dir / f"retrieval_{run_id}_{run.config.value}.json"
     result_path.write_text(
         json.dumps(payload, ensure_ascii=False, indent=2),
@@ -586,6 +624,7 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--queries", type=int, default=DEFAULT_QUERY_LIMIT)
     parser.add_argument("--top-k", type=int, default=5)
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
+    parser.add_argument("--manifest", type=Path, help="setup_benchmark_corpus.py 生成的清单。")
     parser.add_argument(
         "--self-test",
         action="store_true",
@@ -635,9 +674,18 @@ def main(argv: Sequence[str] | None = None) -> int:
     """执行四模式检索 Benchmark。"""
 
     args = parse_args(argv)
+    if args.manifest is not None:
+        return run_manifest_benchmark(args)
     run_id = args.run_id or datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
     dataset = load_dataset()
     is_ingested_dataset = "corpus" in dataset and "queries" in dataset
+    if is_ingested_dataset:
+        print(
+            "请先运行 scripts/setup_benchmark_corpus.py --output-dir <新目录>，"
+            "再用 --manifest <目录>/manifest.json；不再读取旧环境 UUID。",
+            file=sys.stderr,
+        )
+        return 1
     cases = build_retrieval_cases(dataset, limit=args.queries)
     if not cases:
         print("未构造出任何检索用例，请检查合成数据集。", file=sys.stderr)
@@ -772,6 +820,138 @@ def main(argv: Sequence[str] | None = None) -> int:
         if session is not None:
             session.close()
         engine.dispose()
+
+
+def _retriever_metadata(retriever: Any) -> dict[str, Any]:
+    """描述本次使用的实例，不从配置代填 Provider 身份。"""
+    result: dict[str, Any] = {
+        "call_path": f"{type(retriever).__module__}.{type(retriever).__qualname__}.search",
+    }
+    for attribute in ("candidate_k", "vector_weight", "fusion_top_k", "ts_config", "query_builder"):
+        if hasattr(retriever, attribute):
+            result[attribute] = getattr(retriever, attribute)
+    for name in ("_hybrid", "_vector", "_keyword"):
+        child = getattr(retriever, name, None)
+        if child is not None:
+            result[name.removeprefix("_")] = _retriever_metadata(child)
+    if isinstance(retriever, HybridRerankRetriever):
+        reranker = retriever.reranker
+        if isinstance(reranker, _LoopBoundReranker):
+            reranker = reranker.delegate
+        result["reranker"] = dict(reranker.describe())
+        result["reranker"]["call_path"] = (
+            f"{type(reranker).__module__}.{type(reranker).__qualname__}.rerank_async"
+        )
+        if isinstance(reranker, LLMRerankAdapter):
+            # 适配器没有公开底层元数据接口；只读实际实例，不改 Provider/重排实现。
+            result["reranker"]["llm"] = describe_llm_provider(reranker._provider)
+            result["reranker"]["model"] = (
+                reranker._model or result["reranker"]["llm"]["model"]
+            )
+            result["reranker"]["timeout"] = reranker.timeout
+    return result
+
+
+def run_manifest_benchmark(args: argparse.Namespace) -> int:
+    """使用运行时 manifest，在新运行目录输出 JSON/CSV；只查询所属隔离 schema。"""
+    from scripts.benchmark_corpus import (
+        embedding_metadata,
+        fingerprint,
+        load_manifest,
+        require_schema,
+        schema_engine,
+    )
+
+    run_id = args.run_id or uuid4().hex
+    if re.fullmatch(r"[A-Za-z0-9_-]+", run_id) is None or args.queries < 1 or args.top_k < 1:
+        print("run-id 只能包含字母/数字/下划线/横线，queries/top-k 必须为正数。", file=sys.stderr)
+        return 1
+    output_dir = args.output_dir / run_id
+    engine = None
+    try:
+        output_dir.mkdir(parents=True, exist_ok=False)
+    except FileExistsError:
+        print("运行目录已存在；请换 run-id，禁止覆盖既有报告。", file=sys.stderr)
+        return 1
+    manifest: dict[str, Any] = {}
+    runner = asyncio.Runner()
+    try:
+        manifest = load_manifest(args.manifest)
+        cases = build_retrieval_cases(manifest, limit=args.queries)
+        if not cases:
+            raise ValueError("manifest 没有可评测的已标注查询。")
+        engine = schema_engine(manifest["schema"])
+        require_schema(engine, manifest["schema"])
+        with Session(engine) as session:
+            document_id, chunk_ids = _load_ingested_corpus(session, manifest)
+            rows = session.scalars(select(DocumentChunk).where(
+                DocumentChunk.document_id == document_id,
+            ).order_by(DocumentChunk.chunk_index)).all()
+            for row, item in zip(rows, manifest["corpus"]["chunks"], strict=True):
+                if row.content != item["content"]:
+                    raise ValueError("数据库片段与 manifest 内容不一致，请重新初始化。")
+            provider = _make_embedding_provider(args.self_test)
+            metadata = embedding_metadata(provider)
+            if metadata != manifest["embedding"]:
+                raise ValueError("查询 Embedding 与摄取 Provider/配置不匹配，请用相同配置或重新摄取。")
+            vectors = _embed_queries(provider, [case.query for case in cases])
+            stable = {item["chunk_id"]: item["stable_id"] for item in manifest["corpus"]["chunks"]}
+            scope = RetrievalFilters(document_ids=(document_id,))
+            failed = False
+            for mode in args.configs:
+                config = RetrievalMode(mode)
+                config_metadata: dict[str, Any] = {"mode": mode, "effective_top_k": max(RECALL_KS)}
+                try:
+                    retriever = _build_retriever(config, self_test=args.self_test, runner=runner)
+                    config_metadata.update(_retriever_metadata(retriever))
+                    run = run_config(
+                        session, config, cases, vectors, chunk_ids, scope,
+                        top_k=args.top_k, self_test=args.self_test, retriever=retriever,
+                    )
+                except Exception as exc:  # noqa: BLE001 - 一个模式失败不阻止记录其他模式
+                    run = ConfigRun(config, [], {}, "failed", type(exc).__name__, "模式装配失败。")
+                for item in run.per_query:
+                    item["stable_chunk_ids"] = [stable[key] for key in item["chunk_ids"]]
+                    item["stable_relevant_ids"] = [stable[key] for key in item["relevant_ids"]]
+                comparison = {
+                    "input_fingerprint": manifest["input_fingerprint"],
+                    "query_ids": [case.query_id for case in cases],
+                    "embedding": metadata, "retrieval": config_metadata,
+                }
+                rerank_metadata = config_metadata.get("reranker", {})
+                selftest_evidence = (
+                    args.self_test or metadata["provider"] == "stub"
+                    or rerank_metadata.get("provider") == "stub"
+                    or rerank_metadata.get("llm", {}).get("provider") == "stub"
+                )
+                write_run_records(
+                    run, run_id=run_id, output_dir=output_dir,
+                    dataset_version=manifest["metadata"]["dataset_version"],
+                    model_version=str(metadata["model"]), prompt_version=None,
+                    top_k=max(RECALL_KS),
+                    analysis=("stub 管道自检，不是质量结论。" if selftest_evidence else
+                              "真实 Provider；标签来自 corpus 标注方法，不宣称人工 Ground Truth。"),
+                    reproducibility={
+                        "manifest": manifest, "comparison": comparison,
+                        "comparison_fingerprint": fingerprint(comparison),
+                        "evidence_kind": "pipeline_selftest" if selftest_evidence else "provider_run",
+                    },
+                )
+                print(f"[{mode}] {run.status} -> {output_dir}")
+                failed |= run.status != "ok"
+                session.rollback()  # 模式失败后的读事务不影响其他模式。
+            return int(failed)
+    except Exception as exc:  # noqa: BLE001 - 失败报告不包含连接字符串或 SQL 参数
+        detail = str(exc) if isinstance(exc, ValueError) else type(exc).__name__
+        with (output_dir / "failure.json").open("x", encoding="utf-8") as handle:
+            json.dump({"status": "failed", "error_code": type(exc).__name__,
+                       "detail": detail, "manifest": manifest}, handle, ensure_ascii=False, indent=2)
+        print(f"Benchmark 失败：{detail}", file=sys.stderr)
+        return 1
+    finally:
+        runner.close()
+        if engine is not None:
+            engine.dispose()
 
 
 if __name__ == "__main__":

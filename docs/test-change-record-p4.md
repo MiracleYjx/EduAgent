@@ -59,3 +59,38 @@
 - `mypy backend/app/`：125 个源文件通过。
 - `ruff check backend/ tests/ scripts/run_grading_benchmark.py`：通过（包含要求的 backend/tests 范围及本批脚本）。
 - 不做云端模型质量声明；本批没有调用真实收费模型。P4A.3 未执行。
+
+## P4A.3 Benchmark 可复现化
+
+日期：2026-09-21。基线 `deepcode` / `c746cba`；无已跟踪改动，既存三个未跟踪文档保持原样。
+
+### 必要性与覆盖计划（测试变更前）
+
+- 旧清单中的 UUID 属于旧数据库，不能作为新环境的前置条件。新增初始化入口，创建自有 PostgreSQL schema，调用生产 KnowledgeBaseService / IngestionService 摄取教材；只替换外部 Embedding/Reranker 做管道自检，不手工写入 chunk 或 Ready 状态。
+- 现有教材按生产默认参数分块，已只读核对与旧标注清单的 21 个片段逐个内容一致。通过 chunk_index + 精确内容验证建立标注映射，manifest 保存数据库实际 UUID、稳定内容标识、运行时 Provider 元数据、分块配置、输入摘要、查询与标注快照。改变内容时拒绝沿用旧标注，不模糊匹配或猜测。
+- 评测显式消费 manifest 和隔离 schema；结果内嵌 manifest，并附稳定片段标识与比较指纹。指纹区分输入与 Provider/配置，不含随机 UUID、时间或延迟；它只辅助选取比较对象，不保证远端模型或同分排序逐位确定。保留原检索算法、指标定义和既有结果。
+- 结果写入新的运行目录，拒绝覆盖旧文件；失败保留失败状态，无效指标不伪造。初始化失败仅清理本次创建的 schema；成功后保留 schema 供重复查询，显式 cleanup 只允许 manifest 中受控命名的 schema。
+- 真实 PostgreSQL 测试覆盖初始化与 Ready/向量/全文索引、运行时 UUID 与标注映射、manifest 驱动四模式、不同新 schema 可比较、同一 manifest 重复执行、内容不匹配与缺失 schema 明确失败、Provider 不兼容拒绝、不覆盖已有输出及清理边界。测试写入 pytest 临时目录；不访问收费模型、不下载模型。
+- 评分沿用现有教师标签指标口径，不把 reference_score 当人工标签；新增持久化报告断言：无标签三指标 null、有明确教师标签的已知误差得到准确 MAE/RMSE/一致率、selftest 始终标注为管道证据；报告样本实际标签来源，避免仅看数据集总描述误判。
+- 门禁：聚焦测试、pytest tests/ -q、mypy backend/app/、ruff check backend/ tests/，额外检查本批脚本。不修改业务核心、依赖、列、迁移、Docker、tasks.md 或 P4.2 Provider 接口/身份来源。
+
+### 实施中的验证发现与边界
+
+- 第一轮聚焦 53 项通过后，使用循环亲和的受控 LLM Provider 验证多查询重排，确实复现第二条查询切到新循环导致失败。仅在 Benchmark 装配层注入共享 asyncio.Runner 的 Reranker 桥接，继续复用 HybridRerankRetriever 的原流程及原 rerank_async；生产算法、Provider 和 Prompt 均未改。
+- real 模式注入 stub 也标记 pipeline_selftest，不把命令行模式当成真实模型证据。评分 real 入口增加读取本批隔离 manifest 的能力，以便新环境的人工标签评测复用同一资料；保留旧 M2 清单读取兼容，不改指标公式与 P4.2 身份来源。
+- 补充输入/标注快照一致性反例、不同生效融合配置的比較身份、旧标注关联键任意替换但初始化成功、CLI 初始化及 cleanup 验证；不要求不同模型的比较指纹相等，不引入源码提交相等门禁。
+- 最终审阅补充旧 M2 清单不存在/JSON 损坏的错误合同测试：新增 manifest 分派仍保留 GRADING_BENCHMARK_CORPUS_NOT_READY，不把既有失败改成笼统装配失败。
+
+### 覆盖落地与命令行验收
+
+- `tests/integration/test_benchmark_reproducibility.py` 新增 17 例：真实 PostgreSQL 隔离 schema、生产摄取生成 21 个 Ready 片段（1024 维向量和全文字段均存在）、标注映射、四模式读取、重复运行、新 schema 的稳定比较身份、查询/融合配置变化、Provider 不匹配、缺 schema、拒绝清理 public、源内容变化清理本次 schema、拒绝覆写、两个真实 CLI 入口、评分读取同一 manifest、LLM 多查询共享循环及 2 个快照不一致反例。
+- `tests/contract/test_grading_benchmark_contract.py` 新增 4 例：无人工标签的持久化指标全部 null；已知误差 [-1,3] 对应 MAE=2.00、RMSE=2.24、一致率=0.5000，并保留 selftest 标识；旧清单缺失/损坏错误码兼容。共新增 21 例，未删除或放宽原测试。
+- 独立命令行运行真实 setup，将材料摄取到 `.cache/p4a3-smoke/corpus/manifest.json` 所属自有 schema；随后运行 `verified-01`、`verified-02` 两组，每组四模式、20 个有效查询全部成功。两组配置比较指纹一致，非延迟指标一致；报告位于忽略的 `.cache/p4a3-smoke/results/`，不提交到历史结果目录。
+- 外部 Embedding/LLM 为明确 stub：实测证明摄取、数据库、检索、指标与产物链路，不证明真实模型质量，不调用收费 Provider、不下载模型。人工标注数据仍缺，文档说明如何补充；既有 corpus/结果文件完全未修改。
+
+### 最终门禁与清理
+
+- 最终代码 `pytest tests/ -q`：1440 passed，1 skipped，8 warnings（261.51 秒）；相对 P4A.2 的 1419 passed 增加 21 例。唯一 skip 仍为既有 M0 固定 Compose 隔离环境门禁；警告来自既有 FastAPI/SQLAlchemy/Pydantic 路径，不放宽测试或掩盖失败。
+- `mypy backend/app/`：125 个源文件通过；`ruff check backend/ tests/ scripts/benchmark_corpus.py scripts/setup_benchmark_corpus.py scripts/run_retrieval_benchmark.py scripts/run_grading_benchmark.py` 通过；`git diff --check` 通过。
+- 已经用新 cleanup 入口删除本批手工验收创建的 `benchmark_21370544a6fd4ee98f3d856ebb18236a` schema。该临时语料不保留，可重新摄取；manifest 与 JSON/CSV 证据保留在 `.cache/p4a3-smoke/`。测试自建 schema 由 fixture 清理，未删除业务资料；原 PostgreSQL/Redis 容器仍 healthy。
+- 本批变更仅 8 个评测脚本/文档/测试文件；生产 backend、数据库迁移/列、依赖、Docker、历史 benchmark corpus/results、tasks.md 均未修改。P4A.1/P4A.2 既有改动保持不变；P4B 未执行。
