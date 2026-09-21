@@ -36,7 +36,7 @@ from contextlib import AbstractContextManager, contextmanager
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from decimal import Decimal
-from typing import Final, NoReturn, Protocol
+from typing import Any, Final, NoReturn, Protocol
 from uuid import UUID, uuid4
 
 from sqlalchemy.orm import Session
@@ -509,6 +509,18 @@ class GradingSubmissionReader(Protocol):
     ) -> SubmissionSnapshot: ...
 
 
+def _question_order_key(question: Any) -> tuple[bool, Any, str]:
+    """题序排序键：题目创建时间，并列时按题目标识。
+
+    不能依赖 ``exam_questions`` 的数据库返回顺序：该表只有复合主键，按主键索引返回时会变成按
+    ``question_id``（随机 UUID）排序，使同一份试卷的题序在不同环境下翻转（P1.2.5）。
+    ``created_at`` 缺失的题目排在最后，保证排序自身不会抛错。
+    """
+
+    created_at = getattr(question, "created_at", None)
+    return (created_at is None, created_at, str(getattr(question, "id", "")))
+
+
 class DatabaseGradingSubmissionReader:
     """从数据库读取答卷快照，并检查教师课程归属。
 
@@ -572,15 +584,16 @@ class DatabaseGradingSubmissionReader:
     def _build_snapshot(session: Session, submission: Submission) -> SubmissionSnapshot:
         """按考试题目集合生成快照；不完整或越界数据显式失败。
 
-        权威题目集合与题序来自 ``Exam.questions`` 关系列表（现有题序约定），
-        不从已有 ``Answer`` 反推，避免集合被缩小或污染（plan §5.1/§5.2）。
+        权威题目集合与题序来自 ``Exam.questions`` 关系列表（现有题序约定：题目创建顺序，
+        并列时按题目标识），不从已有 ``Answer`` 反推，避免集合被缩小或污染（plan §5.1/§5.2）。
+        题序在此处显式排序，不依赖 ``exam_questions`` 的数据库返回顺序（P1.2.5）。
         不自动创建答案、不补零分、不删除多余答案、不修改冻结作答。
         """
 
         exam = session.get(Exam, submission.exam_id)
         if exam is None:
             raise GradingSubmissionNotFoundError("答卷关联的考试不存在。")
-        questions = list(exam.questions)
+        questions = sorted(exam.questions, key=_question_order_key)
         if not questions:
             raise GradingSubmissionIncompleteError("考试没有可评分的题目。")
         expected_ids = {question.id for question in questions}

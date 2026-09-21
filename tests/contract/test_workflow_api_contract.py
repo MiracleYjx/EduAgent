@@ -562,6 +562,16 @@ def test_start_persists_pending_review_outcome(
     assert stored.is_final is False
     assert stored.result_status == ExamResultStatus.PENDING_REVIEW
     assert stored.final_total_score is None
+    # P1.2.5：题序确定——待复核整卷结果的题目数必须等于提交答案数，且题序 1 为客观题。
+    assert [item.answer_id for item in stored.items] == [
+        str(env["fixture"].objective_answer_id),
+        str(env["fixture"].subjective_answer_id),
+    ]
+    assert [item.order for item in stored.items] == [1, 2]
+    assert [item.question_type for item in stored.items] == [
+        QuestionType.SINGLE_CHOICE,
+        QuestionType.SHORT_ANSWER,
+    ]
     single = repository.get_single_result(
         str(env["fixture"].submission_id), str(env["fixture"].subjective_answer_id)
     )
@@ -582,14 +592,12 @@ def test_start_persists_pending_review_outcome(
             row.answer_id: row
             for row in session.scalars(select(GradingResult))
         }
-        # 待复核题必须落库（复核队列可见的前提）；其余题目按状态里实际存在的逐题结果落库。
-        # 注意：M4 图返回的逐题结果集合偶发缺失已评完题目（见 `docs/test-change-record-p1.md`
-        # 的 P1.2 记录），因此这里不断言固定行数，只断言“待复核题在库且没有多余答卷”。
-        assert set(rows) <= {
+        # P1.2.5 之后题序确定：暂停必停在题序 2，题序 1 的客观题必须已经落库（旧实现按 UUID
+        # 排序时会把主观题排到题序 1，导致只落库一题）。
+        assert set(rows) == {
             env["fixture"].objective_answer_id,
             env["fixture"].subjective_answer_id,
         }
-        assert env["fixture"].subjective_answer_id in rows
         subjective = rows[env["fixture"].subjective_answer_id]
         assert subjective.review_status is ReviewStatus.PENDING_REVIEW
         assert subjective.decision_review_status is ReviewStatus.PENDING_REVIEW
