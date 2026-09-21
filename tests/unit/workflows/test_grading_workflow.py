@@ -68,6 +68,7 @@ from backend.app.ai.workflows.grading_workflow import (
     GradingWorkflowDeps,
     GradingWorkflowError,
     TeacherReviewDecision,
+    diagnosis_failure_patch,
 )
 from backend.app.ai.workflows.state import workflow_state_to_json
 from backend.app.core.config import AppSettings
@@ -766,7 +767,6 @@ def _workflow(
     *,
     agent: Any,
     reviewer: Any = None,
-    diagnosis: Any = None,
     aggregator: Any = None,
     checkpointer: Any = None,
     max_regrades: int = DEFAULT_MAX_REGRADES_PER_ANSWER,
@@ -777,7 +777,6 @@ def _workflow(
         snapshot=snapshot,
         agent=agent,
         reviewer=reviewer if reviewer is not None else ReviewerAgent(),
-        diagnosis_service=diagnosis if diagnosis is not None else _StubDiagnosisService(),
         aggregator=aggregator if aggregator is not None else _CountingAggregator(),
         session_factory=_FakeSession,
         settings=_settings(),
@@ -816,7 +815,7 @@ def test_t072_graph_topology_uses_contract_nodes_and_edges() -> None:
 
 
 def test_t072_real_components_complete_mixed_paper_once() -> None:
-    """T072：真实图 + 真实评分器/置信策略/汇总器，仅替身外部边界，走通整卷并生成诊断。"""
+    """T072：真实图 + 真实评分器/置信策略/汇总器，仅替身外部边界，走通整卷并进入诊断标记节点。"""
 
     objective = _objective_target()
     subjective = _subjective_target()
@@ -825,14 +824,13 @@ def test_t072_real_components_complete_mixed_paper_once() -> None:
     reranker = StubReranker()
     provider = StubScoringProvider(score=8.0, confidence=0.95)
     aggregator = _CountingAggregator()
-    diagnosis = _StubDiagnosisService()
     agent = _agent(
         provider=provider,
         retriever=retriever,
         reranker=reranker,
         aggregator=aggregator,
     )
-    workflow = _workflow(snapshot, agent=agent, diagnosis=diagnosis, aggregator=aggregator)
+    workflow = _workflow(snapshot, agent=agent, aggregator=aggregator)
 
     outcome = _run(
         workflow.run_async(
@@ -844,10 +842,12 @@ def test_t072_real_components_complete_mixed_paper_once() -> None:
 
     state = outcome.state
     assert outcome.interrupted is False
-    assert state["status"] is WorkflowStatus.COMPLETED
+    # P1.3：图只标记“诊断待生成”；Completed 与诊断由服务层在结果事务提交后写入。
+    assert state["status"] is WorkflowStatus.RUNNING
+    assert state["current_node"] == GENERATE_DIAGNOSIS
     assert state["exam_result"].is_final is True
     assert state["final_results"] == state["exam_result"].items
-    assert state["diagnosis"] is not None
+    assert state["diagnosis"] is None
     assert set(state["grading_results"]) == {"answer-1", "answer-2"}
     # 真实检索、重排与结构化生成各被调用一次；汇总只调用一次。
     assert len(retriever.calls) == 1
@@ -885,7 +885,6 @@ def test_t072_low_confidence_pauses_and_resumes_without_rescoring() -> None:
     workflow = _workflow(
         snapshot,
         agent=agent,
-        diagnosis=diagnosis,
         checkpointer=InMemorySaver(),
     )
 
@@ -925,11 +924,11 @@ def test_t072_low_confidence_pauses_and_resumes_without_rescoring() -> None:
     finished = _run(workflow.resume_async(thread_id="thread-1", resume_value=None))
 
     assert finished.interrupted is False
-    assert finished.state["status"] is WorkflowStatus.COMPLETED
+    assert finished.state["status"] is WorkflowStatus.RUNNING
+    assert finished.state["current_node"] == GENERATE_DIAGNOSIS
     assert finished.state["exam_result"].is_final is True
-    assert finished.state["diagnosis"] is not None
+    assert finished.state["diagnosis"] is None
     assert len(subjective_grader.calls) == 1
-    assert diagnosis.calls == 1
     workflow_state_to_json(finished.state)
 
 
@@ -1027,7 +1026,6 @@ def test_t072_checkpoint_records_pause_facts_and_resume_runs_reviewer() -> None:
             settings=_settings(confidence_threshold=0.8),
         ),
         reviewer=reviewer,
-        diagnosis=diagnosis,
         checkpointer=InMemorySaver(),
     )
 
@@ -1086,7 +1084,6 @@ def test_t072_reviewer_advice_never_replaces_teacher_decision() -> None:
                 settings=_settings(confidence_threshold=0.8),
             ),
             reviewer=reviewer,
-            diagnosis=diagnosis,
             checkpointer=InMemorySaver(),
         )
         thread_id = f"thread-s03-{forced}"
@@ -1117,10 +1114,10 @@ def test_t072_reviewer_advice_never_replaces_teacher_decision() -> None:
         finished = _run(workflow.resume_async(thread_id=thread_id))
 
         assert finished.interrupted is False, forced
-        assert finished.state["status"] is WorkflowStatus.COMPLETED, forced
+        assert finished.state["status"] is WorkflowStatus.RUNNING, forced
+        assert finished.state["current_node"] == GENERATE_DIAGNOSIS, forced
         assert finished.state["exam_result"].is_final is True, forced
-        assert finished.state["diagnosis"] is not None, forced
-        assert diagnosis.calls == 1, forced
+        assert finished.state["diagnosis"] is None, forced
         workflow_state_to_json(finished.state)
 
 
@@ -1158,43 +1155,10 @@ def test_t072_without_checkpointer_is_explicitly_not_resumable() -> None:
         _run(workflow.resume_async(thread_id="thread-h02"))
 
 
-def test_t072_non_retryable_diagnosis_failure_is_failed_not_paused() -> None:
-    """H03：不可重试的诊断失败必须显式失败（不能用 `Paused` 掩盖无恢复入口的错误）。"""
+def test_p13_diagnosis_failure_patch_is_paused_only_with_recovery_support() -> None:
+    """H03/P1.3：诊断失败分类移出图后，仍按“可重试 + 有恢复支撑”决定暂停或失败，并保留成绩。"""
 
-    objective = _objective_target()
-    snapshot = _snapshot(objective)
-    result = _result(objective, snapshot, score=2.0, confidence=1.0)
-    agent = _StubGradingAgent(results={objective.answer_id: result})
-    diagnosis = _StubDiagnosisService(error=RuntimeError("诊断 Provider 未就绪。"))
-
-    outcome = _run(
-        _workflow(snapshot, agent=agent, diagnosis=diagnosis).run_async(
-            request_id=REQUEST_ID,
-            workflow_id=WORKFLOW_ID,
-            submission_id=snapshot.submission_id,
-        )
-    )
-
-    state = outcome.state
-    assert state["exam_result"] is not None
-    assert state["exam_result"].is_final is True
-    assert state["status"] is WorkflowStatus.FAILED
-    assert state["error"] is not None
-    assert state["error"].error_code == GRADING_WORKFLOW_DIAGNOSIS_FAILED
-    assert state["error"].retryable is False
-    assert state["resumable"] is False
-    assert state.get("diagnosis") is None
-    assert diagnosis.calls == 1
-    workflow_state_to_json(state)
-
-
-def test_t072_retryable_diagnosis_failure_pauses_only_with_recovery_support() -> None:
-    """H03：可重试诊断失败在有检查点时暂停并指明恢复节点；无检查点时仍为失败。"""
-
-    objective = _objective_target()
-    snapshot = _snapshot(objective)
-    result = _result(objective, snapshot, score=2.0, confidence=1.0)
-    retryable_error = ProviderExecutionError(
+    retryable = ProviderExecutionError(
         ProviderErrorInfo(
             code="ProviderTimeout",
             message="诊断 Provider 超时。",
@@ -1204,41 +1168,26 @@ def test_t072_retryable_diagnosis_failure_pauses_only_with_recovery_support() ->
         )
     )
 
-    checks = (
-        (InMemorySaver(), "thread-h03", WorkflowStatus.PAUSED, True),
-        (None, None, WorkflowStatus.FAILED, False),
-    )
-    for checkpointer, thread_id, expected_status, expected_resumable in checks:
-        diagnosis = _StubDiagnosisService(error=retryable_error)
-        workflow = _workflow(
-            snapshot,
-            agent=_StubGradingAgent(results={objective.answer_id: result}),
-            diagnosis=diagnosis,
-            checkpointer=checkpointer,
-        )
-        outcome = _run(
-            workflow.run_async(
-                request_id=REQUEST_ID,
-                workflow_id=WORKFLOW_ID,
-                submission_id=snapshot.submission_id,
-                thread_id=thread_id,
-            )
-        )
-        state = outcome.state
+    paused = diagnosis_failure_patch(retryable, recovery_supported=True)
+    assert paused["status"] is WorkflowStatus.PAUSED
+    assert paused["current_node"] == GENERATE_DIAGNOSIS
+    assert paused["resumable"] is True
+    assert paused["diagnosis"] is None
+    assert paused["error"].retryable is True
+    assert paused["error"].source_code == "ProviderTimeout"
+    assert str(paused["pause_reason"]).strip()
 
-        assert state["status"] is expected_status, thread_id
-        assert state["resumable"] is expected_resumable, thread_id
-        # 已形成的整卷结果必须保留，且不得写假诊断。
-        assert state["exam_result"].is_final is True, thread_id
-        assert state.get("diagnosis") is None, thread_id
-        assert state["error"] is not None, thread_id
-        assert state["error"].error_code == GRADING_WORKFLOW_DIAGNOSIS_FAILED, thread_id
-        if expected_status is WorkflowStatus.PAUSED:
-            assert state["current_node"] == "generate_diagnosis", thread_id
-            assert str(state["pause_reason"]).strip(), thread_id
-            assert state["error"].retryable is True, thread_id
-            assert state["error"].source_code == "ProviderTimeout", thread_id
-        workflow_state_to_json(state)
+    for error, recovery_supported in (
+        (retryable, False),
+        (RuntimeError("诊断 Provider 未就绪。"), True),
+    ):
+        failed = diagnosis_failure_patch(error, recovery_supported=recovery_supported)
+        assert failed["status"] is WorkflowStatus.FAILED
+        assert failed["resumable"] is False
+        assert failed["pause_reason"] is None
+        assert failed["diagnosis"] is None
+        assert failed["error"].error_code == GRADING_WORKFLOW_DIAGNOSIS_FAILED
+        assert failed["error"].retryable is False
 
 
 def _paused_subjective_workflow(
@@ -1255,7 +1204,7 @@ def _paused_subjective_workflow(
     subjective_grader = _RecordingSubjectiveGrader(
         _result(subjective, snapshot, confidence=0.3)
     )
-    diagnosis = _StubDiagnosisService()
+    _StubDiagnosisService()
     workflow = _workflow(
         snapshot,
         agent=_agent(
@@ -1264,7 +1213,6 @@ def _paused_subjective_workflow(
             settings=_settings(confidence_threshold=0.8),
         ),
         reviewer=reviewer,
-        diagnosis=diagnosis,
         checkpointer=InMemorySaver(),
     )
     paused = _run(
@@ -1345,13 +1293,14 @@ def test_t072_teacher_modified_replaces_only_that_answer_and_resumes() -> None:
 
     assert outcome is not None
     assert outcome.interrupted is False
-    assert outcome.state["status"] is WorkflowStatus.COMPLETED
+    assert outcome.state["status"] is WorkflowStatus.RUNNING
+    assert outcome.state["current_node"] == GENERATE_DIAGNOSIS
     assert outcome.state["exam_result"].is_final is True
     assert outcome.state["grading_results"]["answer-2"].score == 4.0
     assert outcome.state["grading_results"]["answer-2"].review_status == "Modified"
     # 其他答案的结果不被教师决策改写。
     assert outcome.state["grading_results"]["answer-1"].score == 1.5
-    assert outcome.state["diagnosis"] is not None
+    assert outcome.state["diagnosis"] is None
     assert workflow_module.TEACHER_REVIEW_STATES == {
         "Confirmed",
         "Modified",
@@ -1378,7 +1327,6 @@ def test_t072_teacher_regrade_keeps_answer_out_of_final_results() -> None:
             subjective_grader=subjective_grader,
             settings=_settings(confidence_threshold=0.8),
         ),
-        diagnosis=diagnosis,
         checkpointer=InMemorySaver(),
     )
     _run(
@@ -1426,7 +1374,8 @@ def test_t072_objective_answer_accepts_without_confidence_decision() -> None:
         )
     )
 
-    assert outcome.state["status"] is WorkflowStatus.COMPLETED
+    assert outcome.state["status"] is WorkflowStatus.RUNNING
+    assert outcome.state["current_node"] == GENERATE_DIAGNOSIS
     assert outcome.state["confidence_decision"] is None
     assert outcome.state["grading_results"][objective.answer_id].review_status == "Not Required"
 
@@ -1478,7 +1427,7 @@ def test_t072_unvalidated_result_terminates_with_error() -> None:
     diagnosis = _StubDiagnosisService()
 
     outcome = _run(
-        _workflow(snapshot, agent=agent, diagnosis=diagnosis).run_async(
+        _workflow(snapshot, agent=agent).run_async(
             request_id=REQUEST_ID,
             workflow_id=WORKFLOW_ID,
             submission_id=snapshot.submission_id,
@@ -1590,7 +1539,7 @@ def test_t072_aggregation_failure_never_returns_partial_result() -> None:
     diagnosis = _StubDiagnosisService()
 
     outcome = _run(
-        _workflow(snapshot, agent=agent, diagnosis=diagnosis).run_async(
+        _workflow(snapshot, agent=agent).run_async(
             request_id=REQUEST_ID,
             workflow_id=WORKFLOW_ID,
             submission_id=snapshot.submission_id,

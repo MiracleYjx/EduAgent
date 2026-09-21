@@ -24,8 +24,9 @@ WORKFLOW_NODE_ORDER`，条件边取 ``CLASSIFY_EDGES``/``regrade_target_node``�
   ``max_regrades`` 固定（默认 1，允许 0）；零预算或超限即有界失败
   ``GRADING_WORKFLOW_REGRADE_BUDGET_EXHAUSTED``。
 - **终止状态（B06）**：评分/校验/复核/身份/缺题失败 → ``Failed`` + ``error``；需人工复核 → 实际暂停；
-  最终结果与有效诊断均生成 → ``Completed``；诊断未就绪或失败 → 保留 ``exam_result`` 并写 ``error``
-  与 ``pause_reason``（状态 ``Paused``），不通过“跳过诊断”报成功。
+  最终整卷结果形成 → ``Unified Result`` 汇总完成，``Generate Diagnosis`` 只标记“诊断待生成”
+  （P1.3：不在图内调用诊断服务）；``Completed`` 由 T076 ``WorkflowService`` 在结果事务提交后按
+  ``is_final`` 生成并落库诊断后写入。
 - **交付边界**：本批交付内存图组件；正常结果落库仍属既有 T060/T061 存储边界（本批不接线），
   T073 检查点持久化与 T074 复核服务均未实现。
 """
@@ -173,6 +174,49 @@ def cleared_slots() -> dict[str, object]:
     return {field: ([] if field in LIST_SLOT_FIELDS else None) for field in ANSWER_SLOT_FIELDS}
 
 
+def diagnosis_failure_patch(
+    error: Exception | None,
+    *,
+    recovery_supported: bool,
+) -> dict[str, Any]:
+    """`Generate Diagnosis` 失败的状态增量（P1.3：由服务层在结果事务提交后使用）。
+
+    可重试系统错误（Provider 超时/限流等）且有恢复支撑时暂停并指明恢复节点为 ``Generate Diagnosis``；
+    不可重试或没有恢复支撑时不得用 ``Paused`` 掩盖没有恢复入口的失败。两种情况都**保留**已形成的
+    整卷结果，也都不写假诊断（``diagnosis`` 保持 ``None``）。
+    """
+
+    provider_error = error if isinstance(error, ProviderExecutionError) else None
+    if provider_error is not None and bool(provider_error.info.retryable) and recovery_supported:
+        return {
+            "current_node": GENERATE_DIAGNOSIS,
+            "status": WorkflowStatus.PAUSED,
+            "error": AgentError(
+                error_code=GRADING_WORKFLOW_DIAGNOSIS_FAILED,
+                message="诊断生成失败（可重试），已保留整卷结果。",
+                retryable=True,
+                source_code=str(provider_error.info.code),
+                attempt_count=int(provider_error.info.attempt_count),
+            ),
+            "pause_reason": "诊断生成失败且属可重试系统错误，已保留整卷结果，等待重试诊断。",
+            "resumable": True,
+            "diagnosis": None,
+        }
+    return {
+        "current_node": GENERATE_DIAGNOSIS,
+        "status": WorkflowStatus.FAILED,
+        "error": AgentError(
+            error_code=GRADING_WORKFLOW_DIAGNOSIS_FAILED,
+            message="诊断生成失败且不可重试（或本运行没有恢复支撑），已保留整卷结果。",
+            retryable=False,
+        ),
+        "review_status": None,
+        "pause_reason": None,
+        "resumable": False,
+        "diagnosis": None,
+    }
+
+
 @dataclass(frozen=True, slots=True)
 class GradingWorkflowDeps:
     """运行依赖：快照、Agent、诊断服务与可选组件（不进入可序列化状态）。
@@ -180,7 +224,6 @@ class GradingWorkflowDeps:
     :param snapshot: 权威答卷快照；题序以 ``answers[].order``（1 基）为准。
     :param agent: T069 阅卷 Agent；必须实现 ``grade_answer_async``。
     :param reviewer: T070 复核 Agent；``None`` 时按默认构造。
-    :param diagnosis_service: M3 诊断服务；``None`` 时诊断节点显式报告未接线。
     :param aggregator: 整卷汇总服务；``None`` 时使用 M3 ``ResultAggregator``。
     :param session_factory: 主观题自建会话工厂；自建会话一定释放。
     :param session: 借入会话；由调用方负责释放，本模块不关闭。
@@ -191,7 +234,6 @@ class GradingWorkflowDeps:
     snapshot: SubmissionSnapshot
     agent: Any
     reviewer: Any = None
-    diagnosis_service: Any = None
     aggregator: Any = None
     session_factory: Callable[[], Any] | None = None
     session: Any = None
@@ -1283,72 +1325,17 @@ class GradingWorkflow:
             )
         return patch
 
-    def _diagnosis_failure(self, error: Exception | None) -> dict[str, Any]:
-        """诊断失败的状态：只有“可重试 + 有恢复支撑”才用暂停，否则显式失败。
+    async def _node_generate_diagnosis(self, state: Mapping[str, Any]) -> dict[str, Any]:
+        """`Generate Diagnosis`（P1.3）：只标记“诊断待生成”，不在图内调用诊断服务。
 
-        可重试系统错误（Provider 超时/限流等）且已注入检查点时，暂停并指明恢复节点为
-        ``Generate Diagnosis``；不可重试或缺少恢复支撑时不得用 ``Paused`` 掩盖没有恢复入口的失败。
-        两种情况都**保留**已形成的整卷结果，也不写假诊断。
+        ``DiagnosisReportStore`` 要求整卷结果已落库且 ``is_final=True``，而结果事务由 T076
+        ``WorkflowService`` 在图结束后提交，因此诊断必须晚于该提交。本节点保持图的拓扑与节点顺序
+        契约不变：只推进当前节点并清空诊断槽位；``Completed``、失败与可恢复状态由服务层在事务
+        提交后统一写入（见 :func:`diagnosis_failure_patch`）。
         """
 
-        provider_error = error if isinstance(error, ProviderExecutionError) else None
-        if (
-            provider_error is not None
-            and bool(provider_error.info.retryable)
-            and self._interrupt_enabled
-        ):
-            return {
-                "current_node": GENERATE_DIAGNOSIS,
-                "status": WorkflowStatus.PAUSED,
-                "error": AgentError(
-                    error_code=GRADING_WORKFLOW_DIAGNOSIS_FAILED,
-                    message="诊断生成失败（可重试），已保留整卷结果。",
-                    retryable=True,
-                    source_code=str(provider_error.info.code),
-                    attempt_count=int(provider_error.info.attempt_count),
-                ),
-                "pause_reason": "诊断生成失败且属可重试系统错误，已保留整卷结果，等待重试诊断。",
-                "resumable": True,
-                "diagnosis": None,
-            }
-        return {
-            **self._failure(
-                GRADING_WORKFLOW_DIAGNOSIS_FAILED,
-                "诊断生成失败且不可重试（或本运行没有恢复支撑），已保留整卷结果。",
-                current_node=GENERATE_DIAGNOSIS,
-                keep_results=True,
-            ),
-            "diagnosis": None,
-        }
-
-    async def _node_generate_diagnosis(self, state: Mapping[str, Any]) -> dict[str, Any]:
-        """`Generate Diagnosis`：M3 诊断服务；未就绪/失败时保留整卷结果并显式报告。"""
-
-        exam_result = state.get("exam_result")
-        service = self._deps.diagnosis_service
-        if not diagnosis_allowed(state) or service is None or exam_result is None:
-            return {
-                **self._failure(
-                    GRADING_WORKFLOW_DIAGNOSIS_FAILED,
-                    "诊断服务未接线，或整卷结果尚未最终确认，未生成诊断报告。",
-                    current_node=GENERATE_DIAGNOSIS,
-                    keep_results=True,
-                ),
-                "diagnosis": None,
-            }
-        try:
-            report = await service.generate(exam_result)
-        except Exception as error:  # noqa: BLE001 - 统一收敛为脱敏失败，保留整卷结果
-            return self._diagnosis_failure(error)
-        return {
-            "diagnosis": report,
-            "current_node": GENERATE_DIAGNOSIS,
-            "status": WorkflowStatus.COMPLETED,
-            "error": None,
-            "pause_reason": None,
-            "resumable": False,
-            "final_results": list(exam_result.items) if exam_result.is_final else [],
-        }
+        del state
+        return {"current_node": GENERATE_DIAGNOSIS, "diagnosis": None}
 
     # ------------------------------------------------------------------ 条件边
 

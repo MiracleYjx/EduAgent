@@ -113,3 +113,32 @@
 - 反向对照：临时 `git stash` 掉两处生产改动后，新题序用例确定性失败（关系列表按 id 升序）、契约待复核用例失败；`stash pop` 后按 blob 哈希核对还原一致。
 - 聚焦回归：`pytest tests/unit/grading/test_grading_task_service.py -k reader -q` 5 通过；`pytest tests/integration/test_langgraph_grading_workflow.py -q` 5 通过。
 - 提交门禁：`pytest tests/ -q` 为 **1336 通过、1 跳过、19 条既有警告**；`mypy backend/app/` 通过（125 个源码文件）；`ruff check backend/ tests/` 通过。
+
+## P1.3 诊断生成顺序（结果事务提交后再生成诊断）
+
+日期：2026-09-21。范围：生产诊断从图内执行改为结果事务提交之后执行，并加 `is_final=True` 门槛；不改 `save_workflow_outcome` 事务逻辑、不改其他图节点（Load/Classify/Retrieve/Grade/Validate/Confidence）、不改 T073 Checkpointer 接口、不新增列与 Worker、不改 M3 API。
+
+### 方案与理由
+
+选**方案 B（标记语义，且不新增状态字段）**：图内 `Generate Diagnosis` 只标记“诊断待生成”，生成移到 `WorkflowService` 的事务提交之后。理由：①`DiagnosisReportStore.save` 硬性要求“整卷结果行已存在且 `is_final=True`（否则直接拒绝）”，而结果事务在图结束后才提交，所以图内诊断在生产必然失败——这是 H01 的最后一环；②用节点自身的 `current_node=generate_diagnosis` 就是可验证的标记，无需新增 T065 状态字段（避开方案 B 列出的缺点）；③保留图拓扑与节点顺序（`WORKFLOW_NODE_ORDER`/`NODE_LABELS`/拓扑用例不变），比方案 A 的“移除节点”改动面更小；④不需要“图依赖外部事务状态”（方案 C 的缺点）。
+
+### 关键设计
+
+- 图侧：`_node_generate_diagnosis` 只返回 `{current_node, diagnosis: None}`；`GradingWorkflowDeps` 移除 `diagnosis_service`（图不再承担诊断职责）；失败分类抽为模块级 `diagnosis_failure_patch(error, *, recovery_supported)` 供服务层复用。
+- 服务侧：`_persist_outcome` 在 P1.2 事务提交后调 `_finalize_diagnosis`；门槛为 `exam_result.is_final=True` 且状态中没有 Ready 诊断；成功写 `Completed`+报告；失败走 `_write_diagnosis_state`：可重试 Provider 错误且有持久 runtime 检查点 → `Paused`+`resumable=True`+暂停原因，否则 → `Failed`+脱敏错误；两者都保留已提交成绩、`diagnosis` 保持 `None`、不写空报告。
+
+### 测试变更
+
+| 测试变更 | 必要性 | 覆盖内容 |
+| --- | --- | --- |
+| `tests/unit/workflows/test_grading_workflow.py` 更新 helper 与完成态断言 | 图不再调用诊断，旧断言（`COMPLETED`+诊断非空+依赖被调）已不成立 | 图跑完后 `status=RUNNING`、`current_node=generate_diagnosis`、`diagnosis is None`，而 `exam_result.is_final` 与 `final_results` 仍齐全 |
+| 同文件把两个“诊断失败”用例换为 `diagnosis_failure_patch` 单元用例 | 失败分类已移出图，需保留 H03 的单元证据 | 可重试+有恢复支撑 → `Paused`+`resumable`+暂停原因；不可重试或无支撑 → `Failed`+`resumable=False`；两者都保留结果、不带假诊断 |
+| `tests/integration/test_langgraph_grading_workflow.py` 更新 helper 与图级完成态断言 | 同上（真实图同样不再生成诊断） | 真实图混合答卷跑完：题序与逐题结果齐全、结果 final、图状态尚未完成；教师复核路径仍由 `ReviewService` 记录诊断（该路径断言保留） |
+| `tests/contract/test_workflow_api_contract.py` 新增诊断顺序用例 | 需要正式入口证据（P1.3 核心） | 高置信度：事务提交后生成 Ready 诊断且真实 `DiagnosisReportStore` 可读、运行 `Completed`；诊断抛可重试错误（有持久检查点）→ 成绩保留+`Paused`/`resumable`；抛不可重试错误 → 成绩保留+`Failed`；两种情况都无 Ready 报告；低置信度暂停 → 不调用诊断且无诊断 |
+
+### 验证记录
+
+- 修正后全量门禁：`pytest tests/ -q` 为 **1338 通过、1 跳过**（M0 冒烟因未启用容器参数而跳过）；`mypy backend/app/` 通过（125 个源码文件）；`ruff check backend/ tests/` 全部通过。
+- 新增/修改测试：图级用例改为标记语义（`Running` + `current_node=generate_diagnosis` + `diagnosis is None`，`exam_result.is_final` 与 `final_results` 仍齐全）；两个旧“图内诊断失败”用例换为 `diagnosis_failure_patch` 单元用例与真实存储的服务级用例；教师复核路径的用例改为“诊断由记录器补齐且运行 `Completed`”。新契约用例共 4 条：`test_start_generates_diagnosis_only_after_result_commit`（正向：`Completed` + 真实诊断表 `Ready` 行 + 只在 `is_final` 上调用）、`test_diagnosis_retryable_failure_keeps_committed_grades`、`test_diagnosis_hard_failure_keeps_committed_grades_and_fails`、`test_low_confidence_pause_does_not_generate_diagnosis`（非最终成绩零调用且无诊断行）。
+- 反向验证：把三份生产文件（`api/workflow.py`、`ai/workflows/grading_workflow.py`、`services/review_service.py`）暂存回到旧实现后，新增正向用例确定性失败：`AssertionError: assert 'Failed' == 'Completed'`——旧实现下诊断在结果事务提交前执行，`DiagnosisReportStore` 因“尚无整卷结果/未最终确认”拒绝落库，正是 H01 的失败形态；弹出暂存后按行尾归一化的 SHA-256 核对三份文件与修改稿一致。
+- 失败处理验证：可重试 Provider 错误且有持久 runtime 检查点 → `Paused` + `resumable=True` + 暂停原因；不可重试或无恢复支撑 → `Failed` + 脱敏错误码；两种情况都保留已提交成绩且诊断表无行（不伪造 `Ready`、不写空报告）。

@@ -474,7 +474,6 @@ def _workflow(env: CheckpointEnv, *, agent: Any, checkpointer: Any) -> GradingWo
     deps = GradingWorkflowDeps(
         snapshot=_snapshot(env),
         agent=agent,
-        diagnosis_service=_StubDiagnosisService(),
         settings=build_test_settings(confidence_threshold=0.8),
     )
     return GradingWorkflow(deps, checkpointer=checkpointer)
@@ -1303,7 +1302,9 @@ def test_cross_instance_resume_recovers_original_workflow(file_env: CheckpointEn
 
     assert resumed is not None
     assert resumed.interrupted is False
-    assert resumed.state["status"] is WorkflowStatus.COMPLETED
+    # P1.3：图只标记“诊断待生成”，完成态由服务层在结果事务提交后写。
+    assert resumed.state["status"] is WorkflowStatus.RUNNING
+    assert resumed.state["current_node"] == "generate_diagnosis"
     assert resumed.state["workflow_id"] == WORKFLOW_ID
     assert resumed.state["request_id"] == REQUEST_ID
     assert resumed.state["retry_count"] == 0
@@ -1312,7 +1313,7 @@ def test_cross_instance_resume_recovers_original_workflow(file_env: CheckpointEn
         str(env.fixture.subjective_answer_id),
     }
     assert resumed.state["exam_result"].is_final is True
-    assert resumed.state["diagnosis"] is not None
+    assert resumed.state["diagnosis"] is None
     # 已完成题目不在实例 B 重新评分：恢复使用持久检查点而不是重跑整卷。
     assert agent_b.calls == []
 
@@ -1325,7 +1326,8 @@ def test_cross_instance_resume_recovers_original_workflow(file_env: CheckpointEn
         GENERATE_DIAGNOSIS,
         thread_id=THREAD_ID,
     )
-    assert final.status is WorkflowStatus.COMPLETED
+    # P1.3：图只标记“诊断待生成”，业务快照记录的是图状态；完成态由服务层在结果提交后写。
+    assert final.status is WorkflowStatus.RUNNING
     assert final.resumable is False
     assert runtime_has_checkpoint(final.checkpoint, THREAD_ID) is True
     assert DEFAULT_RUNTIME_HISTORY_LIMIT >= 2
