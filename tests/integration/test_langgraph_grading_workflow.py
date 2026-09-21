@@ -1,33 +1,47 @@
-"""T079 完整 LangGraph 阅卷 Workflow 集成测试。
+"""T079 正式入口闭环集成测试。
 
-测试使用真实 PostgreSQL 隔离 schema、真实 T069/T072/T073/T074 组件，只替换检索、Embedding、
-评分 Provider 和诊断生成等外部边界。
+测试使用真实 PostgreSQL 隔离 schema、真实 T069/T072/T073/T074、结果仓储与诊断存储。
+只替换评分/诊断 LLM Provider、检索、Embedding 与 Reranker 外部边界；不得手工写业务结果表。
 """
 
 from __future__ import annotations
 
-import asyncio
-import threading
-from collections.abc import Iterator, Mapping, Sequence
+from collections.abc import Callable, Iterator, Mapping, Sequence
 from concurrent.futures import ThreadPoolExecutor
+from contextlib import contextmanager
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from decimal import Decimal
+from threading import Barrier
 from typing import Any
+from uuid import UUID
 
+import gradio as gr
 import pytest
-from sqlalchemy import select
+from fastapi.testclient import TestClient
+from pydantic import BaseModel
+from sqlalchemy import event, select
 from sqlalchemy.engine import Engine
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from backend.app.ai.agents.grading_agent import GradingAgent
-from backend.app.ai.agents.state import confidence_decision_from_snapshot
-from backend.app.ai.workflows.grading_handoff import LOAD_SUBMISSION
-from backend.app.ai.workflows.grading_workflow import (
-    GradingWorkflow,
-    GradingWorkflowDeps,
-    TeacherReviewDecision,
+from backend.app.ai.llm.base import BaseLLMProvider, LLMMessage
+from backend.app.api.results import ResultsQueryService, get_results_query_service
+from backend.app.api.reviews import (
+    ReviewDecisionService,
+    ReviewQueryService,
+    get_review_decision_service,
+    get_review_query_service,
 )
+from backend.app.api.workflow import (
+    DiagnosisRecorderAdapter,
+    WorkflowService,
+    build_review_service,
+    get_workflow_service,
+)
+from backend.app.core.app import create_app
+from backend.app.core.database import get_db
 from backend.app.domain.enums import (
     AnswerStatus,
     ExamStatus,
@@ -42,6 +56,8 @@ from backend.app.models import (
     Answer,
     Course,
     Exam,
+    ExamResult,
+    GradingResult,
     Question,
     ReviewRecord,
     Role,
@@ -49,58 +65,39 @@ from backend.app.models import (
     User,
     WorkflowRun,
 )
-from backend.app.models import (
-    GradingResult as GradingResultRow,
-)
-from backend.app.schemas.ai import GradingResult
-from backend.app.schemas.grading import (
-    DiagnosisReportDTO,
-    DiagnosisStatus,
-    ExamResultDTO,
+from backend.app.services.auth_service import create_access_token
+from backend.app.services.diagnosis_service import DiagnosisService
+from backend.app.services.grading.diagnosis_report_store import (
+    DiagnosisReportStore,
+    DiagnosisStoreNotReadyError,
 )
 from backend.app.services.grading.grading_repository import DatabaseGradingRepository
 from backend.app.services.grading.grading_task_service import (
     DatabaseGradingSubmissionReader,
-    SubmissionSnapshot,
 )
-from backend.app.services.grading.result_aggregator import ResultAggregator
 from backend.app.services.grading.subjective_grader import SubjectiveGradingPayload
-from backend.app.services.review_service import (
-    DatabaseReviewRecordStore,
-    ReviewConflictError,
-    ReviewService,
-    ReviewStaleDecisionError,
-)
-from backend.app.services.workflow_checkpoint import (
-    DatabaseCheckpointSaver,
-    WorkflowCheckpointStore,
-    checkpoint_thread_id,
-    runtime_has_checkpoint,
-)
+from backend.app.services.workflow_checkpoint import WorkflowCheckpointStore
 from tests.postgres_helpers import isolated_postgres_engine
 from tests.support.subjective_grading_doubles import (
     StubEmbeddingProvider,
     StubReranker,
     StubRetriever,
-    StubScoringProvider,
     make_chunk,
 )
 from tests.unit.settings_helpers import build_test_settings
 
-WORKFLOW_ID = "workflow-t079"
-REQUEST_ID = "request-t079"
-THREAD_ID = "thread-t079"
 THRESHOLD = 0.8
 FIXED_NOW = datetime(2026, 9, 18, 12, 0, tzinfo=UTC)
 
 
 @dataclass(frozen=True, slots=True)
 class Paper:
-    """混合答卷的数据库标识。"""
+    """测试答卷的数据库标识。"""
 
     teacher_id: str
     student_id: str
     course_id: str
+    exam_id: str
     submission_id: str
     objective_answer_id: str
     subjective_answer_ids: tuple[str, ...]
@@ -112,10 +109,6 @@ class ReviewEnv:
 
     engine: Engine
     paper: Paper
-
-    @property
-    def teacher_id(self) -> str:
-        return self.paper.teacher_id
 
 
 @pytest.fixture
@@ -135,7 +128,7 @@ def solo_env() -> Iterator[ReviewEnv]:
 
 
 def _seed_paper(session: Session, suffix: str, *, solo: bool = False) -> Paper:
-    """写入教师、课程、已发布考试、答卷和答案。"""
+    """只准备输入事实：教师、课程、已发布考试、答卷和答案。"""
 
     teacher = User(
         username=f"t079-{suffix}-teacher",
@@ -150,7 +143,7 @@ def _seed_paper(session: Session, suffix: str, *, solo: bool = False) -> Paper:
     )
     student.roles.append(Role(name=UserRole.STUDENT))
     course = Course(name=f"T079 {suffix} 课程", creator=teacher)
-    objective = Question(
+    first = Question(
         course=course,
         creator=teacher,
         type=QuestionType.SINGLE_CHOICE,
@@ -162,13 +155,13 @@ def _seed_paper(session: Session, suffix: str, *, solo: bool = False) -> Paper:
         status=QuestionStatus.APPROVED,
     )
     if solo:
-        objective.type = QuestionType.SHORT_ANSWER
-        objective.content = "解释变量的作用。"
-        objective.options = None
-        objective.reference_answer = "变量用于保存数据。"
-        objective.scoring_rubric = "说明保存和引用数据即可。"
-        objective.knowledge_points = ["变量"]
-    questions = [objective]
+        first.type = QuestionType.SHORT_ANSWER
+        first.content = "解释变量的作用。"
+        first.options = None
+        first.reference_answer = "变量用于保存数据。"
+        first.scoring_rubric = "说明保存和引用数据即可。"
+        first.knowledge_points = ["变量"]
+    questions = [first]
     if not solo:
         questions.extend(
             [
@@ -211,7 +204,7 @@ def _seed_paper(session: Session, suffix: str, *, solo: bool = False) -> Paper:
     answers = [
         Answer(
             submission=submission,
-            question=objective,
+            question=first,
             content="变量用于保存数据。" if solo else "tuple",
             status=AnswerStatus.SUBMITTED,
         )
@@ -231,6 +224,7 @@ def _seed_paper(session: Session, suffix: str, *, solo: bool = False) -> Paper:
         teacher_id=str(teacher.id),
         student_id=str(student.id),
         course_id=str(course.id),
+        exam_id=str(exam.id),
         submission_id=str(submission.id),
         objective_answer_id=str(answers[0].id),
         subjective_answer_ids=tuple(
@@ -242,7 +236,7 @@ def _seed_paper(session: Session, suffix: str, *, solo: bool = False) -> Paper:
 
 
 class SequenceScoringProvider:
-    """按预定顺序返回结构化评分结果的 Provider 替身。"""
+    """按预定顺序返回结构化评分结果的 LLM Provider 替身。"""
 
     def __init__(self, confidences: Sequence[float], *, score: float = 6.0) -> None:
         self.confidences = list(confidences)
@@ -290,69 +284,35 @@ class InvalidStructuredProvider:
         )
 
 
-class DiagnosisDouble:
-    """只替换诊断外部生成，保留图内诊断门槛和状态流转。"""
+class SuggestionProvider(BaseLLMProvider):
+    """诊断建议 LLM Provider 替身；诊断计算与持久化仍使用生产实现。"""
 
-    def __init__(self) -> None:
-        self.generate_calls: list[ExamResultDTO] = []
-        self.record_calls: list[ExamResultDTO] = []
+    provider_name = "t079-diagnosis"
 
-    async def generate(self, exam_result: ExamResultDTO) -> DiagnosisReportDTO:
-        self.generate_calls.append(exam_result)
-        return DiagnosisReportDTO(
-            submission_id=exam_result.submission_id,
-            student_id=exam_result.student_id,
-            status=DiagnosisStatus.READY,
-            generated_at=FIXED_NOW,
-            source_exam_result_updated_at=exam_result.aggregated_at,
-            learning_suggestions=["继续复习相关知识点。"],
-        )
+    def __init__(self, *, error: Exception | None = None) -> None:
+        self.error = error
+        self.calls: list[dict[str, Any]] = []
 
-    def record(self, exam_result: ExamResultDTO) -> DiagnosisReportDTO:
-        """同步记录入口：不启动事件循环（调用方已在运行中的循环内）。"""
-
-        self.record_calls.append(exam_result)
-        return DiagnosisReportDTO(
-            submission_id=exam_result.submission_id,
-            student_id=exam_result.student_id,
-            status=DiagnosisStatus.READY,
-            generated_at=FIXED_NOW,
-            source_exam_result_updated_at=exam_result.aggregated_at,
-            learning_suggestions=["继续复习相关知识点。"],
-        )
+    async def generate_structured(
+        self,
+        messages: Sequence[LLMMessage],
+        schema: type[BaseModel],
+        model: str | None = None,
+    ) -> BaseModel:
+        self.calls.append({"messages": list(messages), "schema": schema, "model": model})
+        if self.error is not None:
+            raise self.error
+        return schema.model_validate({"suggestions": ["继续复习相关知识点。"]})
 
 
-def _snapshot(env: ReviewEnv) -> SubmissionSnapshot:
-    """从真实数据库读取权威答卷快照。"""
+def _session_factory(env: ReviewEnv) -> Callable[[], Session]:
+    """返回每次调用都创建新 Session 的工厂。"""
 
-    return DatabaseGradingSubmissionReader(
-        session_factory=lambda: Session(env.engine)
-    ).load(env.paper.submission_id)
+    return lambda: Session(env.engine)
 
 
-def _store(env: ReviewEnv) -> WorkflowCheckpointStore:
-    """构造使用独立数据库会话的业务检查点存储。"""
-
-    return WorkflowCheckpointStore(
-        session_factory=lambda: Session(env.engine),
-        clock=lambda: FIXED_NOW,
-    )
-
-
-def _saver(env: ReviewEnv) -> DatabaseCheckpointSaver:
-    """构造持久化 LangGraph Checkpointer。"""
-
-    return DatabaseCheckpointSaver(
-        session_factory=lambda: Session(env.engine),
-        clock=lambda: FIXED_NOW,
-    )
-
-
-def _agent(
-    env: ReviewEnv,
-    provider: Any,
-) -> tuple[GradingAgent, Any, Any, Any]:
-    """装配真实 GradingAgent，仅替换检索、重排、Embedding 和评分 Provider。"""
+def _agent(env: ReviewEnv, provider: Any) -> tuple[GradingAgent, Any, Any, Any]:
+    """装配真实 GradingAgent，仅替换允许的外部边界。"""
 
     retriever = StubRetriever(
         [
@@ -371,466 +331,446 @@ def _agent(
         reranker=reranker,
         embedding_provider=embedding,
         settings=build_test_settings(confidence_threshold=THRESHOLD),
-        session_factory=lambda: Session(env.engine),
+        session_factory=_session_factory(env),
     )
     return agent, retriever, embedding, reranker
 
 
-def _workflow(
-    env: ReviewEnv,
-    agent: GradingAgent,
-    saver: DatabaseCheckpointSaver,
-) -> GradingWorkflow:
-    """装配真实 LangGraph 图和持久化检查点；诊断由 M4 服务层在结果事务提交后生成（P1.3）。"""
+def _headers(user_id: str, role: UserRole) -> dict[str, str]:
+    """签发正式认证依赖可识别的测试令牌。"""
 
-    return GradingWorkflow(
-        GradingWorkflowDeps(
-            snapshot=_snapshot(env),
-            agent=agent,
-            settings=build_test_settings(confidence_threshold=THRESHOLD),
-        ),
-        checkpointer=saver,
+    settings = build_test_settings()
+    token = create_access_token(
+        UUID(user_id),
+        secret_key=settings.JWT_SECRET_KEY,
+        roles=[role],
+        expires_delta=timedelta(minutes=60),
     )
+    return {"Authorization": f"Bearer {token}"}
 
 
-def _seed_checkpoint(
+def _teacher_headers(env: ReviewEnv) -> dict[str, str]:
+    return _headers(env.paper.teacher_id, UserRole.TEACHER)
+
+
+def _student_headers(env: ReviewEnv) -> dict[str, str]:
+    return _headers(env.paper.student_id, UserRole.STUDENT)
+
+
+@dataclass(frozen=True, slots=True)
+class ApiHarness:
+    """一个独立应用实例；其服务与数据库会话工厂均重新创建。"""
+
+    client: TestClient
+    workflow: WorkflowService
+
+
+@contextmanager
+def _api_client(
     env: ReviewEnv,
     *,
-    workflow_id: str,
-    request_id: str,
-    thread_id: str,
-) -> WorkflowCheckpointStore:
-    """写入启动业务检查点，供 LangGraph runtime 检查点绑定。"""
+    scoring_provider: Any,
+    diagnosis_provider: BaseLLMProvider | None = None,
+    outcome_session_factory: Callable[[], Session] | None = None,
+    raise_server_exceptions: bool = True,
+) -> Iterator[ApiHarness]:
+    """装配真实 API、Workflow、复核、结果与诊断存储。"""
 
-    store = _store(env)
-    store.save_checkpoint(
-        workflow_id,
-        {
-            "workflow_id": workflow_id,
-            "request_id": request_id,
-            "submission_id": env.paper.submission_id,
-            "status": WorkflowStatus.RUNNING,
-            "current_node": LOAD_SUBMISSION,
-            "retry_count": 0,
-            "resumable": False,
-        },
-        LOAD_SUBMISSION,
-        thread_id=thread_id,
-    )
-    return store
-
-
-def _persist_paused(
-    env: ReviewEnv,
-    store: WorkflowCheckpointStore,
-    state: Mapping[str, Any],
-    *,
-    workflow_id: str,
-    thread_id: str,
-) -> ExamResultDTO:
-    """把暂停时的业务状态和当前整卷结果写入真实持久层。"""
-
-    state_copy = dict(state)
-    store.save_checkpoint(
-        workflow_id,
-        state_copy,
-        str(state_copy["current_node"]),
-        pause_reason=str(state_copy["pause_reason"]),
-        thread_id=thread_id,
-    )
-    snapshot = _snapshot(env)
-    results = [
-        item
-        for item in (state_copy.get("grading_results") or {}).values()
-        if isinstance(item, GradingResult)
-    ]
-    decisions = {
-        str(answer_id): confidence_decision_from_snapshot(item)
-        for answer_id, item in (state_copy.get("confidence_decisions") or {}).items()
-    }
-    exam_result = ResultAggregator().aggregate(
-        snapshot.to_context(),
-        results=results,
-        decisions=decisions,
-        now=FIXED_NOW,
-    )
-    DatabaseGradingRepository(
-        session_factory=lambda: Session(env.engine),
+    sessions = _session_factory(env)
+    settings = build_test_settings(confidence_threshold=THRESHOLD)
+    checkpoints = WorkflowCheckpointStore(
+        session_factory=sessions,
         clock=lambda: FIXED_NOW,
-    ).save_exam_result(exam_result)
-    return exam_result
-
-
-def _review_service(
-    env: ReviewEnv,
-    workflow: GradingWorkflow,
-    diagnosis: DiagnosisDouble,
-) -> ReviewService:
-    """按 T074 生产依赖装配真实复核服务。"""
-
-    session_factory = lambda: Session(env.engine)
-    return ReviewService(
-        checkpoints=_store(env),
-        reader=DatabaseGradingSubmissionReader(session_factory=session_factory),
-        session_factory=session_factory,
-        workflow_provider=lambda _run, _state: workflow,
-        result_writer=DatabaseGradingRepository(
-            session_factory=session_factory,
+    )
+    reader = DatabaseGradingSubmissionReader(session_factory=sessions)
+    agent, _, _, _ = _agent(env, scoring_provider)
+    diagnosis = DiagnosisRecorderAdapter(
+        store=DiagnosisReportStore(session_factory=sessions),
+        service=DiagnosisService(provider=diagnosis_provider or SuggestionProvider()),
+    )
+    workflow = WorkflowService(
+        checkpoints=checkpoints,
+        reader=reader,
+        session_factory=sessions,
+        agent=agent,
+        diagnosis_service=diagnosis,
+        repository=DatabaseGradingRepository(
+            session_factory=outcome_session_factory or sessions,
             clock=lambda: FIXED_NOW,
         ),
+        settings=settings,
+        clock=lambda: FIXED_NOW,
+    )
+    review = build_review_service(
+        checkpoints=checkpoints,
+        reader=reader,
         diagnosis=diagnosis,
-        review_records=DatabaseReviewRecordStore(),
+        workflow_provider=workflow.workflow_for_run,
+        session_factory=sessions,
+    )
+    workflow.use_review_service_provider(lambda: review)
+    review_query = ReviewQueryService(session_factory=sessions)
+    review_decision = ReviewDecisionService(
+        query=review_query,
+        review_service=review,
+        settings=settings,
+    )
+    results = ResultsQueryService(
+        repository=DatabaseGradingRepository(
+            session_factory=sessions,
+            clock=lambda: FIXED_NOW,
+        ),
+        session_factory=sessions,
+        diagnosis_store=DiagnosisReportStore(session_factory=sessions),
+    )
+
+    with gr.Blocks() as ui:
+        gr.Markdown("T079 正式入口集成测试")
+    app = create_app(settings=settings, gradio_app=ui)
+
+    def database() -> Iterator[Session]:
+        with Session(env.engine) as session:
+            yield session
+
+    app.dependency_overrides[get_db] = database
+    app.dependency_overrides[get_workflow_service] = lambda: workflow
+    app.dependency_overrides[get_review_query_service] = lambda: review_query
+    app.dependency_overrides[get_review_decision_service] = lambda: review_decision
+    app.dependency_overrides[get_results_query_service] = lambda: results
+    with TestClient(
+        app,
+        raise_server_exceptions=raise_server_exceptions,
+    ) as client:
+        yield ApiHarness(client=client, workflow=workflow)
+
+
+def _start(harness: ApiHarness, env: ReviewEnv) -> Any:
+    """从唯一正式启动入口创建运行。"""
+
+    return harness.client.post(
+        f"/api/workflow/submissions/{env.paper.submission_id}/runs",
+        headers=_teacher_headers(env),
+        json={"regrade": False},
     )
 
 
-def test_mixed_submission_runs_real_graph_and_keeps_objective_deterministic(
+def _teacher_result(harness: ApiHarness, env: ReviewEnv) -> Any:
+    """从教师正式结果入口读取答卷。"""
+
+    return harness.client.get(
+        (
+            f"/api/results/exams/{env.paper.exam_id}/submissions/"
+            f"{env.paper.submission_id}"
+        ),
+        headers=_teacher_headers(env),
+    )
+
+
+def _student_result(harness: ApiHarness, env: ReviewEnv) -> Any:
+    """从学生正式结果入口读取答卷。"""
+
+    return harness.client.get(
+        f"/api/results/me/submissions/{env.paper.submission_id}",
+        headers=_student_headers(env),
+    )
+
+
+def _student_diagnosis(harness: ApiHarness, env: ReviewEnv) -> Any:
+    """从学生正式结果入口读取诊断。"""
+
+    return harness.client.get(
+        f"/api/results/me/submissions/{env.paper.submission_id}/diagnosis",
+        headers=_student_headers(env),
+    )
+
+
+def _confirm_body(env: ReviewEnv, workflow_id: str) -> dict[str, Any]:
+    """构造教师确认请求；身份只来自启动与复核读模型返回的正式事实。"""
+
+    return {
+        "submission_id": env.paper.submission_id,
+        "answer_id": env.paper.subjective_answer_ids[0],
+        "action": "confirm",
+        "workflow_id": workflow_id,
+        "expected_review_status": ReviewStatus.PENDING_REVIEW.value,
+        "comment": "教师确认 AI 评分。",
+    }
+
+
+def test_high_confidence_result_is_readable_from_results_api(
     env: ReviewEnv,
 ) -> None:
-    """混合答卷完整走图：客观题规则评分，主观题检索和结构化 Provider 后形成诊断。"""
+    """高置信度混合答卷从启动 API 完成，并由结果/诊断 API 读回。"""
 
-    provider = StubScoringProvider(score=6.0, confidence=0.95)
-    agent, retriever, embedding, reranker = _agent(env, provider)
-    diagnosis = DiagnosisDouble()
-    saver = _saver(env)
-    store = _seed_checkpoint(
+    scoring = SequenceScoringProvider([0.95, 0.95])
+    diagnosis = SuggestionProvider()
+    with _api_client(
         env,
-        workflow_id=WORKFLOW_ID,
-        request_id=REQUEST_ID,
-        thread_id=THREAD_ID,
-    )
-    workflow = _workflow(env, agent, saver)
-    result = asyncio.run(
-        workflow.run_async(
-            request_id=REQUEST_ID,
-            workflow_id=WORKFLOW_ID,
-            submission_id=env.paper.submission_id,
-            thread_id=THREAD_ID,
+        scoring_provider=scoring,
+        diagnosis_provider=diagnosis,
+    ) as harness:
+        started = _start(harness, env)
+        result = _student_result(harness, env)
+        report = _student_diagnosis(harness, env)
+
+    assert started.status_code == 200
+    assert started.json()["status"] == WorkflowStatus.COMPLETED.value
+    assert result.status_code == 200
+    body = result.json()
+    assert body["is_final"] is True
+    assert body["total_score"] == "22.00"
+    assert len(body["items"]) == 3
+    assert report.status_code == 200
+    assert report.json()["status"] == "Ready"
+    assert report.json()["learning_suggestions"] == ["继续复习相关知识点。"]
+    assert len(scoring.calls) == 2
+    assert len(diagnosis.calls) == 1
+
+
+def test_low_confidence_result_enters_real_review_queue(
+    env: ReviewEnv,
+) -> None:
+    """低置信度结果由启动 API 落库，并由真实复核队列与详情读到。"""
+
+    scoring = SequenceScoringProvider([0.3])
+    with _api_client(env, scoring_provider=scoring) as harness:
+        started = _start(harness, env)
+        queue = harness.client.get(
+            "/api/reviews/queue",
+            headers=_teacher_headers(env),
         )
-    )
+        teacher_result = _teacher_result(harness, env)
 
-    assert result.interrupted is False
-    # P1.3：图只标记“诊断待生成”；Completed 与诊断由 M4 服务层在结果事务提交后写入。
-    assert result.state["status"] is WorkflowStatus.RUNNING
-    assert result.state["current_node"] == "generate_diagnosis"
-    assert result.state["exam_result"].is_final is True
-    assert result.state["final_results"] == result.state["exam_result"].items
-    assert result.state["diagnosis"] is None
-    assert diagnosis.generate_calls == []
-    assert len(provider.calls) == len(env.paper.subjective_answer_ids)
-    assert len(retriever.calls) == len(env.paper.subjective_answer_ids)
-    assert len(embedding.queries) == len(env.paper.subjective_answer_ids)
-    assert len(reranker.calls) == len(env.paper.subjective_answer_ids)
-    objective = result.state["grading_results"][env.paper.objective_answer_id]
-    assert objective.score == 10
-    assert all(call["messages"][0]["role"] == "system" for call in provider.calls)
-    assert result.state["final_results"]
+        assert started.status_code == 200
+        run = started.json()
+        assert run["status"] == WorkflowStatus.PAUSED.value
+        assert queue.status_code == 200
+        queued = queue.json()
+        assert queued["total"] == 1
+        item = queued["items"][0]
+        assert item["answer_id"] == env.paper.subjective_answer_ids[0]
+        detail = harness.client.get(
+            (
+                f"/api/reviews/queue/{env.paper.submission_id}/answers/"
+                f"{item['answer_id']}"
+            ),
+            headers=_teacher_headers(env),
+        )
 
-    store.save_checkpoint(
-        WORKFLOW_ID,
-        dict(result.state),
-        str(result.state["current_node"]),
-        thread_id=THREAD_ID,
-    )
-    DatabaseGradingRepository(
-        session_factory=lambda: Session(env.engine),
-        clock=lambda: FIXED_NOW,
-    ).save_exam_result(result.state["exam_result"])
-    completed = store.mark_completed(WORKFLOW_ID)
-    assert completed.status is WorkflowStatus.COMPLETED
-    with Session(env.engine) as session:
-        assert session.scalars(select(WorkflowRun)).one().status is WorkflowStatus.COMPLETED
+    assert detail.status_code == 200
+    detail_body = detail.json()
+    assert detail_body["review_status"] == ReviewStatus.PENDING_REVIEW.value
+    assert detail_body["workflow_id"] == run["workflow_id"]
+    assert detail_body["workflow_status"] == WorkflowStatus.PAUSED.value
+    assert teacher_result.status_code == 200
+    pending = teacher_result.json()
+    assert pending["is_final"] is False
+    assert pending["pending_review_count"] == 1
+    assert len(pending["items"]) == 3
+    assert pending["items"][2]["missing"] is True
 
 
-def test_structured_validation_failure_stops_before_final_results(
+def test_invalid_structured_result_fails_without_fake_result(
     solo_env: ReviewEnv,
 ) -> None:
-    """结构化评分越界时图进入失败状态，不生成最终结果或诊断。"""
+    """越界结构化评分经启动 API 进入 Failed，结果 API 不伪造空成绩。"""
 
     provider = InvalidStructuredProvider()
-    agent, _, _, _ = _agent(solo_env, provider)
-    DiagnosisDouble()
-    saver = _saver(solo_env)
-    store = _seed_checkpoint(
-        solo_env,
-        workflow_id=f"{WORKFLOW_ID}-invalid",
-        request_id=f"{REQUEST_ID}-invalid",
-        thread_id=f"{THREAD_ID}-invalid",
-    )
-    workflow = _workflow(solo_env, agent, saver)
-    result = asyncio.run(
-        workflow.run_async(
-            request_id=f"{REQUEST_ID}-invalid",
-            workflow_id=f"{WORKFLOW_ID}-invalid",
-            submission_id=solo_env.paper.submission_id,
-            thread_id=f"{THREAD_ID}-invalid",
-        )
-    )
+    with _api_client(solo_env, scoring_provider=provider) as harness:
+        started = _start(harness, solo_env)
+        result = _student_result(harness, solo_env)
 
-    assert result.interrupted is False
-    assert result.state["status"] is WorkflowStatus.FAILED
-    assert result.state["error"] is not None
-    assert result.state.get("final_results") == []
-    assert result.state.get("exam_result") is None
-    assert result.state.get("diagnosis") is None
+    assert started.status_code == 200
+    assert started.json()["status"] == WorkflowStatus.FAILED.value
+    assert result.status_code == 200
+    assert result.json()["is_final"] is None
+    assert result.json()["total_score"] is None
+    assert result.json()["items"] == []
     assert len(provider.calls) == 1
-    store.save_checkpoint(
-        f"{WORKFLOW_ID}-invalid",
-        dict(result.state),
-        str(result.state["current_node"]),
-        thread_id=f"{THREAD_ID}-invalid",
-    )
-    failed = store.mark_failed(f"{WORKFLOW_ID}-invalid", result.state["error"])
-    assert failed.status is WorkflowStatus.FAILED
     with Session(solo_env.engine) as session:
-        assert session.scalars(select(GradingResultRow)).all() == []
+        assert list(session.scalars(select(GradingResult))) == []
+        assert list(session.scalars(select(ExamResult))) == []
 
 
-def test_review_service_regrades_then_teacher_confirmation_unlocks_diagnosis(
-    env: ReviewEnv,
-) -> None:
-    """低置信度暂停后，Reviewer 重评回到评分节点，教师确认后才生成最终诊断。"""
-
-    provider = SequenceScoringProvider([0.3, 0.95, 0.95])
-    agent, _, _, _ = _agent(env, provider)
-    diagnosis = DiagnosisDouble()
-    saver = _saver(env)
-    workflow_id = f"{WORKFLOW_ID}-review"
-    request_id = f"{REQUEST_ID}-review"
-    thread_id = f"{THREAD_ID}-review"
-    store = _seed_checkpoint(
-        env,
-        workflow_id=workflow_id,
-        request_id=request_id,
-        thread_id=thread_id,
-    )
-    workflow = _workflow(env, agent, saver)
-    paused = asyncio.run(
-        workflow.run_async(
-            request_id=request_id,
-            workflow_id=workflow_id,
-            submission_id=env.paper.submission_id,
-            thread_id=thread_id,
-        )
-    )
-    assert paused.interrupted is True
-    assert paused.state["status"] is WorkflowStatus.PAUSED
-    assert paused.pending_answer_ids == (env.paper.subjective_answer_ids[0],)
-    # P1.2.5：题序必须确定——暂停时“题序 <= 当前题序”的题目（含正在等待复核的那题）都必须
-    # 出现在逐题结果里。旧实现把题序绑在 ``exam_questions`` 的数据库返回顺序（按随机 UUID）上，
-    # 会让低置信度主观题变成题序 1，于是“只评完一题”，暂停时的待复核整卷结果也会缺题。
-    paused_order = paused.state["current_answer_order"]
-    expected_graded = {
-        target.answer_id
-        for target in _snapshot(env).answers
-        if target.order <= paused_order
-    }
-    assert expected_graded
-    assert set(paused.state.get("grading_results") or {}) == expected_graded
-    assert paused.state.get("final_results") == []
-    assert paused.state.get("diagnosis") is None
-    paused_exam = _persist_paused(
-        env,
-        store,
-        paused.state,
-        workflow_id=workflow_id,
-        thread_id=thread_id,
-    )
-    assert paused_exam.is_final is False
-    assert paused_exam.pending_review_answer_count == 1
-    service = _review_service(env, workflow, diagnosis)
-    target_id = env.paper.subjective_answer_ids[0]
-
-    regraded = service.request_regrade(
-        workflow_id,
-        thread_id,
-        target_id,
-        actor_id=env.teacher_id,
-        actor_role=UserRole.TEACHER,
-        expected_review_status=ReviewStatus.PENDING_REVIEW.value,
-        comment="请重新核对评分理由。",
-    )
-    assert regraded.decision is ReviewStatus.RE_GRADE
-    assert regraded.workflow_status is WorkflowStatus.PAUSED
-    assert regraded.exam_result is not None and regraded.exam_result.is_final is False
-    assert regraded.diagnosis is None
-    assert diagnosis.record_calls == []
-    assert len(provider.calls) == 2
-
-    confirmed = service.submit_decision(
-        TeacherReviewDecision(
-            workflow_id=workflow_id,
-            thread_id=thread_id,
-            answer_id=target_id,
-            review_status=ReviewStatus.CONFIRMED.value,
-            expected_review_status=ReviewStatus.PENDING_REVIEW.value,
-        ),
-        actor_id=env.teacher_id,
-        actor_role=UserRole.TEACHER,
-        comment="教师确认重评结果。",
-    )
-    assert confirmed.workflow_status is WorkflowStatus.COMPLETED
-    assert confirmed.exam_result is not None and confirmed.exam_result.is_final is True
-    assert confirmed.exam_result.final_total_score is not None
-    assert confirmed.diagnosis is not None
-    assert len(diagnosis.record_calls) == 1
-    assert len(provider.calls) == 3
-    with Session(env.engine) as session:
-        records = list(session.scalars(select(ReviewRecord)))
-        assert [record.decision for record in records] == [
-            ReviewStatus.RE_GRADE,
-            ReviewStatus.CONFIRMED,
-        ]
-        row = session.scalars(
-            select(GradingResultRow).where(
-                GradingResultRow.answer_id == target_id,
-            )
-        ).one()
-        assert row.review_status is ReviewStatus.CONFIRMED
-        assert session.scalars(select(WorkflowRun)).one().status is WorkflowStatus.COMPLETED
-
-
-def test_cross_instance_resume_uses_postgres_runtime_checkpoint(
+def test_review_then_new_session_resume_reloads_result_and_diagnosis(
     solo_env: ReviewEnv,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """实例 A 中断后销毁图对象，实例 B 只从 PostgreSQL 检查点恢复并完成。"""
+    """复核 API 保存结论；新应用实例从 PostgreSQL 恢复原 Workflow 并补齐诊断。"""
 
-    workflow_id = f"{WORKFLOW_ID}-cross-instance"
-    request_id = f"{REQUEST_ID}-cross-instance"
-    thread_id = f"{THREAD_ID}-cross-instance"
-    provider_a = SequenceScoringProvider([0.3])
-    agent_a, _, _, _ = _agent(solo_env, provider_a)
-    diagnosis_a = DiagnosisDouble()
-    saver_a = _saver(solo_env)
-    store_a = _seed_checkpoint(
-        solo_env,
-        workflow_id=workflow_id,
-        request_id=request_id,
-        thread_id=thread_id,
-    )
-    workflow_a = _workflow(solo_env, agent_a, saver_a)
-    paused = asyncio.run(
-        workflow_a.run_async(
-            request_id=request_id,
-            workflow_id=workflow_id,
-            submission_id=solo_env.paper.submission_id,
-            thread_id=thread_id,
+    original_save = DiagnosisReportStore.save
+
+    def fail_diagnosis_save(_store: DiagnosisReportStore, _report: Any) -> Any:
+        raise DiagnosisStoreNotReadyError(
+            "测试模拟诊断报告写入暂时不可用。",
+            retryable=True,
         )
-    )
-    assert paused.interrupted is True
-    _persist_paused(
+
+    monkeypatch.setattr(DiagnosisReportStore, "save", fail_diagnosis_save)
+    first_scoring = SequenceScoringProvider([0.3])
+    first_diagnosis = SuggestionProvider()
+    with _api_client(
         solo_env,
-        store_a,
-        paused.state,
-        workflow_id=workflow_id,
-        thread_id=thread_id,
-    )
-    paused_row = store_a.load_checkpoint(workflow_id)
-    assert paused_row is not None
-    assert checkpoint_thread_id(paused_row) == thread_id
-    assert runtime_has_checkpoint(paused_row.checkpoint, thread_id)
-
-    del workflow_a, saver_a, agent_a, provider_a, diagnosis_a
-
-    provider_b = SequenceScoringProvider([0.95])
-    agent_b, _, _, _ = _agent(solo_env, provider_b)
-    diagnosis_b = DiagnosisDouble()
-    saver_b = _saver(solo_env)
-    workflow_b = _workflow(solo_env, agent_b, saver_b)
-    service_b = _review_service(solo_env, workflow_b, diagnosis_b)
-    resumed = service_b.submit_decision(
-        TeacherReviewDecision(
-            workflow_id=workflow_id,
-            thread_id=thread_id,
-            answer_id=solo_env.paper.subjective_answer_ids[0],
-            review_status=ReviewStatus.CONFIRMED.value,
-            expected_review_status=ReviewStatus.PENDING_REVIEW.value,
-        ),
-        actor_id=solo_env.teacher_id,
-        actor_role=UserRole.TEACHER,
-    )
-
-    assert resumed.resumed is True
-    assert resumed.workflow_status is WorkflowStatus.COMPLETED
-    assert resumed.exam_result is not None and resumed.exam_result.is_final is True
-    assert resumed.diagnosis is not None
-    assert provider_b.calls == []
-    assert len(diagnosis_b.record_calls) == 1
-    assert diagnosis_b.record_calls[0].submission_id == resumed.exam_result.submission_id
-    assert diagnosis_b.record_calls[0].is_final is True
-    with Session(solo_env.engine) as session:
-        assert session.scalars(select(WorkflowRun)).one().status is WorkflowStatus.COMPLETED
-
-
-def test_concurrent_teacher_decisions_only_one_updates_postgres_row(
-    solo_env: ReviewEnv,
-) -> None:
-    """两个独立请求同时提交确认，只有一个事务能通过条件状态更新。"""
-
-    workflow_id = f"{WORKFLOW_ID}-concurrent"
-    request_id = f"{REQUEST_ID}-concurrent"
-    thread_id = f"{THREAD_ID}-concurrent"
-    provider = SequenceScoringProvider([0.3])
-    agent, _, _, _ = _agent(solo_env, provider)
-    diagnosis = DiagnosisDouble()
-    saver = _saver(solo_env)
-    store = _seed_checkpoint(
-        solo_env,
-        workflow_id=workflow_id,
-        request_id=request_id,
-        thread_id=thread_id,
-    )
-    workflow = _workflow(solo_env, agent, saver)
-    paused = asyncio.run(
-        workflow.run_async(
-            request_id=request_id,
-            workflow_id=workflow_id,
-            submission_id=solo_env.paper.submission_id,
-            thread_id=thread_id,
+        scoring_provider=first_scoring,
+        diagnosis_provider=first_diagnosis,
+    ) as first:
+        started = _start(first, solo_env)
+        workflow_id = started.json()["workflow_id"]
+        reviewed = first.client.post(
+            "/api/reviews/decisions",
+            headers=_teacher_headers(solo_env),
+            json=_confirm_body(solo_env, workflow_id),
         )
-    )
-    assert paused.interrupted is True
-    _persist_paused(
+        result_after_review = _student_result(first, solo_env)
+        diagnosis_after_review = _student_diagnosis(first, solo_env)
+    monkeypatch.setattr(DiagnosisReportStore, "save", original_save)
+
+    assert started.status_code == 200
+    assert started.json()["status"] == WorkflowStatus.PAUSED.value
+    assert reviewed.status_code == 200
+    review_body = reviewed.json()
+    assert review_body["decision_saved"] is True
+    assert review_body["workflow_status"] == WorkflowStatus.PAUSED.value
+    assert review_body["resumable"] is True
+    assert review_body["diagnosis_error_code"]
+    assert result_after_review.status_code == 200
+    assert result_after_review.json()["is_final"] is True
+    assert result_after_review.json()["total_score"] == "6.00"
+    assert diagnosis_after_review.json()["status"] == "Not Ready"
+
+    assert len(first_diagnosis.calls) == 1
+    second_scoring = SequenceScoringProvider([0.95])
+    successful_diagnosis = SuggestionProvider()
+    with _api_client(
         solo_env,
-        store,
-        paused.state,
-        workflow_id=workflow_id,
-        thread_id=thread_id,
-    )
+        scoring_provider=second_scoring,
+        diagnosis_provider=successful_diagnosis,
+    ) as second:
+        resumed = second.client.post(
+            f"/api/workflow/runs/{workflow_id}/resume",
+            headers=_teacher_headers(solo_env),
+            json={},
+        )
+        final_result = _student_result(second, solo_env)
+        final_diagnosis = _student_diagnosis(second, solo_env)
 
-    service_a = _review_service(solo_env, workflow, diagnosis)
-    service_b = _review_service(solo_env, workflow, diagnosis)
-    decision = TeacherReviewDecision(
-        workflow_id=workflow_id,
-        thread_id=thread_id,
-        answer_id=solo_env.paper.subjective_answer_ids[0],
-        review_status=ReviewStatus.CONFIRMED.value,
-        expected_review_status=ReviewStatus.PENDING_REVIEW.value,
-    )
-    barrier = threading.Barrier(2)
-
-    def submit(service: ReviewService) -> str:
-        barrier.wait()
-        try:
-            service.submit_decision(
-                decision,
-                actor_id=solo_env.teacher_id,
-                actor_role=UserRole.TEACHER,
-                comment="并发确认。",
-            )
-        except (ReviewConflictError, ReviewStaleDecisionError):
-            return "conflict"
-        return "success"
-
-    with ThreadPoolExecutor(max_workers=2) as executor:
-        outcomes = list(executor.map(submit, (service_a, service_b)))
-
-    assert sorted(outcomes) == ["conflict", "success"]
+    assert resumed.status_code == 200
+    assert resumed.json()["status"] == WorkflowStatus.COMPLETED.value
+    assert resumed.json()["resumed"] is True
+    assert final_result.status_code == 200
+    assert final_result.json()["is_final"] is True
+    assert final_result.json()["total_score"] == "6.00"
+    assert final_diagnosis.status_code == 200
+    assert final_diagnosis.json()["status"] == "Ready"
+    assert final_diagnosis.json()["learning_suggestions"] == [
+        "继续复习相关知识点。"
+    ]
+    assert second_scoring.calls == []
     with Session(solo_env.engine) as session:
         records = list(session.scalars(select(ReviewRecord)))
         assert len(records) == 1
         assert records[0].decision is ReviewStatus.CONFIRMED
-        row = session.scalars(select(GradingResultRow)).one()
+        assert session.scalars(select(WorkflowRun)).one().status is WorkflowStatus.COMPLETED
+
+
+def test_concurrent_review_api_decisions_only_one_updates_postgres_row(
+    solo_env: ReviewEnv,
+) -> None:
+    """两个正式 API 请求同时提交同一结论，仅一个复核事务能更新 PostgreSQL 行。"""
+
+    with _api_client(
+        solo_env,
+        scoring_provider=SequenceScoringProvider([0.3]),
+    ) as starter:
+        started = _start(starter, solo_env)
+    assert started.status_code == 200
+    workflow_id = started.json()["workflow_id"]
+    body = _confirm_body(solo_env, workflow_id)
+    barrier = Barrier(2)
+
+    with (
+        _api_client(
+            solo_env,
+            scoring_provider=SequenceScoringProvider([]),
+        ) as first,
+        _api_client(
+            solo_env,
+            scoring_provider=SequenceScoringProvider([]),
+        ) as second,
+    ):
+
+        def submit(harness: ApiHarness) -> Any:
+            barrier.wait()
+            return harness.client.post(
+                "/api/reviews/decisions",
+                headers=_teacher_headers(solo_env),
+                json=body,
+            )
+
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            responses = list(executor.map(submit, (first, second)))
+
+    assert sorted(response.status_code for response in responses) == [200, 409]
+    conflict = next(response for response in responses if response.status_code == 409)
+    assert conflict.json()["detail"]["error_code"] == "REVIEW_SERVICE_CONFLICT"
+    with Session(solo_env.engine) as session:
+        records = list(session.scalars(select(ReviewRecord)))
+        assert len(records) == 1
+        assert records[0].decision is ReviewStatus.CONFIRMED
+        row = session.scalars(select(GradingResult)).one()
         assert row.review_status is ReviewStatus.CONFIRMED
 
 
-__all__ = ["test_mixed_submission_runs_real_graph_and_keeps_objective_deterministic"]
+def test_outcome_commit_failure_leaves_no_partial_results(
+    solo_env: ReviewEnv,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """正式启动的结果事务提交失败时，成绩、进度与完成态整体回滚。"""
+
+    with Session(solo_env.engine) as session:
+        answer_before = {
+            str(answer.id): answer.status
+            for answer in session.scalars(select(Answer))
+        }
+        submission = session.get(Submission, UUID(solo_env.paper.submission_id))
+        assert submission is not None
+        submission_before = (submission.status, submission.graded_at)
+
+    def failing_outcome_session() -> Session:
+        session = Session(solo_env.engine)
+
+        def fail_commit() -> None:
+            raise SQLAlchemyError("测试模拟结果事务提交失败")
+
+        monkeypatch.setattr(session, "commit", fail_commit)
+
+        @event.listens_for(session, "before_commit", once=True)
+        def call_patched_commit(active: Session) -> None:
+            # save_workflow_outcome 使用 session.begin()；在它真正提交前调用已 monkeypatch
+            # 的 session.commit，使故障落在生产事务的提交边界而不是业务写入中间。
+            active.commit()
+
+        return session
+
+    with _api_client(
+        solo_env,
+        scoring_provider=SequenceScoringProvider([0.95]),
+        outcome_session_factory=failing_outcome_session,
+        raise_server_exceptions=False,
+    ) as harness:
+        response = _start(harness, solo_env)
+
+    assert response.status_code == 500
+    with Session(solo_env.engine) as session:
+        assert list(session.scalars(select(GradingResult))) == []
+        assert list(session.scalars(select(ExamResult))) == []
+        run = session.scalars(select(WorkflowRun)).one()
+        assert run.status is not WorkflowStatus.COMPLETED
+        answer_after = {
+            str(answer.id): answer.status
+            for answer in session.scalars(select(Answer))
+        }
+        submission = session.get(Submission, UUID(solo_env.paper.submission_id))
+        assert submission is not None
+        assert (submission.status, submission.graded_at) == submission_before
+    assert answer_after == answer_before
