@@ -41,6 +41,7 @@ import json
 import math
 import sys
 import time
+from collections import Counter
 from collections.abc import Callable, Iterable, Mapping, Sequence
 from contextlib import ExitStack
 from dataclasses import dataclass, field
@@ -726,6 +727,8 @@ def load_corpus_scope(
 
     try:
         manifest = json.loads(corpus_path.read_text(encoding="utf-8"))
+        if "manifest_version" in manifest:
+            manifest = {**manifest["corpus"], **manifest["metadata"]}
         if not isinstance(manifest, Mapping) or not manifest.get("chunks"):
             raise ValueError("评测语料为空")
         document_id, chunk_ids = _load_ingested_corpus(session, {"corpus": manifest})
@@ -760,8 +763,28 @@ async def _run_strategies(
         course_id = BENCHMARK_COURSE_ID
         filters = None
         if mode == "real" and any(strategy != "zero_shot" for strategy in strategies):
-            engine = create_database_engine(settings)
-            resources.callback(engine.dispose)
+            try:
+                corpus_data = json.loads(corpus_path.read_text(encoding="utf-8"))
+            except (OSError, ValueError) as error:
+                raise BenchmarkCorpusNotReady(type(error).__name__) from None
+            if "manifest_version" in corpus_data:
+                from scripts.benchmark_corpus import (
+                    embedding_metadata,
+                    load_manifest,
+                    require_schema,
+                    schema_engine,
+                )
+
+                manifest = load_manifest(corpus_path)
+                engine = schema_engine(manifest["schema"], settings)
+                resources.callback(engine.dispose)
+                require_schema(engine, manifest["schema"])
+                if embedding_metadata(embedding) != manifest["embedding"]:
+                    raise BenchmarkCorpusNotReady("Embedding 与摄取 manifest 不兼容")
+                record["corpus_manifest"] = manifest
+            else:
+                engine = create_database_engine(settings)
+                resources.callback(engine.dispose)
             session = resources.enter_context(Session(engine))
             course_id, filters, record["corpus"] = load_corpus_scope(session, corpus_path)
         try:
@@ -771,6 +794,8 @@ async def _run_strategies(
         record.update(describe_llm_provider(
             active_provider, prompt_version=SUBJECTIVE_GRADING_PROMPT_VERSION,
         ))
+        if record["provider"] == "stub":
+            record["evidence_kind"] = "pipeline_selftest"
         for strategy in strategies:
             retriever, reranker = build_retrieval_components(
                 mode, strategy, settings=settings, provider=active_provider,
@@ -825,6 +850,7 @@ def run_benchmark(
         "run_id": resolved_run_id,
         "created_at": datetime.now(UTC).isoformat(),
         "mode": mode,
+        "evidence_kind": "pipeline_selftest" if mode == "selftest" else "provider_run",
         "dataset": {
             "name": dataset.get("metadata", {}).get("name", dataset_path.stem),
             "version": dataset.get("metadata", {}).get("version", "unknown"),
@@ -838,7 +864,10 @@ def run_benchmark(
         "prompt_version": SUBJECTIVE_GRADING_PROMPT_VERSION,
         "ground_truth": _ground_truth_note(cases),
         "runs": [],
-        "note": "不记录密钥、完整 Prompt 与学生答案原文；策略间对比不代表评分质量优劣。",
+        "note": (
+            "不记录密钥、完整 Prompt 与学生答案原文；策略间对比不代表评分质量优劣。"
+            "selftest/stub 的指标仅验证计算管道，即使提供教师标签也不是模型质量结论。"
+        ),
     }
     try:
         asyncio.run(_run_strategies(
@@ -871,6 +900,7 @@ def _ground_truth_note(cases: Iterable[GradingCase]) -> dict[str, Any]:
     case_list = list(cases)
     teacher_labeled = [case for case in case_list if case.teacher_score is not None]
     return {
+        "label_sources": dict(Counter(case.label_source for case in case_list)),
         "teacher_labeled_count": len(teacher_labeled),
         "synthetic_reference_count": sum(
             1 for case in case_list if case.reference_score is not None

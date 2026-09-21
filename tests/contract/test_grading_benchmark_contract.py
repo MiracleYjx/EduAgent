@@ -242,6 +242,63 @@ def test_teacher_labels_enable_quality_metrics(results_dir: Path, tmp_path: Path
         assert metrics["metrics_unavailable_reason"] is None
 
 
+@pytest.mark.parametrize("teacher_labels", [False, True])
+def test_p4a3_persisted_label_metrics_and_selftest_evidence(
+    results_dir: Path, tmp_path: Path, teacher_labels: bool,
+) -> None:
+    """TCR P4A.3：已知误差的人工标签夹具验证公式；合成参考分绝不冒充人工分。"""
+    dataset = json.loads(benchmark.DATASET_PATH.read_text(encoding="utf-8"))
+    dataset["samples"] = dataset["samples"][:2]
+    for item, score in zip(dataset["samples"], [6, 2], strict=True):
+        item["teacher_score"] = score if teacher_labels else None
+        item["label_source"] = "teacher" if teacher_labels else "synthetic_reference"
+        item["reference_score"] = "5.00"  # 与预测相同也不能用来算质量指标。
+    path = tmp_path / "labels.json"
+    path.write_text(json.dumps(dataset, ensure_ascii=False), encoding="utf-8")
+
+    class FivePointStub(SelfTestScoringProvider):
+        async def generate_structured(self, messages, schema, **kwargs):
+            payload = await super().generate_structured(messages, schema, **kwargs)
+            return payload.model_copy(update={"score": 5.0})
+
+    record, run_id = benchmark.run_benchmark(
+        mode="selftest", dataset_path=path, results_dir=results_dir, provider=FivePointStub(),
+    )
+    saved = json.loads((results_dir / f"grading_{run_id}.json").read_text(encoding="utf-8"))
+    assert saved == record
+    assert saved["evidence_kind"] == "pipeline_selftest"
+    assert "不是模型质量结论" in saved["note"]
+    assert saved["ground_truth"]["label_sources"] == {
+        "teacher" if teacher_labels else "synthetic_reference": 2,
+    }
+    for run in saved["runs"]:
+        assert run["status"] == "completed"
+        metrics = run["metrics"]
+        # errors = [-1, 3] -> MAE 2, RMSE sqrt(5), agreement (<=1) 1/2。
+        assert [metrics[key] for key in ("mae", "rmse", "agreement_rate")] == (
+            ["2.00", "2.24", "0.5000"] if teacher_labels else [None, None, None]
+        )
+        assert metrics["effective_sample_count"] == (2 if teacher_labels else 0)
+
+
+@pytest.mark.parametrize("missing", [True, False])
+def test_p4a3_legacy_corpus_failure_keeps_original_error_code(
+    results_dir: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, missing: bool,
+) -> None:
+    """旧清单缺失或损坏仍使用原错误合同，不误报为 Provider 装配问题。"""
+    path = tmp_path / "broken.json"
+    if not missing:
+        path.write_text("{broken", encoding="utf-8")
+    monkeypatch.setattr(benchmark, "build_embedding", lambda *_: benchmark.StubEmbeddingProvider())
+    record, _ = benchmark.run_benchmark(
+        mode="real", corpus_path=path, results_dir=results_dir, strategies=("rag",),
+        settings=build_test_settings(), provider=SelfTestScoringProvider(),
+    )
+    assert record["status"] == "failed"
+    assert record["error_code"] == "GRADING_BENCHMARK_CORPUS_NOT_READY"
+    assert record["runs"] == []
+
+
 def test_invalid_payload_writes_failure_record_without_fake_score(
     results_dir: Path,
 ) -> None:
