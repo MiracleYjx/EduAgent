@@ -40,10 +40,16 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     env_file:
-      - .env
+      - ${EDUAGENT_ENV_FILE:-.env}
     environment:
       DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-eduagent}@postgres:5432/${POSTGRES_DB:-eduagent}
       REDIS_URL: redis://redis:6379/0
+      # Demo 明确使用已有云端适配器；与主机开发的本地 BGE 配置分离。
+      # 空值不回退到主机模型/密钥，启动检查会明确报告缺失配置。
+      EMBEDDING_PROVIDER: openai_compatible
+      EMBEDDING_MODEL: ${DEMO_EMBEDDING_MODEL:-}
+      EMBEDDING_BASE_URL: ${DEMO_EMBEDDING_BASE_URL:-}
+      EMBEDDING_API_KEY: ${DEMO_EMBEDDING_API_KEY:-}
     depends_on:
       postgres:
         condition: service_healthy
@@ -51,17 +57,7 @@ services:
         condition: service_healthy
     ports:
       - "127.0.0.1:${BACKEND_PORT:-8000}:8000"
-    volumes:
-      - ./.cache/huggingface:/root/.cache/huggingface
-    command:
-      [
-        "uvicorn",
-        "backend.main:app",
-        "--host",
-        "0.0.0.0",
-        "--port",
-        "8000"
-      ]
+    # 启动命令统一使用 Dockerfile CMD（Embedding 配置检查后启动 uvicorn）。
     healthcheck:
       test:
         [
