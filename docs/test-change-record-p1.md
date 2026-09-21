@@ -168,3 +168,39 @@ P1.3 之后诊断在结果事务提交后生成：进程若恰好在两者之间
 - 正向链路已实测：正式启动端点把整卷结果提交后运行停在 `Running`（模拟在诊断前中断），`recover_diagnosis_pending_runs()` 返回 1 并把该行改为 `Paused` + `resumable=True` + 暂停原因，整卷结果仍为 `is_final=True`；随后走正式恢复端点返回 200/`Completed`，诊断表出现且仅出现一条 `Ready` 行，`_finalize_diagnosis` 的替代仅用于模拟中断（恢复前已 `undo`），恢复后逐题得分不变、`retry_count` 仍为 0（未重评）；再收敛一次返回 0（幂等，已完成行不再被触碰）。
 - 反向链路已实测：无最终成绩的遗留 `Running` M4 行收敛前后均为 `Running`、`resumable=False`、无诊断行。
 - 既有 M3 收敛未受影响：`mark_interrupted_tasks_failed()` 仍只处理 `background-task-checkpoint` 行，本步未修改它；启动钩子只是在其后追加 M4 收敛，存储未就绪时返回 0、不阻断启动。
+
+## P1.4.2 T079 从正式入口验证闭环
+
+日期：2026-09-21。范围：只重写 `tests/integration/test_langgraph_grading_workflow.py` 的 T079 集成验收，使结果、复核与恢复均从正式 HTTP 入口验证；不修改评分算法、图节点结构、Checkpointer 接口、结果事务、诊断顺序或启动收敛，不新增列与 Worker。
+
+### 变更前事实与必要性
+
+- 既有 T079 先直接运行 `GradingWorkflow`，再由 `_persist_paused()` 手工保存业务检查点、调用 `ResultAggregator` 并写 `exam_results`；测试替代了 P1.2 已归还生产入口的持久化职责，不能证明低置信度结果由正式启动进入复核队列。
+- 完成态用例在图返回后手工调用 `save_exam_result()`、`mark_completed()`；复核、跨实例恢复与并发用例直接调用 `ReviewService`，绕过了 workflow/results/reviews API 的身份、读模型与恢复编排。
+- 既有事务回滚证据主要位于仓储单元测试；T079 尚未在真实 PostgreSQL 隔离 schema 上证明正式启动的结果事务提交失败不会留下部分业务结果。
+
+### 测试变更
+
+| 测试变更 | 必要性 | 覆盖内容 |
+| --- | --- | --- |
+| 移除 `_seed_checkpoint`、`_persist_paused`、`_review_service` 及完成后手工写结果/状态的代码 | 测试不得承担生产持久化与恢复职责 | 所有运行由 `POST /api/workflow/submissions/{submission_id}/runs` 创建，结果只经 GET API 观察 |
+| 高置信度正式入口用例 | 证明最终成绩不是测试补写 | 启动后由学生 `GET /api/results/me/submissions/{submission_id}` 读到 final 成绩，并从诊断 GET 读到真实 `diagnosis_reports` 的 Ready 报告 |
+| 低置信度正式入口用例 | 证明 H01 的复核可达性 | 启动后教师 `GET /api/reviews/queue` 与详情端点能看到真实待复核评分及原 Workflow 身份 |
+| 复核、结果重读与跨实例恢复用例 | 同时覆盖正式复核入口、两阶段恢复和新 Session | `POST /api/reviews/decisions` 先保存教师结论；在真实诊断存储的 `save` 边界注入一次可重试写入失败以保留可恢复态；销毁客户端后由新服务/Session 调 `POST /api/workflow/runs/{run_id}/resume`，再从结果与诊断 GET 重读最终事实 |
+| 并发正式复核用例 | 保留既有 PostgreSQL 行锁冲突证据且不绕过 API | 两个独立客户端同时提交同一决定，仅一条 `ReviewRecord` 生效，另一请求得到冲突 |
+| 正式启动事务失败用例 | 满足 P1.4.2 第 5 项 | 在结果事务提交前让该仓储 Session 的 `commit` 抛异常；验证 `grading_results`/`exam_results` 无新增、运行不为 Completed、Answer/Submission 状态未变 |
+| 结构化结果非法用例改走启动 API | 保留既有失败路径且移除手工状态写入 | Provider 返回越界分数时正式运行进入 Failed，结果 API 不伪造成绩 |
+
+### 不放宽与边界
+
+- 保留跨实例恢复、并发冲突和事务回滚；断言仍落在 PostgreSQL 行、API 回执和新 Session 重读事实三层。
+- 允许的替身仅限评分/诊断 LLM Provider、Embedding、Reranker 与检索外部边界；数据库表、Workflow、Checkpointer、结果仓储、复核服务、诊断服务/存储及 API 路由均使用真实实现。跨实例用例只在真实诊断存储的 `save` 调用上注入一次异常，不伪造或手写报告。
+- fixture 继续复用 `tests/postgres_helpers.py::isolated_postgres_engine` 创建随机 schema 并在退出时级联删除；不接触默认 schema 或现有业务数据。
+
+### 验证记录
+
+- 聚焦：`pytest tests/integration/test_langgraph_grading_workflow.py -q` 为 **6 通过**；低置信度队列、高置信度结果读取、复核后结果/诊断重读、新 Session 正式恢复、提交失败无部分结果均通过。
+- 并发用例由两个独立 `TestClient` 同时调用 `POST /api/reviews/decisions`，回执严格为 200/409，冲突码为 `REVIEW_SERVICE_CONFLICT`；PostgreSQL 中仅一条 `ReviewRecord`，评分行状态为 `Confirmed`。
+- 事务失败用例在结果仓储 Session 的 `before_commit` 事件中调用已由 `monkeypatch` 替换的 `session.commit` 并抛 `SQLAlchemyError`；正式启动返回 500 后，`grading_results`/`exam_results` 均无行，运行未变为 `Completed`，Answer 状态、Submission 状态及 `graded_at` 保持原值。
+- 全量门禁：`pytest tests/ -q` 为 **1341 通过、1 跳过、19 条既有警告**；`mypy backend/app/` 通过（125 个源码文件）；`ruff check backend/ tests/` 通过。
+- 唯一跳过项仍为 M0 容器冒烟（缺少该用例要求的独立 Compose 项目与隔离端口配置）；本步真实 PostgreSQL 容器健康，T079 每个用例均使用随机隔离 schema 并在退出时删除。
