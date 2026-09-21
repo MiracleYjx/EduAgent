@@ -60,6 +60,11 @@ from backend.app.ai.workflows.grading_workflow import (
 from backend.app.ai.workflows.state import (
     workflow_state_from_checkpoint_payload,
 )
+from backend.app.api.reviews import (
+    ReviewDecisionService,
+    ReviewQueryService,
+    TeacherDecisionRequest,
+)
 from backend.app.core.database import Base
 from backend.app.core.retry_policy import ProviderErrorInfo, ProviderExecutionError
 from backend.app.domain.enums import (
@@ -118,6 +123,7 @@ from backend.app.services.review_service import (
     ReviewIdentityError,
     ReviewInvalidDecisionError,
     ReviewPermissionError,
+    ReviewRecordRequest,
     ReviewRevisionRequiredError,
     ReviewService,
     ReviewServiceNotReadyError,
@@ -985,6 +991,86 @@ def test_repeated_decision_and_retry_do_not_duplicate_records(env: ReviewEnv) ->
     assert retry.resumed is True
     assert retry.review_record_id is None
     assert len(_records(env)) == 1
+
+
+@pytest.mark.parametrize("changed", ["score", "reason"])
+def test_resume_modified_rejects_different_content(env: ReviewEnv, changed: str) -> None:
+    """服务恢复不能把不同内容的 Modified 当成已经保存的同一决定。"""
+
+    target_id = str(env.paper.first_answer_id)
+    agent = _StubGradingAgent(
+        submission_id=str(env.paper.submission_id), low_confidence_answer_ids={target_id}
+    )
+    workflow, state, _ = _pause_run(env, agent=agent, saver=_saver(env))
+    revised = state["grading_results"][target_id].model_copy(
+        update={"score": 8.0, "reason": "第一次修订。"}
+    )
+    service = _service(env, workflow=workflow)
+    first = service.submit_decision(
+        _decision_payload(env, review_status=ReviewStatus.MODIFIED.value, revised_result=revised),
+        actor_id=env.owner_id, actor_role=UserRole.TEACHER,
+    )
+    assert first.resumed is True
+    calls_before = list(agent.calls)
+    different = revised.model_copy(
+        update={"score": 9.0} if changed == "score" else {"reason": "不同的修订理由。"}
+    )
+    with pytest.raises(ReviewStaleDecisionError):
+        service.resume_recorded_decision(
+            _decision_payload(
+                env, answer_id=target_id,
+                review_status=ReviewStatus.MODIFIED.value, revised_result=different
+            ),
+            actor_id=env.owner_id, actor_role=UserRole.TEACHER,
+        )
+    assert len(_records(env)) == 1
+    assert _grading_row(env, target_id).score == Decimal("8.00")
+    assert _grading_row(env, target_id).reason == "第一次修订。"
+    assert agent.calls == calls_before
+
+
+def test_old_modified_new_round_creates_new_record(env: ReviewEnv) -> None:
+    """历史 Modified + 当前 Pending 的快照必须经真实事务写入新的修改记录。"""
+
+    target_id = str(env.paper.first_answer_id)
+    agent = _StubGradingAgent(
+        submission_id=str(env.paper.submission_id), low_confidence_answer_ids={target_id},
+    )
+    workflow, _, _ = _pause_run(env, agent=agent, saver=_saver(env))
+    # 输入快照：旧审计仍在，当前题已经再次待复核；不伪造本次提交的结果。
+    with Session(env.engine) as session:
+        first = DatabaseReviewRecordStore().save_within(
+            session,
+            ReviewRecordRequest(
+                submission_id=str(env.paper.submission_id), answer_id=target_id,
+                reviewer_id=env.owner_id, decision=ReviewStatus.MODIFIED,
+                final_score=Decimal("8.00"), final_reason="旧轮次修改。",
+                final_knowledge_points=["变量"],
+            ),
+        )
+        session.commit()
+        first_record_id = str(first.id)
+    service = _service(env, workflow=workflow)
+    assert _grading_row(env, target_id).review_status is ReviewStatus.PENDING_REVIEW
+    api_service = ReviewDecisionService(
+        query=ReviewQueryService(session_factory=lambda: Session(env.engine)),
+        review_service=service,
+    )
+    outcome = _run(api_service.submit(
+        teacher_id=env.owner_id,
+        payload=TeacherDecisionRequest(
+            submission_id=env.paper.submission_id, answer_id=UUID(target_id),
+            workflow_id=WORKFLOW_ID, action="modify", score=Decimal("9.00"),
+            reason="本轮新的修改。", expected_review_status=ReviewStatus.PENDING_REVIEW,
+        ),
+    ))
+    assert outcome.decision_saved is True
+    assert outcome.review_record_id != first_record_id
+    records = _records(env)
+    assert len(records) == 2
+    assert sum(record.decision is ReviewStatus.MODIFIED for record in records) == 2
+    assert _grading_row(env, target_id).score == Decimal("9.00")
+    assert _grading_row(env, target_id).reason == "本轮新的修改。"
 
 
 def test_concurrent_decisions_only_one_wins(env: ReviewEnv) -> None:

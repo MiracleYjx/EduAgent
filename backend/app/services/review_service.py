@@ -424,6 +424,65 @@ class DatabaseReviewRecordStore:
         return record
 
 
+def find_matching_review_record(
+    session: Session,
+    *,
+    run: WorkflowRun,
+    decision: TeacherReviewDecision,
+    actor_id: str,
+) -> ReviewRecord | None:
+    """只复用当前仍生效的最新结论；本函数在调用方完成授权后使用。
+
+    记录没有运行外键，创建时间只用于排除旧运行的记录。再次进入 Pending Review
+    一律走新决定流程；同一运行内同内容的迟到重试需要将来持久化轮次才能区分。
+    """
+
+    if decision.workflow_id != run.workflow_id or decision.expected_review_status not in (
+        None,
+        ReviewStatus.PENDING_REVIEW.value,
+    ):
+        return None
+    row = session.scalars(
+        select(GradingResultRow).where(
+            GradingResultRow.submission_id == run.submission_id,
+            GradingResultRow.answer_id == _as_uuid(decision.answer_id, "answer_id"),
+        )
+    ).one_or_none()
+    if row is None or row.review_status.value != decision.review_status:
+        return None
+    # 先取最新记录再匹配，不能从历史中挑出一个已被覆盖的同动作记录。
+    record = session.scalars(
+        select(ReviewRecord)
+        .where(ReviewRecord.grading_result_id == row.id)
+        .order_by(ReviewRecord.created_at.desc(), ReviewRecord.id.desc())
+        .limit(1)
+    ).first()
+    if (
+        record is None
+        or record.created_at < run.created_at
+        or str(record.reviewer_id) != actor_id
+        or record.decision.value != decision.review_status
+    ):
+        return None
+    if record.decision is ReviewStatus.RE_GRADE:
+        return record
+    if (
+        record.final_score != row.score
+        or record.final_reason != row.reason
+        or record.final_knowledge_points != row.knowledge_points
+    ):
+        return None
+    if record.decision is ReviewStatus.MODIFIED:
+        revised = decision.revised_result
+        if (
+            revised is None
+            or record.final_score != Decimal(str(revised.score))
+            or record.final_reason != revised.reason
+        ):
+            return None
+    return record
+
+
 @dataclass(frozen=True, slots=True)
 class _PreparedDecision:
     """已完成校验的教师决策上下文（工作流、状态、答卷快照与当前复核状态）。"""
@@ -774,8 +833,22 @@ class ReviewService:
             raise ReviewAnswerNotFoundError(
                 "该题目还没有评分结果行，复核记录不得凭空创建。"
             )
-        already_recorded = decision.review_status in {db_status, state_status}
+        already_recorded = decision.review_status == db_status
         if allow_recorded and already_recorded:
+            with self._open_session() as session:
+                # 在同一 Session 读取时间字段，避免不同数据库驱动的时区表示差异。
+                stored_run = session.get(WorkflowRun, run.id)
+                record = (
+                    find_matching_review_record(
+                        session, run=stored_run, decision=decision, actor_id=operator_id
+                    )
+                    if stored_run is not None
+                    else None
+                )
+            if record is None:
+                raise ReviewStaleDecisionError(
+                    "该请求与当前生效的最新复核记录不一致，拒绝作为已保存决定恢复。"
+                )
             return _PreparedDecision(
                 run=run,
                 state=state,
@@ -783,6 +856,10 @@ class ReviewService:
                 current_review_status=state_status,
                 recorded_status=db_status,
                 already_recorded=True,
+            )
+        if allow_recorded and db_status != ReviewStatus.PENDING_REVIEW.value:
+            raise ReviewStaleDecisionError(
+                "当前评分已被其它决定覆盖，拒绝恢复旧结论。"
             )
         expected = decision.expected_review_status
         if expected is not None and expected not in {state_status, db_status}:
@@ -1406,4 +1483,5 @@ __all__ = [
     "ReviewStaleDecisionError",
     "ReviewWorkflowNotFoundError",
     "TeacherDecisionWorkflow",
+    "find_matching_review_record",
 ]

@@ -77,6 +77,7 @@ from backend.app.services.review_service import (
     ReviewOutcome,
     ReviewService,
     ReviewServiceError,
+    find_matching_review_record,
 )
 from backend.app.services.workflow_checkpoint import (
     WorkflowCheckpointError,
@@ -622,6 +623,48 @@ class ReviewQueryService:
         if str(course.created_by) != str(teacher_id):
             raise ReviewQueryPermissionError("无权访问该答卷所属课程。")
 
+    def find_recorded_decision(
+        self, teacher_id: str, decision: TeacherReviewDecision
+    ) -> ReviewRecordDTO | None:
+        """授权详情读取后，核验最新记录是否仍代表本次请求的决定。"""
+
+        try:
+            with self._use_session() as session:
+                run = session.scalars(
+                    select(WorkflowRun).where(
+                        WorkflowRun.workflow_id == decision.workflow_id,
+                        run_kind_criteria(),
+                    )
+                ).one_or_none()
+                if run is None:
+                    return None
+                record = find_matching_review_record(
+                    session, run=run, decision=decision, actor_id=teacher_id
+                )
+                return self._record_dto(record) if record is not None else None
+        except SQLAlchemyError as error:
+            raise ReviewQueryError(
+                "复核记录读取失败：结果存储未就绪。",
+                source_code=type(error).__name__,
+            ) from error
+
+    def count_pending_reviews(self, teacher_id: str, submission_id: str) -> int:
+        """按授权答卷当前持久化评分状态计数，不使用恢复前的图快照。"""
+
+        try:
+            with self._use_session() as session:
+                pending = self._queue_query().where(
+                    Course.created_by == _as_uuid(teacher_id, "教师标识"),
+                    GradingResult.submission_id == _as_uuid(submission_id, "答卷标识"),
+                    GradingResult.review_status == ReviewStatus.PENDING_REVIEW,
+                )
+                return int(session.scalar(select(func.count()).select_from(pending.subquery())) or 0)
+        except SQLAlchemyError as error:
+            raise ReviewQueryError(
+                "待复核数量读取失败：结果存储未就绪。",
+                source_code=type(error).__name__,
+            ) from error
+
     @staticmethod
     def _record_dto(record: ReviewRecord) -> ReviewRecordDTO:
         """把复核记录映射为审计 DTO。"""
@@ -769,13 +812,23 @@ class ReviewDecisionService:
         else:
             revised = None
             decision_status = ReviewStatus.CONFIRMED
-        duplicate = next(
-            (
-                record
-                for record in reversed(detail.review_records)
-                if record.decision is decision_status
-            ),
-            None,
+        expected_status = payload.expected_review_status or ReviewStatus.PENDING_REVIEW
+        if expected_status is not ReviewStatus.PENDING_REVIEW:
+            raise ReviewDecisionStaleError(
+                "教师决定必须基于 Pending Review 状态，请刷新后重试。"
+            )
+        decision = _teacher_decision(
+            workflow_id=workflow_id,
+            thread_id=thread_id,
+            answer_id=detail.answer_id,
+            decision_status=decision_status,
+            revised=revised,
+            expected_review_status=expected_status.value,
+        )
+        duplicate = (
+            self._query.find_recorded_decision(teacher_id, decision)
+            if detail.review_status is not ReviewStatus.PENDING_REVIEW
+            else None
         )
         if duplicate is not None:
             return ReviewDecisionOutcomeDTO(
@@ -785,9 +838,13 @@ class ReviewDecisionService:
                 decision=decision_status,
                 decision_saved=True,
                 review_record_id=duplicate.review_record_id,
-                resume_status="pending",
+                resume_status=(
+                    "succeeded" if workflow_status is WorkflowStatus.COMPLETED else "pending"
+                ),
                 workflow_status=workflow_status,
-                pending_review_count=0,
+                pending_review_count=self._query.count_pending_reviews(
+                    teacher_id, detail.submission_id
+                ),
                 resumable=detail.resumable,
                 message="该结论此前已保存，本次未重复写入；可用运行恢复入口继续。",
             )
@@ -796,18 +853,6 @@ class ReviewDecisionService:
                 f"该题当前复核状态为“{detail.review_status.value}”，无法再次提交教师结论。"
             )
         service = self._require_review_service()
-        decision = _teacher_decision(
-            workflow_id=workflow_id,
-            thread_id=thread_id,
-            answer_id=detail.answer_id,
-            decision_status=decision_status,
-            revised=revised,
-            expected_review_status=(
-                payload.expected_review_status.value
-                if payload.expected_review_status is not None
-                else ReviewStatus.PENDING_REVIEW.value
-            ),
-        )
         outcome = await service.submit_decision_async(
             decision,
             actor_id=str(teacher_id),
@@ -826,7 +871,9 @@ class ReviewDecisionService:
             resume_status=_resume_status(outcome),
             resume_error_code=outcome.resume_error_code,
             workflow_status=outcome.workflow_status,
-            pending_review_count=len(outcome.pending_answer_ids),
+            pending_review_count=self._query.count_pending_reviews(
+                teacher_id, outcome.submission_id
+            ),
             resumable=outcome.resumable,
             exam_result_persisted=outcome.exam_result_persisted,
             diagnosis_error_code=outcome.diagnosis_error_code,

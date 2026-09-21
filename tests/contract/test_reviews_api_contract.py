@@ -802,7 +802,10 @@ def test_decision_rejects_stale_state(env: dict[str, Any], client_factory: Any) 
     assert stub.calls == []
 
 
-def test_duplicate_decision_is_idempotent(env: dict[str, Any], client_factory: Any) -> None:
+@pytest.mark.parametrize("action", ["confirm", "modify"])
+def test_duplicate_decision_is_idempotent(
+    env: dict[str, Any], client_factory: Any, action: str
+) -> None:
     """同一结论重复提交按既有记录幂等返回，不写第二条 ReviewRecord。"""
 
     with Session(env["engine"]) as session:
@@ -810,8 +813,15 @@ def test_duplicate_decision_is_idempotent(env: dict[str, Any], client_factory: A
             session,
             fixture=env["fixture"],
             grading_id=env["grading"].id,
-            decision=ReviewStatus.CONFIRMED,
+            decision=ReviewStatus.CONFIRMED if action == "confirm" else ReviewStatus.MODIFIED,
         )
+        grading = session.get(GradingResult, env["grading"].id)
+        assert grading is not None
+        grading.review_status = record.decision
+        grading.score = record.final_score
+        grading.reason = record.final_reason
+        grading.knowledge_points = record.final_knowledge_points
+        session.commit()
         record_id = str(record.id)
         before = len(
             list(
@@ -828,7 +838,12 @@ def test_duplicate_decision_is_idempotent(env: dict[str, Any], client_factory: A
     response = client.post(
         "/api/reviews/decisions",
         headers=_headers(_users(env)["teacher"], UserRole.TEACHER),
-        json=_decision_body(env),
+        json=_decision_body(
+            env, action=action, score="6.00" if action == "modify" else None,
+            reason="教师确认。" if action == "modify" else None,
+            workflow_id=WORKFLOW_ID,
+            expected_review_status=ReviewStatus.PENDING_REVIEW.value,
+        ),
     )
 
     assert response.status_code == 200
@@ -849,6 +864,158 @@ def test_duplicate_decision_is_idempotent(env: dict[str, Any], client_factory: A
             )
         )
     assert after == before == 1
+
+
+@pytest.mark.parametrize(
+    ("score", "reason", "new_run"),
+    [
+        ("8.50", "教师确认。", False),
+        ("6.00", "新理由。", False),
+        ("6.00", "教师确认。", True),
+        ("6.00", "教师确认。", False),
+    ],
+    ids=["new-score", "new-reason", "new-workflow", "pending-again"],
+)
+def test_old_modified_does_not_swallow_new_pending_decision(
+    env: dict[str, Any], client_factory: Any, score: str, reason: str, new_run: bool
+) -> None:
+    """H04 反例：历史 Modified 不能让当前 Pending Review 的新决定被跳过。"""
+
+    workflow_id = WORKFLOW_ID
+    with Session(env["engine"]) as session:
+        record = _seed_review_record(
+            session, fixture=env["fixture"], grading_id=env["grading"].id,
+            decision=ReviewStatus.MODIFIED,
+        )
+        old_id = str(record.id)
+        if new_run:
+            store = WorkflowCheckpointStore(session=session)
+            state = dict(store.restore_state(WORKFLOW_ID))
+            workflow_id = "grading-review-2"
+            state.update(workflow_id=workflow_id, request_id="request-review-2")
+            store.save_checkpoint(
+                workflow_id, state, "Pending Review", state["pause_reason"],
+                thread_id="thread-review-2",
+            )
+    stub = _StubReviewService()
+    client = client_factory(decision=_decision_service(env, stub))
+    response = client.post(
+        "/api/reviews/decisions",
+        headers=_headers(_users(env)["teacher"], UserRole.TEACHER),
+        json=_decision_body(
+            env, action="modify", score=score, reason=reason, workflow_id=workflow_id,
+            expected_review_status=ReviewStatus.PENDING_REVIEW.value,
+        ),
+    )
+    assert response.status_code == 200
+    assert response.json()["review_record_id"] != old_id
+    assert len(stub.calls) == 1
+    decision = stub.calls[0]["decision"]
+    assert decision.workflow_id == workflow_id
+    assert decision.revised_result.score == Decimal(score)
+    assert decision.revised_result.reason == reason
+
+
+@pytest.mark.parametrize("changed", ["score", "reason", "expected", "overwritten", "workflow"])
+def test_modified_retry_rejects_changed_or_superseded_identity(
+    env: dict[str, Any], client_factory: Any, changed: str
+) -> None:
+    """已生效修改只接受同一请求；旧历史动作不能绕过 stale/轮次检查。"""
+
+    with Session(env["engine"]) as session:
+        record = _seed_review_record(
+            session, fixture=env["fixture"], grading_id=env["grading"].id,
+            decision=ReviewStatus.MODIFIED,
+        )
+        grading = session.get(GradingResult, env["grading"].id)
+        assert grading is not None
+        grading.review_status = ReviewStatus.MODIFIED
+        grading.score = record.final_score
+        grading.reason = record.final_reason
+        grading.knowledge_points = record.final_knowledge_points
+        session.commit()
+        if changed == "overwritten":
+            latest = _seed_review_record(
+                session, fixture=env["fixture"], grading_id=grading.id,
+                decision=ReviewStatus.MODIFIED,
+            )
+            latest.final_score = grading.score = Decimal("9.00")
+            latest.final_reason = grading.reason = "后续决定。"
+            session.commit()
+        if changed == "workflow":
+            store = WorkflowCheckpointStore(session=session)
+            state = dict(store.restore_state(WORKFLOW_ID))
+            state.update(workflow_id="grading-review-2", request_id="request-review-2")
+            store.save_checkpoint(
+                "grading-review-2", state, "Pending Review", state["pause_reason"],
+                thread_id="thread-review-2",
+            )
+    stub = _StubReviewService()
+    client = client_factory(decision=_decision_service(env, stub))
+    response = client.post(
+        "/api/reviews/decisions",
+        headers=_headers(_users(env)["teacher"], UserRole.TEACHER),
+        json=_decision_body(
+            env, action="modify", score="8.00" if changed == "score" else "6.00",
+            reason="新理由。" if changed == "reason" else "教师确认。",
+            workflow_id="grading-review-2" if changed == "workflow" else WORKFLOW_ID,
+            expected_review_status=(
+                ReviewStatus.MODIFIED.value if changed == "expected"
+                else ReviewStatus.PENDING_REVIEW.value
+            ),
+        ),
+    )
+    assert response.status_code == 409
+    assert response.json()["detail"]["error_code"] == REVIEW_DECISION_STALE
+    assert not stub.calls
+
+
+def test_duplicate_reports_current_pending_count(
+    env: dict[str, Any], client_factory: Any
+) -> None:
+    """重复决定返回同答卷另一题的实时待复核数，不固定为 0。"""
+
+    with Session(env["engine"]) as session:
+        record = _seed_review_record(
+            session, fixture=env["fixture"], grading_id=env["grading"].id,
+            decision=ReviewStatus.MODIFIED,
+        )
+        grading = session.get(GradingResult, env["grading"].id)
+        assert grading is not None
+        grading.review_status = record.decision
+        grading.score = record.final_score
+        grading.reason = record.final_reason
+        grading.knowledge_points = record.final_knowledge_points
+        # 同一答卷另一题；字段来自既有评分准备，不依赖固定回执计数。
+        other = GradingResult(
+            **{
+                column.name: getattr(env["grading"], column.name)
+                for column in GradingResult.__table__.columns
+                if column.name not in {"id", "answer_id", "created_at", "updated_at"}
+            },
+            answer_id=env["fixture"].objective_answer_id,
+        )
+        other.review_status = ReviewStatus.PENDING_REVIEW
+        session.add(other)
+        session.commit()
+    stub = _StubReviewService()
+    client = client_factory(decision=_decision_service(env, stub))
+    body = _decision_body(env, action="modify", score="6.00", reason="教师确认。")
+    headers = _headers(_users(env)["teacher"], UserRole.TEACHER)
+    response = client.post("/api/reviews/decisions", headers=headers, json=body)
+    assert response.status_code == 200
+    assert response.json()["pending_review_count"] == 1
+    with Session(env["engine"]) as session:
+        pending = session.scalars(
+            select(GradingResult).where(GradingResult.review_status == ReviewStatus.PENDING_REVIEW)
+        ).one()
+        pending.review_status = ReviewStatus.CONFIRMED
+        session.commit()
+    retry = client.post("/api/reviews/decisions", headers=headers, json=body)
+    assert retry.status_code == 200
+    assert retry.json()["pending_review_count"] == 0
+    assert retry.json()["review_record_id"] == response.json()["review_record_id"]
+    assert not stub.calls
 
 
 def test_decision_reports_partial_success(env: dict[str, Any], client_factory: Any) -> None:
