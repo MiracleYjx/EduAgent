@@ -831,17 +831,29 @@ def test_outcome_commit_failure_leaves_no_partial_results(
 
     def failing_outcome_session() -> Session:
         session = Session(solo_env.engine)
+        commit = session.commit
 
         def fail_commit() -> None:
-            raise SQLAlchemyError("测试模拟结果事务提交失败")
+            if session.info.get("wrote_results"):
+                raise SQLAlchemyError("测试模拟结果事务提交失败")
+            commit()
 
         monkeypatch.setattr(session, "commit", fail_commit)
+
+        @event.listens_for(session, "before_flush")
+        def track_result_writes(active: Session, *_args: Any) -> None:
+            if any(
+                isinstance(row, (GradingResult, ExamResult))
+                for row in active.new.union(active.dirty)
+            ):
+                active.info["wrote_results"] = True
 
         @event.listens_for(session, "before_commit", once=True)
         def call_patched_commit(active: Session) -> None:
             # save_workflow_outcome 使用 session.begin()；在它真正提交前调用已 monkeypatch
             # 的 session.commit，使故障落在生产事务的提交边界而不是业务写入中间。
-            active.commit()
+            if active.info.get("wrote_results"):
+                active.commit()
 
         return session
 

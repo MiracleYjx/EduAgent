@@ -78,3 +78,38 @@
 - 真实 Alembic CLI 在随机 `test_review_round_*` schema 执行 `upgrade 0009_agent_runs`，准备旧数据后执行 `upgrade head`、`downgrade -1`、再次 `upgrade head`，全部成功；断言 UUID/nullable/普通索引、历史两列 NULL、降级后原业务行仍在。测试结束删除自身 schema，默认业务 schema 未迁移。
 - 最终门禁：`pytest tests/ -q` 为 **1385 通过、1 跳过、8 条警告**，净增 11 项；唯一跳过项仍为缺少独立 Compose 参数的 M0 冒烟。`mypy backend/app/` 通过（125 个源码文件）；`ruff check backend/ tests/` 及新增迁移文件检查通过。
 - 生产改动限于授权的两个模型、复核 API/服务和新增迁移；结果仓储、诊断顺序、Workflow 图及 P2 UI 均未修改。
+
+## P3.2 M4 启动并发互斥
+
+日期：2026-09-21。生产范围：`api/workflow.py`；复用 M3 `DatabaseGradingRepository.lock_submission`，不改结果持久化、诊断、启动收敛、复核幂等或 UI。
+
+### 变更前事实与必要性
+
+- M4 启动无锁读取最近运行后独立写入随机运行 ID，两个独立 Session 可同时读到无记录并各自受理。顺序重复测试不足以证明并发互斥。
+- M3 已提供 PostgreSQL `FOR NO KEY UPDATE` 答卷锁；可兼容独立受理事务插入运行时的外键检查。锁事务覆盖“查询活动运行—提交受理记录”，之后立即释放，模型链完全在锁外执行。
+- 查询应先限定 M4 kind 与活动状态，不能让较新的历史终态记录遮蔽较早的活动运行。用户已确认：仅历史终态记录不构成活动冲突，保留答卷生命周期门禁，只有 Submitted 可新建；Graded 普通启动不得重评，显式重评仍走原入口。
+
+### 测试变更计划
+
+| 测试范围 | 必要性与覆盖 |
+| --- | --- |
+| PostgreSQL 并发启动 | 随机隔离 schema、两个独立应用/Session 从正式启动 API 争抢同一答卷；同步真实 SQL 锁请求，断言恰好一条 M4 运行、一份模型调用，以及一个创建/一个复用回执 |
+| 模型期间释放锁 | Provider 边界暂挂调用，独立 Session 用 NOWAIT 立即取得答卷锁并读取已提交 Running 记录；第二个启动无需等待模型完成即复用 |
+| kind 与活动筛选 | M3 活动行不阻挡 M4；较新终态行不能遮蔽现有 M4 活动行；保留顺序重复启动与原权限/草稿门禁 |
+| 历史终态 | 按确认后的生命周期边界更新旧 Completed 契约，显式重评仍遵循既有入口，不扩展评分/持久化业务 |
+
+仅替换外部模型及检索边界，复用 T079 真实 API/图/存储装配；同步钩子只用于控制并发时序，不代替业务互斥。保留既有跨实例恢复、复核并发、结果事务回滚测试。门禁为完整 pytest、mypy、ruff。
+
+- 既有结果事务失败用例的故障 Session 工厂如今也供受理锁使用。故障注入需限定为实际写入评分/整卷结果的事务，避免提前在只读锁事务失败；保持“结果提交失败、无部分成绩、无 Completed、答卷/答案状态不变”全部断言，不放宽结果。
+- 授权/答卷快照在取锁后读取，避免排队等待期间已完成评分、却用旧 Submitted 快照再次受理；补充真实 PostgreSQL 等锁期间生命周期变化用例。
+
+### 验证记录
+
+- `test_concurrent_start_reuses_one_run_and_releases_submission_lock` 在无 M3 行/存在 M3 Running 行两种环境下验证：两个独立应用、两个不同 PostgreSQL backend PID 同时竞争答卷锁；仅一条 M4 运行、一次模型调用，两个 HTTP 200 分别返回 `reused=False/True`，共享 workflow/thread。随后顺序启动继续复用；M3 行及状态保持不变。
+- 同用例在 Provider 暂挂期间取得复用回执，并由第三个 Session 以 `FOR NO KEY UPDATE NOWAIT` 立即获得答卷锁、读回已提交 Running 记录，证明模型调用没有持有答卷锁。
+- `test_waiting_start_rechecks_submission_lifecycle_after_lock` 在请求等锁期间提交 Graded 状态，取锁后返回生命周期 409，零模型调用、零新增运行。
+- `test_historical_terminal_run_does_not_block_submitted_submission` 覆盖 Completed/Failed 历史行；`test_newer_terminal_run_does_not_hide_active_run` 验证新终态行不遮蔽活动行；既有 Graded 与显式重评仍拒绝，不覆盖成绩。
+- 反向验证：独立 Python 进程仅在内存中替换为 `d1c4487` 的 `start_run`，新增 PostgreSQL 并发用例因启动未尝试答卷锁而失败；工作区生产源码未替换。
+- 初次聚焦运行发现新增 Failed 夹具遗漏错误信息，补齐既有检查点要求的 `error.error_code/message/retryable` 后通过；未放宽生产校验或断言。
+- 最终门禁：`pytest tests/ -q` 为 **1391 通过、1 跳过、7 条既有警告**（233.57 秒），净增 6 项；唯一跳过仍是缺少隔离 Compose 项目/端口参数的 M0 冒烟。真实 PostgreSQL 并发、跨实例恢复、复核冲突及结果提交回滚均通过。`mypy backend/app/` 通过（125 个源码文件），`ruff check backend/ tests/` 通过，`git diff --check` 通过。
+- 生产只改 `api/workflow.py`；直接复用 M3 锁接口与现有 Running 受理状态，不新增数据库列、Worker、依赖，也不改 P1/P2/P3.1/P3.1.1 业务逻辑。隔离 schema 由 fixture 创建并销毁，默认业务 schema 未改动。
