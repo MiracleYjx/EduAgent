@@ -18,7 +18,7 @@ from backend.app.core.retry_policy import (
     RetryPolicy,
 )
 
-from .base import BaseLLMProvider, LLMMessages
+from .base import BaseLLMProvider, LLMMessages, LLMProviderMetadata
 
 _JSON_INSTRUCTION = "请仅返回合法的 JSON 对象，不要输出 Markdown、解释或其他文本。"
 
@@ -49,6 +49,20 @@ class DeepSeekProvider(BaseLLMProvider):
             timeout=timeout,
             max_retries=0,
         )
+
+    def describe(self, *, prompt_version: str | None = None) -> LLMProviderMetadata:
+        """默认模型来自构造后的实例，不再读取配置或猜测 fallback 最终去向。
+
+        非 SDK 客户端身份不明，不将其输出归因给 DeepSeek；存在 fallback 时当前
+        适配器没有逐次路由回执，保守记 unknown，保留可证明的方法入口。
+        """
+
+        metadata = super().describe(prompt_version=prompt_version)
+        if self._fallback_provider is not None or not isinstance(self._client, AsyncOpenAI):
+            metadata.update({"provider": "unknown", "model": "unknown"})
+        else:
+            metadata["model"] = self._model.strip() or "unknown"
+        return metadata
 
     async def generate_structured(
         self,

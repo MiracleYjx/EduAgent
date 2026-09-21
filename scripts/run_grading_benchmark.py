@@ -61,7 +61,7 @@ from backend.app.ai.embedding.base import (
     EmbeddingProviderError,
     EmbeddingProviderNotReadyError,
 )
-from backend.app.ai.llm.base import BaseLLMProvider
+from backend.app.ai.llm.base import BaseLLMProvider, describe_llm_provider
 from backend.app.ai.llm.factory import create_llm_provider
 from backend.app.ai.retrieval.base import (
     DEFAULT_TOP_K,
@@ -245,6 +245,9 @@ class IdentityReranker(BaseReranker):
 
 class SelfTestScoringProvider(BaseLLMProvider):
     """自检用评分 Provider：按参考分与关键词命中给出确定性分数。"""
+
+    provider_name = "stub"
+    model_name = "selftest-stub"
 
     def __init__(self) -> None:
         self.calls = 0
@@ -765,6 +768,9 @@ async def _run_strategies(
             active_provider = provider if provider is not None else build_provider(mode, settings)
         except Exception as error:  # noqa: BLE001 - 未配置时明确失败
             raise ProviderNotReady(f"GRADING_PROVIDER_NOT_READY_{type(error).__name__}") from None
+        record.update(describe_llm_provider(
+            active_provider, prompt_version=SUBJECTIVE_GRADING_PROMPT_VERSION,
+        ))
         for strategy in strategies:
             retriever, reranker = build_retrieval_components(
                 mode, strategy, settings=settings, provider=active_provider,
@@ -826,7 +832,9 @@ def run_benchmark(
             "score_scale": dataset.get("metadata", {}).get("score_scale", "unknown"),
             "sample_count": len(cases),
         },
-        "model": _model_name(mode, resolved_settings),
+        "provider": "unknown",
+        "model": "unknown",
+        "call_path": "unknown",
         "prompt_version": SUBJECTIVE_GRADING_PROMPT_VERSION,
         "ground_truth": _ground_truth_note(cases),
         "runs": [],
@@ -855,14 +863,6 @@ def run_benchmark(
     )
     write_run_records(record, results_dir=results_dir, run_id=resolved_run_id)
     return record, resolved_run_id
-
-
-def _model_name(mode: str, settings: AppSettings) -> str:
-    """返回本次运行的模型标识；自检模式如实标注为 stub。"""
-
-    if mode == "selftest":
-        return "selftest-stub"
-    return str(getattr(settings, "deepseek_model", "unknown"))
 
 
 def _ground_truth_note(cases: Iterable[GradingCase]) -> dict[str, Any]:

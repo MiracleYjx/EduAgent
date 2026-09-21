@@ -19,7 +19,7 @@ class ExampleResult(BaseModel):
 
 
 class StubProvider(BaseLLMProvider):
-    provider_name = "deepseek"
+    provider_name = "stub"
 
     async def generate_structured(
         self,
@@ -87,3 +87,34 @@ def test_factory_rejects_builder_that_does_not_return_provider() -> None:
 
     with pytest.raises(TypeError, match="必须返回 BaseLLMProvider"):
         factory.create(build_settings())
+
+
+def test_stub_metadata_does_not_inherit_factory_registration_identity() -> None:
+    """P4.2 TCR：注册名不是模型身份，真实调用路径只能指向替身方法。"""
+
+    factory = LLMProviderFactory({"deepseek": lambda _: StubProvider()})
+    provider = factory.create(build_settings())
+    metadata = provider.describe(prompt_version="test-prompt-v1")
+    assert metadata == {
+        "provider": "stub",
+        "model": "unknown",
+        "prompt_version": "test-prompt-v1",
+        "call_path": f"{StubProvider.__module__}.StubProvider.generate_structured",
+    }
+    assert "deepseek" not in str(metadata).lower()
+
+
+@pytest.mark.parametrize("model_name", [None, "", "   "])
+def test_empty_provider_model_metadata_is_unknown(model_name: str | None) -> None:
+    provider = StubProvider()
+    provider.model_name = model_name
+    metadata = provider.describe()
+    assert metadata["model"] == "unknown"
+    assert metadata["prompt_version"] == "unknown"
+
+
+def test_undeclared_provider_identity_is_unknown() -> None:
+    class AnonymousProvider(StubProvider):
+        provider_name = ""
+
+    assert AnonymousProvider().describe()["provider"] == "unknown"

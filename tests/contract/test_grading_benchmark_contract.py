@@ -14,6 +14,7 @@ TCR（B04）：补齐全失败、部分失败、调用中断与未执行样本�
 from __future__ import annotations
 
 import asyncio
+import csv
 import json
 import subprocess
 import sys
@@ -36,6 +37,75 @@ from backend.app.core.retry_policy import ProviderErrorInfo, ProviderExecutionEr
 from scripts import run_grading_benchmark as benchmark
 from scripts.run_grading_benchmark import SelfTestScoringProvider
 from tests.unit.settings_helpers import build_test_settings
+
+
+@pytest.mark.parametrize("injected", [False, True])
+@pytest.mark.parametrize("model_name", ["actual-stub-model-v2", ""])
+def test_benchmark_metadata_comes_from_resolved_provider(
+    results_dir: Path, monkeypatch: pytest.MonkeyPatch, injected: bool, model_name: str,
+) -> None:
+    """P4.2 TCR：real 模式也不得用配置模型冒充实际替身，JSON/CSV 保持同源。"""
+
+    provider = SelfTestScoringProvider()
+    provider.model_name = model_name
+    settings = build_test_settings(deepseek_model="configured-model-must-not-appear")
+    monkeypatch.setattr(
+        embedding_factory, "create_embedding_provider", lambda _: benchmark.StubEmbeddingProvider(),
+    )
+    resolutions = []
+
+    def resolve(mode, passed):
+        resolutions.append((mode, passed))
+        return provider
+
+    monkeypatch.setattr(benchmark, "build_provider", resolve)
+    record, run_id = benchmark.run_benchmark(
+        mode="real", settings=settings, provider=provider if injected else None,
+        strategies=("zero_shot",), limit=1, results_dir=results_dir,
+    )
+    assert record["status"] == "completed"
+    assert provider.calls == 1
+    assert resolutions == ([] if injected else [("real", settings)])
+    assert record["provider"] == "stub"
+    assert record["model"] == (model_name or "unknown")
+    assert record["prompt_version"] == benchmark.SUBJECTIVE_GRADING_PROMPT_VERSION
+    assert record["call_path"] == (
+        "scripts.run_grading_benchmark.SelfTestScoringProvider.generate_structured"
+    )
+    saved = json.loads((results_dir / f"grading_{run_id}.json").read_text(encoding="utf-8"))
+    assert saved == record
+    with (results_dir / benchmark.SUMMARY_FILENAME).open(encoding="utf-8", newline="") as handle:
+        rows = list(csv.DictReader(handle))
+    assert rows[0]["model"] == record["model"]
+    assert rows[0]["prompt_version"] == record["prompt_version"]
+    assert "configured-model-must-not-appear" not in json.dumps(saved)
+
+
+def test_selftest_default_provider_is_explicit_stub(results_dir: Path) -> None:
+    record, _ = benchmark.run_benchmark(
+        mode="selftest", settings=build_test_settings(llm_provider="openai_compatible"),
+        strategies=("zero_shot",), limit=1, results_dir=results_dir,
+    )
+    assert record["status"] == "completed"
+    assert record["provider"] == "stub"
+    assert record["model"] == "selftest-stub"
+    assert "SelfTestScoringProvider.generate_structured" in record["call_path"]
+
+
+def test_unresolved_benchmark_provider_has_unknown_identity(
+    results_dir: Path, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        embedding_factory, "create_embedding_provider", lambda _: benchmark.StubEmbeddingProvider(),
+    )
+    record, _ = benchmark.run_benchmark(
+        mode="real", settings=build_test_settings(llm_provider="openai_compatible"),
+        strategies=("zero_shot",), limit=1, results_dir=results_dir,
+    )
+    assert record["status"] == "failed"
+    assert record["error_code"] == "GRADING_PROVIDER_NOT_READY_UnsupportedLLMProviderError"
+    assert record["provider"] == record["model"] == record["call_path"] == "unknown"
+    assert record["runs"] == []
 
 
 class OutOfRangeProvider(SelfTestScoringProvider):

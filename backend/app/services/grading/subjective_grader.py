@@ -28,7 +28,7 @@ from __future__ import annotations
 
 import json
 import math
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
 from typing import Any, ClassVar, Final, Protocol
 
@@ -42,7 +42,13 @@ from pydantic import (
 from sqlalchemy.orm import Session
 
 from backend.app.ai.embedding.base import BaseEmbeddingProvider
-from backend.app.ai.llm.base import BaseLLMProvider, LLMMessage, LLMMessages
+from backend.app.ai.llm.base import (
+    BaseLLMProvider,
+    LLMMessage,
+    LLMMessages,
+    LLMProviderMetadata,
+    describe_llm_provider,
+)
 from backend.app.ai.llm.factory import create_llm_provider
 from backend.app.ai.retrieval.base import DEFAULT_TOP_K, BaseRetriever
 from backend.app.ai.retrieval.reranker import BaseReranker
@@ -414,6 +420,8 @@ class SubjectiveGrader:
         显式失败，不在导入期实例化。
     :param policy: 置信度策略；``None`` 时使用 :class:`ConfidencePolicy`（读取
         ``AppSettings.confidence_threshold``）。入口返回前必执行置信度检查。
+    :param on_provider_metadata: 可选的调用元数据接收方，只回传本次实际解析的 Provider
+        来源，不在评分器实例缓存最后一次模型身份。
     """
 
     def __init__(
@@ -421,9 +429,11 @@ class SubjectiveGrader:
         *,
         provider: BaseLLMProvider | None = None,
         policy: ConfidencePolicyLike | None = None,
+        on_provider_metadata: Callable[[LLMProviderMetadata], None] | None = None,
     ) -> None:
         self._provider = provider
         self._policy = policy
+        self._on_provider_metadata = on_provider_metadata
 
     async def grade(
         self,
@@ -522,6 +532,10 @@ class SubjectiveGrader:
             raise ProviderFailedError("评分 Provider 调用失败。") from None
         if not isinstance(result, SubjectiveGradingPayload):
             raise InvalidLLMResponseError("评分 Provider 未返回约定的结构化结果。")
+        if self._on_provider_metadata is not None:
+            self._on_provider_metadata(describe_llm_provider(
+                provider, prompt_version=SUBJECTIVE_GRADING_PROMPT_VERSION,
+            ))
         return result
 
     def _apply_confidence_check(

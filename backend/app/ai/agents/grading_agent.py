@@ -56,7 +56,7 @@ from backend.app.ai.agents.state import (
     confidence_decision_snapshot,
 )
 from backend.app.ai.embedding.base import BaseEmbeddingProvider
-from backend.app.ai.llm.base import BaseLLMProvider
+from backend.app.ai.llm.base import BaseLLMProvider, LLMProviderMetadata
 from backend.app.ai.retrieval.base import DEFAULT_TOP_K, BaseRetriever
 from backend.app.ai.retrieval.reranker import BaseReranker
 from backend.app.core.config import AppSettings
@@ -89,7 +89,6 @@ from backend.app.services.grading.question_router import (
 )
 from backend.app.services.grading.result_aggregator import ResultAggregator
 from backend.app.services.grading.subjective_grader import (
-    SUBJECTIVE_GRADING_PROMPT_VERSION,
     SubjectiveGrader,
     SubjectiveGradingError,
 )
@@ -203,18 +202,6 @@ def _ensure_no_running_loop() -> None:
         "当前线程已有事件循环，请使用 await score_async(...) / grade_answer_async(...)。",
         error_code=GRADING_AGENT_ASYNC_REQUIRED,
     )
-
-
-def _resolve_provider_model(provider: BaseLLMProvider | None) -> str | None:
-    """读取 Provider 实际提供的模型标识；无法获取时返回 ``None``，不伪造。"""
-
-    if provider is None:
-        return None
-    for attribute in ("model_name", "model"):
-        value = getattr(provider, attribute, None)
-        if isinstance(value, str) and value.strip():
-            return value.strip()
-    return None
 
 
 class GradingAgent:
@@ -463,12 +450,20 @@ class GradingAgent:
             reuse_recorded_decision = self._subjective_grader is None and self._policy is None
             policy = None if reuse_recorded_decision else self._resolved_policy(resolved_settings)
             recording = DecisionRecordingPolicy(policy=policy, settings=resolved_settings)
+            metadata: LLMProviderMetadata | None = None
+
+            def record_metadata(value: LLMProviderMetadata) -> None:
+                # 每次调用独立保存；不缓存到 Agent，不串用其它题或并发请求的身份。
+                nonlocal metadata
+                metadata = value
+
             grader: SubjectiveGraderLike = (
                 self._subjective_grader
                 if self._subjective_grader is not None
                 else SubjectiveGrader(
                     provider=self._provider,
                     policy=recording if reuse_recorded_decision else policy,
+                    on_provider_metadata=record_metadata,
                 )
             )
             try:
@@ -509,7 +504,9 @@ class GradingAgent:
             if mismatch is not None:
                 return _AnswerOutcome(output=mismatch)
             return _AnswerOutcome(
-                output=self._success_output(applied, decision, question_type=question_type),
+                output=self._success_output(
+                    applied, decision, question_type=question_type, metadata=metadata,
+                ),
                 result=applied,
                 decision=decision,
             )
@@ -579,10 +576,16 @@ class GradingAgent:
         decision: ConfidenceDecision | None,
         *,
         question_type: QuestionType,
+        metadata: LLMProviderMetadata | None = None,
     ) -> AgentOutput:
         """构造成功输出；客观题不带决策快照与模型追踪字段。"""
 
         requires_review = bool(decision.requires_review) if decision is not None else False
+        model = None
+        prompt_version = None
+        if decision is not None:
+            model = metadata["model"] if metadata is not None else "unknown"
+            prompt_version = metadata["prompt_version"] if metadata is not None else "unknown"
         return AgentOutput(
             agent_type=AgentType.GRADING,
             status=AgentStatus.PENDING_REVIEW if requires_review else AgentStatus.SUCCESS,
@@ -600,8 +603,8 @@ class GradingAgent:
             ),
             requires_review=requires_review,
             retrieved_context_ids=list(result.retrieved_context_ids),
-            model=_resolve_provider_model(self._provider) if decision is not None else None,
-            prompt_version=SUBJECTIVE_GRADING_PROMPT_VERSION if decision is not None else None,
+            model=model,
+            prompt_version=prompt_version,
         )
 
     def _failure(self, code: str, detail: str) -> _AnswerOutcome:
