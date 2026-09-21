@@ -405,6 +405,97 @@ class DatabaseGradingRepository:
                     exam_result=exam_result,
                 )
 
+    # ------------------------------------------------------------ M4 工作流结果
+    def save_workflow_outcome(
+        self,
+        submission_id: str,
+        *,
+        context: SubmissionContext,
+        results: Sequence[GradingResultPayload] = (),
+        decisions: Mapping[str, ConfidenceDecision] | None = None,
+        exam_result: ExamResultDTO | None = None,
+        state_writer: Callable[[Session], WorkflowRun],
+    ) -> WorkflowRun:
+        """在一次事务内写入 M4 工作流结果与工作流业务状态（H01）。
+
+        三种事实分支：
+
+        1. 已形成整卷结果（``exam_result`` 给出）：按 ``ExamResultDTO`` 写单题结果、当次决策
+           快照、整卷结果与答卷/答案评分进度；``is_final=False`` 即待复核成绩；
+        2. 只有逐题结果（低置信度暂停在人工复核）：先写单题结果，再用本仓储的
+           ``ResultAggregator`` 按题序汇总出**待复核**（非 final）整卷结果并写入；
+        3. 两者都没有（结构化或评分失败）：不写任何成绩，只把未完成且没有落库评分的答案
+           标记为失败，失败状态与脱敏错误由 ``state_writer`` 写入。
+
+        ``state_writer`` 在**同一事务内**执行工作流业务状态写入（当前节点、暂停原因、线程信息与
+        恢复状态），任何一步失败都整体回滚，不会出现“成绩已落库但运行状态未更新”的中间态。
+        返回 ``state_writer`` 写入的运行行；本事务写入了整卷结果时同时关联 ``exam_result_id``。
+        """
+
+        resolved_decisions = dict(decisions or {})
+        with self._use_session() as session:
+            with session.begin():
+                row = self._write_workflow_outcome(
+                    session,
+                    submission_id,
+                    context=context,
+                    results=results,
+                    decisions=resolved_decisions,
+                    exam_result=exam_result,
+                    state_writer=state_writer,
+                )
+            # 提交后刷新，避免向调用方返回已过期的会话对象。
+            session.refresh(row)
+            return row
+
+    def _write_workflow_outcome(
+        self,
+        session: Session,
+        submission_id: str,
+        *,
+        context: SubmissionContext,
+        results: Sequence[GradingResultPayload],
+        decisions: Mapping[str, ConfidenceDecision],
+        exam_result: ExamResultDTO | None,
+        state_writer: Callable[[Session], WorkflowRun],
+    ) -> WorkflowRun:
+        """在调用方事务内写入 M4 工作流结果（不提交、不关闭会话）。"""
+
+        submission_uuid = _as_uuid(submission_id)
+        submission = session.get(Submission, submission_uuid)
+        if submission is None:
+            raise GradingSubmissionNotFoundError(f"答卷 {submission_id} 不存在。")
+        target = exam_result
+        if target is None and results:
+            if _as_uuid(context.submission_id) != submission_uuid:
+                raise GradingResultOwnershipError("提交上下文与目标答卷不一致，拒绝写入。")
+            target = self._aggregator.aggregate(
+                context,
+                results=list(results),
+                decisions=dict(decisions),
+                now=self._clock(),
+            )
+        if target is not None:
+            if _as_uuid(target.submission_id) != submission_uuid:
+                raise GradingResultOwnershipError("整卷结果与目标答卷不一致，拒绝写入。")
+            payloads, derived = _exam_result_payloads(target)
+            merged = {**derived, **dict(decisions)}
+            for payload in payloads:
+                self._upsert_result(session, submission, payload, merged)
+            self._upsert_exam_result(session, submission, target)
+            self._mark_graded(session, submission)
+        else:
+            self._mark_answers_failed(session, submission.id)
+        session.flush()
+        row = state_writer(session)
+        if row.submission_id != submission.id:
+            raise GradingResultOwnershipError("工作流运行与目标答卷不一致，拒绝提交结果。")
+        if target is not None:
+            row.exam_result_id = session.scalars(
+                select(ExamResult.id).where(ExamResult.submission_id == submission.id)
+            ).one_or_none()
+        return row
+
     # ------------------------------------------------------------ 单题结果
     def get_single_result(
         self,
