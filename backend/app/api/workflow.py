@@ -6,7 +6,8 @@ T061 诊断记录器、T069 阅卷 Agent、T072 图与教师决策契约、T073 
 边界与不变量：
 
 - **幂等启动**：以“同一答卷的活动运行”为幂等边界。重复启动复用既有 ``workflow_id``/
-  ``thread_id``，不为同一答卷并行创建两个活动运行；草稿答卷或已完成运行显式返回 409。
+  ``thread_id``，在 M3 答卷短事务锁内查询并受理，不并行创建两个活动运行。历史终态不阻挡
+  已提交答卷的新运行；草稿/已评分答卷仍由生命周期门禁拒绝，模型调用完全在锁外执行。
 - **执行归属**：``workflow_runs`` 由 M3 后台任务与 M4 工作流共用。本模块只读写 kind 为 T065
   业务状态载荷的 M4 运行行（:func:`run_kind_criteria`）；M3 后台任务检查点不参与 M4 的幂等
   启动、状态判定与恢复，反之 M3 的查询也只读自己的 kind。
@@ -25,7 +26,7 @@ T061 诊断记录器、T069 阅卷 Agent、T072 图与教师决策契约、T073 
   两者都返回经 Pydantic 校验的 ``DiagnosisReportDTO``，保存走独立短事务。
 
 错误语义：401 未认证、403 无权限或跨课程、404 运行/答卷不存在、409 状态冲突（未提交答卷、
-已完成运行、人工复核未结论、运行不可恢复）、422 输入非法、503 依赖未就绪（存储、Checkpointer、
+已评分答卷、显式重评不支持、人工复核未结论、运行不可恢复）、422 输入非法、503 依赖未就绪（存储、Checkpointer、
 复核服务）。运行中途故障写入真实运行状态，不映射回“启动前未就绪”。
 """
 
@@ -538,39 +539,44 @@ class WorkflowService:
         """启动一次阅卷运行；活动运行存在时幂等复用。"""
 
         self._ensure_ready()
-        self._outcome_repository()
-        snapshot = self._load_for_teacher(submission_id, actor_id)
-        existing = self._latest_run(submission_id)
-        if existing is not None and existing.status in ACTIVE_RUN_STATUSES:
-            return self._teacher_dto(existing, reused=True)
-        if existing is not None:
-            if regrade:
-                raise WorkflowRunConflictError(
-                    "该答卷已有运行记录；重评请使用阅卷 API 的显式重评入口。",
-                    error_code=WORKFLOW_RUN_REGRADE_UNSUPPORTED,
+        repository = self._outcome_repository()
+        try:
+            # 复用 M3 的 FOR NO KEY UPDATE：与运行插入的外键检查兼容。
+            # 查询与受理提交均受答卷锁保护；离开此处后才绑定 runtime、执行模型链。
+            with repository.lock_submission(submission_id):
+                # 等待锁期间答卷可能已完成评分，必须在取锁后读取授权与生命周期事实。
+                snapshot = self._load_for_teacher(submission_id, actor_id)
+                existing = self._latest_run(submission_id, active_only=True)
+                if existing is not None:
+                    return self._teacher_dto(existing, reused=True)
+                if regrade and self._latest_run(submission_id) is not None:
+                    raise WorkflowRunConflictError(
+                        "该答卷已有运行记录；重评请使用阅卷 API 的显式重评入口。",
+                        error_code=WORKFLOW_RUN_REGRADE_UNSUPPORTED,
+                    )
+                self._ensure_startable(snapshot)
+                workflow_id = f"grading-{uuid4()}"
+                thread_id = str(uuid4())
+                initial_state: dict[str, Any] = {
+                    "workflow_id": workflow_id,
+                    "request_id": request_id,
+                    "submission_id": str(submission_id),
+                    "current_answer_order": 1,
+                    "retry_count": 0,
+                    "status": WorkflowStatus.RUNNING,
+                    "current_node": LOAD_SUBMISSION,
+                }
+                # 沿用 M3 模式：受理记录在独立短事务提交后，才释放外层答卷锁。
+                self._save_state(
+                    workflow_id=workflow_id,
+                    state=initial_state,
+                    current_node=LOAD_SUBMISSION,
+                    thread_id=thread_id,
                 )
-            raise WorkflowRunConflictError(
-                f"该答卷的运行已处于“{existing.status.value}”，如需重评请显式请求。"
-            )
-        self._ensure_startable(snapshot)
-        workflow_id = f"grading-{uuid4()}"
-        thread_id = str(uuid4())
-        initial_state: dict[str, Any] = {
-            "workflow_id": workflow_id,
-            "request_id": request_id,
-            "submission_id": str(submission_id),
-            "current_answer_order": 1,
-            "retry_count": 0,
-            "status": WorkflowStatus.RUNNING,
-            "current_node": LOAD_SUBMISSION,
-        }
-        # 先落运行记录，再把 thread_id 绑定到该记录：Checkpointer 只允许写入已绑定的运行。
-        self._save_state(
-            workflow_id=workflow_id,
-            state=initial_state,
-            current_node=LOAD_SUBMISSION,
-            thread_id=thread_id,
-        )
+        except GradingTaskError as error:
+            raise _grading_error(error) from None
+        except SQLAlchemyError as error:
+            raise WorkflowNotReadyError("启动受理失败：答卷锁或运行存储未就绪。") from error
         saver = self._checkpointer()
         saver.bind_thread(thread_id, workflow_id)
         workflow = self._build_workflow(snapshot, saver)
@@ -984,20 +990,25 @@ class WorkflowService:
                 source_code=error.error_code,
             ) from error
 
-    def _latest_run(self, submission_id: str) -> WorkflowRun | None:
+    def _latest_run(
+        self, submission_id: str, *, active_only: bool = False
+    ) -> WorkflowRun | None:
         """读取该答卷最近一次运行记录；只读属于本执行器（M4 工作流）的行。
 
         同一张 ``workflow_runs`` 表还存放 M3 后台任务检查点：那些行不是 M4 的运行，因此不能
         参与本模块的幂等启动与状态判定。
         """
 
+        query = (
+            select(WorkflowRun)
+            .where(WorkflowRun.submission_id == _as_uuid(submission_id))
+            .where(run_kind_criteria())
+        )
+        if active_only:
+            query = query.where(WorkflowRun.status.in_(ACTIVE_RUN_STATUSES))
         with self._use_session() as session:
             return session.scalars(
-                select(WorkflowRun)
-                .where(WorkflowRun.submission_id == _as_uuid(submission_id))
-                .where(run_kind_criteria())
-                .order_by(WorkflowRun.created_at.desc(), WorkflowRun.id)
-                .limit(1)
+                query.order_by(WorkflowRun.created_at.desc(), WorkflowRun.id).limit(1)
             ).first()
 
     def _require_run(self, workflow_id: str) -> WorkflowRun:

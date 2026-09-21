@@ -7,7 +7,7 @@ TCR（2026-09-18，T076 / 评审 B03～B07、B11、遗漏2、遗漏3）：
   学生看不到内部状态、人工复核暂停不能用裸恢复绕过教师结论、依赖缺失时在产生副作用之前返回 503。
 - **新增用例**：权限边界（未认证/学生/管理员/跨课程教师）、启动正常路径（真实
   ``WorkflowService`` + 真实 ``DatabaseCheckpointSaver`` + 真实 T060 快照读取，外部 Agent/诊断用替身）、
-  重复启动幂等复用、非法答卷状态 409、已完成运行 409 与显式重评拒绝、教师/学生状态字段差异、
+  重复启动幂等复用、非法答卷状态 409、历史终态不阻挡 Submitted 与显式重评拒绝、教师/学生状态字段差异、
   人工复核暂停缺教师结论 409、已记录结论的恢复回执（含“已保存待继续”部分成功）、
   无可恢复检查点 409、依赖缺失 503 且零副作用、路由已注册。
 - **对外契约**：plan §5/§5.2、FR-029～FR-038、T060 快照读取、T065 状态载荷、T071 复核状态契约、
@@ -38,7 +38,6 @@ from backend.app.ai.agents.state import AgentOutput, AgentStatus, AgentType
 from backend.app.ai.workflows.grading_handoff import PENDING_REVIEW
 from backend.app.api.workflow import (
     WORKFLOW_REVIEW_DECISION_REQUIRED,
-    WORKFLOW_RUN_ALREADY_COMPLETED,
     WORKFLOW_RUN_NOT_RESUMABLE,
     WORKFLOW_RUN_REGRADE_UNSUPPORTED,
     WORKFLOW_SERVICE_NOT_READY,
@@ -661,10 +660,10 @@ def test_start_rejects_draft_submission(env: dict[str, Any], client_factory: Any
     assert _runs(env) == []
 
 
-def test_start_rejects_completed_run_and_explicit_regrade(
+def test_start_rejects_graded_submission_and_explicit_regrade(
     env: dict[str, Any], client_factory: Any
 ) -> None:
-    """已完成运行返回 409；显式重评本批不支持，返回明确的 409 错误码。"""
+    """Graded 仍返回生命周期 409；显式重评仍需使用既有阅卷入口。"""
 
     client = client_factory(_service(env))
     workflow_id = _start(client, env).json()["workflow_id"]
@@ -677,11 +676,85 @@ def test_start_rejects_completed_run_and_explicit_regrade(
 
     completed = _start(client, env)
     assert completed.status_code == 409
-    assert completed.json()["detail"]["error_code"] == WORKFLOW_RUN_ALREADY_COMPLETED
+    assert completed.json()["detail"]["error_code"] == WORKFLOW_SUBMISSION_NOT_READY
 
     regrade = _start(client, env, regrade=True)
     assert regrade.status_code == 409
     assert regrade.json()["detail"]["error_code"] == WORKFLOW_RUN_REGRADE_UNSUPPORTED
+    assert len(_runs(env)) == 1
+
+
+@pytest.mark.parametrize("status", [WorkflowStatus.COMPLETED, WorkflowStatus.FAILED])
+def test_historical_terminal_run_does_not_block_submitted_submission(
+    env: dict[str, Any], client_factory: Any, status: WorkflowStatus
+) -> None:
+    """只有历史终态时，Submitted 答卷可以受理新运行，无需把旧运行改为活动态。"""
+
+    submission_id = str(env["fixture"].submission_id)
+    _store(env).save_checkpoint(
+        "historical-terminal",
+        {
+            "workflow_id": "historical-terminal",
+            "request_id": "historical-request",
+            "submission_id": submission_id,
+            "status": status,
+            "error": (
+                {
+                    "error_code": "HISTORICAL_FAILURE",
+                    "message": "历史运行失败",
+                    "retryable": False,
+                }
+                if status is WorkflowStatus.FAILED
+                else None
+            ),
+        },
+        "load_submission",
+        thread_id="historical-thread",
+    )
+    client = client_factory(_service(env))
+
+    response = _start(client, env)
+
+    assert response.status_code == 200
+    assert response.json()["reused"] is False
+    assert response.json()["workflow_id"] != "historical-terminal"
+    rows = _runs(env)
+    assert len(rows) == 2
+    assert next(row for row in rows if row.workflow_id == "historical-terminal").status is status
+
+
+def test_newer_terminal_run_does_not_hide_active_run(
+    env: dict[str, Any], client_factory: Any
+) -> None:
+    """活动状态必须在查询中筛选，不能只按最近一行的终态判断。"""
+
+    service = _service(env)
+    client = client_factory(service)
+    first = _start(client, env).json()
+    _store(env).save_checkpoint(
+        "newer-terminal",
+        {
+            "workflow_id": "newer-terminal",
+            "request_id": "newer-request",
+            "submission_id": str(env["fixture"].submission_id),
+            "status": WorkflowStatus.COMPLETED,
+        },
+        "load_submission",
+        thread_id="newer-thread",
+    )
+    with Session(env["engine"]) as session:
+        newer = session.scalars(
+            select(WorkflowRun).where(WorkflowRun.workflow_id == "newer-terminal")
+        ).one()
+        newer.created_at = datetime.now(UTC) + timedelta(days=1)
+        session.commit()
+
+    response = _start(client, env)
+
+    assert response.status_code == 200
+    assert response.json()["reused"] is True
+    assert response.json()["workflow_id"] == first["workflow_id"]
+    assert len(_runs(env)) == 2
 
 
 # ---------------------------------------------------------------- 状态查询角色差异
