@@ -2,7 +2,15 @@
 .agents/
 
 # Speckit generated development documents and templates
+# Keep the contracts required by tests and downstream implementers in version control.
 .specify/
+!.specify/
+.specify/*
+!.specify/contracts/
+.specify/contracts/*
+!.specify/contracts/agent-workflow.md
+!.specify/contracts/rag-retrieval.md
+!.specify/contracts/embedding-provider.md
 
 # Internal requirements document
 EduAgent_项目需求与技术方案_v1.1.md
