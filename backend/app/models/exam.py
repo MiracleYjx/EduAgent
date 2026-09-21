@@ -46,8 +46,15 @@ class Exam(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     creator: Mapped[User] = relationship(
         "User", back_populates="created_exams", foreign_keys=[created_by]
     )
+    # 题序必须确定：``exam_questions`` 只有复合主键、没有顺序列，如果不显式排序，数据库可能
+    # 按主键索引（``question_id``，随机 UUID）返回关联行，使同一份试卷的题序在不同环境或进程
+    # 间翻转（P1.2.5）。统一按题目创建时间排序、并列时按题目标识；如果需要显式的组卷顺序，
+    # 应单独新增顺序列与迁移，而不是依赖数据库返回顺序。
     questions: Mapped[list[Question]] = relationship(
-        "Question", secondary=exam_questions, back_populates="exams"
+        "Question",
+        secondary=exam_questions,
+        back_populates="exams",
+        order_by="Question.created_at, Question.id",
     )
     submissions: Mapped[list[Submission]] = relationship(
         "Submission", back_populates="exam", cascade="all, delete-orphan"

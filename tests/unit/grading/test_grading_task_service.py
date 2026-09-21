@@ -962,6 +962,38 @@ def test_real_reader_snapshot_follows_exam_question_set() -> None:
         assert context.submission_id == str(submission.id)
 
 
+def test_real_reader_question_order_is_deterministic() -> None:
+    """题序必须按确定性键（创建时间 + 题目标识）给出，不跟随数据库返回顺序（P1.2.5）。
+
+    数据刻意造成“创建时间顺序”与“题目标识字典序”相反：旧实现直接使用 ``exam.questions`` 的
+    数据库返回顺序（复合主键索引即 ``question_id`` 升序），必然给出相反的题序。
+    """
+
+    for session in _grading_session():
+        exam, questions, _ = _seed_exam(
+            session, question_contents=("解释变量。", "解释作用域。")
+        )
+        # id 较大者先创建、id 较小者后创建，期望题序与 id 升序相反。
+        later, earlier = sorted(questions, key=lambda item: str(item.id))
+        earlier.created_at = datetime(2026, 9, 20, 10, 0, tzinfo=UTC)
+        later.created_at = datetime(2026, 9, 20, 11, 0, tzinfo=UTC)
+        session.commit()
+        submission = _insert_submission(session, exam, answered_questions=questions)
+        # 强制重新加载关系：保证断言的是 ``order_by`` 而不是先前缓存的无序集合。
+        session.expire_all()
+        reader = DatabaseGradingSubmissionReader(session=session)
+
+        snapshot = reader.load(str(submission.id))
+
+        assert [item.id for item in exam.questions] == [earlier.id, later.id]
+        assert [item.question_id for item in snapshot.answers] == [
+            str(earlier.id),
+            str(later.id),
+        ]
+        assert [item.order for item in snapshot.answers] == [1, 2]
+        assert [item.order for item in snapshot.to_context().expected_answers] == [1, 2]
+
+
 def test_real_reader_rejects_missing_answer() -> None:
     """TCR（2026-09-16，B03）：考试两题仅一条 Answer 时必须显式失败，
     不得按已有答案反推预期集合后静默给出最终成绩。

@@ -605,6 +605,17 @@ def test_review_service_regrades_then_teacher_confirmation_unlocks_diagnosis(
     assert paused.interrupted is True
     assert paused.state["status"] is WorkflowStatus.PAUSED
     assert paused.pending_answer_ids == (env.paper.subjective_answer_ids[0],)
+    # P1.2.5：题序必须确定——暂停时“题序 <= 当前题序”的题目（含正在等待复核的那题）都必须
+    # 出现在逐题结果里。旧实现把题序绑在 ``exam_questions`` 的数据库返回顺序（按随机 UUID）上，
+    # 会让低置信度主观题变成题序 1，于是“只评完一题”，暂停时的待复核整卷结果也会缺题。
+    paused_order = paused.state["current_answer_order"]
+    expected_graded = {
+        target.answer_id
+        for target in _snapshot(env).answers
+        if target.order <= paused_order
+    }
+    assert expected_graded
+    assert set(paused.state.get("grading_results") or {}) == expected_graded
     assert paused.state.get("final_results") == []
     assert paused.state.get("diagnosis") is None
     paused_exam = _persist_paused(

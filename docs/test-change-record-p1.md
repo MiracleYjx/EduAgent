@@ -72,3 +72,44 @@
 
 - **图内诊断顺序未改（属 P1.3）**：生产高置信度路径仍会在 `Generate Diagnosis` 阶段因“整卷结果尚未落库”而失败，P1.2 不承诺该路径的 `Completed`。本次验收只以“三种事实按正式入口落库并可读回”为准。
 - **发现（预存在，不在本步范围）**：M4 图返回并写入检查点的 `grading_results` **偶发缺失已评完题目**。同一契约场景连续 4 次运行中有 2 次只保留待复核题（客观题结果缺失），且持久检查点与落库行同步缺失，说明丢失发生在图/状态合并阶段而不是写入阶段。影响：暂停时的待复核整卷结果可能少计一题；恢复时 `Unified Result` 的“缺题显式失败”门槛可能触发。建议在 P1.3 或后续单独定位通道合并语义并补反向用例；本次未修改图内节点，也未据此放宽任何断言（仅将契约用例的行数断言改为“待复核题必在库且无多余答卷”）。
+
+> 该现象已在 **P1.2.5** 定位并修复：根因不是图/通道丢数据，而是题序不确定，详见下节。
+
+## P1.2.5 题序确定性修复
+
+日期：2026-09-21。范围：修 `Exam.questions` 题序不确定问题；不改评分算法、不改 T073 Checkpointer 接口、不新增数据库列或迁移。
+
+### 根因（已复现并证实）
+
+`exam_questions` 关联表只有复合主键 `(exam_id, question_id)`，**组卷题序从未被持久化**；`Exam.questions` 关系没有 `order_by`；而阅卷快照用 `enumerate(exam.questions, start=1)` 生成 1 基题序。当数据库按主键索引返回关联行时，行序即 `question_id` 升序（随机 UUID），于是：
+
+- 10 次同一契约场景连续运行：5 次题序为 `[客观题, 主观题]`（暂停在题序 2，落库 2 条结果），5 次题序为 `[主观题, 客观题]`（低置信度主观题成为题序 1，运行在题序 1 暂停，只评完一题、只落库 1 条结果）；
+- 10/10 次的“题序 1”都等于两道题中 `question_id` 字典序较小者（相关性 100%）；
+- 与并发、题目数量、上下文规模无关；状态、持久检查点与落库行三者始终一致 —— **不是通道合并或 Checkpointer 丢数据**，而是题序随随机 UUID 翻转。
+
+影响：暂停时的待复核整卷结果会缺题（题目与题序错配）、恢复时 `Unified Result` 的“缺题显式失败”门槛可能被触发。
+
+### 修复
+
+| 位置 | 改动 |
+| --- | --- |
+| `backend/app/models/exam.py` | `Exam.questions` 增加 `order_by="Question.created_at, Question.id"`，使组卷、阅卷快照、成绩读模型看到同一顺序 |
+| `backend/app/services/grading/grading_task_service.py` | 新增 `_question_order_key` 并在 `_build_snapshot` 里显式排序后再生成题序，不依赖数据库返回顺序 |
+
+边界：`exam_questions` 没有顺序列，所以“题序 = 题目创建顺序，并列时按题目标识”；如需显式组卷顺序，应单独新增顺序列与迁移（本次不做）。
+
+### 测试变更
+
+| 测试变更 | 必要性 | 覆盖内容 |
+| --- | --- | --- |
+| `tests/unit/grading/test_grading_task_service.py` 新增 `test_real_reader_question_order_is_deterministic` | 需要确定性反向例：旧实现直接使用数据库返回顺序 | 把“创建时间顺序”与“题目标识字典序”显式设成相反，断言关系列表与快照题序都按创建时间；旧实现必然失败 |
+| `tests/integration/test_langgraph_grading_workflow.py` 在暂停用例中新增不变量 | 需要图级证据：暂停时题序 ≤ 当前题序的题目逐题结果必须齐全 | 断言 `set(state["grading_results"]) == {题序 ≤ current_answer_order 的答案}`；旧实现会因题序翻转只剩一题 |
+| `tests/contract/test_workflow_api_contract.py` 收紧待复核用例 | 需要正式入口证据：题目数与题序确定 | 断言落库恰好两题；待复核整卷结果的 `items` 题目数等于提交答案数，题序 1 为客观题、题序 2 为主观题（此前只断言“待复核题在库且无多余行”） |
+
+### 验证记录
+
+- 复现（旧实现）：10 次独立运行，5 次题序翻转 ⇒ 5 次只有 1 条逐题结果；题序 1 == `question_id` 最小者 10/10。
+- 修复后连续 20 次独立运行：**20 通过 / 0 失败**（同一契约待复核用例）。
+- 反向对照：临时 `git stash` 掉两处生产改动后，新题序用例确定性失败（关系列表按 id 升序）、契约待复核用例失败；`stash pop` 后按 blob 哈希核对还原一致。
+- 聚焦回归：`pytest tests/unit/grading/test_grading_task_service.py -k reader -q` 5 通过；`pytest tests/integration/test_langgraph_grading_workflow.py -q` 5 通过。
+- 提交门禁：`pytest tests/ -q` 为 **1336 通过、1 跳过、19 条既有警告**；`mypy backend/app/` 通过（125 个源码文件）；`ruff check backend/ tests/` 通过。
