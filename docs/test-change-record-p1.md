@@ -36,3 +36,39 @@
 
 - 本步只做“谁能读到/写到哪一行”的归属判别；M4 正式结果落库（H01）与诊断顺序留待 P1.2/P1.3，因此本次没有新增端到端的成绩落库断言。
 - 归属判别在 SQLite 与真实 PostgreSQL 上用同一 SQL 表达式（JSON 列 `kind`）表达；本步没有新增 PostgreSQL 专属并发用例，真实库并发边界由既有 M3 隔离与后续 P1.2 事务验收覆盖。
+
+## P1.2 Workflow 结果事务写入
+
+日期：2026-09-21。范围：只处理 H01 的“结果持久化责任”——把 M4 一次运行/恢复的结论（单题结果、决策快照、整卷结果、答题进度、工作流业务状态）在**一个事务**内写入；不修改评分算法、图内节点顺序与诊断入口（诊断顺序留 P1.3），不新增数据库列或迁移。
+
+### 事实基线（勘察结论）
+
+- M4 图的 `Unified Result` 节点产出 `exam_result`（`ExamResultDTO`，带 `is_final`）；`Generate Diagnosis` 节点在其后执行（顺序修正在 P1.3）。
+- 暂停在人工复核时，返回状态里**没有** `exam_result`，只有逐题 `grading_results` 与 `confidence_decisions`，必须由 `ResultAggregator` 现场汇总为待复核整卷结果。这段逻辑原先只存在于 T079 集成测试的 `_persist_paused` 辅助函数里（测试补做持久化），本步把它移入正式入口。
+- 失败路径由图写入 `exam_result=None`，因此“状态是否携带 `exam_result`”可以干净地区分【最终/待复核】与【评分或结构化失败】两类事实。
+
+### 测试变更
+
+| 测试变更 | 必要性 | 覆盖内容 |
+| --- | --- | --- |
+| `tests/unit/grading/test_grading_repository.py` 新增 `test_save_workflow_outcome_writes_results_and_state_in_one_transaction` | 需要证明结果与状态确实一次提交，而不是两次提交 | 单事务写入两条 `GradingResult`、最终整卷结果（`is_final=True`、`ExamResultStatus.FINAL`、总分 16.00）、答案与答卷 `Graded`/`graded_at`，且 `WorkflowRun.exam_result_id` 指向同一行 |
+| 同文件新增 `test_save_workflow_outcome_rolls_back_when_state_write_fails` | 状态写入失败时不得留下半成品成绩 | `state_writer` 在写入运行行后抛 `WorkflowCheckpointError`：评分行、整卷结果、运行行全部不存在，答案状态与 `graded_at` 与调用前一致（按调用前后快照比对） |
+| 同文件新增 `test_save_workflow_outcome_aggregates_pending_exam_result` | 暂停分支需要证明“待复核整卷结果”由仓储汇总而不靠测试补做 | 只给逐题结果与决策时写出非 final 整卷结果（`ExamResultStatus.PENDING_REVIEW`、`final_total_score=None`）与单题决策快照（`decision_requires_review=True`、阈值 0.8、`review_status=Pending Review`） |
+| 同文件新增 `test_save_workflow_outcome_marks_answers_failed_without_grades` | 失败分支必须与“写成绩”区分开 | 未完成答案被标为 `Failed`，且不写任何 `GradingResult`/`ExamResult`，运行行不关联整卷结果 |
+| `tests/contract/test_workflow_api_contract.py` 新增 `test_start_persists_pending_review_outcome` | 需要正式启动入口的端到端证据（H01：复核队列原先看不到新答卷） | `POST /api/workflow/submissions/{id}/runs` 之后：待复核题评分行在库且 `review_status=Pending Review`、`decision_review_status=Pending Review`；整卷结果非 final 且为 `Pending Review`；运行保持 `Paused`（含暂停原因、`resumable=True`、已关联整卷结果）；答卷状态为 `Graded` |
+| 同文件新增 `test_start_persists_final_result_for_accepted_run`（配合新增替身 `_AcceptedSubjectiveAgent`） | 需要高置信度路径的正式入口证据 | 全部自动接受时运行 `Completed`，整卷结果 `is_final=True`、`ExamResultStatus.FINAL`、总分 16.00，答案/答卷为 `Graded`，运行关联最终整卷结果 |
+| 同文件修正 `_record_decision` 辅助函数 | P1.2 之后正式入口已写入同一评分行，原实现无条件再插一行会撞唯一约束 | 按 `answer_id` 复用既有评分行；教师结论语义不变 |
+
+复用现有测试验证、未放宽的既有断言：M3 `save_outcome` 事务、任务状态映射、中断收敛、检查点身份与所有权、幂等启动与冲突语义、复核恢复的部分成功回执。
+
+### 验证记录
+
+- 新增仓储用例：4 通过；正式入口用例：2 通过。
+- 聚焦回归：`pytest tests/contract/test_workflow_api_contract.py tests/unit/grading/test_grading_repository.py -q` 44 通过。
+- 提交门禁：`pytest tests/ -q` 为 **1335 通过、1 跳过、19 条既有警告**（基线 1323 + P1.1 六个新用例 + P1.2 六个新用例）；`mypy backend/app/` 通过（125 个源码文件）；`ruff check backend/ tests/` 通过。
+- 唯一跳过项仍为 M0 容器冒烟（缺少该用例要求的独立 Compose 项目与隔离端口配置），本次未修改 M0 环境或放宽条件。
+
+### 未覆盖与边界
+
+- **图内诊断顺序未改（属 P1.3）**：生产高置信度路径仍会在 `Generate Diagnosis` 阶段因“整卷结果尚未落库”而失败，P1.2 不承诺该路径的 `Completed`。本次验收只以“三种事实按正式入口落库并可读回”为准。
+- **发现（预存在，不在本步范围）**：M4 图返回并写入检查点的 `grading_results` **偶发缺失已评完题目**。同一契约场景连续 4 次运行中有 2 次只保留待复核题（客观题结果缺失），且持久检查点与落库行同步缺失，说明丢失发生在图/状态合并阶段而不是写入阶段。影响：暂停时的待复核整卷结果可能少计一题；恢复时 `Unified Result` 的“缺题显式失败”门槛可能触发。建议在 P1.3 或后续单独定位通道合并语义并补反向用例；本次未修改图内节点，也未据此放宽任何断言（仅将契约用例的行数断言改为“待复核题必在库且无多余答卷”）。

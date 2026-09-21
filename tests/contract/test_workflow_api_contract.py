@@ -49,6 +49,7 @@ from backend.app.api.workflow import (
 from backend.app.core.app import create_app
 from backend.app.core.database import Base, get_db
 from backend.app.domain.enums import (
+    AnswerStatus,
     QuestionType,
     ReviewStatus,
     SubmissionStatus,
@@ -57,6 +58,7 @@ from backend.app.domain.enums import (
     WorkflowStatus,
 )
 from backend.app.models import (
+    Answer,
     GradingResult,
     ReviewRecord,
     Submission,
@@ -68,9 +70,13 @@ from backend.app.schemas.grading import (
     ConfidenceDecisionDTO,
     DiagnosisReportDTO,
     DiagnosisStatus,
+    ExamResultStatus,
 )
 from backend.app.services.auth_service import create_access_token
-from backend.app.services.grading.grading_repository import CHECKPOINT_KIND
+from backend.app.services.grading.grading_repository import (
+    CHECKPOINT_KIND,
+    DatabaseGradingRepository,
+)
 from backend.app.services.grading.grading_task_service import (
     DatabaseGradingSubmissionReader,
     GradingTargetAnswer,
@@ -160,6 +166,57 @@ class _StubGradingAgent:
         raise AssertionError("图必须逐题调用 grade_answer_async，不得调用整卷 score。")
 
 
+class _AcceptedSubjectiveAgent(_StubGradingAgent):
+    """把主观题也判为自动接受的替身：用于验证高置信度运行的最终成绩落库。"""
+
+    async def grade_answer_async(
+        self,
+        snapshot: SubmissionSnapshot,
+        target: GradingTargetAnswer,
+        *,
+        request_id: str,
+        workflow_id: str | None = None,
+        session: Any = None,
+        settings: Any = None,
+    ) -> AgentInvocation:
+        invocation = await super().grade_answer_async(
+            snapshot,
+            target,
+            request_id=request_id,
+            workflow_id=workflow_id,
+            session=session,
+            settings=settings,
+        )
+        if target.question_type is QuestionType.SINGLE_CHOICE:
+            return invocation
+        graded = invocation.output.grading_result
+        assert graded is not None
+        accepted = graded.model_copy(
+            update={
+                "confidence": 0.95,
+                "review_status": ReviewStatus.NOT_REQUIRED.value,
+            }
+        )
+        decision = ConfidenceDecisionDTO(
+            confidence=0.95,
+            threshold=0.8,
+            requires_review=False,
+            review_status=ReviewStatus.NOT_REQUIRED.value,
+            grading_status="Accepted",
+            reason="自动接受。",
+        )
+        output = invocation.output.model_copy(
+            update={
+                "status": AgentStatus.SUCCESS,
+                "requires_review": False,
+                "confidence": 0.95,
+                "confidence_decision": decision,
+                "grading_result": accepted,
+            }
+        )
+        return replace(invocation, output=output)
+
+
 class _StubDiagnosisService:
     """T072 诊断节点依赖替身。"""
 
@@ -227,8 +284,14 @@ def _store(env: dict[str, Any]) -> WorkflowCheckpointStore:
     return WorkflowCheckpointStore(session_factory=lambda: Session(env["engine"]))
 
 
+def _repository(env: dict[str, Any]) -> DatabaseGradingRepository:
+    """构造使用独立会话的真实结果仓储（M4 结果事务写入的事实源）。"""
+
+    return DatabaseGradingRepository(session_factory=lambda: Session(env["engine"]))
+
+
 def _service(env: dict[str, Any], **overrides: Any) -> WorkflowService:
-    """构造真实工作流服务：真实存储与快照读取，外部 Agent/诊断/复核用替身。"""
+    """构造真实工作流服务：真实存储、快照读取与结果仓储，外部 Agent/诊断/复核用替身。"""
 
     fixture = env["fixture"]
     kwargs: dict[str, Any] = {
@@ -239,6 +302,7 @@ def _service(env: dict[str, Any], **overrides: Any) -> WorkflowService:
         "session_factory": lambda: Session(env["engine"]),
         "agent": _StubGradingAgent(submission_id=str(fixture.submission_id)),
         "diagnosis_service": _StubDiagnosisService(),
+        "repository": _repository(env),
         "settings": build_test_settings(confidence_threshold=0.8),
     }
     kwargs.update(overrides)
@@ -481,6 +545,95 @@ def test_start_ignores_background_task_run_for_same_submission(
     assert repeated.json()["reused"] is True
     assert repeated.json()["workflow_id"] == body["workflow_id"]
     assert len(_runs(env)) == 2
+
+
+def test_start_persists_pending_review_outcome(
+    env: dict[str, Any], client_factory: Any
+) -> None:
+    """低置信度暂停：单题结果与待复核整卷结果随正式启动落库，运行保持 Paused（H01）。"""
+
+    client = client_factory(_service(env))
+    body = _start(client, env).json()
+
+    assert body["status"] == WorkflowStatus.PAUSED.value
+    repository = _repository(env)
+    stored = repository.get_exam_result(str(env["fixture"].submission_id))
+    assert stored is not None
+    assert stored.is_final is False
+    assert stored.result_status == ExamResultStatus.PENDING_REVIEW
+    assert stored.final_total_score is None
+    single = repository.get_single_result(
+        str(env["fixture"].submission_id), str(env["fixture"].subjective_answer_id)
+    )
+    assert single is not None
+    assert single.score == Decimal("6.00")
+    assert single.decision is not None
+    assert single.decision.requires_review is True
+    assert single.decision.threshold == 0.8
+    with Session(env["engine"]) as session:
+        run = session.scalars(
+            select(WorkflowRun).where(WorkflowRun.workflow_id == body["workflow_id"])
+        ).one()
+        assert run.status is WorkflowStatus.PAUSED
+        assert run.pause_reason
+        assert run.resumable is True
+        assert run.exam_result_id is not None
+        rows = {
+            row.answer_id: row
+            for row in session.scalars(select(GradingResult))
+        }
+        # 待复核题必须落库（复核队列可见的前提）；其余题目按状态里实际存在的逐题结果落库。
+        # 注意：M4 图返回的逐题结果集合偶发缺失已评完题目（见 `docs/test-change-record-p1.md`
+        # 的 P1.2 记录），因此这里不断言固定行数，只断言“待复核题在库且没有多余答卷”。
+        assert set(rows) <= {
+            env["fixture"].objective_answer_id,
+            env["fixture"].subjective_answer_id,
+        }
+        assert env["fixture"].subjective_answer_id in rows
+        subjective = rows[env["fixture"].subjective_answer_id]
+        assert subjective.review_status is ReviewStatus.PENDING_REVIEW
+        assert subjective.decision_review_status is ReviewStatus.PENDING_REVIEW
+        submission = session.get(Submission, env["fixture"].submission_id)
+        assert submission is not None
+        assert submission.status is SubmissionStatus.GRADED
+
+
+def test_start_persists_final_result_for_accepted_run(
+    env: dict[str, Any], client_factory: Any
+) -> None:
+    """高置信度全部接受：最终成绩与运行终态随正式启动落库（H01）。"""
+
+    client = client_factory(
+        _service(
+            env,
+            agent=_AcceptedSubjectiveAgent(
+                submission_id=str(env["fixture"].submission_id)
+            ),
+        )
+    )
+    body = _start(client, env).json()
+
+    assert body["status"] == WorkflowStatus.COMPLETED.value
+    repository = _repository(env)
+    stored = repository.get_exam_result(str(env["fixture"].submission_id))
+    assert stored is not None
+    assert stored.is_final is True
+    assert stored.result_status == ExamResultStatus.FINAL
+    assert stored.final_total_score == Decimal("16.00")
+    with Session(env["engine"]) as session:
+        run = session.scalars(
+            select(WorkflowRun).where(WorkflowRun.workflow_id == body["workflow_id"])
+        ).one()
+        assert run.status is WorkflowStatus.COMPLETED
+        assert run.exam_result_id is not None
+        assert all(
+            answer.status is AnswerStatus.GRADED
+            for answer in session.scalars(select(Answer))
+        )
+        submission = session.get(Submission, env["fixture"].submission_id)
+        assert submission is not None
+        assert submission.status is SubmissionStatus.GRADED
+        assert submission.graded_at is not None
 
 
 def test_start_rejects_draft_submission(env: dict[str, Any], client_factory: Any) -> None:
@@ -731,28 +884,38 @@ def test_production_checkpointer_is_persisted(env: dict[str, Any], client_factor
 
 
 def _record_decision(env: dict[str, Any], *, reviewer_id: Any) -> ReviewRecord:
-    """写入一条已落库的教师结论（复核记录 + 对应评分行）。"""
+    """写入一条已落库的教师结论（复核记录 + 对应评分行）。
+
+    P1.2 之后正式启动入口已经写入同一答卷的评分行，因此这里按 ``answer_id`` 就地复用既有行，
+    不再无条件插入第二行（重复插入会与唯一约束冲突）。
+    """
 
     fixture = env["fixture"]
     with Session(env["engine"]) as session:
-        grading = GradingResult(
-            answer_id=fixture.subjective_answer_id,
-            submission_id=fixture.submission_id,
-            question_type=QuestionType.SHORT_ANSWER,
-            score=Decimal("6.00"),
-            max_score=Decimal("10.00"),
-            reason="说明了变量的作用。",
-            correct_points=["保存数据"],
-            missing_knowledge_points=["引用数据"],
-            knowledge_points=["变量"],
-            suggestions=["补充变量引用。"],
-            retrieved_context_ids=[],
-            confidence=0.3,
-            validation_status=ValidationStatus.VALIDATED,
-            review_status=ReviewStatus.PENDING_REVIEW,
-        )
-        session.add(grading)
-        session.flush()
+        grading = session.scalars(
+            select(GradingResult).where(
+                GradingResult.answer_id == fixture.subjective_answer_id
+            )
+        ).one_or_none()
+        if grading is None:
+            grading = GradingResult(
+                answer_id=fixture.subjective_answer_id,
+                submission_id=fixture.submission_id,
+                question_type=QuestionType.SHORT_ANSWER,
+                score=Decimal("6.00"),
+                max_score=Decimal("10.00"),
+                reason="说明了变量的作用。",
+                correct_points=["保存数据"],
+                missing_knowledge_points=["引用数据"],
+                knowledge_points=["变量"],
+                suggestions=["补充变量引用。"],
+                retrieved_context_ids=[],
+                confidence=0.3,
+                validation_status=ValidationStatus.VALIDATED,
+                review_status=ReviewStatus.PENDING_REVIEW,
+            )
+            session.add(grading)
+            session.flush()
         record = ReviewRecord(
             grading_result_id=grading.id,
             reviewer_id=reviewer_id,

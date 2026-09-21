@@ -45,6 +45,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from backend.app.ai.agents.grading_agent import GradingAgent
+from backend.app.ai.agents.state import confidence_decision_from_snapshot
 from backend.app.ai.workflows.grading_handoff import LOAD_SUBMISSION
 from backend.app.ai.workflows.grading_workflow import (
     GradingWorkflow,
@@ -66,7 +67,12 @@ from backend.app.domain.enums import (
 )
 from backend.app.domain.permissions import Permission
 from backend.app.models import GradingResult, ReviewRecord, User, WorkflowRun
-from backend.app.schemas.grading import DiagnosisReportDTO
+from backend.app.schemas.ai import GradingResult as GradingResultPayload
+from backend.app.schemas.grading import (
+    ConfidenceDecisionDTO,
+    DiagnosisReportDTO,
+    ExamResultDTO,
+)
 from backend.app.services.diagnosis_service import DiagnosisService
 from backend.app.services.grading.diagnosis_report_store import (
     STORABLE_STATUSES,
@@ -353,6 +359,33 @@ def _workflow_deps(
     )
 
 
+def _outcome_state_facts(
+    state: Mapping[str, Any],
+    snapshot: Any,
+) -> tuple[list[GradingResultPayload], dict[str, Any], ExamResultDTO | None]:
+    """从一次运行/恢复的状态中取出落库事实：逐题结果（按题序）、决策快照与整卷结果。
+
+    逐题结果按答卷题序排列，保证与 ``ExamResultDTO.items`` 同源；状态里没有整卷结果时返回
+    ``None``，由仓储按待复核口径汇总（低置信度暂停）或不写成绩（评分/结构化失败）。
+    """
+
+    raw_results = state.get("grading_results") or {}
+    ordered: list[GradingResultPayload] = []
+    if isinstance(raw_results, Mapping):
+        for target in snapshot.answers:
+            item = raw_results.get(target.answer_id)
+            if isinstance(item, GradingResultPayload):
+                ordered.append(item)
+    raw_decisions = state.get("confidence_decisions") or {}
+    decisions: dict[str, Any] = {}
+    if isinstance(raw_decisions, Mapping):
+        for answer_id, item in raw_decisions.items():
+            if isinstance(item, ConfidenceDecisionDTO):
+                decisions[str(answer_id)] = confidence_decision_from_snapshot(item)
+    exam_result = state.get("exam_result")
+    return ordered, decisions, exam_result if isinstance(exam_result, ExamResultDTO) else None
+
+
 class WorkflowService:
     """阅卷工作流的启动、状态与恢复编排。
 
@@ -361,6 +394,7 @@ class WorkflowService:
     :param session_factory: 自建会话工厂；Agent/LLM 调用前必须结束写事务。
     :param agent: T069 阅卷 Agent；``None`` 时无法运行（启动前显式 503）。
     :param diagnosis_service: T061 诊断入口（:class:`DiagnosisRecorderAdapter` 或替身）。
+    :param repository: T056 结果写入仓储；M4 成绩与运行状态由它一次事务提交（H01）。
     :param settings: 运行期配置；与 T069 共用同一个 ``AppSettings``。
     :param review_service_provider: T074 复核服务工厂；人工复核暂停的恢复委托它执行。
     :param clock: 时间来源，便于测试固定时间。
@@ -375,6 +409,7 @@ class WorkflowService:
         session: Session | None = None,
         agent: Any | None = None,
         diagnosis_service: Any | None = None,
+        repository: Any | None = None,
         settings: AppSettings | None = None,
         review_service_provider: Callable[[], ReviewService] | None = None,
         clock: Callable[[], datetime] | None = None,
@@ -385,6 +420,7 @@ class WorkflowService:
         self._session = session
         self._agent = agent
         self._diagnosis_service = diagnosis_service
+        self._repository = repository
         self._settings = settings
         self._review_service_provider = review_service_provider
         self._clock = clock or (lambda: datetime.now(UTC))
@@ -497,6 +533,7 @@ class WorkflowService:
         """启动一次阅卷运行；活动运行存在时幂等复用。"""
 
         self._ensure_ready()
+        self._outcome_repository()
         snapshot = self._load_for_teacher(submission_id, actor_id)
         existing = self._latest_run(submission_id)
         if existing is not None and existing.status in ACTIVE_RUN_STATUSES:
@@ -538,10 +575,11 @@ class WorkflowService:
             submission_id=str(submission_id),
             thread_id=thread_id,
         )
-        row = self._persist_result(
+        row = self._persist_outcome(
             workflow_id=workflow_id,
             state=result.state,
             thread_id=thread_id,
+            snapshot=snapshot,
         )
         return self._teacher_dto(row, interrupted=bool(result.interrupted))
 
@@ -582,6 +620,7 @@ class WorkflowService:
         """唯一恢复入口：人工复核暂停委托 T074，系统故障暂停才走 T072 恢复。"""
 
         self._ensure_ready()
+        self._outcome_repository()
         row = self._require_run(workflow_id)
         self._load_for_teacher(str(row.submission_id), actor_id)
         thread_id = checkpoint_thread_id(row)
@@ -610,10 +649,11 @@ class WorkflowService:
         saver.bind_thread(thread_id, row.workflow_id)
         workflow = self._build_workflow(snapshot, saver)
         result = await workflow.resume_async(thread_id=thread_id)
-        updated = self._persist_result(
+        updated = self._persist_outcome(
             workflow_id=row.workflow_id,
             state=result.state,
             thread_id=thread_id,
+            snapshot=snapshot,
         )
         return WorkflowResumeOutcomeDTO(
             workflow_id=updated.workflow_id,
@@ -711,29 +751,57 @@ class WorkflowService:
                 source_code=error.error_code,
             ) from error
 
-    def _persist_result(
+    def _outcome_repository(self) -> Any:
+        """返回结果写入仓储；未接线时在产生副作用前显式报未就绪。"""
+
+        if self._repository is None:
+            raise WorkflowNotReadyError("结果存储未接线：无法写入阅卷成绩与运行状态。")
+        return self._repository
+
+    def _persist_outcome(
         self,
         *,
         workflow_id: str,
         state: Mapping[str, Any],
         thread_id: str,
+        snapshot: Any,
     ) -> WorkflowRun:
-        """按一次运行/恢复的真实结论落库：暂停原因与可恢复性都取真实状态。
+        """按一次运行/恢复的真实结论落库：成绩与工作流状态在同一事务内写入（H01）。
 
-        不向状态里塞入派生字段：状态必须通过 T065 快照校验；待复核答案由
-        :func:`pending_review_answer_ids` 从权威状态推导。
+        不能只写业务状态：待复核成绩、最终成绩与失败事实都必须落库，否则复核队列与结果读模型
+        看不到本轮结论。三种事实分支由 ``save_workflow_outcome`` 区分；``is_final=False`` 表示
+        成绩待教师复核。工作流状态在同一事务内由 ``save_checkpoint_within`` 写入，包含当前节点、
+        暂停原因、线程信息与恢复状态；任一步失败整体回滚。
         """
 
         payload = dict(state)
         current_node = str(payload.get("current_node") or LOAD_SUBMISSION)
         pause_reason = payload.get("pause_reason")
-        return self._save_state(
-            workflow_id=workflow_id,
-            state=payload,
-            current_node=current_node,
-            thread_id=thread_id,
-            pause_reason=str(pause_reason) if pause_reason else None,
-        )
+        results, decisions, exam_result = _outcome_state_facts(payload, snapshot)
+        submission_id = str(payload.get("submission_id") or "")
+        try:
+            return self._outcome_repository().save_workflow_outcome(
+                submission_id,
+                context=snapshot.to_context(),
+                results=results,
+                decisions=decisions,
+                exam_result=exam_result,
+                state_writer=lambda session: self._checkpoints.save_checkpoint_within(
+                    session,
+                    workflow_id,
+                    payload,
+                    current_node,
+                    str(pause_reason) if pause_reason else None,
+                    thread_id=thread_id,
+                ),
+            )
+        except GradingTaskError as error:
+            raise _grading_error(error) from None
+        except WorkflowCheckpointError as error:
+            raise WorkflowNotReadyError(
+                "运行状态写入失败：检查点存储未就绪。",
+                source_code=error.error_code,
+            ) from error
 
     def _latest_run(self, submission_id: str) -> WorkflowRun | None:
         """读取该答卷最近一次运行记录；只读属于本执行器（M4 工作流）的行。
@@ -887,6 +955,7 @@ def build_workflow_service(
     diagnosis_service: Any,
     settings: AppSettings | None = None,
     session_factory: Callable[[], Session] | None = None,
+    repository: Any | None = None,
     review_service_provider: Callable[[], ReviewService] | None = None,
 ) -> WorkflowService:
     """按显式组件装配工作流服务；缺依赖时应由调用方先显式失败。"""
@@ -897,6 +966,7 @@ def build_workflow_service(
         session_factory=session_factory,
         agent=agent,
         diagnosis_service=diagnosis_service,
+        repository=repository,
         settings=settings,
         review_service_provider=review_service_provider,
     )
@@ -948,6 +1018,7 @@ def build_production_workflow_service(
         session_factory=session_factory,
         agent=GradingAgent(session_factory=session_factory, settings=settings),
         diagnosis_service=diagnosis,
+        repository=DatabaseGradingRepository(session_factory=session_factory),
         settings=settings,
     )
     service.use_review_service_provider(
@@ -978,6 +1049,7 @@ def build_production_review_service(settings: AppSettings | None = None) -> Revi
         session_factory=session_factory,
         agent=GradingAgent(session_factory=session_factory, settings=settings),
         diagnosis_service=diagnosis,
+        repository=DatabaseGradingRepository(session_factory=session_factory),
         settings=settings,
     )
     return build_review_service(

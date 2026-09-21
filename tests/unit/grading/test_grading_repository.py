@@ -13,7 +13,7 @@ TCR（B01 修复）：补充提交前中断、提交后重启、异类检查点�
 
 from __future__ import annotations
 
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from datetime import UTC, datetime
 from decimal import Decimal
 
@@ -27,6 +27,7 @@ from backend.app.core.database import create_session_factory
 from backend.app.domain.enums import (
     AnswerStatus,
     QuestionType,
+    ReviewStatus,
     SubmissionStatus,
     WorkflowStatus,
 )
@@ -61,6 +62,7 @@ from backend.app.services.grading.grading_task_service import (
     GradingTaskTraceMissingError,
 )
 from backend.app.services.grading.result_aggregator import ResultAggregator
+from backend.app.services.workflow_checkpoint import WorkflowCheckpointError
 from tests.unit.models.sqlite_support import (
     SubmissionFixture,
     create_sqlite_engine,
@@ -627,6 +629,186 @@ def test_task_queries_ignore_other_executor_runs(
         ).one()
         assert row.status is WorkflowStatus.RUNNING
         assert (row.checkpoint or {})["kind"] == WORKFLOW_STATE_PAYLOAD_KIND
+
+
+def _run_writer(
+    engine: Engine,
+    fixture: SubmissionFixture,
+    *,
+    workflow_id: str = "grading-run-1",
+    fail_after_write: bool = False,
+) -> Callable[[Session], WorkflowRun]:
+    """构造测试用工作流状态写入器：在调用方事务内写入 M4 运行行。
+
+    真实生产实现是 ``WorkflowCheckpointStore.save_checkpoint_within``；此处只需满足“写入
+    M4 运行行”与“可能失败”两个事实，不走检查点存储，避免把仓储事务测试耦合成存储集成测试。
+    """
+
+    def writer(session: Session) -> WorkflowRun:
+        row = session.scalars(
+            select(WorkflowRun).where(WorkflowRun.workflow_id == workflow_id)
+        ).one_or_none()
+        if row is None:
+            row = WorkflowRun(
+                workflow_id=workflow_id,
+                request_id="request-m4",
+                submission_id=fixture.submission_id,
+                checkpoint={
+                    "kind": WORKFLOW_STATE_PAYLOAD_KIND,
+                    "version": "1",
+                    "state": {"status": "Running"},
+                },
+            )
+            session.add(row)
+        if fail_after_write:
+            raise WorkflowCheckpointError("运行状态写入失败（测试注入）。")
+        return row
+
+    return writer
+
+
+def test_save_workflow_outcome_writes_results_and_state_in_one_transaction(
+    engine: Engine,
+    fixture: SubmissionFixture,
+    repository: DatabaseGradingRepository,
+) -> None:
+    """单事务提交：单题结果、决策快照、最终整卷结果、答卷进度与工作流状态一起落库。"""
+
+    outcome = _outcome(
+        fixture,
+        subjective=_subjective_payload(
+            fixture, confidence=0.9, review_status="Not Required"
+        ),
+        decisions={
+            str(fixture.subjective_answer_id): _decision(
+                confidence=0.9, requires_review=False
+            )
+        },
+    )
+    assert outcome.exam_result is not None
+    assert outcome.exam_result.is_final is True
+
+    row = repository.save_workflow_outcome(
+        str(fixture.submission_id),
+        context=_context(fixture),
+        exam_result=outcome.exam_result,
+        state_writer=_run_writer(engine, fixture),
+    )
+
+    assert row.submission_id == fixture.submission_id
+    assert row.exam_result_id is not None
+    with Session(engine) as session:
+        results = list(session.scalars(select(GradingResult)))
+        assert len(results) == 2
+        exam = session.scalars(select(ExamResult)).one()
+        assert exam.is_final is True
+        assert exam.result_status == ExamResultStatus.FINAL
+        assert exam.final_total_score == Decimal("16.00")
+        assert all(a.status is AnswerStatus.GRADED for a in session.scalars(select(Answer)))
+        submission = session.get(Submission, fixture.submission_id)
+        assert submission is not None
+        assert submission.status is SubmissionStatus.GRADED
+        assert submission.graded_at is not None
+        assert session.scalars(select(WorkflowRun)).one().exam_result_id == exam.id
+
+
+def test_save_workflow_outcome_rolls_back_when_state_write_fails(
+    engine: Engine,
+    fixture: SubmissionFixture,
+    repository: DatabaseGradingRepository,
+) -> None:
+    """状态写入失败时整体回滚：没有评分行、没有整卷结果，运行行也不保留。"""
+
+    outcome = _outcome(fixture)
+    assert outcome.exam_result is not None
+    with Session(engine) as session:
+        answers_before = {
+            answer.id: answer.status for answer in session.scalars(select(Answer))
+        }
+        graded_submission = session.get(Submission, fixture.submission_id)
+        assert graded_submission is not None
+        graded_at_before = graded_submission.graded_at
+
+    with pytest.raises(WorkflowCheckpointError):
+        repository.save_workflow_outcome(
+            str(fixture.submission_id),
+            context=_context(fixture),
+            exam_result=outcome.exam_result,
+            state_writer=_run_writer(engine, fixture, fail_after_write=True),
+        )
+
+    with Session(engine) as session:
+        assert list(session.scalars(select(GradingResult))) == []
+        assert list(session.scalars(select(ExamResult))) == []
+        assert list(session.scalars(select(WorkflowRun))) == []
+        assert {
+            answer.id: answer.status for answer in session.scalars(select(Answer))
+        } == answers_before
+        submission = session.get(Submission, fixture.submission_id)
+        assert submission is not None and submission.graded_at == graded_at_before
+
+
+def test_save_workflow_outcome_aggregates_pending_exam_result(
+    engine: Engine,
+    fixture: SubmissionFixture,
+    repository: DatabaseGradingRepository,
+) -> None:
+    """低置信度暂停：写单题结果并汇总出待复核（非 final）整卷结果。"""
+
+    outcome = _outcome(fixture)
+
+    row = repository.save_workflow_outcome(
+        str(fixture.submission_id),
+        context=_context(fixture),
+        results=list(outcome.results),
+        decisions=outcome.decisions,
+        state_writer=_run_writer(engine, fixture),
+    )
+
+    assert row.exam_result_id is not None
+    with Session(engine) as session:
+        exam = session.scalars(select(ExamResult)).one()
+        assert exam.is_final is False
+        assert exam.result_status == ExamResultStatus.PENDING_REVIEW
+        assert exam.final_total_score is None
+        subjective = session.scalars(
+            select(GradingResult).where(
+                GradingResult.answer_id == fixture.subjective_answer_id
+            )
+        ).one()
+        assert subjective.decision_requires_review is True
+        assert subjective.decision_threshold == 0.8
+        assert subjective.decision_reason == "置信度低于阈值，进入待人工复核。"
+        assert subjective.review_status is ReviewStatus.PENDING_REVIEW
+
+
+def test_save_workflow_outcome_marks_answers_failed_without_grades(
+    engine: Engine,
+    fixture: SubmissionFixture,
+    repository: DatabaseGradingRepository,
+) -> None:
+    """评分/结构化失败：不写任何成绩，只把未完成答案标记为失败。"""
+
+    with Session(engine) as session:
+        for answer in session.scalars(select(Answer)):
+            answer.status = AnswerStatus.SUBMITTED
+        session.commit()
+
+    repository.save_workflow_outcome(
+        str(fixture.submission_id),
+        context=_context(fixture),
+        state_writer=_run_writer(engine, fixture),
+    )
+
+    with Session(engine) as session:
+        assert list(session.scalars(select(GradingResult))) == []
+        assert list(session.scalars(select(ExamResult))) == []
+        assert all(
+            answer.status is AnswerStatus.FAILED
+            for answer in session.scalars(select(Answer))
+        )
+        run = session.scalars(select(WorkflowRun)).one()
+        assert run.exam_result_id is None
 
 
 @pytest.mark.parametrize("pending_review", [False, True])

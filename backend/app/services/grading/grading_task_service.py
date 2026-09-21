@@ -47,7 +47,7 @@ from backend.app.domain.enums import (
     QuestionType,
     SubmissionStatus,
 )
-from backend.app.models import Answer, Course, Exam, Submission
+from backend.app.models import Answer, Course, Exam, Submission, WorkflowRun
 from backend.app.schemas.ai import GradingResult
 from backend.app.schemas.grading import (
     DiagnosisReportDTO,
@@ -387,6 +387,19 @@ class GradingRepository(Protocol):
         answer_order: Sequence[str] | None = None,
     ) -> None: ...
 
+    def save_workflow_outcome(
+        self,
+        submission_id: str,
+        *,
+        context: SubmissionContext,
+        results: Sequence[GradingResult] = (),
+        decisions: Mapping[str, ConfidenceDecision] | None = None,
+        exam_result: ExamResultDTO | None = None,
+        state_writer: Callable[[Session], WorkflowRun],
+    ) -> WorkflowRun:
+        """一次事务写入 M4 工作流结果与业务状态；非本执行器的运行行必须被拒绝。"""
+        ...
+
     def get_single_result(
         self,
         submission_id: str,
@@ -455,6 +468,18 @@ class NotConfiguredGradingRepository:
         task_id: str | None = None,
         answer_order: Sequence[str] | None = None,
     ) -> None:
+        self._reject()
+
+    def save_workflow_outcome(
+        self,
+        submission_id: str,
+        *,
+        context: SubmissionContext,
+        results: Sequence[GradingResult] = (),
+        decisions: Mapping[str, ConfidenceDecision] | None = None,
+        exam_result: ExamResultDTO | None = None,
+        state_writer: Callable[[Session], WorkflowRun],
+    ) -> WorkflowRun:
         self._reject()
 
     def get_single_result(
