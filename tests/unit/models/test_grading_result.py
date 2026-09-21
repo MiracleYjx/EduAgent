@@ -52,6 +52,7 @@ GRADING_RESULT_COLUMNS = [
     "confidence",
     "validation_status",
     "review_status",
+    "pending_review_round_id",
     "decision_confidence",
     "decision_threshold",
     "decision_requires_review",
@@ -183,6 +184,7 @@ def test_grading_result_table_structure_matches_data_model() -> None:
     assert {index.name for index in table.indexes} == {
         "ix_grading_results_submission_id",
         "ix_grading_results_submission_review_status",
+        "ix_grading_results_pending_review_round_id",
     }
     assert GRADING_RESULT_CONSTRAINTS.issubset(
         {constraint.name for constraint in table.constraints}

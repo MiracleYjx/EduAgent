@@ -13,6 +13,7 @@
 - ``final_knowledge_points`` 使用 ``JSON(none_as_null=True)``，为空时保存为 SQL NULL 而不是
   JSON ``null`` 文本，避免被状态检查误判或掩盖“未修改知识点”与“修改为空”。
 - ``comment`` 是操作备注，与理由字段分离；审查时间由 ``created_at`` 提供。
+- ``review_round_id`` 保存该操作消费的 Pending Review 轮次；NULL 表示历史/无轮次记录。
 - ``reviewer_id`` 外键只证明用户存在；教师身份与资源授权由后续复核服务负责，本批不新增权限业务。
 """
 
@@ -27,6 +28,7 @@ from sqlalchemy import (
     ForeignKey,
     Numeric,
     Text,
+    Uuid,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -71,6 +73,7 @@ class ReviewRecord(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     decision: Mapped[ReviewStatus] = mapped_column(
         enum_type(ReviewStatus, "review_decision"), nullable=False
     )
+    review_round_id: Mapped[UUID | None] = mapped_column(Uuid(), nullable=True)
     original_score: Mapped[Decimal] = mapped_column(Numeric(8, 2), nullable=False)
     original_reason: Mapped[str] = mapped_column(Text, nullable=False)
     original_knowledge_points: Mapped[list[str]] = mapped_column(
