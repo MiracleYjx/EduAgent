@@ -28,6 +28,7 @@ from backend.app.api.results import router as results_router
 from backend.app.api.reviews import router as reviews_router
 from backend.app.api.submissions import exam_submission_router
 from backend.app.api.submissions import router as submissions_router
+from backend.app.api.workflow import recover_diagnosis_pending_runs
 from backend.app.api.workflow import router as workflow_router
 from backend.app.core.config import (
     EMBEDDING_DIMENSION_DEFAULT,
@@ -66,11 +67,13 @@ def create_gradio_app() -> gr.Blocks:
 async def _application_lifespan(_app: FastAPI) -> AsyncIterator[None]:
     """应用生命周期：启动阶段收敛遗留阅卷任务。
 
-    结果存储未迁移或不可连接时跳过，不阻断启动；本阶段只把遗留的进行中任务标为中断失败，
+    结果存储未迁移或不可连接时跳过，不阻断启动；本阶段把遗留的进行中 M3 任务标为中断失败，
+    并把“整卷结果已提交、诊断未生成”的遗留 M4 运行改判为可恢复的诊断待生成态（P1.4），
     不实现自动恢复队列。
     """
 
     recover_interrupted_grading_tasks()
+    recover_diagnosis_pending_runs()
     yield
 
 
