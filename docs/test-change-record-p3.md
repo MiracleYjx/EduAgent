@@ -113,3 +113,40 @@
 - 初次聚焦运行发现新增 Failed 夹具遗漏错误信息，补齐既有检查点要求的 `error.error_code/message/retryable` 后通过；未放宽生产校验或断言。
 - 最终门禁：`pytest tests/ -q` 为 **1391 通过、1 跳过、7 条既有警告**（233.57 秒），净增 6 项；唯一跳过仍是缺少隔离 Compose 项目/端口参数的 M0 冒烟。真实 PostgreSQL 并发、跨实例恢复、复核冲突及结果提交回滚均通过。`mypy backend/app/` 通过（125 个源码文件），`ruff check backend/ tests/` 通过，`git diff --check` 通过。
 - 生产只改 `api/workflow.py`；直接复用 M3 锁接口与现有 Running 受理状态，不新增数据库列、Worker、依赖，也不改 P1/P2/P3.1/P3.1.1 业务逻辑。隔离 schema 由 fixture 创建并销毁，默认业务 schema 未改动。
+
+## P3.3 整卷最终化事件驱动 Reviewed 生命周期
+
+日期：2026-09-21。用户修订方案后范围：唯一整卷写入点 `services/grading/grading_repository.py::_upsert_exam_result` 及对应测试；仅消费既有 is_final 事实，复用 Submission 字段，不改结果计算/映射、原事务边界、诊断、UI、复核幂等或启动互斥，不加迁移。
+
+### 变更前事实与必要性
+
+- 初版拟在复核服务短事务更新，但不能覆盖图恢复后才完成后续自动评分的答卷；用户明确改为绑定整卷最终化事件。初版未提交的 review_service 改动已移除。
+- 数据库 `ExamResult.is_final` 唯一赋值点为 `_upsert_exam_result`。调用路径：M3 执行器 `save_outcome`；M4 启动/恢复 `_persist_outcome → save_workflow_outcome`；复核短事务 `save_exam_result_within`；复核图恢复 `save_exam_result → save_outcome`。
+- 在唯一写入点追加生命周期副作用：final 且未 Reviewed 才设置 status/reviewed_at，不自行 commit。涵盖 False→True、首次直接写入 final，以及重写 final 时自然补齐缺失状态；已 Reviewed 不覆盖，false 不触发。沿用汇总器最终性判断，不重新计算评分或待复核数。
+- `mark_reviewed()` 自行 commit，因此不从结果事务调用；原 `_mark_graded` 不会将 Reviewed 降级，无需调整。自动评分形成 final 也进入 Reviewed，这是用户本次明确的新语义。
+- 采用自然重写 final 的幂等修复路径，不修改 P1.4.1 启动收敛，不主动扫描或批量回填历史数据。
+
+### 测试变更计划
+
+| 范围 | 覆盖与必要性 |
+| --- | --- |
+| 新确认/修改与自动最终化 | 真实 PostgreSQL 隔离 schema，从正式启动和复核 API 落库，最终结果伴随 Reviewed/reviewed_at；跨 Session 读取；更新旧测试中“自动 final 仍 Graded”的精确断言并增加时间断言 |
+| 多题与最终化 | 首题完成但后续仍待复核保持 Graded；最后待复核项解决才 Reviewed；教师确认后其他题自动接受，恢复阶段 final 也 Reviewed |
+| 同事务回滚 | 在真实复核事务、恢复阶段最终化事务提交前分别注入失败；前者所有复核结果/状态整体回滚，后者保留已提交教师决定而 final/Reviewed 一起回滚；不放宽既有结果事务失败测试 |
+| 幂等与自然补齐 | 已 Reviewed 时再次 final 不改原时间；既有复核 API 重试不新增记录；只对重写 final 的目标自然补齐状态，不扫描历史 |
+| 所有写入入口 | 复核的事务内写入、恢复的独立写入、M4 save_workflow_outcome 及 M3 save_outcome 都消费同一事件 |
+
+扩展既有启动收敛测试：仅在隔离夹具中模拟 final 对应的 Graded/缺 reviewed_at 遗留状态，保留原成绩/诊断/重评次数断言，证明原恢复入口重写 final 时自然补齐，不改 P1.4.1。
+
+历史只读盘点（修改前）：当前配置数据库 `public` 中 Graded 共 **0** 条；最终且无未解决复核 **0** 条，其中有教师最终结论审计的待修复历史记录 **0** 条。只统计数量，不读取学生答案或更新历史数据。
+
+### 验证记录
+
+- `test_final_result_marks_reviewed_and_retries_preserve_timestamp` 覆盖自动最终化、Confirmed、Modified 三条正式 API 路径：新 Session 可见 Reviewed 与 reviewed_at；复核 API 跨实例重试返回原记录；使用不同时间源重复写 final，原 reviewed_at 保持不变。
+- `test_remaining_pending_review_prevents_reviewed_until_last_decision` 核对真实待复核行：第一题复核后另一题仍 Pending，Submission 保持 Graded/空 reviewed_at/非 final；最后一题完成后才进入 Reviewed。
+- `test_resumed_graph_finalization_marks_reviewed` 在后续题模型调用边界读数据库，确认前置教师决定已提交、整卷仍非 final、Submission 仍 Graded；后续自动评分完成后整卷与 Reviewed 一同落库。
+- `test_finalization_commit_failure_rolls_back_reviewed_and_final_result` 分别在复核、恢复最终化事务的 before_commit 中 flush 并读回尚未提交的 final + Reviewed + 审计，再抛异常。前者最终决定、单题、整卷、Submission、检查点全部回滚；后者保留先前教师决定，但新评分/final/Reviewed 不残留，两者均保持 Graded/空 reviewed_at。
+- 扩展 M3 提交后重启测试：pending 保持 Graded，final 为 Reviewed；M4 成绩持久化测试改为最终化语义并保留原成绩/进度断言。P1.4.1 既有恢复入口的重写 final 可修复隔离夹具的历史缺失状态，生产收敛逻辑未改。
+- 聚焦结果为 **60 通过**；反向验证仅在独立进程内把 `_upsert_exam_result` 换回 `c8a9a8e` 版本，自动/确认/修改三条用例均明确失败在“实际仍为 Graded”，证明新断言可捕获 M09；工作区文件未替换。
+- 最终门禁：`pytest tests/ -q` 为 **1398 通过、1 跳过、7 条既有警告**（242.48 秒），净增 7 项；唯一跳过为缺少隔离 Compose 参数的 M0 冒烟。`mypy backend/app/` 通过（125 个源码文件），`ruff check backend/ tests/` 与 `git diff --check` 通过。既有复核幂等/轮次、PostgreSQL 并发互斥、结果/诊断回归均通过。
+- 最终生产差异仅为唯一整卷写入点的 5 行生命周期消费；review_service、submission_service、P1 启动收敛/诊断、P2 UI、P3.1/P3.1.1/P3.2 均无修改。未新增列、迁移、Worker 或依赖；历史数据未回填。
