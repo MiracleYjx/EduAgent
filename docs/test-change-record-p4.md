@@ -94,3 +94,21 @@
 - `mypy backend/app/`：125 个源文件通过；`ruff check backend/ tests/ scripts/benchmark_corpus.py scripts/setup_benchmark_corpus.py scripts/run_retrieval_benchmark.py scripts/run_grading_benchmark.py` 通过；`git diff --check` 通过。
 - 已经用新 cleanup 入口删除本批手工验收创建的 `benchmark_21370544a6fd4ee98f3d856ebb18236a` schema。该临时语料不保留，可重新摄取；manifest 与 JSON/CSV 证据保留在 `.cache/p4a3-smoke/`。测试自建 schema 由 fixture 清理，未删除业务资料；原 PostgreSQL/Redis 容器仍 healthy。
 - 本批变更仅 8 个评测脚本/文档/测试文件；生产 backend、数据库迁移/列、依赖、Docker、历史 benchmark corpus/results、tasks.md 均未修改。P4A.1/P4A.2 既有改动保持不变；P4B 未执行。
+
+## P4B.1／P4.4 出题检索模式
+
+日期：2026-09-26。基线 `deepcode` / `8445c50`。选择方案 B：保留出题 helper 已公开的四模式能力，而非缩减为 Hybrid；生产生成默认仍为 Hybrid。基线有三个既存未跟踪文档，经用户同意原样保留且不纳入本批提交。
+
+### 必要性与覆盖计划（测试变更前）
+
+- `build_generation_context` 的 Keyword Only 不应创建/调用 Embedding Provider；Vector Only 仅传向量，Hybrid 与 Hybrid+Rerank 传 `RetrievalQuery`（文本与向量），不以错误查询类型造成隐性失败。
+- Hybrid+Rerank 复用 Hybrid 融合结果，候选上限与最终 top_k 分开；在当前事件循环调用 `rerank_async`，保留课程过滤、来源片段与 Prompt 白名单，不回退到未重排的成功结果。空候选时不装配 Reranker，仍按既有上下文不足合同失败；Reranker 未就绪/执行失败时返回脱敏且含来源码的明确错误。
+- 新建 `tests/contract/test_question_agent_retrieval_modes.py`：以实际 Question Agent 出题入口参数化验证四种模式、检索参数/来源/课程过滤、关键字无 Embedding（含工厂失败陷阱）、真实 LLM 异步重排适配器在事件循环内重排，并覆盖空候选、不就绪及执行失败；不访问收费模型或修改数据库。保持既有出题生成/审核、评分与检索层测试及断言不变。
+- 门禁：聚焦出题及相关检索测试、`pytest tests/ -q`、`mypy backend/app/`、`ruff check backend/ tests/`、`git diff --check`。仅门禁全绿后显式暂存 P4.4 文件、单独提交并推送 `origin/deepcode`；不触及评分算法、图结构、依赖或 tasks.md。
+
+### 覆盖落地及最终门禁
+
+- 新增 `tests/contract/test_question_agent_retrieval_modes.py`，参数化覆盖四种模式的出题成功、查询类型、课程过滤及 Embedding/Rerank 实际调用；验证 Keyword Only 不依赖 Embedding Provider、Hybrid+Rerank 真实异步 LLM 适配器、融合候选上限/最终来源白名单、空候选、不就绪、未知来源和非法参数的明确失败。新增 12 项展开用例；没有删减或放宽原测试。
+- 聚焦新契约、原出题 Agent 和 Reranker 测试：65 passed。`mypy backend/app/`：125 个源文件通过；`ruff check backend/ tests/`、`git diff --check`：通过。
+- 首次 `pytest tests/ -q`：1364 passed、1 skipped、88 errors；首个错误为现有文件型 SQLite 测试收到 Kernel 临时目录的 Windows 扩展前缀 `//?/`，其已有 `sqlite:///{path}` 构造无法打开文件；不涉及出题变更。只在本批 `.cache/p4b1-validation/` 设置 `PYTEST_ADDOPTS=--basetemp=D:/YJX/MyCode/EduAgent/.cache/p4b1-validation/pytest-full-fixed-temp`，先重跑首个失败用例通过，再用同一 `pytest tests/ -q` 入口完成全量门禁：**1452 passed，1 skipped，7 warnings**（272.46 秒）。未改变原测试/环境依赖，跳过仍为既有 M0 隔离 Compose 配置要求。
+- 本批只修改 Question Agent 的检索装配与错误映射；生产出题服务默认 Hybrid 保持不变。未更改评分、底层检索/重排算法、Docker、迁移、依赖、历史 Benchmark、P1/P2/P3/P4A 代码或 tasks.md。三个既存未跟踪文档保持原样且不纳入提交。
