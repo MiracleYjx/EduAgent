@@ -15,8 +15,10 @@
   而未写入 Prompt 的引用显式失败，不做“整批检索 ID 回填”，也不允许自证循环。
 - **禁止自动发布**：候选状态必须保持 ``Candidate Generation``；本模块只产出候选，不写数据库，
   也不设置 ``Pending Review``/``Approved``（审核状态转换属 T068 与 T075）。
-- **同一装配口径**：LLM、Embedding 与 Hybrid 检索都使用同一个 ``AppSettings``；显式注入的组件
-  优先，便于测试与替换，不在导入期实例化 Provider。
+- **四模式检索**：Keyword Only 不创建 Embedding；Vector Only 使用向量；Hybrid 与
+  Hybrid+Rerank 使用文本和向量，后者在当前事件循环异步重排，不退化为未重排的结果。
+- **同一装配口径**：LLM、Embedding、检索和 Rerank 使用同一个 ``AppSettings``；显式注入的
+  组件优先，便于测试与替换，不在导入期实例化 Provider。
 - **异步不嵌套**：``generate`` 与 ``build_generation_context`` 均为 ``async``，直接 ``await``
   检索与生成，不调用 ``asyncio.run``。
 - **错误脱敏**：公开失败只保留平台错误码、脱敏说明与来源码，不回显 Prompt、片段正文或模型原文。
@@ -73,6 +75,12 @@ from backend.app.ai.retrieval.base import (
     normalize_top_k,
 )
 from backend.app.ai.retrieval.hybrid_search import DEFAULT_CANDIDATE_K
+from backend.app.ai.retrieval.reranker import (
+    BaseReranker,
+    RerankError,
+    RerankProviderNotReadyError,
+    build_reranker,
+)
 from backend.app.core.config import AppSettings, get_settings
 from backend.app.core.retry_policy import ProviderExecutionError
 from backend.app.domain.enums import ValidationStatus
@@ -108,6 +116,10 @@ QUESTION_RETRIEVAL_UNSUPPORTED_DIALECT: Final[str] = "QUESTION_RETRIEVAL_UNSUPPO
 QUESTION_RETRIEVAL_FAILED: Final[str] = "QUESTION_RETRIEVAL_FAILED"
 #: 检索查询在数据库层失败（缺表/迁移未就绪等结构性故障）。
 QUESTION_RETRIEVAL_DATABASE_FAILED: Final[str] = "QUESTION_RETRIEVAL_DATABASE_FAILED"
+#: Hybrid+Rerank 的 Provider 未就绪；不得退化为未重排结果。
+QUESTION_RERANK_PROVIDER_NOT_READY: Final[str] = "QUESTION_RERANK_PROVIDER_NOT_READY"
+#: Hybrid+Rerank 执行失败；不得将未重排片段交给出题模型。
+QUESTION_RERANK_FAILED: Final[str] = "QUESTION_RERANK_FAILED"
 
 #: 提示版本；作为系统提示首行的稳定前缀。
 QUESTION_GENERATION_PROMPT_VERSION: Final[str] = "question-generation-v1"
@@ -413,12 +425,12 @@ def resolve_generation_retriever(
     retriever: BaseRetriever | None = None,
     settings: AppSettings | None = None,
 ) -> BaseRetriever:
-    """解析出题检索实现：显式注入优先，否则按同一 ``AppSettings`` 装配 Hybrid 检索。"""
+    """按模式装配召回器：重排模式先用 Hybrid 召回，再由异步调用方重排。"""
 
+    resolved_mode = normalize_mode(mode)
     if retriever is not None:
         return retriever
-    resolved_mode = normalize_mode(mode)
-    if resolved_mode is RetrievalMode.HYBRID:
+    if resolved_mode in {RetrievalMode.HYBRID, RetrievalMode.HYBRID_RERANK}:
         kwargs: dict[str, Any] = {
             "candidate_k": normalize_top_k(
                 candidate_k if candidate_k is not None else DEFAULT_CANDIDATE_K
@@ -426,8 +438,8 @@ def resolve_generation_retriever(
         }
         if settings is not None:
             kwargs["vector_weight"] = settings.hybrid_vector_weight
-        return get_retriever(resolved_mode, **kwargs)
-    # 其它模式（vector_only/keyword_only）的构造器不接受候选数参数。
+        return get_retriever(RetrievalMode.HYBRID, **kwargs)
+    # vector_only/keyword_only 的构造器不接受候选数参数。
     return get_retriever(resolved_mode)
 
 
@@ -456,27 +468,29 @@ async def build_generation_context(
     top_k: int = DEFAULT_TOP_K,
     candidate_k: int | None = None,
     retriever: BaseRetriever | None = None,
+    reranker: BaseReranker | None = None,
     embedding_provider: BaseEmbeddingProvider | None = None,
     settings: AppSettings | None = None,
 ) -> QuestionGenerationContext:
-    """组装出题上下文（Query → Hybrid 检索 → 课程片段），不足时显式失败。
+    """组装四模式出题上下文（Query → 召回 → 可选异步重排 → 课程片段）。
 
     ``session`` 由调用方提供与管理；本函数不创建会话、不调用 ``asyncio.run``，也不写数据库。
     """
 
     resolved_mode = normalize_mode(mode)
-    resolved_settings = settings if settings is not None else get_settings()
     limit = normalize_top_k(top_k)
     query_text = build_generation_query(request)
     filters = RetrievalFilters(course_ids=(_as_course_uuid(request.course_id),))
 
-    if embedding_provider is not None:
-        provider = embedding_provider
-    elif settings is not None:
-        provider = create_embedding_provider(resolved_settings)
-    else:
-        provider = get_embedding_provider()
-    embedding = await provider.embed_query(query_text)
+    embedding: list[float] | None = None
+    if resolved_mode is not RetrievalMode.KEYWORD_ONLY:
+        if embedding_provider is not None:
+            provider = embedding_provider
+        elif settings is not None:
+            provider = create_embedding_provider(settings)
+        else:
+            provider = get_embedding_provider()
+        embedding = await provider.embed_query(query_text)
 
     active_retriever = resolve_generation_retriever(
         resolved_mode,
@@ -484,20 +498,32 @@ async def build_generation_context(
         retriever=retriever,
         settings=settings,
     )
-    if resolved_mode is RetrievalMode.HYBRID:
+    candidate_limit = (
+        max(
+            limit,
+            normalize_top_k(
+                candidate_k if candidate_k is not None else DEFAULT_CANDIDATE_K
+            ),
+        )
+        if resolved_mode is RetrievalMode.HYBRID_RERANK
+        else limit
+    )
+    if resolved_mode in {RetrievalMode.HYBRID, RetrievalMode.HYBRID_RERANK}:
+        assert embedding is not None  # 非关键词路径已计算向量
         candidates = _execute_search(
             cast("_HybridLikeRetriever", active_retriever),
             session,
             RetrievalQuery(text=query_text, embedding=tuple(embedding)),
-            limit,
+            candidate_limit,
             filters,
         )
     elif resolved_mode is RetrievalMode.VECTOR_ONLY:
+        assert embedding is not None
         candidates = _execute_search(
             active_retriever,
             session,
             tuple(embedding),
-            limit,
+            candidate_limit,
             filters,
         )
     else:
@@ -505,10 +531,19 @@ async def build_generation_context(
             active_retriever,
             session,
             query_text,
-            limit,
+            candidate_limit,
             filters,
         )
-    written, final_context = _compose_final_context(candidates)
+    ranked = candidates
+    if resolved_mode is RetrievalMode.HYBRID_RERANK and ranked:
+        if reranker is not None:
+            active_reranker = reranker
+        elif settings is not None:
+            active_reranker = build_reranker(settings=settings)
+        else:
+            active_reranker = build_reranker()
+        ranked = await active_reranker.rerank_async(query_text, ranked, limit)
+    written, final_context = _compose_final_context(ranked)
     context = QuestionGenerationContext(
         request=request,
         query_text=query_text,
@@ -516,7 +551,7 @@ async def build_generation_context(
         chunks=written,
         retrieved_context_ids=tuple(chunk.chunk_id for chunk in written),
         final_context=final_context,
-        candidate_count=len(candidates),
+        candidate_count=len(ranked),
     )
     context.ensure_sufficient()
     return context
@@ -583,8 +618,10 @@ class QuestionAgent:
         top_k: int = DEFAULT_TOP_K,
         candidate_k: int | None = None,
         retriever: BaseRetriever | None = None,
+        reranker: BaseReranker | None = None,
         embedding_provider: BaseEmbeddingProvider | None = None,
         settings: AppSettings | None = None,
+        mode: RetrievalMode | str = RetrievalMode.HYBRID,
     ) -> AgentOutput:
         """返回结构化候选题目；候选始终保持 ``Candidate Generation``，不写数据库。"""
 
@@ -602,9 +639,11 @@ class QuestionAgent:
             context = await build_generation_context(
                 session,
                 request,
+                mode=mode,
                 top_k=top_k,
                 candidate_k=candidate_k,
                 retriever=retriever,
+                reranker=reranker,
                 embedding_provider=embedding_provider,
                 settings=settings,
             )
@@ -632,6 +671,18 @@ class QuestionAgent:
             return self._failure(
                 QUESTION_RETRIEVAL_FAILED,
                 "课程检索失败，无法获取出题依据。",
+                error=exc,
+            )
+        except RerankProviderNotReadyError as exc:
+            return self._failure(
+                QUESTION_RERANK_PROVIDER_NOT_READY,
+                "Rerank Provider 未就绪，请检查 RERANK_PROVIDER 与模型配置。",
+                error=exc,
+            )
+        except RerankError as exc:
+            return self._failure(
+                QUESTION_RERANK_FAILED,
+                "候选片段重排失败，无法检索出题依据。",
                 error=exc,
             )
 
@@ -789,6 +840,8 @@ __all__ = [
     "QUESTION_NOT_CANDIDATE_STATUS",
     "QUESTION_PROVIDER_FAILED",
     "QUESTION_PROVIDER_NOT_READY",
+    "QUESTION_RERANK_FAILED",
+    "QUESTION_RERANK_PROVIDER_NOT_READY",
     "QUESTION_RETRIEVAL_DATABASE_FAILED",
     "QUESTION_RETRIEVAL_FAILED",
     "QUESTION_RETRIEVAL_UNSUPPORTED_DIALECT",
