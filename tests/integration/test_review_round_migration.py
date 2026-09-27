@@ -95,7 +95,7 @@ def test_review_round_migration_upgrade_downgrade_preserves_legacy_rows() -> Non
                     final_knowledge_points=[],
                 )
             )
-        alembic("upgrade", "head")
+        alembic("upgrade", "0010_review_round_ids")
         inspector = inspect(engine)
         for table, field in [
             ("grading_results", "pending_review_round_id"),
@@ -146,7 +146,7 @@ def test_review_round_migration_upgrade_downgrade_preserves_legacy_rows() -> Non
                 connection.scalar(text("SELECT id FROM grading_results")) == grading_id
             )
             assert connection.scalar(text("SELECT id FROM review_records")) == record_id
-        alembic("upgrade", "head")
+        alembic("upgrade", "0010_review_round_ids")
     finally:
         if created:
             with engine.begin() as connection:

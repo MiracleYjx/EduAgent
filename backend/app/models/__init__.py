@@ -14,6 +14,9 @@ from backend.app.models.exam_result import ExamResult
 from backend.app.models.grading_result import GradingResult
 from backend.app.models.knowledge_base import KnowledgeBase
 from backend.app.models.question import Question
+from backend.app.models.question_generation_metadata import QuestionGenerationMetadata
+from backend.app.models.question_revision_comment import QuestionRevisionComment
+from backend.app.models.question_source_chunk import QuestionSourceChunk
 from backend.app.models.review_record import ReviewRecord
 from backend.app.models.role import Role
 from backend.app.models.submission import Submission
@@ -39,6 +42,9 @@ __all__ = [
     "GradingResult",
     "KnowledgeBase",
     "Question",
+    "QuestionGenerationMetadata",
+    "QuestionRevisionComment",
+    "QuestionSourceChunk",
     "ReviewRecord",
     "Role",
     "Submission",
