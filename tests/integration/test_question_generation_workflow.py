@@ -9,14 +9,20 @@ from __future__ import annotations
 import asyncio
 from collections.abc import Iterator
 from typing import Any
+from uuid import NAMESPACE_URL, UUID, uuid4, uuid5
 
 import pytest
-from sqlalchemy import select
+from sqlalchemy import event, func, select
 from sqlalchemy.engine import Engine
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
-from backend.app.ai.agents.question_agent import QuestionAgent
+from backend.app.ai.agents.question_agent import (
+    QUESTION_GENERATION_PROMPT_VERSION,
+    QuestionAgent,
+)
 from backend.app.api.question_generation import (
+    CandidateStoreNotReadyError,
     GenerationFailedError,
     QuestionGenerationService,
 )
@@ -31,6 +37,8 @@ from backend.app.models import (
     DocumentChunk,
     KnowledgeBase,
     Question,
+    QuestionGenerationMetadata,
+    QuestionSourceChunk,
 )
 from backend.app.services.exam_service import ExamService, ExamValidationError
 from backend.app.services.question_validator import QuestionValidator
@@ -191,7 +199,10 @@ def test_generation_validation_and_teacher_review_gate(
     rows = _questions(engine, scenario["course_id"])
     assert len(rows) == 2
     assert {row.status for row in rows} == {QuestionStatus.PENDING_REVIEW}
-    assert all(row.status not in {QuestionStatus.APPROVED, QuestionStatus.PUBLISHED} for row in rows)
+    assert all(
+        row.status not in {QuestionStatus.APPROVED, QuestionStatus.PUBLISHED}
+        for row in rows
+    )
     assert response.evidence and response.evidence[0].chunk_id == scenario["chunk_id"]
 
     approved = service.submit_review(
@@ -236,7 +247,10 @@ def test_unreviewed_ai_candidate_cannot_be_published_to_exam(
                 question_ids=[str(question.id)],
                 created_by=scenario["teacher_id"],
             )
-        assert session.scalars(select(Question)).one().status is QuestionStatus.PENDING_REVIEW
+        assert (
+            session.scalars(select(Question)).one().status
+            is QuestionStatus.PENDING_REVIEW
+        )
 
 
 def test_invalid_candidate_enters_needs_revision_without_partial_batch(
@@ -281,6 +295,140 @@ def test_generation_failure_rolls_back_the_whole_batch(
     with pytest.raises(GenerationFailedError):
         _generate(service, scenario, count=2)
     assert _questions(engine, scenario["course_id"]) == []
+
+
+def test_generation_persists_actual_source_snapshot_and_provider_metadata(
+    engine: Engine,
+    scenario: dict[str, Any],
+) -> None:
+    candidates = [
+        make_candidate(
+            content=f"生成题 {index}", source_context_ids=[scenario["chunk_id"]]
+        )
+        for index in range(2)
+    ]
+    service, _, provider = _service(engine, scenario, candidates=candidates)
+    provider.model_name = "stub-model-for-this-call"
+    provider.model_version = "stub-version-1"
+
+    response = _generate(service, scenario, count=2)
+    assert response.sources_persisted is False  # 响应语义由 P4B.3.2b 更新
+    expected_content = make_chunk(scenario["chunk_id"]).content
+    with Session(engine) as session:
+        questions = list(session.scalars(select(Question).order_by(Question.content)))
+        sources = list(session.scalars(select(QuestionSourceChunk)))
+        metadata = list(session.scalars(select(QuestionGenerationMetadata)))
+    assert len(questions) == len(sources) == len(metadata) == 2
+    assert {source.question_id for source in sources} == {item.id for item in questions}
+    assert {item.question_id for item in metadata} == {item.id for item in questions}
+    for source in sources:
+        assert source.chunk_id == UUID(scenario["chunk_id"])
+        assert source.live_chunk_id == UUID(scenario["chunk_id"])
+        assert source.document_id == UUID(scenario["document_id"])
+        assert source.course_id == UUID(scenario["course_id"])
+        assert source.source_order == 0
+        assert source.content_snapshot == expected_content
+        assert source.source_file == "变量与作用域.pdf"
+        assert source.chunk_index == 0
+        assert source.retrieval_rank == 1
+        assert (source.score_kind, source.score_value) == ("semantic", 0.9)
+    for item in metadata:
+        assert item.request_id == uuid5(
+            NAMESPACE_URL, "eduagent:question-generation:request-t078"
+        )
+        assert item.prompt_version == QUESTION_GENERATION_PROMPT_VERSION
+        assert item.model == "stub-model-for-this-call"
+        assert item.model_version == "stub-version-1"
+        assert item.provider_name == "stub"
+        assert item.retrieval_mode == "hybrid"
+        assert item.generated_at.tzinfo is not None
+
+
+def test_uuid_request_id_is_persisted_without_remapping(
+    engine: Engine,
+    scenario: dict[str, Any],
+) -> None:
+    service, _, _ = _service(
+        engine,
+        scenario,
+        candidates=[make_candidate(source_context_ids=[scenario["chunk_id"]])],
+    )
+    request_id = uuid4()
+    response = asyncio.run(
+        service.generate_candidates(
+            course_id=scenario["course_id"],
+            actor_id=scenario["teacher_id"],
+            request_id=str(request_id),
+        )
+    )
+    assert response.request_id == str(request_id)
+    with Session(engine) as session:
+        assert (
+            session.scalars(select(QuestionGenerationMetadata)).one().request_id
+            == request_id
+        )
+
+
+def test_disappeared_live_source_rejects_the_whole_batch(
+    engine: Engine,
+    scenario: dict[str, Any],
+) -> None:
+    missing_id = str(uuid4())
+    service, retriever, _ = _service(
+        engine,
+        scenario,
+        candidates=[make_candidate(source_context_ids=[missing_id])],
+    )
+    retriever.chunks = [
+        make_chunk(
+            missing_id,
+            course_id=scenario["course_id"],
+            document_id=scenario["document_id"],
+        )
+    ]
+    with pytest.raises(CandidateStoreNotReadyError):
+        _generate(service, scenario, count=1)
+    with Session(engine) as session:
+        for model in (Question, QuestionSourceChunk, QuestionGenerationMetadata):
+            assert session.scalar(select(func.count()).select_from(model)) == 0
+
+
+@pytest.mark.parametrize(
+    "failure_target", [QuestionSourceChunk, QuestionGenerationMetadata]
+)
+def test_source_or_metadata_failure_rolls_back_entire_generation_batch(
+    engine: Engine,
+    scenario: dict[str, Any],
+    failure_target: type[QuestionSourceChunk | QuestionGenerationMetadata],
+) -> None:
+    service, _, _ = _service(
+        engine,
+        scenario,
+        candidates=[
+            make_candidate(
+                content=f"事务题 {index}", source_context_ids=[scenario["chunk_id"]]
+            )
+            for index in range(2)
+        ],
+    )
+    inserted = 0
+
+    def fail_second_insert(_mapper: Any, _connection: Any, _target: Any) -> None:
+        nonlocal inserted
+        inserted += 1
+        if inserted == 2:
+            raise SQLAlchemyError("injected generation persistence failure")
+
+    event.listen(failure_target, "before_insert", fail_second_insert)
+    try:
+        with pytest.raises(CandidateStoreNotReadyError):
+            _generate(service, scenario, count=2)
+    finally:
+        event.remove(failure_target, "before_insert", fail_second_insert)
+    assert inserted == 2
+    with Session(engine) as session:
+        for model in (Question, QuestionSourceChunk, QuestionGenerationMetadata):
+            assert session.scalar(select(func.count()).select_from(model)) == 0
 
 
 __all__ = ["test_generation_validation_and_teacher_review_gate"]

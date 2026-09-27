@@ -43,6 +43,7 @@ from backend.app.ai.agents.state import (
     AgentStatus,
     AgentType,
     QuestionGenerationRequest,
+    RetrievedContextItem,
 )
 from backend.app.ai.embedding.base import (
     BaseEmbeddingProvider,
@@ -107,11 +108,15 @@ QUESTION_PROVIDER_FAILED: Final[str] = "QUESTION_PROVIDER_FAILED"
 #: 出题 Provider 未配置或未就绪。
 QUESTION_PROVIDER_NOT_READY: Final[str] = "QUESTION_PROVIDER_NOT_READY"
 #: Embedding Provider 未就绪（缺少依赖或配置）。
-QUESTION_EMBEDDING_PROVIDER_NOT_READY: Final[str] = "QUESTION_EMBEDDING_PROVIDER_NOT_READY"
+QUESTION_EMBEDDING_PROVIDER_NOT_READY: Final[str] = (
+    "QUESTION_EMBEDDING_PROVIDER_NOT_READY"
+)
 #: Embedding 调用失败；可重试语义按来源错误保真传递。
 QUESTION_EMBEDDING_PROVIDER_FAILED: Final[str] = "QUESTION_EMBEDDING_PROVIDER_FAILED"
 #: 当前数据库方言不支持所需检索模式。
-QUESTION_RETRIEVAL_UNSUPPORTED_DIALECT: Final[str] = "QUESTION_RETRIEVAL_UNSUPPORTED_DIALECT"
+QUESTION_RETRIEVAL_UNSUPPORTED_DIALECT: Final[str] = (
+    "QUESTION_RETRIEVAL_UNSUPPORTED_DIALECT"
+)
 #: 检索输入或查询失败。
 QUESTION_RETRIEVAL_FAILED: Final[str] = "QUESTION_RETRIEVAL_FAILED"
 #: 检索查询在数据库层失败（缺表/迁移未就绪等结构性故障）。
@@ -284,7 +289,9 @@ def build_generation_query(request: QuestionGenerationRequest) -> str:
         (_SECTION_DIFFICULTY, request.difficulty or _UNSPECIFIED),
         (
             _SECTION_TYPE,
-            request.question_type.value if request.question_type is not None else _UNSPECIFIED,
+            request.question_type.value
+            if request.question_type is not None
+            else _UNSPECIFIED,
         ),
         (_SECTION_COUNT, str(request.count)),
     ]
@@ -384,7 +391,9 @@ def _build_user_message(
 
     knowledge = "、".join(request.knowledge_points) or _UNSPECIFIED
     question_type = (
-        request.question_type.value if request.question_type is not None else _UNSPECIFIED
+        request.question_type.value
+        if request.question_type is not None
+        else _UNSPECIFIED
     )
     return "\n".join(
         [
@@ -406,7 +415,7 @@ def _build_user_message(
             "依据的片段；不得填写未出现的标识，也不得为了凑数引用未使用的片段。",
             "",
             "【输出要求】",
-            f"必须返回 JSON 对象 {{\"candidates\": [...]}}，候选数量必须等于 {request.count}，",
+            f'必须返回 JSON 对象 {{"candidates": [...]}}，候选数量必须等于 {request.count}，',
             (
                 f"题型必须为 {question_type}；参考答案必须与学生可提交的取值一致"
                 "（字典选项填写选项键，列表选项填写选项全文，判断题无选项时使用 True/False），"
@@ -688,7 +697,9 @@ class QuestionAgent:
 
         messages = build_generation_messages(request, context)
         try:
-            payload, metadata = await self._generate_payload(messages, settings=resolved_settings)
+            payload, metadata, model_version = await self._generate_payload(
+                messages, settings=resolved_settings
+            )
             candidates = self._validate_candidates(payload, request, context)
         except QuestionGenerationError as exc:
             return self._failure(exc.error_code, exc.detail, error=exc)
@@ -702,8 +713,16 @@ class QuestionAgent:
             validation_status=ValidationStatus.VALIDATED,
             question_candidates=candidates,
             retrieved_context_ids=list(context.retrieved_context_ids),
+            retrieved_context=[
+                RetrievedContextItem.from_chunk(chunk) for chunk in context.chunks
+            ],
+            provider_name=(
+                metadata["provider"] if metadata["provider"] != "unknown" else None
+            ),
             model=metadata["model"],
             prompt_version=metadata["prompt_version"],
+            model_version=model_version,
+            retrieval_mode=context.retrieval_mode.value,
         )
 
     async def _generate_payload(
@@ -711,7 +730,7 @@ class QuestionAgent:
         messages: LLMMessages,
         *,
         settings: AppSettings,
-    ) -> tuple[QuestionGenerationPayload, LLMProviderMetadata]:
+    ) -> tuple[QuestionGenerationPayload, LLMProviderMetadata, str | None]:
         """调用 Provider 获取结构化候选；失败按结构化失败/调用故障分类。"""
 
         provider = self._provider
@@ -750,9 +769,17 @@ class QuestionAgent:
         except Exception:  # noqa: BLE001 - 统一收敛为脱敏 Provider 失败
             raise ProviderFailedError("出题 Provider 调用失败。") from None
         if not isinstance(result, QuestionGenerationPayload):
-            raise InvalidGenerationResponseError("出题 Provider 未返回约定的结构化结果。")
-        return result, describe_llm_provider(
-            provider, prompt_version=QUESTION_GENERATION_PROMPT_VERSION,
+            raise InvalidGenerationResponseError(
+                "出题 Provider 未返回约定的结构化结果。"
+            )
+        version = getattr(provider, "model_version", None)
+        return (
+            result,
+            describe_llm_provider(
+                provider,
+                prompt_version=QUESTION_GENERATION_PROMPT_VERSION,
+            ),
+            version.strip() if isinstance(version, str) and version.strip() else None,
         )
 
     def _validate_candidates(
@@ -776,7 +803,9 @@ class QuestionAgent:
             ):
                 raise QuestionTypeMismatchError("候选题型与教师要求不一致。")
             if candidate.status != CANDIDATE_GENERATION_STATUS:
-                raise NotCandidateGenerationError("候选题必须保持候选生成状态，不得自动发布。")
+                raise NotCandidateGenerationError(
+                    "候选题必须保持候选生成状态，不得自动发布。"
+                )
             cited = list(candidate.source_context_ids)
             unknown = [chunk_id for chunk_id in cited if chunk_id not in whitelist]
             if unknown:

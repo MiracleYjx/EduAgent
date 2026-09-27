@@ -87,9 +87,7 @@ def test_question_agent_four_modes_use_correct_query_and_course_scope(
     embedding = StubEmbeddingProvider()
     retriever = StubRetriever([make_chunk("chunk-1")])
     rerank_provider = _RerankProvider({"chunk-1": 0.9})
-    reranker = LLMRerankAdapter(
-        provider=rerank_provider, max_candidates=3, timeout=5.0
-    )
+    reranker = LLMRerankAdapter(provider=rerank_provider, max_candidates=3, timeout=5.0)
 
     output = asyncio.run(
         QuestionAgent(provider=provider).generate(
@@ -105,6 +103,9 @@ def test_question_agent_four_modes_use_correct_query_and_course_scope(
 
     assert output.status is AgentStatus.SUCCESS
     assert output.retrieved_context_ids == ["chunk-1"]
+    assert output.retrieval_mode == mode.value
+    assert output.provider_name == "stub"
+    assert output.retrieved_context[0].content == make_chunk("chunk-1").content
     assert output.question_candidates[0].source_context_ids == ["chunk-1"]
     assert len(provider.calls) == 1
     assert retriever.calls[0]["filters"].course_ids == (UUID(COURSE_UUID),)
@@ -119,7 +120,9 @@ def test_question_agent_four_modes_use_correct_query_and_course_scope(
         assert isinstance(query, RetrievalQuery)
         assert query.embedding == tuple(embedding.vector)
         assert embedding.queries == [query.text]
-    assert len(rerank_provider.calls) == (1 if mode is RetrievalMode.HYBRID_RERANK else 0)
+    assert len(rerank_provider.calls) == (
+        1 if mode is RetrievalMode.HYBRID_RERANK else 0
+    )
 
 
 def test_keyword_only_never_constructs_embedding_provider(
@@ -133,7 +136,9 @@ def test_keyword_only_never_constructs_embedding_provider(
     monkeypatch.setattr(question_module, "create_embedding_provider", fail)
     monkeypatch.setattr(question_module, "get_embedding_provider", fail)
     output = asyncio.run(
-        QuestionAgent(provider=StubQuestionProvider(candidates=[make_candidate()])).generate(
+        QuestionAgent(
+            provider=StubQuestionProvider(candidates=[make_candidate()])
+        ).generate(
             None,  # type: ignore[arg-type]
             _input(),
             mode="keyword_only",
@@ -164,12 +169,8 @@ def test_hybrid_rerank_awaits_adapter_and_only_cites_final_context() -> None:
 
     hits = [make_chunk(f"chunk-{index}") for index in range(1, 4)]
     retriever = StubRetriever(hits)
-    rerank_provider = _RerankProvider(
-        {"chunk-1": 0.1, "chunk-2": 0.2, "chunk-3": 0.95}
-    )
-    reranker = LLMRerankAdapter(
-        provider=rerank_provider, max_candidates=3, timeout=5.0
-    )
+    rerank_provider = _RerankProvider({"chunk-1": 0.1, "chunk-2": 0.2, "chunk-3": 0.95})
+    reranker = LLMRerankAdapter(provider=rerank_provider, max_candidates=3, timeout=5.0)
     request = _input().generation_request
     assert request is not None
     context = asyncio.run(
@@ -246,13 +247,13 @@ def test_hybrid_rerank_uses_same_settings_for_reranker(
 
     def build(*, settings: Any) -> LLMRerankAdapter:
         seen.append(settings)
-        return LLMRerankAdapter(
-            provider=llm, max_candidates=3, timeout=5.0
-        )
+        return LLMRerankAdapter(provider=llm, max_candidates=3, timeout=5.0)
 
     monkeypatch.setattr(question_module, "build_reranker", build)
     output = asyncio.run(
-        QuestionAgent(provider=StubQuestionProvider(candidates=[make_candidate()])).generate(
+        QuestionAgent(
+            provider=StubQuestionProvider(candidates=[make_candidate()])
+        ).generate(
             None,  # type: ignore[arg-type]
             _input(),
             mode=RetrievalMode.HYBRID_RERANK,

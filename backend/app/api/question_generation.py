@@ -15,8 +15,8 @@ FR-024～FR-028、T067 Question Agent、T068 Question Validator。
 
 已知边界（不静默丢弃、不伪造）：
 
-- T067 的 ``QuestionCandidate.source_context_ids`` 与生成使用的检索片段在题库模型中没有对应
-  列（本批不新增迁移），因此只在生成响应中显式返回，并声明 ``sources_persisted=False``。
+- 生成时引用的真实片段与 Provider 元数据已写入独立快照表；响应中的
+  ``sources_persisted`` 仍保留旧语义，待 P4B.3.2b 一并更新。
 - 教师退回修订意见同样没有持久列，响应以 ``comment_persisted=False`` 明确说明，不声称已保存。
 - ``request_id`` 从认证请求头 ``X-Request-ID`` 取得，缺失时由服务端生成并回显。
 
@@ -31,7 +31,7 @@ from contextlib import contextmanager
 from datetime import datetime
 from decimal import Decimal
 from typing import Annotated, Any, Literal, cast
-from uuid import UUID, uuid4
+from uuid import NAMESPACE_URL, UUID, uuid4, uuid5
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
 from pydantic import BaseModel, ConfigDict, Field, field_validator
@@ -70,7 +70,15 @@ from backend.app.core.database import get_session_factory
 from backend.app.core.security import require_permission
 from backend.app.domain.enums import QuestionStatus, QuestionType
 from backend.app.domain.permissions import Permission
-from backend.app.models import Course, Document, DocumentChunk, Question, User
+from backend.app.models import (
+    Course,
+    Document,
+    DocumentChunk,
+    Question,
+    QuestionGenerationMetadata,
+    QuestionSourceChunk,
+    User,
+)
 from backend.app.schemas.ai import QuestionCandidate
 from backend.app.services.question_validator import (
     CANDIDATE_GENERATION_STATUS,
@@ -95,7 +103,7 @@ from backend.app.services.question_validator import (
 
 router = APIRouter(prefix="/api/question-generation", tags=["AI 出题"])
 
-#: 生成响应中候选来源标识；题库模型无来源列，因此该标识只出现在响应载荷中。
+#: 生成响应中候选的生成路径标识；来源片段另存于独立快照表。
 GENERATION_ORIGIN: str = CANDIDATE_GENERATION_STATUS
 
 #: 一次请求允许的候选数量上限，避免单次生成拖垮请求与上下文预算。
@@ -249,7 +257,9 @@ class CandidateGenerationRequest(BaseModel):
         max_length=32,
         description="要求覆盖的知识点。",
     )
-    difficulty: str | None = Field(default=None, max_length=160, description="难度要求。")
+    difficulty: str | None = Field(
+        default=None, max_length=160, description="难度要求。"
+    )
     question_type: QuestionType | None = Field(default=None, description="题型要求。")
     count: int = Field(
         default=1,
@@ -415,7 +425,9 @@ class CandidateReviewOutcomeDTO(BaseModel):
 # ---------------------------------------------------------------------- 编排服务
 
 
-def _validation_dto(issues: Sequence[QuestionValidationIssue]) -> list[ValidationIssueDTO]:
+def _validation_dto(
+    issues: Sequence[QuestionValidationIssue],
+) -> list[ValidationIssueDTO]:
     """把校验问题转换为响应 DTO（保序、不改写说明）。"""
 
     return [
@@ -449,7 +461,7 @@ def _generated_dto(
     result: CandidateValidationResult,
     source_context_ids: Sequence[str],
 ) -> GeneratedCandidateDTO:
-    """生成响应用 DTO：携带来源标识、校验结论与本次依据（均未落库）。"""
+    """生成响应用 DTO：保留现有载荷；来源快照由生成事务另行保存。"""
 
     base = _candidate_dto(question)
     return GeneratedCandidateDTO(
@@ -561,6 +573,8 @@ class QuestionGenerationService:
         rows = self._persist_candidates(
             course_id=candidate_course_id,
             actor_id=actor_id,
+            request_id=request_id,
+            output=output,
             candidates=candidates,
             batch=batch,
         )
@@ -631,7 +645,9 @@ class QuestionGenerationService:
             raise GenerationFailedError(
                 error.message if error is not None else "AI 出题失败。",
                 error_code=(
-                    error.error_code if error is not None else QUESTION_GENERATION_FAILED
+                    error.error_code
+                    if error is not None
+                    else QUESTION_GENERATION_FAILED
                 ),
                 retryable=bool(error.retryable) if error is not None else False,
                 source_code=error.source_code if error is not None else None,
@@ -649,10 +665,12 @@ class QuestionGenerationService:
         *,
         course_id: UUID,
         actor_id: str,
+        request_id: str,
+        output: AgentOutput,
         candidates: Sequence[QuestionCandidate],
         batch: CandidateBatchValidation,
     ) -> list[Question]:
-        """在单事务内整批写入候选题：``Candidate Generation`` → 校验结论状态。"""
+        """在单事务内整批写入候选题、生成元数据及实际引用的来源快照。"""
 
         if len(batch.results) != len(candidates):
             raise CandidateStoreNotReadyError(
@@ -660,8 +678,25 @@ class QuestionGenerationService:
             )
         created: list[Question] = []
         creator_id = _as_uuid(actor_id)
+        source_by_id = {item.chunk_id: item for item in output.retrieved_context}
+        cited_ids: set[UUID] = set()
+        for candidate in candidates:
+            for source_id in candidate.source_context_ids:
+                try:
+                    cited_ids.add(UUID(source_id))
+                except ValueError:
+                    # 既有 Validator 允许无效引用进入 Needs Revision；不能伪造来源行。
+                    continue
         with self._use_session() as session:
             try:
+                live_sources = {
+                    chunk.id: (chunk, filename)
+                    for chunk, filename in session.execute(
+                        select(DocumentChunk, Document.original_filename)
+                        .join(Document, DocumentChunk.document_id == Document.id)
+                        .where(DocumentChunk.id.in_(cited_ids))
+                    )
+                }
                 for candidate, result in zip(candidates, batch.results, strict=True):
                     target = self._validated_candidate_status(result)
                     question = Question(
@@ -679,6 +714,65 @@ class QuestionGenerationService:
                     )
                     session.add(question)
                     created.append(question)
+                session.flush()
+                for question, candidate in zip(created, candidates, strict=True):
+                    session.add(
+                        QuestionGenerationMetadata(
+                            question_id=question.id,
+                            request_id=_request_uuid(request_id),
+                            prompt_version=output.prompt_version or "unknown",
+                            model=output.model or "unknown",
+                            model_version=output.model_version,
+                            provider_name=output.provider_name or "unknown",
+                            retrieval_mode=output.retrieval_mode or "unknown",
+                        )
+                    )
+                    source_order = 0
+                    for source_id in candidate.source_context_ids:
+                        source = source_by_id.get(source_id)
+                        try:
+                            live = live_sources.get(UUID(source_id))
+                        except ValueError:
+                            continue
+                        if source is None or live is None:
+                            raise CandidateStoreNotReadyError(
+                                "引用片段在生成快照或资料库中已不可用，本批次未落库。"
+                            )
+                        chunk, filename = live
+                        if chunk.course_id != course_id:
+                            # 保持既有课程范围；跨课程拒绝语义留给 P4B.3.2b。
+                            continue
+                        scores = (
+                            ("rerank", source.rerank_score),
+                            ("fusion", source.fusion_score),
+                            ("semantic", source.semantic_score),
+                            ("keyword", source.keyword_score),
+                        )
+                        score_kind, score_value = next(
+                            (
+                                (kind, value)
+                                for kind, value in scores
+                                if value is not None
+                            ),
+                            (None, None),
+                        )
+                        session.add(
+                            QuestionSourceChunk(
+                                question_id=question.id,
+                                chunk_id=chunk.id,
+                                live_chunk_id=chunk.id,
+                                document_id=chunk.document_id,
+                                course_id=chunk.course_id,
+                                source_order=source_order,
+                                content_snapshot=source.content,
+                                source_file=filename,
+                                chunk_index=chunk.chunk_index,
+                                retrieval_rank=source.rank,
+                                score_kind=score_kind,
+                                score_value=score_value,
+                            )
+                        )
+                        source_order += 1
                 session.commit()
             except QuestionGenerationError:
                 session.rollback()
@@ -694,7 +788,9 @@ class QuestionGenerationService:
         return created
 
     @staticmethod
-    def _validated_candidate_status(result: CandidateValidationResult) -> QuestionStatus:
+    def _validated_candidate_status(
+        result: CandidateValidationResult,
+    ) -> QuestionStatus:
         """以 T068 状态机判定候选（``Candidate Generation`` → 校验结论）的落库状态。"""
 
         return plan_transition(
@@ -730,9 +826,9 @@ class QuestionGenerationService:
         with self._use_session() as session:
             rows = list(
                 session.execute(
-                    select(DocumentChunk, Document.original_filename).join(
-                        Document, DocumentChunk.document_id == Document.id
-                    ).where(DocumentChunk.id.in_(normalized))
+                    select(DocumentChunk, Document.original_filename)
+                    .join(Document, DocumentChunk.document_id == Document.id)
+                    .where(DocumentChunk.id.in_(normalized))
                 )
             )
         for chunk, filename in rows:
@@ -770,7 +866,9 @@ class QuestionGenerationService:
             )
         with self._use_session() as session:
             statuses = (
-                (candidate_status,) if candidate_status is not None else CANDIDATE_STATUS_SCOPE
+                (candidate_status,)
+                if candidate_status is not None
+                else CANDIDATE_STATUS_SCOPE
             )
             owned_course_id = (
                 self._require_owned_course(course_id, actor_id)
@@ -939,6 +1037,15 @@ def _as_uuid(value: str) -> UUID:
         raise ValueError(f"标识必须是 UUID，收到 {value!r}。") from error
 
 
+def _request_uuid(value: str) -> UUID:
+    """现有文本请求 ID 不变；仅将非 UUID 稳定映射到持久化 UUID。"""
+
+    try:
+        return UUID(value)
+    except ValueError:
+        return uuid5(NAMESPACE_URL, f"eduagent:question-generation:{value}")
+
+
 def build_production_question_generation_service(
     settings: AppSettings | None = None,
     *,
@@ -1081,7 +1188,9 @@ def get_candidate(
     """读取单个候选题；跨课程访问返回 404，不泄露其他课程题目。"""
 
     try:
-        return service.get_candidate(actor_id=str(teacher.id), candidate_id=candidate_id)
+        return service.get_candidate(
+            actor_id=str(teacher.id), candidate_id=candidate_id
+        )
     except QuestionGenerationError as error:
         raise _generation_http_exception(error) from None
 

@@ -13,6 +13,7 @@ from collections.abc import Mapping, Sequence
 from typing import Any
 
 from backend.app.ai.agents.question_agent import QuestionGenerationPayload
+from backend.app.ai.llm.base import BaseLLMProvider
 from backend.app.ai.retrieval.base import (
     DEFAULT_TOP_K,
     RetrievalFilters,
@@ -102,10 +103,10 @@ class StubRetriever:
         return list(self.chunks)
 
 
-class StubQuestionProvider:
+class StubQuestionProvider(BaseLLMProvider):
     """返回固定结构化出题 Payload 的 Provider 替身。"""
 
-    provider_name = "stub-question"
+    provider_name = "stub"
 
     def __init__(
         self,

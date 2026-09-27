@@ -151,7 +151,9 @@ class RetrievedContextItem(BaseModel):
     fusion_score: float | None = Field(default=None, description="加权融合分数。")
     rerank_score: float | None = Field(default=None, description="重排分数。")
     rank: int | None = Field(
-        default=None, ge=1, description="从 1 开始的排序名次；0 视为未编号并归一为 None。"
+        default=None,
+        ge=1,
+        description="从 1 开始的排序名次；0 视为未编号并归一为 None。",
     )
     source_mode: NonEmptyText | None = Field(
         default=None, description="候选来源标记：vector / keyword / both。"
@@ -200,7 +202,9 @@ class SupervisorDecision(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True, str_strip_whitespace=True)
 
     action: SupervisorAction = Field(description="流程控制信号。")
-    next_agent: AgentType | None = Field(default=None, description="下一步执行的 Agent。")
+    next_agent: AgentType | None = Field(
+        default=None, description="下一步执行的 Agent。"
+    )
     tool_names: list[NonEmptyText] = Field(
         default_factory=list, description="本次选择的工具名。"
     )
@@ -265,14 +269,19 @@ class AgentInput(BaseModel):
     submission_context: SubmissionContext | None = Field(
         default=None, description="评分/复核输入的权威答卷上下文。"
     )
-    answer_id: NonEmptyText | None = Field(default=None, description="当前题目答案标识。")
+    answer_id: NonEmptyText | None = Field(
+        default=None, description="当前题目答案标识。"
+    )
     question_id: NonEmptyText | None = Field(default=None, description="当前题目标识。")
-    question_type: QuestionType | None = Field(default=None, description="当前题目题型。")
+    question_type: QuestionType | None = Field(
+        default=None, description="当前题目题型。"
+    )
     query: NonEmptyText | None = Field(
         default=None, description="主观题 Query Construction 产物。"
     )
     retrieved_context_ids: list[NonEmptyText] = Field(
-        default_factory=list, description="实际写入 Final Context 的片段标识，保持顺序。"
+        default_factory=list,
+        description="实际写入 Final Context 的片段标识，保持顺序。",
     )
     retrieved_context: list[RetrievedContextItem] = Field(
         default_factory=list, description="检索片段明细。"
@@ -310,7 +319,9 @@ class AgentOutput(BaseModel):
     validation_status: ValidationStatus | None = Field(
         default=None, description="结构化校验结果；未校验时为 None。"
     )
-    question_type: QuestionType | None = Field(default=None, description="相关题目题型。")
+    question_type: QuestionType | None = Field(
+        default=None, description="相关题目题型。"
+    )
     grading_result: GradingResult | None = Field(
         default=None, description="已通过校验的单题评分结果。"
     )
@@ -333,6 +344,18 @@ class AgentOutput(BaseModel):
     )
     retrieved_context_ids: list[NonEmptyText] = Field(
         default_factory=list, description="本次使用的片段标识，保持顺序。"
+    )
+    retrieved_context: list[RetrievedContextItem] = Field(
+        default_factory=list, description="本次生成实际使用的片段快照。"
+    )
+    provider_name: NonEmptyText | None = Field(
+        default=None, description="实际调用的 Provider；未知时为空。"
+    )
+    model_version: NonEmptyText | None = Field(
+        default=None, description="实际模型版本；Provider 未提供时为空。"
+    )
+    retrieval_mode: NonEmptyText | None = Field(
+        default=None, description="本次实际使用的检索模式。"
     )
     model: NonEmptyText | None = Field(default=None, description="实际使用的模型。")
     prompt_version: NonEmptyText | None = Field(
@@ -369,7 +392,9 @@ class AgentOutput(BaseModel):
         return self
 
 
-def confidence_decision_from_snapshot(snapshot: ConfidenceDecisionDTO) -> ConfidenceDecision:
+def confidence_decision_from_snapshot(
+    snapshot: ConfidenceDecisionDTO,
+) -> ConfidenceDecision:
     """由快照还原 T053 决策对象，供 T054 汇总接口使用。
 
     历史阈值原样恢复，**不**按当前配置重新判定：恢复过程必须复现当时的事实。

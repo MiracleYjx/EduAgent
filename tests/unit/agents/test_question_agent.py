@@ -34,6 +34,8 @@ from collections.abc import Coroutine
 from typing import Any
 from uuid import UUID
 
+import httpx
+from openai import AsyncOpenAI
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session
 
@@ -145,7 +147,9 @@ def _generate(
             retriever=(
                 retriever
                 if retriever is not None
-                else StubRetriever(chunks if chunks is not None else [make_chunk("chunk-1")])
+                else StubRetriever(
+                    chunks if chunks is not None else [make_chunk("chunk-1")]
+                )
             ),
             embedding_provider=(
                 embedding if embedding is not None else StubEmbeddingProvider()
@@ -389,7 +393,10 @@ def test_generation_messages_keep_version_and_citation_rule() -> None:
     messages = build_generation_messages(request, context)
 
     assert messages[0]["role"] == "system"
-    assert str(messages[0]["content"]).splitlines()[0] == QUESTION_GENERATION_PROMPT_VERSION
+    assert (
+        str(messages[0]["content"]).splitlines()[0]
+        == QUESTION_GENERATION_PROMPT_VERSION
+    )
     assert "json" in str(messages[0]["content"]).lower()
     assert "source_context_ids" in str(messages[0]["content"])
     user_message = str(messages[1]["content"])
@@ -500,7 +507,8 @@ def test_truncated_out_chunk_citation_is_rejected() -> None:
     """被总预算截断而未写入 Prompt 的片段不算有效来源（避免自证循环）。"""
 
     chunks = [
-        make_chunk(f"chunk-{index}", content="超长内容。" * 200) for index in range(1, 11)
+        make_chunk(f"chunk-{index}", content="超长内容。" * 200)
+        for index in range(1, 11)
     ]
     context = _run(
         build_generation_context(
@@ -677,11 +685,58 @@ def test_model_field_only_recorded_when_provider_exposes_identifier() -> None:
 
     output = _generate(StubQuestionProvider(candidates=[make_candidate()]))
     assert output.model == "unknown"
+    assert output.provider_name == "stub"
+    assert output.model_version is None
 
-    output = _generate(
-        StubQuestionProvider(candidates=[make_candidate()], model_name="stub-model-v1")
+    provider = StubQuestionProvider(
+        candidates=[make_candidate()], model_name="stub-model-v1"
     )
+    provider.model_version = "provider-version-1"
+    output = _generate(provider)
     assert output.model == "stub-model-v1"
+    assert output.provider_name == "stub"
+    assert output.model_version == "provider-version-1"
+    assert output.prompt_version == QUESTION_GENERATION_PROMPT_VERSION
+
+    unknown_provider = StubQuestionProvider(candidates=[make_candidate()])
+    unknown_provider.provider_name = "unknown"
+    unknown_output = _generate(unknown_provider)
+    assert unknown_output.provider_name is None
+    assert unknown_output.model_version is None
+
+
+def test_real_deepseek_call_metadata_reaches_question_agent_output() -> None:
+    payload = json.dumps({"candidates": [make_candidate().model_dump(mode="json")]})
+    calls: list[dict[str, Any]] = []
+
+    def respond(request: httpx.Request) -> httpx.Response:
+        calls.append(json.loads(request.content))
+        return httpx.Response(
+            200, json={"choices": [{"message": {"content": payload}}]}
+        )
+
+    async def generate() -> Any:
+        settings = build_test_settings(deepseek_model="observed-deepseek-model")
+        async with AsyncOpenAI(
+            api_key="test-only-key",
+            base_url="https://llm.test/v1",
+            http_client=httpx.AsyncClient(transport=httpx.MockTransport(respond)),
+        ) as client:
+            provider = DeepSeekProvider(settings, client=client)
+            return await QuestionAgent(provider=provider).generate(
+                None,  # type: ignore[arg-type] - 注入检索替身不使用数据库
+                _input(),
+                retriever=StubRetriever([make_chunk("chunk-1")]),
+                embedding_provider=StubEmbeddingProvider(),
+                settings=settings,
+            )
+
+    output = _run(generate())
+    assert output.status is AgentStatus.SUCCESS
+    assert calls[0]["model"] == output.model == "observed-deepseek-model"
+    assert output.provider_name == "deepseek"
+    assert output.model_version is None
+    assert output.prompt_version == QUESTION_GENERATION_PROMPT_VERSION
 
 
 def test_default_question_provider_metadata_is_per_call(monkeypatch: Any) -> None:
@@ -690,7 +745,9 @@ def test_default_question_provider_metadata_is_per_call(monkeypatch: Any) -> Non
     from backend.app.ai.agents import question_agent as module
 
     providers = [
-        StubQuestionProvider(candidates=[make_candidate()], model_name="resolved-question-v2"),
+        StubQuestionProvider(
+            candidates=[make_candidate()], model_name="resolved-question-v2"
+        ),
         StubQuestionProvider(candidates=[make_candidate()], model_name="  "),
     ]
     settings = build_test_settings(deepseek_model="configured-model-must-not-appear")
@@ -703,15 +760,23 @@ def test_default_question_provider_metadata_is_per_call(monkeypatch: Any) -> Non
     monkeypatch.setattr(module, "create_llm_provider", resolve)
     agent = QuestionAgent()
     outputs = [
-        _run(agent.generate(
-            None, _input(), retriever=StubRetriever([make_chunk("chunk-1")]),
-            embedding_provider=StubEmbeddingProvider(), settings=settings,
-        ))
+        _run(
+            agent.generate(
+                None,
+                _input(),
+                retriever=StubRetriever([make_chunk("chunk-1")]),
+                embedding_provider=StubEmbeddingProvider(),
+                settings=settings,
+            )
+        )
         for _ in providers
     ]
     assert [output.model for output in outputs] == ["resolved-question-v2", "unknown"]
     assert all(output.status is AgentStatus.SUCCESS for output in outputs)
-    assert all(output.prompt_version == QUESTION_GENERATION_PROMPT_VERSION for output in outputs)
+    assert all(
+        output.prompt_version == QUESTION_GENERATION_PROMPT_VERSION
+        for output in outputs
+    )
     assert all(value is settings for value in seen)
     assert len(seen) == 2
     assert all(len(provider.calls) == 1 for provider in providers)
