@@ -202,7 +202,7 @@ Agent Trace；评测看板展示检索和阅卷实验；quickstart 可以从启�
 
 - [X] T080 在 `backend/app/mcp/server.py` 和 `backend/app/mcp/registry.py` 中创建 MCP 服务/工具注册边界，加入授权和结构化工具结果处理
 - [X] T081 [P] 在 `backend/app/mcp/tools/knowledge_tools.py` 中实现 `search_questions` 和 `query_knowledge` MCP 工具
-- [ ] T082 [P] 在 `backend/app/mcp/tools/report_tools.py` 中实现 `get_exam_result`、`get_student_profile` 和 `create_report` MCP 工具
+- [X] T082 [P] 在 `backend/app/mcp/tools/report_tools.py` 中实现 `get_exam_result`、`get_student_profile` 和 `create_report` MCP 工具
 - [ ] T083 [P] 在 `backend/app/mcp/tools/email_tool.py` 中实现 `send_email` MCP/工具适配器，明确收件人、模板和失败处理
 - [ ] T084 在 `backend/app/models/audit_log.py`、`migrations/versions/` 和 `backend/app/services/audit_service.py` 中实现审计事件模型、持久化、脱敏和 180 天保留策略，以及阅卷、复核、发布和角色变更的审计钩子；敏感操作详情不得包含 API Key、凭证、答案正文或隐私字段
 - [ ] T085 在 `backend/app/services/trace_service.py` 和 `backend/app/api/traces.py` 中基于 T063/T064 的 `AgentRun`/`WorkflowRun` 模型实现追踪采集和追踪视图序列化，覆盖 `request_id`、`user_id`、`workflow_id`、`model`、`latency`、`prompt_version`、`tokens`、`status`、`error` 字段；排除密钥、Authorization Header、完整 Prompt 和学生答案原文，并实现 Trace 默认 30 天保留

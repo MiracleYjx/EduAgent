@@ -41,6 +41,7 @@ class ToolSpec:
     permission: Permission
     arguments_model: type[BaseModel]
     handler: ToolHandler
+    any_of_permissions: tuple[Permission, ...] = ()
 
 
 class ToolErrorDTO(BaseModel):
@@ -99,6 +100,15 @@ class ToolRegistry:
 
         return self._tools.get(name)
 
+    @staticmethod
+    def _permitted(spec: ToolSpec, roles: frozenset[UserRole]) -> bool:
+        """Keep the original single permission; optional entries are alternatives."""
+
+        return any(
+            any_role_has_permission(roles, permission)
+            for permission in (spec.permission, *spec.any_of_permissions)
+        )
+
     def available(self, roles: frozenset[UserRole]) -> list[dict[str, Any]]:
         """只列出当前数据库角色被授权的工具。"""
 
@@ -109,7 +119,7 @@ class ToolRegistry:
                 "arguments_schema": spec.arguments_model.model_json_schema(),
             }
             for spec in sorted(self._tools.values(), key=lambda item: item.name)
-            if any_role_has_permission(roles, spec.permission)
+            if self._permitted(spec, roles)
         ]
 
     def _invoke(
@@ -123,7 +133,7 @@ class ToolRegistry:
         spec = self.get(name)
         if spec is None:
             return ToolResult.failure("TOOL_NOT_FOUND", "工具不存在。")
-        if not any_role_has_permission(context.roles, spec.permission):
+        if not self._permitted(spec, context.roles):
             return ToolResult.failure("TOOL_FORBIDDEN", "当前用户无权使用该工具。")
         if _IDENTITY_ARGUMENTS.intersection(arguments):
             return ToolResult.failure(
