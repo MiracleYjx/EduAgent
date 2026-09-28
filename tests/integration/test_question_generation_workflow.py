@@ -38,9 +38,11 @@ from backend.app.models import (
     KnowledgeBase,
     Question,
     QuestionGenerationMetadata,
+    QuestionRevisionComment,
     QuestionSourceChunk,
 )
 from backend.app.services.exam_service import ExamService, ExamValidationError
+from backend.app.services.question_service import QuestionService
 from backend.app.services.question_validator import QuestionValidator
 from tests.postgres_helpers import isolated_postgres_engine
 from tests.support.question_generation_doubles import (
@@ -312,7 +314,7 @@ def test_generation_persists_actual_source_snapshot_and_provider_metadata(
     provider.model_version = "stub-version-1"
 
     response = _generate(service, scenario, count=2)
-    assert response.sources_persisted is False  # 响应语义由 P4B.3.2b 更新
+    assert response.sources_persisted is True
     expected_content = make_chunk(scenario["chunk_id"]).content
     with Session(engine) as session:
         questions = list(session.scalars(select(Question).order_by(Question.content)))
@@ -373,21 +375,76 @@ def test_disappeared_live_source_rejects_the_whole_batch(
     engine: Engine,
     scenario: dict[str, Any],
 ) -> None:
-    missing_id = str(uuid4())
+    with Session(engine) as session:
+        chunk = session.get(DocumentChunk, UUID(scenario["chunk_id"]))
+        assert chunk is not None
+        session.delete(chunk)
+        session.commit()
+    service, _, _ = _service(
+        engine,
+        scenario,
+        candidates=[make_candidate(source_context_ids=[scenario["chunk_id"]])],
+    )
+    with pytest.raises(CandidateStoreNotReadyError):
+        _generate(service, scenario, count=1)
+    with Session(engine) as session:
+        for model in (Question, QuestionSourceChunk, QuestionGenerationMetadata):
+            assert session.scalar(select(func.count()).select_from(model)) == 0
+
+
+def test_cross_course_source_rejects_entire_generation_batch(
+    engine: Engine,
+    scenario: dict[str, Any],
+) -> None:
+    with Session(engine) as session:
+        other_course = Course(name="另一课程", created_by=UUID(scenario["teacher_id"]))
+        session.add(other_course)
+        session.flush()
+        knowledge_base = KnowledgeBase(course_id=other_course.id, name="其他资料")
+        session.add(knowledge_base)
+        session.flush()
+        document = Document(
+            course_id=other_course.id,
+            knowledge_base_id=knowledge_base.id,
+            uploaded_by=UUID(scenario["teacher_id"]),
+            original_filename="other.pdf",
+            file_format="pdf",
+            status=DocumentStatus.READY,
+        )
+        session.add(document)
+        session.flush()
+        other_chunk = DocumentChunk(
+            document_id=document.id,
+            course_id=other_course.id,
+            knowledge_base_id=knowledge_base.id,
+            chunk_index=0,
+            content="另一门课程的正文",
+            chunk_metadata={},
+        )
+        session.add(other_chunk)
+        session.commit()
+        other_chunk_id = str(other_chunk.id)
+        other_course_id = str(other_course.id)
+        other_document_id = str(document.id)
+
     service, retriever, _ = _service(
         engine,
         scenario,
-        candidates=[make_candidate(source_context_ids=[missing_id])],
+        candidates=[
+            make_candidate(source_context_ids=[scenario["chunk_id"], other_chunk_id])
+        ],
     )
-    retriever.chunks = [
+    retriever.chunks.append(
         make_chunk(
-            missing_id,
-            course_id=scenario["course_id"],
-            document_id=scenario["document_id"],
+            other_chunk_id,
+            course_id=other_course_id,
+            document_id=other_document_id,
+            content="另一门课程的正文",
         )
-    ]
-    with pytest.raises(CandidateStoreNotReadyError):
+    )
+    with pytest.raises(GenerationFailedError) as error:
         _generate(service, scenario, count=1)
+    assert error.value.error_code == "QUESTION_UNKNOWN_COURSE_EVIDENCE"
     with Session(engine) as session:
         for model in (Question, QuestionSourceChunk, QuestionGenerationMetadata):
             assert session.scalar(select(func.count()).select_from(model)) == 0
@@ -429,6 +486,89 @@ def test_source_or_metadata_failure_rolls_back_entire_generation_batch(
     with Session(engine) as session:
         for model in (Question, QuestionSourceChunk, QuestionGenerationMetadata):
             assert session.scalar(select(func.count()).select_from(model)) == 0
+
+
+def test_revision_comment_insert_failure_rolls_back_question_status(
+    engine: Engine,
+    scenario: dict[str, Any],
+) -> None:
+    service, _, _ = _service(
+        engine,
+        scenario,
+        candidates=[make_candidate(source_context_ids=[scenario["chunk_id"]])],
+    )
+    candidate_id = _generate(service, scenario, count=1).candidates[0].candidate_id
+
+    def fail_comment(_mapper: Any, _connection: Any, _target: Any) -> None:
+        raise SQLAlchemyError("injected comment persistence failure")
+
+    event.listen(QuestionRevisionComment, "before_insert", fail_comment)
+    try:
+        with pytest.raises(CandidateStoreNotReadyError):
+            service.submit_review(
+                actor_id=scenario["teacher_id"],
+                candidate_id=candidate_id,
+                action="request_revision",
+                comment="请重新核对。",
+                expected_status=QuestionStatus.PENDING_REVIEW,
+            )
+    finally:
+        event.remove(QuestionRevisionComment, "before_insert", fail_comment)
+
+    with Session(engine) as session:
+        question = session.get(Question, UUID(candidate_id))
+        assert question is not None
+        assert question.status is QuestionStatus.PENDING_REVIEW
+        assert (
+            session.scalar(select(func.count()).select_from(QuestionRevisionComment))
+            == 0
+        )
+
+
+def test_two_revision_rounds_append_comments_in_time_order(
+    engine: Engine,
+    scenario: dict[str, Any],
+) -> None:
+    service, _, _ = _service(
+        engine,
+        scenario,
+        candidates=[make_candidate(source_context_ids=[scenario["chunk_id"]])],
+    )
+    candidate_id = _generate(service, scenario, count=1).candidates[0].candidate_id
+    first = service.submit_review(
+        actor_id=scenario["teacher_id"],
+        candidate_id=candidate_id,
+        action="request_revision",
+        comment="第一轮意见",
+    )
+    assert first.comment_persisted is True
+    with Session(engine) as session:
+        QuestionService(session).update_question_status(
+            candidate_id,
+            QuestionStatus.PENDING_REVIEW,
+            teacher_id=scenario["teacher_id"],
+        )
+    second = service.submit_review(
+        actor_id=scenario["teacher_id"],
+        candidate_id=candidate_id,
+        action="request_revision",
+        comment="第二轮意见",
+    )
+    assert second.comment_persisted is True
+    with Session(engine) as session:
+        comments = list(
+            session.scalars(
+                select(QuestionRevisionComment)
+                .where(QuestionRevisionComment.question_id == UUID(candidate_id))
+                .order_by(
+                    QuestionRevisionComment.commented_at,
+                    QuestionRevisionComment.id,
+                )
+            )
+        )
+        assert [item.comment for item in comments] == ["第一轮意见", "第二轮意见"]
+        assert comments[0].commented_at <= comments[1].commented_at
+        assert all(item.commented_at.tzinfo is not None for item in comments)
 
 
 __all__ = ["test_generation_validation_and_teacher_review_gate"]

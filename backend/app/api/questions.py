@@ -2,19 +2,27 @@
 
 from __future__ import annotations
 
+from datetime import datetime
 from decimal import Decimal
-from typing import Annotated, Any
+from typing import Annotated, Any, Literal
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from pydantic import BaseModel, ConfigDict, Field, field_validator
+from sqlalchemy import select
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from backend.app.core.database import get_db
 from backend.app.core.security import require_permission
 from backend.app.domain.enums import QuestionStatus, QuestionType
 from backend.app.domain.permissions import Permission
-from backend.app.models import User
+from backend.app.models import (
+    QuestionGenerationMetadata,
+    QuestionRevisionComment,
+    QuestionSourceChunk,
+    User,
+)
 from backend.app.services.question_service import (
     QuestionConflictError,
     QuestionNotFoundError,
@@ -26,6 +34,32 @@ from backend.app.services.question_service import (
 )
 
 router = APIRouter(prefix="/api/questions", tags=["题库"])
+
+
+class QuestionSourceSnapshotDTO(BaseModel):
+    """教师可见的生成依据；不暴露内部活体片段外键。"""
+
+    chunk_id: UUID
+    source_order: int
+    content_snapshot: str
+    source_file: str
+    chunk_index: int
+    retrieval_rank: int | None = None
+    score_kind: str | None = None
+    score_value: float | None = None
+    source_deleted: bool
+
+
+class QuestionRevisionCommentDTO(BaseModel):
+    comment: str
+    commented_at: datetime
+
+
+class QuestionDetailDTO(QuestionSummary):
+    sources_persisted: bool
+    source_status: Literal["persisted", "history_unknown", "no_sources"]
+    sources: list[QuestionSourceSnapshotDTO]
+    revision_comments: list[QuestionRevisionCommentDTO]
 
 
 class QuestionCreateRequest(BaseModel):
@@ -283,18 +317,81 @@ def create_question(
         raise _question_http_exception(exc) from None
 
 
-@router.get("/{question_id}", response_model=QuestionSummary)
+@router.get("/{question_id}", response_model=QuestionDetailDTO)
 def get_question(
     question_id: UUID,
     teacher: QuestionViewer,
     service: QuestionServiceDependency,
-) -> QuestionSummary:
+    session: Annotated[Session, Depends(get_db)],
+) -> QuestionDetailDTO:
     """读取当前教师有权访问的题目。"""
 
     try:
-        return service.get_question(question_id, teacher_id=teacher.id)
+        summary = service.get_question(question_id, teacher_id=teacher.id)
+        sources = list(
+            session.scalars(
+                select(QuestionSourceChunk)
+                .where(QuestionSourceChunk.question_id == question_id)
+                .order_by(QuestionSourceChunk.source_order)
+            )
+        )
+        comments = list(
+            session.scalars(
+                select(QuestionRevisionComment)
+                .where(QuestionRevisionComment.question_id == question_id)
+                .order_by(
+                    QuestionRevisionComment.commented_at,
+                    QuestionRevisionComment.id,
+                )
+            )
+        )
+        has_generation_metadata = (
+            session.scalar(
+                select(QuestionGenerationMetadata.question_id).where(
+                    QuestionGenerationMetadata.question_id == question_id
+                )
+            )
+            is not None
+        )
+        source_status: Literal["persisted", "history_unknown", "no_sources"] = (
+            "persisted"
+            if sources
+            else "no_sources"
+            if has_generation_metadata
+            else "history_unknown"
+        )
+        return QuestionDetailDTO(
+            **summary.model_dump(),
+            sources_persisted=bool(sources),
+            source_status=source_status,
+            sources=[
+                QuestionSourceSnapshotDTO(
+                    chunk_id=source.chunk_id,
+                    source_order=source.source_order,
+                    content_snapshot=source.content_snapshot,
+                    source_file=source.source_file,
+                    chunk_index=source.chunk_index,
+                    retrieval_rank=source.retrieval_rank,
+                    score_kind=source.score_kind,
+                    score_value=source.score_value,
+                    source_deleted=source.live_chunk_id is None,
+                )
+                for source in sources
+            ],
+            revision_comments=[
+                QuestionRevisionCommentDTO(
+                    comment=comment.comment,
+                    commented_at=comment.commented_at,
+                )
+                for comment in comments
+            ],
+        )
     except QuestionServiceError as exc:
         raise _question_http_exception(exc) from None
+    except SQLAlchemyError as exc:
+        raise _question_http_exception(
+            QuestionServiceError("无法读取题目来源与修订意见。")
+        ) from exc
 
 
 @router.patch("/{question_id}", response_model=QuestionSummary)

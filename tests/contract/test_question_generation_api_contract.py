@@ -67,6 +67,7 @@ from backend.app.models import (
 )
 from backend.app.services.auth_service import create_access_token
 from backend.app.services.course_service import CourseService
+from backend.app.services.question_service import QuestionService
 from backend.app.services.question_validator import QuestionValidator
 from tests.support.question_generation_doubles import (
     StubEmbeddingProvider,
@@ -164,7 +165,9 @@ def _service(
         session=session,
         agent=QuestionAgent(provider=provider),
         validator=QuestionValidator(),
-        retriever=StubRetriever(chunks if chunks is not None else [make_chunk("chunk-1")]),
+        retriever=StubRetriever(
+            chunks if chunks is not None else [make_chunk("chunk-1")]
+        ),
         embedding_provider=StubEmbeddingProvider(),
         settings=build_test_settings(),
     )
@@ -181,6 +184,28 @@ def _generate(
 ) -> Any:
     """直接驱动服务完成一次生成，返回响应载荷。"""
 
+    if chunks is None:
+        live = _seed_chunk(
+            session, course=course, teacher=teacher, content=make_chunk().content
+        )
+        candidates = [
+            candidate.model_copy(
+                update={
+                    "source_context_ids": [
+                        str(live.id) if source_id == "chunk-1" else source_id
+                        for source_id in candidate.source_context_ids
+                    ]
+                }
+            )
+            for candidate in candidates
+        ]
+        chunks = [
+            make_chunk(
+                str(live.id),
+                course_id=str(course.id),
+                document_id=str(live.document_id),
+            )
+        ]
     service = _service(
         session,
         candidates=candidates,
@@ -273,7 +298,9 @@ def client_factory(session: Session) -> Generator[Any, None, None]:
 
             app.dependency_overrides[get_db] = database
             if service is not None:
-                app.dependency_overrides[get_question_generation_service] = lambda: service
+                app.dependency_overrides[get_question_generation_service] = lambda: (
+                    service
+                )
             return stack.enter_context(TestClient(app))
 
         yield factory
@@ -290,7 +317,9 @@ def test_generate_requires_teacher_permission(
     client = client_factory(_service_from_scenario(scenario))
     body = {"course_id": str(scenario["course"].id), "count": 1}
 
-    assert client.post("/api/question-generation/candidates", json=body).status_code == 401
+    assert (
+        client.post("/api/question-generation/candidates", json=body).status_code == 401
+    )
     for user, role in (
         (scenario["student"], UserRole.STUDENT),
         (scenario["admin"], UserRole.ADMIN),
@@ -352,19 +381,22 @@ def test_generate_persists_batch_atomically_with_field_fidelity(scenario: Any) -
     )
 
     assert response.generated_count == 2
-    assert response.sources_persisted is False
-    # 替身检索片段标识不是真实片段 UUID：明确计数为“无法解析”，不展示正文、不伪造来源。
-    assert response.evidence == []
-    assert response.unresolved_source_count == 1
+    assert response.sources_persisted is True
+    assert len(response.evidence) == 1
+    assert response.unresolved_source_count == 0
     assert response.out_of_course_source_count == 0
     assert response.batch_validation.status is QuestionStatus.NEEDS_REVISION
     first, second = response.candidates
     assert first.status is QuestionStatus.PENDING_REVIEW
     assert first.validation.issues == []
     assert first.origin == "Candidate Generation"
-    assert first.source_context_ids == ["chunk-1"]
+    assert first.source_context_ids == [response.evidence[0].chunk_id]
+    assert first.sources_persisted is True
+    assert first.source_status == "persisted"
     assert second.status is QuestionStatus.NEEDS_REVISION
-    assert [issue.code for issue in second.validation.issues] == ["QUESTION_RUBRIC_UNUSABLE"]
+    assert [issue.code for issue in second.validation.issues] == [
+        "QUESTION_RUBRIC_UNUSABLE"
+    ]
 
     stored = {row.content: row for row in _persisted(session, course)}
     assert set(stored) == {valid.content, broken.content}
@@ -453,45 +485,47 @@ def test_batch_write_failure_rolls_back_whole_batch(
     assert _persisted(scenario["session"], scenario["course"]) == []
 
 
-def test_generation_evidence_is_course_scoped(scenario: Any) -> None:
-    """检索依据按课程二次校验：只返回本课程片段，其他课程片段只计数。"""
+def test_generation_rejects_cross_course_citation_atomically(scenario: Any) -> None:
+    """引用其他课程真实片段时整批失败，不保存部分候选题或来源。"""
 
     session = scenario["session"]
     course = scenario["course"]
     teacher = scenario["teacher"]
-    own_chunk = _seed_chunk(session, course=course, teacher=teacher, content="变量用于保存数据。")
+    own_chunk = _seed_chunk(
+        session, course=course, teacher=teacher, content="变量用于保存数据。"
+    )
     other_chunk = _seed_chunk(
         session,
         course=scenario["other_course"],
         teacher=scenario["other_teacher"],
         content="其他课程的片段。",
     )
-    candidate = make_candidate(source_context_ids=[str(own_chunk.id), str(other_chunk.id)])
-
-    response = _generate(
-        session,
-        course=course,
-        teacher=teacher,
-        candidates=[candidate],
-        chunks=[
-            make_chunk(str(own_chunk.id)),
-            make_chunk(str(other_chunk.id), document_id=str(other_chunk.document_id)),
-        ],
+    candidate = make_candidate(
+        source_context_ids=[str(own_chunk.id), str(other_chunk.id)]
     )
 
-    assert response.out_of_course_source_count == 1
-    assert response.unresolved_source_count == 0
-    assert [item.chunk_id for item in response.evidence] == [str(own_chunk.id)]
-    assert response.evidence[0].content == "变量用于保存数据。"
-    assert response.evidence[0].source_file == "课程资料.pdf"
-    assert response.evidence[0].chunk_index == 0
-    assert response.candidates[0].source_context_ids == [
-        str(own_chunk.id),
-        str(other_chunk.id),
-    ]
+    with pytest.raises(qg.GenerationFailedError) as error:
+        _generate(
+            session,
+            course=course,
+            teacher=teacher,
+            candidates=[candidate],
+            chunks=[
+                make_chunk(str(own_chunk.id)),
+                make_chunk(
+                    str(other_chunk.id), document_id=str(other_chunk.document_id)
+                ),
+            ],
+        )
+    assert error.value.error_code == qg.QUESTION_UNKNOWN_COURSE_EVIDENCE
+    assert _persisted(session, course) == []
+    assert session.scalars(select(qg.QuestionSourceChunk)).all() == []
+    assert session.scalars(select(qg.QuestionGenerationMetadata)).all() == []
 
 
-def test_generation_rejects_cross_course_teacher(scenario: Any, client_factory: Any) -> None:
+def test_generation_rejects_cross_course_teacher(
+    scenario: Any, client_factory: Any
+) -> None:
     """教师只能对自己拥有的课程出题，跨课程返回 403。"""
 
     client = client_factory(_service_from_scenario(scenario))
@@ -502,7 +536,10 @@ def test_generation_rejects_cross_course_teacher(scenario: Any, client_factory: 
     )
 
     assert response.status_code == 403
-    assert response.json()["detail"]["error_code"] == "QUESTION_CANDIDATE_PERMISSION_DENIED"
+    assert (
+        response.json()["detail"]["error_code"]
+        == "QUESTION_CANDIDATE_PERMISSION_DENIED"
+    )
 
 
 def test_generate_endpoint_returns_persisted_candidates(
@@ -510,7 +547,23 @@ def test_generate_endpoint_returns_persisted_candidates(
 ) -> None:
     """端点返回 201 与真实候选题载荷，请求追踪标识可用请求头传递。"""
 
-    service = _service(scenario["session"], candidates=[make_candidate()])
+    chunk = _seed_chunk(
+        scenario["session"],
+        course=scenario["course"],
+        teacher=scenario["teacher"],
+        content=make_chunk().content,
+    )
+    service = _service(
+        scenario["session"],
+        candidates=[make_candidate(source_context_ids=[str(chunk.id)])],
+        chunks=[
+            make_chunk(
+                str(chunk.id),
+                course_id=str(scenario["course"].id),
+                document_id=str(chunk.document_id),
+            )
+        ],
+    )
     client = client_factory(service)
 
     response = client.post(
@@ -534,11 +587,14 @@ def test_generate_endpoint_returns_persisted_candidates(
     assert body["generated_count"] == 1
     assert body["candidates"][0]["status"] == QuestionStatus.PENDING_REVIEW.value
     assert body["candidates"][0]["origin"] == "Candidate Generation"
-    assert body["sources_persisted"] is False
+    assert body["sources_persisted"] is True
+    assert body["candidates"][0]["sources_persisted"] is True
     assert len(_persisted(scenario["session"], scenario["course"])) == 1
 
 
-def test_generate_validation_error_returns_422(scenario: Any, client_factory: Any) -> None:
+def test_generate_validation_error_returns_422(
+    scenario: Any, client_factory: Any
+) -> None:
     """请求体非法（数量越界）由请求校验拒绝，返回 422 且不写库。"""
 
     client = client_factory(_service_from_scenario(scenario))
@@ -555,7 +611,9 @@ def test_generate_validation_error_returns_422(scenario: Any, client_factory: An
 # ---------------------------------------------------------------- 查询端
 
 
-def test_candidate_list_scopes_to_teacher_courses(scenario: Any, client_factory: Any) -> None:
+def test_candidate_list_scopes_to_teacher_courses(
+    scenario: Any, client_factory: Any
+) -> None:
     """候选题列表按教师课程隔离，支持状态过滤与分页回显。"""
 
     session = scenario["session"]
@@ -596,7 +654,9 @@ def test_candidate_list_scopes_to_teacher_courses(scenario: Any, client_factory:
     assert invalid.json()["detail"]["error_code"] == "QUESTION_GENERATION_INVALID_PAGE"
 
 
-def test_candidate_detail_isolated_between_courses(scenario: Any, client_factory: Any) -> None:
+def test_candidate_detail_isolated_between_courses(
+    scenario: Any, client_factory: Any
+) -> None:
     """跨课程读取单个候选题返回 404，不泄露其他教师的题目。"""
 
     session = scenario["session"]
@@ -643,7 +703,9 @@ def test_review_approve_then_conflict(scenario: Any, client_factory: Any) -> Non
     """审核通过进入 Approved；再次审核返回 409（只有待审核可审核）。"""
 
     session = scenario["session"]
-    candidate_id = _pending_candidate_id(session, scenario["course"], scenario["teacher"])
+    candidate_id = _pending_candidate_id(
+        session, scenario["course"], scenario["teacher"]
+    )
     client = client_factory(_service_from_scenario(scenario))
     headers = _headers(scenario["teacher"], UserRole.TEACHER)
 
@@ -660,6 +722,7 @@ def test_review_approve_then_conflict(scenario: Any, client_factory: Any) -> Non
     assert body["decision"] == "approve"
     assert body["comment_persisted"] is False
     assert body["request_id"]
+    assert session.scalars(select(qg.QuestionRevisionComment)).all() == []
     stored = session.get(Question, UUID(candidate_id))
     assert stored is not None and stored.status is QuestionStatus.APPROVED
 
@@ -679,11 +742,15 @@ def test_review_approve_then_conflict(scenario: Any, client_factory: Any) -> Non
     assert published.status_code == 422
 
 
-def test_review_revision_requires_comment_and_transitions(scenario: Any, client_factory: Any) -> None:
+def test_review_revision_requires_comment_and_transitions(
+    scenario: Any, client_factory: Any
+) -> None:
     """退回修订必须给出意见；给出后状态变为 Needs Revision。"""
 
     session = scenario["session"]
-    candidate_id = _pending_candidate_id(session, scenario["course"], scenario["teacher"])
+    candidate_id = _pending_candidate_id(
+        session, scenario["course"], scenario["teacher"]
+    )
     client = client_factory(_service_from_scenario(scenario))
     headers = _headers(scenario["teacher"], UserRole.TEACHER)
 
@@ -703,14 +770,187 @@ def test_review_revision_requires_comment_and_transitions(scenario: Any, client_
     assert revised.status_code == 200
     assert revised.json()["status"] == QuestionStatus.NEEDS_REVISION.value
     assert revised.json()["comment"] == "评分标准需要拆出步骤分。"
-    assert revised.json()["comment_persisted"] is False
+    assert revised.json()["comment_persisted"] is True
+    comments = session.scalars(select(qg.QuestionRevisionComment)).all()
+    assert len(comments) == 1
+    assert comments[0].comment == "评分标准需要拆出步骤分。"
+    assert comments[0].commented_by == scenario["teacher"].id
 
 
-def test_review_rejects_stale_expected_status(scenario: Any, client_factory: Any) -> None:
+def test_approve_optional_comment_is_persisted_without_changing_sources(
+    scenario: Any, client_factory: Any
+) -> None:
+    session = scenario["session"]
+    candidate_id = _pending_candidate_id(
+        session, scenario["course"], scenario["teacher"]
+    )
+    before = list(session.scalars(select(qg.QuestionSourceChunk)))
+    client = client_factory(_service_from_scenario(scenario))
+
+    response = client.post(
+        f"/api/question-generation/candidates/{candidate_id}/review",
+        headers=_headers(scenario["teacher"], UserRole.TEACHER),
+        json={"action": "approve", "comment": "已核对评分标准。"},
+    )
+    assert response.status_code == 200
+    assert response.json()["comment_persisted"] is True
+    assert response.json()["comment"] == "已核对评分标准。"
+    assert [row.id for row in session.scalars(select(qg.QuestionSourceChunk))] == [
+        row.id for row in before
+    ]
+    assert [
+        row.comment for row in session.scalars(select(qg.QuestionRevisionComment))
+    ] == ["已核对评分标准。"]
+
+
+def test_review_comment_over_2000_chars_is_rejected_without_side_effects(
+    scenario: Any, client_factory: Any
+) -> None:
+    session = scenario["session"]
+    candidate_id = _pending_candidate_id(
+        session, scenario["course"], scenario["teacher"]
+    )
+    client = client_factory(_service_from_scenario(scenario))
+    response = client.post(
+        f"/api/question-generation/candidates/{candidate_id}/review",
+        headers=_headers(scenario["teacher"], UserRole.TEACHER),
+        json={"action": "request_revision", "comment": "字" * 2001},
+    )
+    assert response.status_code == 422
+    session.expire_all()
+    assert (
+        session.get(Question, UUID(candidate_id)).status
+        is QuestionStatus.PENDING_REVIEW
+    )
+    assert session.scalars(select(qg.QuestionRevisionComment)).all() == []
+
+
+def test_question_detail_returns_authorized_sources_and_comments(
+    scenario: Any, client_factory: Any
+) -> None:
+    session = scenario["session"]
+    candidate_id = _pending_candidate_id(
+        session, scenario["course"], scenario["teacher"]
+    )
+    client = client_factory(_service_from_scenario(scenario))
+    teacher_headers = _headers(scenario["teacher"], UserRole.TEACHER)
+    reviewed = client.post(
+        f"/api/question-generation/candidates/{candidate_id}/review",
+        headers=teacher_headers,
+        json={"action": "request_revision", "comment": "请补充示例。"},
+    )
+    assert reviewed.status_code == 200
+
+    detail = client.get(f"/api/questions/{candidate_id}", headers=teacher_headers)
+    assert detail.status_code == 200
+    body = detail.json()
+    assert body["sources_persisted"] is True
+    assert body["source_status"] == "persisted"
+    assert len(body["sources"]) == 1
+    assert body["sources"][0]["content_snapshot"] == make_chunk().content
+    assert body["sources"][0]["source_file"] == "课程资料.pdf"
+    assert body["sources"][0]["source_deleted"] is False
+    assert "live_chunk_id" not in body["sources"][0]
+    assert [item["comment"] for item in body["revision_comments"]] == ["请补充示例。"]
+
+    other = client.get(
+        f"/api/questions/{candidate_id}",
+        headers=_headers(scenario["other_teacher"], UserRole.TEACHER),
+    )
+    assert other.status_code == 403
+
+
+def test_question_detail_orders_multiple_revision_rounds(
+    scenario: Any, client_factory: Any
+) -> None:
+    session = scenario["session"]
+    teacher = scenario["teacher"]
+    candidate_id = _pending_candidate_id(session, scenario["course"], teacher)
+    client = client_factory(_service_from_scenario(scenario))
+    headers = _headers(teacher, UserRole.TEACHER)
+    for comment in ("第一轮", "第二轮"):
+        response = client.post(
+            f"/api/question-generation/candidates/{candidate_id}/review",
+            headers=headers,
+            json={"action": "request_revision", "comment": comment},
+        )
+        assert response.status_code == 200
+        if comment == "第一轮":
+            QuestionService(session).update_question_status(
+                candidate_id, QuestionStatus.PENDING_REVIEW, teacher_id=teacher.id
+            )
+    detail = client.get(f"/api/questions/{candidate_id}", headers=headers)
+    assert detail.status_code == 200
+    comments = detail.json()["revision_comments"]
+    assert [item["comment"] for item in comments] == ["第一轮", "第二轮"]
+    assert comments[0]["commented_at"] <= comments[1]["commented_at"]
+
+
+def test_question_detail_distinguishes_history_from_new_no_sources(
+    scenario: Any, client_factory: Any
+) -> None:
+    session = scenario["session"]
+    course = scenario["course"]
+    teacher = scenario["teacher"]
+    historical = Question(
+        course_id=course.id,
+        type=QuestionType.SINGLE_CHOICE,
+        content="历史人工题",
+        score=Decimal("2.00"),
+        created_by=teacher.id,
+    )
+    session.add(historical)
+    session.commit()
+    response = _generate(
+        session,
+        course=course,
+        teacher=teacher,
+        candidates=[make_candidate(source_context_ids=[])],
+    )
+    assert response.sources_persisted is False
+    assert response.candidates[0].sources_persisted is False
+    assert response.candidates[0].source_status == "no_sources"
+
+    client = client_factory(_service_from_scenario(scenario))
+    headers = _headers(teacher, UserRole.TEACHER)
+    old_detail = client.get(f"/api/questions/{historical.id}", headers=headers)
+    new_detail = client.get(
+        f"/api/questions/{response.candidates[0].candidate_id}", headers=headers
+    )
+    assert old_detail.status_code == new_detail.status_code == 200
+    assert old_detail.json()["sources"] == []
+    assert old_detail.json()["sources_persisted"] is False
+    assert old_detail.json()["source_status"] == "history_unknown"
+    assert new_detail.json()["sources"] == []
+    assert new_detail.json()["source_status"] == "no_sources"
+
+
+def test_batch_sources_persisted_requires_every_candidate_to_have_sources(
+    scenario: Any,
+) -> None:
+    response = _generate(
+        scenario["session"],
+        course=scenario["course"],
+        teacher=scenario["teacher"],
+        candidates=[make_candidate(), make_candidate(source_context_ids=[])],
+    )
+    assert [item.sources_persisted for item in response.candidates] == [True, False]
+    assert [item.source_status for item in response.candidates] == [
+        "persisted",
+        "no_sources",
+    ]
+    assert response.sources_persisted is False
+
+
+def test_review_rejects_stale_expected_status(
+    scenario: Any, client_factory: Any
+) -> None:
     """预检基准与实际状态不一致时返回 409，不做陈旧覆盖。"""
 
     session = scenario["session"]
-    candidate_id = _pending_candidate_id(session, scenario["course"], scenario["teacher"])
+    candidate_id = _pending_candidate_id(
+        session, scenario["course"], scenario["teacher"]
+    )
     client = client_factory(_service_from_scenario(scenario))
 
     stale = client.post(
@@ -734,7 +974,9 @@ def test_review_requires_teacher_and_course_ownership(
     """学生/管理员无审核权限（403）；跨课程审核返回 404。"""
 
     session = scenario["session"]
-    candidate_id = _pending_candidate_id(session, scenario["course"], scenario["teacher"])
+    candidate_id = _pending_candidate_id(
+        session, scenario["course"], scenario["teacher"]
+    )
     client = client_factory(_service_from_scenario(scenario))
     body = {"action": "approve"}
 

@@ -15,9 +15,10 @@ FR-024～FR-028、T067 Question Agent、T068 Question Validator。
 
 已知边界（不静默丢弃、不伪造）：
 
-- 生成时引用的真实片段与 Provider 元数据已写入独立快照表；响应中的
-  ``sources_persisted`` 仍保留旧语义，待 P4B.3.2b 一并更新。
-- 教师退回修订意见同样没有持久列，响应以 ``comment_persisted=False`` 明确说明，不声称已保存。
+- 生成时引用的真实片段与 Provider 元数据写入独立快照表；有引用且整批提交后才报告
+  ``sources_persisted=True``，无引用则标记 ``no_sources``。
+- 教师退回意见与题目状态同事务提交；只有实际保存意见时才报告
+  ``comment_persisted=True``。
 - ``request_id`` 从认证请求头 ``X-Request-ID`` 取得，缺失时由服务端生成并回显。
 
 错误语义：401 未认证（认证中间件）、403 无权限或跨课程、404 候选题不存在、409 状态冲突或
@@ -64,6 +65,7 @@ from backend.app.ai.agents.state import (
     AgentStatus,
     AgentType,
     QuestionGenerationRequest,
+    RetrievedContextItem,
 )
 from backend.app.core.config import AppSettings
 from backend.app.core.database import get_session_factory
@@ -76,6 +78,7 @@ from backend.app.models import (
     DocumentChunk,
     Question,
     QuestionGenerationMetadata,
+    QuestionRevisionComment,
     QuestionSourceChunk,
     User,
 )
@@ -128,6 +131,7 @@ QUESTION_CANDIDATE_STALE: str = "QUESTION_CANDIDATE_STALE"
 QUESTION_CANDIDATE_STORE_NOT_READY: str = "QUESTION_CANDIDATE_STORE_NOT_READY"
 QUESTION_CANDIDATE_PERMISSION_DENIED: str = "QUESTION_CANDIDATE_PERMISSION_DENIED"
 QUESTION_REVISION_COMMENT_REQUIRED: str = "QUESTION_REVISION_COMMENT_REQUIRED"
+QUESTION_REVISION_COMMENT_INVALID: str = "QUESTION_REVISION_COMMENT_INVALID"
 QUESTION_GENERATION_INVALID_PAGE: str = "QUESTION_GENERATION_INVALID_PAGE"
 
 #: 错误码到 HTTP 状态码的映射；未列出的错误按 500 处理并保持脱敏。
@@ -161,6 +165,7 @@ _ERROR_STATUS: dict[str, int] = {
     QUESTION_NOT_CANDIDATE: 422,
     QUESTION_NOT_CANDIDATE_STATUS: 422,
     QUESTION_REVISION_COMMENT_REQUIRED: 422,
+    QUESTION_REVISION_COMMENT_INVALID: 422,
     QUESTION_GENERATION_INVALID_PAGE: 422,
     # 状态冲突
     QUESTION_STATUS_TRANSITION_BLOCKED: 409,
@@ -231,6 +236,12 @@ class RevisionCommentRequiredError(QuestionGenerationError):
     """退回修订必须给出修订意见。"""
 
     error_code = QUESTION_REVISION_COMMENT_REQUIRED
+
+
+class RevisionCommentInvalidError(QuestionGenerationError):
+    """修订意见超过可持久化长度。"""
+
+    error_code = QUESTION_REVISION_COMMENT_INVALID
 
 
 class GenerationFailedError(QuestionGenerationError):
@@ -344,6 +355,7 @@ class GeneratedCandidateDTO(CandidateDTO):
     validation: CandidateValidationDTO
     source_context_ids: list[str] = Field(default_factory=list)
     sources_persisted: bool = False
+    source_status: Literal["persisted", "no_sources"] = "no_sources"
 
 
 class GenerationEvidenceDTO(BaseModel):
@@ -461,7 +473,7 @@ def _generated_dto(
     result: CandidateValidationResult,
     source_context_ids: Sequence[str],
 ) -> GeneratedCandidateDTO:
-    """生成响应用 DTO：保留现有载荷；来源快照由生成事务另行保存。"""
+    """生成响应沿用既有字段，并报告已提交的引用快照状态。"""
 
     base = _candidate_dto(question)
     return GeneratedCandidateDTO(
@@ -471,7 +483,8 @@ def _generated_dto(
             issues=_validation_dto(result.issues),
         ),
         source_context_ids=list(source_context_ids),
-        sources_persisted=False,
+        sources_persisted=bool(source_context_ids),
+        source_status="persisted" if source_context_ids else "no_sources",
     )
 
 
@@ -582,20 +595,17 @@ class QuestionGenerationService:
             course_id=candidate_course_id,
             chunk_ids=output.retrieved_context_ids,
         )
+        generated = [
+            _generated_dto(question, result, candidates[index].source_context_ids)
+            for index, (question, result) in enumerate(
+                zip(rows, batch.results, strict=True)
+            )
+        ]
         return CandidateGenerationResponse(
             request_id=request_id,
             course_id=str(candidate_course_id),
             generated_count=len(rows),
-            candidates=[
-                _generated_dto(
-                    question,
-                    result,
-                    candidates[index].source_context_ids,
-                )
-                for index, (question, result) in enumerate(
-                    zip(rows, batch.results, strict=True)
-                )
-            ],
+            candidates=generated,
             batch_validation=CandidateValidationDTO(
                 status=batch.status,
                 issues=_validation_dto(batch.issues),
@@ -603,7 +613,7 @@ class QuestionGenerationService:
             evidence=evidence,
             out_of_course_source_count=out_of_course,
             unresolved_source_count=unresolved,
-            sources_persisted=False,
+            sources_persisted=all(item.sources_persisted for item in generated),
             model=output.model,
             prompt_version=output.prompt_version,
         )
@@ -684,9 +694,11 @@ class QuestionGenerationService:
             for source_id in candidate.source_context_ids:
                 try:
                     cited_ids.add(UUID(source_id))
-                except ValueError:
-                    # 既有 Validator 允许无效引用进入 Needs Revision；不能伪造来源行。
-                    continue
+                except ValueError as error:
+                    raise GenerationFailedError(
+                        "引用片段标识不是有效 UUID，本批次未落库。",
+                        error_code=QUESTION_UNKNOWN_SOURCE_CONTEXT,
+                    ) from error
         with self._use_session() as session:
             try:
                 live_sources = {
@@ -697,6 +709,26 @@ class QuestionGenerationService:
                         .where(DocumentChunk.id.in_(cited_ids))
                     )
                 }
+                validated_sources: list[
+                    list[tuple[RetrievedContextItem, DocumentChunk, str]]
+                ] = []
+                for candidate in candidates:
+                    sources: list[tuple[RetrievedContextItem, DocumentChunk, str]] = []
+                    for source_id in candidate.source_context_ids:
+                        source = source_by_id.get(source_id)
+                        live = live_sources.get(UUID(source_id))
+                        if source is None or live is None:
+                            raise CandidateStoreNotReadyError(
+                                "引用片段在生成快照或资料库中已不可用，本批次未落库。"
+                            )
+                        chunk, filename = live
+                        if chunk.course_id != course_id:
+                            raise GenerationFailedError(
+                                "引用片段不属于当前课程，本批次未落库。",
+                                error_code=QUESTION_UNKNOWN_COURSE_EVIDENCE,
+                            )
+                        sources.append((source, chunk, filename))
+                    validated_sources.append(sources)
                 for candidate, result in zip(candidates, batch.results, strict=True):
                     target = self._validated_candidate_status(result)
                     question = Question(
@@ -715,7 +747,7 @@ class QuestionGenerationService:
                     session.add(question)
                     created.append(question)
                 session.flush()
-                for question, candidate in zip(created, candidates, strict=True):
+                for question, sources in zip(created, validated_sources, strict=True):
                     session.add(
                         QuestionGenerationMetadata(
                             question_id=question.id,
@@ -727,21 +759,7 @@ class QuestionGenerationService:
                             retrieval_mode=output.retrieval_mode or "unknown",
                         )
                     )
-                    source_order = 0
-                    for source_id in candidate.source_context_ids:
-                        source = source_by_id.get(source_id)
-                        try:
-                            live = live_sources.get(UUID(source_id))
-                        except ValueError:
-                            continue
-                        if source is None or live is None:
-                            raise CandidateStoreNotReadyError(
-                                "引用片段在生成快照或资料库中已不可用，本批次未落库。"
-                            )
-                        chunk, filename = live
-                        if chunk.course_id != course_id:
-                            # 保持既有课程范围；跨课程拒绝语义留给 P4B.3.2b。
-                            continue
+                    for source_order, (source, chunk, filename) in enumerate(sources):
                         scores = (
                             ("rerank", source.rerank_score),
                             ("fusion", source.fusion_score),
@@ -772,7 +790,6 @@ class QuestionGenerationService:
                                 score_value=score_value,
                             )
                         )
-                        source_order += 1
                 session.commit()
             except QuestionGenerationError:
                 session.rollback()
@@ -925,7 +942,11 @@ class QuestionGenerationService:
     ) -> CandidateReviewOutcomeDTO:
         """教师审核已持久化的候选题：``Pending Review`` → ``Approved``/``Needs Revision``。"""
 
-        if action == "request_revision" and not (comment or "").strip():
+        normalized_comment = comment.strip() if comment is not None else None
+        normalized_comment = normalized_comment or None
+        if normalized_comment is not None and len(normalized_comment) > 2000:
+            raise RevisionCommentInvalidError("修订意见不能超过 2000 字。")
+        if action == "request_revision" and normalized_comment is None:
             raise RevisionCommentRequiredError("退回修订必须给出修订意见。")
         target = (
             QuestionStatus.APPROVED
@@ -961,8 +982,17 @@ class QuestionGenerationService:
                     raise CandidateStaleError(
                         "候选题状态已被其他请求修改，本次审核未生效。"
                     )
+                if normalized_comment is not None:
+                    session.add(
+                        QuestionRevisionComment(
+                            question_id=question.id,
+                            comment=normalized_comment,
+                            commented_by=_as_uuid(actor_id),
+                        )
+                    )
                 session.commit()
             except QuestionGenerationError:
+                session.rollback()
                 raise
             except SQLAlchemyError as error:
                 session.rollback()
@@ -975,8 +1005,8 @@ class QuestionGenerationService:
             decision=action,
             previous_status=current,
             status=target,
-            comment=comment,
-            comment_persisted=False,
+            comment=normalized_comment,
+            comment_persisted=normalized_comment is not None,
             request_id="",
         )
 
