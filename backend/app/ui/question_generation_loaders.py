@@ -17,7 +17,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 from typing import Any
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 from backend.app.api.question_generation import (
     DEFAULT_PAGE_SIZE,
@@ -28,10 +28,13 @@ from backend.app.api.question_generation import (
     QuestionGenerationService,
     build_production_question_generation_service,
 )
+from backend.app.api.questions import QuestionDetailDTO, get_question
 from backend.app.core.database import get_session_factory
 from backend.app.domain.enums import QuestionStatus, QuestionType, UserRole
 from backend.app.domain.permissions import PermissionDeniedError, normalize_role
+from backend.app.models import User
 from backend.app.services.course_service import CourseService
+from backend.app.services.question_service import QuestionService
 
 #: 出题条件未提供时使用的默认知识点集合（空集合表示不限定知识点）。
 EMPTY_KNOWLEDGE_POINTS: tuple[str, ...] = ()
@@ -145,7 +148,28 @@ def load_candidate(
 
     teacher_id = require_teacher(state)
     service = build_candidate_service()
-    return service.get_candidate(actor_id=teacher_id, candidate_id=str(candidate_id or "").strip())
+    return service.get_candidate(
+        actor_id=teacher_id, candidate_id=str(candidate_id or "").strip()
+    )
+
+
+def load_question_detail(
+    candidate_id: str,
+    state: Mapping[str, Any] | None,
+) -> QuestionDetailDTO:
+    """通过现有题目详情契约读取持久化来源和意见，并复用教师归属校验。"""
+
+    teacher_id = require_teacher(state)
+    with get_session_factory()() as session:
+        teacher = session.get(User, UUID(teacher_id))
+        if teacher is None:
+            raise PermissionDeniedError("当前教师账号不存在。")
+        return get_question(
+            UUID(str(candidate_id).strip()),
+            teacher,
+            QuestionService(session),
+            session,
+        )
 
 
 def submit_candidate_review(
@@ -176,6 +200,7 @@ __all__ = [
     "list_candidates",
     "load_candidate",
     "load_courses",
+    "load_question_detail",
     "require_teacher",
     "state_user_id",
     "submit_candidate_review",

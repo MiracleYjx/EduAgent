@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Iterator
+from types import SimpleNamespace
 from typing import Any
 from uuid import NAMESPACE_URL, UUID, uuid4, uuid5
 
@@ -44,6 +45,8 @@ from backend.app.models import (
 from backend.app.services.exam_service import ExamService, ExamValidationError
 from backend.app.services.question_service import QuestionService
 from backend.app.services.question_validator import QuestionValidator
+from backend.app.ui import question_generation_loaders as ui_loaders
+from backend.app.ui import question_generation_view as ui_view
 from tests.postgres_helpers import isolated_postgres_engine
 from tests.support.question_generation_doubles import (
     StubEmbeddingProvider,
@@ -166,6 +169,53 @@ def _questions(engine: Engine, course_id: str) -> list[Question]:
                 .order_by(Question.created_at, Question.id)
             )
         )
+
+
+def test_ui_selected_candidate_uses_production_detail_contract(
+    engine: Engine,
+    scenario: dict[str, Any],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """实际 UI loader 经题目详情契约读取已落库快照，不读生成响应的临时证据。"""
+
+    service, _retriever, _provider = _service(
+        engine,
+        scenario,
+        candidates=[
+            make_candidate(
+                content="变量的作用是什么？",
+                source_context_ids=[scenario["chunk_id"]],
+            )
+        ],
+    )
+    response = _generate(service, scenario, 1)
+    state = {
+        "access_token": "test-token",
+        "roles": ["Teacher"],
+        "user_id": scenario["teacher_id"],
+    }
+    monkeypatch.setattr(
+        ui_loaders, "get_session_factory", lambda: lambda: Session(engine)
+    )
+    ui_view.configure_question_generation_loaders(
+        candidate_detail=ui_loaders.load_question_detail
+    )
+    try:
+        _preview, selected, _approve, _revision, sources, _message = (
+            ui_view.select_candidate(
+                SimpleNamespace(index=0),
+                None,
+                [response.candidates[0].model_dump(mode="json")],
+                state,
+            )
+        )
+    finally:
+        ui_view.configure_question_generation_loaders()
+
+    assert selected is not None and selected["source_status"] == "persisted"
+    assert "已持久化" in sources
+    assert "片段 0" in sources
+    assert "live_chunk_id" not in sources
 
 
 def test_generation_validation_and_teacher_review_gate(

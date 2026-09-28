@@ -20,6 +20,7 @@ from collections.abc import Mapping, Sequence
 from datetime import UTC, datetime
 from decimal import Decimal
 from typing import Any
+from uuid import UUID
 
 import pytest
 
@@ -34,6 +35,11 @@ from backend.app.api.question_generation import (
     GeneratedCandidateDTO,
     GenerationEvidenceDTO,
     QuestionGenerationError,
+)
+from backend.app.api.questions import (
+    QuestionDetailDTO,
+    QuestionRevisionCommentDTO,
+    QuestionSourceSnapshotDTO,
 )
 from backend.app.domain.enums import QuestionStatus, QuestionType
 from backend.app.ui import question_generation_view as view
@@ -83,6 +89,51 @@ def _page(*items: CandidateDTO) -> CandidatePageDTO:
     return CandidatePageDTO(total=len(items), limit=50, offset=0, items=list(items))
 
 
+def _detail(
+    candidate_id: str = "candidate-1",
+    *,
+    source_status: str = "no_sources",
+    sources: Sequence[QuestionSourceSnapshotDTO] = (),
+    comments: Sequence[QuestionRevisionCommentDTO] = (),
+) -> QuestionDetailDTO:
+    candidate = _candidate(candidate_id)
+    return QuestionDetailDTO(
+        id=candidate_id,
+        course_id=candidate.course_id,
+        type=candidate.question_type,
+        content=candidate.content,
+        options=candidate.options,
+        reference_answer=candidate.reference_answer,
+        scoring_rubric=candidate.scoring_rubric,
+        difficulty=candidate.difficulty,
+        knowledge_points=candidate.knowledge_points,
+        score=candidate.score,
+        status=candidate.status,
+        created_by="teacher-1",
+        created_at=candidate.created_at,
+        updated_at=candidate.updated_at,
+        sources_persisted=bool(sources),
+        source_status=source_status,
+        sources=list(sources),
+        revision_comments=list(comments),
+    )
+
+
+def _source(
+    *,
+    content: str = "来自已保存详情的知识片段。",
+    deleted: bool = False,
+) -> QuestionSourceSnapshotDTO:
+    return QuestionSourceSnapshotDTO(
+        chunk_id=UUID("00000000-0000-0000-0000-000000000123"),
+        source_order=0,
+        content_snapshot=content,
+        source_file="课程资料.pdf",
+        chunk_index=3,
+        source_deleted=deleted,
+    )
+
+
 class _StubLoaders:
     """出题加载器替身：只记录调用并返回注入结果。"""
 
@@ -96,6 +147,7 @@ class _StubLoaders:
         generation_error: Exception | None = None,
         page_error: Exception | None = None,
         review_error: Exception | None = None,
+        details: Mapping[str, QuestionDetailDTO] | None = None,
     ) -> None:
         self.courses = list(courses)
         self.page = page if page is not None else _page(_candidate())
@@ -104,6 +156,7 @@ class _StubLoaders:
         self.generation_error = generation_error
         self.page_error = page_error
         self.review_error = review_error
+        self.details = dict(details or {})
         self.calls: list[tuple[str, dict[str, Any]]] = []
 
     def load_courses(self, state: Mapping[str, Any] | None) -> list[tuple[str, str]]:
@@ -124,7 +177,7 @@ class _StubLoaders:
 
     def candidate_detail(self, candidate_id: str, state: Any) -> Any:
         self.calls.append(("detail", {"candidate_id": candidate_id}))
-        return _candidate(candidate_id)
+        return self.details.get(candidate_id, _detail(candidate_id))
 
     def review(self, state: Mapping[str, Any] | None, **kwargs: Any) -> Any:
         self.calls.append(("review", dict(kwargs)))
@@ -222,6 +275,33 @@ def test_refresh_candidate_list_passes_filters_and_returns_rows() -> None:
     }
 
 
+def test_candidate_list_source_status_comes_from_details() -> None:
+    """三种来源状态来自逐题详情，不从列表基础 DTO 猜测。"""
+
+    ids = ("candidate-1", "candidate-2", "candidate-3")
+    loaders = _StubLoaders(
+        page=_page(*(_candidate(candidate_id) for candidate_id in ids)),
+        details={
+            ids[0]: _detail(ids[0], source_status="persisted", sources=[_source()]),
+            ids[1]: _detail(ids[1], source_status="history_unknown"),
+            ids[2]: _detail(ids[2], source_status="no_sources"),
+        },
+    )
+    _install(loaders)
+
+    rows, items, _message = view.refresh_candidate_list("course-1", "", _TEACHER_STATE)
+
+    assert [row[-1] for row in rows] == ["已持久化", "历史未知", "无来源"]
+    assert [item["source_status"] for item in items] == [
+        "persisted",
+        "history_unknown",
+        "no_sources",
+    ]
+    assert [
+        call[1]["candidate_id"] for call in loaders.calls if call[0] == "detail"
+    ] == list(ids)
+
+
 def test_view_guard_rejects_student_session() -> None:
     """学生会话被界面守卫拒绝，且不调用加载器。"""
 
@@ -238,7 +318,9 @@ def test_view_guard_rejects_student_session() -> None:
 # ---------------------------------------------------------------- 生成
 
 
-def _generation_response(*candidates: GeneratedCandidateDTO) -> CandidateGenerationResponse:
+def _generation_response(
+    *candidates: GeneratedCandidateDTO,
+) -> CandidateGenerationResponse:
     """构造生成响应。"""
 
     return CandidateGenerationResponse(
@@ -263,7 +345,9 @@ def _generation_response(*candidates: GeneratedCandidateDTO) -> CandidateGenerat
     )
 
 
-def _generated(status: QuestionStatus, *, issues: Sequence[Any] = ()) -> GeneratedCandidateDTO:
+def _generated(
+    status: QuestionStatus, *, issues: Sequence[Any] = ()
+) -> GeneratedCandidateDTO:
     """构造生成响应中的候选题。"""
 
     base = _candidate(status=status)
@@ -279,12 +363,22 @@ def _generated(status: QuestionStatus, *, issues: Sequence[Any] = ()) -> Generat
 def test_generate_candidates_returns_rows_preview_and_buttons() -> None:
     """生成成功后刷新列表、预览、审核按钮与检索依据。"""
 
-    loaders = _StubLoaders(generation=_generation_response(_generated(QuestionStatus.PENDING_REVIEW)))
+    loaders = _StubLoaders(
+        generation=_generation_response(_generated(QuestionStatus.PENDING_REVIEW)),
+        details={
+            "candidate-1": _detail(source_status="persisted", sources=[_source()])
+        },
+    )
     _install(loaders)
 
     rows, items, status, preview, approve, revision, evidence, message = asyncio.run(
         view.generate_candidates(
-            "course-1", "变量", "中等", QuestionType.SINGLE_CHOICE.value, 1, _TEACHER_STATE
+            "course-1",
+            "变量",
+            "中等",
+            QuestionType.SINGLE_CHOICE.value,
+            1,
+            _TEACHER_STATE,
         )
     )
 
@@ -294,9 +388,10 @@ def test_generate_candidates_returns_rows_preview_and_buttons() -> None:
     assert "参考答案" in preview
     assert _update_value(approve) is True
     assert _update_value(revision) is True
-    assert "变量用于保存数据。" in evidence
+    assert "变量用于保存数据。" not in evidence
+    assert "来自已保存详情的知识片段。" in evidence
     assert "课程资料.pdf" in evidence
-    assert "未落库" in evidence
+    assert "已持久化" in evidence
     assert status == message
     assert loaders.calls[0][1]["knowledge_points"] == ["变量"]
 
@@ -304,7 +399,9 @@ def test_generate_candidates_returns_rows_preview_and_buttons() -> None:
 def test_generate_candidates_without_course_is_warning() -> None:
     """未选择课程时拒绝生成，不调用服务。"""
 
-    loaders = _StubLoaders(generation=_generation_response(_generated(QuestionStatus.PENDING_REVIEW)))
+    loaders = _StubLoaders(
+        generation=_generation_response(_generated(QuestionStatus.PENDING_REVIEW))
+    )
     _install(loaders)
 
     rows, items, status, _preview, approve, revision, evidence, message = asyncio.run(
@@ -331,9 +428,7 @@ def test_insufficient_context_shows_banner_and_disables_actions() -> None:
     _install(loaders)
 
     rows, items, status, _preview, approve, revision, _evidence, message = asyncio.run(
-        view.generate_candidates(
-            "course-1", "变量", None, "", 1, _TEACHER_STATE
-        )
+        view.generate_candidates("course-1", "变量", None, "", 1, _TEACHER_STATE)
     )
 
     assert rows == [] and items == []
@@ -353,8 +448,10 @@ def test_not_ready_dependency_shows_unavailable_message() -> None:
     )
     _install(loaders)
 
-    _rows, _items, status, _preview, _approve, _revision, _evidence, message = asyncio.run(
-        view.generate_candidates("course-1", "", None, "", 1, _TEACHER_STATE)
+    _rows, _items, status, _preview, _approve, _revision, _evidence, message = (
+        asyncio.run(
+            view.generate_candidates("course-1", "", None, "", 1, _TEACHER_STATE)
+        )
     )
 
     assert view.GENERATION_UNAVAILABLE_MESSAGE in status
@@ -381,21 +478,25 @@ def test_select_candidate_preview_and_action_state() -> None:
     _install(loaders)
     _rows, items, _message = view.refresh_candidate_list("course-1", "", _TEACHER_STATE)
 
-    preview, selected, approve, revision, message = view.select_candidate(
+    preview, selected, approve, revision, evidence, message = view.select_candidate(
         _SelectEvent(0), None, items, _TEACHER_STATE
     )
     assert "参考答案" in preview
     assert selected is not None and selected["candidate_id"] == "candidate-1"
     assert _update_value(approve) is True
     assert _update_value(revision) is True
+    assert "无来源" in evidence
     assert "待教师审核" in message
 
-    _preview, _selected, approve2, revision2, message2 = view.select_candidate(
-        _SelectEvent(1), None, items, _TEACHER_STATE
+    _preview, _selected, approve2, revision2, _evidence2, message2 = (
+        view.select_candidate(_SelectEvent(1), None, items, _TEACHER_STATE)
     )
     assert _update_value(approve2) is False
     assert _update_value(revision2) is False
-    assert message2 == view.NOT_PENDING_REVIEW_MESSAGE or view.NOT_PENDING_REVIEW_MESSAGE in message2
+    assert (
+        message2 == view.NOT_PENDING_REVIEW_MESSAGE
+        or view.NOT_PENDING_REVIEW_MESSAGE in message2
+    )
 
 
 def test_select_candidate_without_items_is_empty_state() -> None:
@@ -403,7 +504,7 @@ def test_select_candidate_without_items_is_empty_state() -> None:
 
     _install(_StubLoaders())
 
-    preview, selected, approve, revision, message = view.select_candidate(
+    preview, selected, approve, revision, evidence, message = view.select_candidate(
         _SelectEvent(0), None, [], _TEACHER_STATE
     )
 
@@ -411,7 +512,77 @@ def test_select_candidate_without_items_is_empty_state() -> None:
     assert selected is None
     assert _update_value(approve) is False
     assert _update_value(revision) is False
+    assert "尚未选择" in evidence
     assert "未选中" in message
+
+
+def test_selected_source_snapshot_is_truncated_and_deleted_source_marked() -> None:
+    """选中回调只展示历史快照摘要和删除提示，不泄露内部标识。"""
+
+    source = _source(content="正" * 520 + "尾部秘密", deleted=True)
+    loaders = _StubLoaders(
+        page=_page(_candidate()),
+        details={"candidate-1": _detail(source_status="persisted", sources=[source])},
+    )
+    _install(loaders)
+    _rows, items, _message = view.refresh_candidate_list("course-1", "", _TEACHER_STATE)
+
+    _preview, _selected, _approve, _revision, evidence, _message = (
+        view.select_candidate(_SelectEvent(0), None, items, _TEACHER_STATE)
+    )
+
+    assert "课程资料.pdf" in evidence
+    assert "片段 3" in evidence and "来源顺序 0" in evidence
+    assert "来源已删除，保留历史依据" in evidence
+    assert "正" * 500 in evidence and "正" * 501 not in evidence
+    assert "尾部秘密" not in evidence
+    assert str(source.chunk_id) not in evidence
+    assert "live_chunk_id" not in evidence
+
+
+def test_selected_candidate_no_source_and_unknown_have_explicit_empty_states() -> None:
+    loaders = _StubLoaders(
+        page=_page(_candidate(), _candidate("candidate-2")),
+        details={
+            "candidate-1": _detail(source_status="history_unknown"),
+            "candidate-2": _detail("candidate-2", source_status="no_sources"),
+        },
+    )
+    _install(loaders)
+    _rows, items, _message = view.refresh_candidate_list("course-1", "", _TEACHER_STATE)
+
+    unknown = view.select_candidate(_SelectEvent(0), None, items, _TEACHER_STATE)[4]
+    no_sources = view.select_candidate(_SelectEvent(1), None, items, _TEACHER_STATE)[4]
+
+    assert "历史未知" in unknown and "无可展示的来源快照" in unknown
+    assert "无来源" in no_sources and "无可展示的来源快照" in no_sources
+
+
+def test_selected_candidate_comments_are_shown_in_time_order() -> None:
+    loaders = _StubLoaders(
+        page=_page(_candidate()),
+        details={
+            "candidate-1": _detail(
+                comments=[
+                    QuestionRevisionCommentDTO(
+                        comment="第二轮：补充例子",
+                        commented_at=datetime(2026, 9, 21, 9, 0, tzinfo=UTC),
+                    ),
+                    QuestionRevisionCommentDTO(
+                        comment="第一轮：修订措辞",
+                        commented_at=datetime(2026, 9, 20, 9, 0, tzinfo=UTC),
+                    ),
+                ]
+            )
+        },
+    )
+    _install(loaders)
+    _rows, items, _message = view.refresh_candidate_list("course-1", "", _TEACHER_STATE)
+
+    preview = view.select_candidate(_SelectEvent(0), None, items, _TEACHER_STATE)[0]
+
+    assert preview.index("第一轮：修订措辞") < preview.index("第二轮：补充例子")
+    assert "已保存的审核意见" in preview
 
 
 def test_approve_submits_decision_and_refreshes_list() -> None:
@@ -430,24 +601,29 @@ def test_approve_submits_decision_and_refreshes_list() -> None:
     )
     _install(loaders)
 
-    message, rows, items, preview, approve, revision = view.submit_candidate_review_action(
-        "approve",
-        {"candidate_id": "candidate-1", "status": QuestionStatus.PENDING_REVIEW.value},
-        "",
-        "course-1",
-        "",
-        _TEACHER_STATE,
+    message, rows, items, preview, approve, revision = (
+        view.submit_candidate_review_action(
+            "approve",
+            {
+                "candidate_id": "candidate-1",
+                "status": QuestionStatus.PENDING_REVIEW.value,
+            },
+            "",
+            "course-1",
+            "",
+            _TEACHER_STATE,
+        )
     )
 
     assert "审核通过" in message
     assert rows[0][0] == "变量的作用是什么？"
     assert items[0]["status"] == QuestionStatus.APPROVED.value
-    assert "尚未选择" in preview
+    assert "参考答案" in preview
     assert _update_value(approve) is False
     assert _update_value(revision) is False
     assert loaders.calls[0][1]["action"] == "approve"
     assert loaders.calls[0][1]["candidate_id"] == "candidate-1"
-    assert loaders.calls[1][0] == "list"
+    assert [name for name, _kwargs in loaders.calls[:3]] == ["review", "detail", "list"]
 
 
 def test_revision_requires_comment_before_calling_service() -> None:
@@ -459,7 +635,10 @@ def test_revision_requires_comment_before_calling_service() -> None:
     message, _rows, _items, _preview, _approve, _revision = (
         view.submit_candidate_review_action(
             "request_revision",
-            {"candidate_id": "candidate-1", "status": QuestionStatus.PENDING_REVIEW.value},
+            {
+                "candidate_id": "candidate-1",
+                "status": QuestionStatus.PENDING_REVIEW.value,
+            },
             "   ",
             "course-1",
             "",
@@ -471,8 +650,8 @@ def test_revision_requires_comment_before_calling_service() -> None:
     assert all(call[0] != "review" for call in loaders.calls)
 
 
-def test_revision_with_comment_reports_not_persisted() -> None:
-    """退回修订成功后明确说明意见未落库。"""
+def test_revision_with_comment_reads_persisted_history() -> None:
+    """退回修订成功后从详情读取已保存意见，不信任一次性审核响应。"""
 
     loaders = _StubLoaders(
         page=_page(_candidate(status=QuestionStatus.NEEDS_REVISION)),
@@ -482,16 +661,29 @@ def test_revision_with_comment_reports_not_persisted() -> None:
             previous_status=QuestionStatus.PENDING_REVIEW,
             status=QuestionStatus.NEEDS_REVISION,
             comment="请拆分评分标准。",
-            comment_persisted=False,
+            comment_persisted=True,
             request_id="request-1",
         ),
+        details={
+            "candidate-1": _detail(
+                comments=[
+                    QuestionRevisionCommentDTO(
+                        comment="请拆分评分标准。",
+                        commented_at=datetime(2026, 9, 19, 9, 0, tzinfo=UTC),
+                    )
+                ]
+            )
+        },
     )
     _install(loaders)
 
-    message, _rows, items, _preview, _approve, _revision = (
+    message, _rows, items, preview, _approve, _revision = (
         view.submit_candidate_review_action(
             "request_revision",
-            {"candidate_id": "candidate-1", "status": QuestionStatus.PENDING_REVIEW.value},
+            {
+                "candidate_id": "candidate-1",
+                "status": QuestionStatus.PENDING_REVIEW.value,
+            },
             "请拆分评分标准。",
             "course-1",
             "",
@@ -500,7 +692,8 @@ def test_revision_with_comment_reports_not_persisted() -> None:
     )
 
     assert "退回修订" in message
-    assert view.COMMENT_NOT_PERSISTED_NOTE in message
+    assert "已保存的审核意见" in preview
+    assert "请拆分评分标准。" in preview
     assert items[0]["status"] == QuestionStatus.NEEDS_REVISION.value
     assert loaders.calls[0][1]["comment"] == "请拆分评分标准。"
 
@@ -514,13 +707,18 @@ def test_conflict_keeps_list_facts_unchanged() -> None:
     )
     _install(loaders)
 
-    message, rows, items, _preview, approve, revision = view.submit_candidate_review_action(
-        "approve",
-        {"candidate_id": "candidate-1", "status": QuestionStatus.PENDING_REVIEW.value},
-        "",
-        "course-1",
-        "",
-        _TEACHER_STATE,
+    message, rows, items, _preview, approve, revision = (
+        view.submit_candidate_review_action(
+            "approve",
+            {
+                "candidate_id": "candidate-1",
+                "status": QuestionStatus.PENDING_REVIEW.value,
+            },
+            "",
+            "course-1",
+            "",
+            _TEACHER_STATE,
+        )
     )
 
     assert "QUESTION_CANDIDATE_NOT_FOUND" in message
@@ -538,7 +736,9 @@ def test_refresh_generation_context_lists_real_courses() -> None:
 
     update, message = view.refresh_generation_context(_TEACHER_STATE)
 
-    assert isinstance(update, Mapping) and update.get("choices") == [("Python 基础", "course-1")]
+    assert isinstance(update, Mapping) and update.get("choices") == [
+        ("Python 基础", "course-1")
+    ]
     assert "请选择课程" in message
 
     empty = _StubLoaders(courses=())

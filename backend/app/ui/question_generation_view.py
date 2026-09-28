@@ -8,7 +8,7 @@ DTO，不直接导入 FastAPI 端点、ORM 会话或领域仓储；所有业务�
 - 生成失败、检索上下文不足、结构校验未通过都显示明确提示，绝不生成示例候选题或虚构引用；
 - “审核通过/退回修订”只在候选题确实处于 ``Pending Review`` 时可用；按钮禁用只改善体验，
   服务端仍会重新执行权限、状态与结构校验；
-- 退回修订意见在题库模型中没有持久列，界面提示“本次提交意见已随响应回显，未落库”。
+- 候选题来源与审核意见从题目详情契约读取，不把生成/审核的一次性响应当作持久化依据。
 """
 
 from __future__ import annotations
@@ -18,16 +18,17 @@ from dataclasses import dataclass
 from typing import Any
 
 import gradio as gr
+from fastapi import HTTPException
 from sqlalchemy.exc import SQLAlchemyError
 
 from backend.app.api.question_generation import (
     CANDIDATE_STATUS_SCOPE,
-    CandidateDTO,
     CandidateGenerationResponse,
     CandidatePageDTO,
     CandidateReviewOutcomeDTO,
     QuestionGenerationError,
 )
+from backend.app.api.questions import QuestionDetailDTO
 from backend.app.domain.enums import QuestionStatus, QuestionType, UserRole
 from backend.app.domain.permissions import PermissionDeniedError, normalize_role
 from backend.app.services.course_service import CourseServiceError
@@ -42,7 +43,7 @@ from backend.app.ui.layout_view import (
 #: 出题条件表头（左栏条件摘要）。
 CONDITION_HEADERS = ("条件", "当前值")
 #: 候选题表头；状态列展示题库中的权威审核状态。
-CANDIDATE_HEADERS = ("候选题目", "题型", "状态", "分值", "知识点")
+CANDIDATE_HEADERS = ("候选题目", "题型", "状态", "分值", "知识点", "来源状态")
 
 #: 出题链路未就绪（Provider/Embedding/检索存储）时的统一提示。
 GENERATION_UNAVAILABLE_MESSAGE = (
@@ -57,7 +58,12 @@ NO_CANDIDATE_MESSAGE = "暂无候选题目：请先填写条件并生成，或�
 #: 审核通过前的状态门禁说明。
 NOT_PENDING_REVIEW_MESSAGE = "只有处于“待审核”状态的候选题才能执行审核通过与退回修订。"
 #: 修订意见的落库事实说明。
-COMMENT_NOT_PERSISTED_NOTE = "修订意见已在本次响应中回显；题库模型暂无该列，因此未落库。"
+SOURCE_STATUS_LABELS = {
+    "persisted": "已持久化",
+    "history_unknown": "历史未知",
+    "no_sources": "无来源",
+}
+SOURCE_PREVIEW_LIMIT = 500
 
 #: 未就绪错误码集合：命中时显示统一的链路未就绪提示。
 _NOT_READY_CODES = frozenset(
@@ -95,7 +101,7 @@ class QuestionGenerationLoaders:
     courses: Callable[[Mapping[str, Any] | None], list[tuple[str, str]]]
     generate: Callable[..., Any]
     list_candidates: Callable[..., CandidatePageDTO]
-    candidate_detail: Callable[..., CandidateDTO]
+    candidate_detail: Callable[..., QuestionDetailDTO]
     review: Callable[..., CandidateReviewOutcomeDTO]
 
 
@@ -103,7 +109,7 @@ _DEFAULT_LOADERS = QuestionGenerationLoaders(
     courses=loaders.load_courses,
     generate=loaders.generate_candidate_batch,
     list_candidates=loaders.list_candidates,
-    candidate_detail=loaders.load_candidate,
+    candidate_detail=loaders.load_question_detail,
     review=loaders.submit_candidate_review,
 )
 
@@ -182,7 +188,9 @@ def _error_message(error: BaseException) -> str:
         if error.error_code == "QUESTION_INSUFFICIENT_CONTEXT":
             return feedback(INSUFFICIENT_CONTEXT_MESSAGE, "warning")
         if error.error_code in _NOT_READY_CODES:
-            return feedback(f"{GENERATION_UNAVAILABLE_MESSAGE}（{error.error_code}）", "error")
+            return feedback(
+                f"{GENERATION_UNAVAILABLE_MESSAGE}（{error.error_code}）", "error"
+            )
         return feedback(f"操作未完成（{error.error_code}）：{error.detail}", "error")
     if isinstance(error, PermissionDeniedError):
         return feedback(str(error), "error")
@@ -190,6 +198,8 @@ def _error_message(error: BaseException) -> str:
         return feedback(str(error), "error")
     if isinstance(error, SQLAlchemyError):
         return feedback("数据库访问失败，请稍后重试。", "error")
+    if isinstance(error, HTTPException):
+        return feedback(f"题目详情读取失败：{error.detail}", "error")
     return feedback("操作未完成：出题链路返回未知错误。", "error")
 
 
@@ -200,6 +210,24 @@ def _status_text(value: Any) -> str:
         return status_label(value, entity="question")
     except (KeyError, TypeError, ValueError):
         return str(value or "")
+
+
+def _source_status_text(value: Any) -> str:
+    """只显示详情契约定义的状态；未知值不伪装成历史记录。"""
+
+    return SOURCE_STATUS_LABELS.get(str(value or ""), "状态未知")
+
+
+def _candidate_with_detail(
+    item: Mapping[str, Any] | Any,
+    state: Mapping[str, Any] | None,
+) -> tuple[dict[str, Any], QuestionDetailDTO]:
+    """从持久化题目详情读取来源状态，不信任生成时的一次性响应。"""
+
+    candidate = _as_dict(item)
+    detail = _active_loaders.candidate_detail(str(candidate["candidate_id"]), state)
+    candidate["source_status"] = detail.source_status
+    return candidate, detail
 
 
 def candidate_rows(page: CandidatePageDTO | Sequence[Any] | None) -> list[list[str]]:
@@ -222,6 +250,7 @@ def candidate_rows(page: CandidatePageDTO | Sequence[Any] | None) -> list[list[s
                 _status_text(_value(item, "status", "")),
                 str(_value(item, "score", "")),
                 "、".join(str(point) for point in knowledge_points),
+                _source_status_text(_value(item, "source_status", "")),
             ]
         )
     return rows
@@ -261,54 +290,37 @@ def candidate_preview_markdown(item: Mapping[str, Any] | Any | None) -> str:
     return "\n\n".join(lines)
 
 
-def _evidence_markdown(
-    evidence: Sequence[Mapping[str, Any] | Any] | None,
-    *,
-    out_of_course: int = 0,
-    unresolved: int = 0,
-    sources_persisted: bool = False,
-) -> str:
-    """渲染本次生成的检索依据；没有真实依据时显示空态。"""
+def source_snapshot_markdown(detail: QuestionDetailDTO) -> str:
+    """展示已保存快照的有限摘要；删除活体片段后仍保留历史依据。"""
 
-    lines: list[str] = []
-    if evidence:
-        for index, item in enumerate(evidence, start=1):
-            source = str(
-                _value(item, "source_file", "")
-                or _value(item, "document_id", "")
-                or "未标注资料"
-            )
-            chunk_index = _value(item, "chunk_index", None)
-            location = (
-                f"片段 {chunk_index}"
-                if chunk_index is not None
-                else str(_value(item, "course_id", "") or "未标注课程")
-            )
-            content = str(_value(item, "content", ""))
-            lines.append(f"{index}. **{source}**（{location}）\n   {content}")
-    else:
-        lines.append(empty_state("本次生成没有可展示的检索依据。"))
-    if out_of_course:
-        lines.append(
-            feedback(f"已过滤 {out_of_course} 条不属于当前课程的检索片段。", "warning")
+    if not detail.sources:
+        return empty_state(
+            f"来源状态：{_source_status_text(detail.source_status)}；无可展示的来源快照。"
         )
-    if unresolved:
+    lines = [f"**来源状态：** {_source_status_text(detail.source_status)}"]
+    for source in detail.sources:
+        content = source.content_snapshot[:SOURCE_PREVIEW_LIMIT]
+        if len(source.content_snapshot) > SOURCE_PREVIEW_LIMIT:
+            content += "…"
         lines.append(
-            feedback(
-                f"有 {unresolved} 条引用无法按当前课程解析到片段，未展示其正文。",
-                "warning",
-            )
+            f"{source.source_order + 1}. **{source.source_file}**（片段 {source.chunk_index}，"
+            f"来源顺序 {source.source_order}）\n\n   {content}"
         )
-    if sources_persisted:
-        lines.append(feedback("检索依据已随候选题落库。", "info"))
-    else:
-        lines.append(
-            feedback(
-                "候选题的检索依据当前只随生成响应返回，未落库；列表中不展示历史依据。",
-                "info",
-            )
-        )
+        if source.source_deleted:
+            lines.append("来源已删除，保留历史依据")
     return "\n\n".join(lines)
+
+
+def revision_comments_markdown(detail: QuestionDetailDTO) -> str:
+    """展示题目详情中的持久化审核意见，按时间升序。"""
+
+    if not detail.revision_comments:
+        return empty_state("暂无已保存的审核意见。")
+    comments = sorted(detail.revision_comments, key=lambda item: item.commented_at)
+    return "### 已保存的审核意见\n\n" + "\n\n".join(
+        f"{index}. {comment.commented_at.isoformat()}：{comment.comment}"
+        for index, comment in enumerate(comments, start=1)
+    )
 
 
 def _parse_question_type(value: Any) -> QuestionType | None:
@@ -389,18 +401,20 @@ def refresh_candidate_list(
             course_id=str(course_id),
             candidate_status=_parse_status(candidate_status),
         )
+        items = [_candidate_with_detail(item, state)[0] for item in page.items]
     except (
         PermissionDeniedError,
         CourseServiceError,
         QuestionGenerationError,
         SQLAlchemyError,
+        HTTPException,
+        ValueError,
     ) as error:
         return [], [], _error_message(error)
-    items = [_as_dict(item) for item in page.items]
     if not items:
         return [], [], feedback(NO_CANDIDATE_MESSAGE, "info")
     return (
-        candidate_rows(page),
+        candidate_rows(items),
         items,
         feedback(f"共 {page.total} 条候选题，本次展示 {len(items)} 条。", "info"),
     )
@@ -418,8 +432,20 @@ async def generate_candidates(
 
     if not str(course_id or "").strip():
         empty = feedback("请先选择课程后再生成。", "warning")
-        return [], [], empty, empty_state("尚未选择候选题。"), *_disabled_actions(), "", empty
-    points = [point.strip() for point in str(knowledge_point or "").split(",") if point.strip()]
+        return (
+            [],
+            [],
+            empty,
+            empty_state("尚未选择候选题。"),
+            *_disabled_actions(),
+            "",
+            empty,
+        )
+    points = [
+        point.strip()
+        for point in str(knowledge_point or "").split(",")
+        if point.strip()
+    ]
     try:
         count = int(amount or 1)
     except (TypeError, ValueError):
@@ -441,29 +467,77 @@ async def generate_candidates(
         SQLAlchemyError,
     ) as error:
         message = _error_message(error)
-        return [], [], message, empty_state("尚未选择候选题。"), *_disabled_actions(), "", message
+        return (
+            [],
+            [],
+            message,
+            empty_state("尚未选择候选题。"),
+            *_disabled_actions(),
+            "",
+            message,
+        )
     assert isinstance(response, CandidateGenerationResponse)
-    items = [_as_dict(candidate) for candidate in response.candidates]
     status_message = _generation_status_markdown(response)
-    evidence = _evidence_markdown(
-        [_as_dict(item) for item in response.evidence],
-        out_of_course=response.out_of_course_source_count,
-        unresolved=response.unresolved_source_count,
-        sources_persisted=response.sources_persisted,
+    try:
+        enriched = [
+            _candidate_with_detail(candidate, state)
+            for candidate in response.candidates
+        ]
+    except (
+        PermissionDeniedError,
+        QuestionGenerationError,
+        SQLAlchemyError,
+        HTTPException,
+        ValueError,
+    ):
+        detail_error = feedback(
+            "候选题已生成，但详情读取失败；请刷新候选列表。", "warning"
+        )
+        return (
+            [],
+            [],
+            status_message,
+            empty_state("尚未选择候选题。"),
+            *_disabled_actions(),
+            detail_error,
+            detail_error,
+        )
+    items = [item for item, _detail in enriched]
+    first_detail = enriched[0][1] if enriched else None
+    rows = candidate_rows(items)
+    preview = (
+        candidate_preview_markdown(items[0])
+        if items
+        else empty_state(NO_CANDIDATE_MESSAGE)
     )
-    rows = candidate_rows(response.candidates)
-    preview = candidate_preview_markdown(items[0]) if items else empty_state(NO_CANDIDATE_MESSAGE)
-    return rows, items, status_message, preview, *_action_updates(items, 0), evidence, status_message
+    evidence = (
+        source_snapshot_markdown(first_detail)
+        if first_detail is not None
+        else empty_state("本次生成没有候选题来源。")
+    )
+    return (
+        rows,
+        items,
+        status_message,
+        preview,
+        *_action_updates(items, 0),
+        evidence,
+        status_message,
+    )
 
 
 def _generation_status_markdown(response: CandidateGenerationResponse) -> str:
     """生成完成后展示整批校验结论与待审核数量。"""
 
     pending = sum(
-        1 for item in response.candidates if item.status is QuestionStatus.PENDING_REVIEW
+        1
+        for item in response.candidates
+        if item.status is QuestionStatus.PENDING_REVIEW
     )
     needs_revision = sum(
-        1 for item in response.candidates if item.status is QuestionStatus.NEEDS_REVISION
+        1
+        for item in response.candidates
+        if item.status is QuestionStatus.NEEDS_REVISION
     )
     parts = [
         (
@@ -496,7 +570,10 @@ def _action_updates(
     if not items or index >= len(items):
         return _disabled_actions()
     status = str(_value(items[index], "status", ""))
-    if status not in {QuestionStatus.PENDING_REVIEW.value, QuestionStatus.PENDING_REVIEW.name}:
+    if status not in {
+        QuestionStatus.PENDING_REVIEW.value,
+        QuestionStatus.PENDING_REVIEW.name,
+    }:
         return _disabled_actions()
     return gr.update(interactive=True), gr.update(interactive=True)
 
@@ -506,28 +583,65 @@ def select_candidate(
     candidates: Sequence[Sequence[Any]] | None,
     candidate_items: Sequence[Mapping[str, Any]] | None,
     state: Mapping[str, Any] | None = None,
-) -> tuple[str, dict[str, Any] | None, Any, Any, str]:
+) -> tuple[str, dict[str, Any] | None, Any, Any, str, str]:
     """选中候选题：渲染完整预览并按权威状态启用或禁用审核操作。"""
 
     items = list(candidate_items or [])
-    index = int(getattr(evt, "index", 0) or 0)
+    raw_index = getattr(evt, "index", None)
+    if isinstance(raw_index, (tuple, list)):
+        raw_index = raw_index[0] if raw_index else None
+    try:
+        index = int(raw_index) if raw_index is not None else -1
+    except (TypeError, ValueError):
+        index = -1
     try:
         _ensure_teacher(state)
     except PermissionDeniedError as error:
-        return empty_state("尚未选择候选题。"), None, *_disabled_actions(), _error_message(error)
-    if not items or index >= len(items):
+        return (
+            empty_state("尚未选择候选题。"),
+            None,
+            *_disabled_actions(),
+            empty_state("尚未选择候选题来源。"),
+            _error_message(error),
+        )
+    if not items or index < 0 or index >= len(items):
         message = feedback("未选中任何候选题。", "warning")
-        return empty_state("尚未选择候选题。"), None, *_disabled_actions(), message
-    item = items[index]
+        return (
+            empty_state("尚未选择候选题。"),
+            None,
+            *_disabled_actions(),
+            empty_state("尚未选择候选题来源。"),
+            message,
+        )
+    try:
+        item, detail = _candidate_with_detail(items[index], state)
+    except (
+        PermissionDeniedError,
+        QuestionGenerationError,
+        SQLAlchemyError,
+        HTTPException,
+        ValueError,
+    ) as error:
+        return (
+            empty_state("候选题详情读取失败。"),
+            None,
+            *_disabled_actions(),
+            empty_state("来源详情不可用。"),
+            _error_message(error),
+        )
     status = str(_value(item, "status", ""))
-    if status in {QuestionStatus.PENDING_REVIEW.value, QuestionStatus.PENDING_REVIEW.name}:
+    if status in {
+        QuestionStatus.PENDING_REVIEW.value,
+        QuestionStatus.PENDING_REVIEW.name,
+    }:
         message = feedback("该候选题待教师审核：可通过或退回修订。", "info")
     else:
         message = feedback(NOT_PENDING_REVIEW_MESSAGE, "warning")
     return (
-        candidate_preview_markdown(item),
-        dict(item),
+        candidate_preview_markdown(item) + "\n\n" + revision_comments_markdown(detail),
+        item,
         *_action_updates(items, index),
+        source_snapshot_markdown(detail),
         message,
     )
 
@@ -546,7 +660,9 @@ def submit_candidate_review_action(
     try:
         _ensure_teacher(state)
     except PermissionDeniedError as error:
-        return _error_message(error), *_unchanged_list(course_id, candidate_status, state)
+        return _error_message(error), *_unchanged_list(
+            course_id, candidate_status, state
+        )
     if not candidate_id:
         message = feedback("请先在候选题列表中选中一条记录。", "warning")
         return message, *_unchanged_list(course_id, candidate_status, state)
@@ -572,15 +688,45 @@ def submit_candidate_review_action(
     assert isinstance(outcome, CandidateReviewOutcomeDTO)
     if outcome.decision == "request_revision":
         message = feedback(
-            f"已退回修订，当前状态：{_status_text(outcome.status)}。{COMMENT_NOT_PERSISTED_NOTE}",
+            f"已退回修订，当前状态：{_status_text(outcome.status)}。",
             "warning",
         )
     else:
         message = feedback(
             f"审核通过，当前状态：{_status_text(outcome.status)}。", "success"
         )
-    rows, items, _list_message = refresh_candidate_list(course_id, candidate_status, state)
-    return message, rows, items, empty_state("尚未选择候选题。"), *_disabled_actions()
+    try:
+        detail = _active_loaders.candidate_detail(candidate_id, state)
+        updated = {
+            "content": detail.content,
+            "question_type": detail.type.value,
+            "score": detail.score,
+            "status": detail.status.value,
+            "difficulty": detail.difficulty,
+            "knowledge_points": detail.knowledge_points,
+            "options": detail.options,
+            "reference_answer": detail.reference_answer,
+            "scoring_rubric": detail.scoring_rubric,
+        }
+        preview = (
+            candidate_preview_markdown(updated)
+            + "\n\n"
+            + revision_comments_markdown(detail)
+        )
+    except (
+        PermissionDeniedError,
+        QuestionGenerationError,
+        SQLAlchemyError,
+        HTTPException,
+        ValueError,
+    ):
+        preview = empty_state(
+            "审核已提交，但意见详情读取失败；请刷新候选列表后重试查看。"
+        )
+    rows, items, _list_message = refresh_candidate_list(
+        course_id, candidate_status, state
+    )
+    return message, rows, items, preview, *_disabled_actions()
 
 
 def _unchanged_list(
@@ -658,8 +804,8 @@ def create_question_generation_view(
                     lines=3,
                     placeholder="退回修订时必填",
                 )
-        with gr.Accordion("检索来源", open=False):
-            evidence = gr.Markdown(empty_state("尚未生成候选题，暂无检索依据。"))
+        with gr.Accordion("候选题来源快照", open=False):
+            evidence = gr.Markdown(empty_state("尚未选择候选题来源。"))
         message = gr.Markdown(empty_state("请选择课程后开始出题。"))
 
         refresh_button.click(
@@ -709,6 +855,7 @@ def create_question_generation_view(
                 selected_candidate,
                 approve_button,
                 revision_button,
+                evidence,
                 message,
             ],
             show_progress="hidden",
@@ -777,12 +924,13 @@ configure_production_question_generation_loaders = configure_question_generation
 
 __all__ = [
     "CANDIDATE_HEADERS",
-    "COMMENT_NOT_PERSISTED_NOTE",
     "CONDITION_HEADERS",
     "GENERATION_UNAVAILABLE_MESSAGE",
     "INSUFFICIENT_CONTEXT_MESSAGE",
     "NOT_PENDING_REVIEW_MESSAGE",
     "NO_CANDIDATE_MESSAGE",
+    "SOURCE_PREVIEW_LIMIT",
+    "SOURCE_STATUS_LABELS",
     "QuestionGenerationLoaders",
     "QuestionGenerationView",
     "build_question_generation_view",
@@ -794,7 +942,9 @@ __all__ = [
     "generate_candidates",
     "refresh_candidate_list",
     "refresh_generation_context",
+    "revision_comments_markdown",
     "select_candidate",
     "show_course_context",
+    "source_snapshot_markdown",
     "submit_candidate_review_action",
 ]
