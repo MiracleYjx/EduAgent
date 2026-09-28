@@ -200,7 +200,7 @@ Grading Workflow 支持条件路由以及 Human-in-the-loop 暂停与恢复。
 Agent Trace；评测看板展示检索和阅卷实验；quickstart 可以从启动到完整演示闭环；全量
 回归通过。
 
-- [ ] T080 在 `backend/app/mcp/server.py` 和 `backend/app/mcp/registry.py` 中创建 MCP 服务/工具注册边界，加入授权和结构化工具结果处理
+- [X] T080 在 `backend/app/mcp/server.py` 和 `backend/app/mcp/registry.py` 中创建 MCP 服务/工具注册边界，加入授权和结构化工具结果处理
 - [ ] T081 [P] 在 `backend/app/mcp/tools/knowledge_tools.py` 中实现 `search_questions` 和 `query_knowledge` MCP 工具
 - [ ] T082 [P] 在 `backend/app/mcp/tools/report_tools.py` 中实现 `get_exam_result`、`get_student_profile` 和 `create_report` MCP 工具
 - [ ] T083 [P] 在 `backend/app/mcp/tools/email_tool.py` 中实现 `send_email` MCP/工具适配器，明确收件人、模板和失败处理
