@@ -201,7 +201,7 @@ Agent Trace；评测看板展示检索和阅卷实验；quickstart 可以从启�
 回归通过。
 
 - [X] T080 在 `backend/app/mcp/server.py` 和 `backend/app/mcp/registry.py` 中创建 MCP 服务/工具注册边界，加入授权和结构化工具结果处理
-- [ ] T081 [P] 在 `backend/app/mcp/tools/knowledge_tools.py` 中实现 `search_questions` 和 `query_knowledge` MCP 工具
+- [X] T081 [P] 在 `backend/app/mcp/tools/knowledge_tools.py` 中实现 `search_questions` 和 `query_knowledge` MCP 工具
 - [ ] T082 [P] 在 `backend/app/mcp/tools/report_tools.py` 中实现 `get_exam_result`、`get_student_profile` 和 `create_report` MCP 工具
 - [ ] T083 [P] 在 `backend/app/mcp/tools/email_tool.py` 中实现 `send_email` MCP/工具适配器，明确收件人、模板和失败处理
 - [ ] T084 在 `backend/app/models/audit_log.py`、`migrations/versions/` 和 `backend/app/services/audit_service.py` 中实现审计事件模型、持久化、脱敏和 180 天保留策略，以及阅卷、复核、发布和角色变更的审计钩子；敏感操作详情不得包含 API Key、凭证、答案正文或隐私字段
