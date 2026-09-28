@@ -78,6 +78,7 @@ from backend.app.schemas.grading import (
     DiagnosisReportDTO,
     ExamResultDTO,
 )
+from backend.app.services.audit_service import audit_after_commit
 from backend.app.services.grading.grading_task_service import (
     GradingSubmissionReader,
     GradingTargetAnswer,
@@ -1042,6 +1043,15 @@ class ReviewService:
             except Exception:
                 session.rollback()
                 raise
+            audit_after_commit(
+                session,
+                actor_id=actor_id,
+                actor_role="teacher",
+                action="review.decided",
+                resource_type="review_record",
+                resource_id=record.id,
+                detail={"review_action": status.value},
+            )
             return _DecisionResult(
                 review_record_id=str(record.id),
                 review_round_id=record.review_round_id,

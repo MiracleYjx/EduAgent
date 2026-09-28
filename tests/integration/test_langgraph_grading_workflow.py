@@ -55,6 +55,7 @@ from backend.app.domain.enums import (
 )
 from backend.app.models import (
     Answer,
+    AuditLog,
     Course,
     Exam,
     ExamResult,
@@ -516,6 +517,11 @@ def test_high_confidence_result_is_readable_from_results_api(
 
     assert started.status_code == 200
     assert started.json()["status"] == WorkflowStatus.COMPLETED.value
+    with Session(env.engine) as observer:
+        audit = observer.scalar(select(AuditLog).where(AuditLog.action == "grading.triggered"))
+        assert audit is not None
+        assert audit.resource_id == env.paper.submission_id
+        assert audit.detail == {"run_kind": "langgraph-workflow"}
     assert result.status_code == 200
     body = result.json()
     assert body["is_final"] is True
@@ -599,6 +605,10 @@ def test_decision_retry_returns_original_record_and_live_pending_count(
         assert saved.json()["review_round_id"] == round_id
         assert saved.json()["idempotency_degraded"] is False
         record_id = saved.json()["review_record_id"]
+        with Session(env.engine) as observer:
+            review_audit = observer.scalar(select(AuditLog).where(AuditLog.action == "review.decided"))
+            assert review_audit is not None
+            assert review_audit.resource_id == record_id
     scoring = SequenceScoringProvider([])
     with _api_client(env, scoring_provider=scoring) as second:
         retry = second.client.post(

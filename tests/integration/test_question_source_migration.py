@@ -132,7 +132,7 @@ def test_alembic_upgrade_head_downgrade_and_reupgrade_in_isolated_schema(
             session.commit()
             question_id = question.id
 
-        command.upgrade(config, "head")
+        command.upgrade(config, REVISION)
         assert _revision(engine, schema) == REVISION
         with engine.connect() as connection:
             assert connection.scalar(text("SELECT current_schema()")) == schema
@@ -196,7 +196,7 @@ def test_alembic_upgrade_head_downgrade_and_reupgrade_in_isolated_schema(
                 item["name"] for item in inspector.get_indexes("document_chunks")
             }
 
-        command.upgrade(config, "head")
+        command.upgrade(config, REVISION)
         assert _revision(engine, schema) == REVISION
         with engine.connect() as connection:
             assert NEW_TABLES <= set(inspect(connection).get_table_names())

@@ -377,6 +377,26 @@ def test_trigger_creates_queued_task_and_schedules_execution() -> None:
     assert recorder.scheduled == [(task.task_id, SUBMISSION_ID)]
 
 
+def test_trigger_audits_new_task_once_and_audit_failure_does_not_block() -> None:
+    class FailingAudit:
+        def __init__(self) -> None:
+            self.calls: list[dict[str, object]] = []
+
+        def record(self, **fields: object) -> bool:
+            self.calls.append(fields)
+            return False
+
+    audit = FailingAudit()
+    recorder = RecordingExecutor()
+    service = _service(audit_service=audit, executor=recorder)
+    created = service.trigger(SUBMISSION_ID, teacher_id=TEACHER_ID, scheduler=recorder)
+    reused = service.trigger(SUBMISSION_ID, teacher_id=TEACHER_ID, scheduler=recorder)
+    assert created.reused is False
+    assert reused.reused is True
+    assert len(audit.calls) == 1
+    assert audit.calls[0]["resource_id"] == SUBMISSION_ID
+
+
 def test_trigger_reuses_in_flight_task_without_rescheduling() -> None:
     """同一答卷已有进行中任务时复用，不重复调度或调用 LLM。"""
 

@@ -28,6 +28,7 @@ from backend.app.ai.ingestion.service import (
 from backend.app.domain.enums import DocumentStatus
 from backend.app.models import Course, Document, DocumentChunk, KnowledgeBase, User
 from backend.app.models.document_chunk import EMBEDDING_VECTOR_DIMENSION
+from backend.app.services.audit_service import audit_after_commit
 from backend.app.services.course_service import (
     CourseNotFoundError,
     CoursePermissionError,
@@ -864,6 +865,15 @@ class KnowledgeBaseService:
                 teacher_id=teacher_id,
             )
 
+        audit_after_commit(
+            self.session,
+            actor_id=_resolve_actor_id(teacher_id),
+            actor_role="teacher" if teacher_id is not None else "system",
+            action="knowledge.ingested",
+            resource_type="document",
+            resource_id=document.id,
+            detail={"document_status": document.status.value, "chunk_count": len(rows)},
+        )
         return DocumentIngestionResult(
             document_id=str(document.id),
             status=document.status,

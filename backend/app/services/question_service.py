@@ -17,6 +17,7 @@ from sqlalchemy.orm import Session, selectinload
 
 from backend.app.domain.enums import QuestionStatus, QuestionType
 from backend.app.models import Course, Question, User
+from backend.app.services.audit_service import audit_after_commit
 from backend.app.services.course_service import (
     CourseNotFoundError,
     CoursePermissionError,
@@ -499,7 +500,18 @@ class QuestionService:
                 f"题目状态不能从“{current_status.value}”变更为“{next_status.value}”。"
             )
         question.status = next_status
-        return self._commit_question(question, "更新题目审核状态失败。")
+        summary = self._commit_question(question, "更新题目审核状态失败。")
+        if next_status is QuestionStatus.APPROVED:
+            audit_after_commit(
+                self.session,
+                actor_id=_resolve_actor_id(created_by, teacher_id),
+                actor_role="teacher" if _resolve_actor_id(created_by, teacher_id) else "system",
+                action="question.approved",
+                resource_type="question",
+                resource_id=question.id,
+                detail={"question_status": next_status.value},
+            )
+        return summary
 
     set_question_status = update_question_status
 

@@ -23,6 +23,7 @@ from backend.app.services.admin_service import (
     AdminUserSummary,
     AdminValidationError,
 )
+from backend.app.services.audit_service import audit_after_commit
 
 router = APIRouter(prefix="/api/admin", tags=["管理员"])
 
@@ -303,7 +304,13 @@ def set_user_roles(
     """替换指定用户的完整角色集合。"""
 
     try:
-        return service.set_user_roles(user_id, payload.roles)
+        result = service.set_user_roles(user_id, payload.roles)
+        audit_after_commit(
+            service.session, actor_id=_admin.id, actor_role="admin",
+            action="role.changed", resource_type="user", resource_id=user_id,
+            detail={"role_change": "set"},
+        )
+        return result
     except (AdminServiceError, ValueError) as exc:
         raise _admin_http_exception(exc) from None
 
@@ -318,7 +325,13 @@ def grant_role(
     """为用户授予一个角色。"""
 
     try:
-        return service.grant_role(user_id, role)
+        result = service.grant_role(user_id, role)
+        audit_after_commit(
+            service.session, actor_id=_admin.id, actor_role="admin",
+            action="role.changed", resource_type="user", resource_id=user_id,
+            detail={"role_change": "grant"},
+        )
+        return result
     except (AdminServiceError, ValueError) as exc:
         raise _admin_http_exception(exc) from None
 
@@ -333,7 +346,13 @@ def revoke_role(
     """撤销用户的一个角色，但不能撤销其最后一个角色。"""
 
     try:
-        return service.revoke_role(user_id, role)
+        result = service.revoke_role(user_id, role)
+        audit_after_commit(
+            service.session, actor_id=_admin.id, actor_role="admin",
+            action="role.changed", resource_type="user", resource_id=user_id,
+            detail={"role_change": "revoke"},
+        )
+        return result
     except (AdminServiceError, ValueError) as exc:
         raise _admin_http_exception(exc) from None
 

@@ -7,7 +7,7 @@ from collections.abc import Generator
 import pytest
 from fastapi.testclient import TestClient
 from redis.exceptions import RedisError
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session
 from sqlalchemy.pool import StaticPool
 
@@ -15,7 +15,7 @@ from backend.app.api.admin import get_admin_service
 from backend.app.core.app import create_app
 from backend.app.core.database import Base, get_db
 from backend.app.domain.enums import UserRole
-from backend.app.models import Role, User
+from backend.app.models import AuditLog, Role, User
 from backend.app.services.admin_service import AdminService
 from backend.app.services.auth_service import create_access_token, hash_password
 from tests.unit.settings_helpers import build_test_settings
@@ -130,6 +130,11 @@ def test_admin_api_manages_users_roles_and_status(
     )
     assert role_update.status_code == 200
     assert role_update.json()["roles"] == ["Teacher", "Admin"]
+    with Session(session.get_bind()) as observer:
+        event = observer.scalar(select(AuditLog).where(AuditLog.action == "role.changed"))
+        assert event is not None
+        assert event.actor_id == admin.id
+        assert event.resource_id == user_id
 
     disabled = client.post(
         f"/api/admin/users/{user_id}/active",

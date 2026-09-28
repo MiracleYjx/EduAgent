@@ -38,6 +38,7 @@ from backend.app.schemas.grading import (
     GradingTaskStatusDTO,
     QuestionResultDTO,
 )
+from backend.app.services.audit_service import AuditService
 from backend.app.services.diagnosis_service import DiagnosisService
 from backend.app.services.grading.diagnosis_report_store import (
     DiagnosisRecorder,
@@ -127,6 +128,7 @@ def build_production_grading_service(
     return GradingTaskService(
         repository=repository,
         reader=reader,
+        audit_service=AuditService(session_factory),
         executor=InlineGradingTaskExecutor(
             repository=repository,
             reader=reader,

@@ -83,6 +83,7 @@ from backend.app.models import (
     User,
 )
 from backend.app.schemas.ai import QuestionCandidate
+from backend.app.services.audit_service import audit_after_commit
 from backend.app.services.question_validator import (
     CANDIDATE_GENERATION_STATUS,
     QUESTION_ANSWER_ENCODING_INCOMPATIBLE,
@@ -1000,6 +1001,16 @@ class QuestionGenerationService:
                     "审核状态写入失败，候选题状态保持不变。",
                     source_code=type(error).__name__,
                 ) from error
+            if target is QuestionStatus.APPROVED:
+                audit_after_commit(
+                    session,
+                    actor_id=actor_id,
+                    actor_role="teacher",
+                    action="question.approved",
+                    resource_type="question",
+                    resource_id=question.id,
+                    detail={"question_status": target.value},
+                )
         return CandidateReviewOutcomeDTO(
             candidate_id=candidate_id,
             decision=action,

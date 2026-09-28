@@ -78,6 +78,7 @@ from backend.app.schemas.grading import (
     DiagnosisStatus,
     ExamResultDTO,
 )
+from backend.app.services.audit_service import AuditService, audit_after_commit
 from backend.app.services.diagnosis_service import DiagnosisService
 from backend.app.services.grading.diagnosis_report_store import (
     STORABLE_STATUSES,
@@ -577,6 +578,19 @@ class WorkflowService:
             raise _grading_error(error) from None
         except SQLAlchemyError as error:
             raise WorkflowNotReadyError("启动受理失败：答卷锁或运行存储未就绪。") from error
+        if self._session_factory is not None:
+            AuditService(self._session_factory).record(
+                actor_id=actor_id, actor_role="teacher", action="grading.triggered",
+                resource_type="submission", resource_id=submission_id,
+                request_id=request_id, detail={"run_kind": "langgraph-workflow"},
+            )
+        elif self._session is not None:
+            audit_after_commit(
+                self._session,
+                actor_id=actor_id, actor_role="teacher", action="grading.triggered",
+                resource_type="submission", resource_id=submission_id,
+                request_id=request_id, detail={"run_kind": "langgraph-workflow"},
+            )
         saver = self._checkpointer()
         saver.bind_thread(thread_id, workflow_id)
         workflow = self._build_workflow(snapshot, saver)

@@ -38,6 +38,7 @@ from backend.app.ai.ingestion.service import (
 from backend.app.core.database import Base
 from backend.app.domain.enums import DocumentStatus, UserRole
 from backend.app.models import (
+    AuditLog,
     Course,
     Document,
     DocumentChunk,
@@ -227,6 +228,12 @@ def test_ingest_document_persists_chunks_and_real_stages(postgres_session: Sessi
     ]
     assert result.status is DocumentStatus.READY
     assert result.chunk_count >= 1
+    with Session(session.get_bind()) as observer:
+        audit = observer.scalar(select(AuditLog).where(AuditLog.action == "knowledge.ingested"))
+        assert audit is not None
+        assert audit.actor_id == teacher.id
+        assert audit.resource_id == document_id
+        assert audit.detail["chunk_count"] == result.chunk_count
     assert result.error_code is None
 
     document = session.get(Document, UUID(document_id))

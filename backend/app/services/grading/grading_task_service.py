@@ -57,6 +57,7 @@ from backend.app.schemas.grading import (
     QuestionResultDTO,
     SubmissionContext,
 )
+from backend.app.services.audit_service import AuditService
 from backend.app.services.grading.confidence_policy import (
     ConfidenceDecision,
     ConfidencePolicy,
@@ -889,12 +890,14 @@ class GradingTaskService:
         executor: GradingTaskExecutor,
         scheduler: Callable[[str, str], None] | None = None,
         clock: Callable[[], datetime] | None = None,
+        audit_service: AuditService | None = None,
     ) -> None:
         self._repository = repository
         self._reader = reader
         self._executor = executor
         self._scheduler = scheduler
         self._clock = clock or (lambda: datetime.now(UTC))
+        self._audit_service = audit_service
 
     @property
     def executor(self) -> GradingTaskExecutor:
@@ -946,6 +949,16 @@ class GradingTaskService:
                 created_at=self._clock(),
             )
             self._repository.save_task(task, request_id=trace_id)
+        if self._audit_service is not None:
+            self._audit_service.record(
+                actor_id=teacher_id,
+                actor_role="teacher",
+                action="grading.triggered",
+                resource_type="submission",
+                resource_id=submission_id,
+                request_id=trace_id,
+                detail={"run_kind": "background-task"},
+            )
         schedule = scheduler if scheduler is not None else self._scheduler
         if schedule is not None:
             schedule(task.task_id, submission_id)

@@ -13,7 +13,7 @@ from sqlalchemy.pool import StaticPool
 
 from backend.app.core.database import Base
 from backend.app.domain.enums import QuestionStatus, QuestionType, UserRole
-from backend.app.models import Course, Role, User
+from backend.app.models import AuditLog, Course, Role, User
 from backend.app.services.auth_service import hash_password
 from backend.app.services.course_service import CourseService
 from backend.app.services.question_service import (
@@ -173,6 +173,11 @@ def test_question_service_persists_review_status_transitions(
         teacher_id=teacher.id,
     )
     assert approved.status is QuestionStatus.APPROVED
+    with Session(session.get_bind()) as observer:
+        event = observer.scalar(select(AuditLog).where(AuditLog.action == "question.approved"))
+        assert event is not None
+        assert event.actor_id == teacher.id
+        assert event.resource_id == str(question.id)
 
     with pytest.raises(
         QuestionValidationError, match="不能从“Approved”变更为“Needs Revision”"

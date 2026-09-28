@@ -33,6 +33,7 @@ from backend.app.domain.enums import (
     UserRole,
 )
 from backend.app.models import (
+    AuditLog,
     Course,
     Document,
     DocumentChunk,
@@ -272,6 +273,11 @@ def test_generation_validation_and_teacher_review_gate(
     )
     assert approved.status is QuestionStatus.APPROVED
     assert returned.status is QuestionStatus.NEEDS_REVISION
+    with Session(engine) as observer:
+        audit = observer.scalar(select(AuditLog).where(AuditLog.action == "question.approved"))
+        assert audit is not None
+        assert audit.actor_id == UUID(scenario["teacher_id"])
+        assert audit.resource_id == str(rows[0].id)
     final_rows = _questions(engine, scenario["course_id"])
     assert [row.status for row in final_rows] == [
         QuestionStatus.APPROVED,
