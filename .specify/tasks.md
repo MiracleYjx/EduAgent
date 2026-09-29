@@ -206,7 +206,7 @@ Agent Trace；评测看板展示检索和阅卷实验；quickstart 可以从启�
 - [X] T083 [P] 在 `backend/app/mcp/tools/email_tool.py` 中实现 `send_email` MCP/工具适配器，明确收件人、模板和失败处理
 - [X] T084 在 `backend/app/models/audit_log.py`、`migrations/versions/` 和 `backend/app/services/audit_service.py` 中实现审计事件模型、持久化、脱敏和 180 天保留策略，以及阅卷、复核、发布和角色变更的审计钩子；敏感操作详情不得包含 API Key、凭证、答案正文或隐私字段
 - [X] T085 在 `backend/app/services/trace_service.py` 和 `backend/app/api/traces.py` 中基于 T063/T064 的 `AgentRun`/`WorkflowRun` 模型实现追踪采集和追踪视图序列化，覆盖 `request_id`、`user_id`、`workflow_id`、`model`、`latency`、`prompt_version`、`tokens`、`status`、`error` 字段；排除密钥、Authorization Header、完整 Prompt 和学生答案原文，并实现 Trace 默认 30 天保留
-- [ ] T086 在 `backend/app/ui/evaluation_dashboard.py` 和 `backend/app/services/evaluation_service.py` 中实现检索与阅卷 Benchmark 对比评测看板
+- [X] T086 在 `backend/app/ui/evaluation_dashboard.py` 和 `backend/app/services/evaluation_service.py` 中实现检索与阅卷 Benchmark 对比评测看板
 - [ ] T087 在 `scripts/demo_seed.py`、`scripts/run_demo.ps1` 和 `docker-compose.yml` 中实现 Docker Demo 配置、种子数据命令和一键演示入口
 - [ ] T088 更新 `README.md`、`docs/architecture.md`、`docs/development.md` 和 `docs/evaluation.md`，说明三容器决策、Provider 边界、Agent 职责、Workflow 图以及 MVP/非 MVP 范围
 - [ ] T089 按 `.specify/quickstart.md` 在 `docs/validation-report.md` 中记录端到端验证，包括启动、四种检索模式、候选审核、混合阅卷、人工复核、诊断、资源使用和 P95 响应阈值

@@ -2,17 +2,19 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
-from dataclasses import dataclass, field
+from collections.abc import Sequence
+from dataclasses import dataclass
 from math import isfinite
 from typing import Any, Literal, cast
+from uuid import UUID
 
 import gradio as gr
 import pandas as pd
 
+from backend.app.services.evaluation_service import EvaluationRecord, EvaluationService
 from backend.app.ui.layout_view import table_options
 
-EVALUATION_NOT_READY = "评测数据暂未就绪，请等待 M5 阶段完成。"
+EVALUATION_NOT_READY = "评测读取尚未授权，入口暂未开放。"
 NO_DATA = "无数据"
 METRIC_HEADERS = (
     "实验",
@@ -25,14 +27,15 @@ METRIC_HEADERS = (
     "单位",
     "样本量",
     "运行状态",
+    "证据类型",
     "结果位置",
 )
 FAILURE_HEADERS = ("实验", "模型", "数据集", "运行状态", "失败原因", "结果位置")
 METRIC_DATATYPES = cast(tuple[Literal["str"], ...], ("str",) * len(METRIC_HEADERS))
 FAILURE_DATATYPES = cast(tuple[Literal["str"], ...], ("str",) * len(FAILURE_HEADERS))
 COMPARISON_NOTE = (
-    "仅比较相同数据集及版本、指标单位、样本量和已记录比较条件的完成实验；"
-    "运行中、失败或比较信息缺失的结果不参与柱状图。"
+    "仅比较相同数据集及版本、指标单位、有效样本量和已记录比较条件的完成实验；"
+    "管道自检、来源未证实、运行中、失败或比较信息缺失的结果不参与柱状图。"
 )
 DETAIL_LABELS = (
     "选中实验 / 运行标识",
@@ -42,34 +45,11 @@ DETAIL_LABELS = (
     "数据集 / 数据集版本",
     "检索模式",
     "运行状态",
+    "证据类型",
     "运行时间",
     "结果位置",
     "失败原因",
 )
-
-
-@dataclass(frozen=True)
-class EvaluationRecord:
-    """界面只读投影；由后续 T086 适配已授权、已脱敏的结果。"""
-
-    run_id: str
-    experiment: str
-    model: str
-    prompt: str
-    dataset: str
-    retrieval_mode: str
-    status: str
-    metrics: Mapping[str, float | int | None] = field(default_factory=dict)
-    metric_units: Mapping[str, str] = field(default_factory=dict)
-    sample_count: int | None = None
-    model_version: str = ""
-    prompt_version: str = ""
-    dataset_version: str = ""
-    configuration: str = ""
-    run_at: str = ""
-    result_path: str = ""
-    failure_reason: str = ""
-    comparison_condition: str = ""
 
 
 @dataclass(frozen=True)
@@ -118,11 +98,23 @@ def _number_text(value: float | None) -> str:
     return str(value)
 
 
+def _evidence_label(kind: str) -> str:
+    return {
+        "pipeline_selftest": "管道自检（非质量结论）",
+        "provider_run": "Provider 运行",
+    }.get(kind, "来源未证实")
+
+
+def _sample_count(record: EvaluationRecord, metric: str) -> int | None:
+    return record.metric_sample_counts.get(metric, record.sample_count)
+
+
 def _chart_group(record: EvaluationRecord, metric: str) -> _ChartGroup | None:
-    count = record.sample_count
+    count = _sample_count(record, metric)
     unit = record.metric_units.get(metric, "")
     if (
         _status_label(record.status) != "已完成"
+        or record.evidence_kind != "provider_run"
         or _number_text(record.metrics.get(metric)) == NO_DATA
         or not isinstance(count, int)
         or isinstance(count, bool)
@@ -150,11 +142,11 @@ def _chart_values(
         return None, "无数据：缺少指标、单位、样本量或同条件比较信息。"
     rows = [
         {
-            "实验": f"{record.experiment} / {record.run_id or NO_DATA}（{index + 1}）",
+            "实验": f"{record.experiment}（{index + 1}）",
             "指标值": record.metrics[group.metric],
             "指标": group.metric,
             "单位": group.unit,
-            "样本量": group.sample_count,
+            "样本量": _sample_count(record, group.metric),
         }
         for index, record in enumerate(records)
         if _chart_group(record, group.metric) == group
@@ -184,12 +176,11 @@ def _filtered_records(
 def _metric_entries(
     records: Sequence[EvaluationRecord],
 ) -> list[tuple[EvaluationRecord, str]]:
-    names = sorted({name for record in records for name in record.metrics}) or [NO_DATA]
     return [
         (record, name)
         for record in records
         if _status_label(record.status) != "失败"
-        for name in names
+        for name in sorted(record.metrics) or [NO_DATA]
     ]
 
 
@@ -204,8 +195,9 @@ def _metric_rows(records: Sequence[EvaluationRecord]) -> list[list[str]]:
             name,
             _number_text(record.metrics.get(name)),
             record.metric_units.get(name) or NO_DATA,
-            _number_text(record.sample_count),
+            _number_text(_sample_count(record, name)),
             _status_label(record.status),
+            _evidence_label(record.evidence_kind),
             record.result_path or NO_DATA,
         ]
         for record, name in _metric_entries(records)
@@ -231,13 +223,14 @@ def _detail_values(record: EvaluationRecord | None) -> tuple[str, ...]:
     if record is None:
         return ("尚未选择实验。", *([NO_DATA] * (len(DETAIL_LABELS) - 1)))
     return (
-        f"{record.experiment} / {record.run_id or NO_DATA}",
+        record.experiment or NO_DATA,
         record.configuration or NO_DATA,
         f"{record.model or NO_DATA} / {record.model_version or NO_DATA}",
         f"{record.prompt or NO_DATA} / {record.prompt_version or NO_DATA}",
         f"{record.dataset or NO_DATA} / {record.dataset_version or NO_DATA}",
         record.retrieval_mode or NO_DATA,
         _status_label(record.status),
+        _evidence_label(record.evidence_kind),
         record.run_at or NO_DATA,
         record.result_path or NO_DATA,
         record.failure_reason or NO_DATA,
@@ -249,11 +242,28 @@ def create_evaluation_view(
     *,
     read_authorized: bool = False,
     visible: bool = False,
+    service: EvaluationService | None = None,
+    actor_id: UUID | None = None,
 ) -> EvaluationView:
-    """在已有 Blocks 中展示授权快照；角色名不能代替读取授权结论。"""
+    """展示授权快照；service/actor 仅供受控装配，不构成会话认证。"""
 
-    ready = read_authorized is True and records is not None
-    source = tuple(records) if ready and records is not None else ()
+    ready = read_authorized is True and (
+        records is not None or (service is not None and service.is_authorized(actor_id))
+    )
+
+    def current_records(
+        experiment: str = "", dataset: str = "", model: str = "", retrieval_mode: str = "",
+    ) -> tuple[EvaluationRecord, ...]:
+        if not ready:
+            return ()
+        if service is not None:
+            return tuple(service.query(
+                actor_id=actor_id, experiment=experiment, dataset=dataset,
+                model=model, retrieval_mode=retrieval_mode,
+            ))
+        return tuple(_filtered_records(records or (), experiment, dataset, model, retrieval_mode))
+
+    source = current_records()
     groups = list(
         dict.fromkeys(
             group
@@ -368,9 +378,7 @@ def create_evaluation_view(
             retrieval_mode: str,
             comparison: str,
         ) -> tuple[Any, ...]:
-            selected = _filtered_records(
-                source, experiment, dataset, model, retrieval_mode
-            )
+            selected = current_records(experiment, dataset, model, retrieval_mode)
             metric_rows = _metric_rows(selected)
             failure_rows = _failure_rows(selected)
             plot, note = _chart_values(selected, group_choices.get(comparison))
@@ -411,9 +419,7 @@ def create_evaluation_view(
             retrieval_mode: str,
             event: gr.SelectData,
         ) -> tuple[str, ...]:
-            selected = _filtered_records(
-                source, experiment, dataset, model, retrieval_mode
-            )
+            selected = current_records(experiment, dataset, model, retrieval_mode)
             return selected_details(
                 [record for record, _ in _metric_entries(selected)], event
             )
@@ -425,9 +431,7 @@ def create_evaluation_view(
             retrieval_mode: str,
             event: gr.SelectData,
         ) -> tuple[str, ...]:
-            selected = _filtered_records(
-                source, experiment, dataset, model, retrieval_mode
-            )
+            selected = current_records(experiment, dataset, model, retrieval_mode)
             return selected_details(
                 [
                     record
@@ -463,7 +467,7 @@ def create_evaluation_dashboard(
     *,
     read_authorized: bool = False,
 ) -> gr.Blocks:
-    """创建独立预览；未授权时只显示未就绪空壳，不暴露传入记录。"""
+    """创建独立静态预览；不开放服务读取或替代生产会话鉴权。"""
 
     with gr.Blocks(title="EduAgent 评测看板", fill_width=True) as dashboard:
         create_evaluation_view(records, read_authorized=read_authorized, visible=True)
