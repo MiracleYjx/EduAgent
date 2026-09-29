@@ -8,11 +8,11 @@ EduAgent 连接课程资料、题目准备、学生答卷、评分与学习反�
 
 ## 项目状态
 
-**M0–M5 已按确认的开发／演示范围完成**，包含 T080–T091。完成 Tag 为 **`v1.0.0-m5-complete`**，指向提交 `ffc09df`（2026-09-29）。`pyproject.toml` 中的 Python 包版本仍为 **0.1.0**；Git 里程碑 Tag 不等于包版本升级。
+**M0–M5 已按确认的开发／演示范围完成**，包含 T080–T091。完成 Tag 为 **`v1.0.0-m5-complete`**（2026-09-29）。`pyproject.toml` 中的 Python 包版本仍为 **0.1.0**；Git 里程碑 Tag 不等于包版本升级。
 
 - **真实模型验证**：主机 Python 开发模式下，使用合成数据与真实 DeepSeek 调用，执行了检索重排、候选审核、混合阅卷、人工复核、Workflow 恢复和诊断闭环。
 - **Docker 验证**：三容器健康，`/ready` 返回 200，未认证课程请求返回 401。本次复用缓存 Backend 镜像，**未验证** Docker AI 链路或干净环境镜像构建。
-- **发布边界**：可作为开发完成版本，不代表无条件具备生产部署条件。实测、失败、跳过及已接受限制详见[发布检查清单](docs/release-checklist.md)和[端到端验证报告](docs/validation-report.md)。
+- **发布边界**：可作为开发完成版本，不代表无条件具备生产部署条件。下文保留已记录的门禁结果与已知限制。
 
 当前 Gradio 界面主要使用中文。里程碑详情与单独追踪的后续工作见[任务清单](.specify/tasks.md)。
 
@@ -59,7 +59,7 @@ PostgreSQL 保存业务数据、pgvector 向量、全文检索数据和 Workflow
 | 默认本地 Embedding | `BAAI/bge-large-zh-v1.5`，1024 维 |
 | Rerank | LLM 适配器或可选的本地 Cross Encoder |
 
-四类 Agent 模块分别承担 Supervisor 路由、Question 出题、Grading 阅卷编排、Reviewer 复核决策。当前请求路径使用 Question、Grading 和 Reviewer；Supervisor 尚未接入生产阅卷图。节点与条件边、Provider 边界详见[架构文档](docs/architecture.md)。
+四类 Agent 模块分别承担 Supervisor 路由、Question 出题、Grading 阅卷编排、Reviewer 复核决策。当前请求路径使用 Question、Grading 和 Reviewer；Supervisor 尚未接入生产阅卷图。
 
 ## 快速开始
 
@@ -153,7 +153,7 @@ python scripts/demo_seed.py
 
 开启开发模式后，点击管理员、教师或学生快速登录按钮。界面会准备 `dev_admin`、`dev_teacher`、`dev_student` 账号并签发标准 JWT，没有统一的默认密码。
 
-如需通过密码使用 API，可在管理员工作台创建用户，调用 `POST /api/auth/login`，再携带返回的 Bearer Token 访问受保护接口。[开发模式说明](docs/dev-mode.md)介绍了账号生命周期与清理方式；关闭开发模式不会删除这些账号，也不会撤销已有令牌。
+如需通过密码使用 API，可在管理员工作台创建用户，调用 `POST /api/auth/login`，再携带返回的 Bearer Token 访问受保护接口。关闭开发模式不会删除演示账号，也不会撤销已有令牌；部署前需另行处理这些账号的访问权限。
 
 ### 备选：在 Docker 中运行后端
 
@@ -168,7 +168,7 @@ docker compose run --rm --no-deps backend python -m alembic upgrade head
 docker compose up -d --wait backend
 ```
 
-Compose 会提供容器内部的 PostgreSQL 与 Redis 地址。启动容器前先停止占用同一端口的本机后端。更方便的演示入口是先在 `.env` 启用 `DEV_MODE=true` 并填写云端配置，再运行 `./scripts/run_demo.ps1`；它启动三容器、迁移并幂等灌入课程、知识库、题目和考试。健康检查不等于 AI 链路验收，脚本可能产生云端模型费用。详情见[开发指南](docs/development.md)。
+Compose 会提供容器内部的 PostgreSQL 与 Redis 地址。启动容器前先停止占用同一端口的本机后端。更方便的演示入口是先在 `.env` 启用 `DEV_MODE=true` 并填写云端配置，再运行 `./scripts/run_demo.ps1`；它启动三容器、迁移并幂等灌入课程、知识库、题目和考试。健康检查不等于 AI 链路验收，脚本可能产生云端模型费用。
 
 已完成的 Docker 检查仅为启动／就绪验证临时注入了 Embedding 占位符，**占位符不是可用模型配置**。Docker AI 链路仍需配置真实云端 Embedding 并单独验证；已验证的 AI 演示路径是主机 Python 开发模式。
 
@@ -204,7 +204,7 @@ M0 容器冒烟还要求隔离设置：`COMPOSE_PROJECT_NAME=eduagent-test`、`P
 
 ### 已记录的完成门禁
 
-2026-09-29 的 T091.3 最终检查验证了提交 `ffc09df` 所包含的改动，不代表后续工作区自动获得相同结论。
+2026-09-29 的 T091.3 最终检查验证了 `v1.0.0-m5-complete` 对应的实现，不代表后续工作区自动获得相同结论。
 
 | 检查项 | 已记录结果 |
 | --- | --- |
@@ -215,7 +215,7 @@ M0 容器冒烟还要求隔离设置：`COMPOSE_PROJECT_NAME=eduagent-test`、`P
 | Ruff | 全部通过 |
 | Alembic | `0012_audit_logs (head)`；此前 T091.3 结构检查无新增迁移操作 |
 
-唯一跳过项为缺少四个隔离环境变量的 M0 Docker 冒烟，不计为通过；单独的 Docker 就绪验证不替代此项。14 次警告包含 Starlette 弃用 3 次、Alembic 配置弃用 7 次、SQLAlchemy 夹具警告 4 次。[发布检查清单](docs/release-checklist.md)保留了首次迁移测试失败、schema 限定修复及重跑通过的完整记录。代码或环境变化后应重新执行门禁。
+唯一跳过项为缺少四个隔离环境变量的 M0 Docker 冒烟，不计为通过；单独的 Docker 就绪验证不替代此项。14 次警告包含 Starlette 弃用 3 次、Alembic 配置弃用 7 次、SQLAlchemy 夹具警告 4 次。两项迁移测试曾因反射查询读到 public 表而失败，显式限定 schema 后通过，原断言未放宽。代码或环境变化后应重新执行门禁。
 
 ## 评测
 
@@ -229,13 +229,7 @@ python scripts/run_grading_benchmark.py --mode selftest
 
 自检覆盖 Zero-shot、RAG、Hybrid + Rerank 三种策略。已提交的[阅卷自检报告](benchmark/results/grading_selftest-t059.json)使用合成参考分数，没有教师人工评分基准，不能据此证明阅卷准确率、MAE、RMSE 或与教师评分的一致率。
 
-### 真实 Provider 与已准备语料的评测
-
-本地模型权重和凭据就绪后，RAG 冒烟脚本可验证真实摄取与检索。它会创建并清理自己的课程和账号，不会初始化共用的评测语料。
-
-```powershell
-python scripts/smoke_rag_providers.py
-```
+### 可复现检索评测
 
 检索 Benchmark 已提供隔离 schema 初始化脚本，运行时生成真实 UUID manifest；无需预置[旧清单](benchmark/corpus/chunks.json)里的数据库 UUID。可先用替身验证可复现管道：
 
@@ -244,9 +238,9 @@ python scripts/setup_benchmark_corpus.py --self-test --output-dir .cache/benchma
 python scripts/run_retrieval_benchmark.py --self-test --manifest .cache/benchmark/corpus-stub/manifest.json --queries 999 --run-id stub-01 --output-dir .cache/benchmark/results
 ```
 
-真实 Provider 运行及教师标签格式见 [Benchmark 复现指南](docs/benchmark.md)；`--self-test` 仅验证管道，不是质量结论。真实模型调用可能计费；失败与缺失指标不会伪装成零分。[评测解读](docs/evaluation.md)说明同条件比较和看板读取授权。
+真实 Provider 的运行选项可通过各脚本的 `--help` 查看；`--self-test` 仅验证管道，不是质量结论。真实模型调用可能计费；失败与缺失指标不会伪装成零分，评测看板读取仍需显式授权。
 
-[检索对比报告](docs/retrieval-benchmark-v2.md)覆盖 20 个查询、21 个片段；小样本、部分由模型参与的标注及中文分词限制影响结论的适用范围。比较实验时，应同时核对数据集、模型、Prompt 和配置元数据。
+小规模合成检索数据集和中文分词限制影响结论的适用范围。比较实验时，应同时核对数据集、模型、Prompt 和配置元数据；合成评分参考分不是教师人工标签。
 
 ## 已知限制与路线图
 
@@ -257,7 +251,7 @@ python scripts/run_retrieval_benchmark.py --self-test --manifest .cache/benchmar
 - Docker AI 端到端、干净环境镜像构建、三容器峰值／资源上限尚未验证。启动验证复用了缓存镜像和已健康的依赖容器。
 - 尚无教师人工评分标签，阅卷质量指标保持 `null`；合成数据与管道自检不能证明真实学生答案的评分准确性。
 - 部分 UI 接线与响应式布局验收仍被单独追踪；后端集成测试通过不代表所有页面均已完成人工验证。
-- Supervisor 尚未接入生产阅卷图；统一 JSON 日志管道尚未完整接线，详见[可观测性文档](docs/observability.md)。
+- Supervisor 尚未接入生产阅卷图；统一 JSON 日志管道尚未完整接线。
 
 M5 已具备站内 JWT 认证的 MCP 风格工具边界、审计与 Trace、评测看板代码以及 Docker 演示种子。但没有标准 MCP 外部传输或真实邮件发送；默认邮件适配器返回 `not_configured`，不会伪称 `sent`。评测看板因缺少生产读取授权合同，入口仍隐藏。T089 开发模式验证与 T091 最终门禁均已记录，上述限制继续保留。Phase 6/7 的部分验收记录和 Phase 9 尚未实施的前缀缓存计划仍单独追踪，M0–M5 完成 Tag 不代表这些任务全部完成。
 
@@ -279,24 +273,13 @@ migrations/               Alembic 迁移
 scripts/                  演示种子／启动入口、冒烟检查与评测执行器
 tests/                    单元、契约与集成测试
 benchmark/                评测语料、清单及结果记录
-docs/                     开发指南与技术报告
 ```
 
 ## 延伸阅读
 
-以下详细指南目前主要使用中文，仓库也提供评测结果索引。
+公开仓库参考入口：
 
 | 文档 | 内容 |
 | --- | --- |
-| [发布检查清单](docs/release-checklist.md) | M0–M5 验收、最终门禁、跳过项与已知限制 |
-| [端到端验证](docs/validation-report.md) | 开发模式真实 DeepSeek 调用、资源与延迟实测 |
-| [本地开发](docs/development.md) | Provider 依赖、模型缓存与本地运行 |
-| [架构与边界](docs/architecture.md) | 三容器、Agent、Workflow 与 MVP 范围 |
-| [评测解读](docs/evaluation.md) | 指标、数据真实性与看板授权 |
-| [Benchmark 复现](docs/benchmark.md) | 隔离语料、manifest 与教师标签 |
-| [可观测性](docs/observability.md) | 审计、Trace 与可选监控扩展 |
-| [开发模式登录](docs/dev-mode.md) | 演示角色与账号生命周期 |
-| [开发模式清理清单](docs/dev-mode-removal-checklist.md) | 生产部署前的清理事项 |
-| [检索评测](docs/retrieval-benchmark-v2.md) | 已记录结果、限制与解读 |
 | [评测结果索引](benchmark/results/README.md) | 结果文件与元数据约定 |
 | [里程碑](.specify/tasks.md) | 开发任务与后续工作 |

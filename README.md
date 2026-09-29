@@ -8,11 +8,11 @@ EduAgent connects course materials, question preparation, student submissions, g
 
 ## Project status
 
-**M0–M5 are complete within the agreed development/demo scope**, including T080–T091. The completion tag is **`v1.0.0-m5-complete`**, pointing to commit `ffc09df` (2026-09-29). The Python package version in `pyproject.toml` remains **0.1.0**; the Git milestone tag does not change the package version.
+**M0–M5 are complete within the agreed development/demo scope**, including T080–T091. The completion tag is **`v1.0.0-m5-complete`** (2026-09-29). The Python package version in `pyproject.toml` remains **0.1.0**; the Git milestone tag does not change the package version.
 
 - **Real-model validation:** the host-Python development setup exercised retrieval/rerank, question approval, mixed grading, human review, Workflow recovery, and diagnosis with synthetic data and real DeepSeek calls.
 - **Docker validation:** all three containers became healthy, `/ready` returned 200, and an unauthenticated course request returned 401. This used a cached Backend image and did **not** validate the Docker AI chain or a clean image build.
-- **Release boundary:** suitable as a development-complete milestone, not an unconditional production-readiness claim. See the [release checklist](docs/release-checklist.md) and [end-to-end evidence](docs/validation-report.md) for measured results, failures, skips, and accepted limitations.
+- **Release boundary:** suitable as a development-complete milestone, not an unconditional production-readiness claim. Recorded checks and remaining limitations are summarized below.
 
 The current Gradio interface is primarily in Chinese. See the [task list](.specify/tasks.md) for milestone details and separately tracked follow-up work.
 
@@ -59,7 +59,7 @@ PostgreSQL holds business records, pgvector embeddings, full-text search data, a
 | Default local Embedding | `BAAI/bge-large-zh-v1.5`, 1024 dimensions |
 | Rerank | LLM adapter or an optional local Cross Encoder |
 
-Four Agent modules define distinct responsibilities: Supervisor routing, Question generation, Grading orchestration, and Reviewer decisions. Production request paths use Question, Grading, and Reviewer; Supervisor is not wired into the production grading graph. See the [architecture guide](docs/architecture.md) for the actual nodes, conditional edges, and Provider boundaries.
+Four Agent modules define distinct responsibilities: Supervisor routing, Question generation, Grading orchestration, and Reviewer decisions. Production request paths use Question, Grading, and Reviewer; Supervisor is not wired into the production grading graph.
 
 ## Quickstart
 
@@ -153,7 +153,7 @@ A successful readiness response does not validate model credentials, downloaded 
 
 With development mode enabled, use the Admin, Teacher, or Student quick-login button. The UI prepares `dev_admin`, `dev_teacher`, and `dev_student` accounts and issues normal JWTs; there is no shared default password.
 
-For password-based API use, create users through the Admin workspace, call `POST /api/auth/login`, and supply the returned bearer token to protected endpoints. The [development-mode guide](docs/dev-mode.md) explains account lifecycle and cleanup. Disabling development mode does not delete those accounts or revoke existing tokens.
+For password-based API use, create users through the Admin workspace, call `POST /api/auth/login`, and supply the returned bearer token to protected endpoints. Disabling development mode does not delete demo accounts or revoke existing tokens; manage their access separately before deployment.
 
 ### Alternative: run the backend in Docker
 
@@ -168,7 +168,7 @@ docker compose run --rm --no-deps backend python -m alembic upgrade head
 docker compose up -d --wait backend
 ```
 
-Compose supplies container-internal PostgreSQL and Redis URLs. Stop the host backend before starting the container on the same port. For a seeded demo, enable `DEV_MODE=true`, configure cloud Embedding in `.env`, then run `./scripts/run_demo.ps1`. It starts the three containers, migrates, and idempotently seeds a course, knowledge base, questions, and exam. A healthy container does not prove AI calls work; seeding may incur provider charges. See the [development guide](docs/development.md).
+Compose supplies container-internal PostgreSQL and Redis URLs. Stop the host backend before starting the container on the same port. For a seeded demo, enable `DEV_MODE=true`, configure cloud Embedding in `.env`, then run `./scripts/run_demo.ps1`. It starts the three containers, migrates, and idempotently seeds a course, knowledge base, questions, and exam. A healthy container does not prove AI calls work; seeding may incur provider charges.
 
 The completed Docker check used temporary Embedding placeholders only for startup/readiness checks. Those placeholders are **not working model credentials**. The Docker AI chain still needs a usable cloud Embedding configuration and separate validation; use the host-Python setup for the already validated AI walkthrough.
 
@@ -204,7 +204,7 @@ The M0 container smoke test also requires the isolated settings `COMPOSE_PROJECT
 
 ### Recorded completion gates
 
-The final T091.3 checks on 2026-09-29 validated the changes included in `ffc09df`; they are not a claim that later checkouts have been retested.
+The final T091.3 checks on 2026-09-29 validated the implementation associated with `v1.0.0-m5-complete`; they are not a claim that later checkouts have been retested.
 
 | Check | Recorded result |
 | --- | --- |
@@ -215,7 +215,7 @@ The final T091.3 checks on 2026-09-29 validated the changes included in `ffc09df
 | Ruff | All checks passed |
 | Alembic | `0012_audit_logs (head)`; no new upgrade operations detected in the preceding T091.3 schema check |
 
-The skipped test was the M0 Docker smoke test without its four required isolation variables. It is not counted as passed, and the separate Docker readiness check does not replace it. The 14 warnings comprise 3 Starlette deprecations, 7 Alembic configuration deprecations, and 4 SQLAlchemy fixture warnings. The [release checklist](docs/release-checklist.md) retains the initial migration-test failures, their schema-scoping correction, and the successful rerun. Rerun gates after code or environment changes.
+The skipped test was the M0 Docker smoke test without its four required isolation variables. It is not counted as passed, and the separate Docker readiness check does not replace it. The 14 warnings comprise 3 Starlette deprecations, 7 Alembic configuration deprecations, and 4 SQLAlchemy fixture warnings. Two migration tests initially failed because reflection also saw public-schema tables; explicitly scoping those queries fixed the tests without weakening their assertions. Rerun gates after code or environment changes.
 
 ## Evaluation
 
@@ -229,13 +229,7 @@ python scripts/run_grading_benchmark.py --mode selftest
 
 It exercises Zero-shot, RAG, and Hybrid + Rerank strategies. The committed [grading self-test report](benchmark/results/grading_selftest-t059.json) contains synthetic reference scores and no Teacher-labeled ground truth, so it does not establish grading accuracy, MAE, RMSE, or agreement with Teachers.
 
-### Real providers and prepared-corpus runs
-
-With local model weights and credentials available, the RAG smoke script exercises real ingestion and retrieval. It creates and cleans up its own course/account records; it does not bootstrap the shared benchmark corpus.
-
-```powershell
-python scripts/smoke_rag_providers.py
-```
+### Reproducible retrieval benchmark
 
 Retrieval Benchmark now initializes an isolated schema and records real runtime UUIDs in a manifest; it does not require pre-existing database IDs from the [old corpus list](benchmark/corpus/chunks.json). To check the reproducible pipeline with stubs:
 
@@ -244,9 +238,9 @@ python scripts/setup_benchmark_corpus.py --self-test --output-dir .cache/benchma
 python scripts/run_retrieval_benchmark.py --self-test --manifest .cache/benchmark/corpus-stub/manifest.json --queries 999 --run-id stub-01 --output-dir .cache/benchmark/results
 ```
 
-For real providers and Teacher-label formats, see the [Benchmark reproduction guide](docs/benchmark.md). `--self-test` proves the pipeline, not model quality. Real calls may incur charges; failures and absent metrics are not fabricated as zero scores. The [evaluation guide](docs/evaluation.md) explains comparable conditions and dashboard read authorization.
+Use each script's `--help` for available real-provider options. `--self-test` proves the pipeline, not model quality. Real calls may incur charges; failures and absent metrics are not fabricated as zero scores. Dashboard reads require explicit authorization.
 
-The [retrieval comparison report](docs/retrieval-benchmark-v2.md) covers 20 queries and 21 chunks. Its small, partly model-assisted label set and Chinese tokenization limitations restrict what can be concluded. Compare runs only with their dataset, model, Prompt, and configuration metadata.
+The small synthetic retrieval dataset and Chinese tokenization limitations restrict what can be concluded. Compare runs only with their dataset, model, Prompt, and configuration metadata; synthetic grading reference scores are not Teacher ground truth.
 
 ## Known limits and roadmap
 
@@ -257,7 +251,7 @@ The [retrieval comparison report](docs/retrieval-benchmark-v2.md) covers 20 quer
 - Docker AI end-to-end validation, a clean image build, and three-container peak/resource-limit verification remain unperformed. The startup-only check reused a cached image and already healthy dependencies.
 - Teacher-labeled grading data is still absent, so grading quality metrics remain `null`. Synthetic data and pipeline self-tests do not establish real student grading accuracy.
 - Some UI integration and responsive-layout acceptance work remains separately tracked. Backend integration tests do not establish that every screen has been manually verified.
-- Supervisor is not wired into the production grading graph. A unified JSON log pipeline is not yet fully wired; see [observability](docs/observability.md).
+- Supervisor is not wired into the production grading graph. A unified JSON log pipeline is not yet fully wired.
 
 M5 includes an in-app JWT-authorized MCP-style tool boundary, audit/Trace, evaluation dashboard code, and Docker demo seeding. It does **not** provide external standard MCP transport or real email delivery; the default email adapter returns `not_configured`, not `sent`. The evaluation dashboard entry remains hidden until an explicit production read-authorization contract exists. T089 development-mode validation and T091 completion gates are recorded, with the limitations above retained. Phase 6/7 partial acceptance records and the unimplemented Phase 9 prefix-cache plan remain separately tracked; the M0–M5 tag does not mark those tasks complete.
 
@@ -279,24 +273,13 @@ migrations/               Alembic migrations
 scripts/                  Demo seeds/launcher, smoke checks, and benchmark runners
 tests/                    Unit, contract, and integration tests
 benchmark/                Evaluation corpora, manifests, and recorded results
-docs/                     Development guides and technical reports
 ```
 
 ## Further reading
 
-The detailed guides below are currently in Chinese; the benchmark result index is also available in the repository.
+Public repository references:
 
 | Document | Contents |
 | --- | --- |
-| [Release checklist](docs/release-checklist.md) | M0–M5 acceptance, final gates, skips, and known limitations |
-| [End-to-end validation](docs/validation-report.md) | Real DeepSeek development-mode results, resources, and latency |
-| [Local development](docs/development.md) | Provider dependencies, model cache, and local operation |
-| [Architecture and boundaries](docs/architecture.md) | Containers, Agents, Workflow, and MVP scope |
-| [Evaluation guide](docs/evaluation.md) | Metrics, evidence, and dashboard authorization |
-| [Benchmark reproduction](docs/benchmark.md) | Isolated corpus, manifests, and Teacher labels |
-| [Observability](docs/observability.md) | Audit, Trace, and optional monitoring |
-| [Development-mode login](docs/dev-mode.md) | Demo roles and account lifecycle |
-| [Development-mode removal checklist](docs/dev-mode-removal-checklist.md) | Cleanup before a production deployment |
-| [Retrieval evaluation](docs/retrieval-benchmark-v2.md) | Recorded results, limitations, and interpretation |
 | [Benchmark result index](benchmark/results/README.md) | Result files and metadata conventions |
 | [Milestones](.specify/tasks.md) | Implementation tasks and follow-up work |
