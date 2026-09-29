@@ -8,7 +8,11 @@ EduAgent 连接课程资料、题目准备、学生答卷、评分与学习反�
 
 ## 项目状态
 
-项目包版本为 **0.1.0**。M0–M4 与 M5 的 T080–T087、T090 已完成；T088 为本文档更新，T089 端到端验收仍待执行。本项目面向本地开发与演示；任务完成不代表所有 UI 路径或部署场景均通过发布验收。
+**M0–M5 已按确认的开发／演示范围完成**，包含 T080–T091。完成 Tag 为 **`v1.0.0-m5-complete`**，指向提交 `ffc09df`（2026-09-29）。`pyproject.toml` 中的 Python 包版本仍为 **0.1.0**；Git 里程碑 Tag 不等于包版本升级。
+
+- **真实模型验证**：主机 Python 开发模式下，使用合成数据与真实 DeepSeek 调用，执行了检索重排、候选审核、混合阅卷、人工复核、Workflow 恢复和诊断闭环。
+- **Docker 验证**：三容器健康，`/ready` 返回 200，未认证课程请求返回 401。本次复用缓存 Backend 镜像，**未验证** Docker AI 链路或干净环境镜像构建。
+- **发布边界**：可作为开发完成版本，不代表无条件具备生产部署条件。实测、失败、跳过及已接受限制详见[发布检查清单](docs/release-checklist.md)和[端到端验证报告](docs/validation-report.md)。
 
 当前 Gradio 界面主要使用中文。里程碑详情与单独追踪的后续工作见[任务清单](.specify/tasks.md)。
 
@@ -17,10 +21,12 @@ EduAgent 连接课程资料、题目准备、学生答卷、评分与学习反�
 - **课程知识摄取**：解析 PDF、TXT、Markdown，完成清洗、分块和 Embedding，保留处理状态及可追溯来源。
 - **四种检索模式**：Vector Only、Keyword Only、Hybrid 加权分数融合、Hybrid + Rerank；结果保留课程、资料和片段标识。
 - **AI 辅助题目准备**：生成结构化候选题，经过校验及教师审核后，才能用于可参加的考试。
+- **题目依据持久化**：保存来源快照、实际生成元数据和多轮修订意见，可跨请求读取；来源片段删除后保留历史快照，并在界面明确标注。
 - **阅卷**：客观题由确定性规则评分，不调用 LLM；主观题结合课程上下文，经过 JSON/Pydantic 校验及可配置的置信度检查。
 - **人工复核与恢复**：LangGraph 按题路由，待复核时暂停，教师作出决定后从持久化检查点恢复。
 - **成绩与诊断**：区分待复核和最终成绩；诊断仅使用已接受或人工复核的评分，过期报告标记为 Stale。
 - **角色边界**：后端执行 Teacher、Student、Admin 权限检查，管理员不能代替教师审核题目或复核评分。
+- **工程支撑**：站内 JWT 授权工具、180 天审计保留、30 天 Agent/Workflow Trace 保留及查询 API、可复现 Benchmark、幂等演示种子。评测看板仍需显式读取授权。
 
 ## 架构
 
@@ -126,6 +132,14 @@ python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000
 
 登录或创建业务数据前先执行迁移。如果 Compose 后端已经占用 8000 端口，先执行 `docker compose stop backend`，再启动本机后端。
 
+如需演示内容，可在**迁移完成后、启动后端前**，于同一虚拟环境中执行：
+
+```powershell
+python scripts/demo_seed.py
+```
+
+种子脚本要求 `DEV_MODE=true` 且 Embedding Provider 可用；上述开发模式使用本地 BGE，首次运行可能下载权重。重复执行会复用演示账号、课程、知识库、题目和考试，不创建学生答卷。
+
 | 入口 | 地址 | 用途 |
 | --- | --- | --- |
 | 演示界面 | `http://127.0.0.1:8000/gradio/` | 按角色使用工作台 |
@@ -156,9 +170,11 @@ docker compose up -d --wait backend
 
 Compose 会提供容器内部的 PostgreSQL 与 Redis 地址。启动容器前先停止占用同一端口的本机后端。更方便的演示入口是先在 `.env` 启用 `DEV_MODE=true` 并填写云端配置，再运行 `./scripts/run_demo.ps1`；它启动三容器、迁移并幂等灌入课程、知识库、题目和考试。健康检查不等于 AI 链路验收，脚本可能产生云端模型费用。详情见[开发指南](docs/development.md)。
 
+已完成的 Docker 检查仅为启动／就绪验证临时注入了 Embedding 占位符，**占位符不是可用模型配置**。Docker AI 链路仍需配置真实云端 Embedding 并单独验证；已验证的 AI 演示路径是主机 Python 开发模式。
+
 ## 教学评测流程
 
-结合已接线的 Gradio 页面和 API 文档，按以下检查点操作。空数据库不会自动预置数据；需要演示种子时执行 `scripts/run_demo.ps1`，该脚本不创建学生答卷。
+结合已接线的 Gradio 页面和 API 文档，按以下检查点操作。空数据库不会自动预置数据：开发模式可执行 `python scripts/demo_seed.py`；Docker Demo 在云端 Embedding 配置完成后执行 `./scripts/run_demo.ps1`。两种种子入口均不创建学生答卷。
 
 1. **教师**：创建课程及其知识库，上传受支持的资料，确认处理状态达到 `Ready`。
 2. **教师**：手工创建题目或根据课程资料生成 AI 候选题；审核通过后再加入考试。
@@ -180,11 +196,26 @@ python -m pip install mypy ruff
 python -m pytest tests/ -q
 python -m mypy backend/app/
 python -m ruff check backend/ tests/
+python -m alembic current
+python -m alembic check
 ```
 
 M0 容器冒烟还要求隔离设置：`COMPOSE_PROJECT_NAME=eduagent-test`、`POSTGRES_PORT=15432`、`REDIS_PORT=16379`、`BACKEND_PORT=18000`，具体见[测试前置条件](tests/integration/test_m0_smoke.py)。跳过冒烟不能视为部署验证通过。
 
-历史测试记录不代表当前工作区的验证结论；本次纯文档任务仅检查差异与链接。开发与发布前应重新执行上述门禁。
+### 已记录的完成门禁
+
+2026-09-29 的 T091.3 最终检查验证了提交 `ffc09df` 所包含的改动，不代表后续工作区自动获得相同结论。
+
+| 检查项 | 已记录结果 |
+| --- | --- |
+| 全量 pytest | **1546 通过、0 失败、1 跳过、14 警告**，308.78 秒 |
+| 模型聚焦测试 | 137 通过 |
+| 两项隔离 schema 迁移测试 | 2 通过，全部原断言保留 |
+| Mypy | 140 个文件无问题 |
+| Ruff | 全部通过 |
+| Alembic | `0012_audit_logs (head)`；此前 T091.3 结构检查无新增迁移操作 |
+
+唯一跳过项为缺少四个隔离环境变量的 M0 Docker 冒烟，不计为通过；单独的 Docker 就绪验证不替代此项。14 次警告包含 Starlette 弃用 3 次、Alembic 配置弃用 7 次、SQLAlchemy 夹具警告 4 次。[发布检查清单](docs/release-checklist.md)保留了首次迁移测试失败、schema 限定修复及重跑通过的完整记录。代码或环境变化后应重新执行门禁。
 
 ## 评测
 
@@ -222,10 +253,13 @@ python scripts/run_retrieval_benchmark.py --self-test --manifest .cache/benchmar
 - PostgreSQL `simple` 全文检索不提供中文分词，已记录的中文评测中关键词召回为零；不能保证 Hybrid/Rerank 在新数据集上一定改善效果。
 - 当前表结构要求 1024 维向量。切换 Embedding 模型后，即使维度相同，也需要重新摄取受影响资料。
 - LLM Rerank 和真实阅卷依赖外部 Provider 的可用性与延迟；LLM Rerank 失败不会自动切换 Cross Encoder。
+- Workflow 启动目前同步等待模型：T089 两次真实请求分别耗时 **10.317 秒、19.122 秒**，未达到 <1 秒目标。Workflow 查询 GET 的本地串行 50 样本 p95 为 **59.483 ms**，不代表冷启动或并发负载达标。
+- Docker AI 端到端、干净环境镜像构建、三容器峰值／资源上限尚未验证。启动验证复用了缓存镜像和已健康的依赖容器。
+- 尚无教师人工评分标签，阅卷质量指标保持 `null`；合成数据与管道自检不能证明真实学生答案的评分准确性。
 - 部分 UI 接线与响应式布局验收仍被单独追踪；后端集成测试通过不代表所有页面均已完成人工验证。
 - Supervisor 尚未接入生产阅卷图；统一 JSON 日志管道尚未完整接线，详见[可观测性文档](docs/observability.md)。
 
-M5 已具备站内 JWT 认证的 MCP 风格工具边界、审计与 Trace、评测看板代码以及 Docker 演示种子。但没有标准 MCP 外部传输或真实邮件发送；评测看板因缺少生产读取授权合同，入口仍隐藏。T089 端到端验证尚未完成。前缀缓存优化另有计划。
+M5 已具备站内 JWT 认证的 MCP 风格工具边界、审计与 Trace、评测看板代码以及 Docker 演示种子。但没有标准 MCP 外部传输或真实邮件发送；默认邮件适配器返回 `not_configured`，不会伪称 `sent`。评测看板因缺少生产读取授权合同，入口仍隐藏。T089 开发模式验证与 T091 最终门禁均已记录，上述限制继续保留。Phase 6/7 的部分验收记录和 Phase 9 尚未实施的前缀缓存计划仍单独追踪，M0–M5 完成 Tag 不代表这些任务全部完成。
 
 ## 目录说明
 
@@ -235,13 +269,14 @@ backend/
   app/
     ai/                   摄取、Embedding、检索、Provider、Agent、Workflow
     api/                  HTTP 端点与 API 服务装配
+    mcp/                  站内授权工具边界与适配器
     services/             业务服务、评分、复核、检查点
     models/               SQLAlchemy 持久化模型
     schemas/              Pydantic DTO
     ui/                   Gradio 页面与加载器
     core/                 配置、数据库、Redis、认证
 migrations/               Alembic 迁移
-scripts/                  冒烟检查与评测执行器
+scripts/                  演示种子／启动入口、冒烟检查与评测执行器
 tests/                    单元、契约与集成测试
 benchmark/                评测语料、清单及结果记录
 docs/                     开发指南与技术报告
@@ -253,6 +288,8 @@ docs/                     开发指南与技术报告
 
 | 文档 | 内容 |
 | --- | --- |
+| [发布检查清单](docs/release-checklist.md) | M0–M5 验收、最终门禁、跳过项与已知限制 |
+| [端到端验证](docs/validation-report.md) | 开发模式真实 DeepSeek 调用、资源与延迟实测 |
 | [本地开发](docs/development.md) | Provider 依赖、模型缓存与本地运行 |
 | [架构与边界](docs/architecture.md) | 三容器、Agent、Workflow 与 MVP 范围 |
 | [评测解读](docs/evaluation.md) | 指标、数据真实性与看板授权 |

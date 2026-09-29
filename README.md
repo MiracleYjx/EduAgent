@@ -8,7 +8,11 @@ EduAgent connects course materials, question preparation, student submissions, g
 
 ## Project status
 
-The package version is **0.1.0**. M0–M4 and M5 tasks T080–T087 and T090 are complete; T088 updates these docs, while T089 end-to-end acceptance remains pending. This is a local development/demo project, not a claim that every UI or deployment scenario is release-ready.
+**M0–M5 are complete within the agreed development/demo scope**, including T080–T091. The completion tag is **`v1.0.0-m5-complete`**, pointing to commit `ffc09df` (2026-09-29). The Python package version in `pyproject.toml` remains **0.1.0**; the Git milestone tag does not change the package version.
+
+- **Real-model validation:** the host-Python development setup exercised retrieval/rerank, question approval, mixed grading, human review, Workflow recovery, and diagnosis with synthetic data and real DeepSeek calls.
+- **Docker validation:** all three containers became healthy, `/ready` returned 200, and an unauthenticated course request returned 401. This used a cached Backend image and did **not** validate the Docker AI chain or a clean image build.
+- **Release boundary:** suitable as a development-complete milestone, not an unconditional production-readiness claim. See the [release checklist](docs/release-checklist.md) and [end-to-end evidence](docs/validation-report.md) for measured results, failures, skips, and accepted limitations.
 
 The current Gradio interface is primarily in Chinese. See the [task list](.specify/tasks.md) for milestone details and separately tracked follow-up work.
 
@@ -17,10 +21,12 @@ The current Gradio interface is primarily in Chinese. See the [task list](.speci
 - **Course knowledge ingestion:** PDF, TXT, and Markdown parsing, cleaning, chunking, and Embedding, with document processing states and traceable sources.
 - **Four retrieval modes:** Vector Only, Keyword Only, Hybrid weighted score fusion, and Hybrid + Rerank. Results retain course, document, and chunk identifiers.
 - **AI-assisted question preparation:** structured candidates, validation, and Teacher approval before questions can be used in an available exam.
+- **Persistent question evidence:** source snapshots, actual generation metadata, and revision comments survive across requests. Deleted source chunks retain their historical snapshots with a clear UI label.
 - **Grading:** deterministic objective grading without LLM calls; subjective grading with course context, JSON/Pydantic validation, and a configurable confidence threshold.
 - **Human review and recovery:** LangGraph routes individual answers, pauses for review, and resumes from persisted checkpoints after a Teacher decision.
 - **Results and diagnosis:** pending review is distinct from a final score; diagnosis uses accepted or manually reviewed results, and outdated reports are marked stale.
 - **Role boundaries:** Teacher, Student, and Admin permissions are enforced on the backend. Admin does not replace Teacher approval or grading review.
+- **Engineering support:** JWT-authorized in-app tools, audit logs with 180-day retention, Agent/Workflow Trace with 30-day retention and a query API, reproducible Benchmark runners, and idempotent demo seeds. Dashboard access still requires explicit read authorization.
 
 ## Architecture
 
@@ -126,6 +132,14 @@ python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000
 
 Run migrations before logging in or creating data. If a Compose backend is already using port 8000, stop that backend with `docker compose stop backend` before launching the host process.
 
+For optional demo content, run the following in the same virtual environment **after migration and before starting the backend**:
+
+```powershell
+python scripts/demo_seed.py
+```
+
+The seed requires `DEV_MODE=true` and a usable Embedding provider. In this development setup it uses local BGE, which may download weights on first use. Repeated execution reuses the demo accounts, course, knowledge base, questions, and exam; it does not create a student submission.
+
 | Entry point | Address | Purpose |
 | --- | --- | --- |
 | Demo UI | `http://127.0.0.1:8000/gradio/` | Role-based workspaces |
@@ -156,9 +170,11 @@ docker compose up -d --wait backend
 
 Compose supplies container-internal PostgreSQL and Redis URLs. Stop the host backend before starting the container on the same port. For a seeded demo, enable `DEV_MODE=true`, configure cloud Embedding in `.env`, then run `./scripts/run_demo.ps1`. It starts the three containers, migrates, and idempotently seeds a course, knowledge base, questions, and exam. A healthy container does not prove AI calls work; seeding may incur provider charges. See the [development guide](docs/development.md).
 
+The completed Docker check used temporary Embedding placeholders only for startup/readiness checks. Those placeholders are **not working model credentials**. The Docker AI chain still needs a usable cloud Embedding configuration and separate validation; use the host-Python setup for the already validated AI walkthrough.
+
 ## Assessment workflow
 
-Use the available Gradio views and API documentation to follow these checkpoints. A fresh database does not seed itself; run `scripts/run_demo.ps1` for demo content. The seed does not create a student submission.
+Use the available Gradio views and API documentation to follow these checkpoints. A fresh database does not seed itself: use `python scripts/demo_seed.py` in development mode, or `./scripts/run_demo.ps1` for Docker Demo with cloud Embedding configured. Neither seed path creates a student submission.
 
 1. **Teacher:** create a course and its knowledge base, upload a supported document, and confirm that processing reaches `Ready`.
 2. **Teacher:** create questions manually or generate AI candidates from course material. Review candidates before adding approved questions to an exam.
@@ -180,11 +196,26 @@ python -m pip install mypy ruff
 python -m pytest tests/ -q
 python -m mypy backend/app/
 python -m ruff check backend/ tests/
+python -m alembic current
+python -m alembic check
 ```
 
 The M0 container smoke test also requires the isolated settings `COMPOSE_PROJECT_NAME=eduagent-test`, `POSTGRES_PORT=15432`, `REDIS_PORT=16379`, and `BACKEND_PORT=18000`; see its [prerequisites](tests/integration/test_m0_smoke.py). A skipped smoke test is not a deployment verification.
 
-Historical test records are not evidence for the current checkout. This documentation-only task checks diffs and links; rerun project gates before development or release.
+### Recorded completion gates
+
+The final T091.3 checks on 2026-09-29 validated the changes included in `ffc09df`; they are not a claim that later checkouts have been retested.
+
+| Check | Recorded result |
+| --- | --- |
+| Full pytest suite | **1546 passed, 0 failed, 1 skipped, 14 warnings**, 308.78 s |
+| Model tests | 137 passed |
+| Two isolated-schema migration tests | 2 passed; original assertions retained |
+| Mypy | No issues in 140 source files |
+| Ruff | All checks passed |
+| Alembic | `0012_audit_logs (head)`; no new upgrade operations detected in the preceding T091.3 schema check |
+
+The skipped test was the M0 Docker smoke test without its four required isolation variables. It is not counted as passed, and the separate Docker readiness check does not replace it. The 14 warnings comprise 3 Starlette deprecations, 7 Alembic configuration deprecations, and 4 SQLAlchemy fixture warnings. The [release checklist](docs/release-checklist.md) retains the initial migration-test failures, their schema-scoping correction, and the successful rerun. Rerun gates after code or environment changes.
 
 ## Evaluation
 
@@ -222,10 +253,13 @@ The [retrieval comparison report](docs/retrieval-benchmark-v2.md) covers 20 quer
 - PostgreSQL `simple` full-text search does not provide Chinese word segmentation; the recorded Chinese benchmark has zero keyword recall. Hybrid/Rerank quality gains are not guaranteed for a new dataset.
 - The current schema requires 1024-dimensional embeddings. Changing the Embedding model requires re-ingesting affected documents, even if dimensions stay the same.
 - LLM Rerank and real grading depend on external provider availability and latency. LLM Rerank failure does not automatically select the Cross Encoder.
+- Workflow startup currently waits synchronously for model work: the two real T089 requests took **10.317 s and 19.122 s**, missing the <1 s target. Workflow query GET p95 was **59.483 ms** over 50 local, serial samples; this is not a cold-start or concurrent-load guarantee.
+- Docker AI end-to-end validation, a clean image build, and three-container peak/resource-limit verification remain unperformed. The startup-only check reused a cached image and already healthy dependencies.
+- Teacher-labeled grading data is still absent, so grading quality metrics remain `null`. Synthetic data and pipeline self-tests do not establish real student grading accuracy.
 - Some UI integration and responsive-layout acceptance work remains separately tracked. Backend integration tests do not establish that every screen has been manually verified.
 - Supervisor is not wired into the production grading graph. A unified JSON log pipeline is not yet fully wired; see [observability](docs/observability.md).
 
-M5 includes an in-app JWT-authorized MCP-style tool boundary, audit/Trace, evaluation dashboard code, and Docker demo seeding. It does **not** provide external standard MCP transport or real email delivery. The evaluation dashboard entry remains hidden until an explicit production read-authorization contract exists. T089 end-to-end validation is pending; prefix-cache optimization is separate.
+M5 includes an in-app JWT-authorized MCP-style tool boundary, audit/Trace, evaluation dashboard code, and Docker demo seeding. It does **not** provide external standard MCP transport or real email delivery; the default email adapter returns `not_configured`, not `sent`. The evaluation dashboard entry remains hidden until an explicit production read-authorization contract exists. T089 development-mode validation and T091 completion gates are recorded, with the limitations above retained. Phase 6/7 partial acceptance records and the unimplemented Phase 9 prefix-cache plan remain separately tracked; the M0–M5 tag does not mark those tasks complete.
 
 ## Repository guide
 
@@ -235,13 +269,14 @@ backend/
   app/
     ai/                   Ingestion, Embedding, retrieval, Providers, Agents, Workflow
     api/                  HTTP endpoints and API service assembly
+    mcp/                  In-app authorized tool boundary and adapters
     services/             Business services, grading, review, checkpoints
     models/               SQLAlchemy persistence models
     schemas/              Pydantic DTOs
     ui/                   Gradio views and loaders
     core/                 Configuration, database, Redis, authentication
 migrations/               Alembic migrations
-scripts/                  Smoke checks and benchmark runners
+scripts/                  Demo seeds/launcher, smoke checks, and benchmark runners
 tests/                    Unit, contract, and integration tests
 benchmark/                Evaluation corpora, manifests, and recorded results
 docs/                     Development guides and technical reports
@@ -253,6 +288,8 @@ The detailed guides below are currently in Chinese; the benchmark result index i
 
 | Document | Contents |
 | --- | --- |
+| [Release checklist](docs/release-checklist.md) | M0–M5 acceptance, final gates, skips, and known limitations |
+| [End-to-end validation](docs/validation-report.md) | Real DeepSeek development-mode results, resources, and latency |
 | [Local development](docs/development.md) | Provider dependencies, model cache, and local operation |
 | [Architecture and boundaries](docs/architecture.md) | Containers, Agents, Workflow, and MVP scope |
 | [Evaluation guide](docs/evaluation.md) | Metrics, evidence, and dashboard authorization |
