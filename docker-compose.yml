@@ -51,10 +51,14 @@ services:
       EMBEDDING_BASE_URL: ${DEMO_EMBEDDING_BASE_URL:-}
       EMBEDDING_API_KEY: ${DEMO_EMBEDDING_API_KEY:-}
     depends_on:
+      # 基础服务健康后才启动 backend；迁移和种子由 scripts/run_demo.ps1 顺序执行。
+      # /ready 只证明连接就绪，Demo 成功还需要迁移、资料摄取和种子全部完成。
       postgres:
         condition: service_healthy
+        required: true
       redis:
         condition: service_healthy
+        required: true
     ports:
       - "127.0.0.1:${BACKEND_PORT:-8000}:8000"
     # 启动命令统一使用 Dockerfile CMD（Embedding 配置检查后启动 uvicorn）。
