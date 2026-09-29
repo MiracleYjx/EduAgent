@@ -211,7 +211,7 @@ Agent Trace；评测看板展示检索和阅卷实验；quickstart 可以从启�
 - [X] T088 更新 `README.md`、`docs/architecture.md`、`docs/development.md` 和 `docs/evaluation.md`，说明三容器决策、Provider 边界、Agent 职责、Workflow 图以及 MVP/非 MVP 范围
 - [X] T089 按 `.specify/quickstart.md` 在 `docs/validation-report.md` 中记录端到端验证，包括启动、四种检索模式、候选审核、混合阅卷、人工复核、诊断、资源使用和 P95 响应阈值
 - [X] T090 [P] 在 `docs/observability.md` 中记录 Prometheus、Grafana 和 OpenTelemetry 的可选扩展点，不将其加入 MVP 必需容器
-- [ ] T091 执行 `tests/` 中的全部单元、契约、集成、Benchmark、角色边界、Docker、资源上限和 P95 检查，并在 `docs/release-checklist.md` 中记录 `run_at`、数据集/模型/Prompt 版本、配置、环境资源、指标、状态、结果路径及失败时的脱敏诊断
+- [X] T091 执行 `tests/` 中的全部单元、契约、集成、Benchmark、角色边界、Docker、资源上限和 P95 检查，并在 `docs/release-checklist.md` 中记录 `run_at`、数据集/模型/Prompt 版本、配置、环境资源、指标、状态、结果路径及失败时的脱敏诊断
 
 **M5 检查点**：EduAgent 具备可重复的 Docker Demo、可审计的 AI Workflow、可用的 MCP
 工具、可视化评测证据以及与宪章一致的项目文档。

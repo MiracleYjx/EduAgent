@@ -106,12 +106,13 @@ def test_alembic_upgrade_head_downgrade_and_reupgrade_in_isolated_schema(
         with engine.connect() as connection:
             inspector = inspect(connection)
             old_question_indexes = {
-                item["name"] for item in inspector.get_indexes("questions")
+                item["name"] for item in inspector.get_indexes("questions", schema=schema)
             }
             old_chunk_indexes = {
-                item["name"] for item in inspector.get_indexes("document_chunks")
+                item["name"]
+                for item in inspector.get_indexes("document_chunks", schema=schema)
             }
-            assert not NEW_TABLES & set(inspector.get_table_names())
+            assert not NEW_TABLES & set(inspector.get_table_names(schema=schema))
 
         # 旧题目在迁移前存在，也不能凭空回填未知来源。
         with Session(engine) as session:
@@ -137,19 +138,22 @@ def test_alembic_upgrade_head_downgrade_and_reupgrade_in_isolated_schema(
         with engine.connect() as connection:
             assert connection.scalar(text("SELECT current_schema()")) == schema
             inspector = inspect(connection)
-            assert NEW_TABLES <= set(inspector.get_table_names())
+            assert NEW_TABLES <= set(inspector.get_table_names(schema=schema))
             assert old_question_indexes == {
-                item["name"] for item in inspector.get_indexes("questions")
+                item["name"] for item in inspector.get_indexes("questions", schema=schema)
             }
             assert old_chunk_indexes == {
-                item["name"] for item in inspector.get_indexes("document_chunks")
+                item["name"]
+                for item in inspector.get_indexes("document_chunks", schema=schema)
             }
             source_fks = {
                 tuple(item["constrained_columns"]): (
                     item["referred_table"],
                     item["options"].get("ondelete"),
                 )
-                for item in inspector.get_foreign_keys("question_source_chunks")
+                for item in inspector.get_foreign_keys(
+                    "question_source_chunks", schema=schema
+                )
             }
             assert source_fks == {
                 ("question_id",): ("questions", "CASCADE"),
@@ -157,23 +161,27 @@ def test_alembic_upgrade_head_downgrade_and_reupgrade_in_isolated_schema(
             }
             assert {
                 tuple(item["column_names"])
-                for item in inspector.get_unique_constraints("question_source_chunks")
+                for item in inspector.get_unique_constraints(
+                    "question_source_chunks", schema=schema
+                )
             } >= {("question_id", "chunk_id"), ("question_id", "source_order")}
             assert any(
                 item["column_names"] == ["course_id", "question_id"]
-                for item in inspector.get_indexes("question_source_chunks")
+                for item in inspector.get_indexes("question_source_chunks", schema=schema)
             )
-            assert inspector.get_pk_constraint("question_generation_metadata")[
-                "constrained_columns"
-            ] == ["question_id"]
+            assert inspector.get_pk_constraint(
+                "question_generation_metadata", schema=schema
+            )["constrained_columns"] == ["question_id"]
             assert any(
                 item["column_names"] == ["question_id", "commented_at"]
-                for item in inspector.get_indexes("question_revision_comments")
+                for item in inspector.get_indexes(
+                    "question_revision_comments", schema=schema
+                )
             )
             assert {
                 item["name"]
                 for item in inspector.get_check_constraints(
-                    "question_revision_comments"
+                    "question_revision_comments", schema=schema
                 )
             } >= {"ck_question_revision_comments_content_length"}
             for table in NEW_TABLES:
@@ -184,20 +192,21 @@ def test_alembic_upgrade_head_downgrade_and_reupgrade_in_isolated_schema(
         assert _revision(engine, schema) == OLD_REVISION
         with engine.connect() as connection:
             inspector = inspect(connection)
-            assert not NEW_TABLES & set(inspector.get_table_names())
+            assert not NEW_TABLES & set(inspector.get_table_names(schema=schema))
             assert (
                 connection.scalar(select(Question.id).where(Question.id == question_id))
                 == question_id
             )
             assert old_question_indexes == {
-                item["name"] for item in inspector.get_indexes("questions")
+                item["name"] for item in inspector.get_indexes("questions", schema=schema)
             }
             assert old_chunk_indexes == {
-                item["name"] for item in inspector.get_indexes("document_chunks")
+                item["name"]
+                for item in inspector.get_indexes("document_chunks", schema=schema)
             }
 
         command.upgrade(config, REVISION)
         assert _revision(engine, schema) == REVISION
         with engine.connect() as connection:
-            assert NEW_TABLES <= set(inspect(connection).get_table_names())
+            assert NEW_TABLES <= set(inspect(connection).get_table_names(schema=schema))
             assert connection.scalar(select(func.count()).select_from(Question)) == 1
