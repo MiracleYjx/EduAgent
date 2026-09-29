@@ -1,6 +1,9 @@
 # Codex/Codebuddy conversation cache
 .agents/
 
+# Local documentation (not published)
+/docs/
+
 # Speckit generated development documents and templates
 .specify/
 
