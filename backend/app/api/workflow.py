@@ -108,6 +108,7 @@ from backend.app.services.review_service import (
     ReviewService,
     ReviewServiceError,
 )
+from backend.app.services.trace_service import TraceService, bind_trace
 from backend.app.services.workflow_checkpoint import (
     WORKFLOW_CHECKPOINT_NOT_FOUND,
     WORKFLOW_CHECKPOINT_STORE_NOT_READY,
@@ -482,6 +483,13 @@ class WorkflowService:
         assert self._session is not None
         yield self._session
 
+    def _trace_service(self) -> TraceService:
+        if self._session_factory is not None:
+            return TraceService(self._session_factory)
+        active_session = self._session
+        assert active_session is not None
+        return TraceService(lambda: Session(bind=active_session.get_bind()))
+
     def _checkpointer(self) -> DatabaseCheckpointSaver:
         """构造持久化 Checkpointer；生产使用会话工厂语义。"""
 
@@ -594,18 +602,22 @@ class WorkflowService:
         saver = self._checkpointer()
         saver.bind_thread(thread_id, workflow_id)
         workflow = self._build_workflow(snapshot, saver)
-        result = await workflow.run_async(
-            request_id=request_id,
-            workflow_id=workflow_id,
-            submission_id=str(submission_id),
-            thread_id=thread_id,
-        )
-        row = await self._persist_outcome(
-            workflow_id=workflow_id,
-            state=result.state,
-            thread_id=thread_id,
-            snapshot=snapshot,
-        )
+        with bind_trace(
+            request_id=request_id, user_id=actor_id, workflow_id=workflow_id,
+            service=self._trace_service(),
+        ):
+            result = await workflow.run_async(
+                request_id=request_id,
+                workflow_id=workflow_id,
+                submission_id=str(submission_id),
+                thread_id=thread_id,
+            )
+            row = await self._persist_outcome(
+                workflow_id=workflow_id,
+                state=result.state,
+                thread_id=thread_id,
+                snapshot=snapshot,
+            )
         return self._teacher_dto(row, interrupted=bool(result.interrupted))
 
     def _ensure_startable(self, snapshot: Any) -> None:
@@ -673,13 +685,17 @@ class WorkflowService:
         saver = self._checkpointer()
         saver.bind_thread(thread_id, row.workflow_id)
         workflow = self._build_workflow(snapshot, saver)
-        result = await workflow.resume_async(thread_id=thread_id)
-        updated = await self._persist_outcome(
-            workflow_id=row.workflow_id,
-            state=result.state,
-            thread_id=thread_id,
-            snapshot=snapshot,
-        )
+        with bind_trace(
+            request_id=row.request_id, user_id=actor_id, workflow_id=row.workflow_id,
+            service=self._trace_service(),
+        ):
+            result = await workflow.resume_async(thread_id=thread_id)
+            updated = await self._persist_outcome(
+                workflow_id=row.workflow_id,
+                state=result.state,
+                thread_id=thread_id,
+                snapshot=snapshot,
+            )
         return WorkflowResumeOutcomeDTO(
             workflow_id=updated.workflow_id,
             status=updated.status,

@@ -54,6 +54,7 @@ from backend.app.domain.enums import (
     WorkflowStatus,
 )
 from backend.app.models import (
+    AgentRun,
     Answer,
     AuditLog,
     Course,
@@ -522,6 +523,20 @@ def test_high_confidence_result_is_readable_from_results_api(
         assert audit is not None
         assert audit.resource_id == env.paper.submission_id
         assert audit.detail == {"run_kind": "langgraph-workflow"}
+        workflow = observer.scalar(
+            select(WorkflowRun).where(WorkflowRun.workflow_id == started.json()["workflow_id"])
+        )
+        assert workflow is not None
+        assert workflow.status == WorkflowStatus.COMPLETED
+        events = observer.scalars(
+            select(AgentRun).where(AgentRun.workflow_id == workflow.workflow_id)
+        ).all()
+        assert events
+        assert {event.request_id for event in events} == {workflow.request_id}
+        assert {str(event.user_id) for event in events} == {env.paper.teacher_id}
+        assert {event.agent_type for event in events} >= {
+            "grading", "workflow_node", "workflow_route",
+        }
     assert result.status_code == 200
     body = result.json()
     assert body["is_final"] is True
@@ -575,6 +590,11 @@ def test_low_confidence_result_enters_real_review_queue(
     assert pending["pending_review_count"] == 1
     assert len(pending["items"]) == 3
     assert pending["items"][2]["missing"] is True
+    with Session(env.engine) as observer:
+        statuses = observer.scalars(
+            select(AgentRun.status).where(AgentRun.workflow_id == run["workflow_id"])
+        ).all()
+        assert "pending_review" in statuses
 
 
 @pytest.mark.parametrize("action", ["confirm", "modify"])

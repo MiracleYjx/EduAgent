@@ -10,12 +10,21 @@ import httpx
 import pytest
 from openai import AsyncOpenAI
 from pydantic import BaseModel
+from sqlalchemy import create_engine, select
+from sqlalchemy.orm import Session
+from sqlalchemy.pool import StaticPool
 
 from backend.app.ai.llm.base import BaseLLMProvider, LLMMessages
 from backend.app.ai.llm.deepseek import DeepSeekProvider
 from backend.app.ai.llm.factory import create_llm_provider
 from backend.app.core.config import AppSettings
 from backend.app.core.retry_policy import ProviderExecutionError, RetryPolicy
+from backend.app.models import AgentRun
+from backend.app.services.trace_service import (
+    TraceService,
+    bind_trace,
+    trace_prompt_version,
+)
 from tests.unit.settings_helpers import build_test_settings
 
 
@@ -25,6 +34,55 @@ def async_test(function):
         return asyncio.run(function(*args, **kwargs))
 
     return wrapper
+
+
+@async_test
+async def test_provider_trace_records_actual_model_latency_tokens_without_content() -> None:
+    calls = 0
+
+    def respond(_request: httpx.Request) -> httpx.Response:
+        nonlocal calls
+        calls += 1
+        payload: dict = {"choices": [{"message": {"content": '{"value": 7}'}}]}
+        if calls == 1:
+            payload["usage"] = {
+                "prompt_tokens": 7, "completion_tokens": 3, "total_tokens": 10,
+            }
+        return httpx.Response(200, json=payload)
+
+    engine = create_engine("sqlite:///:memory:", poolclass=StaticPool)
+    AgentRun.__table__.create(engine)
+    try:
+        async with AsyncOpenAI(
+            api_key="private-key", base_url="https://llm.test/v1",
+            http_client=httpx.AsyncClient(transport=httpx.MockTransport(respond)),
+        ) as client:
+            provider = DeepSeekProvider(
+                build_test_settings(deepseek_model="observed-model"), client=client,
+            )
+            with bind_trace(
+                request_id="trace-request", user_id=None, workflow_id=None,
+                service=TraceService(lambda: Session(engine)),
+            ), trace_prompt_version("prompt-v2"):
+                for _ in range(2):
+                    result = await provider.generate_structured(
+                        [{"role": "user", "content": "private student answer Authorization secret"}],
+                        ExampleResult,
+                    )
+                    assert result.value == 7
+        with Session(engine) as session:
+            rows = session.scalars(select(AgentRun).order_by(AgentRun.created_at)).all()
+            assert len(rows) == 2
+            assert all(row.model == "observed-model" for row in rows)
+            assert all(row.prompt_version == "prompt-v2" for row in rows)
+            assert all(row.latency_ms is not None and row.latency_ms >= 0 for row in rows)
+            assert (rows[0].input_tokens, rows[0].output_tokens, rows[0].total_tokens) == (7, 3, 10)
+            assert (rows[1].input_tokens, rows[1].output_tokens, rows[1].total_tokens) == (None, None, None)
+            assert "private-key" not in str([row.__dict__ for row in rows])
+            assert "student answer" not in str([row.__dict__ for row in rows])
+            assert "Authorization" not in str([row.__dict__ for row in rows])
+    finally:
+        engine.dispose()
 
 
 @async_test

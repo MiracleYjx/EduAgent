@@ -88,6 +88,7 @@ from backend.app.services.grading.result_aggregator import (
     GradingAggregationError,
     ResultAggregator,
 )
+from backend.app.services.trace_service import TraceService, bind_trace
 from backend.app.services.workflow_checkpoint import (
     WorkflowCheckpointStore,
     checkpoint_thread_id,
@@ -589,7 +590,7 @@ class ReviewService:
                 actor_id=actor_id,
                 comment=comment,
             )
-        return await self._resume(prepared, decision, decided)
+        return await self._resume_with_trace(prepared, decision, decided, actor_id=actor_id)
 
     def submit_decision(
         self,
@@ -640,13 +641,14 @@ class ReviewService:
         if prepared.already_recorded:
             # 结论已生效：重试只恢复运行，不再要求 `expected_review_status`
             # （陈旧断言已在首次调用时完成，重试时图状态的权威值就是本次结论）。
-            return await self._resume(
+            return await self._resume_with_trace(
                 prepared,
                 replace(decision, expected_review_status=None),
                 None,
+                actor_id=actor_id,
             )
         decided = self._apply_decision(prepared, decision, actor_id=actor_id, comment=None)
-        return await self._resume(prepared, decision, decided)
+        return await self._resume_with_trace(prepared, decision, decided, actor_id=actor_id)
 
     def resume_recorded_decision(
         self,
@@ -1243,6 +1245,25 @@ class ReviewService:
         return writer
 
     # ------------------------------------------------------------------ 恢复与收尾
+
+    async def _resume_with_trace(
+        self,
+        prepared: _PreparedDecision,
+        decision: TeacherReviewDecision,
+        decided: _DecisionResult | None,
+        *,
+        actor_id: str,
+    ) -> ReviewOutcome:
+        factory = self._session_factory
+        if factory is None:
+            return await self._resume(prepared, decision, decided)
+        with bind_trace(
+            request_id=prepared.run.request_id,
+            user_id=actor_id,
+            workflow_id=prepared.run.workflow_id,
+            service=TraceService(factory),
+        ):
+            return await self._resume(prepared, decision, decided)
 
     async def _resume(
         self,

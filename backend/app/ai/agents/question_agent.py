@@ -86,6 +86,7 @@ from backend.app.core.config import AppSettings, get_settings
 from backend.app.core.retry_policy import ProviderExecutionError
 from backend.app.domain.enums import ValidationStatus
 from backend.app.schemas.ai import QuestionCandidate
+from backend.app.services.trace_service import trace_prompt_version
 
 #: 出题条件非法或缺失。
 QUESTION_INVALID_INPUT: Final[str] = "QUESTION_INVALID_INPUT"
@@ -742,9 +743,10 @@ class QuestionAgent:
                     "出题 Provider 未就绪，请检查 LLM_PROVIDER 与模型配置。"
                 ) from None
         try:
-            result = await provider.generate_structured(
-                messages, QuestionGenerationPayload
-            )
+            with trace_prompt_version(QUESTION_GENERATION_PROMPT_VERSION):
+                result = await provider.generate_structured(
+                    messages, QuestionGenerationPayload
+                )
         except ProviderExecutionError as exc:
             info = exc.info
             code = str(info.code)

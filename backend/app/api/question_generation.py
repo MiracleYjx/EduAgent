@@ -31,6 +31,7 @@ from collections.abc import Iterator, Sequence
 from contextlib import contextmanager
 from datetime import datetime
 from decimal import Decimal
+from time import perf_counter
 from typing import Annotated, Any, Literal, cast
 from uuid import NAMESPACE_URL, UUID, uuid4, uuid5
 
@@ -104,6 +105,7 @@ from backend.app.services.question_validator import (
     ValidationActor,
     plan_transition,
 )
+from backend.app.services.trace_service import TraceService, bind_trace, record_trace
 
 router = APIRouter(prefix="/api/question-generation", tags=["AI 出题"])
 
@@ -570,13 +572,31 @@ class QuestionGenerationService:
         )
         candidate_course_id = self._require_owned_course(course_id, actor_id)
         # 读会话只用于课程校验与检索；Provider 调用结束后立即关闭，写事务另开。
-        with self._use_session() as session:
-            output = await self._agent.generate(
-                session,
-                agent_input,
-                retriever=self._retriever,
-                embedding_provider=self._embedding_provider,
-                settings=self._settings,
+        factory = self._session_factory
+        if factory is None:
+            assert self._session is not None
+            factory = lambda: Session(bind=self._session.get_bind())
+        with bind_trace(
+            request_id=request_id, user_id=actor_id, workflow_id=None,
+            service=TraceService(factory),
+        ):
+            started_at = perf_counter()
+            with self._use_session() as session:
+                output = await self._agent.generate(
+                    session,
+                    agent_input,
+                    retriever=self._retriever,
+                    embedding_provider=self._embedding_provider,
+                    settings=self._settings,
+                )
+            record_trace(
+                agent_type="question", status=output.status.value,
+                started_at=started_at, model=output.model,
+                prompt_version=output.prompt_version,
+                input_summary="agent:question",
+                output_summary=f"status:{output.status.value}",
+                error_code=output.error.error_code if output.error else None,
+                error_retryable=output.error.retryable if output.error else None,
             )
         candidates = self._require_generation_output(output)
         batch = self._validator.validate_candidates(

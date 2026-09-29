@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import json
 from collections.abc import Mapping
+from time import perf_counter
 from typing import Any, cast
 
 from openai import AsyncOpenAI
@@ -17,6 +18,7 @@ from backend.app.core.retry_policy import (
     ProviderCallError,
     RetryPolicy,
 )
+from backend.app.services.trace_service import record_trace
 
 from .base import BaseLLMProvider, LLMMessages, LLMProviderMetadata
 
@@ -105,13 +107,38 @@ class DeepSeekProvider(BaseLLMProvider):
         schema: type[BaseModel],
         model: str | None,
     ) -> BaseModel:
-        response = await self._client.chat.completions.create(
-            messages=messages,
-            model=model or self._model,
-            response_format={"type": "json_object"},
-        )
+        started_at = perf_counter()
+        try:
+            response = await self._client.chat.completions.create(
+                messages=messages,
+                model=model or self._model,
+                response_format={"type": "json_object"},
+            )
+        except Exception as error:
+            record_trace(
+                agent_type="llm", status="failure", started_at=started_at,
+                model=self.describe()["model"],
+                error_code=getattr(error, "code", "ProviderFailed"),
+                error_retryable=getattr(error, "retryable", False),
+            )
+            raise
+        usage = getattr(response, "usage", None)
+        tokens = {
+            "input": getattr(usage, "prompt_tokens", None),
+            "output": getattr(usage, "completion_tokens", None),
+            "total": getattr(usage, "total_tokens", None),
+        }
+
+        def trace_invalid(code: str = "StructuredOutputFailed") -> None:
+            record_trace(
+                agent_type="llm", status="failure", started_at=started_at,
+                model=self.describe()["model"], tokens=tokens,
+                error_code=code, error_retryable=True,
+            )
+
         content = self._extract_content(response)
         if content is None or not content.strip():
+            trace_invalid("ProviderEmptyResponse")
             raise ProviderCallError(
                 "ProviderEmptyResponse",
                 "LLM Provider 返回为空。",
@@ -121,6 +148,7 @@ class DeepSeekProvider(BaseLLMProvider):
         try:
             payload = json.loads(content)
         except json.JSONDecodeError:
+            trace_invalid()
             raise ProviderCallError(
                 "StructuredOutputFailed",
                 "LLM Provider 返回的 JSON 无法解析。",
@@ -129,6 +157,7 @@ class DeepSeekProvider(BaseLLMProvider):
             ) from None
 
         if not isinstance(payload, Mapping):
+            trace_invalid()
             raise ProviderCallError(
                 "StructuredOutputFailed",
                 "LLM Provider 返回的 JSON 必须是对象。",
@@ -137,14 +166,20 @@ class DeepSeekProvider(BaseLLMProvider):
             )
 
         try:
-            return schema.model_validate(payload)
+            parsed = schema.model_validate(payload)
         except ValidationError:
+            trace_invalid()
             raise ProviderCallError(
                 "StructuredOutputFailed",
                 "LLM Provider 返回未通过结构化校验。",
                 retryable=True,
                 retry_limit=1,
             ) from None
+        record_trace(
+            agent_type="llm", status="success", started_at=started_at,
+            model=self.describe()["model"], tokens=tokens,
+        )
+        return parsed
 
     @staticmethod
     def _extract_content(response: Any) -> str | None:

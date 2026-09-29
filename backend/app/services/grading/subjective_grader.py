@@ -74,6 +74,7 @@ from backend.app.services.grading.question_router import (
     QuestionRouter,
     normalize_question_type,
 )
+from backend.app.services.trace_service import trace_prompt_version
 
 #: LLM 响应不是合法 JSON、不是对象或未通过 Schema 校验。
 GRADING_INVALID_LLM_RESPONSE: Final[str] = "GRADING_INVALID_LLM_RESPONSE"
@@ -503,9 +504,10 @@ class SubjectiveGrader:
                     "评分 Provider 未就绪，请检查 LLM_PROVIDER 与模型配置。"
                 ) from None
         try:
-            result = await provider.generate_structured(
-                messages, SubjectiveGradingPayload
-            )
+            with trace_prompt_version(SUBJECTIVE_GRADING_PROMPT_VERSION):
+                result = await provider.generate_structured(
+                    messages, SubjectiveGradingPayload
+                )
         except ProviderExecutionError as exc:
             info = exc.info
             code = str(info.code)

@@ -58,6 +58,7 @@ from backend.app.domain.enums import (
     UserRole,
 )
 from backend.app.models import (
+    AgentRun,
     Course,
     Document,
     DocumentChunk,
@@ -590,6 +591,15 @@ def test_generate_endpoint_returns_persisted_candidates(
     assert body["sources_persisted"] is True
     assert body["candidates"][0]["sources_persisted"] is True
     assert len(_persisted(scenario["session"], scenario["course"])) == 1
+    traces = scenario["session"].scalars(
+        select(AgentRun).where(AgentRun.request_id == "request-from-header")
+    ).all()
+    assert any(
+        trace.agent_type == "question"
+        and trace.user_id == scenario["teacher"].id
+        and trace.workflow_id is None
+        for trace in traces
+    )
 
 
 def test_generate_validation_error_returns_422(

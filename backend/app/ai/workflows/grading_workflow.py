@@ -37,6 +37,7 @@ import asyncio
 from collections.abc import Callable, Iterator, Mapping
 from dataclasses import dataclass
 from decimal import Decimal
+from time import perf_counter
 from types import MappingProxyType
 from typing import Any, Final, cast
 
@@ -97,6 +98,7 @@ from backend.app.services.grading.question_router import (
     normalize_question_type,
 )
 from backend.app.services.grading.result_aggregator import ResultAggregator
+from backend.app.services.trace_service import record_trace
 
 #: 输入/身份不合法（空白标识或与注入快照不一致）。
 GRADING_WORKFLOW_INVALID_INPUT: Final[str] = "GRADING_WORKFLOW_INVALID_INPUT"
@@ -568,17 +570,17 @@ class GradingWorkflow:
 
         graph: StateGraph = StateGraph(GradingWorkflowState)
         for node_id, handler in self._nodes.items():
-            graph.add_node(node_id, cast("Any", handler))
+            graph.add_node(node_id, cast("Any", self._traced_node(node_id, handler)))
         graph.set_entry_point(LOAD_SUBMISSION)
 
         graph.add_conditional_edges(
             LOAD_SUBMISSION,
-            self._route_after_load,
+            self._traced_route(LOAD_SUBMISSION, self._route_after_load),
             {CLASSIFY_QUESTION: CLASSIFY_QUESTION, END: END},
         )
         graph.add_conditional_edges(
             CLASSIFY_QUESTION,
-            self._route_by_question_type,
+            self._traced_route(CLASSIFY_QUESTION, self._route_by_question_type),
             {
                 OBJECTIVE_RULE_GRADE: OBJECTIVE_RULE_GRADE,
                 SUBJECTIVE_RETRIEVE_GRADE: SUBJECTIVE_RETRIEVE_GRADE,
@@ -588,23 +590,23 @@ class GradingWorkflow:
         for grading_node in (OBJECTIVE_RULE_GRADE, SUBJECTIVE_RETRIEVE_GRADE):
             graph.add_conditional_edges(
                 grading_node,
-                self._route_after_grading,
+                self._traced_route(grading_node, self._route_after_grading),
                 {STRUCTURED_VALIDATION: STRUCTURED_VALIDATION, END: END},
             )
         graph.add_conditional_edges(
             STRUCTURED_VALIDATION,
-            self._route_after_validation,
+            self._traced_route(STRUCTURED_VALIDATION, self._route_after_validation),
             {CONFIDENCE_CHECK: CONFIDENCE_CHECK, END: END},
         )
         graph.add_conditional_edges(
             CONFIDENCE_CHECK,
-            self._route_by_confidence,
+            self._traced_route(CONFIDENCE_CHECK, self._route_by_confidence),
             {ACCEPT: ACCEPT, PENDING_REVIEW: PENDING_REVIEW, END: END},
         )
         graph.add_edge(ACCEPT, NEXT_ANSWER)
         graph.add_conditional_edges(
             PENDING_REVIEW,
-            self._route_after_pending,
+            self._traced_route(PENDING_REVIEW, self._route_after_pending),
             {
                 REVIEWER_AGENT: REVIEWER_AGENT,
                 REGRADE: REGRADE,
@@ -613,7 +615,7 @@ class GradingWorkflow:
         )
         graph.add_conditional_edges(
             REVIEWER_AGENT,
-            self._route_after_reviewer,
+            self._traced_route(REVIEWER_AGENT, self._route_after_reviewer),
             {
                 REGRADE: REGRADE,
                 PENDING_REVIEW: PENDING_REVIEW,
@@ -623,7 +625,7 @@ class GradingWorkflow:
         )
         graph.add_conditional_edges(
             REGRADE,
-            self._route_after_regrade,
+            self._traced_route(REGRADE, self._route_after_regrade),
             {
                 OBJECTIVE_RULE_GRADE: OBJECTIVE_RULE_GRADE,
                 SUBJECTIVE_RETRIEVE_GRADE: SUBJECTIVE_RETRIEVE_GRADE,
@@ -632,16 +634,65 @@ class GradingWorkflow:
         )
         graph.add_conditional_edges(
             NEXT_ANSWER,
-            self._route_after_next_answer,
+            self._traced_route(NEXT_ANSWER, self._route_after_next_answer),
             {CLASSIFY_QUESTION: CLASSIFY_QUESTION, UNIFIED_RESULT: UNIFIED_RESULT},
         )
         graph.add_conditional_edges(
             UNIFIED_RESULT,
-            self._route_after_unified,
+            self._traced_route(UNIFIED_RESULT, self._route_after_unified),
             {GENERATE_DIAGNOSIS: GENERATE_DIAGNOSIS, END: END},
         )
         graph.add_edge(GENERATE_DIAGNOSIS, END)
         return graph
+
+    @staticmethod
+    def _traced_node(
+        node_id: str, handler: Callable[[Mapping[str, Any]], Any],
+    ) -> Callable[[Mapping[str, Any]], Any]:
+        """Observe a node without changing graph topology or its returned patch."""
+
+        async def run(state: Mapping[str, Any]) -> Any:
+            started_at = perf_counter()
+            try:
+                patch = await handler(state)
+            except Exception:
+                record_trace(
+                    agent_type="workflow_node", status="failure", started_at=started_at,
+                    input_summary=f"node:{node_id}", error_code="WorkflowNodeFailed",
+                )
+                raise
+            raw_status = patch.get("status") if isinstance(patch, Mapping) else None
+            node_status = getattr(raw_status, "value", raw_status)
+            status = (
+                "failure" if node_status == WorkflowStatus.FAILED.value
+                else "pending_review" if node_status == WorkflowStatus.PAUSED.value
+                else "success"
+            )
+            record_trace(
+                agent_type="workflow_node", status=status, started_at=started_at,
+                input_summary=f"node:{node_id}",
+                output_summary=f"status:{node_status}" if isinstance(node_status, str) else None,
+                error_code="WorkflowNodeFailed" if status == "failure" else None,
+            )
+            return patch
+
+        return run
+
+    @staticmethod
+    def _traced_route(
+        node_id: str, route: Callable[[Mapping[str, Any]], str],
+    ) -> Callable[[Mapping[str, Any]], str]:
+        """Record only the chosen branch label, not the state or answer."""
+
+        def choose(state: Mapping[str, Any]) -> str:
+            branch = route(state)
+            record_trace(
+                agent_type="workflow_route", status="success",
+                input_summary=f"node:{node_id}", output_summary=f"branch:{branch}",
+            )
+            return branch
+
+        return choose
 
     # ------------------------------------------------------------------ 运行辅助
 
@@ -1020,6 +1071,7 @@ class GradingWorkflow:
                 current_node=current_node,
             )
         session, owned = self._acquire_session(mode)
+        agent_started_at = perf_counter()
         try:
             invocation = await self._deps.agent.grade_answer_async(
                 self._deps.snapshot,
@@ -1034,6 +1086,16 @@ class GradingWorkflow:
                 close = getattr(session, "close", None)
                 if callable(close):
                     close()
+        agent_output = invocation.output
+        record_trace(
+            agent_type="grading", status=agent_output.status.value,
+            started_at=agent_started_at, model=agent_output.model,
+            prompt_version=agent_output.prompt_version,
+            input_summary="agent:grading",
+            output_summary=f"status:{agent_output.status.value}",
+            error_code=agent_output.error.error_code if agent_output.error else None,
+            error_retryable=agent_output.error.retryable if agent_output.error else None,
+        )
         try:
             patch = dict(
                 grading_handoff(
