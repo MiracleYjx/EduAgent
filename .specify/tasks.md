@@ -450,3 +450,15 @@ M0 工程骨架 + Benchmark
 **执行依赖**：T125 为上下文基础，T126 可与 T125 并行但须在相关 Agent 开关验收前完成；T127 依赖 T125/T126 以及 T052/T069，T128 依赖 T125 以及 T067/T075，T129 依赖 T125 以及 T070，T130 依赖 T125 以及 T072，T131 依赖 T125 以及 T044；T132 在 T125-T131 和 T086 的结果记录边界具备后执行。
 
 **目标路径补充**：T126 的配置说明使用 `docs/development.md`；T127 的 Agent 实现使用 `backend/app/ai/agents/grading_agent.py`，契约测试使用 `tests/contract/test_prefix_cache_grading.py`；T128 的测试使用 `tests/contract/test_prefix_cache_question.py`；T129 的测试使用 `tests/contract/test_prefix_cache_reviewer.py`；T130 的 Workflow 测试使用 `tests/integration/test_prefix_cache_workflow.py`；T131 的测试使用 `tests/contract/test_prefix_cache_rerank.py`；T132 的对照脚本使用 `scripts/run_prefix_cache_benchmark.py`，结果说明使用 `docs/evaluation.md` 和 `docs/validation-report.md`。
+
+## 独立修复：I01（2026-09-30）
+
+- [X] T133 [I01] 在 `backend/app/services/question_service.py` 拒绝 Approved 题目的 `content`、`options`、`reference_answer`、`scoring_rubric`、`type`（含 `question_type` 服务别名）和 `score` 更新；允许 `difficulty`、`knowledge_points` 编辑。开放教师 `Approved -> Needs Revision -> Pending Review -> Approved` 修订审核流程，在 `backend/app/api/questions.py` 返回 HTTP 409 和 `QUESTION_APPROVED_IMMUTABLE`、中文提示、当前状态。按 TCR 更新 `tests/unit/services/test_question_service.py` 并新增 `tests/contract/test_question_update_api_contract.py`，完成聚焦回归、全量 pytest、mypy 与 ruff 检查；仅提交并推送本修复，保留已有工作区改动。对应 FR-020、FR-028；不推进 Phase 6–9 其他任务。
+
+**T133 验证记录**
+
+- 聚焦回归：`python -m pytest tests/unit/services/test_question_service.py tests/contract/test_question_update_api_contract.py -q`，24 passed；其中新增 20 个参数化用例，另有既有状态流转用例更新。修改测试前已形成 TCR，并在两份测试模块中保留 TCR。
+- 全量检查：`python -m pytest tests/ -q`，1335 passed、111 failed、12 errors、119 skipped，耗时 1824.21 秒；全量未通过，不标记为系统验收成功。I01 两份测试文件无失败项。失败指向原有 Workflow 启动时检查点存储未就绪，以及迁移测试的 PostgreSQL 连接超时；本机 Docker 引擎未启动。
+- 原代码复验：在独立进程中载入 HEAD 的 Question Service 与 Question API，`test_trigger_creates_task_and_returns_queued` 仍因 `WORKFLOW_SERVICE_NOT_READY` 失败；未改写工作区文件，也未修改这些既有失败测试。
+- 静态检查：`python -m mypy backend/app/`，141 个文件通过；`python -m ruff check backend/ tests/` 通过；补丁格式检查通过。
+- 本任务只完成 I01 的内容守卫、元数据例外和显式修订审核流程；数据库环境故障不纳入修复范围，不宣称已完成考试快照或历史版本冻结。其他任务状态保持不变。

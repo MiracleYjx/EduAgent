@@ -1,4 +1,11 @@
-"""T024 Question Service 单元测试：人工题目管理和审核状态转换。"""
+"""T024 / T133 Question Service 单元测试：题目编辑与审核状态。
+
+TCR（2026-09-30，I01 / T133）：
+既有测试缺少 Approved 内容不可变覆盖，且断言 Approved 不可退回修订，与用户新授权
+的流程不符。更新该状态断言并验证修订、重新提交及审核；新增六个内容字段与题型别名、
+混合请求零副作用、Approved 元数据编辑、Draft/Pending Review 内容编辑测试。
+沿用 pytest 和隔离 SQLite 会话，断言业务结果，不更改测试框架或放宽其他状态限制。
+"""
 
 from __future__ import annotations
 
@@ -17,6 +24,7 @@ from backend.app.models import AuditLog, Course, Role, User
 from backend.app.services.auth_service import hash_password
 from backend.app.services.course_service import CourseService
 from backend.app.services.question_service import (
+    QuestionConflictError,
     QuestionNotFoundError,
     QuestionPermissionError,
     QuestionService,
@@ -174,19 +182,41 @@ def test_question_service_persists_review_status_transitions(
     )
     assert approved.status is QuestionStatus.APPROVED
     with Session(session.get_bind()) as observer:
-        event = observer.scalar(select(AuditLog).where(AuditLog.action == "question.approved"))
+        event = observer.scalar(
+            select(AuditLog).where(AuditLog.action == "question.approved")
+        )
         assert event is not None
         assert event.actor_id == teacher.id
         assert event.resource_id == str(question.id)
 
+    returned = service.update_question_status(
+        question.id,
+        QuestionStatus.NEEDS_REVISION,
+        teacher_id=teacher.id,
+    )
+    assert returned.status is QuestionStatus.NEEDS_REVISION
+    updated = service.update_question(
+        question.id,
+        content="下列哪项是 Python 的容器类型？",
+        teacher_id=teacher.id,
+    )
+    assert updated.content == "下列哪项是 Python 的容器类型？"
+    assert updated.status is QuestionStatus.NEEDS_REVISION
     with pytest.raises(
-        QuestionValidationError, match="不能从“Approved”变更为“Needs Revision”"
+        QuestionValidationError, match="不能从“Needs Revision”变更为“Approved”"
     ):
         service.update_question_status(
             question.id,
-            QuestionStatus.NEEDS_REVISION,
+            QuestionStatus.APPROVED,
             teacher_id=teacher.id,
         )
+    service.update_question_status(
+        question.id, QuestionStatus.PENDING_REVIEW, teacher_id=teacher.id
+    )
+    reapproved = service.update_question_status(
+        question.id, QuestionStatus.APPROVED, teacher_id=teacher.id
+    )
+    assert reapproved.status is QuestionStatus.APPROVED
 
     revised = service.create_question(
         course_id=course.id,
@@ -279,3 +309,144 @@ def test_question_service_rejects_conflicting_type_aliases(
             score=1,
             created_by=teacher.id,
         )
+
+
+def _approved_question(session: Session) -> tuple[QuestionService, User, str]:
+    """经真实审核状态机创建已批准题目。"""
+
+    teacher = add_teacher(session)
+    course = add_course(session, teacher)
+    service = QuestionService(session)
+    question = service.create_question(
+        course_id=course.id,
+        question_type=QuestionType.SINGLE_CHOICE,
+        content="下列哪项是 Python 的内置类型？",
+        options=["列表", "课程"],
+        reference_answer="列表",
+        scoring_rubric="选择列表得 5 分。",
+        difficulty="简单",
+        knowledge_points=["内置类型"],
+        score=5,
+        created_by=teacher.id,
+    )
+    service.update_question_status(
+        question.id, QuestionStatus.PENDING_REVIEW, teacher_id=teacher.id
+    )
+    service.update_question_status(
+        question.id, QuestionStatus.APPROVED, teacher_id=teacher.id
+    )
+    return service, teacher, question.id
+
+
+@pytest.mark.parametrize(
+    "changes",
+    [
+        {"content": "替换题干"},
+        {"options": None},
+        {"reference_answer": None},
+        {"scoring_rubric": None},
+        {"type": QuestionType.TRUE_FALSE},
+        {"question_type": QuestionType.TRUE_FALSE},
+        {"score": 10},
+    ],
+    ids=[
+        "content",
+        "options",
+        "reference_answer",
+        "scoring_rubric",
+        "type",
+        "type_alias",
+        "score",
+    ],
+)
+def test_approved_content_updates_are_rejected_without_side_effects(
+    session: Session,
+    changes: dict,
+) -> None:
+    """已批准题目的内容更新必须被服务拒绝，混合请求也不得修改元数据。"""
+
+    service, teacher, question_id = _approved_question(session)
+    before = service.get_question(question_id, teacher_id=teacher.id)
+    with pytest.raises(QuestionConflictError) as error:
+        service.update_question(
+            question_id, teacher_id=teacher.id, difficulty="困难", **changes
+        )
+    assert getattr(error.value, "code", None) == "QUESTION_APPROVED_IMMUTABLE"
+    assert getattr(error.value, "current_status", None) is QuestionStatus.APPROVED
+    assert "退回修订" in str(error.value)
+    assert not session.dirty
+    with Session(session.get_bind()) as observer:
+        after = QuestionService(observer).get_question(question_id)
+        assert after == before
+
+
+@pytest.mark.parametrize(
+    "changes",
+    [
+        {"difficulty": "困难"},
+        {"knowledge_points": ["容器"]},
+        {"difficulty": None, "knowledge_points": []},
+    ],
+    ids=["difficulty", "knowledge_points", "clear_metadata"],
+)
+def test_approved_metadata_updates_remain_allowed(
+    session: Session,
+    changes: dict,
+) -> None:
+    """难度和知识点可以独立修改或清空，内容与批准状态不变。"""
+
+    service, teacher, question_id = _approved_question(session)
+    before = service.get_question(question_id, teacher_id=teacher.id)
+    updated = service.update_question(question_id, teacher_id=teacher.id, **changes)
+    assert updated.status is QuestionStatus.APPROVED
+    assert updated.content == before.content
+    assert updated.score == before.score
+    for field, value in changes.items():
+        assert getattr(updated, field) == value
+    with Session(session.get_bind()) as observer:
+        assert QuestionService(observer).get_question(question_id) == updated
+
+
+@pytest.mark.parametrize(
+    "question_status", [QuestionStatus.DRAFT, QuestionStatus.PENDING_REVIEW]
+)
+def test_unapproved_questions_remain_editable(
+    session: Session,
+    question_status: QuestionStatus,
+) -> None:
+    """草稿和待审核题目的六个内容字段仍可正常编辑。"""
+
+    teacher = add_teacher(session)
+    course = add_course(session, teacher)
+    service = QuestionService(session)
+    question = service.create_question(
+        course_id=course.id,
+        question_type=QuestionType.SINGLE_CHOICE,
+        content="原题干",
+        options=["原选项"],
+        reference_answer="原答案",
+        scoring_rubric="原评分标准",
+        score=5,
+        created_by=teacher.id,
+    )
+    if question_status is QuestionStatus.PENDING_REVIEW:
+        service.update_question_status(
+            question.id, question_status, teacher_id=teacher.id
+        )
+    updated = service.update_question(
+        question.id,
+        content="修订题干",
+        options=None,
+        reference_answer="True",
+        scoring_rubric="回答正确得 2 分",
+        type=QuestionType.TRUE_FALSE,
+        score=2,
+        teacher_id=teacher.id,
+    )
+    assert updated.status is question_status
+    assert updated.content == "修订题干"
+    assert updated.options is None
+    assert updated.reference_answer == "True"
+    assert updated.scoring_rubric == "回答正确得 2 分"
+    assert updated.type is QuestionType.TRUE_FALSE
+    assert updated.score == Decimal("2.00")

@@ -32,7 +32,7 @@ _ALLOWED_STATUS_TRANSITIONS = {
         QuestionStatus.NEEDS_REVISION,
     },
     QuestionStatus.NEEDS_REVISION: {QuestionStatus.PENDING_REVIEW},
-    QuestionStatus.APPROVED: set(),
+    QuestionStatus.APPROVED: {QuestionStatus.NEEDS_REVISION},
 }
 _MAX_SCORE = Decimal("999999.99")
 _TWO_PLACES = Decimal("0.01")
@@ -48,6 +48,18 @@ class QuestionNotFoundError(CourseNotFoundError, QuestionServiceError):
 
 class QuestionConflictError(QuestionServiceError):
     """题目变更违反数据约束时抛出。"""
+
+
+class QuestionApprovedImmutableError(QuestionConflictError):
+    """已审核题目的内容必须先退回修订才能修改。"""
+
+    code = "QUESTION_APPROVED_IMMUTABLE"
+
+    def __init__(self, current_status: QuestionStatus) -> None:
+        self.current_status = current_status
+        super().__init__(
+            "已审核题目的内容、选项、答案、评分标准、题型和分值不可直接修改，请先退回修订。"
+        )
 
 
 class QuestionValidationError(QuestionServiceError):
@@ -396,17 +408,20 @@ class QuestionService:
         """更新题目元数据，审核状态由独立状态接口管理。"""
 
         has_type = question_type is not None or type is not None
-        has_update = any(
+        has_content_update = any(
             (
                 content is not None,
                 options is not _UNSET,
                 reference_answer is not _UNSET,
                 scoring_rubric is not _UNSET,
-                difficulty is not _UNSET,
-                knowledge_points is not _UNSET,
                 score is not _UNSET,
                 has_type,
             ),
+        )
+        has_update = (
+            has_content_update
+            or difficulty is not _UNSET
+            or knowledge_points is not _UNSET
         )
         if not has_update:
             raise QuestionValidationError("至少需要提供一个更新字段。")
@@ -416,6 +431,8 @@ class QuestionService:
             self._load_course(question.course_id),
             _resolve_actor_id(created_by, teacher_id),
         )
+        if question.status is QuestionStatus.APPROVED and has_content_update:
+            raise QuestionApprovedImmutableError(question.status)
         if has_type:
             question.type = _resolve_question_type(question_type, type)
         if content is not None:
@@ -628,6 +645,7 @@ def _resolve_status_filter(
 
 
 __all__ = [
+    "QuestionApprovedImmutableError",
     "QuestionConflictError",
     "QuestionNotFoundError",
     "QuestionPermissionError",

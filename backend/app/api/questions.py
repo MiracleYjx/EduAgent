@@ -24,6 +24,7 @@ from backend.app.models import (
     User,
 )
 from backend.app.services.question_service import (
+    QuestionApprovedImmutableError,
     QuestionConflictError,
     QuestionNotFoundError,
     QuestionPermissionError,
@@ -234,6 +235,15 @@ QuestionReviewer = Annotated[
 def _question_http_exception(error: BaseException) -> HTTPException:
     """将题目服务异常转换为统一的中文 HTTP 错误。"""
 
+    if isinstance(error, QuestionApprovedImmutableError):
+        return HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail={
+                "code": error.code,
+                "message": str(error),
+                "current_status": error.current_status.value,
+            },
+        )
     if isinstance(error, QuestionNotFoundError):
         code = status.HTTP_404_NOT_FOUND
     elif isinstance(error, QuestionPermissionError):
