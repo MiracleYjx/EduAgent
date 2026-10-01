@@ -527,7 +527,7 @@ M0 工程骨架 + Benchmark
 
 - [X] T140 [MEDIUM] [设计 G07] **G07 导出目录统一**：按 `contracts/file-storage.md` 同步 `.specify/plan.md` §11和目录树为独立 `storage/exports/`，使后续导出登记、迁移及备份清单只消费同一规范定位；不增加双目录隐式查找。 依赖：T137。per FR-044/045、G07、CHK007（F007） (contradicts)
 
-- [ ] T141 [HIGH] [设计 G08] **G08 组卷条件持久设计**：在 `.specify/data-model.md`、`contracts/exam-assembly.md` 明确最近一次教师组卷要求的存储、成功/失败写入时机、人工替换后的重算及旧考试合法缺省；优先评审 Exam 上受 Pydantic 校验的约束 JSON，实际分值仍以 ExamQuestion 为事实源，取舍由用户确认后同步。 依赖：无新增任务前置。per FR-048/049、G08、CHK008（F008） (missing)
+- [X] T141 [HIGH] [设计 G08] **G08 组卷条件持久设计**：在 `.specify/data-model.md`、`contracts/exam-assembly.md` 明确最近一次教师组卷要求的存储、成功/失败写入时机、人工替换后的重算及旧考试合法缺省；优先评审 Exam 上受 Pydantic 校验的约束 JSON，实际分值仍以 ExamQuestion 为事实源，取舍由用户确认后同步。 依赖：无新增任务前置。per FR-048/049、G08、CHK008（F008） (missing)
 
 - [X] T142 [MEDIUM] [设计 G09] **G09 评测协议锁定**：在 `.specify/plan.md` 非功能/门禁细节及 `docs/evaluation.md` 锁定样本与标注规则、机器/配置、重复次数、冷暖启动、计时边界、分母、失败记录及证据格式；把质量阈值明确设为真实基线后提请用户确认，不预填效果数值或把模型自信当准确率。区分业务铁律逐例验收与质量/性能实测，阈值确认由 T168 承接。 依赖：无新增任务前置。per SC-010–014、plan 非功能目标、G09、CHK009（F009） (partial)
 
