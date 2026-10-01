@@ -1,0 +1,202 @@
+# EduAgent 端到端验证报告（开发模式 + 真实 DeepSeek 调用）
+
+**验证日期**：2026-09-29（Asia/Shanghai）
+**验证环境**：Windows 主机 Python 3.13.13 + Docker PostgreSQL/Redis；不是 Docker Demo。
+**验证版本**：af04287b96429ceb44c07d48cebd427d1ad3163a（验证开始时的 HEAD）。
+**结论**：部分成功。真实模型的检索重排、出题、混合阅卷、人工复核与诊断闭环均已运行；Workflow 冷启动 HTTP 延迟未达到 1 秒目标，Docker Demo 和三容器资源未验证。所有送往 api.deepseek.com 的资料仅来自 benchmark/corpus/ 的公开合成教材，以及本次构造的合成查询、题目和学生答案。未发送真实用户数据、生产业务数据或凭证；此授权仅用于本次 T089。
+
+## 1. 启动验证与环境边界
+
+| 项 | 结果 | 实测与说明 |
+| :--- | :--- | :--- |
+| PostgreSQL、Redis | ✅ | docker compose up -d postgres redis；两容器均 healthy。 |
+| 主机 FastAPI | ✅ | 127.0.0.1:8000 启动，/ready 返回 HTTP 200。完成验证后停止；依赖容器保留。 |
+| 数据库迁移 | ✅，有环境偏差 | 原 public schema 的 alembic_version 虽为 0012_audit_logs，却缺失 0011 的 question_source_chunks、question_generation_metadata、question_revision_comments；首次真实出题返回 HTTP 503，source_code=ProgrammingError。没有修改 public。新建隔离 schema t089_e2e_20260929 后执行正式 alembic upgrade head，各表存在且 revision=0012_audit_logs；后续链路均在此 schema 运行。 |
+| 演示资料 | ✅ | T087 种子资料在开发库为 Ready，但它位于 scripts/demo_materials/，不属于本次对外发送授权。本次模型链路改用隔离 schema 中已摄取的 benchmark/corpus/python_basics.md，状态 Ready。 |
+| Docker Backend 容器 | 未执行 | 开发模式只启动依赖容器，云端 DEMO_EMBEDDING_* 未配置。 |
+
+## 2. 四种检索模式
+
+使用 benchmark/corpus/ 的 Python 合成教材和 20 条合成查询。setup_benchmark_corpus.py 在隔离 schema 摄取并生成运行时 UUID manifest；本地 BGE 为 BAAI/bge-large-zh-v1.5，Hybrid + Rerank 的真实重排器为 LLMRerankAdapter，实际 LLM Provider 元数据为 deepseek / deepseek-chat。下表是 provider_run，不是 selftest；标注并非教师人工 Ground Truth，指标仅适用于该合成数据集。
+
+| 模式 | Recall@5 | MRR | nDCG@10 | 检索 p95（ms） | 结果 |
+| :--- | ---: | ---: | ---: | ---: | :--- |
+| keyword_only | 0.000 | 0.000 | 0.000 | 3.814 | 真实运行，召回为零，不美化。 |
+| vector_only | 1.000 | 0.975 | 0.96549 | 9.748 | 真实本地 BGE。 |
+| hybrid | 1.000 | 0.975 | 0.96549 | 14.910 | 真实本地 BGE。 |
+| hybrid_rerank | 1.000 | 1.000 | 0.99197 | 1320.482 | 真实 DeepSeek LLM Rerank；20 条查询。 |
+
+manifest：.cache/benchmark/t089-20260929/corpus/manifest.json；真实结果 JSON/CSV：.cache/benchmark/t089-20260929/results/t089-local-01/ 与 t089-rerank-01/。这些是本机忽略文件，不随报告提交。另有 t089-stub-01/ 的 pipeline_selftest，仅证明管道可运行，不计入上表质量结论。
+
+## 3. 候选审核
+
+在仅包含 benchmark/corpus 教材的课程中，Teacher 通过 POST /api/question-generation/candidates 真实生成 1 道 SHORT_ANSWER 候选题，模型 deepseek-chat，来源快照 1 条且 sources_persisted=true；候选状态为 Pending Review。未审核时将其加入考试返回 HTTP 422；Teacher 经 POST /api/question-generation/candidates/{id}/review 审核后状态变为 Approved（HTTP 200），随后考试创建 HTTP 201、发布 HTTP 200。验证了 AI 候选不会自动发布。首次在 public schema 的 HTTP 503 属于上述迁移状态不一致，未计为出题成功。
+
+## 4. 混合阅卷
+
+同课程考试包含 1 道单选与 1 道 AI 生成简答。Student 经 POST /api/exams/{id}/submit 提交合成答案，状态 Submitted。默认 CONFIDENCE_THRESHOLD=0.80 下，Teacher 经 POST /api/workflow/submissions/{id}/runs 启动真实 LangGraph：HTTP 200，10.317 秒，Workflow Completed。持久化逐题结果为单选 5/5（置信度 1.00）、简答 4/5（置信度 0.95）；整卷 is_final=true，总分 9/10。此答卷未进入复核队列，不能将它声称为低置信度用例。
+
+## 5. 人工复核与 Workflow 恢复
+
+第二份合成考试/答卷仅用于复核分支。主机 FastAPI 进程临时设置 CONFIDENCE_THRESHOLD=0.99，未修改 .env 或业务代码；该配置与默认 0.80 明确区分。真实模型给简答题置信度 0.98，低于该验证阈值。启动 HTTP 200，19.122 秒，Workflow Paused、current_node=pending_review、resumable=true；GET /api/reviews/queue 返回 1 条，详情中含当前 review_round_id。Teacher 经 POST /api/reviews/decisions 提交带轮次 ID 的 Confirmed：HTTP 200，3.196 秒，decision_saved=true、resume_status=succeeded、Workflow Completed、pending_review_count=0。该 API 自动恢复原图，无需再调用单独的 resume 端点。新 Session 读到 ExamResult.is_final=true、10/10，Submission.status=Reviewed 且 reviewed_at 已写入。
+
+## 6. 诊断生成与读取
+
+第一份 9/10 答卷和复核后的第二份 10/10 答卷均有持久化 Ready 诊断。第二份通过学生 GET /api/results/me/submissions/{id}/diagnosis 返回 HTTP 200、Ready、4 条学习建议；教师授权结果详情 API 返回 HTTP 200、is_final=true，生产 results_loaders.load_teacher_diagnosis 返回 Ready、final=true。学生结果 API 返回 total_score=10.00、pending_review_count=0。未用 GET 请求生成新的诊断。
+
+## 7. 资源使用
+
+以下为真实模型调用后的一个空闲时刻快照，不是峰值或负载测试；Docker 容器内存与 Windows 主机 RSS 口径不同，不相加为三容器指标。
+
+| 服务/进程 | CPU | 内存 | 说明 |
+| :--- | ---: | ---: | :--- |
+| PostgreSQL 容器 | 0.00% | 153.9 MiB | docker stats --no-stream。 |
+| Redis 容器 | 1.38% | 6.992 MiB | 同上。 |
+| 主机 Uvicorn worker | 约 1.04% 单核等效 | 1798.95 MiB RSS | 3 秒 CPU 差值；已加载本地 BGE。 |
+| 三容器合计 | 无数据 | 无数据 | 未启动 Backend 容器，不伪造合计。 |
+
+## 8. P95 响应阈值
+
+主机本地 HTTP，单客户端串行，每个 GET 端点预热 1 次、采样 50 次，以最近秩法取 p95；非并发压力或 SLA 证明。Workflow 冷启动仅有 2 次真实模型调用，p95 为该小样本最大值，不能推断稳定吞吐。
+
+| 端点类型 | 目标 | 实测 | 结果 |
+| :--- | :--- | :--- | :--- |
+| /ready | < 1.5 s | p95 77.961 ms，50/50 HTTP 200 | ✅ |
+| GET /api/courses | < 1.5 s | p95 39.376 ms，50/50 HTTP 200 | ✅ |
+| GET /api/exams?course_id=… | < 1.5 s | p95 42.876 ms，50/50 HTTP 200 | ✅ |
+| 学生结果 GET（无模型等待） | < 3 s | p95 62.168 ms，50/50 HTTP 200 | ✅ |
+| Workflow 查询 GET | < 1 s | p95 59.483 ms，50/50 HTTP 200 | ✅ |
+| Workflow 冷启动 POST | < 1 s | 10.317 s、19.122 s；n=2，最近秩 p95 19.122 s | ❌；当前请求同步等待模型。 |
+
+## 9. 未执行的验证项与遗留问题
+
+| 项 | 原因 | 建议 |
+| :--- | :--- | :--- |
+| Docker Demo 端到端与三容器健康 | 本次按授权使用主机 Python + 两个依赖容器；云端 DEMO_EMBEDDING_* 未配置。 | T091 或独立任务配置可用的 1024 维云端 Embedding 后补验。 |
+| 三容器合计资源与峰值资源 | 未运行 Backend 容器，也未进行持续资源采样。 | Docker Demo 补验时采集。 |
+| 稳定的 Workflow 冷启动 P95 | 仅 2 次真实模型调用；不足以代表负载分布。 | 独立性能任务确定样本量、并发与预算；当前 <1 秒目标已被两次实测否定。 |
+| public schema 迁移状态不一致 | 标记 0012 但缺失 0011 三表；隔离 schema 已完整迁移，public 未改动。 | T091 前单独审计、备份并按迁移方案修复，勿直接视为健康。 |
+
+Workflow 恢复时 LangGraph 还发出“checkpoint 反序列化未注册类型，未来版本可能阻止”的告警；本次实际恢复成功，未在验证任务中修改 Checkpointer，建议后续兼容性检查。
+
+**总体判定**：T089 已记录真实成功、失败及未执行项，开发模式闭环部分成功；不能据此宣称 Docker Demo 或性能门禁通过。
+
+**后续处理（2026-09-29，T091.1）**：上述 `public` 缺少 0011 三表的偏差已按原迁移定义补建，原有数据保留；`alembic current` 与 `alembic check` 均通过。详见 [最终门禁修复记录](release-checklist.md)。本报告中的 T089 历史实测与其他遗留项保持原义。
+
+## 10. T143：v1.0 基线复验（2026-10-01）
+
+**结论**：T143 的复验、失败分类和建议记录已完成。当前工作区全量 pytest、mypy、ruff，以及隔离 PostgreSQL 的既有迁移检查通过；独立 Docker M0 运行退出码为 1，当前源码镜像构建被取消，Backend 未创建，三容器 healthcheck 和 Backend readiness 未获通过证据。因此，本节不宣称 Gate 1 或系统验收成功，也不覆盖前九节的历史结果。
+
+### 10.1 版本、工作区与证据边界
+
+- 复验起点：2026-10-01T21:31:28.100870+08:00；仓库 `D:\YJX\MyCode\EduAgent`，分支 `deepcode`，源码 HEAD 为 `d66371c8cacfc1c5f549765e349bfe78cafe576e`（T141 文档提交）。检查期间没有切换分支或改写源码。
+- HEAD 无直接 tag；`git describe --tags --always` 为 `v1.0.0-m5-complete-20-gd66371c`。M5 tag 的实际提交为 `e1dfb3fd934041cfbd1d3873cd69a0f09e3967f0`；附注 tag 对象为 `7b04bdf4cb4dab25fd4d1f7f4556824f71c95b2a`，二者含义不同。
+- 开始时已有 6 个已跟踪文件修改：`README.md`、`README.zh-CN.md`、`backend/app/ui/gradio_app.py`、`backend/app/ui/layout_view.py`、`backend/app/ui/question_view.py`、`tests/unit/ui/test_gradio_app.py`；另有 2 个未跟踪文件：`backend/app/ui/design_system.py`、`tests/unit/ui/test_question_bank_view.py`。这些用户改动原样保留，不纳入 T143 提交。
+- 全量检查针对上述实际工作区，包含未提交 UI 和测试，因此不能把 1576 项通过直接声明为纯已提交 HEAD 的全量结果。为核实 T133，另用 `git archive HEAD` 导出到本次缓存目录，仅运行相关 28 项原有检查；没有 checkout、stash、reset 或复制私有配置文件。
+- T133 提交 `ae1dab9` 至当前 HEAD 的 `backend/`、`tests/`、`migrations/`、`scripts/`、`Dockerfile`、`docker-compose.yml` 和 `pyproject.toml` 的 Git 差异为空；本次没有修改业务代码、配置、依赖、迁移或测试，不新增 TCR，不改旧任务状态。
+- 本节只追加验证记录，原有 T089 正文和后续修复说明逐字节保留。本文件原先受 `/docs/` 忽略且未跟踪，T143 按指定路径将整份报告纳入 Git；未改忽略规则或顺带提交其他本地文档。
+
+### 10.2 实际环境和隔离范围
+
+| 项 | 本次实际状态 |
+| :--- | :--- |
+| 主机 | Windows 11，build 26200；AMD64 Family 23 Model 96；12 个逻辑 CPU。未限制为 4 vCPU/8 GB，不作为资源目标验收。 |
+| Python | `D:\develop\Python\python.exe`，3.13.13；使用现有全局环境，无项目 venv。本次未安装或升级依赖。 |
+| 检查工具 | pytest 9.1.1、mypy 2.3.1、ruff 0.16.6；pytest-asyncio 未安装，现有测试仍可执行，未据此增设阻塞或安装插件。 |
+| 应用依赖 | FastAPI 0.141.1、Gradio 6.26.0、LangChain 1.3.2、LangGraph 1.2.2、langgraph-checkpoint 4.1.1、Pydantic 2.13.4、OpenAI 2.54.0、sentence-transformers 6.0.1。 |
+| 数据依赖 | SQLAlchemy 2.0.50、psycopg 3.3.5、Alembic 1.19.2、Redis Python 客户端 8.1.0、pgvector 0.5.0。 |
+| Docker | Client/Server 29.7.2；Compose v5.5.0；引擎可用。沙箱初次访问受限不等于 Docker 引擎未启动，正式检查使用获准权限。 |
+| 隔离服务 | Compose 项目 `eduagent-test`；PostgreSQL 16.15（15432）、Redis 7.4.11（16379）、预留 Backend 18000，均绑定本机。Dockerfile 基于 Python 3.12，与主机 Python 版本不同。 |
+| 测试数据库 | 在本次新建 PostgreSQL 容器中创建 `eduagent_t143`；主机迁移和 pytest 使用该库，Redis 使用本次 16379 端口。M0 使用同一隔离项目自身默认库；未操作开发库。 |
+| 配置前置 | `.env` 有 DATABASE_URL/REDIS_URL；DEMO_EMBEDDING_MODEL、DEMO_EMBEDDING_BASE_URL、DEMO_EMBEDDING_API_KEY 均为空或缺失。Compose 固定采用 `openai_compatible`，不回退主机模型或其他密钥。仅记录存在性，不输出凭据。 |
+
+开始时默认项目的 PostgreSQL/Redis 已 healthy，`eduagent-test` 容器及项目卷不存在。本次只创建隔离项目的两个依赖容器、网络及卷，先确认 `pg_isready` 返回 accepting connections，`redis-cli ping` 返回 PONG，再执行检查。测试数据为现有夹具和临时 schema，没有另行运行真实模型 Benchmark、外发数据或新增收费模型调用。
+
+### 10.3 检查命令与实测结果
+
+以下命令以仓库根目录为工作目录，`python` 指上述现有解释器。pytest 的缓存、临时目录和 JUnit，mypy/ruff 的缓存均显式指向 `.cache/t143-20261001-133128/`；不清理用户原有缓存。
+
+| 检查 | run_at（UTC；本地为 +08:00） | 结果 | 耗时与范围 |
+| :--- | :--- | :--- | :--- |
+| `python -m alembic upgrade head` | 2026-10-01T13:37:06.244674+00:00 | ✅，退出 0 | 7.932 s；隔离库按既有迁移从空结构升级至 head。 |
+| `python -m alembic current` | 2026-10-01T13:37:14.178624+00:00 | ✅，退出 0 | 1.241 s；`0012_audit_logs (head)`。 |
+| `python -m alembic check` | 2026-10-01T13:37:15.420832+00:00 | ✅，退出 0 | 1.340 s；`No new upgrade operations detected.`。 |
+| `python -m pytest tests/ -q` | 2026-10-01T13:38:22.865038+00:00 | ✅，退出 0 | **1576 passed、0 failed、0 errors、1 skipped、15 warnings**；pytest 420.56 s，外层进程 430.003 s。 |
+| `python -m ruff check backend/ tests/` | 2026-10-01T13:38:32.655555+00:00 | ✅，退出 0 | 1.383 s；`All checks passed!`。 |
+| `python -m mypy backend/app/` | 2026-10-01T13:38:34.735038+00:00 | ✅，退出 0 | 221.187 s；141 个源码文件无问题。 |
+| `powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File scripts/smoke_m0.ps1` | 2026-10-01T13:38:33.766415+00:00 | ❌，退出 1 | 1034.600 s；构建期间主动停止本次构建子进程，脚本输出失败诊断；Backend 未创建。 |
+| 导出的 HEAD 聚焦 pytest | 2026-10-01T13:50:57.443656+00:00 | ✅，退出 0 | **28 passed、9 warnings**；pytest 29.43 s，外层进程 33.032 s；范围见下文。 |
+
+全量 pytest 唯一跳过项为 `tests/integration/test_m0_smoke.py::test_m0_smoke_script`：该 pytest 进程没有设置四个 M0 专用隔离变量，避免与独立脚本重复启动同一项目。独立 M0 进程实际设置 `COMPOSE_PROJECT_NAME=eduagent-test`、`POSTGRES_PORT=15432`、`REDIS_PORT=16379`、`BACKEND_PORT=18000`，调用既有脚本，跳过项不计为 M0 通过。
+
+15 次全量警告为 Starlette/httpx 弃用 1 次、HTTP 422 常量弃用 3 次、Alembic `path_separator` 弃用 7 次及 SQLAlchemy `SAWarning` 4 次；没有屏蔽警告或修改断言。
+
+导出 HEAD 的聚焦命令：
+```text
+python -m pytest tests/unit/services/test_question_service.py tests/contract/test_question_update_api_contract.py tests/contract/test_grading_api_contract.py::test_trigger_creates_task_and_returns_queued tests/integration/test_audit_migration.py tests/integration/test_question_source_migration.py tests/integration/test_review_round_migration.py -q
+```
+运行目录为本次 `head-source/`，数据库/Redis 仍为隔离依赖。该命令覆盖 I01 守卫、T133 原失败代表节点和三份迁移测试；不将 28 项聚焦结果扩称为纯 HEAD 全量验收。
+
+### 10.4 M0 失败事实和检查未完成项
+
+Compose 配置检查后进入 `up --build`。构建 ID 为 `4ig385sbqnk0unhhr5hxdfqrz`，VCS Revision 为上述 HEAD，项目/服务标签为 `eduagent-test/backend`。最终 Buildx 状态为 **Canceled**，持续 **17 分 8 秒**、执行到 **8/12 步**，停在 `pip install .`。
+
+日志记录 Gradio 6.29.0 的 31.4 MB wheel 下载速度约 52.4 kB/s、用时 12 分 35 秒，后续依赖仍在下载。该事实支持依赖下载缓慢占据主要构建时间；不能据此声明源码编译错误、网络完全不可用或真实模型失败。为结束持续的构建，核对 PID 及父进程归属后仅停止本次 `docker-buildx.exe` 子进程；没有停止 Docker 引擎或用户其他进程。既有 M0 脚本随后正常进入失败诊断并以 1 退出，绝不记录为成功或自动超时完成。
+
+既有 `test_m0_smoke.py` 的整体子进程超时为 240 秒；脚本自身 180 秒等待期限从构建结束后才开始。本次直接调用脚本的上述耗时及人工取消不能冒充 pytest 的 240 秒超时结果。镜像未完成构建，当前镜像内依赖没有完整版本清单；其中实际下载的 Gradio 版本与主机不同，主机测试不能替代容器运行。
+
+| 项 | 本次证据 |
+| :--- | :--- |
+| PostgreSQL、Redis healthcheck | ✅ 两个隔离依赖 healthy；真实 pg_isready/PONG 已确认。 |
+| 主机 Alembic 升级/current/check | ✅ 三项退出 0，范围限于 `eduagent_t143`。 |
+| 当前源码 Backend 镜像 | ❌ 构建取消，未产出本次完成镜像；未改用旧缓存镜像制造通过。 |
+| 三容器 healthcheck、Backend `/ready` | 未完成；Backend 未创建，不能填写 HTTP 200。 |
+| M0 脚本自身 Backend/迁移/Redis 后续步骤 | 未到达；主机独立检查不替代这条完整入口。 |
+| Demo Embedding 配置 | 已发现前置缺项；Dockerfile 的工厂检查要求真实模型/base URL/key。此项尚未触发运行，不能冒充本次构建取消的错误原因。 |
+
+M0 PostgreSQL 诊断日志中的唯一键、外键及检查约束错误来自同时运行的既有负向测试；对应 pytest 无失败，不据此认定开发库损坏或新增业务回归。
+
+### 10.5 T133 与 M5 历史证据核实
+
+| 证据 | 原记录 | 本次结论及适用范围 |
+| :--- | :--- | :--- |
+| T133 全量失败 | 1335 passed、111 failed、12 errors、119 skipped；1824.21 s；Docker 引擎未启动、检查点存储未就绪、PostgreSQL 连接超时。 | 原记录不改写。当前健康隔离依赖下全量无失败，旧代表节点在实际工作区及导出的 HEAD 中均通过。支持历史环境条件影响失败；未逐项证明全部 111 项有同一根因。 |
+| T133 I01 与静态检查 | 聚焦 24 passed；mypy 141 个文件、ruff 通过。 | 原有 I01 行为回归及相关迁移通过；没有撤销守卫、修改标准或借本任务补业务实现。 |
+| M5/T091.3 | 1546 passed、0 failed、1 skipped、14 warnings；mypy 140 个文件、ruff 通过。 | 是 2026-09-29 的已确认范围记录；当前工作区测试数量和文件范围不同，不能互相替代。 |
+| M5 Docker 范围 C | 复用缓存镜像，只验证启动与 `/ready`；AI 采用开发模式 T089 证据。 | 不能证明当前源码全新构建、Docker 真实 AI 链路或本次 M0 通过。 |
+| T089 真模型/性能 | 合成教材/查询/答卷、真实 DeepSeek 调用；keyword_only Recall@5=0；Workflow POST 10.317/19.122 s。 | 教师 Ground Truth 不足、冷启动未达 <1 s、三容器峰值资源未测等限制保留；当时外发授权仅属于 T089，本次未沿用为新调用授权。 |
+
+M5 明细来源为本机既有 `docs/release-checklist.md`（本次仍为未跟踪/忽略文件，未纳入提交），Git tag/提交可独立追溯。前九节 T089 记录随本报告保留；不得据历史记录声明 Phase 6–9 或 v2.0 已全部完成。
+
+### 10.6 失败分类、门禁与下一步
+
+- **环境/检查执行问题**：本次真实 Docker 构建下载缓慢且主动取消，M0 退出 1；另有 Demo Embedding 配置缺项，属于后续启动前置。两者分别记录，不隐藏为 pytest 的跳过或宣称已修复。
+- **基线已知限制**：M5 缓存镜像验证边界、T089 合成数据/缺教师标签、Workflow 冷启动和资源测量不足仍在。现有 15 次警告列为非阻塞记录，本任务不扩大修复。
+- **新回归**：本次全量、聚焦及静态检查未发现新的业务失败；这个结论不覆盖尚未运行的当前源码容器或 v2.0 新能力。T143 本身无源码改动。
+- **Gate 1–9**：Gate 1 当前未通过完整入口；Gate 2–7 有现有自动化回归和历史有限实测证据，本次未新增真实 AI/业务闭环验收；Gate 8 未重测性能/峰值资源，既有未达目标项保留；Gate 9 本次未执行新的检索/阅卷 Benchmark，不生成或伪填质量 JSON/CSV。本节不是九项门禁全绿的声明。
+
+具体处置建议：
+
+1. 单独处理构建下载环境（网络/代理可达性、已有包缓存的使用），继续沿用当前依赖声明，不为通过而换 Provider、删依赖或伪造镜像。现有 240 秒 M0 测试预算与本次冷构建耗时冲突；优先在同一源码/配置下完成预构建，再执行原入口。若仍需改变超时或流程，按独立任务和 TCR 提请确认。
+2. 为既有 `openai_compatible` Demo 明确配置可用的 1024 维 Embedding 模型、base URL 和 API key；不填虚假占位值、不复用不兼容密钥。工厂配置检查与真实模型连通性验证分别处理，真实调用另依任务授权。
+3. 前置满足后，用固定四个隔离变量执行既有 M0 测试，核对当前源码镜像、三个 healthy、真实 `/ready`、脚本迁移和 Redis PING，保存整个入口的退出码。当前结果不得作为 Docker 兼容/演示已通过的依据。
+4. T144 的只读文件/历史数据盘点与 T145 的 TCR/验证映射可接续开展，T146 依赖 T142/T145。涉及部署验收和后续 E1 兼容性结论前，应处理上述 M0 前置并补齐证据；本任务不自动扩展为这些修复或继续执行下一任务。
+
+### 10.7 产物、保留与清理回执
+
+本机证据根目录为 `D:\YJX\MyCode\EduAgent\.cache\t143-20261001-133128\`，受 Git 忽略，未随报告提交。远端可阅读本节记录，原始运行日志/JUnit 需在该机器核对；不声称远端已包含缓存产物。
+
+| 产物 | 相对上述根目录的路径 |
+| :--- | :--- |
+| 检查日志 | `logs/pytest.log`、`logs/mypy.log`、`logs/ruff.log`、`logs/alembic_upgrade.log`、`logs/alembic_current.log`、`logs/alembic_check.log` |
+| 纯 HEAD 聚焦证据 | `logs/head_focused.log`、`results/head_focused.xml`、`head-source/` |
+| 全量 JUnit | `results/pytest.xml`（1577 项：1576 通过、1 跳过、0 失败/错误） |
+| M0 原始失败/构建 | `logs/m0.log`、`logs/m0_build_progress.log`、`logs/m0_build_snapshot.log`、`logs/m0_build_final.log` |
+| 运行元数据 | `results/*.json` 的命令、UTC run_at、退出码、耗时及路径；`results/environment.json` 保存版本和 JUnit 计数；`manifest.json` 汇总范围及文件完整性。 |
+| 资源清理 | `logs/cleanup.log`、`results/before_cleanup.json`、`results/after_cleanup.json` |
+
+Buildx 日志读取命令退出 0 仅表示日志成功读取；`m0_build_snapshot.json` 的运行中快照状态也不代表构建成功，最终状态以 Canceled 和 M0 退出 1 为准。
+
+2026-10-01T14:04:09.864639+00:00 执行 `docker compose -p eduagent-test down -v`，退出 0，2.103 秒。清理前核对项目标签、名称及初始无该项目卷的事实，仅删除本次创建的两容器、两卷和网络；清理后该项目容器/卷/网络为空，默认 `eduagent-postgres-1`、`eduagent-redis-1` 仍 healthy。未删除已有镜像、用户文件或原有缓存。本次失败构建/日志进程已结束，保留脱敏诊断。
+
+报告写入前后核对 `.env` 和上述 8 个用户改动文件的内容哈希保持不变；设计文件及其他任务状态保持不变。T143 的勾选表示本节复验与建议已完成，不表示未通过的 M0 门禁被豁免。

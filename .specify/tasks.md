@@ -533,7 +533,7 @@ M0 工程骨架 + Benchmark
 
 ### E0：基线复验 + 文件盘点
 
-- [ ] T143 [HIGH] [E0] **复验 v1.0 基线**：在 `docs/validation-report.md` 记录当前分支、提交、tag、工作区边界及依赖状态；按既有框架执行 pytest、mypy、ruff 和隔离 Docker M0/迁移/readiness/Redis 检查，核实 T133 的既有全量失败及 M5 证据适用范围。分开记录环境问题、基线失败与新回归，不清理用户工作区、不改旧任务状态；影响后续目标的基线问题提交具体处置建议，不自动扩成无关修复。 依赖：无新增任务前置。per plan Gate 1–9/兼容性目标、T133、CHK012（F010） (partial)
+- [X] T143 [HIGH] [E0] **复验 v1.0 基线**：在 `docs/validation-report.md` 记录当前分支、提交、tag、工作区边界及依赖状态；按既有框架执行 pytest、mypy、ruff 和隔离 Docker M0/迁移/readiness/Redis 检查，核实 T133 的既有全量失败及 M5 证据适用范围。分开记录环境问题、基线失败与新回归，不清理用户工作区、不改旧任务状态；影响后续目标的基线问题提交具体处置建议，不自动扩成无关修复。 依赖：无新增任务前置。per plan Gate 1–9/兼容性目标、T133、CHK012（F010） (partial)
 
 - [ ] T144 [HIGH] [E0] **盘点文件与历史考试数据**：在 `docs/v2.0-storage-inventory.md` 只读盘点 Document.storage_path、临时文件、导出/来源关系及 exam_questions 的历史题序、分值/Rubric/知识点证据，区分存在、缺失、未知、待核对和受保护引用；列出可迁移对象及不可可靠回填项，不搬移/删除文件，不以当前题值代替历史值。 依赖：T143。per FR-044/049、data-model §10、CHK010/012（F011） (partial)
 
