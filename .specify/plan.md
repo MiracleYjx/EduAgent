@@ -832,6 +832,16 @@ Docker 使用持久挂载，开发环境可使用项目管理目录；EXE 使用
 
 备份恢复以数据库和持久目录为同一备份集，保存文件关联清单，并采用一致的备份写入窗口；恢复后核对业务记录、原页、题图及资料引用。缺文件或部分恢复不得宣称完整成功，具体命令和恢复验收在后续步骤定义，不新增独立对象存储服务。
 
+#### 11.1 T137：文件身份与备份登记承载
+
+G04 已按用户确认方案补齐 [data-model.md](data-model.md) §14 和 [file-storage.md](contracts/file-storage.md)：复用 Document/SourcePage/QuestionAsset 身份与规范定位，暂存资产在受校验 JSON 保存服务端文件元数据，入库前后沿用稳定 file_id。导入资产的正式定位投影原导入资产记录；其他路径保持所属资源唯一写入源，不建通用 ManagedFile 表。
+
+仅新增 ExportFile 承载真实导出，课程/考试/答卷恰一归属、真实发起者与 teacher_only/submission_owner 授权，可靠内容及 ready 提交后才可读取。共享字节保留独立业务身份与全部引用，迁移记录/OperationReceipt 如实保存原定位、步骤、错误与 UTC 时间；数据库/文件失败不能借收据制造业务成功。
+
+BackupSet 为磁盘 manifest.json、PostgreSQL dump 和文件清单，不建备份表。采用暂停所有业务写入、排空在途任务/事务并停止写进程的维护窗口，数据库与四类持久文件/收据来自同一窗口；共享字节只复制一次，引用全部核对。恢复到隔离数据库和根目录，完整核对并记录独立恢复报告后才切换/开放写入，失败保留原环境/材料；已有新写入时不自动退回旧环境。格式版本/摘要只服务清单及字节核对，不作为组件锁步或业务成功证明。
+
+规范导出目录以 file-storage 契约的独立 exports/ 为准；本节原目录文字及 Project Structure 的 G07 同步由 T140 单独执行，不能据旧文字启用两套查找路径。文件服务/迁移/备份工具与运行验证由 T147–T152/T191 实施；T137 仅补设计与本任务标记，不执行真实搬移/恢复，不修改其他任务状态。
+
 ### 12. 内容冻结与版本语义（v2.0）
 
 沿用已确认的 A：服务端冻结。I01 已实现 Approved 状态下对 `content`、`options`、`reference_answer`、`scoring_rubric`、`type`、`score` 的更新守卫，返回 `QUESTION_APPROVED_IMMUTABLE`；`difficulty`、`knowledge_points` 仍可维护。内容修订需走 `Approved -> Needs Revision -> Pending Review -> Approved`，不能靠 UI 限制代替服务端检查。

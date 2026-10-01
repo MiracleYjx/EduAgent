@@ -2,7 +2,7 @@
 
 ## 范围与依据
 
-对应 [spec.md](../spec.md) FR-044、FR-045、FR-043、FR-052；引用 [plan.md](../plan.md) §11、§14 和 [data-model.md](../data-model.md) 通用约束、§7–§10。
+对应 [spec.md](../spec.md) FR-044、FR-045、FR-043、FR-052；引用 [plan.md](../plan.md) §11、§14 和 [data-model.md](../data-model.md) 通用约束、§7–§10、§14。
 数据库保存业务身份、文件元数据/关联和相对定位；文件内容保存到应用管理的持久根目录。
 这是目标契约，本次不创建实际 storage 目录、迁移脚本、备份工具或文件服务代码，不修改 .gitignore。
 
@@ -16,11 +16,11 @@ storage/
 └── exports/    # 导出文件
 ~~~
 
-- 按本轮最新要求使用独立 exports/。plan.md §11 原写为 uploads/ 下的导出子目录，后续需同步该路径引用；本步骤只更新 contracts，不修改 plan。
+- 按本轮最新要求使用独立 exports/。plan.md §11 原目录及目录树的 G07 引用由 T140 同步；T137 已补 §11 登记/备份承载，不能启用旧导出子目录或双目录查找。
 - 上述 storage 是逻辑根目录：Docker 持久挂载、开发可使用项目管理目录、EXE 使用用户可写数据目录；不能以安装只读目录、系统临时目录或打包解压目录保存唯一副本。
 - 数据库保存根目录下相对路径，最长 1024 字符；不得包含盘符、绝对路径或越出根目录的路径段。文件服务解析定位，客户端不得拼接路径访问。
 - 原文件定位以 Document.storage_path 为唯一事实源；PaperImport.original_file_path 为关系投影，不能维护第二份可分叉路径。
-- SourcePage.image_path、QuestionAsset.file_path 保存对应持久内容定位；课程、试卷用途、原页及题图关系不由文件名推断。
+- SourcePage.image_path 保存对应持久内容定位；普通 QuestionAsset.file_path 为其定位事实源，沿用暂存 id 的导入资产按 §14 从原导入资产投影，不双写路径。课程、试卷用途、原页及题图关系不由文件名推断。
 - 文件身份与原始名称分离；重名上传不能覆盖既有文件。迁移改变定位不改变内容/来源身份，原文件名只用于来源展示。
 - storage 数据不纳入 Git；当前目录不存在也不在本步骤创建或调整忽略规则。后续实施须落实持久目录忽略配置。
 
@@ -33,20 +33,31 @@ GET /api/files/{file_id}
 - file_id 是服务生成的不透明、稳定文件引用，唯一映射文件及所属资源，不是原文件名、相对路径或任意本机路径。客户端只使用响应提供的标识，不自行编码内部路径。
 - Document、SourcePage、QuestionAsset 可提供统一 ManagedFileView；逻辑视图不要求新增一套重复文件路径表，也不能因把原图关联给另一题而丢失访问所属关系。
 - 每个公开 file_id 必须有持久/可确定重建的唯一资源映射和授权依据；不能只保存在进程内字典。共享字节可由多个资源关联，访问必须核对当前引用所属题目/课程/考试。
-- 导出文件也须登记真实所属课程/考试/答卷及可访问用户；不因位于 exports/ 就允许任意下载。ManagedFile/导出登记的物理映射尚未在六实体模型中定稿，实施前须补齐；本契约不声称现有模型已提供该能力。
+- 导出文件也须登记真实所属课程/考试/答卷及可访问用户；不因位于 exports/ 就允许任意下载。T137 已在 data-model §14 明确资源投影、ExportFile 归属及内部迁移/失败登记；歧义资源拒绝 FILE_REFERENCE_CONFLICT（409），不预定 ManagedFile 表；本契约不声称目标模型/接口已经实施。
 
 | ManagedFileView 字段 | 含义 |
 | :--- | :--- |
 | file_id | 不透明文件引用，不提供路径反向拼接协议 |
-| resource_type、resource_id | document / source_page / question_asset / export 及真实所属资源 |
+| resource_type、resource_id | document / source_page / staged_asset / question_asset / export 及真实所属资源 |
 | course_id | 授权课程；由资源关系获取，客户端不可伪造 |
 | original_filename、media_type、size_bytes | 真实可获得元数据；未知明确为 null |
 | availability | available / missing / history_unknown，区别缺失与未知定位 |
-| migration_status | not_migrated / migrated / missing / history_unknown / failed；与真实迁移结果对应 |
+| migration_status | not_required / not_migrated / migrated / missing / history_unknown / failed；原生持久文件无需迁移，其余与真实迁移结果对应 |
 
 - 验证认证及资源权限后，200 返回真实文件字节和对应 Content-Type/下载文件名；存在记录而文件丢失返回 404、FILE_MISSING。
 - 资源不存在为 404；已认证但无资源权限为 403，未认证为 401。业务错误沿用 `detail={code,message,current_status}`；current_status 为资源真实状态或 null。
 - availability/migration_status 是逻辑文件诊断，不伪称 PaperImport、SourcePage 或 QuestionAsset 已新增独立状态机。
+
+## T137：文件登记承载与来源责任
+
+模型以 [data-model.md](../data-model.md) §14 为唯一定义，ManagedFileView 不对应新表：
+
+- file_id 由服务按真实资源 UUID 和资源种类稳定投影，客户端只回传已提供的不透明标识。Document/SourcePage 保留其路径事实源；暂存资产的服务端 file_meta 保存可靠定位，沿用暂存 id 的导入 QuestionAsset 从原导入记录投影定位，保持入库前后同一标识，不能双写路径或在缺失时换读旧目录。
+- 公共 StagedAsset/CorrectionPayload 不包含内部 file_meta 路径/迁移原定位。校正整体替换数组时由服务保留已有 id 的内部登记，正式资源存在时核对真实确认关联；没有正式行不能伪称 QuestionAsset。来源记录在终态继续保留，合法解除正式图关系不删除原导入材料。
+- FileMetadata/迁移记录持久保存于所属实体或暂存 JSON，真实字节类型/长度/SHA-256、实际步骤/错误与 UTC 时间由服务生成。迁移状态增加 not_required，表示原生持久文件无需迁移；不能用 migrated 伪造一次迁移。内部物理定位可依法迁移，公共校正内容/原图/file_id 不变。
+- 共享字节的新业务关联使用自己的身份与授权，变更字节须新建文件/资产。文件服务按规范定位枚举全部有效引用及操作收据，关联/迁移/删除共用数据库事务级定位锁和业务锁序；不能只统计活体 QuestionAsset、以同摘要自动合并或借另一个来源权限放行。
+- 导出仅新增 ExportFile：课程/考试/答卷三者恰一 FK 归属，created_by 为实际发起者，audience 为 teacher_only/submission_owner。同一资源的不同真实导出分别登记，不新增格式。writing/failed 不能提供可读成功引用；授权后请求返回 FILE_NOT_READY（409）及真实状态，只有可靠落盘且 ready 提交后可读。
+- OperationReceipt 为落盘/迁移时的服务端 JSON 归属/步骤记录；DB 失败留下的材料仍可追溯，但收据不替代正式引用/授权，也不宣称 Uploaded/Corrected/Ready。迁移复制核对后同事务更新全部共享定位；原指针/副本在成功前保留，清理需真实无引用与授权。
 
 ## 继承授权与发布保护
 
@@ -88,14 +99,15 @@ GET /api/files/{file_id}
 
 脚本计划为 scripts/backup_restore.py，后续实施，本次不创建/执行。
 
-- BackupSet 记录备份集身份、数据库备份、根目录相对文件清单及关联资源、真实备份时间和结果；具体存储格式在实施设计确定。
-- 数据库及关联文件必须来自同一一致写入窗口。初期可暂停业务写入，完成在途导入/评分事务后同时备份；不能分别任意时间复制两部分再声称一致。
-- 备份包括 uploads、papers、assets、exports 及其引用，不仅包含数据库；原卷、题图、资料、导出和历史答卷/评分关系可核对。
-- 恢复前校验备份集，将数据库与文件作为整体恢复，核对引用和实际可读内容后才开放业务写入。
-- 缺失、来源未知、部分失败逐项报告；不完整不得宣称完整恢复，失败不得悄悄改为成功或指向其他备份集。
-- 配置/凭据按既有外置方式管理，备份清单不输出模型密钥；文件完整性核对不能替代资源授权或业务关系验收。
+- BackupSet 为独立备份目录的 manifest.json + database.dump + files/，不建备份表；Schema 固定为 [data-model.md](../data-model.md) §14.5。清单记录备份 UUID/真实 UTC、creating/complete/incomplete/failed、dump 元数据、文件与资源/归属映射、迁移/可用性、收据及逐项问题；共享物理路径只复制一次，全部引用保留。
+- 采用维护窗口：暂停所有业务写入口、排空在途处理与事务，再停止所有应用写进程/脚本，在持续停写窗口内备份数据库与 uploads/papers/assets/exports 的字节和收据。无法确认停写或排空超时真实失败；不依赖单个 UI 开关，不新增在线快照协调。
+- 已有业务 Failed/Rejected/待补全不等于备份失败，保持原事实；实际缺文件、未知来源、未迁移外部材料/冲突使备份 incomplete，技术失败为 failed，不伪造清单或按同名补文件。完整性核对与最终清单可靠落盘后才可发布 complete，失败材料保留。
+- 恢复先校验同一备份集的 Schema/路径/长度/SHA-256，恢复到新的隔离数据库/目录，保留原环境并关闭正常写入。按恢复 DB 重建 file_id 映射，核对原页/题图/资料/导出/共享引用与考试/答卷/评分/复核及授权归属；摘要不能替代业务核对。
+- restore-report.json 独立保存实际结果和逐项错误，原 manifest 不改写。incomplete/failed 集仅可隔离调查；核对失败/启动失败不开放新环境写入，保留配置和两套材料。通过核对后在停写窗口切换，并验证新环境真实加载/读取后才开放写入；已有新写入时不自动退回旧环境丢数据。
+- 配置/凭据按既有外置方式管理，清单不输出密钥/连接串；Redis 缓存不补业务成功。真实备份/恢复另按授权执行，本次仅补设计，不运行工具、不清理任何文件。
 
 ## 验证边界
 
 验证上传后重启仍可读、学生源卷拒绝访问、授权题图可读、历史迁移/缺失/未知、共享引用删除保护，以及同一备份集恢复后来源/考试/评分关系一致。
-这些是后续验收要求，不表示当前运行已完成，也不改 v1.0 原有接口/测试。
+同时验证稳定标识/暂存到正式映射、元数据省略/未知、真实导出归属与未就绪读取、收据与 DB 失败、共享关联/迁移/删除竞态、停写不能排空、清单 incomplete/failed 和隔离恢复不切换；测试变更先形成 TCR。
+T137 仅补三份设计文档和本任务标记，不运行搬移/备份/恢复，不修改业务代码、迁移、测试或其他任务状态；文档检查不作为运行验收证据，v1.0 原有接口/测试保持。

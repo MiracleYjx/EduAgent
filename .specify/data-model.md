@@ -795,3 +795,119 @@ StagedAsset = {id: UUID, file_id: 非空不透明字符串标识, asset_type: fi
 - 后续迁移只给历史 Question.analysis 置 NULL，不从参考答案、Rubric、correction_notes、旧 Prompt/Trace 或当前模型回填“历史解析”；已有 Approved/发布状态和结果保持。历史暂存扩展若确有旧数据，新字段保持 NULL/未知；不合成题号、框、资产或确认记录，不自动重跑旧 commit。
 - 历史 QuestionAsset 若有真实既定图序，可按证据补 order_index；无图序证据时明确待核对，不按 UUID/创建时间冒充历史顺序，也不因新列要求改写已有考试。历史未知图序保留 NULL，阻止未经核对的新发布而不改写既有考试；新资产字段约束在后续数据盘点/迁移中落实。
 - 本节由 T153/T154/T158 等后续实施字段与接线，T138 处理图像理解/核对，T137 处理文件物理承载。后续验证覆盖重启读取、PATCH 省略/null/[]、跨页坐标、同导入资产/顺序、批次回滚及幂等、缺解析/未知边界和解析冻结；测试变更先形成 TCR，本任务仅做文档静态检查。
+
+## 14. T137：文件身份、导出与备份登记设计（G04，2026-10-01）
+
+对应 FR-044/045、CHK004 和 [file-storage.md](contracts/file-storage.md)，同步 [plan.md](plan.md) §11。采用用户确认的方案：复用资源身份和定位，仅新增 ExportFile；ManagedFileView 是服务投影，BackupSet 是磁盘 manifest.json，不建 ManagedFile/BackupSet 表。本节定义 v2.0 目标，不执行搬移、备份、恢复或清理，不修改第 1–13 节/v1.0 原文。
+
+### 14.1 file_id 的唯一资源映射
+
+file_id 是服务生成/投影的非空不透明字符串（最长 64 字符）；本版服务内部规范为下列前缀加资源 UUID 的小写 32 位 hex，客户端只回传已提供标识，不自行构造或依赖其格式。前缀区分表间相同 UUID，不新增随机标识映射表，不将文件名/相对路径编码进标识。
+
+| file_id / 资源 | 定位唯一写入源 | 归属与授权来源 |
+| :--- | :--- | :--- |
+| `d_<Document.id.hex>` | Document.storage_path | Document 的课程/知识库或 PaperImport 用途；原试卷仅教师管理权限 |
+| `p_<SourcePage.id.hex>` | SourcePage.image_path | PaperImport.course_id；完整原页不因考试权限向学生开放 |
+| `a_<资产 id.hex>`（暂存） | ExtractedQuestion.assets 中该 id 的服务端 file_meta.storage_path | 所属 ExtractedQuestion/PaperImport；真实同导入页及教师权限 |
+| `a_<QuestionAsset.id.hex>`（正式） | 普通资产为 QuestionAsset.file_path；沿用暂存 id 的导入资产见下文 | 活体 Question 的课程/考试/本人结果引用；无学生可见关联时只保留合法来源管理访问 |
+| `e_<ExportFile.id.hex>` | ExportFile.storage_path | ExportFile 的真实课程/考试/答卷及 audience，见 §14.3 |
+
+- §13 的暂存 id 在入库时沿用，a_ 标识不变。对沿用暂存 id 的原题资产，其原导入资产 file_meta.storage_path 保持定位事实源；正式 QuestionAsset.file_path 为只读关系投影，不再存第二份可独立更新的路径。服务按 ExtractedQuestion 的真实资产 id 定位来源；关联存在时不能因路径缺失改读另一列/旧目录。普通人工/派生资产仍以自己的 file_path 为事实源；复用字节的新关系分配新资产 id。
+- 暂存源是实际持久 JSON 资源，不伪称有 SQL 资产行。正式行存在时服务核对同题确认关联；原暂存来源继续保留。正式资产合法解除后，原导入资产仍可按教师权限追溯，不能把它当作学生可见题图。资源 id/课程不从文件名、公开请求或缓存猜测。
+- ExtractedQuestion.assets 的公共 StagedAsset Schema 保持 §13；服务端持久记录另含 file_meta，公共 CorrectionPayload/View 不接收或泄露其中的路径/迁移原定位。PATCH 按已有 id 保留服务端元数据，新项由服务建立；不能用公开数组整体替换擦除内部文件登记。增加 GIN(assets) 支持服务按资产 id/file_id 定位及引用核对，不宣称 JSON 元素具有 FK。
+- 字节改变必须新建文件/资产身份，不能覆盖已有物理文件或复用旧 a_ 标识指向另一张图。caption/条件维护和顺序变更仍走审核/核验规则；修改裁图形成新图时创建新资产关系，保留原导入依据。迁移只改物理定位，file_id、原图内容、来源坐标和核对身份保持。
+- ManagedFileView.resource_type 取 document/source_page/staged_asset/question_asset/export，resource_id 是真实持久资源 UUID；course_id 由关系派生。availability 读时按真实定位/字节判为 available/missing/history_unknown，未知与已确认缺失分开；没有业务资源的标识为 404。暂存 id 由服务生成并禁止跨题复制；解析出多个不符合确认关联的资源时返回 FILE_REFERENCE_CONFLICT（409），不取首条碰巧命中的记录。授权先于字节读取，不能因同字节的另一个来源有权限而绕过当前资源/考试边界。
+
+### 14.2 文件元数据、迁移记录与写入失败
+
+Document、SourcePage、普通 QuestionAsset、ExportFile 增加 file_metadata：可空 JSONB 对象，无历史默认；暂存原图在服务端 file_meta 保存同一元数据，另含唯一 storage_path。导入正式资产的元数据与定位同样投影原导入资产记录，不维护重复可写副本。
+
+FileMetadata = {media_type: str|null, size_bytes: int|null, sha256: str|null, migration: MigrationRecord}。size_bytes 非负，sha256 为真实字节 SHA-256 小写 64 位 hex；未知为 null。新文件完成写入/关闭并核对后记录真实类型、长度和摘要；旧数据不能填 0/假摘要。Document 原文件名复用已有字段，资产未知名称显示 null，导出名由 ExportFile 保存。摘要只核对字节完整性，不替代授权、来源真实性或业务验收。
+
+MigrationRecord = {status, latest_attempt: MigrationAttempt|null}：
+
+- status 为 not_required/not_migrated/migrated/missing/history_unknown/failed。not_required 表示原生持久文件无需迁移，不伪造迁移事件；历史真实旧定位待迁移为 not_migrated，完成真实复制/引用提交后为 migrated。
+- MigrationAttempt = {operation_id: UUID, source_locator, target_relative_path, started_at, verified_at|null, committed_at|null, error|null}；时间是实际 UTC，error 含 code/message/stage。source_locator 可是历史本机定位，仅服务端保存；不是第二个当前路径，不返回给公共文件响应。数据库约束对象或 NULL，元素/状态与时间一致性由写入服务校验。
+- 确认旧来源、复制到唯一新定位，核对源/目标长度与摘要（已有可信摘要也需一致），再在同事务更新所有指向该共享字节的定位事实源及迁移结果。失败保留原指针/字节及目标中间结果诊断，不修改原材料，不凭目标文件存在宣称 migrated。重复操作核对已经提交的目标与实际字节，不重拷/覆盖，不自动按同名文件补缺。
+- 终态 ExtractedQuestion 的公开校正字段不变；文件服务可更新其内部定位/迁移元数据，此例外只服务物理迁移，不允许改变 file_id/原图或反写正式题修订。§13 的原导入依据冻结继续成立。
+- 可靠保存后才建立可读业务引用。每次落盘/迁移在对应目录记录服务端 OperationReceipt（JSON：operation_id、拟建资源身份、真实已存在归属/发起者/阶段、候选定位、错误与 UTC 时间）；先记录归属再写内容，拟建 id 不代表 SQL 行已存在，数据库失败时收据和材料仍保留。收据只是操作证据，不能凭它返回 Uploaded/Ready/Corrected 或创建成功的 FK；引用提交后才记 committed，stage 为 prepared/written/committed/failed。业务提交后收据更新失败须同时报告已提交事实和收据错误，保留原收据，不伪称无引用或自动重建。
+- 接收时数据库/归属无法建立，或收据/字节写入失败，直接保留真实失败，不宣称已接收。收据不作为第二个定位/授权事实源；未归属中间材料需人工核对，不自动删除或据收据恢复业务成功。DB 中迁移失败记录写不进去时，失败证据保留于收据，不能把旧成功状态当本次成功。
+
+### 14.3 ExportFile（export_files）：仅新增必要导出登记
+
+当前代码未有可复用的导出实体；本表仅承载实际生成的导出文件，不新增导出格式、后台任务或业务版本。
+
+| 字段 | 类型 / 空值 / 约束 |
+| :--- | :--- |
+| id | UUID；非空 PK；每份真实导出身份，e_ 标识由此投影 |
+| course_id / exam_id / submission_id | 可空 UUID FK，RESTRICT；三者恰好一个非空，定位真实归属资源，其余归属沿关系派生 |
+| created_by | 非空 UUID FK User.id，RESTRICT；实际认证发起者，不借资源所有者伪造 |
+| audience | String(32)，非空 CHECK teacher_only/submission_owner；后者要求 submission_id 非空 |
+| original_filename | String(255)，非空；真实导出展示名，不作为目录/授权来源 |
+| storage_path | String(1024)，可空；ready 时须为规范持久相对定位，不另存重复路径 |
+| file_metadata | JSONB 对象，可空；ready 时非空并有实际类型/长度/摘要，与 §14.2 同一 Schema |
+| status | String(16)，非空，默认 writing；CHECK writing/ready/failed |
+| error | JSONB 对象，可空；真实 code/message/stage，failed 必须有值，writing/ready 为 NULL |
+| created_at / completed_at | UTC TIMESTAMPTZ；开始非空，结束可空且 >= 开始；writing 无结束，ready/failed 有真实结束 |
+
+约束：三者恰一归属 CHECK、状态/路径/错误/时间 CHECK；归属 FK 分别建索引，主键供文件读取，不另建重复 file_id 索引。课程、考试或答卷真实存在/权限在创建与读取时校验，归属创建后不可转挂。teacher_only 仅对应管理权限；submission_owner 允许该答卷本人按既有结果可见规则读取，教师仍须有实际管理权限，不能让考试内其他学生读取。created_by 是来源，不是独立授权名单。
+
+writing 行可用于记录真实在途生成；只有内容可靠落盘且 ready 事务提交后才对外提供可读文件引用。猜到 writing/failed 的 e_ 标识也不返回字节，授权后返回 FILE_NOT_READY（409）及真实状态/原因，不冒充文件缺失。崩溃未完成保持真实 writing/待处理，不自动 ready；重复生成新导出不得覆盖旧文件。ready 后定位仅可依法迁移，内容/归属不能覆盖；现有受保护引用继续执行，失败文件/收据不自动清理。
+
+### 14.4 共享字节与删除一致性
+
+- 共享的是同一个规范相对定位的字节；每个业务关联仍有自己的 file_id/权限。相同摘要的不同文件不自动合并；同路径的不同引用不因一条关系删除而消失。文件服务枚举 Document、SourcePage、暂存/终态来源资产、正式资产、ExportFile 及未完成写入收据，不能只数活体 QuestionAsset 或缓存引用计数。
+- 关联建立/解除、定位迁移和字节删除在规范定位上序列化，复用 PostgreSQL 事务级 advisory lock（定位按统一规则产生锁键）并按既有业务锁序核对发布/历史保护；锁内重读实际资源，不新增锁基础设施。共享迁移一次更新全部定位事实源，关系投影不重复写入。
+- 解除一条题图关系与删除物理字节分开处理；仍有原导入来源、其他题/原页、导出或有效历史引用时字节删除返回 FILE_IN_USE。物理清理仅在全部合法引用已解除、写入/迁移已结束且操作获授权后执行；DB 解除失败不能先删字节，清理失败保留可追溯材料/错误。
+- 新关联不能复用已失效资源或凭收据/任意路径重新挂接；删除前的冻结查询和关联写入共同遵守锁。未知历史共享关系不能被推断为无引用，需先盘点。缺字节保留业务记录/原成功历史并报告 FILE_MISSING，不改用旧目录、近似文件或替代图。
+
+### 14.5 BackupSet：磁盘清单与同一写入窗口
+
+每次备份在独立备份目录（备份根加 backup_set_id）保存 manifest.json、database.dump 和 files/，备份根不得位于被复制的业务根子树。不建备份表；manifest 与数据库/文件来自同一次操作，不用 Git/构建版本相等替代关联核对。
+
+| manifest 成员 | 结构 / 语义 |
+| :--- | :--- |
+| manifest_version / backup_set_id | 固定 Schema 版本 1 / 本次 UUID；格式校验与备份集配对，不作组件版本门禁 |
+| outcome | creating/complete/incomplete/failed；最终结果写入后只读，不能覆盖失败为成功 |
+| started_at / window_started_at / window_finished_at / completed_at | 真实 UTC；尚未到达的阶段为 null |
+| database | null 或 {relative_path, size_bytes, sha256, schema_revision}；PostgreSQL 自包含 dump，schema_revision 为真实迁移记录，仅追溯 |
+| references | [{file_id, resource_type, resource_id, owner, relative_path|null, availability, migration_status}]；来自同一数据库/暂存记录，owner 保存真实课程及相应导入/题目/考试/答卷引用 |
+| files | [{relative_path, size_bytes, sha256}]；相对业务根的唯一物理文件清单，同路径共享字节只复制一次，引用不丢失 |
+| operation_receipts | [{relative_path, operation_id, stage}]；在途/失败收据及材料纳入 files，不能藏掉数据库未接收的残留 |
+| issues | [{code, file_id|null, relative_path|null, stage, message}]；逐项记录缺失、未知、未迁移、冲突和技术失败，无问题才 [] |
+
+所有清单经受校验 Schema；路径不能绝对/越根，长度非负，已复制项摘要真实。complete 必须有已核对 database、有效阶段时间，所有有效文件引用对应真实 files，issues=[] 且无未归属材料；失败状态/空清单不能通过手改 outcome 升级。缺失/未知项保持 null/诊断，不造文件或合成合法引用。manifest 格式不含凭据/连接串；备份集本身含业务数据，按已有受控运维访问处理。
+
+1. 创建 creating 清单，暂停全部业务写入口，等待在途导入/生成/评分/文件/导出/迁移事务结束；随后停止所有应用写进程与写脚本，确认无未受控写入。单个 UI 开关或只等 HTTP 请求结束不足以证明窗口；超时/无法排空真实失败，不无限等待或伪造完成。
+2. 在持续停写窗口内生成 PostgreSQL dump，并枚举/复制 uploads、papers、assets、exports 的实际引用、字节和收据；既有 DB 的题目/来源/答卷/评分/复核/核验关系整体保留。每个 active 文件引用可对应唯一实际字节，共享定位统一核对；未迁移外部临时文件不能被漏掉后报告 complete。
+3. 核对 dump/文件长度与 SHA-256、引用归属和收据归属。原业务 Failed/Rejected/Draft/待处理状态不是备份失败，按真实状态保存；缺文件、来源未知、定位冲突、未覆盖材料使备份 incomplete，dump/复制/清单写入失败为 failed，保留已产生材料与原因。
+4. 只有全部目标已核对、无完整性缺口时发布 complete 清单；失败/incomplete 清单也保留且不作成功制品。最终清单先可靠写入再发布，清单落盘失败也不能宣称 complete；窗口结束后才恢复原环境写入。Redis 缓存不是业务事实源，不从缓存补成功状态。
+
+清单开始态示例（仅 Schema 示意，不是已执行备份）：
+
+~~~json
+{
+  "manifest_version": 1,
+  "backup_set_id": "77777777-7777-4777-8777-777777777777",
+  "outcome": "creating",
+  "started_at": "2026-10-01T05:00:00Z",
+  "window_started_at": null,
+  "window_finished_at": null,
+  "completed_at": null,
+  "database": null,
+  "references": [],
+  "files": [],
+  "operation_receipts": [],
+  "issues": []
+}
+~~~
+
+### 14.6 隔离恢复、核对与失败保留
+
+1. 校验同一个备份集 manifest/dump/files 的 Schema、路径、长度、摘要与完整性结果；incomplete/failed 集只能隔离调查，不能宣称完整恢复或开放正常写入。用户授权实际恢复后才执行，本任务不进行恢复。
+2. 恢复到新的隔离数据库和持久根，保留原环境，禁止后台任务/应用写入。导入 dump 和实际 files，固定相对定位与原 file_id；只改变根配置，不将源机器绝对旧路径当新根内文件，不寻找其他备份集补缺。
+3. 从恢复数据库重建同一资源映射，核对 references 与实际资源/FK/课程/来源页/题图/导出归属、共享定位及字节；题目/考试/答卷/评分/复核关系和真实未知/业务失败状态保持。旧 Approved/历史结果不自动重算，失联运行不虚构成功；收据作为材料读取，不自动恢复业务提交或重跑生成。
+4. 写独立 restore-report.json（restore_id、backup_set_id、真实开始/结束 UTC、结果 verified/failed、逐项 issues），原 manifest 保持只读。核对失败或写报告失败不切换，保留隔离环境和原环境，禁止清理原文件；哈希一致不替代业务对应和授权检查。
+5. 仅核对通过后在停写窗口切换数据库/根配置，并验证服务真实加载新环境及授权文件/业务关系可读，之后才开放正常写入。切换/启动失败保留原配置与两套材料，写入开放前可退回原环境；若新环境已接收真实写入，不自动退回旧环境丢弃新数据，另行制定恢复处置。
+
+具体工具在 T147–T151/T191 实施与演练，测试变更先形成 TCR。T137 只定义模型/契约与 plan §11 引用，T140 同步已确认 exports 目录文字；本次文档静态检查不证明存储、备份或恢复已运行。
