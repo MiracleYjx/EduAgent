@@ -5,10 +5,12 @@
 /docs/
 
 # Speckit generated development documents and templates
-# Keep the contracts required by tests and downstream implementers in version control.
+# Track the approved spec/plan and required contracts; ignore other local Spec Kit artifacts.
 .specify/
 !.specify/
 .specify/*
+!.specify/spec.md
+!.specify/plan.md
 !.specify/contracts/
 .specify/contracts/*
 !.specify/contracts/agent-workflow.md
