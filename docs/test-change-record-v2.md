@@ -1,0 +1,123 @@
+# v2.0 测试变更记录与验证映射（T145）
+
+日期：2026-10-01；分支 `deepcode`；准备基线 `0bca025`；T144 成果 `d60a4b3` 已先行提交。依赖 T143 已完成复验，M0 未通过项仍保留。本文件沿用已有 TCR 的“必要性 → 变更边界/覆盖计划 → 验证计划 → 实际变更与验证”结构，先形成计划，不修改 tests/、夹具、业务代码或原 v1.0 断言，也不宣布新增测试已经失败或通过。
+
+依据：spec FR/SC、plan Gate 1–19、data-model、contracts、[T144 盘点](v2.0-storage-inventory.md)、[v2 评测协议](evaluation.md)。T146 已获用户确认先备齐待教师复核样本，正式人工标签缺失；模型质量/教师统计验收不能用草稿真值代替。
+
+## 1. 每批测试变更前的 TCR 模板
+
+后续任务在新增/修改测试前追加一个具体 TCR 小节，并完成下列字段；本文件的模块计划不能代替该批具体记录。
+
+| 字段 | 必填内容 |
+| :--- | :--- |
+| 标识 / 基线 / 日期 | Txxx、具体设计版/代码提交、真实 UTC 时间；源码版本用于追溯，不作为跨组件相等门禁。 |
+| 必要性 | 当前可观察缺口、设计/合同引用、为什么现有用例不足；不因覆盖率数字或想当然增加测试。 |
+| 已确认设计与未决项 | 当前字段/状态/事务/错误/历史语义；未决公共接口或 Provider 等决策先确认，仅暂停依赖部分。 |
+| 变更内容与边界 | 具体文件和目标节点、新增/改动断言、原断言保留情况；若需改旧断言，说明合同实际变化与不可放宽部分。 |
+| 输入与预期行为 | 固定 case_id、来源/标注版本、动作、预期输出/持久副作用与失败；多层只在各自实际责任边界证明必要事实。 |
+| 隔离与替身 | 真实 PostgreSQL 临时 schema/单独库、本次文件目录、固定 M0 项目/端口；Provider 受控失败替身只证明业务分流，不证明 OCR/模型准确率。 |
+| 先行失败证据 | 实现前执行目标节点，记录命令、实际数量/退出码及首个错误；失败必须来自目标缺口，不能把环境错误、缺插件或拼错节点当行为红灯。 |
+| 实现后聚焦验证 | 同一目标节点/输入验证新行为及直接受影响的原入口；不复制算法成为测试 oracle。 |
+| 实际执行 | 真实结果、失败/skip/warnings、隔离资源清理、模型/浏览器/包证据路径；未执行标 not_run，不预填通过。 |
+
+新接口尚未存在时，可先形成针对预期行为的失败优先用例；不能把单纯 ImportError 当完整业务证明。实现入口可调用后，仍需证明正确动作、拒绝与事务结果。凡改测试，保留原 v1.0 回归；测试设计不重新裁定业务架构。
+
+## 2. 分层与既有框架
+
+- unit：现有 `tests/unit/models/`、`services/`、`ingestion/`、`retrieval/`、`grading/`、`ui/`、`workflows/`，验证实际边界、计算和状态；不逐行镜像实现。
+- contract：沿用 `tests/contract/` 的 FastAPI/Provider/Parser 协议用例，核对生产者与直接消费者；Schema 通过不等于语义正确。
+- integration：沿用 `tests/postgres_helpers.py`、既有迁移测试和真实装配模式；临时 schema 的 Inspector 查询必须显式限定 schema，迁移版本表也在本次隔离范围。文件、并发、重启/新 Session 检查实际落库事实。
+- benchmark/真实验收：按 T142 固定输入/教师标签、3 轮模型质量、3 冷/5 暖性能与全量失败留存；人工校正、真实浏览器、真实 EXE 和一致恢复各有实际证据。
+- 现有两类阅卷/检索 Benchmark 的读取格式保持；v2 模板位于独立输入目录，不把未运行模板写成 benchmark/results 的成功记录。
+
+## 3. 必须保留的 v1.0 回归
+
+| 原行为 | 现有模块（实际存在） | 增量实施不得破坏 |
+| :--- | :--- | :--- |
+| JWT/RBAC、课程归属 | test_auth_contract.py、test_auth_api_contract.py、test_admin_api_contract.py | Teacher/Student/Admin 边界及已有越权响应。 |
+| 教学上传、摄取、Ready/Failed | test_document_parsers.py、test_knowledge_base_upload_contract.py、test_teacher_setup.py；unit/ingestion | 原 PDF/TXT/Markdown 主路径，不因 OCR 未安装阻断纯文本。 |
+| Provider 与四检索模式 | test_embedding_provider.py、test_retrieval_contract.py、test_question_agent_retrieval_modes.py | 无新增范围时原默认语义、来源身份、检索模式和结构化结果。 |
+| 候选与 I01 守卫 | test_question_generation_api_contract.py、test_question_update_api_contract.py、unit/services/test_question_service.py | 待审核、Approved 内容不可编辑、合法修订、元数据例外；发布保护需另扩展。 |
+| 考试参加/重复提交 | test_exam_participation_contract.py、unit/services/test_exam_service.py、test_submission_service.py | 身份、课程、考试状态、重复提交，200 题请求边界不改成 100。 |
+| 规则/主观评分与事务 | test_grading_api_contract.py、test_grading_pipeline.py；unit/grading | 客观题不调用 LLM、主观结构化结果、失败非零分、整批原子落库。 |
+| 复核/恢复/诊断 | test_reviews_api_contract.py、test_workflow_api_contract.py、test_langgraph_grading_workflow.py、test_submission_finalization.py | 轮次身份、迟到拒绝、最终成绩、诊断只读与失效、重启真实记录。 |
+| 来源与迁移 | test_question_source_migration.py、test_review_round_migration.py、test_audit_migration.py；unit/models | live_chunk_id SET NULL 与快照保留、原 FK、历史 NULL、不伪造身份/时间。 |
+| 结果权限及 UI | test_results_api_contract.py、test_teacher_results_ui.py；unit/ui | 学生仅本人、教师课程范围、真实空态和失败信息；保护用户未提交 UI/测试改动。 |
+| Docker/静态 | test_m0_smoke.py、test_docker_demo_config.py、test_run_demo.py；mypy/ruff | 固定隔离项目、配置/迁移/readiness/Redis，真实失败不忽略。 |
+
+表内 test_*.py 位于 contract/integration；同名 unit 已注明相对层。后续按目标节点选择最小充分回归，不为文档/输入数据改动重新运行全部业务套件。
+
+## 4. 增量模块的必要性、先行用例及完成证据
+
+以下是设计已确认部分的测试计划，不一次性创建未来阶段全部测试。标为“拟新增”的模块仅是建议位置，具体批次 TCR 再锁定文件/节点；不在此冻结新公共接口名。
+
+| 模块 / 必要性 | 先行验证目标行为 | 框架与原模块 / 拟新增 | 实施 → 证据任务 |
+| :--- | :--- | :--- | :--- |
+| 持久文件与共享引用 | 重名不覆盖；上传失败保留真实状态/材料；file_id 映射与课程/答卷授权；共享引用/发布保护阻止删字节；缺失与未知区分 | 现有上传 contract、来源 models；拟 unit/services/test_file_storage_service.py、contract/test_file_storage_contract.py、integration/test_storage_migration.py | T147–T151 → T152/T191 |
+| 同集备份/隔离恢复 | 排空在途写入；DB+文件同集；隔离核对再切换；缺文件/校验失败保留原环境；故障点和操作收据真实可查 | 拟 integration/test_backup_restore.py；本次只准备计划，不对用户库执行恢复 | T151 → T152/T191 |
+| 导入/校正/并发确认 | 文字/扫描/混合/跨页/错序/无答案，50/51 页边界；原卷不进 Chunk；Uploaded 不冒充入库；null 边界合法、真实页不可空；重复 commit/并发不重复题图或正式题 | 现有 parser/upload/teacher_setup；拟 contract/test_paper_import_contract.py、unit/services/test_paper_import_service.py、integration/test_paper_import.py | T153–T159 → T160 |
+| OCR 可选适配器 | OCR 禁用/缺依赖/真实错误区分空白页；Schema、区域坐标、置信度合法；保持原文字路径 | 现有 parser；拟 contract/test_ocr_provider.py、unit/ingestion/test_paper_pipeline.py；选型 T155 未决前不写具体 PaddleOCR 断言 | T155/T156 → T160/T168 |
+| 章节生产与范围检索 | 不跨已确认边界重叠；章/节同课程；真实教师确认；四模式均 Top-K 前过滤；知识点 JSONB 精确成员；旧未知/无条件默认回归，无不足时全课程回退 | 现有 chunking/retrieval/knowledge-base contract，真实 pgvector/JSON 查询 integration | T161/T162 → T169 |
+| 父题改编与来源 | 同课程、无环、父题不覆盖；沿本次真实教学引用保存；来源/候选/意见事务；改图/条件后重核验、依据不足不得批准 | 原 Question Agent、生成 contract/source migration；拟 integration/test_question_adaptation.py | T165/T167 → T169 |
+| 语义报告与修订 | 四类分项、真实证据；revision/轮次匹配；改回旧内容仍失效；迟到通过不能覆盖当前失败/运行中；教师处置留原问题/身份；旧数据不回填假通过 | 原 question update/workflow contract；拟 unit/services/test_content_validation_service.py、integration/test_question_validation.py | T163/T166 → T169/T168 |
+| 图片理解/人工核对 | figure/table/diagram 原图/顺序/归属；不清晰/不支持/真实失败转人工且保留；图像修订、核对轮次及正式题继承绑定；共享字节不继承父题确认 | 拟 contract/test_vision_capability.py、integration/test_image_assessment.py；以真实 Provider/教师标签另评质量 | T154/T163/T164 → T160/T169/T168 |
+| 历史关联/本场分值 | T144 关联数保留；排序依据核对；同题两场不同满分；Unknown 不能由当前题库回填或重评；数据库升级/回滚边界按正式迁移决定 | 原 models/exam/迁移；拟 integration/test_exam_question_migration.py | T170/T171 → T179 |
+| 条件组卷/意图 | 成功满足数量/题型/覆盖/Decimal 总分；确无解与策略未找到分开；失败保留选题事实但保存合法本次意图；非法/越权/冻结不写意图；重启读意图 | 原 exam contract/service；拟 contract/test_exam_assembly_contract.py、unit/services/test_exam_assembly_service.py | T172 → T179 |
+| Rubric 换算/尾差 | 28 位 Decimal、中间不量化；0.005；正/负尾差均需真实教师确认；未确认阻止发布；定性标准不猜权重；本场标准不二次缩放 | 原 objective/structured grading/result aggregator；拟 unit/grading/test_exam_scoring.py | T173/T174 → T179 |
+| 发布冻结/并发 | 发布与编辑/修订/资产变更同场锁；Published/Closed/Archived 及答卷历史保护；内容/题序/题图/知识点、本场标准稳定，不建完整题目版本 | 原 I01/考试/并发 integration；拟 integration/test_exam_publication_freeze.py | T175–T178 → T179 |
+| 教师统计与学生推荐 | 按有效最终样本统计，逐题/多知识点分母明确；失败/待复核不当零分；同题不同满分、零样本；本人/课程边界，资料/练习真实来源 | 原 results contract/loaders；拟 unit/services/test_exam_analysis.py、integration/test_v2_results_analysis.py、unit/ui 增量 | T180–T183 → T184 |
+| UI 与 EXE | 三页样板后七类业务页；真实操作/错误空态；真实打包启动/子进程所有权；缺依赖/配置/网络/迁移失败；重启、退出不停止用户服务 | 原 unit/ui 与 app；拟 unit/packaging 启动器行为；真实 Windows 包/浏览器另验 | T185–T188 → T186/T189/T191 |
+
+## 5. FR / SC / Gate 映射
+
+| 需求 | 上表验证模块 | 证据 / 门禁 |
+| :--- | :--- | :--- |
+| FR-010 扩展、FR-044/045 | 文件/备份/导入 | T152/T160/T191；Gate 13；SC-010/014 |
+| FR-018 扩展 | 父题改编、图片、语义报告 | T169；Gate 12/19；SC-011 |
+| FR-020/028 扩展 | I01、语义报告、发布冻结 | T169/T179；Gate 15/19；SC-011/012 |
+| FR-024/025 扩展 | 章节/四模式范围查询 | T169；Gate 19；SC-011 |
+| FR-039/040 扩展 | 教师统计/学生推荐 | T184；Gate 19；SC-013 |
+| FR-041/042 | 导入/校正、OCR | T160/T168；Gate 10/11/13；SC-010 |
+| FR-043 | 图片核对/复用、发布/答题/评分显示 | T160/T169/T179；Gate 12；SC-010–012 |
+| FR-046/047 | 父题来源、语义核验及失效 | T168/T169；Gate 19；SC-011 |
+| FR-048 | 组卷/意图/预览/拒绝 | T179；Gate 14；SC-012 |
+| FR-049 | 历史、本场分值、Rubric、冻结 | T171/T179；Gate 15/16；SC-012 |
+| FR-050/051 | 独立统计、本人结果与来源推荐 | T184；Gate 19；SC-013 |
+| FR-052 | EXE/依赖/配置/退出/恢复 | T189/T191；Gate 17/13；SC-014 |
+| SC-010 | 已确认题原文件/页/题图可追溯、重启；逐字段教师核对 | T160/T191；未经确认不入正式题库，缺答案不批准 |
+| SC-011 | 两条出题路径、四类错误及旧答案失效；未解决不得批准 | T169/T191；不以 Schema 通过代替内容质量 |
+| SC-012 | 可满足/不可满足、同场依据一致、历史冻结 | T179/T191；不可满足不发布，不能自动放宽 |
+| SC-013 | 最终/待复核/失败/缺依据及有效分母，与教师独立核算一致 | T184/T191；缺正式教师真值时不可声明通过 |
+| SC-014 | 真实包、同集恢复、七类页操作/截图 | T189/T191；源码运行不替代 EXE |
+
+| Gate | 最小充分证据 / 回归责任 |
+| :--- | :--- |
+| 1 | 原固定隔离 M0 三容器 healthcheck、迁移、Redis；T143 未通过完整入口，后续补验不能偷改标准。 |
+| 2 | 原支持资料摄取来源；T152/T160 扩展不破坏知识库主路径。 |
+| 3 | 四模式同一检索集、规范产物；T162/T169 范围前过滤，T190 真实回归。 |
+| 4 | 候选不得绕审核；T165–T167/T169。 |
+| 5 | 原客观/主观路由与本场评分；T176/T179/T190。 |
+| 6 | 低置信度复核/恢复；T177/T179/T190。 |
+| 7 | AI JSON→Pydantic→DTO；OCR/图片/语义均覆盖合法/非法/真实故障。 |
+| 8 | 保留 v1.0 资源/P95 条件与历史欠缺；T190 如实测量，不以 v2 预算替换。 |
+| 9 | 原 Benchmark 格式、失败留存；v2 独立目录及 T142 格式，不冒称现有看板已支持新格式。 |
+| 10 / 11 | 导入状态、拆题/校正逐字段和重启；T160。 |
+| 12 | 原图理解/人工核对与预览/答题/评分/结果一致；T164/T169/T179。 |
+| 13 | 文件、迁移、同集恢复与失败；T152/T160/T191。 |
+| 14 | 合法组卷意图、实际条件和失败保留；T179。 |
+| 15 / 16 | 题序/本场分值、冻结、同比例标准/尾差、客观/主观/复核/汇总；T179。 |
+| 17 | 真实 Windows 包首次/后续启动及完整资源采样；T189。 |
+| 18 | 三页代表样板至七类逐页 UI 操作；T185/T186/T191。 |
+| 19 | 语义铁律、范围/父题、教师独立统计、真实学生反馈及来源；T169/T184/T191。 |
+
+## 6. 执行与停止规则
+
+具体批次先追加 TCR、锁定已确认设计，再写能暴露该缺口的用例，跑目标节点并记录红灯，随后实现/聚焦回归。环境失败先定位，不能改断言、加测试特例或以 skip 制造成功。聚焦检查足以证明后，除新修改/失败/跨组件影响外不扩大重跑。
+
+代码或测试实际变化后执行仓库所需 pytest、mypy、ruff；迁移、容器、Provider、包、浏览器按实际责任分别验证。计划自检/数据结构校验不能升级成模型质量、教师真值或系统验收。失败原样保存，不以旧报告、替代文件、无依据默认或无界重试兜底。
+
+OCR 具体适配器 T155、质量阈值 T168、教师标注和独立统计基准尚未完成；选择/真值补齐前，仅准备独立于这些取舍的用例结构。Redis 继续沿既有依赖，不自行取消；服务端冻结、JSONB 语义核验/图像证据及 Exam.assembly_constraints 按已经确认的合同执行。
+
+## 7. 本任务实际产出与验证
+
+本次仅新增此记录，核对现有模块/合同引用、FR/SC/Gate 覆盖及任务依赖。未新增或修改 pytest 用例、未运行假红灯、未声明所有未来设计已锁定；原测试和用户工作区文件保持不变。T145 勾选表示 TCR 计划/映射已建立；各批具体 TCR、先行测试和真实验收仍随对应实施任务完成。
