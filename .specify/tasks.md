@@ -462,3 +462,205 @@ M0 工程骨架 + Benchmark
 - 原代码复验：在独立进程中载入 HEAD 的 Question Service 与 Question API，`test_trigger_creates_task_and_returns_queued` 仍因 `WORKFLOW_SERVICE_NOT_READY` 失败；未改写工作区文件，也未修改这些既有失败测试。
 - 静态检查：`python -m mypy backend/app/`，141 个文件通过；`python -m ruff check backend/ tests/` 通过；补丁格式检查通过。
 - 本任务只完成 I01 的内容守卫、元数据例外和显式修订审核流程；数据库环境故障不纳入修复范围，不宣称已完成考试快照或历史版本冻结。其他任务状态保持不变。
+
+## Phase 10: Convergence
+
+**主题**：v2.0 实施前 checklist 与任务收敛（2026-10-01，Asia/Shanghai）。
+**依据**：`.specify/spec.md`、`.specify/plan.md` 为意图源，宪章 `.specify/memory/constitution.md` 为约束；结合 data-model/contracts、[分析报告](../docs/v2.0-analyze-report.md) 与 [实施前清单](checklists/v2-readiness.md) 核对当前源码。
+**本次产出**：仅追加本节与生成清单。T001–T133 的内容、顺序、状态及既有汇总不变；上方旧汇总不包含本节。未执行 implement，未修改设计正文、代码、迁移或测试，未运行业务验收。
+**流程说明**：当前 tasks 已有 M0–M5 实施及 T133 验证记录，满足已有任务经过实施的上下文；按用户明确要求，在本次 converge 同时追加 v2.0 设计补齐和 E0–E6 任务，不另行执行 tasks/implement。已有 T125–T132 未完成的前缀缓存任务保持原样，不自动成为 v2.0 依赖；已完成/部分 UI 状态也不据此重写。
+**评估口径**：12 条新 FR + 8 条既有 FR 扩展（010/018/020/024/025/028/039/040）+ 5 条 SC + 12 条 US1–US3 扩展 AC，共 37 个需求/场景条目；plan §8–14 七项、非功能四项和 Gate 10–19 十项，共 21 个计划条目；宪章 I–V 五条。只在本版触及范围核对代码，未发现确定的宪章 MUST 违规，不宣称全仓重新验收。
+**发现口径**：每个新任务对应一项细分发现，稳定标识 F001–F058 与 T134–T191 按序一一对应（F序号 = T编号 − 133）。missing 27、partial 29、contradicts 2、unrequested 0；HIGH 50、MEDIUM 8、CRITICAL/LOW 0。UI 未提交工作属于已知授权范围，不作为 unrequested 清理。按用户指定 A、E0–E6 分批及依赖排序，不以全局严重度打乱执行前置。
+
+### 当前证据与范围
+
+| 发现范围 | 来源 | 当前源码/文档证据 | 收敛方向 |
+| :--- | :--- | :--- | :--- |
+| F001–F009 / G01–G09 | 清单 CHK001–009、FR/plan/contracts | data-model §3/7/8/10 缺映射；plan §9与实体引用、§11与目录树存在差异；评测重复/阈值仍待明确 | 设计补齐及用户取舍；本次不直接补文档 |
+| F010–F013 / E0 | CHK010–012、兼容性目标 | tasks T133 的全量失败记录与 M5 既有证据不等价；没有 v2.0 盘点/TCR/样本计划 | 复验并建立任务和验证依赖 |
+| F014–F019 / E1 | FR-044/045 | `backend/app/api/knowledge_bases.py:45` 仍用 tempfile；scripts 无 migrate_storage_paths/backup_restore；无统一文件访问/登记 | 持久存储、授权、迁移与同集恢复 |
+| F020–F027 / E2 | FR-041/042/043 | models 仅有现有 Document/Question，无 PaperImport/SourcePage/ExtractedQuestion/QuestionAsset；无 OCR/导入 API | 复用知识库文件基础，新增独立导入/校正 |
+| F028–F036 / E3 | FR-024/025/046/047 | `ai/retrieval/_filters.py:12` 只消费课程/知识库/资料；`ai/llm/base.py:56` 无图像能力；已有 Question Agent/字段校验，缺父题/语义报告持久映射 | 章节生产与 SQL、图片、改编、核验/审核增量 |
+| F037–F046 / E4 | FR-048/049 | `models/associations.py` 仅两 ID；Exam 按 created_at/id 排序；`exam_service.py:651` 发布只校核归属/审核；`grading_task_service.py:627` 读取 Question.score；QuestionService 已有 I01 六字段守卫 | 升级原关联与全评分链、发布/历史冻结，不重做 I01 |
+| F047–F051 / E5 | FR-050/051 | `api/results.py:180` 已有最终平均分/待复核汇总，`diagnosis_service.py` 已有失分诊断；缺完整分布/分母/参与统计和真实资料/练习推荐 | 扩展现有结果/诊断与师生视图 |
+| F052–F058 / E6 | FR-052、SC-014 | 当前有 layout_view/design_system/题库改动及结果页；scripts/ 无 EXE 构建，缺 v2.0 七页/打包/闭环运行证据 | 复用 UI 成果，完成实际交付与验证 |
+
+以上为当前文件的静态评估；缺少新模型/入口由路径盘点和概念检索共同核对，不把旧文档“已完成”当作新功能证据。未来任务列出的新文件是计划路径；未列完整根路径的 `models/`、`services/`、`api/`、`schemas/`、`ai/`、`ui/` 均相对 `backend/app/`，迁移/测试使用实际仓库根 `migrations/`、`tests/`。文件拆分复用 plan 蓝图，允许不改变职责的局部实现细节。
+
+### 本节执行与完成规则
+
+- A 组是待执行的文档任务，不表示方案已确认。G01–G05/G08 的存储、公共接口等实质取舍先提交用户决定；G06/G07 同步已确认合同。闭区间语义已在 rag 契约明确，不重复升级为未决架构问题。
+- 从 E0 的 T143/T144 开始基线复验和只读盘点；A 可按受影响模块准备，G04/G07 在 E1、G03/G06 在 E2、G05 在图片核对、G01/G02/G05 在 E3、G08 在 E4 编码前完成。G09 协议先于正式样本/测量，质量阈值由 T168 基线后提请确认；不阻塞独立盘点。
+- E0 建立 TCR；每一批新增/修改测试前先补齐该批 TCR，再按既有 tasks 测试说明先写目标行为用例、确认暴露缺口后实现。批末“验收”任务负责运行与证据，不表示测试留到编码后才写。本次没有测试内容修改。
+- 各任务明确列直接依赖，传递依赖同样生效。跨批接口共同核对；未决事项只阻塞依赖工作。各批验证足以证明改动后停止，除新修改/失败/具体未解问题外不重复跑矩阵。
+- 技术栈、原 Provider/结构化输出、四种检索和阅卷图保持；不引入完整题目版本/内容快照、自动新题图、复杂能力模型或独立基础设施。T155 的 OCR、T164 如需新增的图像 Provider 需先明确选型与成本。
+- 完成依据分别记录源码、迁移/测试、真实模型、Docker、EXE、UI、闭环及恢复，不能跨级宣称。失败/未知/待核对保持真实；T190/T191 未通过不得称 v2.0 验收完成。操作真实数据的清理/恢复和后续提交/发布依各次授权，不由勾选任务自动授权。
+- Checklist 文档评估为 36 项：24 通过、12 待处理；A 覆盖 CHK001–009，E0–E6 编排及下方映射覆盖 CHK010–012，追加任务不等于这些需求已实现或评审者已勾选。
+
+### 追加任务汇总
+
+| 分类/批次 | 内容 | 编号 | 数量 |
+| :--- | :--- | :--- | ---: |
+| A | G01–G09 设计补齐 | T134–T142 | 9 |
+| E0 | 基线复验、文件/历史盘点、TCR、样本 | T143–T146 | 4 |
+| E1 | 文件持久化、迁移、备份恢复 | T147–T152 | 6 |
+| E2 | 试卷导入、OCR、校正 | T153–T160 | 8 |
+| E3 | 章节范围、原题改编、图片、语义核验 | T161–T169 | 9 |
+| E4 | 条件组卷、内容冻结、考试内分值与阅卷 | T170–T179 | 10 |
+| E5 | 教师考情与学生知识点反馈 | T180–T184 | 5 |
+| E6 | UI 收敛、EXE 与最终验证 | T185–T191 | 7 |
+| 合计 | 设计 9 + 实施/验证 49 | T134–T191 | 58 |
+
+### A. 设计补齐任务（G01–G09）
+
+- [ ] T134 [HIGH] [设计 G01] **G01 章节定位与知识点映射设计**：在 `.specify/data-model.md`、`contracts/rag-retrieval.md` 及 plan 相关引用中补齐章节稳定身份、课程/资料归属、小节序号、标签 Schema/SQL 匹配及摄取/教师核对责任；沿用契约已明确的章内闭区间和同维并集/跨维交集。给出最小字段/索引、跨章切分、旧 NULL 数据迁移方案，涉及新增实体或接口的取舍先由用户确认，不强制新增章节服务。 依赖：无新增任务前置。per FR-024/025、FR-046/047、G01、CHK001（F001） (partial)
+
+- [ ] T135 [HIGH] [设计 G02] **G02 语义核验与人工处置持久设计**：在 `.specify/data-model.md` 与 `contracts/agent-workflow.md` 明确 QuestionValidationResult 的存储、每轮输入/证据关联、分项结果/技术失败、真实执行主体、教师处置及当前内容对应/失效规则；优先评审独立报告方案，QuestionRevisionComment 保留教师文字职责。给出报告与 Needs Revision 同事务、旧数据和既有批准入口的应用边界；方案由用户确认后落文档，不引入完整题目版本。 依赖：无新增任务前置。per FR-047/028、G02、CHK002（F002） (missing)
+
+- [ ] T136 [HIGH] [设计 G03] **G03 校正字段及正式题解析设计**：在 `.specify/data-model.md` 与 `contracts/paper-import.md` 明确 question_number、analysis、knowledge_points、source_regions、暂存 assets 的字段/受校验 JSON、来源坐标、转入 Question.analysis 与资产的映射、空值和历史迁移；补齐解析的审核/冻结责任，不能用 correction_notes 承载结构化内容。字段与存储取舍经用户确认后同步。 依赖：无新增任务前置。per FR-018/028/041/042/049、G03、CHK003（F003） (partial)
+
+- [ ] T137 [HIGH] [设计 G04] **G04 文件身份、导出与备份登记设计**：在 `.specify/data-model.md`、`contracts/file-storage.md` 与 plan §11 确定稳定 file_id 到资源/相对定位/授权的唯一映射、共享字节引用、导出归属及迁移记录；优先复用已有实体身份，确需独立登记再确认。定义 BackupSet manifest、同一写入窗口、恢复核对和失败保留；不把逻辑视图预定为两张新表，关键承载/恢复取舍由用户确认。 依赖：无新增任务前置。per FR-044/045、G04、CHK004（F004） (missing)
+
+- [ ] T138 [HIGH] [设计 G05] **G05 图片理解与人工核对持久设计**：在 `.specify/data-model.md`、`contracts/vision-capability.md`、`contracts/paper-import.md` 明确暂存图/QuestionAsset 的理解条件、问题、实际调用来源、教师身份/UTC 时间/说明和失效关联；与 G02/G03 的承载复用方案共同评审，明确校正确认后如何转入/关联正式题，不以 caption 或单个布尔值替代核对证据。 依赖：T135、T136、T137。per FR-043/047、G05、CHK005（F005） (missing)
+
+- [ ] T139 [MEDIUM] [设计 G06] **G06 导入关系与状态同步**：按已确认模型/导入契约更新 `.specify/plan.md` §8/9及实体引用：Document 非空唯一关联、paper_source 的知识库条件约束、Rejected/Failed/Ready 语义及终态；同步已创建模型/契约的阶段说明，保留 v1.0 原文及知识库状态职责。 依赖：无新增任务前置。per FR-041/042、G06、CHK006（F006） (contradicts)
+
+- [ ] T140 [MEDIUM] [设计 G07] **G07 导出目录统一**：按 `contracts/file-storage.md` 同步 `.specify/plan.md` §11和目录树为独立 `storage/exports/`，使后续导出登记、迁移及备份清单只消费同一规范定位；不增加双目录隐式查找。 依赖：T137。per FR-044/045、G07、CHK007（F007） (contradicts)
+
+- [ ] T141 [HIGH] [设计 G08] **G08 组卷条件持久设计**：在 `.specify/data-model.md`、`contracts/exam-assembly.md` 明确最近一次教师组卷要求的存储、成功/失败写入时机、人工替换后的重算及旧考试合法缺省；优先评审 Exam 上受 Pydantic 校验的约束 JSON，实际分值仍以 ExamQuestion 为事实源，取舍由用户确认后同步。 依赖：无新增任务前置。per FR-048/049、G08、CHK008（F008） (missing)
+
+- [ ] T142 [MEDIUM] [设计 G09] **G09 评测协议锁定**：在 `.specify/plan.md` 非功能/门禁细节及 `docs/evaluation.md` 锁定样本与标注规则、机器/配置、重复次数、冷暖启动、计时边界、分母、失败记录及证据格式；把质量阈值明确设为真实基线后提请用户确认，不预填效果数值或把模型自信当准确率。区分业务铁律逐例验收与质量/性能实测，阈值确认由 T168 承接。 依赖：无新增任务前置。per SC-010–014、plan 非功能目标、G09、CHK009（F009） (partial)
+
+### E0：基线复验 + 文件盘点
+
+- [ ] T143 [HIGH] [E0] **复验 v1.0 基线**：在 `docs/validation-report.md` 记录当前分支、提交、tag、工作区边界及依赖状态；按既有框架执行 pytest、mypy、ruff 和隔离 Docker M0/迁移/readiness/Redis 检查，核实 T133 的既有全量失败及 M5 证据适用范围。分开记录环境问题、基线失败与新回归，不清理用户工作区、不改旧任务状态；影响后续目标的基线问题提交具体处置建议，不自动扩成无关修复。 依赖：无新增任务前置。per plan Gate 1–9/兼容性目标、T133、CHK012（F010） (partial)
+
+- [ ] T144 [HIGH] [E0] **盘点文件与历史考试数据**：在 `docs/v2.0-storage-inventory.md` 只读盘点 Document.storage_path、临时文件、导出/来源关系及 exam_questions 的历史题序、分值/Rubric/知识点证据，区分存在、缺失、未知、待核对和受保护引用；列出可迁移对象及不可可靠回填项，不搬移/删除文件，不以当前题值代替历史值。 依赖：T143。per FR-044/049、data-model §10、CHK010/012（F011） (partial)
+
+- [ ] T145 [HIGH] [E0] **建立 v2.0 TCR 与分批验证映射**：先在 `docs/test-change-record-v2.md` 按现有 TCR 形式逐批写明必要性、覆盖行为、受影响 pytest unit/contract/integration/benchmark 模块与保留断言；将 FR/SC/Gate 映射至各批聚焦验证。每批新增/修改测试前按已确认设计补齐该批 TCR，先写能暴露目标缺口的行为用例再实现；不一次性堆建未确认设计的测试，不重写 v1.0 测试标准。 依赖：T143。per plan 兼容性目标、tasks 测试说明、Constitution V、CHK011/012（F012） (missing)
+
+- [ ] T146 [MEDIUM] [E0] **准备标注样本与评测证据入口**：按 T142 协议在 `benchmark/` 与 `docs/evaluation.md` 准备文字/扫描/图片/混合页/跨页/无答案/错序样本，语义四类错误及无问题/旧答案失效样本、图片条件样本、可满足/不可满足组卷和教师独立统计基准；记录真实标注/来源、版本、运行环境与 JSON/CSV 结构。此任务只准备输入，准确性/性能运行分别由 T160/T168/T179/T189/T190 承接。 依赖：T142、T145。per SC-010–014、plan 可评测目标、Constitution V（F013） (missing)
+
+### E1：文件持久化
+
+- [ ] T147 [HIGH] [E1] **实现持久根目录与文件登记**：在 `backend/app/core/config.py`、新增 `backend/app/services/file_storage_service.py`、已确认映射对应模型及 `migrations/versions/` 实现持久根配置、相对定位、稳定 file_id、真实资源/导出登记和迁移状态；配置 Docker 挂载、开发与 EXE 用户目录及 `.gitignore`，可靠落盘后建立引用，失败留真实归属/诊断。按 G04 选择承载，不新增对象存储或重复路径事实源。 依赖：T137、T140、T144、T145。per FR-044/045、file-storage、CHK004/007（F014） (partial)
+
+- [ ] T148 [HIGH] [E1] **实现授权文件读取与引用生命周期**：在新增 `backend/app/api/file_storage.py` 和文件服务实现 GET /api/files/{file_id}，继承课程/考试/本人结果授权，区分 missing/history_unknown/401/403/404；实现共享引用删除保护、FILE_IN_USE 及原材料保留。E2 创建原页/题图时接入具体资源映射，E4 将发布/历史保护接入同一服务；不开放含答案源卷静态地址。 依赖：T147。per FR-043/044、file-storage 访问/删除契约（F015） (missing)
+
+- [ ] T149 [HIGH] [E1] **接入教学上传与导出文件持久化**：在 `backend/app/api/knowledge_bases.py`、`services/knowledge_base_service.py`、`ai/ingestion/service.py` 及现有导出写入边界统一消费文件服务；让解析器解析服务端持久定位，保留旧 PDF/TXT/Markdown 上传和元数据接口语义。实际导出采用 exports 并登记所属资源，不新造导出格式或伪造历史文件。 依赖：T147、T148。per FR-010/044、plan §11、file-storage（F016） (partial)
+
+- [ ] T150 [HIGH] [E1] **实现历史文件迁移工具**：在 `scripts/migrate_storage_paths.py` 基于 T144 盘点实现先复制核对、后事务更新引用/迁移状态、成功后才可清理旧副本；重复执行识别已迁移项，失败保留原定位/文件，缺失和未知单列。在隔离样本演练并记录 `docs/v2.0-storage-inventory.md`，真实文件清理/恢复等破坏性动作另按授权执行。 依赖：T144、T147、T149。per FR-044、file-storage 历史迁移、data-model §10（F017） (missing)
+
+- [ ] T151 [HIGH] [E1] **实现一致备份与恢复工具**：在 `scripts/backup_restore.py` 按 G04 manifest 与写入窗口覆盖数据库、uploads/papers/assets/exports，处理在途写入并在恢复核对通过前关闭业务写入；校验真实关联/文件、报告缺失/未知/部分失败。先在隔离目标演练，保留现有配置/凭据管理；后续 E2–E4 新资源接入登记，最终 T191 用完整业务数据再验恢复。 依赖：T137、T147、T148、T150。per FR-045、file-storage 一致备份与恢复（F018） (missing)
+
+- [ ] T152 [HIGH] [E1] **验收文件持久化和迁移兼容**：依 T145 的先行用例，在 `tests/unit/services/`、`tests/contract/`、`tests/integration/` 验证上传重启、同名不覆盖、资源越权/共享删除、复制与事务失败、幂等迁移、同集恢复及缺失/未知；保留知识库原接口回归，并在 `docs/validation-report.md` 记录 Gate 13 的阶段证据，尚无真实原卷/题图链路的部分留 T160/T191 完成。 依赖：T145、T147、T148、T149、T150、T151。per FR-044/045、SC-010/014、plan Gate 13（F019） (partial)
+
+### E2：试卷导入 + OCR + 校正
+
+- [ ] T153 [HIGH] [E2] **实现导入实体与校正持久模型**：在 `backend/app/models/`、`schemas/`、`domain/enums.py`、`migrations/versions/` 新增 PaperImport/SourcePage/ExtractedQuestion，扩展 Document.purpose、Question.source_type/frozen_at/analysis 和 G03 校正字段；知识库默认列表/摄取限定 knowledge_base，保持知识库条件非空、Document 原路径唯一事实源、source_page_ids 唯一表达及旧未知来源。新增解析纳入 Approved 守卫，不等 E4 才保护已批准内容。 依赖：T136、T139、T145、T152。per FR-041/042、G03/G06、data-model §7.1–3/8/10（F020） (missing)
+
+- [ ] T154 [HIGH] [E2] **实现题图资产及原页关系**：新增 `backend/app/models/question_asset.py`、`backend/app/api/question_assets.py`、相关 schema/迁移和服务，在文件服务绑定原图、裁图像素坐标、同导入页来源及最多 5 图；提供教师校正原图关联，学生资产仅含允许展示区域，避免把含答案整页当题图。G05 已确认的核对结构随暂存校正可靠保存，完整理解/处置服务在 T163 接入。 依赖：T138、T147、T148、T153。per FR-043、G05、data-model §7.4、file-storage（F021） (missing)
+
+- [ ] T155 [MEDIUM] [E2] **验证并确认 OCR 推理依赖**：在 `docs/evaluation.md` 记录候选 OCR 在标注扫描/公式表格/跨页与 Windows 打包环境的能力、版本、资源和局限，优先评估 plan 候选 PaddleOCR；给出少量方案的收益/代价，请用户锁定首版适配器与关键依赖后交给 T156。无需实现所有候选，不引入训练依赖。 依赖：T146。per FR-042、plan §9/14、ocr-provider（F022） (missing)
+
+- [ ] T156 [HIGH] [E2] **实现可选 OCR Provider**：在新增 `backend/app/ai/ingestion/ocr/`、配置和 `pyproject.toml` 实现 BaseOCRProvider.extract_text/describe 及 T155 已确认适配器，Pydantic OCRResult/区域坐标/置信度校验、可选依赖延迟加载和真实错误传播；OCR_ENABLED 默认 false，扫描需要 OCR 时明确失败，空白页与坏输出分开，不静默换适配器。 依赖：T145、T155。per FR-042、ocr-provider、Constitution III/IV（F023） (missing)
+
+- [ ] T157 [HIGH] [E2] **实现试卷上传、按页解析与拆题编排**：在新增 `backend/app/services/paper_import_service.py`、`api/paper_import.py`、`ai/ingestion/paper_pipeline.py`、`paper_extraction/` 及已有 `parsers.py` 中，接入路由/依赖装配：可靠保存原卷后返回 Uploaded，逐页保存页图，文字优先提取、混合/扫描走 OCR，拆题结果经 Pydantic 后暂存；落实最多 50 页、零题失败、实际页/题进度和原错误/中间结果保留，paper_source 不进入 Chunk/Embedding。 依赖：T153、T154、T156。per FR-041/042、paper-import、plan §8/9（F024） (missing)
+
+- [ ] T158 [HIGH] [E2] **实现校正、拒绝与幂等确认入库**：在 `services/question_correction_service.py`、导入服务/API 实现列表/详情/PATCH/commit，持久修改题边界、跨页、顺序、解析与图像关联；同导入串行核对，Question(Draft)、题图/来源与 ExtractedQuestion.question_id/Corrected 同事务，非法指定批次整体拒绝，重复确认返回已有题。缺答案/Rubric 保持待补全；全部拒绝与部分确认的终态按契约处理，确认后不反写来源。 依赖：T157。per FR-041/042、paper-import 事务/状态机、US1-v2/AC2（F025） (missing)
+
+- [ ] T159 [HIGH] [E2] **实现原页与结构化题目校正界面**：新增 `backend/app/ui/paper_import_view.py` 和 `paper_correction_view.py`，接入 `gradio_app.py`/导航及真实加载器；提供独立试卷入口、原页与暂存题并排、跨页/题边界/选项/图像关联校正、显式拒绝/批次确认、待补全及失败说明。重新打开读取持久记录；图像理解/核对入口由 T163/T164 补接，不用 UI 状态代替保存。 依赖：T158。per FR-041/042、SC-010、plan Gate 10/11（F026） (missing)
+
+- [ ] T160 [HIGH] [E2] **验收导入、OCR、校正与重启**：依 T145 先行用例，在 `tests/contract/`、`tests/integration/` 和 `benchmark/` 运行文字/扫描/混合 PDF、图片、跨页/错序/无答案/损坏/超页、OCR 禁用/失败、并发校正与重复 commit；真实标注逐字段核对并分开报告自动提取和校正结果，验证原卷/页图/题图重启可读与学生源卷隔离。按 T142 记录导入/校正耗时及 Gate 10/11/13 阶段证据。 依赖：T145、T146、T152、T153、T154、T156、T157、T158、T159。per FR-041–045、SC-010、plan Gate 10/11/13（F027） (missing)
+
+### E3：原题改编 + 语义核验
+
+- [ ] T161 [HIGH] [E3] **实现章节定位生产与迁移**：按 G01 在 `models/document_chunk.py`、`ai/ingestion/chunking.py`、`ai/ingestion/service.py`、知识库服务/API/UI 及迁移实现真实章节/小节/知识点标注、教师核对和 (course_id,chapter_id,section_order) 索引；跨章按真实边界切分，旧片段未知保留 NULL。不能只补查询字段而没有定位生产入口。 依赖：T134、T145、T149、T153。per FR-024/025、G01、rag-retrieval Chunk定位（F028） (partial)
+
+- [ ] T162 [HIGH] [E3] **贯通章节范围与四种检索 SQL**：在 `ai/retrieval/base.py`、`_filters.py`、`vector_search.py`、`keyword_search.py`、`hybrid_search.py` 及 Query 构造/调用方贯通授权课程、资料、章节/小节和知识点；先 SQL 过滤 Ready/knowledge_base 再打分/Top-K/融合/重排。保留无范围默认，跨课程/未映射明确拒绝，合法不足不扩大范围；出题与阅卷共用同一范围消费边界。 依赖：T161。per FR-024/025/032、rag-retrieval §SQL强制过滤（F029） (partial)
+
+- [ ] T163 [HIGH] [E3] **实现核验与图片核对持久服务**：按 G02/G05 在 `models/`、`schemas/`、迁移及新增 `services/content_validation_service.py` 实现每轮报告、实际 Agent/Provider 来源、技术错误、教师处置与原图/当前内容关联；接通暂存题转正式题的核对记录及读取/处置接口，变化后旧结果失效但证据保留，不伪造教师身份或将机器报告塞进意见。 依赖：T135、T138、T145、T153、T154。per FR-043/047、G02/G05、agent-workflow、vision-capability（F030） (missing)
+
+- [ ] T164 [HIGH] [E3] **实现图片能力与结构化理解**：在 `ai/llm/base.py` 增加默认 False 的 supports_vision，保持 generate_structured 签名；经已配置且确认具备能力的适配器及新增 `ai/vision/base.py`、`ai/vision/provider.py` 处理授权图像/传输/条件 DTO，并接入 T163 的人工核对入口与导入 UI。能力按实际模型判断；若需新增关键 Provider 先提交选型供用户决定，不强迫切换旧模型。无能力/传输不可用/调用失败/不可靠分别处理，可靠人工核对可继续流程。 依赖：T148、T154、T159、T163。per FR-043、vision-capability、plan §10、Constitution III/IV（F031） (missing)
+
+- [ ] T165 [HIGH] [E3] **扩展文字生成与原题改编来源**：在 `ai/agents/question_agent.py`、`api/question_generation.py`、新增 `services/question_adaptation_service.py`、来源持久化边界及新增 QuestionSourcePaper 模型/迁移接入章节/资料/目标分值和两种生成路径；新文字题保存真实教学引用，改编候选与父题关系同事务，Course 锁下核对同课程/无环/不自引，复用原图新关联并重核验，不覆盖父题。source_type 来自真实创建路径，旧知识引用状态/快照不重定义。 依赖：T162、T163、T164。per FR-024/025/046、question-source-persistence、US1-v2/AC3（F032） (partial)
+
+- [ ] T166 [HIGH] [E3] **接入语义核验及服务端批准约束**：扩展 `services/question_validator.py`、`content_validation_service.py`、`question_service.py` 与 Agent 编排，对生成、改编、人工/导入补全候选核对答案、条件、选项歧义与 Rubric；Agent 只返结构化报告，服务计算 can_review，报告与合法 Needs Revision 转换原子保存。批准时记录真实 frozen_at，合法退回清除当前批准时间，历史未知不伪填。修改答案相关字段/图片/依据使旧核验失效，技术失败保留原错且阻止批准；现有候选 DTO、原阅卷拓扑和历史成绩读取保持。 依赖：T163、T164、T165。per FR-025/028/047、agent-workflow、SC-011（F033） (partial)
+
+- [ ] T167 [HIGH] [E3] **扩展候选审核与题库补全 UI**：在 `ui/question_generation_view.py`、`question_view.py`、相关 API/加载器展示范围、教学片段/位置、父题/原卷、解析、图像核对与分项核验，允许补全和显式修订/再提交/批准；只消费服务端真实状态和有效报告。复用当前工作区已有列表/详情/编辑与设计系统改动，实施时核实其合并状态，不覆盖用户成果。 依赖：T159、T165、T166。per FR-018/028/043/046/047、SC-011（F034） (partial)
+
+- [ ] T168 [MEDIUM] [E3] **运行质量基线并确认验收阈值**：在 `benchmark/`、`scripts/` 与 `docs/evaluation.md` 按 T142/T146 执行真实 OCR/拆题、图片条件、语义核验标注评测；记录自动/人工结果、TP/FP/TN/FN、覆盖率和失败样本、实际模型/Prompt/数据版本。依据真实基线提出质量阈值供用户确认后补齐评测协议；无可评数据不填伪造百分比，未达目标如实报告并只列当前所需修复。 依赖：T142、T146、T160、T162、T164、T166。per G09、SC-010/011、plan 可评测目标、Constitution V（F035） (missing)
+
+- [ ] T169 [HIGH] [E3] **验收范围、改编、图片与重核验**：按 T145 执行四模式 Top-K 前范围过滤/旧默认回归、跨课程/未知章节拒绝、父题无环与事务、支持/不支持图片、教师处置、持久报告与内容变更失效用例；用五类错误/无问题样本核对不能批准的场景，保留 Candidate Generation 与教师审核职责。将实际生成/改编证据写入 `docs/validation-report.md`，不得用 Schema 通过代替语义评测。 依赖：T145、T165、T166、T167、T168。per FR-024/025/043/046/047、SC-011、plan Gate 12/19（F036） (partial)
+
+### E4：条件组卷 + 内容冻结
+
+- [ ] T170 [HIGH] [E4] **升级 ExamQuestion 与组卷条件模型**：在 `models/associations.py`、`models/exam.py`、新增 `models/exam_question.py`、schemas 和迁移升级原 exam_questions，保存 id/order_index/score/base_score/published_knowledge_points/scoring_basis 与 G08 约束；保留原 FK 语义和旧关系可读性，唯一性/金额约束一致。草稿合法缺省取题库值，旧发布数据只据真实证据处理。 依赖：T141、T144、T145、T169。per FR-048/049、G08、data-model §7.6/9/10（F037） (partial)
+
+- [ ] T171 [HIGH] [E4] **落实历史考试核对与兼容迁移**：在 `migrations/versions/`、`scripts/` 及 `docs/validation-report.md` 将 T144 盘点转为历史关联迁移/核对流程：题序依据当前确定排序或更强真实证据，分值/标准/知识点只按当时证据固定；未知显式报告，历史原始结果可读但不能未经核对重评。隔离数据库验证关联数量、历史读取及失败恢复，不以迁移执行时间伪造批准时间。 依赖：T144、T170。per FR-049、exam-scoring 历史兼容、data-model §10（F038） (missing)
+
+- [ ] T172 [HIGH] [E4] **实现条件组卷与约束持久化**：在新增 `services/exam_assembly_service.py`、`services/exam_service.py` 和 `api/exams.py` 实现 assemble：同课程已审核/补全/语义处置及图像可用候选，精确题型/数量/知识点覆盖/Decimal 总分；保存教师要求和成功组合，不自动降条件或改分。区分确有冲突与策略未找到，失败返回真实 gaps 且保持原草稿，不引入独立求解服务。 依赖：T170、T171。per FR-048、exam-assembly 输入/输出、SC-012（F039） (missing)
+
+- [ ] T173 [HIGH] [E4] **实现题序、替换、改分与完整预览**：在考试服务/API 实现 PATCH 关联题：qid 使用 Question.id，事务移位维持 1..题数，替换新关系并保留位置/显式分值；改分/替换后废弃旧评分确认，重算持久组卷条件，草稿可暂存缺口但不能发布。预览读取相同题序/本场值/授权图，保留原创建选题入口。 依赖：T172。per FR-048/049、exam-assembly 题序、替换与预览（F040） (partial)
+
+- [ ] T174 [HIGH] [E4] **实现 Rubric 换算与教师确认**：在考试评分服务/schema/API 与组卷 UI 实现本场标准准备、基准/有效满分、至少 28 位 Decimal 中间精度和 ROUND_HALF_UP；数值要点来自校验/教师核对，先乘后除仅末次量化。展示正负尾差并保存真实教师确认，定性/非加总标准核对对应语义，不正则替换数字、不自动分摊尾差；发布前缺依据/未确认明确拒绝。 依赖：T170、T173。per FR-049、exam-scoring、data-model §9.2（F041） (missing)
+
+- [ ] T175 [HIGH] [E4] **实现原子发布与全引用生命周期冻结**：在 `exam_service.py`、`question_service.py`、资产/父题服务及课程/考试/文档删除直接入口统一发布/修订/删除的事务检查与固定锁顺序；发布时固定四项本场依据，立即保护内容/解析/题图/来源，Closed/Archived 或答卷/评分/复核历史继续保护，不能通过级联删除或退回修订解冻。保留 I01 错误及元数据例外，受保护题另建派生候选，不引入完整快照。 依赖：T148、T154、T165、T170、T173、T174。per FR-018/049、exam-assembly 发布冻结、data-model §9.1（F042） (partial)
+
+- [ ] T176 [HIGH] [E4] **贯通考试评分输入与身份**：在 `services/grading/grading_task_service.py` 的 DatabaseGradingSubmissionReader/SubmissionSnapshot、`schemas/grading.py`、Agent/Workflow 状态与仓储中传递 exam_question_id、本场分值/基准/标准、发布知识点及已核对图片；替换 v2 考试上下文直接读取 Question.score 的来源。新发布依据缺失明确报错，旧历史按 T171 兼容读取，幂等身份不跨场复用。 依赖：T164、T171、T175。per FR-043/049、exam-scoring ScoringInput、US3-v2/AC1–3（F043） (partial)
+
+- [ ] T177 [HIGH] [E4] **贯通规则评分、主观评分、复核与汇总**：在 `services/grading/`、`ai/agents/grading_agent.py`、`reviewer_agent.py`、`ai/workflows/`、`services/review_service.py`、`diagnosis_service.py` 消费同一固定输入；客观题不调用 LLM，主观题使用已核对标准且不二次缩放，图像能力不足明确待处理。原始/量化分数均校验本场上限，结果 Decimal 求和，失败/缺依据/待复核不记零分，保留既有检查点与复核生命周期。 依赖：T176。per FR-029–040扩展、FR-043/049、exam-scoring、SC-012/013（F044） (partial)
+
+- [ ] T178 [HIGH] [E4] **接通组卷、答题与阅卷显示**：扩展 `ui/exam_view.py`、`student_exam_view.py`、`review_view.py` 及考试/提交接口，展示条件缺口、题序/替换、显式分值、Rubric/尾差核对与教师预览；学生答题按同一题序/本场值/题图且不泄露答案/源卷，缺必要图像明确异常。阅卷复核展示相同图像/条件/标准，旧答卷提交和参加资格规则保留。 依赖：T173、T174、T175、T176、T177。per FR-043/048/049、US2-v2/AC1、US3-v2/AC1–3（F045） (partial)
+
+- [ ] T179 [HIGH] [E4] **验收组卷、考试分值与发布冻结**：按 T145 执行条件满足/不满足无写入、移位/替换、同题两场不同满分、默认值、0.005 边界、正负尾差确认、越界失败、并发发布/修订/资产变更、Closed/Archived/历史保护及旧 API/迁移回归；核对预览到评分/复核/汇总一致。按 T142 运行≤100题组卷性能，200题既有请求边界不被改写；证据落 `docs/validation-report.md` 与 benchmark/results。 依赖：T145、T146、T171、T172、T173、T174、T175、T176、T177、T178。per FR-048/049、SC-012、plan Gate 14–16（F046） (partial)
+
+### E5：两类分析页面
+
+- [ ] T180 [HIGH] [E5] **扩展教师考情统计服务**：在 `api/results.py` 的 ResultsQueryService、`schemas/grading.py` 与现有汇总边界增加可参加/已参加/提交、最终分布/平均、逐题得分率、发布知识点失分和关注名单；实际最终答卷为分母，失败/待复核/缺依据单列，多知识点不重复累计总分，无观测为暂无数据。复用现有最终成绩存储，不让模型生成统计。 依赖：T177、T179。per FR-050/039、exam-scoring 汇总、SC-013（F047） (partial)
+
+- [ ] T181 [HIGH] [E5] **扩展学生诊断和来源推荐**：在 `services/diagnosis_service.py`、`api/results.py`、相关 schema/检索/题库查询中基于本人最终失分与发布知识点，返回可访问同课程资料和已审核练习、真实出处/知识点/理由及原题图；缺资料/题目明确返回不足，不用未审核/待补全候选补位，保留报告与当前最终结果对应关系。 依赖：T162、T177、T179。per FR-051/040、exam-scoring 学生反馈、SC-013（F048） (partial)
+
+- [ ] T182 [HIGH] [E5] **实现教师考情分析页面**：扩展 `ui/results_view.py`、`results_loaders.py` 的教师视图，提供统计概览、分布、逐题/知识点明细、分母及关注学生详情，联动实际答卷与复核入口；空数据、未完成与失败分别展示，数值只读服务事实。 依赖：T180。per FR-050、US3-v2/AC4、SC-013（F049） (partial)
+
+- [ ] T183 [HIGH] [E5] **实现学生知识点反馈页面**：扩展 `ui/results_view.py`、`results_diagnosis.py` 及加载器，展示本人逐题答案/图片/评分解释/失分与薄弱知识点、资料/练习来源入口；待复核、失败、依据不足分别显示，授权后打开文件，不把无结果解释为零分或确定弱点。 依赖：T181。per FR-051、US2-v2/AC2–3、SC-013（F050） (partial)
+
+- [ ] T184 [HIGH] [E5] **核对两类分析与独立统计基准**：按 T145 在 `tests/contract/test_results_api_contract.py`、`tests/integration/`、`tests/unit/ui/` 对照 T146 的教师独立核算，覆盖多知识点、多场分值、复核前后、失败/缺依据/零样本和推荐越权/缺资料/未审核题；保存 UI 关键操作与真实答卷证据到 `docs/validation-report.md`，100% 样本统计一致才报告 SC-013 通过。 依赖：T145、T146、T180、T181、T182、T183。per FR-050/051、SC-013、plan Gate 19（F051） (partial)
+
+### E6：UI 收敛 + EXE 交付
+
+- [ ] T185 [MEDIUM] [E6] **收敛公共 UI 并验收三页样板**：在 `ui/design_system.py`、`layout_view.py`、`gradio_app.py` 与既有视图复用已存在的主题/图标/列表详情编辑结构，统一字号/间距/按钮/六类业务状态和错误提示；按 spec 的 Ant Design Pro/考试星/Canvas 参考落实实际流程。在导入校正、教师题库或组卷、学生首页或诊断三类代表页保留运行截图/操作记录到 `docs/`，尊重未提交 UI 成果。 依赖：T159、T167、T178、T184。per spec 跨功能UI约束、SC-014、plan Gate 18（F052） (partial)
+
+- [ ] T186 [MEDIUM] [E6] **完成七类业务页面 UI 验收**：将样板规则应用到试卷导入与校正、知识库、AI 出题与审核、组卷与考试、阅卷、教师分析、学生首页与诊断七类页面，逐页验证列表/详情/显式编辑或对应查看操作、保存/取消、角色导航与真实状态，保存 `docs/v2.0-ui-acceptance.md` 及截图；仅补剩余差距，三页样板不代表全 UI 完成，不新增前端技术栈。 依赖：T185。per spec 跨功能UI约束、SC-014、plan Gate 18/19（F053） (partial)
+
+- [ ] T187 [HIGH] [E6] **实现 Windows 单机启动器**：新增 `scripts/launch_windows.py`（或 plan 目录约定的等价入口），复用配置、迁移和 readiness：检查用户持久目录/外置模型配置、PostgreSQL/pgvector、Redis及必要网络，确认迁移成功后启动本机 FastAPI/Gradio并在就绪后打开浏览器；失败显示真实步骤，退出仅停止自己启动的应用进程，Docker 原入口保留。 依赖：T147、T151、T170、T179。per FR-052、plan §14/Gate 17、SC-014（F054） (missing)
+
+- [ ] T188 [HIGH] [E6] **构建 onedir EXE 交付包**：在 `packaging/` 和 `scripts/build_exe.ps1` 增加 PyInstaller onedir 构建清单/脚本，收集 Gradio 静态资源、动态模块、Alembic迁移和 T155 锁定 OCR 的可选推理资源；外置配置与业务数据，不捆绑数据库安装器、不强制 onefile，记录实际依赖/构建版本而不制造跨组件版本相等门禁。依赖版本/体积以验证记录为准。 依赖：T155、T156、T186、T187。per FR-042/052、plan §9/14、Constitution I/III（F055） (missing)
+
+- [ ] T189 [HIGH] [E6] **执行真实 Windows 交付验收**：在准备好依赖的 Windows 单机运行 T188 包，覆盖首次/后续启动、配置/数据库/Redis/迁移/模型网络失败、OCR启用/禁用、图片读取、重启及退出进程所有权；按 T142 冷暖/重复协议记录首次<30s、后续<10s目标和相关应用/数据库/Redis同时峰值≤6GB及各预算，超标如实报告。证据写 `docs/v2.0-exe-acceptance.md`，不以源码运行替代打包运行。 依赖：T142、T146、T188。per FR-052、SC-014、plan Gate 17/非功能目标（F056） (missing)
+
+- [ ] T190 [HIGH] [E6] **完成兼容回归与 v2.0 测量汇总**：按既有框架执行全量 pytest、mypy、ruff、隔离迁移/历史读取、Docker M0/三容器 readiness及原检索/阅卷 Benchmark；汇总 T160/T168/T179/T189 的质量、耗时、资源和失败样本到 `benchmark/results/`、`docs/evaluation.md`，仅有新修改/失败时重测相关场景。保留 v1.0 用例、原证据和所有真实未通过项，不修改旧任务勾选。 依赖：T145、T152、T160、T169、T179、T184、T186、T189。per plan Gate 1–19/兼容性目标、Constitution I/V（F057） (partial)
+
+- [ ] T191 [HIGH] [E6] **完成真实闭环、恢复及交付证据**：在实际课程完成导入校正、教学资料、知识库文字出题与原题改编两条路径、答案重核验/教师审核、带图条件组卷、本机考试、混合评分/人工复核及两类分析；覆盖缺答案/不同本场分值/失败状态。用含全部新资源和答卷评分的数据在隔离目标执行一致备份恢复，核对来源/文件/成绩，并汇总七页 UI/EXE 证据到 `docs/validation-report.md`、`docs/release-checklist.md` 以及 `docs/paper-import.md`、`docs/file-lifecycle.md`、`docs/exe-deployment.md` 使用说明；记录验收结论供用户裁决，未实测不宣称交付，发布另按授权。 依赖：T151、T160、T169、T179、T184、T186、T189、T190。per FR-041–052、SC-010–014、plan Gate 10–19（F058） (missing)
+
+### 需求、场景与验证追溯
+
+| 意图/验收项 | 设计与实施任务 | 聚焦/最终证据任务 |
+| :--- | :--- | :--- |
+| FR-010 扩展、FR-044/045 | T137/T140、T144、T147–T151 | T152、T160、T191；Gate 13 |
+| FR-041/042、US1-v2/AC1–2 | T136/T139、T153–T159 | T160、T191；SC-010、Gate 10/11 |
+| FR-043、US2-v2/AC1、US3-v2/AC1 | T138、T148/T154、T163/T164、T176/T178 | T160/T169/T179、T191；Gate 12 |
+| FR-018/028 扩展、FR-047 | T135/T136、T153、T163/T166/T167、T175 | T169/T179、T191；SC-011、US1-v2/AC3–4 |
+| FR-024/025 扩展、FR-046 | T134/T135、T161/T162/T165–T167 | T168/T169、T191；SC-011、US1-v2/AC3 |
+| FR-020 扩展、FR-048、US1-v2/AC5 | T141、T170/T172/T173/T175/T178 | T179、T191；SC-012、Gate 14 |
+| FR-049、US1-v2/AC4、US3-v2/AC2–3 | T136、T170/T171/T174–T178 | T179、T191；SC-012、Gate 15/16 |
+| FR-039 扩展、FR-050、US3-v2/AC4 | T176/T177、T180/T182 | T184、T191；SC-013、Gate 19 |
+| FR-040 扩展、FR-051、US2-v2/AC2–3 | T181/T183 | T184、T191；SC-013、Gate 19 |
+| FR-052、SC-014（单机启动/恢复） | T147/T151、T187/T188 | T189/T191；Gate 13/17 |
+| SC-014（七类页面）、跨功能 UI | T159/T167/T178/T182/T183/T185/T186 | T185 三页样板、T186 七类逐页、T191；Gate 18/19 |
+| G09、质量/性能/资源目标 | T142/T146、T155 | T160/T168/T179/T189/T190；质量阈值基线后确认 |
+| v1.0 兼容、宪章 I–V | T143/T145、各批既有入口回归 | T152/T160/T169/T179/T184/T190/T191；Gate 1–9 原要求保留 |
+
+**依赖主线**：E0 复验/盘点与按模块设计补齐 → E1 → E2 → E3 → E4（关联/历史核对 → 组卷与 Rubric → 原子发布 → 评分/复核）→ E5 → E6。章节定位生产 T161 必须先于范围查询 T162；图像/核验承载 T163 先于能力接入/语义批准；分析不得绕过 T176/T177 的考试事实源。T155 的选型准备、A 的独立设计和 E6 启动器准备可在直接依赖满足后推进，不能用并行名义跳过所依赖合同。
+
+**停止与下一步**：本轮以文档追加、文档检查、单独提交并推送 origin/deepcode 为终点。完成后停止，等待用户确认；下一轮建议先 T143/T144，再执行 E1 所需 T137/T140，其他设计任务按依赖展开。新任务均为未完成，不执行 implement，不将待评审清单自动勾选。
