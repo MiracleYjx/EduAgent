@@ -974,6 +974,20 @@ CSV 保存跨运行汇总；失败运行也必须记录失败状态和脱敏诊�
 | 结构化输出铁律 | Grading Agent 和 Question Agent 的结果必须经过 JSON 解析与 Pydantic Validation 后才能进入业务流程 | PASS |
 | 可评测原则 | Benchmark 比较 Vector Only、Keyword Only、Hybrid、Hybrid + Rerank，并记录配置、数据集、模型和 Prompt 版本 | PASS |
 
+### v2.0 Constitution Check（第三步，2026-10-01）
+
+以下检查只判断扩展版设计是否遵循五原则，不表示功能、性能或交付已经通过运行验收；上表与 v1.0 检查结论保持不变。
+
+| 原则 | v2.0 设计检查 | 结果 |
+| :--- | :--- | :--- |
+| I. 可运行优先 | 保留 PostgreSQL、Redis、Backend App 三容器主路径；EXE 是单机补充路径，OCR 为可选依赖，不影响 v1.0 启动 | PASS |
+| II. AI 能力优先 | 重心转向有依据的出题、原题改编与核验，继续保留 RAG/阅卷闭环；Gradio UI 收敛服务于 AI 能力，不扩大为独立企业后台 | PASS |
+| III. 模型可替换 | 图片能力通过 BaseLLMProvider 声明和调用；OCR 采用 Provider 抽象，业务层不绑定供应商 SDK | PASS |
+| IV. 结构化输出 | 试卷拆题/结构化导入、图片条件理解及语义核验结果均经 Pydantic 校验再进入 Domain DTO 与业务；OCR 原始识别文本不能直接充当已确认题目 | PASS |
+| V. 可评测 | 拆题完整性、字段准确性、语义核验漏报/误报、图片条件识别及组卷约束满足均已定义评测口径，效果结论仍须真实样本和实验记录 | PASS |
+
+本次引用层设计未发现宪章违规，不需要例外批准。详细模型/契约尚待后续同步，不能据此认为迁移、Provider 能力、发布冻结或 EXE 验收已经完成。
+
 未发现需要例外批准的宪章违规。Phase 1 设计复核后仍为 PASS。
 
 ## Phase 0: Research & Decisions
@@ -994,6 +1008,31 @@ CSV 保存跨运行汇总；失败运行也必须记录失败状态和脱敏诊�
   数据模型、状态转换与校验规则。
 - [contracts/](contracts/)：Embedding、RAG Retrieval、Agent/Workflow 的接口契约。
 - [quickstart.md](quickstart.md)：从容器启动到端到端阅卷和 Benchmark 的验证路径。
+
+### v2.0 契约引用清单（第三步）
+
+本节引用既有 [contracts/](contracts/) 边界并列出后续新增/扩展范围。以下新增名称暂定，仅作计划清单，文件将在后续设计步骤创建；本次不创建或修改任何契约。
+
+**需新增的契约（6 项）**：
+
+| 契约（暂定名称，位于 contracts/） | 用途与架构边界 |
+| :--- | :--- |
+| `paper-import.md` | 独立试卷导入的输入/输出、§9 状态机、原页/暂存题 DTO、校正与确认入库接口；区分上传成功、校正确认、待补全和审核批准（FR-041、FR-042） |
+| `ocr-provider.md` | 按 §9 的独立 OCR Provider 抽象定义能力、输入/输出及失败语义；若后续调整抽象形态先同步决策，不能让可选依赖阻塞 v1.0（FR-042） |
+| `vision-capability.md` | §10 的 supports_vision() 声明、配置模型能力、图片输入及结构化输出边界；不支持/理解不可靠的明确状态，图片访问继承课程/考试授权（FR-043） |
+| `file-storage.md` | §11 的持久目录、业务文件关联与生命周期、历史引用迁移、缺失/未知状态、同一备份集的一致备份恢复（FR-044、FR-045） |
+| `exam-assembly.md` | §12–§13 的题型/数量/总分/知识点约束、规则选题及冲突/缺口处理，题序、替换和预览；明确发布冻结引用、退回修订、题图与元数据维护边界（FR-048、FR-049） |
+| `exam-scoring.md` | §13 的考试内有效分值、基准满分与 Rubric 比例换算；统一评分/复核/汇总依据、精度/舍入及历史关联语义，明确最终统计分母、失败状态单列与学生反馈来源边界（FR-049 至 FR-051） |
+
+**需扩展的现有契约（3 项）**：
+
+| 现有契约 | 扩展点 |
+| :--- | :--- |
+| [agent-workflow.md](contracts/agent-workflow.md) | 图片/已核对条件输入、章节与分值出题条件、候选解析和评分要点，以及答案/条件/选项/评分标准语义核验的 Pydantic 边界；修订后重核验，未解决问题、依据不足或待补全不得批准（FR-043、FR-047 与 FR-024/025/028 扩展） |
+| [rag-retrieval.md](contracts/rag-retrieval.md) | 出题章节范围的输入、课程内过滤及来源语义，依据不足明确反馈；保留现有检索模式、结果与空上下文行为，不将导入原题自动索引为教学依据（§8、FR-024/025 扩展） |
+| [question-source-persistence.md](contracts/question-source-persistence.md) | 原题改编的父题关系、原试卷/页码/题图关系及新引用教学依据；区分 QuestionSourcePaper 父子题关系与既有 QuestionSourceChunk 资料快照，保留历史来源未知语义（FR-041、FR-046） |
+
+对应验收继续引用 Validation Gates 10–19 及 [spec.md](spec.md) 的 SC-010 至 SC-014。上述清单不替代契约正文；字段、索引、状态/错误 DTO、授权与事务边界、换算精度及冻结生命周期须在后续模型/契约中明确，并保持 v1.0 契约兼容。三个新增部署/使用文档（第二步 docs/ 蓝图）也不等于这里的接口契约。
 
 ## Project Structure
 
@@ -1130,6 +1169,30 @@ docs/
 `storage/` 在实际启用持久目录的实施批次中加入 `.gitignore`（计划规则 `/storage/`），原文件、页图、题图和导出数据不提交仓库；Docker 持久挂载和 EXE 用户可写数据目录遵循 §11。文件通过课程/考试授权入口访问，不因忽略 Git 就成为公开静态目录。
 
 本次受“只修改 plan.md”约束，未编辑 `.gitignore`，也未创建 `storage/`；现有 `docs/` 版本管理规则保持。已有 `design_system.py` 及相关 UI/测试改动保持原样，不包含在本次文档提交中。
+
+## v2.0 数据模型扩展（第三步）
+
+本节引用 [data-model.md](data-model.md) 的既有实体与状态设计，并承接 [spec.md](spec.md) 的 v2.0 Key Entities 和架构决策 §8–§13。当前 data-model.md 尚未纳入这些扩展；以下只列用途与关系，不重复字段定义，也不声明已存在物理表。
+
+| 实体 | 用途 | 关联 |
+| :--- | :--- | :--- |
+| `PaperImport` | 独立试卷导入任务记录，区分处理、校正和入库终态 | Course；Document（可选原文件关联），并关联页图与暂存原题 |
+| `SourcePage` | 试卷页图及来源页上下文，供 OCR 和原页对照校正 | PaperImport；原题可跨页、同页可含多题 |
+| `ExtractedQuestion` | 提取后尚待人工校正/确认的结构化原题，不能直接视为 Approved 题目 | PaperImport、SourcePage；确认后关联入库 Question |
+| `QuestionAsset` | 保存原题图示/表格并建立题图关系，供组卷、考试和阅卷复用 | Question、SourcePage；改编沿真实来源追溯 |
+| `QuestionSourcePaper` | 记录原题改编的父子题来源关系，不覆盖父题 | Question（改编子题）→ Question（父题）；原试卷/页码另经 PaperImport、SourcePage 追溯 |
+| `ExamQuestion` | 将考试—题目关联升级为带显式题序和考试内分值的实体，承载稳定发布依据 | Exam、Question；沿用原 exam_questions 关联身份与历史数据 |
+
+命名对应：`ExtractedQuestion` 是规格中 `ImportedQuestionDraft / CorrectionRecord` 的待校正原题概念在本计划的暂定实体名，校正记录的表示方式留给数据模型定义。`QuestionSourcePaper` 按本次指定的 Question → Question 关系表示父题来源，不是 PaperImport 的别名；父子题关系与原文件/页码来源均须保留，不能把知识片段引用伪称为试卷来源。
+
+既有实体扩展边界：
+
+- **Document 复用**：区分知识库教学文档与试卷原文件的来源语义，复用文件元数据/持久存储基础；两条处理链路及终态独立，试卷文本不自动进入 RAG 知识索引。当前 Document.knowledge_base_id 非空，PaperImport 的可选 Document 关系不表示已放宽该约束；具体复用与关联设计由 data-model.md 后续明确，不创建虚假知识库，也不改变 v1.0 文档语义。
+- **Question 扩展**：增加 `source_type` 区分人工、AI 生成、试卷导入和改编，结合原试卷页码、父题关系、解析、待补全及核验概念；分类值、历史数据标记和存储约束后续定义，不能根据没有来源行就推断历史题是人工题。
+- **ExamQuestion 升级**：从现有 `exam_questions` 两 ID 关联表升级为实体，保持原关联与 v1.0 读取兼容；草稿本场分值可覆盖题库默认，发布时固定有效分值、换算评分依据及题序，仍按服务端冻结保护引用，不引入完整题目版本/内容快照。物理表映射、迁移与历史填充规则后续定义。
+- 本表是本次要求的 6 项架构引用，规格中的 QuestionValidationResult、ManagedFile/BackupSet、分析/推荐及校正记录等概念仍由后续 data-model.md 同步，不能把“未在六行清单中单列”理解为删除相应需求。
+
+详细字段、索引、约束、关联基数、状态及迁移规则由后续 data-model.md 更新时定义，本次不修改该文件。冻结引用存续期、修订候选路径以及分值/要点舍入等细节仍需模型与契约共同收敛；这里的实体清单不能代替这些实现前设计。
 
 ## Validation Gates
 
