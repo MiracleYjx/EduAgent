@@ -760,46 +760,64 @@ API 层负责生成 `request_id`、识别 `user_id`、记录入口状态和总�
 
 ```text
 知识库导入：教材/讲义 -> 教学依据 -> RAG 检索
-试卷导入：试卷/扫描件 -> OCR/文本提取 -> 拆题 -> 人工校正 -> 题库
+试卷导入：试卷/扫描件 -> OCR/文本提取 -> 拆题 -> 人工校正 -> Question(Draft)
 ```
 
-两条路径复用 Document/Chunk 的文件元数据、解析/文本片段、课程及来源定位基础，但入口、处理链路和终态独立：知识库以可检索教学依据为终态，试卷以校正确认后的原题入库为终态。试卷 OCR/拆题结果不自动进入知识检索索引，不把导入 `Ready` 当成知识库 `Ready`。
+两条路径复用 Document 的文件元数据、解析能力、课程及来源定位基础，入口、处理链路和终态独立。DocumentChunk/Embedding 只属于知识库教学资料；试卷文本及拆题结果不自动生成教学 Chunk 或进入 RAG 索引，不把 PaperImport.Ready 当成 KnowledgeBase.Ready。
 
-试卷路径由 `PaperImport` 关联原文件、`SourcePage`、结构化原题和校正过程；题目保留原试卷及页码关系。当前 `Document.knowledge_base_id` 非空，复用基础不能靠虚构知识库或直接复用知识库摄取状态完成；具体 Document/Chunk 复用边界与关联约束留待后续数据模型设计，不改变 v1.0 的 Document/KnowledgeBase 关系。
+已确认关联以 [data-model.md](data-model.md) §7.1/§8.1、[paper-import.md](contracts/paper-import.md) 为准：每个 PaperImport 必须通过非空、唯一 document_id 关联同课程、purpose=paper_source 的 Document；每次新的导入尝试使用新的 Document，不能复用同一原文件记录绕过一对一约束。原文件可靠保存后才提交 Document/PaperImport；原文件定位唯一事实源为 Document.storage_path，PaperImport.original_file_path 只读投影该关系。
+
+Document 的 v2.0 用途条件为：knowledge_base（既有默认用途）必须有非空且同课程的 knowledge_base_id，paper_source 必须 knowledge_base_id=NULL。数据库条件 CHECK 与服务端课程/用途校验共同落实，不创建虚假知识库，也不放宽 v1.0 教学资料的非空知识库条件。
+
+知识库继续按 §2.1 的 Parser -> Cleaning -> Chunking -> Embedding 与 Document/KnowledgeBase 状态规则处理。paper_source 的 Document.status 只表达原文件 Uploaded -> Ready 或 Failed，禁止 Chunking/Embedding；OCR、拆题、校正与入库进度只由 PaperImport.status 表达。Document 原文件 Ready、PaperImport.Ready 与 Question.Approved 是三个不同事实，不能相互替代。本节是目标设计同步，业务模型和迁移仍由 E1/E2 实施。
 
 ### 9. OCR 与人工校正链路（v2.0）
 
 ```text
 上传试卷
-  -> 保存原文件 + 页图
-  -> 文字 PDF 优先文本提取 / 扫描页走 OCR
-  -> 拆题（题号、题型、题干、选项、答案、解析、分值）
-  -> 结构化 DTO
+  -> 可靠保存原文件 + Document(paper_source) + PaperImport(Uploaded)
+  -> 解析并保存 SourcePage；文字 PDF 优先文本提取 / 扫描页走 OCR
+  -> 拆题生成 ExtractedQuestion(Extracted)
+  -> 结构化校验 -> Pending Correction
   -> 人工校正界面（原页 vs 结构化题目并排）
-  -> 教师确认入库
+  -> 批次确认：Corrected + Question(Draft) + 来源/题图关系
 ```
 
-导入状态机独立于知识库摄取和题目审核：
+导入状态机独立于知识库摄取和题目审核，完整状态/错误与事务边界消费 [paper-import.md](contracts/paper-import.md) 和模型 §7.1–§7.3：
 
 ```text
+PaperImport:
 Uploaded -> Parsing -> Extracting -> Pending Review -> Ready
-                    任一处理/入库阶段失败 -> Failed
+Uploaded / Parsing / Extracting / Pending Review -> Failed
+Pending Review -> Rejected（教师拒绝整卷，或全部暂存题被拒绝）
+
+ExtractedQuestion:
+Extracted -> Pending Correction -> Corrected + Question(Draft)
+                         \
+                          -> Rejected
 ```
 
 | 状态 | 业务含义 |
 | :--- | :--- |
-| `Uploaded` | 原文件已可靠保存，尚未完成解析；上传成功不等于入库完成 |
-| `Parsing` | 识别文件/页面、保存页图、确定文本提取或 OCR 路径 |
-| `Extracting` | 提取文字/图片关联、拆题并生成通过 Schema 校验的原题 DTO |
-| `Pending Review` | 等待教师对照原页校正文字、题目边界、选项顺序、跨页内容和图片关联 |
-| `Ready` | 校正经确认，题目及来源关系入库；不表示每题已有答案或已获批准 |
-| `Failed` | 记录真实失败阶段、原因和可用中间结果；不得伪造完成状态 |
+| Uploaded | 原文件与 Document/PaperImport 关联可靠保存，尚未完成解析；上传成功不等于入库完成 |
+| Parsing | 确定页面、保存真实页图、逐页确定文字提取或 OCR 路径；SourcePage 无独立流程状态 |
+| Extracting | 提取文字/图片关联、拆题并生成通过 Schema 校验的暂存原题；无可识别题目明确失败 |
+| Pending Review | 导入等待教师校正；逐题处于 Pending Correction，核对文字、边界、选项顺序、跨页、分值和题图关联 |
+| Ready | 全部暂存题为 Corrected 或 Rejected，至少一题已入库；页号覆盖 1..page_count，页图/来源可靠；不表示每题有答案或已获批准 |
+| Failed | 活动处理阶段发生真实技术/持久化失败，记录错误码、步骤、原因和可用材料；不把可处理的校正/请求错误升级为失败终态 |
+| Rejected | Pending Review 下教师拒绝整卷且尚无 Corrected，或全部题被拒绝；与技术 Failed 区分，保留原材料 |
 
-导入 `Pending Review` 是待校正状态，不等于 Question 的待审核状态。无答案原题经校正确认后允许保存为待补全题目，不能成为 Approved 或参加发布考试；入库确认与教师审核分开。原文件、页图和题目来源保持可追溯，OCR 不确定内容由教师核对，不把未经校正的模型结果直接入库。
+Ready、Failed、Rejected 为导入终态；Corrected、Rejected 为暂存题终态。已有入库题时只能处置剩余暂存题，不能拒绝整卷并删除正式题；重新解析须创建新的任务/Document，保留旧事实。成功导入后文件丢失按文件诊断报告，不能改写原成功历史为新的解析失败。
+
+导入 Pending Review 是待校正，不等于 Question.Pending Review 的审核状态。无答案、缺 Rubric 或必要图像条件尚未可靠核对的原题，可在题干/题型/选项/明确分值/真实来源与题图关联完成核对后入库 Draft/needs_completion，不能 Approved 或用于新发布考试；未校正的 OCR/模型结果不能直接入库，不自动补答案。
+
+同一 PaperImport 的校正/commit 在原业务锁序内串行检查；指定批次的正式 Question、来源、QuestionAsset、合法图片核对绑定与 ExtractedQuestion.question_id/Corrected 同事务提交，任一失败回滚整批，保留此前校正及原材料。已 Corrected 重复 commit 返回原 question_id，不重复建题或覆盖正式题后来修订；校正未完成、非法状态/关联、过期核对等请求错误保持原状态并返回明确错误。终态前已启动图片调用的历史结束事实补齐按模型 §15，不改冻结校正或转入条件。
+
+校正字段与正式解析已在模型 §13、图片理解/教师核对与转入关联已在 §15 定义；契约见 [paper-import.md](contracts/paper-import.md)、[vision-capability.md](contracts/vision-capability.md)。不以 correction_notes、caption 或 UI 内存替代结构化字段和真实核对证据。
 
 OCR 候选为 PaddleOCR，按所需识别能力选择可选依赖及推理引擎；先验证实际扫描、公式/表格、跨页与 Windows 打包，再锁定版本和资源。官方安装说明将推理依赖与训练依赖分开，本版只评估推理路径，不引入训练依赖。[PaddleOCR 安装说明](https://www.paddleocr.ai/main/en/version3.x/installation.html)
 
-原题改编复用既有 Question Agent 候选/审核链路，保留父题和教学依据；新增答案正确性、条件充分性、选项歧义、评分标准明确性的结构化核验记录。题干、选项或图片条件修改后重核验答案、解析和评分标准，旧核验不自动沿用；字段及契约在后续步骤细化。本步骤不改写 §4.1 的 v1.0 链路。
+原题改编复用既有 Question Agent 候选/审核链路，父题关系、教学依据与每轮语义核验的设计已在模型 §7.5/§8.2/§12、[question-source-persistence.md](contracts/question-source-persistence.md)、[agent-workflow.md](contracts/agent-workflow.md) 明确。内容/必要图像条件变化后旧核验失效，重新核验答案、解析和评分标准；设计已补齐不等于代码、迁移或运行验收完成。本节不改写 §4.1 的 v1.0 链路。
 
 ### 10. 图片能力与 Provider 抽象（v2.0）
 
@@ -809,7 +827,7 @@ OCR 候选为 PaddleOCR，按所需识别能力选择可选依赖及推理引擎
 
 支持图像的 Provider 通过既有结构化输出边界返回图示/表格/条件 DTO，经 Pydantic 校验后供业务使用。新出题先支持文字；原带图题的原图保留、条件理解和复用属于本版，新图片生成与多模态微调不纳入。
 
-`QuestionAsset` 计划关联原图、题目及来源页，支撑组卷预览、考试、阅卷和结果展示；原图、识别条件、人工核对状态和改编来源的具体字段留待第二/三步。修改图片相关条件后同步核对题干、答案、解析和评分标准；不可靠或文件缺失时显式提示，不能用替代图或旧核验结论制造成功。
+`QuestionAsset` 的原图/题目/来源页关系及图序已在 [data-model.md](data-model.md) §7.4/§13 定义；题目层 image_assessment 保存理解与教师核对，承载/失效及导入转入按 §15，访问按 [file-storage.md](contracts/file-storage.md)。这些是目标设计，具体服务与 Provider 接线仍由 E2/E3 实施，支撑组卷预览、考试、阅卷和结果展示。修改图片相关条件后同步核对题干、答案、解析和评分标准；不可靠或文件缺失时显式提示，不能用替代图或旧核验结论制造成功。
 
 ### 11. 文件生命周期与持久存储（v2.0）
 
@@ -1021,20 +1039,20 @@ CSV 保存跨运行汇总；失败运行也必须记录失败状态和脱敏诊�
 
 ### v2.0 契约引用清单（第三步）
 
-本节引用既有 [contracts/](contracts/) 边界并列出后续新增/扩展范围。以下新增名称暂定，仅作计划清单，文件将在后续设计步骤创建；本次不创建或修改任何契约。
+以下六份 v2.0 契约文件已经创建，相关模型与 T134–T138 补齐内容见 [data-model.md](data-model.md) §7–§15；本节同步真实设计产物并保留现有契约的扩展范围，不声明业务代码或接口已实施。本批次只修改计划引用，不改契约正文。
 
-**需新增的契约（6 项）**：
+**已创建的 v2.0 契约（6 项）**：
 
-| 契约（暂定名称，位于 contracts/） | 用途与架构边界 |
+| 契约（位于 contracts/） | 用途与架构边界 |
 | :--- | :--- |
-| `paper-import.md` | 独立试卷导入的输入/输出、§9 状态机、原页/暂存题 DTO、校正与确认入库接口；区分上传成功、校正确认、待补全和审核批准（FR-041、FR-042） |
-| `ocr-provider.md` | 按 §9 的独立 OCR Provider 抽象定义能力、输入/输出及失败语义；若后续调整抽象形态先同步决策，不能让可选依赖阻塞 v1.0（FR-042） |
-| `vision-capability.md` | §10 的 supports_vision() 声明、配置模型能力、图片输入及结构化输出边界；不支持/理解不可靠的明确状态，图片访问继承课程/考试授权（FR-043） |
-| `file-storage.md` | §11 的持久目录、业务文件关联与生命周期、历史引用迁移、缺失/未知状态、同一备份集的一致备份恢复（FR-044、FR-045） |
-| `exam-assembly.md` | §12–§13 的题型/数量/总分/知识点约束、规则选题及冲突/缺口处理，题序、替换和预览；明确发布冻结引用、退回修订、题图与元数据维护边界（FR-048、FR-049） |
-| `exam-scoring.md` | §13 的考试内有效分值、基准满分与 Rubric 比例换算；统一评分/复核/汇总依据、精度/舍入及历史关联语义，明确最终统计分母、失败状态单列与学生反馈来源边界（FR-049 至 FR-051） |
+| [paper-import.md](contracts/paper-import.md) | 独立试卷导入的输入/输出、§9 状态机、原页/暂存题 DTO、校正与确认入库接口；区分上传成功、校正确认、待补全和审核批准（FR-041、FR-042） |
+| [ocr-provider.md](contracts/ocr-provider.md) | 按 §9 的独立 OCR Provider 抽象定义能力、输入/输出及失败语义；若后续调整抽象形态先同步决策，不能让可选依赖阻塞 v1.0（FR-042） |
+| [vision-capability.md](contracts/vision-capability.md) | §10 的 supports_vision() 声明、配置模型能力、图片输入及结构化输出边界；不支持/理解不可靠的明确状态，图片访问继承课程/考试授权（FR-043） |
+| [file-storage.md](contracts/file-storage.md) | §11 的持久目录、业务文件关联与生命周期、历史引用迁移、缺失/未知状态、同一备份集的一致备份恢复（FR-044、FR-045） |
+| [exam-assembly.md](contracts/exam-assembly.md) | §12–§13 的题型/数量/总分/知识点约束、规则选题及冲突/缺口处理，题序、替换和预览；明确发布冻结引用、退回修订、题图与元数据维护边界（FR-048、FR-049） |
+| [exam-scoring.md](contracts/exam-scoring.md) | §13 的考试内有效分值、基准满分与 Rubric 比例换算；统一评分/复核/汇总依据、精度/舍入及历史关联语义，明确最终统计分母、失败状态单列与学生反馈来源边界（FR-049 至 FR-051） |
 
-**需扩展的现有契约（3 项）**：
+**现有契约的 v2.0 扩展范围（3 项）**：
 
 | 现有契约 | 扩展点 |
 | :--- | :--- |
@@ -1042,7 +1060,7 @@ CSV 保存跨运行汇总；失败运行也必须记录失败状态和脱敏诊�
 | [rag-retrieval.md](contracts/rag-retrieval.md) | 出题章节范围的输入、课程内过滤及来源语义，依据不足明确反馈；保留现有检索模式、结果与空上下文行为，不将导入原题自动索引为教学依据（§8、FR-024/025 扩展） |
 | [question-source-persistence.md](contracts/question-source-persistence.md) | 原题改编的父题关系、原试卷/页码/题图关系及新引用教学依据；区分 QuestionSourcePaper 父子题关系与既有 QuestionSourceChunk 资料快照，保留历史来源未知语义（FR-041、FR-046） |
 
-对应验收继续引用 Validation Gates 10–19 及 [spec.md](spec.md) 的 SC-010 至 SC-014。上述清单不替代契约正文；字段、索引、状态/错误 DTO、授权与事务边界、换算精度及冻结生命周期须在后续模型/契约中明确，并保持 v1.0 契约兼容。三个新增部署/使用文档（第二步 docs/ 蓝图）也不等于这里的接口契约。
+对应验收继续引用 Validation Gates 10–19 及 [spec.md](spec.md) 的 SC-010 至 SC-014。上述清单不替代契约正文；已定义字段、约束、状态/错误 DTO、授权与事务、换算及冻结规则以模型/契约正文为准，保持 v1.0 兼容。组卷条件承载与评测协议仍待 T141/T142 补齐，后续按 tasks 的依赖实施/验证，不能将设计文件存在当作接口可用。三个新增部署/使用文档（第二步 docs/ 蓝图）也不等于这里的接口契约。
 
 ## Project Structure
 
@@ -1140,6 +1158,7 @@ backend/app/
 ├── models/
 │   ├── paper_import.py             # 新增
 │   ├── source_page.py              # 新增
+│   ├── extracted_question.py       # 新增：暂存原题/人工校正承载
 │   ├── question_asset.py           # 新增
 │   └── exam_question.py            # 新增模型：题序和考试内分值
 ├── services/
@@ -1174,7 +1193,7 @@ docs/
 └── exe-deployment.md               # 新增计划：单机依赖/首次配置/启动
 ```
 
-模块职责延续 §8–§14：OCR 通过可选 Provider 接入；图片应用层委托 BaseLLMProvider 能力声明，不建立第二套绑定供应商的业务 SDK 路径；试卷原题与教学依据保持独立终态。ExamQuestion 的物理表/迁移、DTO 和 API 契约引用留待第三步。
+模块职责延续 §8–§14：OCR 通过可选 Provider 接入；图片应用层委托 BaseLLMProvider 能力声明，不建立第二套绑定供应商的业务 SDK 路径；试卷原题与教学依据保持独立终态。导入/资产目标模型与校正 DTO 已在 data-model.md §7/§8/§13/§15 及 paper-import/vision 契约定义；ExamQuestion 目标映射与接口引用见模型 §7.6/§9/§10 和考试契约，实际模块/迁移仍待分批实施。
 
 `storage/` 在实际启用持久目录的实施批次中加入 `.gitignore`（计划规则 `/storage/`），原文件、页图、题图和导出数据不提交仓库；Docker 持久挂载和 EXE 用户可写数据目录遵循 §11。文件通过课程/考试授权入口访问，不因忽略 Git 就成为公开静态目录。
 
@@ -1182,27 +1201,27 @@ docs/
 
 ## v2.0 数据模型扩展（第三步）
 
-本节引用 [data-model.md](data-model.md) 的既有实体与状态设计，并承接 [spec.md](spec.md) 的 v2.0 Key Entities 和架构决策 §8–§13。当前 data-model.md 尚未纳入这些扩展；以下只列用途与关系，不重复字段定义，也不声明已存在物理表。
+本节引用 [data-model.md](data-model.md) 的既有实体与状态设计，并承接 [spec.md](spec.md) 的 v2.0 Key Entities 和架构决策 §8–§13。这些目标模型及 T134–T138 的设计补齐已写入 data-model.md §7–§15；下表只列用途与关系，具体字段/约束由该文件维护，不声明已存在物理表或已运行迁移。
 
 | 实体 | 用途 | 关联 |
 | :--- | :--- | :--- |
-| `PaperImport` | 独立试卷导入任务记录，区分处理、校正和入库终态 | Course；Document（可选原文件关联），并关联页图与暂存原题 |
+| `PaperImport` | 独立试卷导入任务记录，区分处理、校正和入库终态 | Course；通过非空、唯一 document_id 一对一关联同课程 paper_source Document，并关联页图与暂存原题 |
 | `SourcePage` | 试卷页图及来源页上下文，供 OCR 和原页对照校正 | PaperImport；原题可跨页、同页可含多题 |
 | `ExtractedQuestion` | 提取后尚待人工校正/确认的结构化原题，不能直接视为 Approved 题目 | PaperImport、SourcePage；确认后关联入库 Question |
 | `QuestionAsset` | 保存原题图示/表格并建立题图关系，供组卷、考试和阅卷复用 | Question、SourcePage；改编沿真实来源追溯 |
 | `QuestionSourcePaper` | 记录原题改编的父子题来源关系，不覆盖父题 | Question（改编子题）→ Question（父题）；原试卷/页码另经 PaperImport、SourcePage 追溯 |
 | `ExamQuestion` | 将考试—题目关联升级为带显式题序和考试内分值的实体，承载稳定发布依据 | Exam、Question；沿用原 exam_questions 关联身份与历史数据 |
 
-命名对应：`ExtractedQuestion` 是规格中 `ImportedQuestionDraft / CorrectionRecord` 的待校正原题概念在本计划的暂定实体名，校正记录的表示方式留给数据模型定义。`QuestionSourcePaper` 按本次指定的 Question → Question 关系表示父题来源，不是 PaperImport 的别名；父子题关系与原文件/页码来源均须保留，不能把知识片段引用伪称为试卷来源。
+命名对应：`ExtractedQuestion` 是规格中 `ImportedQuestionDraft / CorrectionRecord` 的待校正原题承载，已在模型 §7.3/§13/§15 定义校正字段与图片核对。`QuestionSourcePaper` 按本次指定的 Question → Question 关系表示父题来源，不是 PaperImport 的别名；父子题关系与原文件/页码来源均须保留，不能把知识片段引用伪称为试卷来源。
 
 既有实体扩展边界：
 
-- **Document 复用**：区分知识库教学文档与试卷原文件的来源语义，复用文件元数据/持久存储基础；两条处理链路及终态独立，试卷文本不自动进入 RAG 知识索引。当前 Document.knowledge_base_id 非空，PaperImport 的可选 Document 关系不表示已放宽该约束；具体复用与关联设计由 data-model.md 后续明确，不创建虚假知识库，也不改变 v1.0 文档语义。
-- **Question 扩展**：增加 `source_type` 区分人工、AI 生成、试卷导入和改编，结合原试卷页码、父题关系、解析、待补全及核验概念；分类值、历史数据标记和存储约束后续定义，不能根据没有来源行就推断历史题是人工题。
-- **ExamQuestion 升级**：从现有 `exam_questions` 两 ID 关联表升级为实体，保持原关联与 v1.0 读取兼容；草稿本场分值可覆盖题库默认，发布时固定有效分值、换算评分依据及题序，仍按服务端冻结保护引用，不引入完整题目版本/内容快照。物理表映射、迁移与历史填充规则后续定义。
-- 本表是本次要求的 6 项架构引用，规格中的 QuestionValidationResult、ManagedFile/BackupSet、分析/推荐及校正记录等概念仍由后续 data-model.md 同步，不能把“未在六行清单中单列”理解为删除相应需求。
+- **Document 复用**：区分知识库教学文档与试卷原文件的来源语义，复用文件元数据/持久存储基础；两条处理链路及终态独立，试卷文本不自动进入 RAG 知识索引。模型 §8.1 已定义 purpose 条件：knowledge_base 必须有同课程、非空 knowledge_base_id，paper_source 的 knowledge_base_id 必须为 NULL；PaperImport.document_id 非空且唯一，原路径只读投影 Document.storage_path。paper_source 不产生 Chunk/Embedding，其 Document 原文件状态不替代导入状态；保留 v1.0 教学文档语义。
+- **Question 扩展**：增加 `source_type` 区分人工、AI 生成、试卷导入和改编，结合原试卷页码、父题关系、解析、待补全及核验概念；模型 §8.2 已定义 manual/ai_generated/paper_imported/adapted，真实证据不足的历史 source_type 保留 NULL；解析及核验修订按 §12/§13，图片核对按 §15。不能根据没有来源行推断历史题是人工题。
+- **ExamQuestion 升级**：从现有 `exam_questions` 两 ID 关联表升级为实体，保持原关联与 v1.0 读取兼容；草稿本场分值可覆盖题库默认，发布时固定有效分值、换算评分依据及题序，仍按服务端冻结保护引用，不引入完整题目版本/内容快照。目标关联/分值/冻结及历史未知规则见模型 §7.6/§9/§10 与考试契约；实际兼容迁移和运行核对仍由 E4 实施。
+- 本表保留六项架构引用；章/节映射见 §11、独立 QuestionValidationResult 见 §12、校正扩展见 §13、文件身份/ExportFile/磁盘 BackupSet 见 §14、题目层 ImageAssessment 见 §15。ManagedFile 是资源视图，BackupSet 不建表；未在六行表中单列不表示删除相应需求，分析/推荐继续消费既有结果和来源。
 
-详细字段、索引、约束、关联基数、状态及迁移规则由后续 data-model.md 更新时定义，本次不修改该文件。冻结引用存续期、修订候选路径以及分值/要点舍入等细节仍需模型与契约共同收敛；这里的实体清单不能代替这些实现前设计。
+详细字段、索引、约束、基数、状态/终态、冻结生命周期、舍入与历史处理以已创建的模型/契约为准；尚待 T141/T142 的内容明确保留待补齐。T139 仅同步计划及任务标记，不修改 data-model.md 或 v1.0 原文，不执行代码、迁移、测试或业务验收。
 
 ## Validation Gates
 

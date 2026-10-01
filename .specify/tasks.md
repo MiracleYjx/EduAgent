@@ -523,7 +523,7 @@ M0 工程骨架 + Benchmark
 
 - [X] T138 [HIGH] [设计 G05] **G05 图片理解与人工核对持久设计**：在 `.specify/data-model.md`、`contracts/vision-capability.md`、`contracts/paper-import.md` 明确暂存图/QuestionAsset 的理解条件、问题、实际调用来源、教师身份/UTC 时间/说明和失效关联；与 G02/G03 的承载复用方案共同评审，明确校正确认后如何转入/关联正式题，不以 caption 或单个布尔值替代核对证据。 依赖：T135、T136、T137。per FR-043/047、G05、CHK005（F005） (missing)
 
-- [ ] T139 [MEDIUM] [设计 G06] **G06 导入关系与状态同步**：按已确认模型/导入契约更新 `.specify/plan.md` §8/9及实体引用：Document 非空唯一关联、paper_source 的知识库条件约束、Rejected/Failed/Ready 语义及终态；同步已创建模型/契约的阶段说明，保留 v1.0 原文及知识库状态职责。 依赖：无新增任务前置。per FR-041/042、G06、CHK006（F006） (contradicts)
+- [X] T139 [MEDIUM] [设计 G06] **G06 导入关系与状态同步**：按已确认模型/导入契约更新 `.specify/plan.md` §8/9及实体引用：Document 非空唯一关联、paper_source 的知识库条件约束、Rejected/Failed/Ready 语义及终态；同步已创建模型/契约的阶段说明，保留 v1.0 原文及知识库状态职责。 依赖：无新增任务前置。per FR-041/042、G06、CHK006（F006） (contradicts)
 
 - [ ] T140 [MEDIUM] [设计 G07] **G07 导出目录统一**：按 `contracts/file-storage.md` 同步 `.specify/plan.md` §11和目录树为独立 `storage/exports/`，使后续导出登记、迁移及备份清单只消费同一规范定位；不增加双目录隐式查找。 依赖：T137。per FR-044/045、G07、CHK007（F007） (contradicts)
 
