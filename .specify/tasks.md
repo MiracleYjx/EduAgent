@@ -525,7 +525,7 @@ M0 工程骨架 + Benchmark
 
 - [X] T139 [MEDIUM] [设计 G06] **G06 导入关系与状态同步**：按已确认模型/导入契约更新 `.specify/plan.md` §8/9及实体引用：Document 非空唯一关联、paper_source 的知识库条件约束、Rejected/Failed/Ready 语义及终态；同步已创建模型/契约的阶段说明，保留 v1.0 原文及知识库状态职责。 依赖：无新增任务前置。per FR-041/042、G06、CHK006（F006） (contradicts)
 
-- [ ] T140 [MEDIUM] [设计 G07] **G07 导出目录统一**：按 `contracts/file-storage.md` 同步 `.specify/plan.md` §11和目录树为独立 `storage/exports/`，使后续导出登记、迁移及备份清单只消费同一规范定位；不增加双目录隐式查找。 依赖：T137。per FR-044/045、G07、CHK007（F007） (contradicts)
+- [X] T140 [MEDIUM] [设计 G07] **G07 导出目录统一**：按 `contracts/file-storage.md` 同步 `.specify/plan.md` §11和目录树为独立 `storage/exports/`，使后续导出登记、迁移及备份清单只消费同一规范定位；不增加双目录隐式查找。 依赖：T137。per FR-044/045、G07、CHK007（F007） (contradicts)
 
 - [ ] T141 [HIGH] [设计 G08] **G08 组卷条件持久设计**：在 `.specify/data-model.md`、`contracts/exam-assembly.md` 明确最近一次教师组卷要求的存储、成功/失败写入时机、人工替换后的重算及旧考试合法缺省；优先评审 Exam 上受 Pydantic 校验的约束 JSON，实际分值仍以 ExamQuestion 为事实源，取舍由用户确认后同步。 依赖：无新增任务前置。per FR-048/049、G08、CHK008（F008） (missing)
 
