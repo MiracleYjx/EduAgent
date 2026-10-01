@@ -81,7 +81,7 @@ error
 
 | DTO | 输入/输出与约束 |
 | :--- | :--- |
-| SemanticValidationInput | 候选题、同课程来源 Chunk/真实引用快照、参考答案、Rubric、解析、图片引用及已核对条件；答案/Rubric 为候选字段的同源投影，不维护另一份独立可变答案 |
+| SemanticValidationInput | 候选核验字段投影（不含仅作题库分类维护的 difficulty/knowledge_points）、同课程来源 Chunk/真实引用快照、参考答案、Rubric、解析、图片引用及已核对条件；由服务绑定 input_revision 和轮次，答案/Rubric 为候选字段的同源投影，不维护另一份独立可变答案 |
 | SemanticValidationResult.checks | 分项检查：答案正确性、条件充分性、选项歧义、评分标准明确性；每项含 verdict（pass/fail/insufficient_evidence/needs_review）、reason、evidence_chunk_ids/原图证据 |
 | SemanticValidationResult.issues | [{code, field, severity, message, evidence_refs}]；severity 为 info/warning/error，未知依据不能伪造 chunk_id |
 | SemanticValidationResult.can_review | 是否已满足进入教师批准阶段的核验前提；由服务根据完整字段/未处置问题/关键依据/图片核对计算，不直接信任模型布尔值，也不等于自动 Approved |
@@ -105,8 +105,24 @@ Needs Revision -> 教师修订/明确处置 -> 再提交 Pending Review -> 重�
 - 既有 QuestionCandidate.status 保持 Candidate Generation 的输出语义；它不是持久 Question 的审核状态。尚未持久化的候选仅返回问题/修订建议，不伪造已完成状态转换。
 - 调用/Schema 失败保留真实技术错误并阻止批准，不伪造成功报告或内容错误；不能自动降级、无限重试或用旧核验通过结果放行。
 - 题干/选项/答案/解析/Rubric/图片条件及关键依据变化后旧核验失效；重新提交/批准必须消费与当前内容对应的报告。
-- 核验报告和人工处置应持久化，不以 UI 内存或自由文本覆盖原结果；QuestionValidationResult 的存储承载实施前补齐数据模型，本次不修改模型或代码。
+- 核验报告和人工处置应持久化，不以 UI 内存或自由文本覆盖原结果；QuestionValidationResult 的存储、输入修订号/轮次、真实执行来源及教师处置由 [data-model.md](../data-model.md) §12 明确，消费遵循下文 T135 边界，后续代码与迁移另行实施。
 - Approved 内容修改先退回修订；受发布/历史保护题不能原地退回或改变内容，需创建派生候选，遵守 [exam-assembly.md](exam-assembly.md)。
+
+### T135：报告持久化、当前输入与人工处置
+
+持久字段、JSON Schema 与责任以 [data-model.md](../data-model.md) §12 为唯一模型定义；本节规定核验节点与 Question 审核服务如何共同消费，不新增独立版本系统或修改原阅卷图。
+
+- 每个已持久 Question 对应多轮 QuestionValidationResult，outcome 为 running/passed/failed/technical_error；报告保存当轮 checks/issues、实际输入/证据、真实 Agent/Provider 来源、错误与时间。QuestionRevisionComment 继续只表达真实教师文字意见，机器报告不得借教师身份写入。
+- Question.validation_revision 从 0 开始，在相关题目内容、解析、基准分值、图像条件或关键依据变化时由责任写入方同事务递增；Needs Revision -> Pending Review 重新送审也递增。元数据 difficulty/knowledge_points 的单纯分类维护保留，路径/追溯版本变化不成为相等门禁；影响真实依据的操作按依据变化处理。
+- 启动时锁定 Question，捕获 input_revision、实际证据及 MAX(run_no)+1，保存 running 后释放事务锁再调用。完成时重新锁定，只对修订号一致、run_no 为最新且 Question 仍 Pending Review 的报告执行审核状态副作用；即使修改后改回原文，旧修订号也不能匹配。报告不能将启动修订号换成完成时当前值。
+- input_refs 指向当轮真正使用的 Chunk/来源快照及原图/已确认条件；片段证据保存原身份、位置与实际 content_snapshot，不用当前资料重建历史。检查/问题引用仅允许本报告内真实 evidence_id；图像核对的具体持久映射由 G05 承接。AgentRun 链接可按 Trace 生命周期清空，报告实际执行来源仍保留；配置模型与短期 Trace 不能冒充已完成语义核验。
+- 合法输出完整保留四项 checks 和问题；未获得合法业务输出时 checks/issues 为 null，与合法无问题 [] 区分。Provider/Schema/取消/超时失败保留原错误分类和真实阶段，outcome=technical_error，不能填 pass 或“答案错误”。
+- 最新有效报告由最大 run_no 且 input_revision 等于当前修订号派生；无报告、stale、running、failed、technical_error 阻止批准，不能在最新失败/执行中时回退到旧 passed。当前 passed 仍须核对完整字段、关键依据、图像核对及未解决问题；can_review/is_current 等由服务计算，不持久保存可独立改写的成功布尔值。
+- 当前 failed 报告完成与合法 Pending Review -> Needs Revision 在同一事务；passed 保持 Pending Review，等待教师。technical_error 只保存错误并阻止批准，保持 Pending Review；数据库提交失败保留真实错误，不能宣称报告/状态已落库。迟到或被替代结果保留历史，不改变当前状态。
+- manual_dispositions 在报告内采用受 Pydantic 校验的追加数组，关联具体 issue/check、当前 input_revision、动作、真实依据、教师 UUID/UTC 时间/说明及可选真实文字意见 id。写入时验证报告为当前最新且已结束的 passed/failed；running/technical_error 只显示真实进度/错误，不伪造内容处置。历史只读，不能覆盖原 checks/issues/error、删除问题或改写 outcome。
+- 人工 provide_evidence/resolve_issue 后按既有流程重新核验；接受这类处置后，即使原报告为 passed，也须从处置数组派生待重核验并阻止批准，处置不直接变成 Approved/成功报告；下轮显式使用的处置记录进 input_refs.manual_context，内容变化后不自动继承已解决结论。人工 request_revision 与实际文字意见/状态同事务；机器自动退回不创建虚假教师意见。
+- 批准门禁同时应用于 Question 状态更新/approve、候选审核及后续导入/改编路径，不能只放在一个 UI/API；服务在批准事务内重核对当前报告及发布保护，Agent 不写 Approved。
+- 尚无正式 Question 的 Candidate Generation 只返回 DTO/建议，不虚构 report.question_id 或完成数据库转换。历史题无报告显示历史核验未知，已有 Approved/发布状态与结果保持；进入 v2.0 新批准/修订重审时建立真正的当前报告，不用既有字段校验状态伪造语义通过。
 
 ### 试卷导入 Agent（若引入）
 
@@ -118,5 +134,5 @@ Needs Revision -> 教师修订/明确处置 -> 再提交 Pending Review -> 重�
 
 ### 扩展验证边界
 
-验证有图/无图/不支持 Provider、结构化失败、语义问题/缺依据、修订后重核验、教师确认入库及发布引用保护；保留 v1.0 原拓扑和验证证据。
-本步骤只追加契约，不修改实现、迁移或测试；任何后续测试修改先形成 TCR。
+后续验证覆盖有图/无图/不支持 Provider、结构化失败、语义问题/缺依据、修订后重核验、教师确认入库及发布引用保护，并覆盖内容改回/元数据维护、最新失败不回退、迟到结果、报告与退回事务、真实人工处置和多个批准入口共用门禁；保留 v1.0 原拓扑和验证证据。
+T135 仅补齐数据模型与本契约，并标记本任务；不修改业务实现、迁移、测试或其他任务状态。后续测试修改先形成 TCR，文档定义不作为运行验收证据。

@@ -607,3 +607,107 @@ Chapter 与知识点不新增关联表；章内知识点选项从同章、就绪
 - 迁移仅建立目标表、可空定位列、约束和上述最小索引；旧 Chunk 的 chapter_id/section_order 全部保持 NULL，原 metadata 原样保留，不从旧 section_index 或 chunk_index 批量回填，也不为每份旧资料虚构 Chapter。后续有真实教师核对时才分批登记/回填。
 - 有章/节条件时排除未知定位，有知识点条件时排除未知标签；无新增条件时不强制 JOIN Chapter 或检查新确认记录，保留 v1.0 可读性。有效限定范围内就绪资料不足时返回实际结果/不足，禁止退回全课程、邻章或替代来源。
 - 本节为后续章节定位生产、迁移和范围消费提供共同设计依据；对应验证覆盖稳定身份、多资料同章、目录修订、跨章/节及重叠、独立标签确认、四种检索过滤与旧未知数据。不新增或修改测试；实施测试前由后续任务形成 TCR，不以文档定义宣称数据库/运行已通过。
+
+## 12. T135：语义核验与人工处置持久设计（G02，2026-10-01）
+
+本节对应 FR-047、FR-028 扩展和 CHK002，承接 [plan.md](plan.md) §9/§10；节点与审核消费见 [agent-workflow.md](contracts/agent-workflow.md)。采用用户确认的独立 QuestionValidationResult、报告内受校验的教师处置 JSON，以及 Question.validation_revision 加轮次的对应规则。本节只定义目标模型，不创建业务代码、数据库迁移或测试；第 1–11 节及 v1.0 教师文字意见职责保持原文，不引入完整题目版本或发布内容快照。
+
+### 12.1 Question.validation_revision：核验输入修订号
+
+| 字段 | 类型 / 空值 / 默认 | 含义与约束 |
+| :--- | :--- | :--- |
+| validation_revision | BigInteger；非空；默认 0；CHECK >= 0 | 由 Question 写入服务维护的单调递增核验输入修订号；0 不表示已有有效核验 |
+
+- type、content、options、reference_answer、scoring_rubric、score、后续独立 analysis，以及实际参与核验的题图集合/区域、已核对图片条件、父题教学依据或关键来源关联发生实际变化时，在同一事务内递增一次。相关资产/依据写入方须锁定所属 Question 并同步推进，不能只在题干编辑入口处理失效。
+- difficulty、knowledge_points 的题库分类维护仍允许；它们不作为本节四项语义核验的输入，不因单纯分类维护使旧核验失效。若操作实际替换教学依据，则按依据变化推进修订号。文件路径迁移但内容/身份未变、Trace 删除、Provider/构建版本变化不推进修订号。
+- Needs Revision -> Pending Review 的重新送审也推进修订号，确保不能仅切换状态恢复旧结论。初次 Draft/候选送审沿用当前修订号；Approved 退回先执行 §9 的发布/历史保护，真正重新送审时按本规则处理。
+- 修订号不保存各版题干/答案，也不用于回滚、跨组件版本相等门禁或证明语义正确。内容改动后改回原值仍经过递增，不得把旧报告重新认作当前；旧报告保持原事实，以修订号差异派生失效状态。
+
+### 12.2 QuestionValidationResult（question_validation_results）
+
+Question 1 -> 0..N QuestionValidationResult；每行对应一次正式核验调用，包含执行中和最终结果，不与 CandidateValidationResult 的字段校验结果混同。尚未持久化的候选只返回核验 DTO/建议；不生成虚构 Question FK，不将预览通过直接作为正式批准依据。暂存题的图片理解/人工核对承载由 G03/G05 补齐，正式 Question 核验在真实题目及来源关联建立后执行。
+
+| 字段 | 类型 / 空值 / 默认 | 含义与约束 |
+| :--- | :--- | :--- |
+| id | UUID；非空；PK | 应用生成的核验报告身份 |
+| question_id | UUID；非空；FK Question.id，CASCADE | 被核验题目；课程归属由 Question 派生，不再维护可改写的重复 course_id |
+| input_revision | BigInteger；非空；CHECK >= 0 | 启动时捕获的 Question.validation_revision，完成时不可换成当前值 |
+| run_no | BigInteger；非空；CHECK > 0 | 同一 Question 的单调递增调用轮次；UNIQUE(question_id, run_no) |
+| outcome | String(32)；非空；CHECK | running / passed / failed / technical_error；由服务判定，区别执行状态与教师审核状态 |
+| input_refs | JSONB；非空对象 | 当轮实际输入字段目录、证据及人工处置引用，Schema 见 §12.3；不存完整题目内容副本 |
+| checks | JSONB；可空 | 正式成功返回时保存四项分项结果；running/没有合法业务输出的技术失败为 NULL，不能填 [] 冒充已检查 |
+| issues | JSONB；可空 | 合法输出的问题数组；合法无问题为 []，未获得合法输出为 NULL |
+| error | JSONB；可空 | 技术失败的真实 {code, message, stage, retryable, cause}；cause 可空，说明脱敏但不替换原错误分类 |
+| executor_kind / executor_name | String(16) / String(64)；非空 | kind 为 service / agent，name 为真实执行组件；机器报告不冒充教师执行 |
+| requested_by | UUID；可空；FK User.id，RESTRICT | 真实认证发起者；系统事件没有用户时为 NULL，不借题目创建者伪造 |
+| agent_run_id | UUID；可空；FK AgentRun.id，SET NULL | 有真实 AgentRun 才关联；Trace 清理只清空活体链接 |
+| provenance | JSONB；非空对象 | {agent_type, provider_name, model, model_version, prompt_version} 的实际执行来源；不可得成员为 null |
+| manual_dispositions | JSONB；非空数组；默认 [] | 仅由真实教师操作追加的结构化处置，Schema 见 §12.4 |
+| created_at | TIMESTAMPTZ；非空 | 调用启动、running 行创建的真实 UTC 时间 |
+| completed_at | TIMESTAMPTZ；可空 | 最终执行结束的真实 UTC 时间，非空时 >= created_at |
+
+数据库提供 PK/FK、轮次 UNIQUE（其索引覆盖按题目查最新轮次/历史）、修订号/轮次范围、JSON 对象/数组类型及状态时间 CHECK。running 要求 completed_at、checks、issues、error 为 NULL；passed/failed 要求 completed_at、checks、issues 非空且 error=NULL；technical_error 要求 completed_at、error 非空，没有合法输出时 checks/issues 为 NULL。数组元素、四项完整性、字段/证据对应及教师授权在内容核验服务的输入/输出写入边界校验，不宣称 JSON UUID 已有逐元素 FK。
+
+已结束报告的 input_revision、输入引用、原始 checks/issues/error、执行来源和时间保持不可改写；后续仅追加 manual_dispositions，不把旧 failed 改成 passed。报告是题目的自有核验子记录，题目经现有删除/发布历史保护校验后合法删除才随之级联；这不改变 §6 对外部来源/发布依据的保留规则。AgentRun 可能按 Trace 保留期清理，报告中的执行来源仍保留，不能只靠短期 Trace 保存业务核验事实。
+
+### 12.3 输入与证据、分项结果 Schema
+
+- input_refs = {fields: list[字段名], evidence: list[Evidence], manual_context: list[{validation_result_id, disposition_id}]}。fields 精确列出实际使用的题型/正文/选项/答案/Rubric/解析/基准分值及图像条件输入；通过 question_id + input_revision 绑定当时内容，不复制另一份独立可写题干/答案。历史报告展示当时修订号、结果和证据，不声称能重建未保存的历史题干，不把当前题干展示成当时输入。
+- Evidence = {evidence_id: UUID, kind: chunk/question_source_chunk/question_asset, source_id: UUID, source_data: 对应类型的来源对象}；服务为本报告分配唯一 evidence_id，source_id 为真实资源主键。chunk/来源快照的 source_data 含原 chunk_id、document_id、course_id、source_file、location（真实未知时 null）、content_snapshot；question_asset 的 source_data 含 file_id、source_page_id/region（可空）、image_review_ref（真实持久核对引用）及实际输入的已确认条件。按 kind 校验对应字段，不用无约束 JSON 或虚构身份代替来源。教学片段保存原 chunk_id、document_id、course_id、source_file/定位和当轮实际使用的 content_snapshot；若引用既有 QuestionSourceChunk，保留其真实 source_id 和原快照，不以当前活体 Chunk 替换。新增检索证据存本报告，不反写“生成时来源”。
+- 图像 Evidence 保存 QuestionAsset/file_id、真实 SourcePage/region（可空）和实际已核对条件的持久引用；不保存临时路径、含答案源卷公开 URL 或全量 Base64。条件/原图对应与失效共同遵守 [vision-capability.md](contracts/vision-capability.md)，具体核对持久映射由 T138 补齐，不用 caption/模型布尔值替代。
+- 来源必须属于本题授权课程，并确实进入本次输入。JSON source_id 由服务核对真实存在/归属；checks/issues.evidence_refs 只能引用本报告 evidence_id，未知证据不得编造。片段删除或重切分后保留报告证据快照；关键图像缺失/条件变化如实阻止批准，不以替代图片补足。
+- checks = [{kind, verdict, reason, evidence_refs}]：kind 恰好覆盖 answer_correctness、condition_sufficiency、option_ambiguity、rubric_clarity，唯一且完整；verdict 沿用 pass/fail/insufficient_evidence/needs_review，reason 非空。无适用选项的题型说明无该检查对象，不能假装执行选项检验；未获得结论不能标 pass。
+- issues = [{issue_id, code, field, severity, message, evidence_refs}]：issue_id 由服务为本报告生成并固定，severity 为 info/warning/error，其他原因文本非空；不能以降低 severity 隐藏 fail/缺依据。passed 要求四项 verdict=pass、无未解决 warning/error、必要字段/依据及图片核对完整；非选择题的 option_ambiguity=pass 仅表示无选项歧义问题，reason 必须明确其不适用；failed 保存实际问题/不足，不将 Provider 故障归类为内容错误。
+- provenance 来自真正执行的组件和 Provider 调用记录，未知保持 null；未调用模型不能将配置中的模型填成已执行事实。Provider/模型/Prompt 版本只供追溯，不是内容正确性的相等门禁，也不与 GradingResult 的校验状态混用。
+
+### 12.4 教师处置：报告内追加 JSON，原教师意见职责保留
+
+ManualDisposition 的 Schema：
+
+| 成员 | 类型与责任 |
+| :--- | :--- |
+| id | 服务生成 UUID；同一报告内唯一 |
+| input_revision | 接受处置时捕获的当前修订号；必须与被处置报告一致 |
+| issue_ids / check_kind | 本报告 issue_id 列表 / 可空检查种类；至少明确关联一个问题或检查 |
+| action | request_revision / provide_evidence / resolve_issue；不包含 approve 或修改机器 verdict |
+| reason | 教师明确给出的非空说明，最长 2000 字；不能用按钮布尔值代替 |
+| evidence_refs / additional_evidence | 本报告真实证据引用 / 教师补充的同课程真实 Evidence；提供依据或解决问题时不能为空 |
+| handled_by / handled_at | 认证教师 UUID / 服务端真实 UTC 时间；课程权限在写入事务校验 |
+| revision_comment_id | 可空 UUID；仅当同次真实教师文字意见已保存时关联，服务核对同题及真实作者，不改意见表字段 |
+
+处置时锁定 Question 与报告，要求报告为已结束的 passed/failed 且仍对应当前修订号和最新轮次；running/technical_error 不允许伪造内容问题处置，查看真实进度/错误并显式启动新核验。历史报告可读，但不能给旧问题补一个确认就放行当前内容。追加事件不得覆盖/删除旧问题或原处置；JSON 元素身份/归属由服务负责，客户端不能指定他人身份、时间或伪造意见关联。
+
+request_revision 仍走已有合法状态转换并保留非空真实教师意见；必要时处置、文字意见和状态同事务提交。机器 failed 的自动退回只保存结构化报告与状态，不把 requested_by 当作 commented_by，不制造 QuestionRevisionComment。提供依据/resolve_issue 只记录教师处置，按既有契约重新核验后才可批准，不直接翻转旧 outcome/can_review。历史处置只作为历史事实；下轮显式选入的处置及证据记录在 manual_context，内容变化后不能自动继承“已解决”。
+
+~~~json
+{
+  "id": "33333333-3333-4333-8333-333333333333",
+  "input_revision": 2,
+  "issue_ids": ["44444444-4444-4444-8444-444444444444"],
+  "check_kind": "answer_correctness",
+  "action": "provide_evidence",
+  "reason": "已对照教材原文补充此处公式的适用条件，提交重新核验。",
+  "evidence_refs": ["55555555-5555-4555-8555-555555555555"],
+  "additional_evidence": [],
+  "handled_by": "22222222-2222-4222-8222-222222222222",
+  "handled_at": "2026-10-01T03:00:00Z",
+  "revision_comment_id": null
+}
+~~~
+
+示例只说明 Schema，不是可回填历史身份/时间或自动判定问题已解决的记录。
+
+### 12.5 轮次、并发完成与状态事务
+
+1. 正式核验以已持久、处于 Pending Review 的 Question 为入口；授权和既有字段/状态检查通过后，锁定 Question，捕获 input_revision、实际输入/证据，分配 MAX(run_no)+1 并保存 running 行。轮次只在题目锁内分配，UNIQUE 为最后约束；随后提交并释放锁，再执行外部调用，不跨模型等待长期持锁。
+2. 内容修改、相关资产/依据变更、重新送审、启动新轮次、人工处置和批准共同遵守 Question 的事务锁及 §9 固定锁顺序。完成时重新锁定并比较报告 input_revision 与当前修订号、run_no 与本题最新轮次；只有对应当前修订号/最新轮次且 Question 仍 Pending Review 时才推进预期状态；迟到、被替代或教师已合法改变状态的报告可保存真实最终结果，但不得覆盖当前题目状态或当作当前批准依据。
+3. 当前轮次 passed 保持 Pending Review；failed 的原报告和合法 Pending Review -> Needs Revision 同事务保存，任一数据库写入失败全部回滚。running 行或数据库提交失败不能被宣传成已保存最终报告/已退回；保留真实持久化错误，不能沿用旧通过结果。
+4. technical_error 保存真实技术错误和执行事实，题目仍保持 Pending Review；只阻止批准，不伪造“答案错误”或自动 Needs Revision。取消、超时和实际执行失败按真实阶段记录；未完成/失联运行仍显示 running/待处理，不能凭旧结果声明成功，不新增无限重试或自动替换 Provider。
+5. 当前报告 = 本题最大 run_no 的报告且 input_revision == Question.validation_revision；无报告、修订号不符、running、failed、technical_error 均不可据旧 passed 放行。不因较新轮次失败或尚未完成而回退到较早成功；当前报告存在 provide_evidence/resolve_issue 处置但尚未产生新轮核验时也禁止批准，此待重核验状态从处置数组派生。is_current/stale、can_review、requires_manual_review 为服务读时投影，不新增可独立修改的缓存成功布尔字段。
+
+### 12.6 批准门禁、历史数据与后续边界
+
+- can_review 由服务根据当前报告、实际字段/教学依据/图片核对和未解决问题计算，只有当前 passed、没有待重核验的人工处置且满足全部前提、Question 仍 Pending Review 才允许教师批准；模型 can_review/requires_manual_review 是辅助输出，不能作为直接数据库决策。结构化校验成功也不替代语义核验或教师最终批准。
+- 所有新批准路径共用该判定：现有 QuestionService 状态更新（含请求 Approved）、questions 的 approve、question_generation 的候选审核及后续导入/改编入口；不能只在 UI 或一个路由校验。Approved 守卫、发布/历史保护及教师权限继续执行；Agent 无权自动批准。
+- 历史 Question 仅初始化 validation_revision=0，不虚构报告、通过结论、执行来源或教师处置。已有 Approved/发布考试的状态和历史结果不因缺报告改写或自动退回，读取展示“历史核验未知”；未批准历史题进入 v2.0 新批准或合法修订后重新批准时，必须建立当前报告，不把旧字段 Validator 当作语义核验。
+- 本节只定义 v2.0 目标设计与既有入口的应用边界；后续 T163/T166/T167 接线及迁移/验证另行实施。修改测试前形成对应 TCR；本批次仅做文档静态检查，不宣称当前批准接口已具备新门禁。
