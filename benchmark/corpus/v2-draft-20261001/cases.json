@@ -1,0 +1,875 @@
+[
+  {
+    "case_id": "IMP-TEXT",
+    "family": "import",
+    "tags": [
+      "text_pdf",
+      "options_out_of_order",
+      "missing_answer"
+    ],
+    "source_refs": [
+      "inputs/paper_text.pdf",
+      "assets/figure.png",
+      "assets/table.png"
+    ],
+    "action": "上传，保留原选项顺序；校正确认与批准分开",
+    "status": "prepared_not_run",
+    "input_origin": "synthetic_fixture",
+    "teacher_annotation_ref": "annotations.json#IMP-TEXT"
+  },
+  {
+    "case_id": "IMP-SCAN",
+    "family": "import",
+    "tags": [
+      "raster_pdf",
+      "figure",
+      "table"
+    ],
+    "source_refs": [
+      "inputs/paper_scan.pdf"
+    ],
+    "action": "启用已确认 OCR；教师逐字段核对；无文字层",
+    "status": "prepared_not_run",
+    "input_origin": "synthetic_fixture",
+    "teacher_annotation_ref": "annotations.json#IMP-SCAN"
+  },
+  {
+    "case_id": "IMP-IMAGE",
+    "family": "import",
+    "tags": [
+      "paper_image"
+    ],
+    "source_refs": [
+      "inputs/paper_image.png"
+    ],
+    "action": "独立图片原卷入口，不入知识库 Chunk",
+    "status": "prepared_not_run",
+    "input_origin": "synthetic_fixture",
+    "teacher_annotation_ref": "annotations.json#IMP-IMAGE"
+  },
+  {
+    "case_id": "IMP-MIXED",
+    "family": "import",
+    "tags": [
+      "mixed_text_scan"
+    ],
+    "source_refs": [
+      "inputs/paper_mixed.pdf"
+    ],
+    "action": "第一页优先文字，第二页需 OCR",
+    "status": "prepared_not_run",
+    "input_origin": "synthetic_fixture",
+    "teacher_annotation_ref": "annotations.json#IMP-MIXED"
+  },
+  {
+    "case_id": "IMP-CROSS",
+    "family": "import",
+    "tags": [
+      "cross_page",
+      "diagram",
+      "missing_answer"
+    ],
+    "source_refs": [
+      "inputs/paper_cross_page.pdf",
+      "assets/diagram.png"
+    ],
+    "action": "同题真实来源页为 1、2，未知边界保持 null",
+    "status": "prepared_not_run",
+    "input_origin": "synthetic_fixture",
+    "teacher_annotation_ref": "annotations.json#IMP-CROSS"
+  },
+  {
+    "case_id": "IMP-DAMAGED",
+    "family": "import_fault",
+    "tags": [
+      "damaged"
+    ],
+    "source_refs": [
+      "inputs/damaged.pdf"
+    ],
+    "action": "拒绝损坏输入并保留真实失败",
+    "status": "prepared_not_run",
+    "input_origin": "synthetic_fixture",
+    "teacher_annotation_ref": "annotations.json#IMP-DAMAGED"
+  },
+  {
+    "case_id": "IMP-OVERLIMIT",
+    "family": "import_fault",
+    "tags": [
+      "over_50_pages"
+    ],
+    "source_refs": [
+      "inputs/workload_51_pages.pdf"
+    ],
+    "action": "实际 51 页，按 50 页准入拒绝，不截断",
+    "status": "prepared_not_run",
+    "input_origin": "synthetic_fixture",
+    "teacher_annotation_ref": "annotations.json#IMP-OVERLIMIT"
+  },
+  {
+    "case_id": "IMP-OCR-OFF",
+    "family": "import_fault",
+    "tags": [
+      "ocr_disabled"
+    ],
+    "source_refs": [
+      "inputs/paper_scan.pdf"
+    ],
+    "action": "关闭 OCR，扫描页明确失败，不回退文字假成功",
+    "status": "prepared_not_run",
+    "input_origin": "synthetic_fixture",
+    "teacher_annotation_ref": "annotations.json#IMP-OCR-OFF"
+  },
+  {
+    "case_id": "IMP-OCR-FAIL",
+    "family": "import_fault",
+    "tags": [
+      "provider_failure"
+    ],
+    "source_refs": [
+      "inputs/paper_scan.pdf"
+    ],
+    "action": "在可控 Provider 边界模拟真实错误；正式质量另需真实调用失败证据",
+    "status": "prepared_not_run",
+    "input_origin": "synthetic_fixture",
+    "teacher_annotation_ref": "annotations.json#IMP-OCR-FAIL"
+  },
+  {
+    "case_id": "SEM-GOOD",
+    "family": "semantic",
+    "tags": [
+      "knowledge_base_new"
+    ],
+    "source_refs": [
+      "semantic_cases.json",
+      "teaching_basis.md"
+    ],
+    "action": "按四类独立核验；未知不得当通过",
+    "status": "prepared_not_run",
+    "input_origin": "synthetic_fixture",
+    "teacher_annotation_ref": "annotations.json#SEM-GOOD"
+  },
+  {
+    "case_id": "SEM-ANSWER",
+    "family": "semantic",
+    "tags": [
+      "knowledge_base_new",
+      "answer_correctness"
+    ],
+    "source_refs": [
+      "semantic_cases.json",
+      "teaching_basis.md"
+    ],
+    "action": "按四类独立核验；未知不得当通过",
+    "status": "prepared_not_run",
+    "input_origin": "synthetic_fixture",
+    "teacher_annotation_ref": "annotations.json#SEM-ANSWER"
+  },
+  {
+    "case_id": "SEM-CONDITION",
+    "family": "semantic",
+    "tags": [
+      "knowledge_base_new",
+      "condition_sufficiency"
+    ],
+    "source_refs": [
+      "semantic_cases.json",
+      "teaching_basis.md"
+    ],
+    "action": "按四类独立核验；未知不得当通过",
+    "status": "prepared_not_run",
+    "input_origin": "synthetic_fixture",
+    "teacher_annotation_ref": "annotations.json#SEM-CONDITION"
+  },
+  {
+    "case_id": "SEM-OPTIONS",
+    "family": "semantic",
+    "tags": [
+      "knowledge_base_new",
+      "option_ambiguity"
+    ],
+    "source_refs": [
+      "semantic_cases.json",
+      "teaching_basis.md"
+    ],
+    "action": "按四类独立核验；未知不得当通过",
+    "status": "prepared_not_run",
+    "input_origin": "synthetic_fixture",
+    "teacher_annotation_ref": "annotations.json#SEM-OPTIONS"
+  },
+  {
+    "case_id": "SEM-RUBRIC",
+    "family": "semantic",
+    "tags": [
+      "knowledge_base_new",
+      "rubric_clarity"
+    ],
+    "source_refs": [
+      "semantic_cases.json",
+      "teaching_basis.md"
+    ],
+    "action": "按四类独立核验；未知不得当通过",
+    "status": "prepared_not_run",
+    "input_origin": "synthetic_fixture",
+    "teacher_annotation_ref": "annotations.json#SEM-RUBRIC"
+  },
+  {
+    "case_id": "SEM-ADAPT-GOOD",
+    "family": "semantic",
+    "tags": [
+      "parent_adaptation"
+    ],
+    "source_refs": [
+      "semantic_cases.json",
+      "teaching_basis.md",
+      "parent_questions.json"
+    ],
+    "action": "按四类独立核验；未知不得当通过",
+    "status": "prepared_not_run",
+    "input_origin": "synthetic_fixture",
+    "teacher_annotation_ref": "annotations.json#SEM-ADAPT-GOOD"
+  },
+  {
+    "case_id": "SEM-STALE",
+    "family": "semantic",
+    "tags": [
+      "parent_adaptation",
+      "answer_correctness"
+    ],
+    "source_refs": [
+      "semantic_cases.json",
+      "teaching_basis.md",
+      "parent_questions.json"
+    ],
+    "action": "按四类独立核验；未知不得当通过",
+    "status": "prepared_not_run",
+    "input_origin": "synthetic_fixture",
+    "teacher_annotation_ref": "annotations.json#SEM-STALE"
+  },
+  {
+    "case_id": "SEM-NO-BASIS",
+    "family": "semantic",
+    "tags": [
+      "knowledge_base_new"
+    ],
+    "source_refs": [
+      "semantic_cases.json",
+      "teaching_basis.md"
+    ],
+    "action": "按四类独立核验；未知不得当通过",
+    "status": "prepared_not_run",
+    "input_origin": "synthetic_fixture",
+    "teacher_annotation_ref": "annotations.json#SEM-NO-BASIS"
+  },
+  {
+    "case_id": "IMG-FIGURE",
+    "family": "image",
+    "tags": [
+      "figure",
+      "clear"
+    ],
+    "source_refs": [
+      "assets/figure.png",
+      "teaching_basis.md"
+    ],
+    "action": "关联稳定资产并核对逐条关键条件",
+    "status": "prepared_not_run",
+    "input_origin": "synthetic_fixture",
+    "teacher_annotation_ref": "annotations.json#IMG-FIGURE"
+  },
+  {
+    "case_id": "IMG-TABLE",
+    "family": "image",
+    "tags": [
+      "table",
+      "clear"
+    ],
+    "source_refs": [
+      "assets/table.png",
+      "teaching_basis.md"
+    ],
+    "action": "关联稳定资产并核对逐条关键条件",
+    "status": "prepared_not_run",
+    "input_origin": "synthetic_fixture",
+    "teacher_annotation_ref": "annotations.json#IMG-TABLE"
+  },
+  {
+    "case_id": "IMG-DIAGRAM",
+    "family": "image",
+    "tags": [
+      "diagram",
+      "clear"
+    ],
+    "source_refs": [
+      "assets/diagram.png",
+      "teaching_basis.md",
+      "inputs/paper_cross_page.pdf"
+    ],
+    "action": "关联稳定资产并核对逐条关键条件",
+    "status": "prepared_not_run",
+    "input_origin": "synthetic_fixture",
+    "teacher_annotation_ref": "annotations.json#IMG-DIAGRAM"
+  },
+  {
+    "case_id": "IMG-UNCLEAR",
+    "family": "image_fault",
+    "tags": [
+      "unclear",
+      "manual_review"
+    ],
+    "source_refs": [
+      "assets/diagram_low_resolution.png"
+    ],
+    "action": "教师判断低分辨率是否缺关键条件，不能以模型自信确认",
+    "status": "prepared_not_run",
+    "input_origin": "synthetic_fixture",
+    "teacher_annotation_ref": "annotations.json#IMG-UNCLEAR"
+  },
+  {
+    "case_id": "IMG-UNSUPPORTED",
+    "family": "image_fault",
+    "tags": [
+      "capability_unsupported"
+    ],
+    "source_refs": [
+      "assets/diagram.png"
+    ],
+    "action": "Provider 不支持图像时保留原图与人工核对入口",
+    "status": "prepared_not_run",
+    "input_origin": "synthetic_fixture",
+    "teacher_annotation_ref": "annotations.json#IMG-UNSUPPORTED"
+  },
+  {
+    "case_id": "IMG-FAILURE",
+    "family": "image_fault",
+    "tags": [
+      "provider_failure"
+    ],
+    "source_refs": [
+      "assets/diagram.png"
+    ],
+    "action": "保存真实调用失败与本次轮次，不复用旧通过核对",
+    "status": "prepared_not_run",
+    "input_origin": "synthetic_fixture",
+    "teacher_annotation_ref": "annotations.json#IMG-FAILURE"
+  },
+  {
+    "case_id": "IMG-STALE",
+    "family": "image_fault",
+    "tags": [
+      "context_changed"
+    ],
+    "source_refs": [
+      "assets/diagram.png"
+    ],
+    "action": "改实际图序或文字条件，旧核对失效；改回内容也不能复用",
+    "status": "prepared_not_run",
+    "input_origin": "synthetic_fixture",
+    "teacher_annotation_ref": "annotations.json#IMG-STALE"
+  },
+  {
+    "case_id": "ASM-1-SAT",
+    "family": "assembly",
+    "tags": [
+      "satisfiable",
+      "performance_workload"
+    ],
+    "source_refs": [
+      "question_pool.json",
+      "assembly_cases.json"
+    ],
+    "action": "保存教师合法意图；成功核对实际组合，失败保留原卷并显示真实缺口",
+    "status": "prepared_not_run",
+    "input_origin": "synthetic_fixture",
+    "teacher_annotation_ref": "annotations.json#ASM-1-SAT"
+  },
+  {
+    "case_id": "ASM-1-UNSAT",
+    "family": "assembly",
+    "tags": [
+      "provably_unsatisfiable",
+      "performance_workload"
+    ],
+    "source_refs": [
+      "question_pool.json",
+      "assembly_cases.json"
+    ],
+    "action": "保存教师合法意图；成功核对实际组合，失败保留原卷并显示真实缺口",
+    "status": "prepared_not_run",
+    "input_origin": "synthetic_fixture",
+    "teacher_annotation_ref": "annotations.json#ASM-1-UNSAT"
+  },
+  {
+    "case_id": "ASM-25-SAT",
+    "family": "assembly",
+    "tags": [
+      "satisfiable",
+      "performance_workload"
+    ],
+    "source_refs": [
+      "question_pool.json",
+      "assembly_cases.json"
+    ],
+    "action": "保存教师合法意图；成功核对实际组合，失败保留原卷并显示真实缺口",
+    "status": "prepared_not_run",
+    "input_origin": "synthetic_fixture",
+    "teacher_annotation_ref": "annotations.json#ASM-25-SAT"
+  },
+  {
+    "case_id": "ASM-25-UNSAT",
+    "family": "assembly",
+    "tags": [
+      "provably_unsatisfiable",
+      "performance_workload"
+    ],
+    "source_refs": [
+      "question_pool.json",
+      "assembly_cases.json"
+    ],
+    "action": "保存教师合法意图；成功核对实际组合，失败保留原卷并显示真实缺口",
+    "status": "prepared_not_run",
+    "input_origin": "synthetic_fixture",
+    "teacher_annotation_ref": "annotations.json#ASM-25-UNSAT"
+  },
+  {
+    "case_id": "ASM-100-SAT",
+    "family": "assembly",
+    "tags": [
+      "satisfiable",
+      "performance_workload"
+    ],
+    "source_refs": [
+      "question_pool.json",
+      "assembly_cases.json"
+    ],
+    "action": "保存教师合法意图；成功核对实际组合，失败保留原卷并显示真实缺口",
+    "status": "prepared_not_run",
+    "input_origin": "synthetic_fixture",
+    "teacher_annotation_ref": "annotations.json#ASM-100-SAT"
+  },
+  {
+    "case_id": "ASM-100-UNSAT",
+    "family": "assembly",
+    "tags": [
+      "provably_unsatisfiable",
+      "performance_workload"
+    ],
+    "source_refs": [
+      "question_pool.json",
+      "assembly_cases.json"
+    ],
+    "action": "保存教师合法意图；成功核对实际组合，失败保留原卷并显示真实缺口",
+    "status": "prepared_not_run",
+    "input_origin": "synthetic_fixture",
+    "teacher_annotation_ref": "annotations.json#ASM-100-UNSAT"
+  },
+  {
+    "case_id": "ASM-200-SAT",
+    "family": "assembly",
+    "tags": [
+      "satisfiable",
+      "legacy_request_boundary"
+    ],
+    "source_refs": [
+      "question_pool.json",
+      "assembly_cases.json"
+    ],
+    "action": "保存教师合法意图；成功核对实际组合，失败保留原卷并显示真实缺口",
+    "status": "prepared_not_run",
+    "input_origin": "synthetic_fixture",
+    "teacher_annotation_ref": "annotations.json#ASM-200-SAT"
+  },
+  {
+    "case_id": "ASM-200-UNSAT",
+    "family": "assembly",
+    "tags": [
+      "provably_unsatisfiable",
+      "legacy_request_boundary"
+    ],
+    "source_refs": [
+      "question_pool.json",
+      "assembly_cases.json"
+    ],
+    "action": "保存教师合法意图；成功核对实际组合，失败保留原卷并显示真实缺口",
+    "status": "prepared_not_run",
+    "input_origin": "synthetic_fixture",
+    "teacher_annotation_ref": "annotations.json#ASM-200-UNSAT"
+  },
+  {
+    "case_id": "ASM-OVERRIDE",
+    "family": "assembly",
+    "tags": [
+      "explicit_score",
+      "shared_knowledge",
+      "figure"
+    ],
+    "source_refs": [
+      "question_pool.json",
+      "assembly_cases.json"
+    ],
+    "action": "同题两场不同满分，题库值不改；覆盖交叠不能当题数相加",
+    "status": "prepared_not_run",
+    "input_origin": "synthetic_fixture",
+    "teacher_annotation_ref": "annotations.json#ASM-OVERRIDE"
+  },
+  {
+    "case_id": "ASM-EDIT",
+    "family": "assembly",
+    "tags": [
+      "replace",
+      "reorder"
+    ],
+    "source_refs": [
+      "question_pool.json",
+      "assembly_cases.json"
+    ],
+    "action": "人工替换/移位后按实际关联重算约束",
+    "status": "prepared_not_run",
+    "input_origin": "synthetic_fixture",
+    "teacher_annotation_ref": "annotations.json#ASM-EDIT"
+  },
+  {
+    "case_id": "ASM-LEGACY",
+    "family": "assembly",
+    "tags": [
+      "no_constraints"
+    ],
+    "source_refs": [
+      "question_pool.json",
+      "assembly_cases.json"
+    ],
+    "action": "旧考试 SQL NULL 意图无额外条件，仍检查批准资格",
+    "status": "prepared_not_run",
+    "input_origin": "synthetic_fixture",
+    "teacher_annotation_ref": "annotations.json#ASM-LEGACY"
+  },
+  {
+    "case_id": "ASM-FAIL-RESTART",
+    "family": "assembly",
+    "tags": [
+      "preserve_draft",
+      "restart"
+    ],
+    "source_refs": [
+      "question_pool.json",
+      "assembly_cases.json"
+    ],
+    "action": "失败保持原题序分值并保存本次要求，重启加载持久意图",
+    "status": "prepared_not_run",
+    "input_origin": "synthetic_fixture",
+    "teacher_annotation_ref": "annotations.json#ASM-FAIL-RESTART"
+  },
+  {
+    "case_id": "SCORE-POSITIVE",
+    "family": "scoring",
+    "tags": [
+      "rounding"
+    ],
+    "source_refs": [
+      "scoring_cases.json"
+    ],
+    "action": "只核对固定算术输入；尾差未经真实教师确认不得发布",
+    "status": "prepared_not_run",
+    "input_origin": "synthetic_fixture",
+    "teacher_annotation_ref": "annotations.json#SCORE-POSITIVE"
+  },
+  {
+    "case_id": "SCORE-NEGATIVE",
+    "family": "scoring",
+    "tags": [
+      "rounding"
+    ],
+    "source_refs": [
+      "scoring_cases.json"
+    ],
+    "action": "只核对固定算术输入；尾差未经真实教师确认不得发布",
+    "status": "prepared_not_run",
+    "input_origin": "synthetic_fixture",
+    "teacher_annotation_ref": "annotations.json#SCORE-NEGATIVE"
+  },
+  {
+    "case_id": "SCORE-HALF",
+    "family": "scoring",
+    "tags": [
+      "boundary"
+    ],
+    "source_refs": [
+      "scoring_cases.json"
+    ],
+    "action": "只核对固定算术输入；尾差未经真实教师确认不得发布",
+    "status": "prepared_not_run",
+    "input_origin": "synthetic_fixture",
+    "teacher_annotation_ref": "annotations.json#SCORE-HALF"
+  },
+  {
+    "case_id": "SCORE-DEFAULT",
+    "family": "scoring",
+    "tags": [
+      "boundary"
+    ],
+    "source_refs": [
+      "scoring_cases.json"
+    ],
+    "action": "只核对固定算术输入；尾差未经真实教师确认不得发布",
+    "status": "prepared_not_run",
+    "input_origin": "synthetic_fixture",
+    "teacher_annotation_ref": "annotations.json#SCORE-DEFAULT"
+  },
+  {
+    "case_id": "STATS-MIXED",
+    "family": "statistics",
+    "tags": [
+      "final",
+      "pending_review",
+      "failed",
+      "insufficient_evidence",
+      "zero_score",
+      "no_submission",
+      "different_exam_scores",
+      "multiple_knowledge_points"
+    ],
+    "source_refs": [
+      "statistics_cases.json"
+    ],
+    "action": "教师独立核对分母；失败/未完成不作零分；多知识点不合并为整场总分",
+    "status": "prepared_not_run",
+    "input_origin": "synthetic_fixture",
+    "teacher_annotation_ref": "annotations.json#STATS-MIXED"
+  },
+  {
+    "case_id": "STATS-EMPTY",
+    "family": "statistics",
+    "tags": [
+      "no_valid_final"
+    ],
+    "source_refs": [
+      "statistics_cases.json"
+    ],
+    "action": "仅选非最终记录，有效分母零时显示暂无数据",
+    "status": "prepared_not_run",
+    "input_origin": "synthetic_fixture",
+    "teacher_annotation_ref": "annotations.json#STATS-EMPTY"
+  },
+  {
+    "case_id": "FEEDBACK-SOURCES",
+    "family": "feedback",
+    "tags": [
+      "source_trace",
+      "unauthorized",
+      "missing_material",
+      "unapproved_practice"
+    ],
+    "source_refs": [
+      "teaching_basis.md",
+      "question_pool.json",
+      "statistics_cases.json"
+    ],
+    "action": "仅本人最终失分、同课程资料与已审核练习；缺依据提示，不造推荐",
+    "status": "prepared_not_run",
+    "input_origin": "synthetic_fixture",
+    "teacher_annotation_ref": "annotations.json#FEEDBACK-SOURCES"
+  },
+  {
+    "case_id": "UI-1",
+    "family": "ui",
+    "tags": [
+      "representative"
+    ],
+    "source_refs": [
+      "ui_delivery_cases.json"
+    ],
+    "action": "实际页面逐项列表/详情/编辑或对应查看、保存/取消、角色、失败状态；截图后补",
+    "status": "prepared_not_run",
+    "input_origin": "synthetic_fixture",
+    "teacher_annotation_ref": "annotations.json#UI-1"
+  },
+  {
+    "case_id": "UI-2",
+    "family": "ui",
+    "tags": [
+      "remaining_page"
+    ],
+    "source_refs": [
+      "ui_delivery_cases.json"
+    ],
+    "action": "实际页面逐项列表/详情/编辑或对应查看、保存/取消、角色、失败状态；截图后补",
+    "status": "prepared_not_run",
+    "input_origin": "synthetic_fixture",
+    "teacher_annotation_ref": "annotations.json#UI-2"
+  },
+  {
+    "case_id": "UI-3",
+    "family": "ui",
+    "tags": [
+      "remaining_page"
+    ],
+    "source_refs": [
+      "ui_delivery_cases.json"
+    ],
+    "action": "实际页面逐项列表/详情/编辑或对应查看、保存/取消、角色、失败状态；截图后补",
+    "status": "prepared_not_run",
+    "input_origin": "synthetic_fixture",
+    "teacher_annotation_ref": "annotations.json#UI-3"
+  },
+  {
+    "case_id": "UI-4",
+    "family": "ui",
+    "tags": [
+      "representative"
+    ],
+    "source_refs": [
+      "ui_delivery_cases.json"
+    ],
+    "action": "实际页面逐项列表/详情/编辑或对应查看、保存/取消、角色、失败状态；截图后补",
+    "status": "prepared_not_run",
+    "input_origin": "synthetic_fixture",
+    "teacher_annotation_ref": "annotations.json#UI-4"
+  },
+  {
+    "case_id": "UI-5",
+    "family": "ui",
+    "tags": [
+      "remaining_page"
+    ],
+    "source_refs": [
+      "ui_delivery_cases.json"
+    ],
+    "action": "实际页面逐项列表/详情/编辑或对应查看、保存/取消、角色、失败状态；截图后补",
+    "status": "prepared_not_run",
+    "input_origin": "synthetic_fixture",
+    "teacher_annotation_ref": "annotations.json#UI-5"
+  },
+  {
+    "case_id": "UI-6",
+    "family": "ui",
+    "tags": [
+      "remaining_page"
+    ],
+    "source_refs": [
+      "ui_delivery_cases.json"
+    ],
+    "action": "实际页面逐项列表/详情/编辑或对应查看、保存/取消、角色、失败状态；截图后补",
+    "status": "prepared_not_run",
+    "input_origin": "synthetic_fixture",
+    "teacher_annotation_ref": "annotations.json#UI-6"
+  },
+  {
+    "case_id": "UI-7",
+    "family": "ui",
+    "tags": [
+      "representative"
+    ],
+    "source_refs": [
+      "ui_delivery_cases.json"
+    ],
+    "action": "实际页面逐项列表/详情/编辑或对应查看、保存/取消、角色、失败状态；截图后补",
+    "status": "prepared_not_run",
+    "input_origin": "synthetic_fixture",
+    "teacher_annotation_ref": "annotations.json#UI-7"
+  },
+  {
+    "case_id": "DELIVERY-NORMAL",
+    "family": "delivery",
+    "tags": [
+      "windows_package",
+      "restart"
+    ],
+    "source_refs": [
+      "ui_delivery_cases.json"
+    ],
+    "action": "真实 T188 包首次3次/后续5次，不能用源码启动代替",
+    "status": "prepared_not_run",
+    "input_origin": "synthetic_fixture",
+    "teacher_annotation_ref": "annotations.json#DELIVERY-NORMAL"
+  },
+  {
+    "case_id": "DELIVERY-FAULTS",
+    "family": "delivery",
+    "tags": [
+      "missing_dependency",
+      "configuration",
+      "network",
+      "migration"
+    ],
+    "source_refs": [
+      "ui_delivery_cases.json"
+    ],
+    "action": "分别注入前置故障，记录原失败、不打开正常业务入口",
+    "status": "prepared_not_run",
+    "input_origin": "synthetic_fixture",
+    "teacher_annotation_ref": "annotations.json#DELIVERY-FAULTS"
+  },
+  {
+    "case_id": "RESTORE-COMPLETE",
+    "family": "delivery",
+    "tags": [
+      "backup",
+      "consistent_set",
+      "isolated_restore"
+    ],
+    "source_refs": [
+      "ui_delivery_cases.json"
+    ],
+    "action": "未来含原卷/页图/题图/资料/评分同一备份集，隔离核对后切换",
+    "status": "prepared_not_run",
+    "input_origin": "synthetic_fixture",
+    "teacher_annotation_ref": "annotations.json#RESTORE-COMPLETE"
+  },
+  {
+    "case_id": "RESTORE-MISSING",
+    "family": "delivery",
+    "tags": [
+      "missing_file",
+      "preserve_original"
+    ],
+    "source_refs": [
+      "ui_delivery_cases.json"
+    ],
+    "action": "从验收副本移除一份受引用文件，恢复失败保留原环境；不删除用户数据",
+    "status": "prepared_not_run",
+    "input_origin": "synthetic_fixture",
+    "teacher_annotation_ref": "annotations.json#RESTORE-MISSING"
+  },
+  {
+    "case_id": "PERF-IMPORT-1",
+    "family": "import_performance",
+    "tags": [
+      "1_pages"
+    ],
+    "source_refs": [
+      "inputs/paper_text.pdf"
+    ],
+    "action": "3 次应用冷态、5 次暖态；每次新实例，同一生效配置",
+    "status": "prepared_not_run",
+    "input_origin": "synthetic_fixture",
+    "teacher_annotation_ref": "annotations.json#PERF-IMPORT-1"
+  },
+  {
+    "case_id": "PERF-IMPORT-10",
+    "family": "import_performance",
+    "tags": [
+      "10_pages"
+    ],
+    "source_refs": [
+      "inputs/workload_10_pages.pdf"
+    ],
+    "action": "3 次应用冷态、5 次暖态；每次新实例，同一生效配置",
+    "status": "prepared_not_run",
+    "input_origin": "synthetic_fixture",
+    "teacher_annotation_ref": "annotations.json#PERF-IMPORT-10"
+  },
+  {
+    "case_id": "PERF-IMPORT-50",
+    "family": "import_performance",
+    "tags": [
+      "50_pages"
+    ],
+    "source_refs": [
+      "inputs/workload_50_pages.pdf"
+    ],
+    "action": "3 次应用冷态、5 次暖态；每次新实例，同一生效配置",
+    "status": "prepared_not_run",
+    "input_origin": "synthetic_fixture",
+    "teacher_annotation_ref": "annotations.json#PERF-IMPORT-50"
+  }
+]

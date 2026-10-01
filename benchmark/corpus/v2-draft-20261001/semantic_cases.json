@@ -1,0 +1,76 @@
+[
+  {
+    "case_id": "SEM-GOOD",
+    "generation_path": "knowledge_base_new",
+    "question": "y=2x+1，x=3，求y。",
+    "reference_answer": "7",
+    "scoring_rubric": "代入计算，5.00 分。",
+    "parent_fixture_id": null,
+    "teaching_basis_ref": "teaching_basis.md"
+  },
+  {
+    "case_id": "SEM-ANSWER",
+    "generation_path": "knowledge_base_new",
+    "question": "y=2x+1，x=3，求y。",
+    "reference_answer": "6",
+    "scoring_rubric": "代入计算，5.00 分。",
+    "parent_fixture_id": null,
+    "teaching_basis_ref": "teaching_basis.md"
+  },
+  {
+    "case_id": "SEM-CONDITION",
+    "generation_path": "knowledge_base_new",
+    "question": "矩形长3，求面积。",
+    "reference_answer": "6",
+    "scoring_rubric": "写出面积，5.00 分。",
+    "parent_fixture_id": null,
+    "teaching_basis_ref": "teaching_basis.md"
+  },
+  {
+    "case_id": "SEM-OPTIONS",
+    "generation_path": "knowledge_base_new",
+    "question": "2+2等于多少？选项A:4，B:4，C:5。",
+    "reference_answer": "A",
+    "scoring_rubric": "选A得2.00。",
+    "parent_fixture_id": null,
+    "teaching_basis_ref": "teaching_basis.md"
+  },
+  {
+    "case_id": "SEM-RUBRIC",
+    "generation_path": "knowledge_base_new",
+    "question": "解释变量作用。",
+    "reference_answer": "保存并引用数据。",
+    "scoring_rubric": "看情况给分。",
+    "parent_fixture_id": null,
+    "teaching_basis_ref": "teaching_basis.md"
+  },
+  {
+    "case_id": "SEM-ADAPT-GOOD",
+    "generation_path": "parent_adaptation",
+    "question": "父题x=3，答案7；改编x=4，求y。",
+    "reference_answer": "9",
+    "scoring_rubric": "代入2x+1，5.00 分。",
+    "parent_fixture_id": "parent-linear-x3",
+    "teaching_basis_ref": "teaching_basis.md",
+    "parent_source_ref": "parent_questions.json#parent-linear-x3"
+  },
+  {
+    "case_id": "SEM-STALE",
+    "generation_path": "parent_adaptation",
+    "question": "父题x=3，答案7；改编x=4，仍沿用旧答案。",
+    "reference_answer": "7",
+    "scoring_rubric": "代入2x+1，5.00 分。",
+    "parent_fixture_id": "parent-linear-x3",
+    "teaching_basis_ref": "teaching_basis.md",
+    "parent_source_ref": "parent_questions.json#parent-linear-x3"
+  },
+  {
+    "case_id": "SEM-NO-BASIS",
+    "generation_path": "knowledge_base_new",
+    "question": "根据未提供的教材图，求参数。",
+    "reference_answer": null,
+    "scoring_rubric": null,
+    "parent_fixture_id": null,
+    "teaching_basis_ref": null
+  }
+]

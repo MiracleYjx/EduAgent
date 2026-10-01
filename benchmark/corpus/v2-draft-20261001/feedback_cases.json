@@ -1,0 +1,14 @@
+{
+  "case_id": "FEEDBACK-SOURCES",
+  "course_id": "cf99a4d9-dfa1-5bb3-9d6d-2ea11d1d6820",
+  "basis_refs": [
+    "teaching_basis.md"
+  ],
+  "same_course_practice_ids": [
+    "170002c8-1870-54cb-b8ad-494ee15697ad"
+  ],
+  "inaccessible_course_id": "51dd3b43-0b37-560a-ba3d-80f3f4104208",
+  "missing_material_knowledge_point": "未收录知识点",
+  "not_approved_fixture_id": "508f6cc4-92ba-5ca5-8de3-49c57b7afa79",
+  "teacher_verified": false
+}

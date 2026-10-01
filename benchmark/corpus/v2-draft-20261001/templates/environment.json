@@ -1,0 +1,22 @@
+{
+  "status": "not_run",
+  "reason": "real evaluation machine/configuration not locked",
+  "os": null,
+  "cpu_model": null,
+  "logical_cpus": null,
+  "physical_memory_mib": null,
+  "disk_type": null,
+  "python_or_exe_build": null,
+  "dependency_versions": null,
+  "postgres_pgvector_redis": null,
+  "provider_model_prompt": null,
+  "ocr_model_version": null,
+  "ocr_enabled": null,
+  "render_dpi": null,
+  "timeouts_retries": null,
+  "parallelism": null,
+  "network_conditions": null,
+  "database_size_indexes": null,
+  "resource_sample_interval_seconds": 1,
+  "resource_processes": null
+}

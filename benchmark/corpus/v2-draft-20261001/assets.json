@@ -1,0 +1,91 @@
+[
+  {
+    "asset_id": "839f8584-dff3-526a-8cbe-85ac6784a3e2",
+    "kind": "figure",
+    "file": "assets/figure.png",
+    "width": 640,
+    "height": 400,
+    "provenance": "Codex authored synthetic vector drawing rendered to pixels",
+    "source_page_ref": null,
+    "source_region": null,
+    "teacher_verified": false,
+    "bindings": [
+      {
+        "source_file": "inputs/paper_text.pdf",
+        "page": 1,
+        "question_number": "2"
+      },
+      {
+        "source_file": "inputs/paper_scan.pdf",
+        "page": 1,
+        "question_number": "2"
+      },
+      {
+        "source_file": "inputs/paper_mixed.pdf",
+        "page": 2,
+        "question_number": "5"
+      }
+    ],
+    "identity_scope": "stable fixture UUID; not yet persisted service file_id"
+  },
+  {
+    "asset_id": "34fa6905-e80a-5a0f-a7fa-2abac6ba9850",
+    "kind": "table",
+    "file": "assets/table.png",
+    "width": 640,
+    "height": 400,
+    "provenance": "Codex authored synthetic vector drawing rendered to pixels",
+    "source_page_ref": null,
+    "source_region": null,
+    "teacher_verified": false,
+    "bindings": [
+      {
+        "source_file": "inputs/paper_text.pdf",
+        "page": 1,
+        "question_number": "3"
+      },
+      {
+        "source_file": "inputs/paper_scan.pdf",
+        "page": 1,
+        "question_number": "3"
+      },
+      {
+        "source_file": "inputs/paper_mixed.pdf",
+        "page": 2,
+        "question_number": "6"
+      }
+    ],
+    "identity_scope": "stable fixture UUID; not yet persisted service file_id"
+  },
+  {
+    "asset_id": "31d1b223-0422-5f9f-b323-7ecac2ad4367",
+    "kind": "diagram",
+    "file": "assets/diagram.png",
+    "width": 640,
+    "height": 400,
+    "provenance": "Codex authored synthetic vector drawing rendered to pixels",
+    "source_page_ref": null,
+    "source_region": null,
+    "teacher_verified": false,
+    "bindings": [
+      {
+        "source_file": "inputs/paper_cross_page.pdf",
+        "page": 2,
+        "question_number": "4"
+      }
+    ],
+    "identity_scope": "stable fixture UUID; not yet persisted service file_id"
+  },
+  {
+    "asset_id": "f19b591c-48f9-5569-a539-e4dd526be833",
+    "kind": "diagram",
+    "file": "assets/diagram_low_resolution.png",
+    "width": 64,
+    "height": 40,
+    "provenance": "separate low-resolution render of same synthetic vector input",
+    "source_page_ref": null,
+    "source_region": null,
+    "teacher_verified": false,
+    "bindings": []
+  }
+]

@@ -1,0 +1,5 @@
+# Preserve corpus bytes and manifest digests on every platform.
+* text eol=lf
+inputs/*.pdf binary
+inputs/*.png binary
+assets/*.png binary

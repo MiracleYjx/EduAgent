@@ -1,0 +1,195 @@
+{
+  "input_origin": "synthetic declared fixture facts; not actual student records",
+  "exams": [
+    {
+      "exam_fixture_id": "A",
+      "questions": [
+        {
+          "question_fixture_id": "shared-choice",
+          "max_score": "2.00",
+          "knowledge_points": [
+            "一次函数"
+          ]
+        },
+        {
+          "question_fixture_id": "shared-short",
+          "max_score": "3.00",
+          "knowledge_points": [
+            "一次函数",
+            "表达与计算"
+          ]
+        }
+      ],
+      "students": [
+        {
+          "student_fixture_id": "S1",
+          "eligible": true
+        },
+        {
+          "student_fixture_id": "S2",
+          "eligible": true
+        },
+        {
+          "student_fixture_id": "S3",
+          "eligible": true
+        },
+        {
+          "student_fixture_id": "S4",
+          "eligible": true
+        },
+        {
+          "student_fixture_id": "S5",
+          "eligible": true
+        },
+        {
+          "student_fixture_id": "S6",
+          "eligible": true
+        }
+      ],
+      "submissions": [
+        {
+          "student_fixture_id": "S1",
+          "state": "Final",
+          "scores": [
+            "2.00",
+            "2.00"
+          ],
+          "final_total": "4.00",
+          "reason": null,
+          "submitted": true
+        },
+        {
+          "student_fixture_id": "S2",
+          "state": "Final",
+          "scores": [
+            "0.00",
+            "0.00"
+          ],
+          "final_total": "0.00",
+          "reason": null,
+          "submitted": true
+        },
+        {
+          "student_fixture_id": "S3",
+          "state": "Pending Review",
+          "scores": null,
+          "final_total": null,
+          "reason": "受控未完成状态，不作零分",
+          "submitted": true
+        },
+        {
+          "student_fixture_id": "S4",
+          "state": "Failed",
+          "scores": null,
+          "final_total": null,
+          "reason": "受控未完成状态，不作零分",
+          "submitted": true
+        },
+        {
+          "student_fixture_id": "S5",
+          "state": "Insufficient Evidence",
+          "scores": null,
+          "final_total": null,
+          "reason": "受控未完成状态，不作零分",
+          "submitted": true
+        }
+      ],
+      "expected_teacher_statistics": null
+    },
+    {
+      "exam_fixture_id": "B",
+      "questions": [
+        {
+          "question_fixture_id": "shared-choice",
+          "max_score": "4.00",
+          "knowledge_points": [
+            "一次函数"
+          ]
+        },
+        {
+          "question_fixture_id": "shared-short",
+          "max_score": "6.00",
+          "knowledge_points": [
+            "一次函数",
+            "表达与计算"
+          ]
+        }
+      ],
+      "students": [
+        {
+          "student_fixture_id": "S1",
+          "eligible": true
+        },
+        {
+          "student_fixture_id": "S2",
+          "eligible": true
+        },
+        {
+          "student_fixture_id": "S3",
+          "eligible": true
+        },
+        {
+          "student_fixture_id": "S4",
+          "eligible": true
+        },
+        {
+          "student_fixture_id": "S5",
+          "eligible": true
+        },
+        {
+          "student_fixture_id": "S6",
+          "eligible": true
+        }
+      ],
+      "submissions": [
+        {
+          "student_fixture_id": "S1",
+          "state": "Final",
+          "scores": [
+            "4.00",
+            "4.00"
+          ],
+          "final_total": "8.00",
+          "reason": null,
+          "submitted": true
+        },
+        {
+          "student_fixture_id": "S2",
+          "state": "Final",
+          "scores": [
+            "0.00",
+            "0.00"
+          ],
+          "final_total": "0.00",
+          "reason": null,
+          "submitted": true
+        },
+        {
+          "student_fixture_id": "S3",
+          "state": "Pending Review",
+          "scores": null,
+          "final_total": null,
+          "reason": "受控未完成状态，不作零分",
+          "submitted": true
+        },
+        {
+          "student_fixture_id": "S4",
+          "state": "Failed",
+          "scores": null,
+          "final_total": null,
+          "reason": "受控未完成状态，不作零分",
+          "submitted": true
+        },
+        {
+          "student_fixture_id": "S5",
+          "state": "Insufficient Evidence",
+          "scores": null,
+          "final_total": null,
+          "reason": "受控未完成状态，不作零分",
+          "submitted": true
+        }
+      ],
+      "expected_teacher_statistics": null
+    }
+  ]
+}

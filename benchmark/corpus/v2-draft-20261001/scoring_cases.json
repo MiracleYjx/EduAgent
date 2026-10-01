@@ -1,0 +1,85 @@
+[
+  {
+    "case_id": "SCORE-POSITIVE",
+    "base_score": "3.00",
+    "exam_score": "10.00",
+    "base_points": [
+      "1.00",
+      "1.00",
+      "1.00"
+    ],
+    "draft_default_points": [
+      "3.33",
+      "3.33",
+      "3.33"
+    ],
+    "draft_rounding_delta": "+0.01",
+    "teacher_confirmed_points": null,
+    "question_fixture_id": "fixture-score-positive",
+    "teacher_checked": false,
+    "base_rubric": [
+      {
+        "key": "point-1",
+        "label": "评分要点1",
+        "base_points": "1.00"
+      },
+      {
+        "key": "point-2",
+        "label": "评分要点2",
+        "base_points": "1.00"
+      },
+      {
+        "key": "point-3",
+        "label": "评分要点3",
+        "base_points": "1.00"
+      }
+    ],
+    "expected_before_teacher_confirmation": "RUBRIC_ROUNDING_UNCONFIRMED"
+  },
+  {
+    "case_id": "SCORE-NEGATIVE",
+    "base_score": "2.00",
+    "exam_score": "1.01",
+    "base_points": [
+      "1.00",
+      "1.00"
+    ],
+    "draft_default_points": [
+      "0.51",
+      "0.51"
+    ],
+    "draft_rounding_delta": "-0.01",
+    "teacher_confirmed_points": null,
+    "question_fixture_id": "fixture-score-negative",
+    "teacher_checked": false,
+    "base_rubric": [
+      {
+        "key": "point-1",
+        "label": "评分要点1",
+        "base_points": "1.00"
+      },
+      {
+        "key": "point-2",
+        "label": "评分要点2",
+        "base_points": "1.00"
+      }
+    ],
+    "expected_before_teacher_confirmation": "RUBRIC_ROUNDING_UNCONFIRMED"
+  },
+  {
+    "case_id": "SCORE-HALF",
+    "raw_amount": "0.005",
+    "draft_rounded": "0.01",
+    "rounding_mode": "ROUND_HALF_UP",
+    "question_fixture_id": "fixture-score-half",
+    "teacher_checked": false
+  },
+  {
+    "case_id": "SCORE-DEFAULT",
+    "base_score": "5.00",
+    "exam_score": null,
+    "draft_effective_score": "5.00",
+    "question_fixture_id": "fixture-score-default",
+    "teacher_checked": false
+  }
+]

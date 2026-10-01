@@ -1,0 +1,1004 @@
+{
+  "annotation_version": "ai-suggestions-1",
+  "is_teacher_truth": false,
+  "entries": [
+    {
+      "case_id": "IMP-TEXT",
+      "proposal": {
+        "question_numbers": [
+          "1",
+          "2",
+          "3"
+        ],
+        "page_numbers": [
+          1
+        ],
+        "original_options_q1": [
+          "C",
+          "A",
+          "B",
+          "D"
+        ],
+        "original_answer_q1": "C",
+        "original_answer_q2": null,
+        "original_answer_q3": null,
+        "original_analysis_q2": null,
+        "original_analysis_q3": null
+      },
+      "author_kind": "ai_assistant",
+      "author_name": "Codex",
+      "teacher_verified": false,
+      "is_evaluation_truth": false
+    },
+    {
+      "case_id": "IMP-SCAN",
+      "proposal": {
+        "question_numbers": [
+          "1",
+          "2",
+          "3"
+        ],
+        "physical_scan": false
+      },
+      "author_kind": "ai_assistant",
+      "author_name": "Codex",
+      "teacher_verified": false,
+      "is_evaluation_truth": false
+    },
+    {
+      "case_id": "IMP-IMAGE",
+      "proposal": null,
+      "author_kind": "ai_assistant",
+      "author_name": "Codex",
+      "teacher_verified": false,
+      "is_evaluation_truth": false
+    },
+    {
+      "case_id": "IMP-MIXED",
+      "proposal": {
+        "question_numbers": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6"
+        ]
+      },
+      "author_kind": "ai_assistant",
+      "author_name": "Codex",
+      "teacher_verified": false,
+      "is_evaluation_truth": false
+    },
+    {
+      "case_id": "IMP-CROSS",
+      "proposal": {
+        "question_numbers": [
+          "4"
+        ],
+        "source_page_numbers": [
+          1,
+          2
+        ],
+        "answer": null,
+        "source_regions": null
+      },
+      "author_kind": "ai_assistant",
+      "author_name": "Codex",
+      "teacher_verified": false,
+      "is_evaluation_truth": false
+    },
+    {
+      "case_id": "IMP-DAMAGED",
+      "proposal": null,
+      "author_kind": "ai_assistant",
+      "author_name": "Codex",
+      "teacher_verified": false,
+      "is_evaluation_truth": false
+    },
+    {
+      "case_id": "IMP-OVERLIMIT",
+      "proposal": null,
+      "author_kind": "ai_assistant",
+      "author_name": "Codex",
+      "teacher_verified": false,
+      "is_evaluation_truth": false
+    },
+    {
+      "case_id": "IMP-OCR-OFF",
+      "proposal": null,
+      "author_kind": "ai_assistant",
+      "author_name": "Codex",
+      "teacher_verified": false,
+      "is_evaluation_truth": false
+    },
+    {
+      "case_id": "IMP-OCR-FAIL",
+      "proposal": null,
+      "author_kind": "ai_assistant",
+      "author_name": "Codex",
+      "teacher_verified": false,
+      "is_evaluation_truth": false
+    },
+    {
+      "case_id": "SEM-GOOD",
+      "proposal": {
+        "problem_labels": {
+          "answer_correctness": false,
+          "condition_sufficiency": false,
+          "option_ambiguity": false,
+          "rubric_clarity": false
+        },
+        "reason": "固定输入的待教师核对建议"
+      },
+      "author_kind": "ai_assistant",
+      "author_name": "Codex",
+      "teacher_verified": false,
+      "is_evaluation_truth": false
+    },
+    {
+      "case_id": "SEM-ANSWER",
+      "proposal": {
+        "problem_labels": {
+          "answer_correctness": true
+        },
+        "reason": "固定输入的待教师核对建议"
+      },
+      "author_kind": "ai_assistant",
+      "author_name": "Codex",
+      "teacher_verified": false,
+      "is_evaluation_truth": false
+    },
+    {
+      "case_id": "SEM-CONDITION",
+      "proposal": {
+        "problem_labels": {
+          "condition_sufficiency": true
+        },
+        "reason": "固定输入的待教师核对建议"
+      },
+      "author_kind": "ai_assistant",
+      "author_name": "Codex",
+      "teacher_verified": false,
+      "is_evaluation_truth": false
+    },
+    {
+      "case_id": "SEM-OPTIONS",
+      "proposal": {
+        "problem_labels": {
+          "option_ambiguity": true
+        },
+        "reason": "固定输入的待教师核对建议"
+      },
+      "author_kind": "ai_assistant",
+      "author_name": "Codex",
+      "teacher_verified": false,
+      "is_evaluation_truth": false
+    },
+    {
+      "case_id": "SEM-RUBRIC",
+      "proposal": {
+        "problem_labels": {
+          "rubric_clarity": true
+        },
+        "reason": "固定输入的待教师核对建议"
+      },
+      "author_kind": "ai_assistant",
+      "author_name": "Codex",
+      "teacher_verified": false,
+      "is_evaluation_truth": false
+    },
+    {
+      "case_id": "SEM-ADAPT-GOOD",
+      "proposal": {
+        "problem_labels": {
+          "answer_correctness": false,
+          "condition_sufficiency": false,
+          "option_ambiguity": false,
+          "rubric_clarity": false
+        },
+        "reason": "固定输入的待教师核对建议"
+      },
+      "author_kind": "ai_assistant",
+      "author_name": "Codex",
+      "teacher_verified": false,
+      "is_evaluation_truth": false
+    },
+    {
+      "case_id": "SEM-STALE",
+      "proposal": {
+        "problem_labels": {
+          "answer_correctness": true
+        },
+        "reason": "固定输入的待教师核对建议"
+      },
+      "author_kind": "ai_assistant",
+      "author_name": "Codex",
+      "teacher_verified": false,
+      "is_evaluation_truth": false
+    },
+    {
+      "case_id": "SEM-NO-BASIS",
+      "proposal": {
+        "problem_labels": {
+          "answer_correctness": null,
+          "condition_sufficiency": null,
+          "option_ambiguity": null,
+          "rubric_clarity": null
+        },
+        "reason": "固定输入的待教师核对建议"
+      },
+      "author_kind": "ai_assistant",
+      "author_name": "Codex",
+      "teacher_verified": false,
+      "is_evaluation_truth": false
+    },
+    {
+      "case_id": "IMG-FIGURE",
+      "proposal": {
+        "suggested_conditions": [
+          "三角形",
+          "底6 cm",
+          "高4 cm"
+        ]
+      },
+      "author_kind": "ai_assistant",
+      "author_name": "Codex",
+      "teacher_verified": false,
+      "is_evaluation_truth": false
+    },
+    {
+      "case_id": "IMG-TABLE",
+      "proposal": {
+        "suggested_conditions": [
+          "x=1,y=3",
+          "x=2,y=5",
+          "x=3,y=7"
+        ]
+      },
+      "author_kind": "ai_assistant",
+      "author_name": "Codex",
+      "teacher_verified": false,
+      "is_evaluation_truth": false
+    },
+    {
+      "case_id": "IMG-DIAGRAM",
+      "proposal": {
+        "suggested_conditions": [
+          "输入x",
+          "y=2*x+1",
+          "输出y"
+        ]
+      },
+      "author_kind": "ai_assistant",
+      "author_name": "Codex",
+      "teacher_verified": false,
+      "is_evaluation_truth": false
+    },
+    {
+      "case_id": "IMG-UNCLEAR",
+      "proposal": null,
+      "author_kind": "ai_assistant",
+      "author_name": "Codex",
+      "teacher_verified": false,
+      "is_evaluation_truth": false
+    },
+    {
+      "case_id": "IMG-UNSUPPORTED",
+      "proposal": null,
+      "author_kind": "ai_assistant",
+      "author_name": "Codex",
+      "teacher_verified": false,
+      "is_evaluation_truth": false
+    },
+    {
+      "case_id": "IMG-FAILURE",
+      "proposal": null,
+      "author_kind": "ai_assistant",
+      "author_name": "Codex",
+      "teacher_verified": false,
+      "is_evaluation_truth": false
+    },
+    {
+      "case_id": "IMG-STALE",
+      "proposal": null,
+      "author_kind": "ai_assistant",
+      "author_name": "Codex",
+      "teacher_verified": false,
+      "is_evaluation_truth": false
+    },
+    {
+      "case_id": "ASM-1-SAT",
+      "proposal": {
+        "combination": [
+          "170002c8-1870-54cb-b8ad-494ee15697ad"
+        ],
+        "unmet_knowledge_point": null
+      },
+      "author_kind": "ai_assistant",
+      "author_name": "Codex",
+      "teacher_verified": false,
+      "is_evaluation_truth": false
+    },
+    {
+      "case_id": "ASM-1-UNSAT",
+      "proposal": {
+        "combination": null,
+        "unmet_knowledge_point": "未收录知识点"
+      },
+      "author_kind": "ai_assistant",
+      "author_name": "Codex",
+      "teacher_verified": false,
+      "is_evaluation_truth": false
+    },
+    {
+      "case_id": "ASM-25-SAT",
+      "proposal": {
+        "combination": [
+          "170002c8-1870-54cb-b8ad-494ee15697ad",
+          "fb2aad97-03ba-5704-854c-95453444ad65",
+          "38459e84-ef20-5cae-bdf4-0407061a6997",
+          "9bb36ece-ac8b-5a8d-a57b-ac093d050f60",
+          "1ac55ca1-b2c6-516c-ab5b-20d6ba9fe945",
+          "55506688-8029-54d2-aa94-7b2a44463f7d",
+          "2e47e877-369a-5c42-983c-b2c94f9cc8cb",
+          "d3c3d04b-8e0b-57d7-b159-755cf2ee84d8",
+          "afdb6c69-a066-5d48-927f-b2addbd39108",
+          "8b6ca584-ecac-5d56-8a31-3f21e1bce6c4",
+          "fb8957c9-73bf-5116-8c0c-4d102ff9dd12",
+          "05ef4e67-2b08-5fd4-b0de-a655a1b84083",
+          "2be74d73-07db-5876-bc35-329d1cbc0a03",
+          "24927879-0294-5076-92c8-39f9e14c3a35",
+          "a1e1cade-ec52-519a-89a8-a0d3a7d3f87a",
+          "9c975da4-f83a-5749-8a3d-5b3057ae6274",
+          "8b5cf761-a018-5966-ad61-5d2a6c879173",
+          "e75d38cc-9cda-57e0-a135-02d09861ba57",
+          "73cbbe37-f60c-5c22-9b51-9e404bffb664",
+          "c3ca3e92-be2c-5c39-834e-10363dbc6964",
+          "7ba10839-baff-50c7-910c-968d7a5b78f3",
+          "939900ec-ea55-5386-b7a7-63ca6bdd3d8b",
+          "57967ae1-d68d-5310-9ee5-42b7fb9b1d70",
+          "bbb585e7-892d-5d64-a951-3adc8965e9de",
+          "57553c76-ec58-5e5d-9180-372324a4ea67"
+        ],
+        "unmet_knowledge_point": null
+      },
+      "author_kind": "ai_assistant",
+      "author_name": "Codex",
+      "teacher_verified": false,
+      "is_evaluation_truth": false
+    },
+    {
+      "case_id": "ASM-25-UNSAT",
+      "proposal": {
+        "combination": null,
+        "unmet_knowledge_point": "未收录知识点"
+      },
+      "author_kind": "ai_assistant",
+      "author_name": "Codex",
+      "teacher_verified": false,
+      "is_evaluation_truth": false
+    },
+    {
+      "case_id": "ASM-100-SAT",
+      "proposal": {
+        "combination": [
+          "170002c8-1870-54cb-b8ad-494ee15697ad",
+          "fb2aad97-03ba-5704-854c-95453444ad65",
+          "38459e84-ef20-5cae-bdf4-0407061a6997",
+          "9bb36ece-ac8b-5a8d-a57b-ac093d050f60",
+          "1ac55ca1-b2c6-516c-ab5b-20d6ba9fe945",
+          "55506688-8029-54d2-aa94-7b2a44463f7d",
+          "2e47e877-369a-5c42-983c-b2c94f9cc8cb",
+          "d3c3d04b-8e0b-57d7-b159-755cf2ee84d8",
+          "afdb6c69-a066-5d48-927f-b2addbd39108",
+          "8b6ca584-ecac-5d56-8a31-3f21e1bce6c4",
+          "fb8957c9-73bf-5116-8c0c-4d102ff9dd12",
+          "05ef4e67-2b08-5fd4-b0de-a655a1b84083",
+          "2be74d73-07db-5876-bc35-329d1cbc0a03",
+          "24927879-0294-5076-92c8-39f9e14c3a35",
+          "a1e1cade-ec52-519a-89a8-a0d3a7d3f87a",
+          "9c975da4-f83a-5749-8a3d-5b3057ae6274",
+          "8b5cf761-a018-5966-ad61-5d2a6c879173",
+          "e75d38cc-9cda-57e0-a135-02d09861ba57",
+          "73cbbe37-f60c-5c22-9b51-9e404bffb664",
+          "c3ca3e92-be2c-5c39-834e-10363dbc6964",
+          "7ba10839-baff-50c7-910c-968d7a5b78f3",
+          "939900ec-ea55-5386-b7a7-63ca6bdd3d8b",
+          "57967ae1-d68d-5310-9ee5-42b7fb9b1d70",
+          "bbb585e7-892d-5d64-a951-3adc8965e9de",
+          "57553c76-ec58-5e5d-9180-372324a4ea67",
+          "c8d6b6fb-9934-545c-96b4-4e055777fca6",
+          "645405c1-7174-5e06-939d-3c97ad7c851d",
+          "87b85e7d-ebf3-566b-85c4-8ee432fb301b",
+          "0ae96050-23df-57ee-a0a0-15c7e32a7580",
+          "1e9a2a38-6450-5100-ad83-c13e15028129",
+          "bcbd60a8-7111-584d-93a6-ff7d0fd66383",
+          "a3be1c18-c266-56d4-a894-0b250b867b08",
+          "bafb6edf-024d-55aa-98a7-86d784f88645",
+          "6f915c84-811b-55cb-9031-cff7d8c24f3f",
+          "e9bb8e41-22ea-5af1-a61a-92caf3ac8c72",
+          "2f98c970-f0bf-5587-a36a-91cdedfe6dd7",
+          "b0bf9f97-6080-5559-8c8c-735a68fa911f",
+          "087fcb43-b801-5a12-b5b0-aeb3fd1c97bf",
+          "320c3dfd-eb8e-544a-ad4c-e49e6b6a2130",
+          "68f04409-231a-582c-8e71-684c5f248538",
+          "80582712-3ef1-50a5-bcdc-fa9fd79c01f7",
+          "eb09c601-0305-5810-a787-b8847c76863e",
+          "42e91c74-04d3-5e02-8008-af50cf059768",
+          "b43b2f39-e024-5fe1-a988-8ebece7dc6bd",
+          "0dd223ca-d7ec-58b9-9781-3003471f0d86",
+          "60df02b5-92a9-5a71-acbb-facbabbf6409",
+          "d544ccb8-ab47-5a8e-b365-28f5eebaa4f6",
+          "933af493-2eb2-5e94-8ed8-4f8dc19ba679",
+          "3a264ba1-cb57-50e6-b761-7ed7bac79940",
+          "5ef8c7c3-d4ce-516a-9203-bdb58c419b29",
+          "c2e53ce4-01f2-5ed6-ae0b-051d36cd71fe",
+          "3c168200-ed53-5926-ab0b-333fe55928fd",
+          "1f9fb18d-6502-588f-9a27-7b101e3288e9",
+          "f5b08a77-385d-5a77-ae26-da730af40438",
+          "2ebb6c30-600e-5028-abb8-dcb1212127dd",
+          "b8a07672-2954-57ea-9c0a-15caff253ce2",
+          "1770b3e2-bc28-57cc-8112-87ba71f5d075",
+          "bbc0df68-b0b5-5415-ae5b-e3f6a081f7c5",
+          "a11bf13b-8683-5c62-9202-7177bba657f3",
+          "e9ae7984-560e-5ede-99e8-11b262203c6d",
+          "2b481a71-6cea-5094-b219-9796002360f1",
+          "0976c47c-4882-5a20-8810-129ef5514bd7",
+          "5ceee68f-0fb5-5ea4-9455-f7124e00e441",
+          "e42db29c-d03b-5b20-aee4-edd3050bb7b9",
+          "014359f3-7f00-5790-b614-78de7b0d62bc",
+          "931ef058-6e1e-5f56-b383-66c91376b889",
+          "b911191d-bfa4-5ba4-ad9d-4d082b5f51f3",
+          "9c6aef11-b84c-5d15-8f5d-ee23226a190d",
+          "e7f9e923-0822-512b-879e-8c2ebdfa44ea",
+          "f49577da-f879-52e3-8b9f-acc98c6c1376",
+          "97913488-029c-5789-aa00-b85f3ad41cc9",
+          "80045489-5b92-561d-a0af-14bb4b67d20b",
+          "dfbc7a3e-c9ce-5962-bc7f-52b2706ee412",
+          "9e877712-1618-5f71-a414-1b150696fe4e",
+          "ac6d6d05-9e5e-5584-9bd6-5a0b62117b60",
+          "4f641727-48fa-51d6-84b6-762830922e49",
+          "02b42c36-04fa-5461-baf0-abd0ece47a73",
+          "9d333f0a-1a15-55ab-8a72-2dd5f004730a",
+          "e9a61b26-de93-57c3-ab7f-08ca999b6c5c",
+          "2ab3835b-76a9-5dc5-959a-03d973a6e158",
+          "4985f25e-1a2d-53be-9906-de50c87c6eb6",
+          "d9d59ad9-de9d-5664-a134-dd428fd4d433",
+          "8928429a-a124-5ff0-87ab-e639861085ee",
+          "e4089ad1-73bf-5fa3-abf1-5e20e1dd9f9f",
+          "79b03364-81ab-552b-9cd0-eac8d7ff369f",
+          "c88efbce-daa9-5ac2-9414-dec6b36d0cf6",
+          "04a551de-3217-5c68-9e5b-cd578493a1a5",
+          "6436f22e-c809-5229-af08-d29a3d030183",
+          "384b6c7f-314c-55dc-9e55-705006ab6c87",
+          "375b12fb-866b-5c86-a779-0a52ad8a8773",
+          "829a5a92-797e-59c8-9c86-13f484d0982f",
+          "48aa784f-ac05-5cb1-826d-2451e96b0431",
+          "79e66ed1-5c61-56fb-93a1-a4a3b02556bb",
+          "d403bcce-6957-5746-a1da-2b2b69ac861f",
+          "a825a4b4-65bd-5a48-abe8-c54c2976011f",
+          "afe365fa-d77d-57b3-9b9e-068b645a2696",
+          "07b0d604-9be8-5a29-9edd-6180354e7147",
+          "f7960160-7085-520b-a9c1-0b9a0a1b47e4",
+          "3499ee05-40ce-5dfe-b833-53296830179b",
+          "5ca5f267-dbba-5e2a-8467-2d52104c045d"
+        ],
+        "unmet_knowledge_point": null
+      },
+      "author_kind": "ai_assistant",
+      "author_name": "Codex",
+      "teacher_verified": false,
+      "is_evaluation_truth": false
+    },
+    {
+      "case_id": "ASM-100-UNSAT",
+      "proposal": {
+        "combination": null,
+        "unmet_knowledge_point": "未收录知识点"
+      },
+      "author_kind": "ai_assistant",
+      "author_name": "Codex",
+      "teacher_verified": false,
+      "is_evaluation_truth": false
+    },
+    {
+      "case_id": "ASM-200-SAT",
+      "proposal": {
+        "combination": [
+          "170002c8-1870-54cb-b8ad-494ee15697ad",
+          "fb2aad97-03ba-5704-854c-95453444ad65",
+          "38459e84-ef20-5cae-bdf4-0407061a6997",
+          "9bb36ece-ac8b-5a8d-a57b-ac093d050f60",
+          "1ac55ca1-b2c6-516c-ab5b-20d6ba9fe945",
+          "55506688-8029-54d2-aa94-7b2a44463f7d",
+          "2e47e877-369a-5c42-983c-b2c94f9cc8cb",
+          "d3c3d04b-8e0b-57d7-b159-755cf2ee84d8",
+          "afdb6c69-a066-5d48-927f-b2addbd39108",
+          "8b6ca584-ecac-5d56-8a31-3f21e1bce6c4",
+          "fb8957c9-73bf-5116-8c0c-4d102ff9dd12",
+          "05ef4e67-2b08-5fd4-b0de-a655a1b84083",
+          "2be74d73-07db-5876-bc35-329d1cbc0a03",
+          "24927879-0294-5076-92c8-39f9e14c3a35",
+          "a1e1cade-ec52-519a-89a8-a0d3a7d3f87a",
+          "9c975da4-f83a-5749-8a3d-5b3057ae6274",
+          "8b5cf761-a018-5966-ad61-5d2a6c879173",
+          "e75d38cc-9cda-57e0-a135-02d09861ba57",
+          "73cbbe37-f60c-5c22-9b51-9e404bffb664",
+          "c3ca3e92-be2c-5c39-834e-10363dbc6964",
+          "7ba10839-baff-50c7-910c-968d7a5b78f3",
+          "939900ec-ea55-5386-b7a7-63ca6bdd3d8b",
+          "57967ae1-d68d-5310-9ee5-42b7fb9b1d70",
+          "bbb585e7-892d-5d64-a951-3adc8965e9de",
+          "57553c76-ec58-5e5d-9180-372324a4ea67",
+          "c8d6b6fb-9934-545c-96b4-4e055777fca6",
+          "645405c1-7174-5e06-939d-3c97ad7c851d",
+          "87b85e7d-ebf3-566b-85c4-8ee432fb301b",
+          "0ae96050-23df-57ee-a0a0-15c7e32a7580",
+          "1e9a2a38-6450-5100-ad83-c13e15028129",
+          "bcbd60a8-7111-584d-93a6-ff7d0fd66383",
+          "a3be1c18-c266-56d4-a894-0b250b867b08",
+          "bafb6edf-024d-55aa-98a7-86d784f88645",
+          "6f915c84-811b-55cb-9031-cff7d8c24f3f",
+          "e9bb8e41-22ea-5af1-a61a-92caf3ac8c72",
+          "2f98c970-f0bf-5587-a36a-91cdedfe6dd7",
+          "b0bf9f97-6080-5559-8c8c-735a68fa911f",
+          "087fcb43-b801-5a12-b5b0-aeb3fd1c97bf",
+          "320c3dfd-eb8e-544a-ad4c-e49e6b6a2130",
+          "68f04409-231a-582c-8e71-684c5f248538",
+          "80582712-3ef1-50a5-bcdc-fa9fd79c01f7",
+          "eb09c601-0305-5810-a787-b8847c76863e",
+          "42e91c74-04d3-5e02-8008-af50cf059768",
+          "b43b2f39-e024-5fe1-a988-8ebece7dc6bd",
+          "0dd223ca-d7ec-58b9-9781-3003471f0d86",
+          "60df02b5-92a9-5a71-acbb-facbabbf6409",
+          "d544ccb8-ab47-5a8e-b365-28f5eebaa4f6",
+          "933af493-2eb2-5e94-8ed8-4f8dc19ba679",
+          "3a264ba1-cb57-50e6-b761-7ed7bac79940",
+          "5ef8c7c3-d4ce-516a-9203-bdb58c419b29",
+          "c2e53ce4-01f2-5ed6-ae0b-051d36cd71fe",
+          "3c168200-ed53-5926-ab0b-333fe55928fd",
+          "1f9fb18d-6502-588f-9a27-7b101e3288e9",
+          "f5b08a77-385d-5a77-ae26-da730af40438",
+          "2ebb6c30-600e-5028-abb8-dcb1212127dd",
+          "b8a07672-2954-57ea-9c0a-15caff253ce2",
+          "1770b3e2-bc28-57cc-8112-87ba71f5d075",
+          "bbc0df68-b0b5-5415-ae5b-e3f6a081f7c5",
+          "a11bf13b-8683-5c62-9202-7177bba657f3",
+          "e9ae7984-560e-5ede-99e8-11b262203c6d",
+          "2b481a71-6cea-5094-b219-9796002360f1",
+          "0976c47c-4882-5a20-8810-129ef5514bd7",
+          "5ceee68f-0fb5-5ea4-9455-f7124e00e441",
+          "e42db29c-d03b-5b20-aee4-edd3050bb7b9",
+          "014359f3-7f00-5790-b614-78de7b0d62bc",
+          "931ef058-6e1e-5f56-b383-66c91376b889",
+          "b911191d-bfa4-5ba4-ad9d-4d082b5f51f3",
+          "9c6aef11-b84c-5d15-8f5d-ee23226a190d",
+          "e7f9e923-0822-512b-879e-8c2ebdfa44ea",
+          "f49577da-f879-52e3-8b9f-acc98c6c1376",
+          "97913488-029c-5789-aa00-b85f3ad41cc9",
+          "80045489-5b92-561d-a0af-14bb4b67d20b",
+          "dfbc7a3e-c9ce-5962-bc7f-52b2706ee412",
+          "9e877712-1618-5f71-a414-1b150696fe4e",
+          "ac6d6d05-9e5e-5584-9bd6-5a0b62117b60",
+          "4f641727-48fa-51d6-84b6-762830922e49",
+          "02b42c36-04fa-5461-baf0-abd0ece47a73",
+          "9d333f0a-1a15-55ab-8a72-2dd5f004730a",
+          "e9a61b26-de93-57c3-ab7f-08ca999b6c5c",
+          "2ab3835b-76a9-5dc5-959a-03d973a6e158",
+          "4985f25e-1a2d-53be-9906-de50c87c6eb6",
+          "d9d59ad9-de9d-5664-a134-dd428fd4d433",
+          "8928429a-a124-5ff0-87ab-e639861085ee",
+          "e4089ad1-73bf-5fa3-abf1-5e20e1dd9f9f",
+          "79b03364-81ab-552b-9cd0-eac8d7ff369f",
+          "c88efbce-daa9-5ac2-9414-dec6b36d0cf6",
+          "04a551de-3217-5c68-9e5b-cd578493a1a5",
+          "6436f22e-c809-5229-af08-d29a3d030183",
+          "384b6c7f-314c-55dc-9e55-705006ab6c87",
+          "375b12fb-866b-5c86-a779-0a52ad8a8773",
+          "829a5a92-797e-59c8-9c86-13f484d0982f",
+          "48aa784f-ac05-5cb1-826d-2451e96b0431",
+          "79e66ed1-5c61-56fb-93a1-a4a3b02556bb",
+          "d403bcce-6957-5746-a1da-2b2b69ac861f",
+          "a825a4b4-65bd-5a48-abe8-c54c2976011f",
+          "afe365fa-d77d-57b3-9b9e-068b645a2696",
+          "07b0d604-9be8-5a29-9edd-6180354e7147",
+          "f7960160-7085-520b-a9c1-0b9a0a1b47e4",
+          "3499ee05-40ce-5dfe-b833-53296830179b",
+          "5ca5f267-dbba-5e2a-8467-2d52104c045d",
+          "951c0b72-33f5-58f1-9844-423c911a9c1d",
+          "4c6c3a23-91b5-5145-9889-3007f4f5bdac",
+          "dde196b1-5007-5e9e-94d7-789b057fd6ff",
+          "79f98179-4da4-53f7-a04d-e06e10300c52",
+          "4dff80f2-6065-56bc-8d07-a039efced506",
+          "a508adf5-eefd-589f-a73f-fe55fb1cd268",
+          "a5ff009d-7ae5-5d4b-8f47-c5e386d8e443",
+          "fe9dc2a2-fd5d-5853-a4ff-71262a3a4df5",
+          "c48103fc-fbd4-5445-9308-755905d9f587",
+          "565d698f-be92-5491-b060-ab1fdedab3cc",
+          "df737ac4-ac3c-5a3f-b474-a944952cb00a",
+          "3d13a911-2edc-5b15-9a36-00e82bf9ba68",
+          "054ca4bf-f06b-5abe-aae9-44bc3aa19c5a",
+          "d0a4d9bb-ea86-5714-8ece-02d3234bd2d3",
+          "1dbd73cf-7335-577a-b321-64df8e0cbcff",
+          "aee4d740-d369-51b8-8160-4630a1274895",
+          "fd8248b1-34d6-54c0-9094-28d136689cb4",
+          "9d1b6e7f-3f54-5e41-9381-462844cdb37a",
+          "f8ba165e-59b9-5092-ae1e-28532b48a9e1",
+          "04a312a5-101a-5a62-b2a9-b394a2bbc50f",
+          "d5d252c1-64ad-53d7-9b8b-f1fd1b596c41",
+          "e5266a0c-b796-5137-8a0f-7045bbe45b92",
+          "cbdb85d1-ba43-572b-a0bb-3a7272633868",
+          "8b622a9f-7816-5eb6-99d7-e8841a6b0f0c",
+          "4c1d8268-314c-52f6-9bf4-73de285475ca",
+          "fa987ca9-1db5-5ce5-9ab8-25bcbb774e66",
+          "84835c43-0571-5a6f-b679-f76cd3c81f66",
+          "f05dcb0b-73d2-5b4a-b63f-07e5b83b6f82",
+          "5a2addd2-6c67-598e-bb92-4d9b18e0515b",
+          "b00fc409-d8af-5d97-8ebb-21c9af306cb8",
+          "675d7d44-04d1-52ee-ab33-5f7e10ce49ab",
+          "28c9f4b5-793d-5bf9-ad7a-307ba522d344",
+          "743cbfaa-cbaa-5d7b-b9a4-ce90d0aa81fa",
+          "dac2b2eb-7e1d-5c5a-97f6-d2700f4b547e",
+          "4de40b1d-3356-5abc-bba1-00de780389a0",
+          "3ae6850c-5f3b-5bf0-a7f1-c6e06cff2eef",
+          "d5590b9e-ab25-5369-9862-98b25be8adbb",
+          "d3a8c259-a9dc-599d-9ea2-456b493591c4",
+          "d230edd2-d5ef-5266-8792-2be4d85d20a1",
+          "3851c981-e6b7-521c-a0d4-77aadf8471ca",
+          "e0205534-e84c-519e-a176-19045a131704",
+          "e15b8c55-1af1-5edc-b97b-e9bb8b20f970",
+          "5c0a2b55-ac5e-5332-bdfe-afd057fd2053",
+          "499e4e30-8c3a-5eef-9754-08ff152cfbbe",
+          "0247c2ac-153e-5b4d-ab3b-77771336b56d",
+          "6a7799b0-ff37-53b7-998c-3cb2f0f9fe6a",
+          "e22fcea3-2073-56c8-a405-00ece11e19c3",
+          "4bb2b187-b5a1-56d2-afc0-bd0b5548c88c",
+          "89cdc5f5-424a-5b0c-82c3-6af1efde36c5",
+          "0d7bb191-04da-5fcc-b10d-a89270506ab2",
+          "5d82928a-7845-52b8-a86d-b6883cfbf494",
+          "133a98f2-d919-597e-bde0-be42f452bb9d",
+          "af6550a8-4ba3-541c-8691-6da39b6048c9",
+          "a6c6f053-bc4c-55db-8a28-151b34f472da",
+          "fa5a12d0-d251-515a-a9b6-58d019d19c99",
+          "025762a5-f1b9-5cdd-963f-53438de6ac36",
+          "0925620b-9e20-52b5-8be8-4009c1336ea1",
+          "3b511193-0e2e-5cb1-944f-890f9a12dad3",
+          "4bda3e74-1184-5d11-9f11-ad12d798103e",
+          "71e91857-bc65-5075-9657-14e4374cab4c",
+          "fbc591da-695e-542d-a2d6-261821ca9be3",
+          "09b52594-abab-5df9-9ee7-8ac140018350",
+          "b38c032b-3701-5f10-adca-af0f02e01955",
+          "1ad13a9d-8461-52ab-9dea-6bcc84cc45ba",
+          "aff0e317-815e-59a9-bb3d-eb423c674f83",
+          "d808171d-30ed-5a85-b110-4fb83dea3362",
+          "0bf3bf65-25ad-5982-b703-096aa5a17e6d",
+          "6c91f2c0-9209-5f62-8809-1ce0ffe54a65",
+          "334289f0-15f8-5210-a24c-d935b17d4177",
+          "b8e964a8-b532-54af-88dd-f187347d787d",
+          "8b23e093-2672-5845-8043-bd700fe3207a",
+          "8c2de0a6-ecf4-5bd6-848c-2a282404443c",
+          "118e28ea-c108-5e4d-989f-e8a8e1b0f74e",
+          "24f0c463-2c37-597e-a25b-5b8fd3f0076f",
+          "e1c16f85-8fbf-5433-b9e0-45dab94f6792",
+          "515b5974-4578-5a87-b0a2-3d01cda8dcb3",
+          "384c6672-5ae9-523f-81b9-54686150c6a9",
+          "698c7997-e143-5ec2-9d58-f2699ffaf3cd",
+          "fe6ec3d3-dbfd-530c-bd69-fe59e7c02752",
+          "bd6c55a5-d139-5d4e-b1c8-5a1453277991",
+          "31e66b7b-7793-5bb9-ae21-1cda0cb4ac23",
+          "09d335cf-f93e-510a-b642-00981c734c07",
+          "6f4c000e-88b9-5c74-a1a3-d2c21067f309",
+          "6f6114de-efa0-5664-94f2-c9beadf3b557",
+          "6c377728-f776-5505-bcc2-851d6de83b1a",
+          "f9dc7238-7052-5691-a5c3-acf7be165f83",
+          "75d2ace4-0ce1-5289-9d9a-35fe8c11c3f2",
+          "6d3ede55-2018-50d0-a36e-3f1e408efb88",
+          "cbd29b49-2567-5606-874b-c03a3e491201",
+          "d8e25ae0-35ef-5847-8f91-a4a3b9c607bd",
+          "a205b47a-f550-56f6-9b03-e3068c7664a9",
+          "db600375-4695-5861-b211-03e4a8b2ddcf",
+          "e2a64940-55c1-58eb-aed4-68d8ffe14eca",
+          "14b8a747-f718-5191-86ae-6fe18d60f5ff",
+          "60207b4f-fcbf-568f-ba7b-6010f098674c",
+          "609b5170-ee68-5aa6-9b49-3b061fc12917",
+          "6622dd10-635f-5cab-a0b2-504e72de8978",
+          "c1e2f615-c83c-5da2-89c8-feedbdc2cd06",
+          "ce963694-f171-5892-aad5-2f027e9d79a3",
+          "7b141552-8afe-5c30-8840-7b8e4da67ab5"
+        ],
+        "unmet_knowledge_point": null
+      },
+      "author_kind": "ai_assistant",
+      "author_name": "Codex",
+      "teacher_verified": false,
+      "is_evaluation_truth": false
+    },
+    {
+      "case_id": "ASM-200-UNSAT",
+      "proposal": {
+        "combination": null,
+        "unmet_knowledge_point": "未收录知识点"
+      },
+      "author_kind": "ai_assistant",
+      "author_name": "Codex",
+      "teacher_verified": false,
+      "is_evaluation_truth": false
+    },
+    {
+      "case_id": "ASM-OVERRIDE",
+      "proposal": null,
+      "author_kind": "ai_assistant",
+      "author_name": "Codex",
+      "teacher_verified": false,
+      "is_evaluation_truth": false
+    },
+    {
+      "case_id": "ASM-EDIT",
+      "proposal": null,
+      "author_kind": "ai_assistant",
+      "author_name": "Codex",
+      "teacher_verified": false,
+      "is_evaluation_truth": false
+    },
+    {
+      "case_id": "ASM-LEGACY",
+      "proposal": null,
+      "author_kind": "ai_assistant",
+      "author_name": "Codex",
+      "teacher_verified": false,
+      "is_evaluation_truth": false
+    },
+    {
+      "case_id": "ASM-FAIL-RESTART",
+      "proposal": null,
+      "author_kind": "ai_assistant",
+      "author_name": "Codex",
+      "teacher_verified": false,
+      "is_evaluation_truth": false
+    },
+    {
+      "case_id": "SCORE-POSITIVE",
+      "proposal": {
+        "case_id": "SCORE-POSITIVE",
+        "base_score": "3.00",
+        "exam_score": "10.00",
+        "base_points": [
+          "1.00",
+          "1.00",
+          "1.00"
+        ],
+        "draft_default_points": [
+          "3.33",
+          "3.33",
+          "3.33"
+        ],
+        "draft_rounding_delta": "+0.01",
+        "teacher_confirmed_points": null
+      },
+      "author_kind": "ai_assistant",
+      "author_name": "Codex",
+      "teacher_verified": false,
+      "is_evaluation_truth": false
+    },
+    {
+      "case_id": "SCORE-NEGATIVE",
+      "proposal": {
+        "case_id": "SCORE-NEGATIVE",
+        "base_score": "2.00",
+        "exam_score": "1.01",
+        "base_points": [
+          "1.00",
+          "1.00"
+        ],
+        "draft_default_points": [
+          "0.51",
+          "0.51"
+        ],
+        "draft_rounding_delta": "-0.01",
+        "teacher_confirmed_points": null
+      },
+      "author_kind": "ai_assistant",
+      "author_name": "Codex",
+      "teacher_verified": false,
+      "is_evaluation_truth": false
+    },
+    {
+      "case_id": "SCORE-HALF",
+      "proposal": {
+        "case_id": "SCORE-HALF",
+        "raw_amount": "0.005",
+        "draft_rounded": "0.01",
+        "rounding_mode": "ROUND_HALF_UP"
+      },
+      "author_kind": "ai_assistant",
+      "author_name": "Codex",
+      "teacher_verified": false,
+      "is_evaluation_truth": false
+    },
+    {
+      "case_id": "SCORE-DEFAULT",
+      "proposal": {
+        "case_id": "SCORE-DEFAULT",
+        "base_score": "5.00",
+        "exam_score": null,
+        "draft_effective_score": "5.00"
+      },
+      "author_kind": "ai_assistant",
+      "author_name": "Codex",
+      "teacher_verified": false,
+      "is_evaluation_truth": false
+    },
+    {
+      "case_id": "STATS-MIXED",
+      "proposal": {
+        "A": {
+          "eligible": 6,
+          "submitted": 5,
+          "valid_final": 2,
+          "mean": "2.00",
+          "question_denominators": [
+            "4.00",
+            "6.00"
+          ],
+          "question_numerators": [
+            "2.00",
+            "2.00"
+          ],
+          "knowledge_points": {
+            "一次函数": {
+              "numerator": "4.00",
+              "denominator": "10.00"
+            },
+            "表达与计算": {
+              "numerator": "2.00",
+              "denominator": "6.00"
+            }
+          }
+        },
+        "B": {
+          "eligible": 6,
+          "submitted": 5,
+          "valid_final": 2,
+          "mean": "4.00"
+        },
+        "teacher_independently_computed": false
+      },
+      "author_kind": "ai_assistant",
+      "author_name": "Codex",
+      "teacher_verified": false,
+      "is_evaluation_truth": false
+    },
+    {
+      "case_id": "STATS-EMPTY",
+      "proposal": {
+        "mean": null,
+        "valid_final": 0
+      },
+      "author_kind": "ai_assistant",
+      "author_name": "Codex",
+      "teacher_verified": false,
+      "is_evaluation_truth": false
+    },
+    {
+      "case_id": "FEEDBACK-SOURCES",
+      "proposal": null,
+      "author_kind": "ai_assistant",
+      "author_name": "Codex",
+      "teacher_verified": false,
+      "is_evaluation_truth": false
+    },
+    {
+      "case_id": "UI-1",
+      "proposal": null,
+      "author_kind": "ai_assistant",
+      "author_name": "Codex",
+      "teacher_verified": false,
+      "is_evaluation_truth": false
+    },
+    {
+      "case_id": "UI-2",
+      "proposal": null,
+      "author_kind": "ai_assistant",
+      "author_name": "Codex",
+      "teacher_verified": false,
+      "is_evaluation_truth": false
+    },
+    {
+      "case_id": "UI-3",
+      "proposal": null,
+      "author_kind": "ai_assistant",
+      "author_name": "Codex",
+      "teacher_verified": false,
+      "is_evaluation_truth": false
+    },
+    {
+      "case_id": "UI-4",
+      "proposal": null,
+      "author_kind": "ai_assistant",
+      "author_name": "Codex",
+      "teacher_verified": false,
+      "is_evaluation_truth": false
+    },
+    {
+      "case_id": "UI-5",
+      "proposal": null,
+      "author_kind": "ai_assistant",
+      "author_name": "Codex",
+      "teacher_verified": false,
+      "is_evaluation_truth": false
+    },
+    {
+      "case_id": "UI-6",
+      "proposal": null,
+      "author_kind": "ai_assistant",
+      "author_name": "Codex",
+      "teacher_verified": false,
+      "is_evaluation_truth": false
+    },
+    {
+      "case_id": "UI-7",
+      "proposal": null,
+      "author_kind": "ai_assistant",
+      "author_name": "Codex",
+      "teacher_verified": false,
+      "is_evaluation_truth": false
+    },
+    {
+      "case_id": "DELIVERY-NORMAL",
+      "proposal": null,
+      "author_kind": "ai_assistant",
+      "author_name": "Codex",
+      "teacher_verified": false,
+      "is_evaluation_truth": false
+    },
+    {
+      "case_id": "DELIVERY-FAULTS",
+      "proposal": null,
+      "author_kind": "ai_assistant",
+      "author_name": "Codex",
+      "teacher_verified": false,
+      "is_evaluation_truth": false
+    },
+    {
+      "case_id": "RESTORE-COMPLETE",
+      "proposal": null,
+      "author_kind": "ai_assistant",
+      "author_name": "Codex",
+      "teacher_verified": false,
+      "is_evaluation_truth": false
+    },
+    {
+      "case_id": "RESTORE-MISSING",
+      "proposal": null,
+      "author_kind": "ai_assistant",
+      "author_name": "Codex",
+      "teacher_verified": false,
+      "is_evaluation_truth": false
+    },
+    {
+      "case_id": "PERF-IMPORT-1",
+      "proposal": null,
+      "author_kind": "ai_assistant",
+      "author_name": "Codex",
+      "teacher_verified": false,
+      "is_evaluation_truth": false
+    },
+    {
+      "case_id": "PERF-IMPORT-10",
+      "proposal": null,
+      "author_kind": "ai_assistant",
+      "author_name": "Codex",
+      "teacher_verified": false,
+      "is_evaluation_truth": false
+    },
+    {
+      "case_id": "PERF-IMPORT-50",
+      "proposal": null,
+      "author_kind": "ai_assistant",
+      "author_name": "Codex",
+      "teacher_verified": false,
+      "is_evaluation_truth": false
+    }
+  ]
+}

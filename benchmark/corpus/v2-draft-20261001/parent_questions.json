@@ -1,0 +1,16 @@
+[
+  {
+    "parent_fixture_id": "parent-linear-x3",
+    "question_type": "SHORT_ANSWER",
+    "content": "y=2x+1，x=3，求y。",
+    "reference_answer": "7",
+    "analysis": "2*3+1=7",
+    "scoring_rubric": "正确代入2.00；正确结果3.00，总分5.00。",
+    "score": "5.00",
+    "teaching_basis_ref": "teaching_basis.md",
+    "image_refs": [],
+    "intended_status": "Approved",
+    "teacher_approved_by": null,
+    "status_origin": "synthetic future isolated fixture; not real approval"
+  }
+]

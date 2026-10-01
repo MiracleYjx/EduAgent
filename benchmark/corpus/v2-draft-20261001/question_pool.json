@@ -1,0 +1,6060 @@
+{
+  "course_id": "cf99a4d9-dfa1-5bb3-9d6d-2ea11d1d6820",
+  "candidate_count": 300,
+  "teacher_reviewed": false,
+  "database_loaded": false,
+  "candidates": [
+    {
+      "question_id": "170002c8-1870-54cb-b8ad-494ee15697ad",
+      "question_number": "1",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=1 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [
+        "assets/diagram.png"
+      ],
+      "options": {
+        "A": "3",
+        "B": "4",
+        "C": "2",
+        "D": "5"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "fb2aad97-03ba-5704-854c-95453444ad65",
+      "question_number": "2",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=2 时，2x+1=5，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "38459e84-ef20-5cae-bdf4-0407061a6997",
+      "question_number": "3",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 3 + 1。",
+      "reference_answer": "7",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "9bb36ece-ac8b-5a8d-a57b-ac093d050f60",
+      "question_number": "4",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=4 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "9",
+        "B": "10",
+        "C": "8",
+        "D": "11"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "1ac55ca1-b2c6-516c-ab5b-20d6ba9fe945",
+      "question_number": "5",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=5 时，2x+1=11，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "55506688-8029-54d2-aa94-7b2a44463f7d",
+      "question_number": "6",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 6 + 1。",
+      "reference_answer": "13",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "2e47e877-369a-5c42-983c-b2c94f9cc8cb",
+      "question_number": "7",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=7 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "15",
+        "B": "16",
+        "C": "14",
+        "D": "17"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "d3c3d04b-8e0b-57d7-b159-755cf2ee84d8",
+      "question_number": "8",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=8 时，2x+1=17，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "afdb6c69-a066-5d48-927f-b2addbd39108",
+      "question_number": "9",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 9 + 1。",
+      "reference_answer": "19",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "8b6ca584-ecac-5d56-8a31-3f21e1bce6c4",
+      "question_number": "10",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=10 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "21",
+        "B": "22",
+        "C": "20",
+        "D": "23"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "fb8957c9-73bf-5116-8c0c-4d102ff9dd12",
+      "question_number": "11",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=11 时，2x+1=23，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "05ef4e67-2b08-5fd4-b0de-a655a1b84083",
+      "question_number": "12",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 12 + 1。",
+      "reference_answer": "25",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "2be74d73-07db-5876-bc35-329d1cbc0a03",
+      "question_number": "13",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=13 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "27",
+        "B": "28",
+        "C": "26",
+        "D": "29"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "24927879-0294-5076-92c8-39f9e14c3a35",
+      "question_number": "14",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=14 时，2x+1=29，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "a1e1cade-ec52-519a-89a8-a0d3a7d3f87a",
+      "question_number": "15",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 15 + 1。",
+      "reference_answer": "31",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "9c975da4-f83a-5749-8a3d-5b3057ae6274",
+      "question_number": "16",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=16 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "33",
+        "B": "34",
+        "C": "32",
+        "D": "35"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "8b5cf761-a018-5966-ad61-5d2a6c879173",
+      "question_number": "17",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=17 时，2x+1=35，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "e75d38cc-9cda-57e0-a135-02d09861ba57",
+      "question_number": "18",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 18 + 1。",
+      "reference_answer": "37",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "73cbbe37-f60c-5c22-9b51-9e404bffb664",
+      "question_number": "19",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=19 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "39",
+        "B": "40",
+        "C": "38",
+        "D": "41"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "c3ca3e92-be2c-5c39-834e-10363dbc6964",
+      "question_number": "20",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=20 时，2x+1=41，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "7ba10839-baff-50c7-910c-968d7a5b78f3",
+      "question_number": "21",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 21 + 1。",
+      "reference_answer": "43",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "939900ec-ea55-5386-b7a7-63ca6bdd3d8b",
+      "question_number": "22",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=22 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "45",
+        "B": "46",
+        "C": "44",
+        "D": "47"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "57967ae1-d68d-5310-9ee5-42b7fb9b1d70",
+      "question_number": "23",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=23 时，2x+1=47，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "bbb585e7-892d-5d64-a951-3adc8965e9de",
+      "question_number": "24",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 24 + 1。",
+      "reference_answer": "49",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "57553c76-ec58-5e5d-9180-372324a4ea67",
+      "question_number": "25",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=25 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "51",
+        "B": "52",
+        "C": "50",
+        "D": "53"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "c8d6b6fb-9934-545c-96b4-4e055777fca6",
+      "question_number": "26",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=26 时，2x+1=53，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "645405c1-7174-5e06-939d-3c97ad7c851d",
+      "question_number": "27",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 27 + 1。",
+      "reference_answer": "55",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "87b85e7d-ebf3-566b-85c4-8ee432fb301b",
+      "question_number": "28",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=28 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "57",
+        "B": "58",
+        "C": "56",
+        "D": "59"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "0ae96050-23df-57ee-a0a0-15c7e32a7580",
+      "question_number": "29",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=29 时，2x+1=59，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "1e9a2a38-6450-5100-ad83-c13e15028129",
+      "question_number": "30",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 30 + 1。",
+      "reference_answer": "61",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "bcbd60a8-7111-584d-93a6-ff7d0fd66383",
+      "question_number": "31",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=31 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "63",
+        "B": "64",
+        "C": "62",
+        "D": "65"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "a3be1c18-c266-56d4-a894-0b250b867b08",
+      "question_number": "32",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=32 时，2x+1=65，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "bafb6edf-024d-55aa-98a7-86d784f88645",
+      "question_number": "33",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 33 + 1。",
+      "reference_answer": "67",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "6f915c84-811b-55cb-9031-cff7d8c24f3f",
+      "question_number": "34",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=34 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "69",
+        "B": "70",
+        "C": "68",
+        "D": "71"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "e9bb8e41-22ea-5af1-a61a-92caf3ac8c72",
+      "question_number": "35",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=35 时，2x+1=71，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "2f98c970-f0bf-5587-a36a-91cdedfe6dd7",
+      "question_number": "36",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 36 + 1。",
+      "reference_answer": "73",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "b0bf9f97-6080-5559-8c8c-735a68fa911f",
+      "question_number": "37",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=37 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "75",
+        "B": "76",
+        "C": "74",
+        "D": "77"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "087fcb43-b801-5a12-b5b0-aeb3fd1c97bf",
+      "question_number": "38",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=38 时，2x+1=77，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "320c3dfd-eb8e-544a-ad4c-e49e6b6a2130",
+      "question_number": "39",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 39 + 1。",
+      "reference_answer": "79",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "68f04409-231a-582c-8e71-684c5f248538",
+      "question_number": "40",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=40 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "81",
+        "B": "82",
+        "C": "80",
+        "D": "83"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "80582712-3ef1-50a5-bcdc-fa9fd79c01f7",
+      "question_number": "41",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=41 时，2x+1=83，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "eb09c601-0305-5810-a787-b8847c76863e",
+      "question_number": "42",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 42 + 1。",
+      "reference_answer": "85",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "42e91c74-04d3-5e02-8008-af50cf059768",
+      "question_number": "43",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=43 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "87",
+        "B": "88",
+        "C": "86",
+        "D": "89"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "b43b2f39-e024-5fe1-a988-8ebece7dc6bd",
+      "question_number": "44",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=44 时，2x+1=89，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "0dd223ca-d7ec-58b9-9781-3003471f0d86",
+      "question_number": "45",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 45 + 1。",
+      "reference_answer": "91",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "60df02b5-92a9-5a71-acbb-facbabbf6409",
+      "question_number": "46",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=46 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "93",
+        "B": "94",
+        "C": "92",
+        "D": "95"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "d544ccb8-ab47-5a8e-b365-28f5eebaa4f6",
+      "question_number": "47",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=47 时，2x+1=95，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "933af493-2eb2-5e94-8ed8-4f8dc19ba679",
+      "question_number": "48",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 48 + 1。",
+      "reference_answer": "97",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "3a264ba1-cb57-50e6-b761-7ed7bac79940",
+      "question_number": "49",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=49 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "99",
+        "B": "100",
+        "C": "98",
+        "D": "101"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "5ef8c7c3-d4ce-516a-9203-bdb58c419b29",
+      "question_number": "50",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=50 时，2x+1=101，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "c2e53ce4-01f2-5ed6-ae0b-051d36cd71fe",
+      "question_number": "51",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 51 + 1。",
+      "reference_answer": "103",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "3c168200-ed53-5926-ab0b-333fe55928fd",
+      "question_number": "52",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=52 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "105",
+        "B": "106",
+        "C": "104",
+        "D": "107"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "1f9fb18d-6502-588f-9a27-7b101e3288e9",
+      "question_number": "53",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=53 时，2x+1=107，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "f5b08a77-385d-5a77-ae26-da730af40438",
+      "question_number": "54",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 54 + 1。",
+      "reference_answer": "109",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "2ebb6c30-600e-5028-abb8-dcb1212127dd",
+      "question_number": "55",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=55 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "111",
+        "B": "112",
+        "C": "110",
+        "D": "113"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "b8a07672-2954-57ea-9c0a-15caff253ce2",
+      "question_number": "56",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=56 时，2x+1=113，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "1770b3e2-bc28-57cc-8112-87ba71f5d075",
+      "question_number": "57",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 57 + 1。",
+      "reference_answer": "115",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "bbc0df68-b0b5-5415-ae5b-e3f6a081f7c5",
+      "question_number": "58",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=58 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "117",
+        "B": "118",
+        "C": "116",
+        "D": "119"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "a11bf13b-8683-5c62-9202-7177bba657f3",
+      "question_number": "59",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=59 时，2x+1=119，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "e9ae7984-560e-5ede-99e8-11b262203c6d",
+      "question_number": "60",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 60 + 1。",
+      "reference_answer": "121",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "2b481a71-6cea-5094-b219-9796002360f1",
+      "question_number": "61",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=61 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "123",
+        "B": "124",
+        "C": "122",
+        "D": "125"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "0976c47c-4882-5a20-8810-129ef5514bd7",
+      "question_number": "62",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=62 时，2x+1=125，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "5ceee68f-0fb5-5ea4-9455-f7124e00e441",
+      "question_number": "63",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 63 + 1。",
+      "reference_answer": "127",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "e42db29c-d03b-5b20-aee4-edd3050bb7b9",
+      "question_number": "64",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=64 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "129",
+        "B": "130",
+        "C": "128",
+        "D": "131"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "014359f3-7f00-5790-b614-78de7b0d62bc",
+      "question_number": "65",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=65 时，2x+1=131，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "931ef058-6e1e-5f56-b383-66c91376b889",
+      "question_number": "66",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 66 + 1。",
+      "reference_answer": "133",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "b911191d-bfa4-5ba4-ad9d-4d082b5f51f3",
+      "question_number": "67",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=67 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "135",
+        "B": "136",
+        "C": "134",
+        "D": "137"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "9c6aef11-b84c-5d15-8f5d-ee23226a190d",
+      "question_number": "68",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=68 时，2x+1=137，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "e7f9e923-0822-512b-879e-8c2ebdfa44ea",
+      "question_number": "69",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 69 + 1。",
+      "reference_answer": "139",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "f49577da-f879-52e3-8b9f-acc98c6c1376",
+      "question_number": "70",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=70 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "141",
+        "B": "142",
+        "C": "140",
+        "D": "143"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "97913488-029c-5789-aa00-b85f3ad41cc9",
+      "question_number": "71",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=71 时，2x+1=143，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "80045489-5b92-561d-a0af-14bb4b67d20b",
+      "question_number": "72",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 72 + 1。",
+      "reference_answer": "145",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "dfbc7a3e-c9ce-5962-bc7f-52b2706ee412",
+      "question_number": "73",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=73 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "147",
+        "B": "148",
+        "C": "146",
+        "D": "149"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "9e877712-1618-5f71-a414-1b150696fe4e",
+      "question_number": "74",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=74 时，2x+1=149，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "ac6d6d05-9e5e-5584-9bd6-5a0b62117b60",
+      "question_number": "75",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 75 + 1。",
+      "reference_answer": "151",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "4f641727-48fa-51d6-84b6-762830922e49",
+      "question_number": "76",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=76 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "153",
+        "B": "154",
+        "C": "152",
+        "D": "155"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "02b42c36-04fa-5461-baf0-abd0ece47a73",
+      "question_number": "77",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=77 时，2x+1=155，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "9d333f0a-1a15-55ab-8a72-2dd5f004730a",
+      "question_number": "78",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 78 + 1。",
+      "reference_answer": "157",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "e9a61b26-de93-57c3-ab7f-08ca999b6c5c",
+      "question_number": "79",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=79 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "159",
+        "B": "160",
+        "C": "158",
+        "D": "161"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "2ab3835b-76a9-5dc5-959a-03d973a6e158",
+      "question_number": "80",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=80 时，2x+1=161，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "4985f25e-1a2d-53be-9906-de50c87c6eb6",
+      "question_number": "81",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 81 + 1。",
+      "reference_answer": "163",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "d9d59ad9-de9d-5664-a134-dd428fd4d433",
+      "question_number": "82",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=82 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "165",
+        "B": "166",
+        "C": "164",
+        "D": "167"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "8928429a-a124-5ff0-87ab-e639861085ee",
+      "question_number": "83",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=83 时，2x+1=167，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "e4089ad1-73bf-5fa3-abf1-5e20e1dd9f9f",
+      "question_number": "84",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 84 + 1。",
+      "reference_answer": "169",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "79b03364-81ab-552b-9cd0-eac8d7ff369f",
+      "question_number": "85",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=85 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "171",
+        "B": "172",
+        "C": "170",
+        "D": "173"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "c88efbce-daa9-5ac2-9414-dec6b36d0cf6",
+      "question_number": "86",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=86 时，2x+1=173，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "04a551de-3217-5c68-9e5b-cd578493a1a5",
+      "question_number": "87",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 87 + 1。",
+      "reference_answer": "175",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "6436f22e-c809-5229-af08-d29a3d030183",
+      "question_number": "88",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=88 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "177",
+        "B": "178",
+        "C": "176",
+        "D": "179"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "384b6c7f-314c-55dc-9e55-705006ab6c87",
+      "question_number": "89",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=89 时，2x+1=179，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "375b12fb-866b-5c86-a779-0a52ad8a8773",
+      "question_number": "90",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 90 + 1。",
+      "reference_answer": "181",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "829a5a92-797e-59c8-9c86-13f484d0982f",
+      "question_number": "91",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=91 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "183",
+        "B": "184",
+        "C": "182",
+        "D": "185"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "48aa784f-ac05-5cb1-826d-2451e96b0431",
+      "question_number": "92",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=92 时，2x+1=185，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "79e66ed1-5c61-56fb-93a1-a4a3b02556bb",
+      "question_number": "93",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 93 + 1。",
+      "reference_answer": "187",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "d403bcce-6957-5746-a1da-2b2b69ac861f",
+      "question_number": "94",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=94 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "189",
+        "B": "190",
+        "C": "188",
+        "D": "191"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "a825a4b4-65bd-5a48-abe8-c54c2976011f",
+      "question_number": "95",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=95 时，2x+1=191，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "afe365fa-d77d-57b3-9b9e-068b645a2696",
+      "question_number": "96",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 96 + 1。",
+      "reference_answer": "193",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "07b0d604-9be8-5a29-9edd-6180354e7147",
+      "question_number": "97",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=97 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "195",
+        "B": "196",
+        "C": "194",
+        "D": "197"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "f7960160-7085-520b-a9c1-0b9a0a1b47e4",
+      "question_number": "98",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=98 时，2x+1=197，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "3499ee05-40ce-5dfe-b833-53296830179b",
+      "question_number": "99",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 99 + 1。",
+      "reference_answer": "199",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "5ca5f267-dbba-5e2a-8467-2d52104c045d",
+      "question_number": "100",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=100 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "201",
+        "B": "202",
+        "C": "200",
+        "D": "203"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "951c0b72-33f5-58f1-9844-423c911a9c1d",
+      "question_number": "101",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=101 时，2x+1=203，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "4c6c3a23-91b5-5145-9889-3007f4f5bdac",
+      "question_number": "102",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 102 + 1。",
+      "reference_answer": "205",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "dde196b1-5007-5e9e-94d7-789b057fd6ff",
+      "question_number": "103",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=103 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "207",
+        "B": "208",
+        "C": "206",
+        "D": "209"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "79f98179-4da4-53f7-a04d-e06e10300c52",
+      "question_number": "104",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=104 时，2x+1=209，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "4dff80f2-6065-56bc-8d07-a039efced506",
+      "question_number": "105",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 105 + 1。",
+      "reference_answer": "211",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "a508adf5-eefd-589f-a73f-fe55fb1cd268",
+      "question_number": "106",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=106 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "213",
+        "B": "214",
+        "C": "212",
+        "D": "215"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "a5ff009d-7ae5-5d4b-8f47-c5e386d8e443",
+      "question_number": "107",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=107 时，2x+1=215，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "fe9dc2a2-fd5d-5853-a4ff-71262a3a4df5",
+      "question_number": "108",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 108 + 1。",
+      "reference_answer": "217",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "c48103fc-fbd4-5445-9308-755905d9f587",
+      "question_number": "109",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=109 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "219",
+        "B": "220",
+        "C": "218",
+        "D": "221"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "565d698f-be92-5491-b060-ab1fdedab3cc",
+      "question_number": "110",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=110 时，2x+1=221，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "df737ac4-ac3c-5a3f-b474-a944952cb00a",
+      "question_number": "111",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 111 + 1。",
+      "reference_answer": "223",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "3d13a911-2edc-5b15-9a36-00e82bf9ba68",
+      "question_number": "112",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=112 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "225",
+        "B": "226",
+        "C": "224",
+        "D": "227"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "054ca4bf-f06b-5abe-aae9-44bc3aa19c5a",
+      "question_number": "113",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=113 时，2x+1=227，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "d0a4d9bb-ea86-5714-8ece-02d3234bd2d3",
+      "question_number": "114",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 114 + 1。",
+      "reference_answer": "229",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "1dbd73cf-7335-577a-b321-64df8e0cbcff",
+      "question_number": "115",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=115 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "231",
+        "B": "232",
+        "C": "230",
+        "D": "233"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "aee4d740-d369-51b8-8160-4630a1274895",
+      "question_number": "116",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=116 时，2x+1=233，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "fd8248b1-34d6-54c0-9094-28d136689cb4",
+      "question_number": "117",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 117 + 1。",
+      "reference_answer": "235",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "9d1b6e7f-3f54-5e41-9381-462844cdb37a",
+      "question_number": "118",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=118 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "237",
+        "B": "238",
+        "C": "236",
+        "D": "239"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "f8ba165e-59b9-5092-ae1e-28532b48a9e1",
+      "question_number": "119",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=119 时，2x+1=239，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "04a312a5-101a-5a62-b2a9-b394a2bbc50f",
+      "question_number": "120",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 120 + 1。",
+      "reference_answer": "241",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "d5d252c1-64ad-53d7-9b8b-f1fd1b596c41",
+      "question_number": "121",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=121 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "243",
+        "B": "244",
+        "C": "242",
+        "D": "245"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "e5266a0c-b796-5137-8a0f-7045bbe45b92",
+      "question_number": "122",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=122 时，2x+1=245，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "cbdb85d1-ba43-572b-a0bb-3a7272633868",
+      "question_number": "123",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 123 + 1。",
+      "reference_answer": "247",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "8b622a9f-7816-5eb6-99d7-e8841a6b0f0c",
+      "question_number": "124",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=124 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "249",
+        "B": "250",
+        "C": "248",
+        "D": "251"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "4c1d8268-314c-52f6-9bf4-73de285475ca",
+      "question_number": "125",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=125 时，2x+1=251，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "fa987ca9-1db5-5ce5-9ab8-25bcbb774e66",
+      "question_number": "126",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 126 + 1。",
+      "reference_answer": "253",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "84835c43-0571-5a6f-b679-f76cd3c81f66",
+      "question_number": "127",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=127 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "255",
+        "B": "256",
+        "C": "254",
+        "D": "257"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "f05dcb0b-73d2-5b4a-b63f-07e5b83b6f82",
+      "question_number": "128",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=128 时，2x+1=257，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "5a2addd2-6c67-598e-bb92-4d9b18e0515b",
+      "question_number": "129",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 129 + 1。",
+      "reference_answer": "259",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "b00fc409-d8af-5d97-8ebb-21c9af306cb8",
+      "question_number": "130",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=130 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "261",
+        "B": "262",
+        "C": "260",
+        "D": "263"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "675d7d44-04d1-52ee-ab33-5f7e10ce49ab",
+      "question_number": "131",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=131 时，2x+1=263，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "28c9f4b5-793d-5bf9-ad7a-307ba522d344",
+      "question_number": "132",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 132 + 1。",
+      "reference_answer": "265",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "743cbfaa-cbaa-5d7b-b9a4-ce90d0aa81fa",
+      "question_number": "133",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=133 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "267",
+        "B": "268",
+        "C": "266",
+        "D": "269"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "dac2b2eb-7e1d-5c5a-97f6-d2700f4b547e",
+      "question_number": "134",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=134 时，2x+1=269，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "4de40b1d-3356-5abc-bba1-00de780389a0",
+      "question_number": "135",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 135 + 1。",
+      "reference_answer": "271",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "3ae6850c-5f3b-5bf0-a7f1-c6e06cff2eef",
+      "question_number": "136",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=136 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "273",
+        "B": "274",
+        "C": "272",
+        "D": "275"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "d5590b9e-ab25-5369-9862-98b25be8adbb",
+      "question_number": "137",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=137 时，2x+1=275，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "d3a8c259-a9dc-599d-9ea2-456b493591c4",
+      "question_number": "138",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 138 + 1。",
+      "reference_answer": "277",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "d230edd2-d5ef-5266-8792-2be4d85d20a1",
+      "question_number": "139",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=139 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "279",
+        "B": "280",
+        "C": "278",
+        "D": "281"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "3851c981-e6b7-521c-a0d4-77aadf8471ca",
+      "question_number": "140",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=140 时，2x+1=281，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "e0205534-e84c-519e-a176-19045a131704",
+      "question_number": "141",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 141 + 1。",
+      "reference_answer": "283",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "e15b8c55-1af1-5edc-b97b-e9bb8b20f970",
+      "question_number": "142",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=142 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "285",
+        "B": "286",
+        "C": "284",
+        "D": "287"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "5c0a2b55-ac5e-5332-bdfe-afd057fd2053",
+      "question_number": "143",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=143 时，2x+1=287，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "499e4e30-8c3a-5eef-9754-08ff152cfbbe",
+      "question_number": "144",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 144 + 1。",
+      "reference_answer": "289",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "0247c2ac-153e-5b4d-ab3b-77771336b56d",
+      "question_number": "145",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=145 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "291",
+        "B": "292",
+        "C": "290",
+        "D": "293"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "6a7799b0-ff37-53b7-998c-3cb2f0f9fe6a",
+      "question_number": "146",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=146 时，2x+1=293，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "e22fcea3-2073-56c8-a405-00ece11e19c3",
+      "question_number": "147",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 147 + 1。",
+      "reference_answer": "295",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "4bb2b187-b5a1-56d2-afc0-bd0b5548c88c",
+      "question_number": "148",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=148 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "297",
+        "B": "298",
+        "C": "296",
+        "D": "299"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "89cdc5f5-424a-5b0c-82c3-6af1efde36c5",
+      "question_number": "149",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=149 时，2x+1=299，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "0d7bb191-04da-5fcc-b10d-a89270506ab2",
+      "question_number": "150",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 150 + 1。",
+      "reference_answer": "301",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "5d82928a-7845-52b8-a86d-b6883cfbf494",
+      "question_number": "151",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=151 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "303",
+        "B": "304",
+        "C": "302",
+        "D": "305"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "133a98f2-d919-597e-bde0-be42f452bb9d",
+      "question_number": "152",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=152 时，2x+1=305，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "af6550a8-4ba3-541c-8691-6da39b6048c9",
+      "question_number": "153",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 153 + 1。",
+      "reference_answer": "307",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "a6c6f053-bc4c-55db-8a28-151b34f472da",
+      "question_number": "154",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=154 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "309",
+        "B": "310",
+        "C": "308",
+        "D": "311"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "fa5a12d0-d251-515a-a9b6-58d019d19c99",
+      "question_number": "155",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=155 时，2x+1=311，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "025762a5-f1b9-5cdd-963f-53438de6ac36",
+      "question_number": "156",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 156 + 1。",
+      "reference_answer": "313",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "0925620b-9e20-52b5-8be8-4009c1336ea1",
+      "question_number": "157",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=157 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "315",
+        "B": "316",
+        "C": "314",
+        "D": "317"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "3b511193-0e2e-5cb1-944f-890f9a12dad3",
+      "question_number": "158",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=158 时，2x+1=317，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "4bda3e74-1184-5d11-9f11-ad12d798103e",
+      "question_number": "159",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 159 + 1。",
+      "reference_answer": "319",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "71e91857-bc65-5075-9657-14e4374cab4c",
+      "question_number": "160",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=160 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "321",
+        "B": "322",
+        "C": "320",
+        "D": "323"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "fbc591da-695e-542d-a2d6-261821ca9be3",
+      "question_number": "161",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=161 时，2x+1=323，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "09b52594-abab-5df9-9ee7-8ac140018350",
+      "question_number": "162",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 162 + 1。",
+      "reference_answer": "325",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "b38c032b-3701-5f10-adca-af0f02e01955",
+      "question_number": "163",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=163 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "327",
+        "B": "328",
+        "C": "326",
+        "D": "329"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "1ad13a9d-8461-52ab-9dea-6bcc84cc45ba",
+      "question_number": "164",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=164 时，2x+1=329，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "aff0e317-815e-59a9-bb3d-eb423c674f83",
+      "question_number": "165",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 165 + 1。",
+      "reference_answer": "331",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "d808171d-30ed-5a85-b110-4fb83dea3362",
+      "question_number": "166",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=166 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "333",
+        "B": "334",
+        "C": "332",
+        "D": "335"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "0bf3bf65-25ad-5982-b703-096aa5a17e6d",
+      "question_number": "167",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=167 时，2x+1=335，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "6c91f2c0-9209-5f62-8809-1ce0ffe54a65",
+      "question_number": "168",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 168 + 1。",
+      "reference_answer": "337",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "334289f0-15f8-5210-a24c-d935b17d4177",
+      "question_number": "169",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=169 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "339",
+        "B": "340",
+        "C": "338",
+        "D": "341"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "b8e964a8-b532-54af-88dd-f187347d787d",
+      "question_number": "170",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=170 时，2x+1=341，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "8b23e093-2672-5845-8043-bd700fe3207a",
+      "question_number": "171",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 171 + 1。",
+      "reference_answer": "343",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "8c2de0a6-ecf4-5bd6-848c-2a282404443c",
+      "question_number": "172",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=172 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "345",
+        "B": "346",
+        "C": "344",
+        "D": "347"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "118e28ea-c108-5e4d-989f-e8a8e1b0f74e",
+      "question_number": "173",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=173 时，2x+1=347，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "24f0c463-2c37-597e-a25b-5b8fd3f0076f",
+      "question_number": "174",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 174 + 1。",
+      "reference_answer": "349",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "e1c16f85-8fbf-5433-b9e0-45dab94f6792",
+      "question_number": "175",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=175 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "351",
+        "B": "352",
+        "C": "350",
+        "D": "353"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "515b5974-4578-5a87-b0a2-3d01cda8dcb3",
+      "question_number": "176",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=176 时，2x+1=353，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "384c6672-5ae9-523f-81b9-54686150c6a9",
+      "question_number": "177",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 177 + 1。",
+      "reference_answer": "355",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "698c7997-e143-5ec2-9d58-f2699ffaf3cd",
+      "question_number": "178",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=178 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "357",
+        "B": "358",
+        "C": "356",
+        "D": "359"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "fe6ec3d3-dbfd-530c-bd69-fe59e7c02752",
+      "question_number": "179",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=179 时，2x+1=359，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "bd6c55a5-d139-5d4e-b1c8-5a1453277991",
+      "question_number": "180",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 180 + 1。",
+      "reference_answer": "361",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "31e66b7b-7793-5bb9-ae21-1cda0cb4ac23",
+      "question_number": "181",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=181 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "363",
+        "B": "364",
+        "C": "362",
+        "D": "365"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "09d335cf-f93e-510a-b642-00981c734c07",
+      "question_number": "182",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=182 时，2x+1=365，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "6f4c000e-88b9-5c74-a1a3-d2c21067f309",
+      "question_number": "183",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 183 + 1。",
+      "reference_answer": "367",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "6f6114de-efa0-5664-94f2-c9beadf3b557",
+      "question_number": "184",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=184 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "369",
+        "B": "370",
+        "C": "368",
+        "D": "371"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "6c377728-f776-5505-bcc2-851d6de83b1a",
+      "question_number": "185",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=185 时，2x+1=371，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "f9dc7238-7052-5691-a5c3-acf7be165f83",
+      "question_number": "186",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 186 + 1。",
+      "reference_answer": "373",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "75d2ace4-0ce1-5289-9d9a-35fe8c11c3f2",
+      "question_number": "187",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=187 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "375",
+        "B": "376",
+        "C": "374",
+        "D": "377"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "6d3ede55-2018-50d0-a36e-3f1e408efb88",
+      "question_number": "188",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=188 时，2x+1=377，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "cbd29b49-2567-5606-874b-c03a3e491201",
+      "question_number": "189",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 189 + 1。",
+      "reference_answer": "379",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "d8e25ae0-35ef-5847-8f91-a4a3b9c607bd",
+      "question_number": "190",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=190 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "381",
+        "B": "382",
+        "C": "380",
+        "D": "383"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "a205b47a-f550-56f6-9b03-e3068c7664a9",
+      "question_number": "191",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=191 时，2x+1=383，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "db600375-4695-5861-b211-03e4a8b2ddcf",
+      "question_number": "192",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 192 + 1。",
+      "reference_answer": "385",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "e2a64940-55c1-58eb-aed4-68d8ffe14eca",
+      "question_number": "193",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=193 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "387",
+        "B": "388",
+        "C": "386",
+        "D": "389"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "14b8a747-f718-5191-86ae-6fe18d60f5ff",
+      "question_number": "194",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=194 时，2x+1=389，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "60207b4f-fcbf-568f-ba7b-6010f098674c",
+      "question_number": "195",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 195 + 1。",
+      "reference_answer": "391",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "609b5170-ee68-5aa6-9b49-3b061fc12917",
+      "question_number": "196",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=196 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "393",
+        "B": "394",
+        "C": "392",
+        "D": "395"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "6622dd10-635f-5cab-a0b2-504e72de8978",
+      "question_number": "197",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=197 时，2x+1=395，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "c1e2f615-c83c-5da2-89c8-feedbdc2cd06",
+      "question_number": "198",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 198 + 1。",
+      "reference_answer": "397",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "ce963694-f171-5892-aad5-2f027e9d79a3",
+      "question_number": "199",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=199 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "399",
+        "B": "400",
+        "C": "398",
+        "D": "401"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "7b141552-8afe-5c30-8840-7b8e4da67ab5",
+      "question_number": "200",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=200 时，2x+1=401，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "2a04b8cc-abd0-5116-b052-2bb74396e21c",
+      "question_number": "201",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 201 + 1。",
+      "reference_answer": "403",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "5fb9fa29-fb57-5a99-9276-709bb0166e64",
+      "question_number": "202",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=202 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "405",
+        "B": "406",
+        "C": "404",
+        "D": "407"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "d54116d5-71d5-572d-8892-0ef29417e205",
+      "question_number": "203",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=203 时，2x+1=407，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "55570092-ba7b-5779-a796-f8e43784e2c2",
+      "question_number": "204",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 204 + 1。",
+      "reference_answer": "409",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "7ebe6cd5-424f-5f39-9635-b7868c1f06b3",
+      "question_number": "205",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=205 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "411",
+        "B": "412",
+        "C": "410",
+        "D": "413"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "c9b7c165-b7a6-5f1b-bd26-b9e2c32f7ca1",
+      "question_number": "206",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=206 时，2x+1=413，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "fa772624-153b-5cd5-abc0-7d08013f6742",
+      "question_number": "207",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 207 + 1。",
+      "reference_answer": "415",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "a70d5ef9-fcf2-5bcd-a609-4f57b6a1ddcb",
+      "question_number": "208",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=208 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "417",
+        "B": "418",
+        "C": "416",
+        "D": "419"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "3a56d9c8-1a20-5005-8eea-f59c59da45bd",
+      "question_number": "209",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=209 时，2x+1=419，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "de57ff7f-c149-5dc7-abe1-6495726bcb8d",
+      "question_number": "210",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 210 + 1。",
+      "reference_answer": "421",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "4639f2f5-e4a5-596d-8848-b1af1824ff9d",
+      "question_number": "211",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=211 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "423",
+        "B": "424",
+        "C": "422",
+        "D": "425"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "14688ca7-5f8f-51de-973b-3fc1552fa240",
+      "question_number": "212",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=212 时，2x+1=425，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "c224392f-fb81-53b3-9198-52facd12328d",
+      "question_number": "213",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 213 + 1。",
+      "reference_answer": "427",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "80ce079b-7c32-5783-86ba-da9209fe8149",
+      "question_number": "214",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=214 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "429",
+        "B": "430",
+        "C": "428",
+        "D": "431"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "68f43f24-67bf-5747-bd2c-0d9254a8894c",
+      "question_number": "215",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=215 时，2x+1=431，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "d4dcf7f0-7a0d-50ba-a468-d6b10cb48de9",
+      "question_number": "216",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 216 + 1。",
+      "reference_answer": "433",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "9e973591-40f3-587f-9401-e0260e18ae35",
+      "question_number": "217",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=217 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "435",
+        "B": "436",
+        "C": "434",
+        "D": "437"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "4788ca12-b4e0-575e-abba-0e8edae21f61",
+      "question_number": "218",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=218 时，2x+1=437，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "0888c616-b1fc-5e50-9ca9-0b237d6b0691",
+      "question_number": "219",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 219 + 1。",
+      "reference_answer": "439",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "8669eb86-ec80-5a9a-917d-ae04755ecdab",
+      "question_number": "220",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=220 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "441",
+        "B": "442",
+        "C": "440",
+        "D": "443"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "1fdc9d00-8309-51c6-b7fb-82efb07ec7a1",
+      "question_number": "221",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=221 时，2x+1=443，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "d896acd1-37de-529b-a50a-7ac673d773da",
+      "question_number": "222",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 222 + 1。",
+      "reference_answer": "445",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "3fb10dbe-1c98-5bb1-b7e9-68b3a0a83337",
+      "question_number": "223",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=223 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "447",
+        "B": "448",
+        "C": "446",
+        "D": "449"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "57174e0c-ce2d-5963-9db0-bf0430939238",
+      "question_number": "224",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=224 时，2x+1=449，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "92a501a3-1b86-5dc8-9ab5-3ce22bcc7b4d",
+      "question_number": "225",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 225 + 1。",
+      "reference_answer": "451",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "24928d28-61c1-5409-907a-bc33d28cf5bd",
+      "question_number": "226",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=226 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "453",
+        "B": "454",
+        "C": "452",
+        "D": "455"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "9552baf5-c714-5106-8977-3766a93a1dea",
+      "question_number": "227",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=227 时，2x+1=455，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "2f87f800-9630-5cc7-8ec5-8a43f48a49f0",
+      "question_number": "228",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 228 + 1。",
+      "reference_answer": "457",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "aae18cea-e034-57e8-8376-77de84411cdb",
+      "question_number": "229",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=229 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "459",
+        "B": "460",
+        "C": "458",
+        "D": "461"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "c03eb9cf-7b29-55c6-bd7b-fc57e9c82206",
+      "question_number": "230",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=230 时，2x+1=461，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "4f7a659a-690a-5aaf-ada0-76b783b62063",
+      "question_number": "231",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 231 + 1。",
+      "reference_answer": "463",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "e45964e0-10ea-5e99-a177-6acffc11777f",
+      "question_number": "232",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=232 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "465",
+        "B": "466",
+        "C": "464",
+        "D": "467"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "16eec833-f11f-548a-aa50-90118f7cd7ec",
+      "question_number": "233",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=233 时，2x+1=467，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "c76de96f-1cd9-502f-9dbc-40b62b6262ec",
+      "question_number": "234",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 234 + 1。",
+      "reference_answer": "469",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "8814345b-eef6-5287-ad7c-a6644d8ddb86",
+      "question_number": "235",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=235 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "471",
+        "B": "472",
+        "C": "470",
+        "D": "473"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "b8b6e42d-5e12-592b-b694-5a0f4cb5221c",
+      "question_number": "236",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=236 时，2x+1=473，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "9496f58f-841a-5ea9-810e-2b712d53eed5",
+      "question_number": "237",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 237 + 1。",
+      "reference_answer": "475",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "ce74ee99-2753-5967-94cd-7db9c21ece9f",
+      "question_number": "238",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=238 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "477",
+        "B": "478",
+        "C": "476",
+        "D": "479"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "9c4ce462-1e16-5897-a48a-00e9b91928d4",
+      "question_number": "239",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=239 时，2x+1=479，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "51853b2a-8e2f-5300-9147-c1d5c0de8fb1",
+      "question_number": "240",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 240 + 1。",
+      "reference_answer": "481",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "6299fa8d-fd72-5def-88f6-6330fc75650d",
+      "question_number": "241",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=241 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "483",
+        "B": "484",
+        "C": "482",
+        "D": "485"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "e13c372a-4330-5fd3-a15d-3072de456cd7",
+      "question_number": "242",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=242 时，2x+1=485，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "45a837cb-6a8f-5b65-b30c-a9117e5e4c4d",
+      "question_number": "243",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 243 + 1。",
+      "reference_answer": "487",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "29f16fa6-dfa5-5c11-9468-991e3f1cfcf0",
+      "question_number": "244",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=244 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "489",
+        "B": "490",
+        "C": "488",
+        "D": "491"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "b1eb5ff3-7e7e-5a40-b62b-6d8d99248d72",
+      "question_number": "245",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=245 时，2x+1=491，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "1f21f559-5728-5966-9952-b384d22880b9",
+      "question_number": "246",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 246 + 1。",
+      "reference_answer": "493",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "f702e9e4-a80f-5be2-86b6-b5fc3437801b",
+      "question_number": "247",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=247 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "495",
+        "B": "496",
+        "C": "494",
+        "D": "497"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "0a01eeb4-163c-597f-9f31-189e74b3669f",
+      "question_number": "248",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=248 时，2x+1=497，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "7c988f4a-aae4-5dd6-aefd-138af4adca11",
+      "question_number": "249",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 249 + 1。",
+      "reference_answer": "499",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "66d1f1b5-0835-5e41-825e-41d593b87a0a",
+      "question_number": "250",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=250 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "501",
+        "B": "502",
+        "C": "500",
+        "D": "503"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "d9e52c6e-7d75-58c4-8566-2f31d023eebd",
+      "question_number": "251",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=251 时，2x+1=503，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "bb433b4d-699c-5c58-aaef-ae487f9ddfb4",
+      "question_number": "252",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 252 + 1。",
+      "reference_answer": "505",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "27c392b2-9bd3-5b51-ba8b-641d230c8c71",
+      "question_number": "253",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=253 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "507",
+        "B": "508",
+        "C": "506",
+        "D": "509"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "ca055129-5e24-58b2-9e1b-629f31a9e836",
+      "question_number": "254",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=254 时，2x+1=509，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "eb16ff84-ee3a-564d-89d7-e015dd8e7464",
+      "question_number": "255",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 255 + 1。",
+      "reference_answer": "511",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "fc3bf79a-b51b-50b0-813c-d9f5bbf840b9",
+      "question_number": "256",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=256 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "513",
+        "B": "514",
+        "C": "512",
+        "D": "515"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "cd08cb7d-c574-581f-9355-46c2e7f53d27",
+      "question_number": "257",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=257 时，2x+1=515，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "1cefe14a-8ec2-5614-be9c-f84e6729c907",
+      "question_number": "258",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 258 + 1。",
+      "reference_answer": "517",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "1e8ede5a-c15c-55c1-ad04-b2b1216731d4",
+      "question_number": "259",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=259 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "519",
+        "B": "520",
+        "C": "518",
+        "D": "521"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "9357cd23-4495-5783-bf70-322d7b581058",
+      "question_number": "260",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=260 时，2x+1=521，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "5695c41e-f123-5ddf-a749-756ef221d136",
+      "question_number": "261",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 261 + 1。",
+      "reference_answer": "523",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "f572da20-4c0c-56b5-b04b-aaaed74d1b9a",
+      "question_number": "262",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=262 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "525",
+        "B": "526",
+        "C": "524",
+        "D": "527"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "1ad9bcae-4901-5e57-90c1-f29457a6b31c",
+      "question_number": "263",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=263 时，2x+1=527，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "78a941ad-8096-512a-849e-0194c214d8c2",
+      "question_number": "264",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 264 + 1。",
+      "reference_answer": "529",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "fe1bd3e1-fbfd-5796-b12c-aed7d415ed08",
+      "question_number": "265",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=265 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "531",
+        "B": "532",
+        "C": "530",
+        "D": "533"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "e5aa3fc7-a09b-50af-9d60-7cade1b351fe",
+      "question_number": "266",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=266 时，2x+1=533，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "567f8cc3-1751-5970-a3c9-67efe64bac2f",
+      "question_number": "267",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 267 + 1。",
+      "reference_answer": "535",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "e618c546-8bf2-58b1-8956-1dcda92bb7f2",
+      "question_number": "268",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=268 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "537",
+        "B": "538",
+        "C": "536",
+        "D": "539"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "afaa10b1-86f6-5f15-94ab-1d06d4618547",
+      "question_number": "269",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=269 时，2x+1=539，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "f3aae814-f640-5dbc-b634-a28e19669335",
+      "question_number": "270",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 270 + 1。",
+      "reference_answer": "541",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "a11720e5-52a3-57f7-a34f-1c2ebab94f5e",
+      "question_number": "271",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=271 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "543",
+        "B": "544",
+        "C": "542",
+        "D": "545"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "f0fa3654-b7d5-5413-9009-6b41cc976e9a",
+      "question_number": "272",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=272 时，2x+1=545，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "4f20e0a4-af11-5172-8c68-f7755c852b1d",
+      "question_number": "273",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 273 + 1。",
+      "reference_answer": "547",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "dc91fe02-d141-5cbd-970a-3fd17ff61f9c",
+      "question_number": "274",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=274 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "549",
+        "B": "550",
+        "C": "548",
+        "D": "551"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "adb0945c-c202-5618-86da-ff5788c936de",
+      "question_number": "275",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=275 时，2x+1=551，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "7c97cf41-b677-51da-a1dc-8760182a687d",
+      "question_number": "276",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 276 + 1。",
+      "reference_answer": "553",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "f2b23faa-b9fb-5d3a-b535-8e31e076acdc",
+      "question_number": "277",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=277 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "555",
+        "B": "556",
+        "C": "554",
+        "D": "557"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "d69f4b46-5612-50f4-9969-c64a8c90a9ff",
+      "question_number": "278",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=278 时，2x+1=557，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "f6ebf076-79f0-5a2a-974d-e07ec6754565",
+      "question_number": "279",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 279 + 1。",
+      "reference_answer": "559",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "8c85bc25-c57e-5f0e-8f85-766ba5fe84bb",
+      "question_number": "280",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=280 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "561",
+        "B": "562",
+        "C": "560",
+        "D": "563"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "9410bb42-dbd4-5922-ad51-a395f7fb2a3b",
+      "question_number": "281",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=281 时，2x+1=563，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "181971fa-bc27-5360-a524-5887a28f598b",
+      "question_number": "282",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 282 + 1。",
+      "reference_answer": "565",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "61798602-a2a1-525b-bd28-3b07504cac4b",
+      "question_number": "283",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=283 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "567",
+        "B": "568",
+        "C": "566",
+        "D": "569"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "d3417315-9b3e-555e-9154-c7b76296903c",
+      "question_number": "284",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=284 时，2x+1=569，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "81a34298-f68b-58f2-91f7-89c3dbcc2c0a",
+      "question_number": "285",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 285 + 1。",
+      "reference_answer": "571",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "5026bc51-8a69-5f0c-aa64-94a865aa1ea2",
+      "question_number": "286",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=286 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "573",
+        "B": "574",
+        "C": "572",
+        "D": "575"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "73597ddb-3e52-5e4e-b3fe-0c55603a1517",
+      "question_number": "287",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=287 时，2x+1=575，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "6cb5119d-2deb-5017-99d6-a0eb1a1fd698",
+      "question_number": "288",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 288 + 1。",
+      "reference_answer": "577",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "555c7d34-e436-5340-945e-75815a1f816d",
+      "question_number": "289",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=289 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "579",
+        "B": "580",
+        "C": "578",
+        "D": "581"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "a5cfcaef-e636-5f70-8725-5510c15dcf47",
+      "question_number": "290",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=290 时，2x+1=581，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "dd5de44b-8007-5714-89fa-bb81f7b5d592",
+      "question_number": "291",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 291 + 1。",
+      "reference_answer": "583",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "c6d31bfc-260e-5fa0-8941-38f314e0570b",
+      "question_number": "292",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=292 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "585",
+        "B": "586",
+        "C": "584",
+        "D": "587"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "506fa047-7f79-561d-a0c3-4e500111988b",
+      "question_number": "293",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=293 时，2x+1=587，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "76076963-8fd8-54a7-bbce-c86dddb656d5",
+      "question_number": "294",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 294 + 1。",
+      "reference_answer": "589",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "a0047092-64b2-5fef-b6e7-ef4be0772856",
+      "question_number": "295",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=295 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "591",
+        "B": "592",
+        "C": "590",
+        "D": "593"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "ed1164ed-ec87-5154-85a9-8fe3cddc7334",
+      "question_number": "296",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=296 时，2x+1=593，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "004c9da2-2d2c-5e93-901b-0c61c7d8fb76",
+      "question_number": "297",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 297 + 1。",
+      "reference_answer": "595",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    },
+    {
+      "question_id": "67441d68-3ca6-545c-bb42-8643f93b3a55",
+      "question_number": "298",
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=298 时，y=2x+1 的值是？",
+      "reference_answer": "A",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": {
+        "A": "597",
+        "B": "598",
+        "C": "596",
+        "D": "599"
+      },
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "9217b325-f081-56a1-9c7b-c62349a26de4",
+      "question_number": "299",
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=299 时，2x+1=599，判断正确或错误。",
+      "reference_answer": "正确",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。"
+    },
+    {
+      "question_id": "4360c552-5fd4-5dfe-bdcf-3f3d2f523dd2",
+      "question_number": "300",
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 300 + 1。",
+      "reference_answer": "601",
+      "score": "1.00",
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "intended_status": "Approved",
+      "status_origin": "future isolated fixture setup; no actual approval",
+      "teacher_approved_by": null,
+      "image_refs": [],
+      "options": null,
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。"
+    }
+  ]
+}

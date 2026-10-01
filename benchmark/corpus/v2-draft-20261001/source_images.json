@@ -1,0 +1,42 @@
+[
+  {
+    "file": "assets/diagram.png",
+    "width": 640,
+    "height": 400,
+    "render_dpi": 144,
+    "source_kind": "synthetic vector input rasterization",
+    "teacher_verified": false
+  },
+  {
+    "file": "assets/diagram_low_resolution.png",
+    "width": 64,
+    "height": 40,
+    "render_dpi": 14.4,
+    "source_kind": "synthetic vector input rasterization",
+    "teacher_verified": false
+  },
+  {
+    "file": "assets/figure.png",
+    "width": 640,
+    "height": 400,
+    "render_dpi": 144,
+    "source_kind": "synthetic vector input rasterization",
+    "teacher_verified": false
+  },
+  {
+    "file": "assets/table.png",
+    "width": 640,
+    "height": 400,
+    "render_dpi": 144,
+    "source_kind": "synthetic vector input rasterization",
+    "teacher_verified": false
+  },
+  {
+    "file": "inputs/paper_image.png",
+    "width": 1241,
+    "height": 1754,
+    "render_dpi": 150,
+    "source_kind": "synthetic vector input rasterization",
+    "teacher_verified": false
+  }
+]

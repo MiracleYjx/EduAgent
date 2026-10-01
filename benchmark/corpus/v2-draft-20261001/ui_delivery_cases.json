@@ -1,0 +1,112 @@
+{
+  "pages": [
+    {
+      "case_id": "UI-1",
+      "page": "试卷导入与校正",
+      "actions": [
+        "按授权角色进入",
+        "加载列表/空态",
+        "选择详情",
+        "显式编辑或查看",
+        "保存/取消",
+        "刷新/重启后读取",
+        "缺文件/失败真实提示"
+      ],
+      "screenshot_refs": [],
+      "browser_evidence": null
+    },
+    {
+      "case_id": "UI-2",
+      "page": "知识库",
+      "actions": [
+        "按授权角色进入",
+        "加载列表/空态",
+        "选择详情",
+        "显式编辑或查看",
+        "保存/取消",
+        "刷新/重启后读取",
+        "缺文件/失败真实提示"
+      ],
+      "screenshot_refs": [],
+      "browser_evidence": null
+    },
+    {
+      "case_id": "UI-3",
+      "page": "AI 出题与审核",
+      "actions": [
+        "按授权角色进入",
+        "加载列表/空态",
+        "选择详情",
+        "显式编辑或查看",
+        "保存/取消",
+        "刷新/重启后读取",
+        "缺文件/失败真实提示"
+      ],
+      "screenshot_refs": [],
+      "browser_evidence": null
+    },
+    {
+      "case_id": "UI-4",
+      "page": "组卷与考试",
+      "actions": [
+        "按授权角色进入",
+        "加载列表/空态",
+        "选择详情",
+        "显式编辑或查看",
+        "保存/取消",
+        "刷新/重启后读取",
+        "缺文件/失败真实提示"
+      ],
+      "screenshot_refs": [],
+      "browser_evidence": null
+    },
+    {
+      "case_id": "UI-5",
+      "page": "阅卷",
+      "actions": [
+        "按授权角色进入",
+        "加载列表/空态",
+        "选择详情",
+        "显式编辑或查看",
+        "保存/取消",
+        "刷新/重启后读取",
+        "缺文件/失败真实提示"
+      ],
+      "screenshot_refs": [],
+      "browser_evidence": null
+    },
+    {
+      "case_id": "UI-6",
+      "page": "教师分析",
+      "actions": [
+        "按授权角色进入",
+        "加载列表/空态",
+        "选择详情",
+        "显式编辑或查看",
+        "保存/取消",
+        "刷新/重启后读取",
+        "缺文件/失败真实提示"
+      ],
+      "screenshot_refs": [],
+      "browser_evidence": null
+    },
+    {
+      "case_id": "UI-7",
+      "page": "学生首页与诊断",
+      "actions": [
+        "按授权角色进入",
+        "加载列表/空态",
+        "选择详情",
+        "显式编辑或查看",
+        "保存/取消",
+        "刷新/重启后读取",
+        "缺文件/失败真实提示"
+      ],
+      "screenshot_refs": [],
+      "browser_evidence": null
+    }
+  ],
+  "package_ref": null,
+  "backup_manifest_ref": null,
+  "status": "awaiting T188/T191 actual artifacts; no package or restored system claimed"
+}
