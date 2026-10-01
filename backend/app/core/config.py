@@ -6,12 +6,16 @@ secrets do not leak into logs or error responses.
 
 from __future__ import annotations
 
+import os
 import re
+import sys
 from functools import lru_cache
+from pathlib import Path
 from typing import Any, ClassVar, Final
 from urllib.parse import urlsplit, urlunsplit
 
 from pydantic import (
+    AliasChoices,
     AnyUrl,
     Field,
     SecretStr,
@@ -93,6 +97,15 @@ def _redact_url(url: AnyUrl | PostgresDsn | RedisDsn | str) -> str:
     return urlunsplit((parsed.scheme, hostname, parsed.path, "", ""))
 
 
+def default_storage_root() -> Path:
+    """Use a persistent development root or writable user data for an EXE."""
+
+    if getattr(sys, "frozen", False):
+        data_root = Path(os.environ.get("LOCALAPPDATA") or Path.home() / "AppData" / "Local")
+        return data_root / "EduAgent" / "storage"
+    return Path(__file__).resolve().parents[3] / "storage"
+
+
 class AppSettings(BaseSettings):
     """Typed application settings loaded from the environment or `.env`."""
 
@@ -113,6 +126,11 @@ class AppSettings(BaseSettings):
     )
     SUPPORTED_RERANK_PROVIDERS: ClassVar[frozenset[str]] = frozenset(
         {"cross_encoder", "llm", "none", "openai_compatible"}
+    )
+
+    storage_root: Path = Field(
+        default_factory=default_storage_root,
+        validation_alias=AliasChoices("storage_root", "STORAGE_ROOT"),
     )
 
     database_url: PostgresDsn
@@ -142,6 +160,15 @@ class AppSettings(BaseSettings):
     JWT_ALGORITHM: str = "HS256"
     JWT_EXPIRE_MINUTES: int = Field(default=60, gt=0)
     DEV_MODE: bool = False
+
+    @field_validator("storage_root", mode="before")
+    @classmethod
+    def _validate_storage_root(cls, value: Any) -> Path:
+        if not str(value).strip():
+            raise ValueError("storage root must not be empty")
+        path = Path(value).expanduser()
+        # Normalize on the execution host; Compose uses its container path syntax.
+        return path.resolve()
 
     @property
     def dev_mode(self) -> bool:
@@ -248,6 +275,7 @@ class AppSettings(BaseSettings):
         """Return a log-safe view of the active configuration."""
 
         return {
+            "storage_root": str(self.storage_root),
             "database_url": _redact_url(self.database_url),
             "redis_url": _redact_url(self.redis_url),
             "llm_provider": self.llm_provider,

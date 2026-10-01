@@ -172,7 +172,6 @@ def test_teacher_prepares_course_document_question_and_exam(
             headers=headers,
             json={
                 "original_filename": "第一章.md",
-                "storage_path": "uploads/python/第一章.md",
             },
         ),
         201,
@@ -184,6 +183,10 @@ def test_teacher_prepares_course_document_question_and_exam(
     assert document["uploaded_by"] == str(teacher_id)
     assert document["file_format"] == "md"
     assert document["status"] == DocumentStatus.UPLOADED.value
+    assert document["storage_path"] is None
+    missing_file = client.get("/api/files/" + document["file_id"], headers=headers)
+    assert missing_file.status_code == 404
+    assert missing_file.json()["detail"]["code"] == "FILE_HISTORY_UNKNOWN"
 
     question = _expect_json(
         client.post(

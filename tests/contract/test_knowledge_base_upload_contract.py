@@ -97,13 +97,14 @@ def session_factory(request: pytest.FixtureRequest) -> Generator[sessionmaker[Se
 @pytest.fixture
 def client(
     session_factory: sessionmaker[Session],
+    tmp_path: Path,
 ) -> Generator[TestClient, None, None]:
     """构造使用隔离数据库和测试 JWT 密钥的 API 客户端。"""
 
     with gr.Blocks() as test_gradio_app:
         gr.Markdown("资料上传契约测试")
     application = create_app(
-        settings=build_test_settings(JWT_SECRET_KEY=TEST_JWT_SECRET),
+        settings=build_test_settings(JWT_SECRET_KEY=TEST_JWT_SECRET, STORAGE_ROOT=tmp_path / "storage"),
         gradio_app=test_gradio_app,
     )
 
@@ -243,7 +244,10 @@ def test_upload_document_ingests_real_content_and_returns_ready(
         assert document.file_format == "txt"
         # 真实文件内容已落盘，后续重新处理可以再次读取同一份资料。
         assert document.storage_path is not None
-        stored = Path(document.storage_path)
+        from backend.app.services.file_storage_service import FileStorageService
+        stored = FileStorageService(
+            session, root=client.app.state.settings.storage_root,
+        ).resolve_path(document.storage_path)
         assert stored.is_file()
         assert stored.read_bytes() == LESSON_TEXT
 

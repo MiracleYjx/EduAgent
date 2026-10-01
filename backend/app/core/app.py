@@ -15,6 +15,7 @@ from backend.app.api.admin import router as admin_router
 from backend.app.api.auth import router as auth_router
 from backend.app.api.courses import router as courses_router
 from backend.app.api.exams import router as exams_router
+from backend.app.api.file_storage import router as file_storage_router
 from backend.app.api.grading import (
     recover_interrupted_grading_tasks,
 )
@@ -103,6 +104,7 @@ def create_app(
     app.include_router(admin_router)
     app.include_router(courses_router)
     app.include_router(knowledge_bases_router)
+    app.include_router(file_storage_router)
     app.include_router(question_generation_router)
     app.include_router(questions_router)
     app.include_router(exams_router)

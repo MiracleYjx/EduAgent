@@ -200,3 +200,32 @@ Buildx 日志读取命令退出 0 仅表示日志成功读取；`m0_build_snapsh
 2026-10-01T14:04:09.864639+00:00 执行 `docker compose -p eduagent-test down -v`，退出 0，2.103 秒。清理前核对项目标签、名称及初始无该项目卷的事实，仅删除本次创建的两容器、两卷和网络；清理后该项目容器/卷/网络为空，默认 `eduagent-postgres-1`、`eduagent-redis-1` 仍 healthy。未删除已有镜像、用户文件或原有缓存。本次失败构建/日志进程已结束，保留脱敏诊断。
 
 报告写入前后核对 `.env` 和上述 8 个用户改动文件的内容哈希保持不变；设计文件及其他任务状态保持不变。T143 的勾选表示本节复验与建议已完成，不表示未通过的 M0 门禁被豁免。
+
+## T147–T149 实施与复验（2026-10-02）
+
+实施基线 deepcode / 9912ece892c0efdb1c33231a321546827630a67a；使用 speckit-implement，依赖 T137/T140/T144/T145 已完成，T146 保持待真实教师标注。具体 TCR 先于测试修改，见 [test-change-record-v2.md](test-change-record-v2.md) §8；实现和公开路径决策见 [file-storage-implementation.md](file-storage-implementation.md) 与 file-storage 契约追加节。
+
+本批实现可配置持久根与 Docker 业务卷、Document 文件元数据、ExportFile/0013 迁移、稳定资源 file_id、认证 GET、可靠原稿/导出写入和归属收据、共享定位事务锁及当前/历史来源拒删检查。API/UI 原稿上传共用文件服务，解析读取持久原稿。公开元数据空登记保留；有路径只关联已登记/已授权持久文件，外部材料走上传。每个共享身份有关联收据，保护资料解除后的题目来源快照。ExportFile 供未来真实业务生产者调用；Benchmark 输出方式/格式不变，无新导出 UI。
+
+### 实际检查
+
+| 检查 | UTC 开始 / 耗时 | 结果 |
+| --- | --- | --- |
+| 隔离 alembic upgrade head | 2026-10-01T17:13:43.576271+00:00 / 2.026 s | 0013 升级成功；未升级开发业务库 |
+| 隔离 alembic check（最终） | 2026-10-01T17:26:53.681434+00:00 / 1.263 s | 退出 0 |
+| python -m pytest tests/ -q（最终业务源码） | 2026-10-01T17:26:54.946042+00:00 / pytest 347.78 s，外层 355.884 s | 1617 passed / 0 failed / 0 errors / 2 skipped / 19 warnings |
+| python -m mypy backend/app/ | 2026-10-01T17:32:50.831446+00:00 / 2.803 s | 145 source files，无问题 |
+| python -m ruff check backend/ tests/ | 2026-10-01T17:32:53.635656+00:00 / 0.140 s | 通过；收尾补迁移断言后再次通过 |
+| 新文件模块、直接上传 API/UI、真实锁与迁移 | 59 passed / 1 skip | 实际原稿、提交事实、拒绝权限、共享历史保护及失败材料通过 |
+| 收尾 PostgreSQL CHECK/FK/锁 | 2 passed / 2.55 s | 唯一临时 schema 验证 JSONB、恰一归属/audience/ready、RESTRICT 及原路径/状态保留 |
+| Docker Compose config（实际 CLI） | 只读配置检查 | 唯一业务卷 storage_data:/app/storage；根 /app/storage，无构建/运行通过声明 |
+
+首轮全量为 1611 passed / 3 failed / 2 skipped：固定迁移 head 仍为 0012、审计 head 后 -1 没有撤销 audit、新元数据请求使用不存在的假上传路径。按已确认合同和 TCR 调整测试前提，保留旧 revision/审核/组卷/状态等原断言；修复聚焦 18 passed，随后基于最终业务源码全量通过。先行红灯及中间夹具/转义错误未覆盖，保留原输出。
+
+### 环境、保留与未执行边界
+
+使用现有 D:/develop/Python/python.exe（Python 3.13.13），没有安装/升级依赖或调用模型。全量进程覆写为本批专用数据库 eduagent_e1_20261002_6306d84d28、专用 Redis localhost:58272 与忽略目录内业务文件/缓存；原 .env 不变，不输出凭据。进程结束后核对零连接和专用任务标签，仅清理本批数据库/Redis，检查证据保留于 .cache/e1-t147-149-20261002。
+
+两项 skip：M0 缺 COMPOSE_PROJECT_NAME/POSTGRES_PORT/REDIS_PORT/BACKEND_PORT，拒绝默认 Compose 项目；Windows 无创建符号链接权限。T143 M0 构建/配置未通过保持，不能以配置或当前工作区测试替代真实三容器、EXE、模型质量或系统验收。SourcePage/QuestionAsset 真正映射与学生材料授权留 E2/E5，发布冻结留 E4；历史物理文件迁移、备份恢复、广泛 E1 验收留 T150–T152。
+
+验证对象含实施前已有 8 个 UI/README/测试改动，全部字节 hash 与基线一致，提交仅纳入本批文件；不宣称在移除这些用户成果后的干净 checkout 已验证。仅测试临时文件执行物理清理，未删除用户材料，业务库未应用新迁移。任务勾选表示本批实施/验证完成，不表示后续文件迁移、备份或发布门禁通过。

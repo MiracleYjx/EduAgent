@@ -543,11 +543,11 @@ M0 工程骨架 + Benchmark
 
 ### E1：文件持久化
 
-- [ ] T147 [HIGH] [E1] **实现持久根目录与文件登记**：在 `backend/app/core/config.py`、新增 `backend/app/services/file_storage_service.py`、已确认映射对应模型及 `migrations/versions/` 实现持久根配置、相对定位、稳定 file_id、真实资源/导出登记和迁移状态；配置 Docker 挂载、开发与 EXE 用户目录及 `.gitignore`，可靠落盘后建立引用，失败留真实归属/诊断。按 G04 选择承载，不新增对象存储或重复路径事实源。 依赖：T137、T140、T144、T145。per FR-044/045、file-storage、CHK004/007（F014） (partial)
+- [X] T147 [HIGH] [E1] **实现持久根目录与文件登记**：在 `backend/app/core/config.py`、新增 `backend/app/services/file_storage_service.py`、已确认映射对应模型及 `migrations/versions/` 实现持久根配置、相对定位、稳定 file_id、真实资源/导出登记和迁移状态；配置 Docker 挂载、开发与 EXE 用户目录及 `.gitignore`，可靠落盘后建立引用，失败留真实归属/诊断。按 G04 选择承载，不新增对象存储或重复路径事实源。 依赖：T137、T140、T144、T145。per FR-044/045、file-storage、CHK004/007（F014） (partial)
 
-- [ ] T148 [HIGH] [E1] **实现授权文件读取与引用生命周期**：在新增 `backend/app/api/file_storage.py` 和文件服务实现 GET /api/files/{file_id}，继承课程/考试/本人结果授权，区分 missing/history_unknown/401/403/404；实现共享引用删除保护、FILE_IN_USE 及原材料保留。E2 创建原页/题图时接入具体资源映射，E4 将发布/历史保护接入同一服务；不开放含答案源卷静态地址。 依赖：T147。per FR-043/044、file-storage 访问/删除契约（F015） (missing)
+- [X] T148 [HIGH] [E1] **实现授权文件读取与引用生命周期**：在新增 `backend/app/api/file_storage.py` 和文件服务实现 GET /api/files/{file_id}，继承课程/考试/本人结果授权，区分 missing/history_unknown/401/403/404；实现共享引用删除保护、FILE_IN_USE 及原材料保留。E2 创建原页/题图时接入具体资源映射，E4 将发布/历史保护接入同一服务；不开放含答案源卷静态地址。 依赖：T147。per FR-043/044、file-storage 访问/删除契约（F015） (missing)
 
-- [ ] T149 [HIGH] [E1] **接入教学上传与导出文件持久化**：在 `backend/app/api/knowledge_bases.py`、`services/knowledge_base_service.py`、`ai/ingestion/service.py` 及现有导出写入边界统一消费文件服务；让解析器解析服务端持久定位，保留旧 PDF/TXT/Markdown 上传和元数据接口语义。实际导出采用 exports 并登记所属资源，不新造导出格式或伪造历史文件。 依赖：T147、T148。per FR-010/044、plan §11、file-storage（F016） (partial)
+- [X] T149 [HIGH] [E1] **接入教学上传与导出文件持久化**：在 `backend/app/api/knowledge_bases.py`、`services/knowledge_base_service.py`、`ai/ingestion/service.py` 及现有导出写入边界统一消费文件服务；让解析器解析服务端持久定位，保留旧 PDF/TXT/Markdown 上传和元数据接口语义。实际导出采用 exports 并登记所属资源，不新造导出格式或伪造历史文件。 依赖：T147、T148。per FR-010/044、plan §11、file-storage（F016） (partial)
 
 - [ ] T150 [HIGH] [E1] **实现历史文件迁移工具**：在 `scripts/migrate_storage_paths.py` 基于 T144 盘点实现先复制核对、后事务更新引用/迁移状态、成功后才可清理旧副本；重复执行识别已迁移项，失败保留原定位/文件，缺失和未知单列。在隔离样本演练并记录 `docs/v2.0-storage-inventory.md`，真实文件清理/恢复等破坏性动作另按授权执行。 依赖：T144、T147、T149。per FR-044、file-storage 历史迁移、data-model §10（F017） (missing)
 

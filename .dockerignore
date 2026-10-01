@@ -16,3 +16,6 @@ env/
 *.db
 *.sqlite
 tests/
+
+# Persistent application files and operation receipts
+/storage/

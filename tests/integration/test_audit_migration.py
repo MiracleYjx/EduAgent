@@ -23,6 +23,6 @@ def test_audit_migration_upgrade_head_and_downgrade(monkeypatch) -> None:
         command.upgrade(config, "head")
         with engine.connect() as connection:
             assert "audit_logs" in inspect(connection).get_table_names(schema=_schema)
-        command.downgrade(config, "-1")
+        command.downgrade(config, "0011_question_source_persistence")
         with engine.connect() as connection:
             assert "audit_logs" not in inspect(connection).get_table_names(schema=_schema)

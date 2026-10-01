@@ -2,10 +2,8 @@
 
 from __future__ import annotations
 
-import tempfile
-from pathlib import Path
 from typing import Annotated, Any
-from uuid import UUID, uuid4
+from uuid import UUID
 
 from fastapi import (
     APIRouter,
@@ -19,12 +17,15 @@ from fastapi import (
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 from sqlalchemy.orm import Session
 
+from backend.app.api.file_storage import file_http_exception
+from backend.app.core.config import AppSettings
 from backend.app.core.database import get_db
-from backend.app.core.security import require_permission
+from backend.app.core.security import get_app_settings, require_permission
 from backend.app.domain.enums import DocumentStatus
 from backend.app.domain.permissions import Permission
 from backend.app.models import User
 from backend.app.services.course_service import CourseNotFoundError, CourseServiceError
+from backend.app.services.file_storage_service import FileStorageError
 from backend.app.services.knowledge_base_service import (
     DocumentIngestionResult,
     DocumentNotFoundError,
@@ -40,20 +41,6 @@ from backend.app.services.knowledge_base_service import (
 )
 
 router = APIRouter(prefix="/api/knowledge-bases", tags=["知识库"])
-
-#: 上传资料落盘目录；MVP 使用本地临时目录，后续可替换为配置化存储或对象存储。
-UPLOAD_STORAGE_DIR = Path(tempfile.gettempdir()) / "eduagent_uploads"
-
-
-def _store_upload_bytes(filename: str, data: bytes) -> Path:
-    """把上传的文件内容写入本地存储目录，保留原始扩展名。"""
-
-    UPLOAD_STORAGE_DIR.mkdir(parents=True, exist_ok=True)
-    suffix = Path(filename).suffix.lower() or ".bin"
-    target = UPLOAD_STORAGE_DIR / f"{uuid4().hex}{suffix}"
-    target.write_bytes(data)
-    return target
-
 
 class KnowledgeBaseCreateRequest(BaseModel):
     """创建知识库时使用的请求体。"""
@@ -146,7 +133,7 @@ class DocumentCreateRequest(BaseModel):
     storage_path: str | None = Field(
         default=None,
         max_length=1024,
-        description="文件存储路径。",
+        description="可空；仅接受有权读取的已登记持久文件相对定位，外部文件走上传。",
     )
 
     @field_validator("original_filename", mode="before")
@@ -205,10 +192,11 @@ class DocumentStatusUpdateRequest(BaseModel):
 
 def get_knowledge_base_service(
     session: Annotated[Session, Depends(get_db)],
+    settings: Annotated[AppSettings, Depends(get_app_settings)],
 ) -> KnowledgeBaseService:
     """创建使用当前请求数据库会话的知识库服务。"""
 
-    return KnowledgeBaseService(session)
+    return KnowledgeBaseService(session, storage_root=settings.storage_root)
 
 
 KnowledgeBaseServiceDependency = Annotated[
@@ -224,6 +212,8 @@ KnowledgeBaseManager = Annotated[
 def _knowledge_base_http_exception(error: BaseException) -> HTTPException:
     """将知识库服务异常转换为统一的中文 HTTP 错误。"""
 
+    if isinstance(error, FileStorageError):
+        return file_http_exception(error)
     if isinstance(
         error, (KnowledgeBaseNotFoundError, DocumentNotFoundError, CourseNotFoundError)
     ):
@@ -413,7 +403,7 @@ def create_document(
     """登记文档元数据并将其置为 Uploaded 状态。"""
 
     try:
-        return service.upload_document(
+        return service.register_document(
             knowledge_base_id=knowledge_base_id,
             uploaded_by=teacher.id,
             original_filename=payload.original_filename,
@@ -421,7 +411,7 @@ def create_document(
             storage_path=payload.storage_path,
             teacher_id=teacher.id,
         )
-    except (CourseServiceError, KnowledgeBaseServiceError, ValueError) as exc:
+    except (CourseServiceError, KnowledgeBaseServiceError, FileStorageError, ValueError) as exc:
         raise _knowledge_base_http_exception(exc) from None
 
 
@@ -449,20 +439,18 @@ def upload_and_ingest_document(
     filename = (file.filename or "").strip()
     data = file.file.read()
     try:
-        stored_path = _store_upload_bytes(filename or "upload.bin", data)
         document = service.upload_document(
             knowledge_base_id=knowledge_base_id,
             uploaded_by=teacher.id,
-            original_filename=filename or stored_path.name,
-            storage_path=str(stored_path),
+            original_filename=filename or "upload.bin",
+            content=data,
             teacher_id=teacher.id,
         )
         return service.ingest_document(
             document.id,
-            content=data,
             teacher_id=teacher.id,
         )
-    except (CourseServiceError, KnowledgeBaseServiceError, ValueError, OSError) as exc:
+    except (CourseServiceError, KnowledgeBaseServiceError, FileStorageError, ValueError, OSError) as exc:
         raise _knowledge_base_http_exception(exc) from None
 
 

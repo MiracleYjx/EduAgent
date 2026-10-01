@@ -50,3 +50,6 @@ env/
 
 # HuggingFace 本地模型缓存
 .cache/
+
+# Persistent application files and operation receipts
+/storage/

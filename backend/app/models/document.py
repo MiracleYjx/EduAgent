@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 from uuid import UUID
 
-from sqlalchemy import Boolean, ForeignKey, String, Text
+from sqlalchemy import JSON, Boolean, CheckConstraint, ForeignKey, String, Text
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from backend.app.domain.enums import DocumentStatus
@@ -22,6 +23,12 @@ class Document(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     """记录上传文件来源和摄取处理状态的资料实体。"""
 
     __tablename__ = "documents"
+    __table_args__ = (
+        CheckConstraint(
+            "file_metadata IS NULL OR jsonb_typeof(file_metadata) = 'object'",
+            name="ck_document_file_metadata_object",
+        ).ddl_if(dialect="postgresql"),
+    )
 
     course_id: Mapped[UUID] = mapped_column(
         ForeignKey("courses.id", ondelete="CASCADE"), nullable=False, index=True
@@ -35,6 +42,9 @@ class Document(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     original_filename: Mapped[str] = mapped_column(String(255), nullable=False)
     file_format: Mapped[str] = mapped_column(String(32), nullable=False)
     storage_path: Mapped[str | None] = mapped_column(String(1024))
+    file_metadata: Mapped[dict[str, Any] | None] = mapped_column(
+        JSON(none_as_null=True).with_variant(JSONB(none_as_null=True), "postgresql")
+    )
     status: Mapped[DocumentStatus] = mapped_column(
         enum_type(DocumentStatus, "document_status"),
         default=DocumentStatus.UPLOADED,

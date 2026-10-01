@@ -116,7 +116,10 @@ def test_demo_cloud_configuration_is_separate_from_host_bge(
     assert str(settings.database_url) == "postgresql+psycopg://eduagent@postgres:5432/eduagent"
     assert str(settings.redis_url) == "redis://redis:6379/0"
     assert "args" not in backend["build"]  # 密钥只在运行环境，不传入镜像构建。
-    assert not backend.get("volumes")  # Demo 不依赖主机本地模型缓存。
+    assert [(v["type"], v["source"], v["target"]) for v in backend["volumes"]] == [
+        ("volume", "storage_data", "/app/storage")
+    ]  # Persistent business bytes; no host model cache is mounted.
+    assert backend["environment"]["STORAGE_ROOT"] == "/app/storage"
     assert create_embedding_provider(settings).is_ready()
 
 

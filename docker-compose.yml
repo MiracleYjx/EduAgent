@@ -42,6 +42,7 @@ services:
     env_file:
       - ${EDUAGENT_ENV_FILE:-.env}
     environment:
+      STORAGE_ROOT: /app/storage
       DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-eduagent}@postgres:5432/${POSTGRES_DB:-eduagent}
       REDIS_URL: redis://redis:6379/0
       # Demo 明确使用已有云端适配器；与主机开发的本地 BGE 配置分离。
@@ -50,6 +51,8 @@ services:
       EMBEDDING_MODEL: ${DEMO_EMBEDDING_MODEL:-}
       EMBEDDING_BASE_URL: ${DEMO_EMBEDDING_BASE_URL:-}
       EMBEDDING_API_KEY: ${DEMO_EMBEDDING_API_KEY:-}
+    volumes:
+      - storage_data:/app/storage
     depends_on:
       # 基础服务健康后才启动 backend；迁移和种子由 scripts/run_demo.ps1 顺序执行。
       # /ready 只证明连接就绪，Demo 成功还需要迁移、资料摄取和种子全部完成。
@@ -78,3 +81,4 @@ services:
 volumes:
   postgres_data:
   redis_data:
+  storage_data:

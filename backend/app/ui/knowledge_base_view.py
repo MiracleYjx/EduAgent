@@ -19,6 +19,7 @@ from backend.app.services.course_service import (
     CourseServiceError,
     CourseSummary,
 )
+from backend.app.services.file_storage_service import FileStorageError
 from backend.app.services.knowledge_base_service import (
     DocumentIngestionResult,
     DocumentSummary,
@@ -80,7 +81,7 @@ def _format_error(error: BaseException) -> str:
 
     if isinstance(error, PermissionDeniedError):
         message = str(error) or "当前账号无权执行此操作。"
-    elif isinstance(error, (CourseServiceError, KnowledgeBaseServiceError)):
+    elif isinstance(error, (CourseServiceError, KnowledgeBaseServiceError, FileStorageError)):
         message = str(error) or _GENERIC_ERROR
     elif isinstance(error, SQLAlchemyError):
         message = "系统暂时无法连接数据库，请稍后重试。"
@@ -334,12 +335,11 @@ def upload_document(
                 knowledge_base_id=normalized_id,
                 uploaded_by=state.get("user_id"),
                 original_filename=path.name,
-                storage_path=str(path),
+                content=data,
                 teacher_id=state.get("user_id"),
             )
             result = service.ingest_document(
                 document.id,
-                content=data,
                 teacher_id=state.get("user_id"),
             )
             documents = service.list_documents(
@@ -364,6 +364,7 @@ def upload_document(
         PermissionDeniedError,
         CourseServiceError,
         KnowledgeBaseServiceError,
+        FileStorageError,
         SQLAlchemyError,
         OSError,
         TypeError,

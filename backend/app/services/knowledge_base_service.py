@@ -3,12 +3,13 @@
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import re
 from collections.abc import Callable, Sequence
 from datetime import datetime
 from pathlib import Path
 from typing import Any
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from pydantic import BaseModel, ConfigDict
 from sqlalchemy import delete, func, select
@@ -33,6 +34,11 @@ from backend.app.services.course_service import (
     CourseNotFoundError,
     CoursePermissionError,
     CourseServiceError,
+)
+from backend.app.services.file_storage_service import (
+    FileStorageError,
+    FileStorageService,
+    StoredFile,
 )
 
 _UNSET = object()
@@ -134,6 +140,7 @@ class DocumentSummary(BaseModel):
     original_filename: str
     file_format: str
     storage_path: str | None = None
+    file_id: str | None = None
     status: DocumentStatus
     error_code: str | None = None
     error_message: str | None = None
@@ -289,8 +296,9 @@ def _normalize_error_code(value: str | None) -> str | None:
 class KnowledgeBaseService:
     """封装知识库、课程绑定和文档元数据相关业务。"""
 
-    def __init__(self, session: Session) -> None:
+    def __init__(self, session: Session, *, storage_root: Path | None = None) -> None:
         self.session = session
+        self.files = FileStorageService(session, root=storage_root)
 
     def create_knowledge_base(
         self,
@@ -511,7 +519,7 @@ class KnowledgeBaseService:
         )
         return self._document_summary(document)
 
-    def upload_document(
+    def _new_document(
         self,
         course_id: UUID | str | None = None,
         knowledge_base_id: UUID | str | None = None,
@@ -522,8 +530,8 @@ class KnowledgeBaseService:
         *,
         teacher_id: UUID | str | None = None,
         uploader_id: UUID | str | None = None,
-    ) -> DocumentSummary:
-        """登记课程资料元数据，并以 Uploaded 状态进入后续摄取流程。"""
+    ) -> Document:
+        """验证已有资料合同并拟建身份，尚不提交引用。"""
 
         normalized_knowledge_base_id = _normalize_uuid(
             knowledge_base_id,
@@ -558,6 +566,7 @@ class KnowledgeBaseService:
             max_length=1024,
         )
         document = Document(
+            id=uuid4(),
             course_id=course.id,
             knowledge_base_id=knowledge_base.id,
             uploaded_by=normalized_uploader_id,
@@ -567,8 +576,56 @@ class KnowledgeBaseService:
             status=DocumentStatus.UPLOADED,
             retryable=False,
         )
+        return document
+
+
+    def upload_document(
+        self,
+        course_id: UUID | str | None = None,
+        knowledge_base_id: UUID | str | None = None,
+        uploaded_by: UUID | str | None = None,
+        original_filename: str | None = None,
+        file_format: str | None = None,
+        storage_path: str | None = None,
+        *,
+        content: bytes | None = None,
+        teacher_id: UUID | str | None = None,
+        uploader_id: UUID | str | None = None,
+    ) -> DocumentSummary:
+        """上传新原稿；旧可信内部调用的定位登记用法继续保留。"""
+        document = self._new_document(
+            course_id, knowledge_base_id, uploaded_by, original_filename,
+            file_format, storage_path, teacher_id=teacher_id, uploader_id=uploader_id,
+        )
+        stored = None
+        if content is not None:
+            if storage_path is not None:
+                raise DocumentValidationError("文件正文与外部定位不能同时提供。")
+            stored = self.files.store_document(document, content, actor_id=document.uploaded_by)
+            document.storage_path = stored.storage_path
+            document.file_metadata = stored.metadata.model_dump(mode="json")
         self.session.add(document)
-        return self._commit_document(document, "上传文档元数据失败。")
+        return self._commit_document(document, "上传文档元数据失败。", stored=stored)
+
+    def register_document(
+        self, *, knowledge_base_id: UUID | str, uploaded_by: UUID | str,
+        original_filename: str, file_format: str | None = None,
+        storage_path: str | None = None, teacher_id: UUID | str,
+    ) -> DocumentSummary:
+        """公开元数据登记：空定位，或有权读取的已登记持久文件。"""
+        document = self._new_document(
+            knowledge_base_id=knowledge_base_id, uploaded_by=uploaded_by,
+            original_filename=original_filename, file_format=file_format,
+            teacher_id=teacher_id,
+        )
+        stored = None
+        if storage_path is not None:
+            locator = _normalize_required_text(storage_path, "存储路径", max_length=1024)
+            stored = self.files.link_registered_document(document, locator, actor_id=document.uploaded_by)
+            document.storage_path = locator
+            document.file_metadata = stored.metadata.model_dump(mode="json")
+        self.session.add(document)
+        return self._commit_document(document, "登记文档元数据失败。", stored=stored)
 
     create_document = upload_document
 
@@ -770,25 +827,20 @@ class KnowledgeBaseService:
             for chunk in chunks
         ]
 
-    @staticmethod
-    def _read_document_content(document: Document, content: bytes | None) -> bytes:
-        """优先使用调用方传入的文件字节，否则从存储路径读取。"""
+    def _read_document_content(self, document: Document, content: bytes | None) -> bytes:
+        """Native files use persisted originals; explicit legacy byte callers remain supported."""
 
-        if content is not None:
-            if not isinstance(content, (bytes, bytearray, memoryview)):
-                raise DocumentValidationError("资料内容必须是字节数据。")
+        if content is not None and not isinstance(content, (bytes, bytearray, memoryview)):
+            raise DocumentValidationError("资料内容必须是字节数据。")
+        if document.file_metadata is None and content is not None:
             return bytes(content)
-        if not document.storage_path:
-            raise DocumentValidationError("资料缺少可读取的文件内容，请重新上传。")
-        path = Path(document.storage_path)
         try:
-            if not path.is_file():
-                raise DocumentValidationError("资料文件不存在，请重新上传。")
-            return path.read_bytes()
-        except DocumentValidationError:
-            raise
-        except OSError as exc:
-            raise DocumentValidationError("资料文件不可读，请重新上传。") from exc
+            data = self.files.read_document(document)
+        except FileStorageError as exc:
+            raise DocumentValidationError(f"{exc}请核对或重新上传。") from exc
+        if content is not None and hashlib.sha256(bytes(content)).digest() != hashlib.sha256(data).digest():
+            raise DocumentValidationError("提供的内容与持久原稿不一致，不能替换原文件依据。")
+        return data
 
     def _persist_ingestion_result(
         self,
@@ -1079,6 +1131,8 @@ class KnowledgeBaseService:
         self,
         document: Document,
         fallback_message: str,
+        *,
+        stored: StoredFile | None = None,
     ) -> DocumentSummary:
         """提交文档变更并转换为摘要。"""
 
@@ -1086,12 +1140,26 @@ class KnowledgeBaseService:
             self.session.commit()
         except IntegrityError as exc:
             self.session.rollback()
+            if stored is not None:
+                self.files.fail_receipt(stored, code="FILE_REFERENCE_FAILED", message=type(exc).__name__)
             raise KnowledgeBaseConflictError("文档元数据与现有数据冲突。") from exc
         except SQLAlchemyError as exc:
             self.session.rollback()
+            if stored is not None:
+                self.files.fail_receipt(stored, code="FILE_REFERENCE_FAILED", message=type(exc).__name__)
             raise KnowledgeBaseServiceError(fallback_message) from exc
 
-        self.session.refresh(document)
+        if stored is not None:
+            self.files.commit_receipt(stored, current_status=document.status.value)
+        try:
+            self.session.refresh(document)
+        except SQLAlchemyError as exc:
+            if stored is not None:
+                raise FileStorageError(
+                    "FILE_REFERENCE_RESPONSE_FAILED", f"文档 {document.id} 已提交，但响应读取失败。",
+                    http_status=503, current_status=document.status.value,
+                ) from exc
+            raise KnowledgeBaseServiceError("文档读取失败。") from exc
         return self._document_summary(document)
 
     @staticmethod
@@ -1123,6 +1191,7 @@ class KnowledgeBaseService:
             original_filename=document.original_filename,
             file_format=document.file_format,
             storage_path=document.storage_path,
+            file_id=f"d_{document.id.hex}",
             status=document.status,
             error_code=document.error_code,
             error_message=document.error_message,

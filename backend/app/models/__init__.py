@@ -12,6 +12,7 @@ from backend.app.models.document_chunk import DocumentChunk
 from backend.app.models.exam import Exam
 from backend.app.models.exam_participant import ExamParticipant
 from backend.app.models.exam_result import ExamResult
+from backend.app.models.export_file import ExportFile
 from backend.app.models.grading_result import GradingResult
 from backend.app.models.knowledge_base import KnowledgeBase
 from backend.app.models.question import Question
@@ -41,6 +42,7 @@ __all__ = [
     "Exam",
     "ExamParticipant",
     "ExamResult",
+    "ExportFile",
     "GradingResult",
     "KnowledgeBase",
     "Question",
