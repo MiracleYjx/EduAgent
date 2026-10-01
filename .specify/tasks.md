@@ -517,7 +517,7 @@ M0 工程骨架 + Benchmark
 
 - [X] T135 [HIGH] [设计 G02] **G02 语义核验与人工处置持久设计**：在 `.specify/data-model.md` 与 `contracts/agent-workflow.md` 明确 QuestionValidationResult 的存储、每轮输入/证据关联、分项结果/技术失败、真实执行主体、教师处置及当前内容对应/失效规则；优先评审独立报告方案，QuestionRevisionComment 保留教师文字职责。给出报告与 Needs Revision 同事务、旧数据和既有批准入口的应用边界；方案由用户确认后落文档，不引入完整题目版本。 依赖：无新增任务前置。per FR-047/028、G02、CHK002（F002） (missing)
 
-- [ ] T136 [HIGH] [设计 G03] **G03 校正字段及正式题解析设计**：在 `.specify/data-model.md` 与 `contracts/paper-import.md` 明确 question_number、analysis、knowledge_points、source_regions、暂存 assets 的字段/受校验 JSON、来源坐标、转入 Question.analysis 与资产的映射、空值和历史迁移；补齐解析的审核/冻结责任，不能用 correction_notes 承载结构化内容。字段与存储取舍经用户确认后同步。 依赖：无新增任务前置。per FR-018/028/041/042/049、G03、CHK003（F003） (partial)
+- [X] T136 [HIGH] [设计 G03] **G03 校正字段及正式题解析设计**：在 `.specify/data-model.md` 与 `contracts/paper-import.md` 明确 question_number、analysis、knowledge_points、source_regions、暂存 assets 的字段/受校验 JSON、来源坐标、转入 Question.analysis 与资产的映射、空值和历史迁移；补齐解析的审核/冻结责任，不能用 correction_notes 承载结构化内容。字段与存储取舍经用户确认后同步。 依赖：无新增任务前置。per FR-018/028/041/042/049、G03、CHK003（F003） (partial)
 
 - [ ] T137 [HIGH] [设计 G04] **G04 文件身份、导出与备份登记设计**：在 `.specify/data-model.md`、`contracts/file-storage.md` 与 plan §11 确定稳定 file_id 到资源/相对定位/授权的唯一映射、共享字节引用、导出归属及迁移记录；优先复用已有实体身份，确需独立登记再确认。定义 BackupSet manifest、同一写入窗口、恢复核对和失败保留；不把逻辑视图预定为两张新表，关键承载/恢复取舍由用户确认。 依赖：无新增任务前置。per FR-044/045、G04、CHK004（F004） (missing)
 

@@ -711,3 +711,87 @@ request_revision 仍走已有合法状态转换并保留非空真实教师意见
 - 所有新批准路径共用该判定：现有 QuestionService 状态更新（含请求 Approved）、questions 的 approve、question_generation 的候选审核及后续导入/改编入口；不能只在 UI 或一个路由校验。Approved 守卫、发布/历史保护及教师权限继续执行；Agent 无权自动批准。
 - 历史 Question 仅初始化 validation_revision=0，不虚构报告、通过结论、执行来源或教师处置。已有 Approved/发布考试的状态和历史结果不因缺报告改写或自动退回，读取展示“历史核验未知”；未批准历史题进入 v2.0 新批准或合法修订后重新批准时，必须建立当前报告，不把旧字段 Validator 当作语义核验。
 - 本节只定义 v2.0 目标设计与既有入口的应用边界；后续 T163/T166/T167 接线及迁移/验证另行实施。修改测试前形成对应 TCR；本批次仅做文档静态检查，不宣称当前批准接口已具备新门禁。
+
+## 13. T136：校正字段与正式题解析设计（G03，2026-10-01）
+
+本节对应 FR-018/028/041/042/049 和 CHK003，补齐 §7.3/§7.4/§8.2 的目标字段；接口消费见 [paper-import.md](contracts/paper-import.md)。采用用户确认的独立题号/解析列、受校验 JSONB 知识点/来源区域/暂存资产，以及正式 Question 的可空解析；不新增暂存资产表。真实来源页已核对但像素边界未知时允许确认入库，缺失解析不自动补写。本节仅追加设计，保留第 1–12 节原文，不创建代码、迁移或测试。
+
+### 13.1 ExtractedQuestion 的校正扩展
+
+| 字段 | 类型 / 空值 / 默认 | 含义与约束 |
+| :--- | :--- | :--- |
+| question_number | Text；可空；无默认 | 原卷题号原文，如“01”“一、3(2)”；非 null 时非空，不转整数、不强制导入内唯一，不作为题序 |
+| analysis | Text；可空；无默认 | 可获得并经校正的原题解析；非 null 时非空，与题干/答案/Rubric/备注分别保存 |
+| knowledge_points | JSONB 字符串数组；可空；无默认 | null 为尚未登记/未知，[] 为明确保存的空标签列表；课程内规范标签，非空字符串、去重并保留顺序 |
+| source_regions | JSONB 对象数组；可空；无默认 | null 为可靠题目边界未知，[] 为未登记局部框、只使用已核对页来源；元素 Schema 见 §13.2 |
+| assets | JSONB 对象数组；可空；无默认 | null 为题图关联尚待核对，[] 为本暂存题不关联题图；0–5 项，元素 Schema 见 §13.3 |
+
+这五个字段分别持久保存，不另建无结构的 correction_data 或把业务 JSON 塞进 correction_notes。备注仍只负责人工说明/拒绝理由；extracted_by 仍记录真实提取生产者，不能因教师编辑而改成另一种机器来源。未知与空列表的含义由字段定义决定，不将空列表当成教师核对完成的证明。
+
+数据库只约束列类型、knowledge_points/source_regions/assets 的数组或 NULL 形状，以及 assets 非 NULL 时长度 <=5；数组元素、非空文本、枚举、身份/课程/页归属和有限坐标由 Pydantic 与写入服务边界校验。知识点标签复用既有 Question 的修剪、去重与最长 160 字规则，不新增 KnowledgePoint 关联表，不因原题标签写入教学 Chunk.metadata。
+
+PATCH 省略字段保持原值；显式 null 仅清除本表允许缺失的字段，[] 明确替换为空列表。source_regions/assets 提供数组时整体替换，经整组校验后同事务保存；不隐式合并、排序或截断坏元素。source_page_ids 仍是 §7.3 的唯一页来源表达，不重复保存关联表；修改页来源时同时核对当前区域/资产，仍指向移除页的引用必须在同次修改中处理，否则拒绝整次修改。source_page_ids 不接受 null，确认入库前必须真实、非空且符合既有顺序/同导入规则。
+
+### 13.2 题目来源坐标
+
+SourceRegion = {source_page_id: UUID, bbox: [x0, y0, x1, y1]}。source_page_id 必须出现在本题 source_page_ids 中，且对应同一 PaperImport 的真实 SourcePage；每个框表示原题文字/选项等在该页的一块真实区域，同页可有多块，跨页按 page_number 排列，同页保留明确的阅读顺序。
+
+- 坐标基于持久 SourcePage.image_path 对应原页图：左上角为原点，x 向右、y 向下，单位为像素，允许有限小数；必须满足 0<=x0<x1<=width、0<=y0<y1<=height，拒绝布尔值、NaN/Infinity、零面积和越界值。
+- OCR/PDF 提取生产者负责将旋转、缩放或其他原生坐标映射到该页图尺寸；转换依据不足时保留 null/未知并交教师核对，不猜归一化比例，不把整页框冒充准确题目边界。
+- source_regions 只补充页内位置，不能反向悄悄增删 source_page_ids。已提供区域必须全部合法；来源页已核对且满足其他确认条件时，null/[] 不单独阻止入库，不强迫教师捏造像素框。文件/页丢失、跨导入来源或非法已有框不能用“边界未知”绕过。
+- 题目文字边界 source_regions 与题图裁切 region 是不同信息；不从文字框自动生成题图，不以页级定位授权学生访问含答案原页。校正确认后区域与页来源作为原导入依据保留，不随正式题编辑反写；原页身份/内容及删除保护继续遵守 §7.2/§7.3。
+
+### 13.3 暂存资产 Schema、顺序与正式映射
+
+StagedAsset = {id: UUID, file_id: 非空不透明字符串标识, asset_type: figure/table/diagram, source_page_id: UUID, region: {bbox: [x0,y0,x1,y1]} | null, caption: str | null}；assets 数组顺序就是题图顺序。
+
+- id 由服务在暂存关联首次建立时生成，同一数组内唯一；创建请求省略 id，由服务返回。编辑只接受本暂存题已有 id 或服务新建项，不能借其他题 id 更换归属。该 id 表示持久暂存关联，Corrected 前不宣称已有 QuestionAsset 行；转入时沿用为 QuestionAsset.id，以便 G05 的实际理解/核对引用保留关联，不新增另一套暂存关系表。
+- file_id 消费 [file-storage.md](contracts/file-storage.md) 的稳定授权标识，不接受客户端路径/外部 URL。服务核对可靠文件、真实图像及同导入来源；source_page_id 必须在本题 source_page_ids 内。原图/裁图均保留原页对应，region 的 bbox 使用 §13.2 同一像素约定；整页引用可为 null，但不得向学生暴露含答案或其他不应展示的信息。
+- width/height 从实际资产图像读取，用于正式 QuestionAsset 的尺寸；裁图 region 使用原页尺寸校验，不能把裁图自身坐标当原页坐标，也不能从不可靠框伪造文件或尺寸。caption 只作说明，不是已确认图像条件。
+- 确认入库前 assets 必须完成关联核对：无题图显式保存 []，有题图保存 1–5 个可靠关联；null 保持待校正。图像语义理解失败/尚待条件核对不伪装为通过，可按既有待补全规则入库 Draft，审核仍消费真实 G05 核对证据。G05 的 image_assessment 结构、身份/时间/条件及失效关联由 T138 补齐，本节不将其塞入 caption 或预定另一张结果表。
+- QuestionAsset 补 order_index：Integer、新资产非空，历史图序未核对可 NULL；CHECK 为 NULL 或 1..5，UNIQUE(question_id, order_index)。创建时从暂存数组依次写 1..N，预览/考试/核验/阅卷按该序读取；后续排序也是题图集合变更，遵守 Approved/发布保护与 §12 修订号规则。每题最多 5 图仍按 §7.4 在题目锁内校验，不以唯一约束代替计数。
+- 转入通过 T137 的统一文件映射将同一真实图像绑定正式 QuestionAsset，规范定位沿用 §7.4，不新增可分叉路径事实源；文件标识不等同于资产关系 id。共享字节不丢失来源或授权，移除暂存关联不直接删除仍被原页/正式题引用的文件。Corrected 之后 assets 保留校正时的来源记录，正式题维护不反写该数组。
+
+以下为校正字段的 Schema 示例，假设真实来源页尺寸为 1000×1400 像素；身份/文件标识仅作示意，不能据此回填或宣称文件/教师核对已存在：
+
+~~~json
+{
+  "question_number": "01",
+  "analysis": null,
+  "knowledge_points": ["牛顿第二定律"],
+  "source_page_ids": ["11111111-1111-4111-8111-111111111111"],
+  "source_regions": [
+    {"source_page_id": "11111111-1111-4111-8111-111111111111", "bbox": [80, 120, 900, 480]}
+  ],
+  "assets": [
+    {
+      "id": "66666666-6666-4666-8666-666666666666",
+      "file_id": "opaque-example-file",
+      "asset_type": "diagram",
+      "source_page_id": "11111111-1111-4111-8111-111111111111",
+      "region": {"bbox": [100, 200, 700, 400]},
+      "caption": null
+    }
+  ]
+}
+~~~
+
+### 13.4 Question.analysis 与确认入库映射
+
+| 目标 | 持久映射与责任 |
+| :--- | :--- |
+| Question.analysis | 新增 Text、可空、无默认；ExtractedQuestion.analysis 按实际值转入，不从答案/Rubric/OCR/备注推断 |
+| Question.knowledge_points | 复用 v1.0 非空 JSON 字符串数组；已登记标签按既有规则转入，暂存 null 转为 []（尚未登记标签），暂存原始未知仍可回溯，不把 [] 宣称为已确认无知识点 |
+| 原题号/原题位置 | question_number、source_page_ids、source_regions 留在终态 ExtractedQuestion，通过 imported_extracted_question 回溯；不新增 Question 上可独立改写的来源副本，不代替 ExamQuestion.order_index |
+| QuestionAsset | 每项建立同 Question 的正式关联，沿用暂存 id，按数组顺序写 order_index；asset_type/caption/source_page_id/region 按实际值、尺寸按实际文件、定位按统一文件服务写入 |
+
+在既有同一批次 commit 事务内，校验当前暂存内容与可靠来源，创建 Question(Draft，source_type=paper_imported)、正式资产及其文件资源映射，再写 question_id/Corrected；任何一步失败整体回滚，保留已保存原卷/页图及此前校正结果。重复确认返回同一正式题和资产，不重建、重排或覆盖其后续修订；Corrected/Rejected 不再接受校正 PATCH。缺题号、解析、知识点或像素边界不单独改变完成判定；题型/题干/选项/明确分值/真实来源及题图关联核对仍为确认条件，答案/Rubric/图像必要条件不足按既有流程保持 Draft/待补全，绝不自动 Approved。
+
+### 13.5 解析审核、冻结与旧数据边界
+
+- analysis 是正式内容字段，必须进入教师详情、编辑与审核输入；有值时与题干/答案/Rubric/实际依据共同核验，修改或清空按 §12 同事务递增 validation_revision。缺解析可为 null，表示未提供，不自动生成解析、不作为所有题一律必须非空的新门禁；有错误/矛盾解析仍须修订。
+- 解析新增、替换或清空纳入服务端 Approved 守卫，沿用 QUESTION_APPROVED_IMMUTABLE；无保护引用时先退回 Needs Revision 再编辑/重核验/重审。已发布或存在历史引用时遵守 §9 及 [exam-assembly.md](contracts/exam-assembly.md)，拒绝原地解析变更，保持发布时真实文本或 null；需要新解析时创建派生候选，不新增完整题目版本/内容快照。
+- 解析是教师审核/结果解释信息，不作为学生作答接口中可提前取得的答案信息；结果展示按既有权限和结果可见规则消费。题库知识点维护和考试发布知识点冻结仍按 §9，解析新增不改变 v1.0 这项职责。
+- 后续迁移只给历史 Question.analysis 置 NULL，不从参考答案、Rubric、correction_notes、旧 Prompt/Trace 或当前模型回填“历史解析”；已有 Approved/发布状态和结果保持。历史暂存扩展若确有旧数据，新字段保持 NULL/未知；不合成题号、框、资产或确认记录，不自动重跑旧 commit。
+- 历史 QuestionAsset 若有真实既定图序，可按证据补 order_index；无图序证据时明确待核对，不按 UUID/创建时间冒充历史顺序，也不因新列要求改写已有考试。历史未知图序保留 NULL，阻止未经核对的新发布而不改写既有考试；新资产字段约束在后续数据盘点/迁移中落实。
+- 本节由 T153/T154/T158 等后续实施字段与接线，T138 处理图像理解/核对，T137 处理文件物理承载。后续验证覆盖重启读取、PATCH 省略/null/[]、跨页坐标、同导入资产/顺序、批次回滚及幂等、缺解析/未知边界和解析冻结；测试变更先形成 TCR，本任务仅做文档静态检查。
