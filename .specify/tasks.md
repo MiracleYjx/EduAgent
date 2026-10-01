@@ -513,7 +513,7 @@ M0 工程骨架 + Benchmark
 
 ### A. 设计补齐任务（G01–G09）
 
-- [ ] T134 [HIGH] [设计 G01] **G01 章节定位与知识点映射设计**：在 `.specify/data-model.md`、`contracts/rag-retrieval.md` 及 plan 相关引用中补齐章节稳定身份、课程/资料归属、小节序号、标签 Schema/SQL 匹配及摄取/教师核对责任；沿用契约已明确的章内闭区间和同维并集/跨维交集。给出最小字段/索引、跨章切分、旧 NULL 数据迁移方案，涉及新增实体或接口的取舍先由用户确认，不强制新增章节服务。 依赖：无新增任务前置。per FR-024/025、FR-046/047、G01、CHK001（F001） (partial)
+- [X] T134 [HIGH] [设计 G01] **G01 章节定位与知识点映射设计**：在 `.specify/data-model.md`、`contracts/rag-retrieval.md` 及 plan 相关引用中补齐章节稳定身份、课程/资料归属、小节序号、标签 Schema/SQL 匹配及摄取/教师核对责任；沿用契约已明确的章内闭区间和同维并集/跨维交集。给出最小字段/索引、跨章切分、旧 NULL 数据迁移方案，涉及新增实体或接口的取舍先由用户确认，不强制新增章节服务。 依赖：无新增任务前置。per FR-024/025、FR-046/047、G01、CHK001（F001） (partial)
 
 - [ ] T135 [HIGH] [设计 G02] **G02 语义核验与人工处置持久设计**：在 `.specify/data-model.md` 与 `contracts/agent-workflow.md` 明确 QuestionValidationResult 的存储、每轮输入/证据关联、分项结果/技术失败、真实执行主体、教师处置及当前内容对应/失效规则；优先评审独立报告方案，QuestionRevisionComment 保留教师文字职责。给出报告与 Needs Revision 同事务、旧数据和既有批准入口的应用边界；方案由用户确认后落文档，不引入完整题目版本。 依赖：无新增任务前置。per FR-047/028、G02、CHK002（F002） (missing)
 

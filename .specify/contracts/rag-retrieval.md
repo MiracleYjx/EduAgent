@@ -66,12 +66,13 @@ rank
 | section_range | SectionRange / null | 单个章节内的小节序号闭区间 {chapter_id, start_order, end_order} |
 | knowledge_points | tuple[str, ...] / () | 规范知识点标签；列表内匹配任一标签，空列表表示未增加知识点限制 |
 
-- SectionRange.chapter_id 为 UUID；start_order/end_order 为正整数，start_order <= end_order；使用资料/课程定义的明确小节顺序，不按标题字符串排序，也不把它理解成页码。
+- SectionRange.chapter_id 为 UUID；start_order/end_order 为严格正整数（拒绝 bool），start_order <= end_order；使用资料/课程定义的明确小节顺序，不按标题字符串排序，也不把它理解成页码。
 - chapter_ids 与 section_range 同时提供时取交集；章节不相交则明确空结果/范围不足，不自动忽略其中一个条件。
 - 课程、知识库、文档、章节、小节范围、知识点各维度之间取交集；最终检索范围仍受已有课程/资料授权约束。
 - v2.0 出题/阅卷业务先明确当前课程，再选章节和知识点，形成课程 -> 章节 -> 知识点三级限定；客户端章节不能扩大已有课程范围。
 - chapter_ids 和 SectionRange 的章节均须属于当前授权课程；标识非法、跨课程或无法确认真实归属时返回明确输入/范围错误，不借空列表改成全课程检索。
 - 小节区间合法但没有就绪资料/已定位 Chunk 时返回不足，允许教师补资料或修正标注；不得静默缩放区间、扩大到邻章或让 Prompt 代替过滤。
+- knowledge_points 与保存标签采用相同输入规则：去首尾空白、拒绝空白/非字符串元素、按规范值去重；保留大小写、内部空白和原字符，不做子串、同义词或 Unicode 形式扩展。缺省 () 不增加标签条件。
 
 ~~~json
 {
@@ -88,30 +89,60 @@ rank
 示例只描述新增查询字段，调用仍须携带原 text/embedding 和有权限的课程/资料 Filters。
 查询中的章节/知识点限制是唯一输入事实源；服务转成内部 SQL scope，不在 Query 与 Filters 再维护两份可独立改写的章节条件。
 
+### 章节身份与资料定位映射（T134 / G01）
+
+持久事实以 [data-model.md](../data-model.md) §11 为准，承接 [plan.md](../plan.md) §8/§9 与 RAG 契约引用；字段与写入责任在数据模型定义，本契约规定查询消费。
+
+- chapter_id 引用课程级 Chapter.id；登记时生成稳定 UUID，课程归属由 Chapter.course_id 决定。标题/文件路径变化及重摄取不改变身份；同课程多份资料经各自 Chunk 映射同章，同名标题不能自动合并身份。资料归属仍使用 Chunk.document_id，不通过标题或客户端课程声明推断。
+- Chapter.sections 为受 Schema 校验的章内目录 [{section_order, title}]；section_order 为 1..N 的真实目录顺序，与源页码、chunk_index、解析器 section_index 分离。教师确认映射后写入 Chunk.chapter_id/section_order；当前目录和资料/Chunk 必须同课程。
+- 章/节列只保存确认后的定位，标签只保存在 Chunk.metadata.knowledge_points；scope_confirmation.location/knowledge_points 分别保存相应真实教师 UUID 与 UTC 确认时间。模型建议不作为 SQL 归属，资料就绪也不表示已定位；相关内容/目录含义改变时由写入责任方同步重映射或清除受影响事实与确认，不能让下游猜测。
+- 标识存在但不属于当前授权课程、查询端点不在非空小节目录内时返回 RETRIEVAL_SCOPE_INVALID；章节存在而尚无小节目录时，小节范围查询返回 RETRIEVAL_SCOPE_NOT_READY。合法目录区间内未形成已定位、就绪资料时返回实际空结果/范围不足，不能把“章节存在”当成教学依据。
+
 ### SQL 强制过滤与检索路径
 
 - 扩展现有 backend/app/ai/retrieval/_filters.py 的统一范围消费边界，与课程/知识库/文档条件并列；先过滤再执行向量/关键词打分和 LIMIT/Top-K，不只在候选召回后裁剪。
 - SQL 同时限定 Document.Ready、purpose=knowledge_base 及授权课程/资料范围；试卷原文件 purpose=paper_source 不生成 Chunk，不能作为教学依据混入。
 - 有章节/小节限制时，SQL 使用 DocumentChunk.chapter_id 及明确 section_order 过滤；未知/null 定位不能假装命中指定章/节。
-- 知识点标签采用持久化的结构化列表（目标映射为 Chunk 元数据 knowledge_points），在 SQL 中做明确标签匹配；不以内容关键词命中或 Prompt 声称“符合知识点”代替归属。
+- 知识点标签使用已持久化的 Chunk.metadata.knowledge_points 字符串数组，通过 PostgreSQL JSONB 精确成员查询匹配任一规范标签；沿用 v1.0 metadata 列与 ORM 属性，查询时使用 ::jsonb 投影，不新增 Chapter–KnowledgePoint 关联表。未知和确认无标签分开表达，不以内容关键词命中或 Prompt 声称“符合知识点”代替归属。
 - 同一 Query scope 必须传到 VECTOR_ONLY/KEYWORD_ONLY 的 SQL 查询；HYBRID 两路各自应用后才融合，HYBRID_RERANK 只重排已在范围内的候选。
 - 重排/上下文整理不能另取范围外 Chunk 补足 Top-K；范围内没有足够结果就返回实际数量/不足，不生成替代依据。
 - 单路调用仍支持既有文本或向量输入，由公共服务消费同一 v2.0 逻辑范围；不因它未使用混合 RetrievalQuery 而丢失过滤。
 - 实施前需贯通 Query -> 过滤规范化 -> 两路 SQL -> 融合/重排 -> 来源持久化；不得只给 DTO 加字段，现有 resolve_filters 或适配层忽略新字段也必须显式拒绝，不能静默不生效。
 
+~~~sql
+-- :chapter_ids、:knowledge_points 非空时才添加各自谓词；
+-- :range_chapter_id 非 null 时才添加小节谓词，以下是组合示意。
+SELECT c.id
+FROM document_chunks AS c
+JOIN documents AS d ON d.id = c.document_id
+WHERE d.status = 'Ready'
+  AND d.purpose = 'knowledge_base'
+  AND c.course_id = :authorized_course_id
+  AND c.chapter_id = ANY(CAST(:chapter_ids AS uuid[]))
+  AND c.chapter_id = :range_chapter_id
+  AND c.section_order BETWEEN :start_order AND :end_order
+  AND jsonb_typeof(c.metadata::jsonb
+      #> '{scope_confirmation,knowledge_points}') = 'object'
+  AND jsonb_typeof(c.metadata::jsonb -> 'knowledge_points') = 'array'
+  AND (c.metadata::jsonb -> 'knowledge_points')
+      ?| CAST(:knowledge_points AS text[]);
+~~~
+
+既有知识库/文档 Filters 继续作为 AND 谓词；示意省略分数和 LIMIT，实际两路须在这些 WHERE 条件内打分并选 Top-K。chapter_ids 内使用 ANY/IN，标签数组使用 ?| 精确匹配任一规范标签，BETWEEN 为章内闭区间；两列表及小节条件之间始终 AND。章已知而节未知可命中章级条件，不能命中小节区间；标签未确认、缺键/null 或确认无标签 [] 均不能命中非空标签条件。确认记录存在性是新标签范围的消费条件，不在查询时重复校验教师权限或完整 Schema；无标签条件时不添加上述确认/类型/成员谓词。
+
 ### Chunk 定位、索引与兼容迁移
 
-- 当前代码的 DocumentChunk 未定义 chapter_id/section_order，现有 _filters.py 只处理资料状态与课程/知识库/文档；本节定义新增设计，不宣称已实现 SQL 章节过滤。
-- 目标新增 document_chunks.chapter_id（UUID，可空）、section_order（正整数，可空）；章节身份和小节顺序必须来自真实资料结构/教师核对，不能凭模型推断填历史值。
-- 增加支持课程/章节/小节过滤的复合索引 (course_id, chapter_id, section_order)，其前缀覆盖课程/章节访问；保留既有 pgvector/HNSW、tsvector/GIN，不引入 Milvus/Elasticsearch。
-- 章节归属、知识点标签及小节序号的持久化/约束需在后续数据模型和迁移中补齐；本步骤不创建 Chapter/Section 实体、索引或迁移，也不将“增加字段”误称为已经建立索引。
-- 一个用于限定章/节的 Chunk 必须具有可靠归属。跨章节/小节的文本须按真实边界重新切分/定位，不能只标起点而把范围外正文送入模型。
-- 历史未定位 Chunk 保持 null/未知：无新增范围时保留 v1.0 读取，有章/节限制时明确排除并报告定位/资料不足；不回填虚假 chapter_id 或使用当前标签冒充生成时来源。
-- 结果可增 chapter_id、section_order 和真实知识点定位；既有必需结果字段、score/rank 和来源快照语义不变，原出处仍可追溯。
+- 当前实现尚无 Chapter、chapter_id/section_order 或新增标签过滤；本节和数据模型 §11 是后续 T161/T162 的共同设计，不声明已有物理表、索引或运行验证。
+- 目标新增课程级 Chapter 和 document_chunks.chapter_id（UUID，可空、FK Chapter.id、RESTRICT）、section_order（正整数，可空）；section_order 非空必须有 chapter_id。课程/资料归属、小节目录成员及教师确认由现有知识库服务在写入事务校验，不新增独立章节服务。
+- 建立 chapters(course_id) 及 document_chunks(course_id, chapter_id, section_order) B-tree 索引；保留既有 pgvector/HNSW、tsvector/GIN。metadata 沿用 JSON 列，标签匹配使用 ::jsonb 投影，不要求转换整列或新增标签 GIN，不承诺未测量的查询性能。
+- 一个用于限定章/节的 Chunk 必须整体属于该章/节。分块先按真实边界隔离，再在边界内执行长度切分/重叠；短段合并、标题附带和重叠不得引入范围外正文。无法可靠分开时保持未知、等待教师校正；不能只标起点。
+- 原文未变的定位校正可只更新元数据；需要重切分时重新生成同源正文/向量/search_vector，成功后原子替换。失败保留真实状态；已保存 QuestionSourceChunk 快照不改写，活体关联按既有来源契约处理。
+- 历史章/节列保持 NULL，原 metadata 原样保留；标签缺键/null 为未知，[] 只表示真实确认后无标签。不得从旧 section_index/chunk_index、题目标签或模型推断回填。无新增范围时不强制 JOIN Chapter 或新增确认记录，有范围时明确排除未知并报告实际不足，不能退回全课程。
+- 返回结果可增加 chapter_id、section_order 和真实 knowledge_points；既有必需字段、score/rank、chunk_id/document_id 及来源快照语义不变，当前定位不能冒充历史生成时的依据。
 
 ### 错误与验证边界
 
 - 输入形状非法沿用 RETRIEVAL_INVALID_INPUT；章节归属无效可返回 RETRIEVAL_SCOPE_INVALID，未完成范围映射/消费返回 RETRIEVAL_SCOPE_NOT_READY；均含中文原因，不降级为无限制检索。
 - 有效范围内无结果遵循上文空结果/不足语义；出题/改编不得编造引用，缺关键依据时不能批准，参见 [agent-workflow.md](agent-workflow.md)。
-- 验证四种模式的 SQL 范围一致、条件交集、未知定位、空结果、非法/跨课程范围和 Top-K 前过滤；性能依据真实样本测量，不宣称本次已验证运行。
-- 本步骤只追加契约，保留 v1.0 内容及六个新契约；后续代码/数据库/测试修改另行实施，修改测试先形成 TCR。
+- 后续验证覆盖课程内稳定身份、多资料同章/同名不自动合并、目录修改、标签规范化与任一精确匹配，以及四种模式的 SQL 范围一致、条件交集、未知定位/标签、空结果、非法/跨课程范围和 Top-K 前过滤；性能依据真实样本测量，不宣称本次已验证运行。
+- T134 仅同步本契约与数据模型的章节/知识点设计，保留 v1.0 正文及其他契约；本批次不写业务代码、不创建数据库迁移、不修改测试。后续实施与迁移留至授权批次，修改测试先形成 TCR。

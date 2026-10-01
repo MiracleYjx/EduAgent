@@ -519,3 +519,91 @@ r = score / base_score（正数，保留中间计算精度）
 - 草稿新增字段可待发布时确定；已发布/历史考试必须盘点当时分值、标准、题图、知识点及成绩证据。能核对则固定本场依据，不能以当前题库值冒充历史值。未知场景显式报告并要求人工核对，不新增伪造分值/历史来源来通过迁移；在依据未收敛前不改写既有评分或宣告迁移完整。v1.0 历史读取仍保留真实记录；未核对的历史考试不能被声明为已满足 v2.0 发布依据或直接按新标准重评。
 - 以上额外字段只是来源与稳定评分所需的最小关联/依据，未新增完整快照、版本、独立检索/锁服务，也未修改 v1.0 原实体条文。QuestionValidationResult、ManagedFile/BackupSet 等其余规格概念的契约/进一步模型设计不以本次六实体定义视为全部完成。
 - v2.0 任务追加留给后续 /speckit.tasks；下一步同步六个新增契约及三个现有契约扩展。此文档定义必须在后续代码、迁移、契约和测试中实现并验收；如修改测试先形成 TCR，本次无测试内容变更。
+
+## 11. T134：章节定位与知识点映射（G01，2026-10-01）
+
+本节补齐 FR-024/FR-025 扩展、FR-046/FR-047 和 CHK001；承接 [plan.md](plan.md) §8/§9 及其中的 RAG 契约引用，查询合同见 [rag-retrieval.md](contracts/rag-retrieval.md)。只定义 v2.0 目标模型；第 1–5 节、现有六实体及 v1.0 来源快照语义保持原文。本批次按文件范围只更新数据模型与契约，plan 的既有链接由本节承接。
+
+### 11.1 Chapter（chapters）：课程内的稳定章节身份
+
+采用一个最小 Chapter 实体登记教师确认的课程章节；小节目录用受 Pydantic 校验的 JSONB 保存，不新增 Section 表、知识点表或独立章节服务。章节属于 Course，不专属于某一份 Document；同课程多份教材/讲义可经各自 Chunk 映射到同一章节，资料归属始终来自 Chunk.document_id。
+
+| 字段 | 类型 / 空值 / 默认 | 含义与约束 |
+| :--- | :--- | :--- |
+| id | UUID；非空；PK | 首次确认登记时由应用生成并持久化；改标题、文件名/路径变化和重摄取不重新生成 |
+| course_id | UUID；非空；FK Course.id，RESTRICT | 章节的唯一课程归属，登记后不可原地转移到其他课程 |
+| title | String(160)；非空 | 教师确认的真实章节名称；去首尾空白后非空；标题不是身份，不施加跨资料同名合并 |
+| sections | JSONB；非空；默认 [] | 章内小节目录，Schema 为 [{section_order: 正整数, title: 非空字符串}]；[] 表示当前没有可用于小节范围查询的目录 |
+| confirmed_by | UUID；非空；FK User.id，RESTRICT | 最近一次确认当前章节目录的真实教师，来自认证上下文 |
+| confirmed_at | TIMESTAMPTZ；非空 | 最近一次确认当前目录的真实 UTC 时间，不由客户端指定 |
+| created_at / updated_at | TIMESTAMPTZ；非空 | 沿用 §6 的真实创建/成功修改时间规则 |
+
+- 数据库提供 PK、FK、sections 为 JSON 数组的 CHECK，以及 chapters(course_id) 索引；不因标题相同强制身份相等。目录内 section_order 必须为严格整数（不接受 bool），按真实小节顺序连续为 1..N、唯一；title 按上述非空规则校验。JSON 元素 Schema/顺序与教师课程权限由知识库服务在写入边界校验，不宣称 JSON 元素具有数据库 FK。
+- section_order 是教师确认的课程章节目录序号，不是页码、chunk_index、解析器 section_index 或标题字符串排序；源文件的“3.2”等原编号通过真实标题/定位映射到目录序号，不能直接当整数写入。
+- 首次摄取只能提出章节/目录候选；教师选已有 Chapter.id 或确认新登记后才建立可信映射。同名、同一标题层级或模型判断不能自动合并不同章节；不同资料映射到同章/同节须由教师明确确认。
+- 标题修正且小节含义不变时保留 id/section_order；目录插入、重排、合并或边界改变时，教师须同步核对受影响 Chunk。原映射不能继续冒充新序号：在同一事务内据真实证据重映射，或清空受影响 section_order，并由本次教师操作重新记录仍可信章级定位的确认；若章节归属也未核对，则一并清空 chapter_id 与定位确认，待重新确认。独立知识点记录不因此被改写。
+- Chapter 被活体 Chunk 引用时禁止硬删除；不得用改章节课程绕过同课程约束。既有 Document/Chunk 删除及 QuestionSourceChunk.live_chunk_id 置空后保留历史快照的规则继续适用。
+
+关系：
+
+~~~text
+Course 1 ── 0..N Chapter
+Chapter 1 ── 0..N DocumentChunk（每个 Chunk 为 0..1 Chapter）
+Document 1 ── 0..N DocumentChunk ── 0..1 Chapter
+~~~
+
+Chapter 与知识点不新增关联表；章内知识点选项从同章、就绪教学 Chunk 的已确认 metadata.knowledge_points 去重汇总，筛选仍逐个 Chunk 匹配，不能把同章其他片段自动当作已标注该知识点。章节可以已登记但尚无可用资料；不以 Chapter 存在宣称有检索依据。Document 与 Chapter 的多对多资料覆盖关系由 Chunk 派生，不增加第二份独立可写关联。
+
+### 11.2 DocumentChunk 增量字段、约束与最小索引
+
+| 字段 | 类型 / 空值 / 默认 | 含义与约束 |
+| :--- | :--- | :--- |
+| chapter_id | UUID；可空；默认 NULL；FK Chapter.id，RESTRICT | 可信的课程章节映射；NULL 为尚未定位，不能填随机/虚构章节 |
+| section_order | Integer；可空；默认 NULL | 当前 Chapter.sections 中的正整数序号；NULL 为尚无可信小节定位 |
+
+- 单行 CHECK：section_order IS NULL，或 section_order > 0 且 chapter_id IS NOT NULL。Chapter 与 Chunk、Document、KnowledgeBase 的课程相等、Document.purpose=knowledge_base，以及非空 section_order 确属当前目录，由知识库服务在同一写入事务内校验；检索层消费该已确认映射。
+- chapter_id 已知、section_order 未知是合法状态：可命中章级条件，不能命中小节区间；两者都未知的 Chunk 仍可用于未指定章/节的原检索。未知章节不妨碍独立确认知识点。
+- 新增 B-tree 索引 ix_document_chunks_course_chapter_section(course_id, chapter_id, section_order)，前缀覆盖课程/章节过滤；保留原 document_id/chunk_index 唯一约束、来源列及 pgvector/HNSW、tsvector/GIN 索引。
+- metadata 沿用现有 JSON 列和 ORM 属性 chunk_metadata；章/节以新增列为唯一可写事实，不在 metadata 再保存可独立修改的 chapter_id/section_order。标签在 SQL 使用 metadata::jsonb 投影，不强制转换整列或新增标签 GIN 索引；本任务不承诺查询性能。
+
+### 11.3 Chunk 元数据标签与教师确认 Schema
+
+保留 original_filename、location、section_index、start_char/end_char 等原来源键；新增以下键，其他 v1.0 元数据不受此局部 Schema 限制：
+
+| JSON 路径 | Schema / 空值 | 语义 |
+| :--- | :--- | :--- |
+| knowledge_points | list[str] / null；历史允许缺键 | 当前 Chunk 的真实规范知识点标签；缺键/null 为未知，[] 为确认后无标签 |
+| scope_confirmation.location | {confirmed_by: UUID, confirmed_at: UTC ISO-8601} / null；允许缺键 | 当前非空章/节定位的教师确认；不重复保存定位值 |
+| scope_confirmation.knowledge_points | 同上 / null；允许缺键 | 当前非 null 标签数组的教师确认；与定位确认独立 |
+
+- 标签写入与查询在各自输入边界采用同一规则：去首尾空白，拒绝空白/非字符串元素，按规范值去重；保留字符、大小写及内部空白，不做同义词、子串、Unicode 形式或内容关键词推断。教师依据当前课程资料明确选择标签；本轮不新增知识点字典实体。
+- 模型提议只供教师核对，不能直接写成可过滤事实。确认记录由已认证、具有该课程管理权限的教师操作产生；身份和时间不可由客户端伪造。标签值或定位值与对应确认记录同事务保存，保留原文定位供核对；不得只有 confirmed=true 而无真实确认者/时间。
+- 新写入的可信章/节与标签必须有对应确认记录；仅确认章节但小节仍未知时保留 section_order=NULL。修改该维度的内容/映射后需重新确认；未经确认的新候选不替换当前事实。原正文/真实边界变化使相关旧事实不再成立时，先清除受影响章/节或标签和对应确认记录，不能继续使用旧确认；原始来源与已保存题目引用快照不改写。
+- 历史缺标签不批量填 []；既有同名标签键若无真实确认记录也仍属未确认，不能在启用新过滤时自动升级为可信标签。不把 Question.knowledge_points、文件名或当前模型猜测当作历史 Chunk 标签。历史异常形状须报告并核对，不能静默转成合法空数组。
+
+~~~json
+{
+  "knowledge_points": ["牛顿第二定律"],
+  "scope_confirmation": {
+    "location": {
+      "confirmed_by": "22222222-2222-4222-8222-222222222222",
+      "confirmed_at": "2026-10-01T02:00:00Z"
+    },
+    "knowledge_points": {
+      "confirmed_by": "22222222-2222-4222-8222-222222222222",
+      "confirmed_at": "2026-10-01T02:00:00Z"
+    }
+  }
+}
+~~~
+
+示例为真实核对后写入的 Schema 示意，不是可回填历史数据的默认教师或时间。知识点任一匹配使用 JSONB 数组精确成员关系，形如 jsonb_typeof(metadata::jsonb #> '{scope_confirmation,knowledge_points}') = 'object' AND jsonb_typeof(metadata::jsonb -> 'knowledge_points') = 'array' AND (metadata::jsonb -> 'knowledge_points') ?| :规范标签数组；有知识点条件时，未确认、未知或 [] 均不命中。查询消费已保存的确认标记，不重复执行写入边界的教师权限/完整 Schema 校验。空查询列表不增加该谓词，不能把合法缺省改成“必须已标注”。
+
+### 11.4 摄取、跨章切分与兼容迁移责任
+
+- 解析/清洗保留真实标题层级、原页/段落定位；分块器先按真实章/节边界隔离正文，再在边界内执行原长度切分和重叠。重叠、短段合并与标题附带不得跨越已确定边界；不得只标起点而把下一章/节正文送入限定上下文。无法可靠分开的片段保持未知定位，等待教师核对，不能捏造边界。
+- 摄取编排生产候选及来源证据，不自行决定课程章节身份或教学标签；现有知识库服务负责登记/读取 Chapter、教师校正、同课程事务校验与 Chunk 写入，API/UI 沿用知识库管理职责接入。无定位的正文仍按原 Uploaded -> Parsing -> Chunking -> Embedding -> Ready/Failed 处理，不新增强制定位终态；Document.Ready 只证明原摄取就绪，不证明已定位。
+- 教师根据真实资料边界核对并提交章/节/标签。只改元数据且正文不变时保留原 Chunk/向量；需要重切分时，新正文、embedding、search_vector 必须同源且就绪后原子替换，失败保留真实失败状态，不发布半更新的检索数据。已保存来源遵循 [question-source-persistence.md](contracts/question-source-persistence.md)，不以新切片/当前标签改写历史依据。
+- 迁移仅建立目标表、可空定位列、约束和上述最小索引；旧 Chunk 的 chapter_id/section_order 全部保持 NULL，原 metadata 原样保留，不从旧 section_index 或 chunk_index 批量回填，也不为每份旧资料虚构 Chapter。后续有真实教师核对时才分批登记/回填。
+- 有章/节条件时排除未知定位，有知识点条件时排除未知标签；无新增条件时不强制 JOIN Chapter 或检查新确认记录，保留 v1.0 可读性。有效限定范围内就绪资料不足时返回实际结果/不足，禁止退回全课程、邻章或替代来源。
+- 本节为后续章节定位生产、迁移和范围消费提供共同设计依据；对应验证覆盖稳定身份、多资料同章、目录修订、跨章/节及重叠、独立标签确认、四种检索过滤与旧未知数据。不新增或修改测试；实施测试前由后续任务形成 TCR，不以文档定义宣称数据库/运行已通过。
