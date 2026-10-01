@@ -911,3 +911,89 @@ writing 行可用于记录真实在途生成；只有内容可靠落盘且 ready
 5. 仅核对通过后在停写窗口切换数据库/根配置，并验证服务真实加载新环境及授权文件/业务关系可读，之后才开放正常写入。切换/启动失败保留原配置与两套材料，写入开放前可退回原环境；若新环境已接收真实写入，不自动退回旧环境丢弃新数据，另行制定恢复处置。
 
 具体工具在 T147–T151/T191 实施与演练，测试变更先形成 TCR。T137 只定义模型/契约与 plan §11 引用，T140 同步已确认 exports 目录文字；本次文档静态检查不证明存储、备份或恢复已运行。
+
+## 15. T138：图片理解与人工核对持久设计（G05，2026-10-01）
+
+本节对应 FR-043/047/049、CHK005，补齐 §7.3/§7.4、§12.3、§13.3 的图片核对承载；契约见 [vision-capability.md](contracts/vision-capability.md)、[paper-import.md](contracts/paper-import.md)。采用用户确认的题目层受校验 JSONB、独立图像上下文修订号及当前真实核对证据转入；不新增图片核验表或暂存资产表。第 1–14 节原文保留，本节是尚待 E1/E2/E3 实施的增量设计，不创建代码、迁移或测试。
+
+### 15.1 承载与唯一事实源
+
+| 所属实体 / 新增字段 | 类型 / 空值 / 默认 | 语义 |
+| :--- | :--- | :--- |
+| ExtractedQuestion.image_assessment | JSONB；可空；默认 NULL | 本暂存题整组 1–5 张题图的理解轮次、人工核对与失效依据；NULL 表示尚未建立记录，不表示已通过 |
+| Question.image_assessment | JSONB；可空；默认 NULL | 本正式题的同形记录，及合法导入时对当前暂存核对的只读绑定；不在每个 QuestionAsset 复制跨图结果 |
+
+- ImageAssessment = {context_revision: 非负严格整数, runs: list[ImageUnderstandingRun], manual_checks: list[ImageManualCheck], imported_review: ImportedImageReview | null}。首次真实操作建立 {context_revision:0, runs:[], manual_checks:[], imported_review:null}；无记录的响应可投影计数 0，不能合成调用或教师核对。建立后不因删图清空历史或置 NULL；暂存题 imported_review 恒为 null，该绑定仅用于正式导入题。
+- 数据库仅为两列提供 NULL/JSON 对象类型 CHECK；元素 Schema、计数/身份唯一性、关联与时间由服务写入边界校验。读取按所属题主键，不为本任务新增 JSON 索引。JSON 中 UUID 不是 SQL FK，不宣称数据库逐元素保证引用完整。
+- 一次调用可同时理解多张图，跨图条件和问题只在所属题保存一份；每项通过稳定 StagedAsset.id / QuestionAsset.id、file_id 和 image_index 对应实际输入。暂存图无正式 QuestionAsset 行时，不伪造其 FK。asset_type/caption 仍属于资产，caption 不替代条件或核对证据。
+- G02 的 Evidence、实际执行来源、技术错误及教师身份/UTC 规则复用为结构规则；QuestionValidationResult 仍只属于真实正式 Question，保存四项语义核验，通过 image_review_ref 引用本节证据，不承载暂存调用。QuestionRevisionComment 继续只记录真实教师意见，不写机器结果。
+- 记录继承所属题/导入的课程权限，只有管理教师查看完整条件、答案相关问题和核对记录；学生接口只使用授权题图及既有结果可见信息，不返回本 JSON、原卷定位或未经授权的源页。
+
+### 15.2 图像上下文与输入引用
+
+- context_revision 是所属题的图像输入单调计数，不是文件版本、Question.validation_revision 或完整题目版本。题图新增/移除/替换/排序、原图身份、asset_type、来源页/region、实际理解的文字或来源定位变化，在同一业务事务内递增一次；A→B→A 仍递增，不复用 A 的旧核对。
+- 首版理解上下文固定纳入题型、题干、选项、参考答案、Rubric、analysis、基准 score 和各图 caption（允许真实 null）；导入还纳入真实 source_page_ids/source_regions。正式导入题通过不可改写的 imported_extracted_question 读取原来源定位。仅传入本题文字和授权题图，不把整份含答案原卷附加给 Provider。后续消费者不从当前题干重建历史输入。
+- difficulty/knowledge_points 分类维护、question_number、文件路径迁移、Trace 删除、Provider/构建/Prompt 版本变化不改变图像上下文；改变实际文字/图片输入则按前项递增。原图字节变化按 §14 建立新文件/资产身份，不覆盖旧 file_id。
+- ImageInputRefs = {text_fields: list[实际字段名], images: list[ImageInput]}；记录实际输入目录，不另存可独立编辑的题干/答案副本。ImageInput = {asset_id: UUID, file_id: 非空字符串, image_index:1..N, asset_type, source_page_id: UUID|null, region: bbox对象|null, width:正整数|null, height:正整数|null, mime_type:真实图像格式|null}。images 顺序与当前整组图一致，id 唯一、数目 1–5；暂存来源必须同导入，正式资产必须属于本题及授权课程。
+- 预检尚未读取尺寸/格式时在技术失败记录中保留 null；合法 completed 结果和人工核对必须取得真实非空尺寸/格式。width/height 来自真实题图；bbox 沿 §13.2 原图/SourcePage 像素规则。裁图到原页有真实映射才可保存原页 evidence_region；有 SourcePage 但映射未知时保留 null，不猜整页框或归一化比例；无 SourcePage 时以实际资产原图坐标校验。必要条件可在框未知时经原图核对，不凭未知框掩盖缺图。
+- 未保存各版题干，历史只展示当时修订号、输入引用、原始结果/问题及核对事实，不把当前题干冒充历史内容。旧引用保持原来源，删图后不自动改指向新图；文件可读性和必要条件不足如实展示。
+
+### 15.3 ImageUnderstandingRun：真实调用与失败
+
+| 成员 | Schema / 责任 |
+| :--- | :--- |
+| id / run_no | 服务生成 UUID；run_no 为本所属题跨修订单调递增正整数；同题内均唯一 |
+| context_revision / task / input_refs | 启动时捕获的修订号、真实非空任务说明及 ImageInputRefs；完成时不换成当前输入 |
+| outcome / result / error | running / completed / technical_error；result 为受校验理解对象或 null；error 为 §12 的 {code,message,stage,retryable,cause} 或 null |
+| executor_kind / executor_name / requested_by | service/agent、真实组件名、真实认证发起者 UUID 或 null；系统调用不借教师/题目创建者伪造发起者 |
+| agent_run_id / provenance | 真实 AgentRun.id 或 null；{provider_name,model,model_version,prompt_version} 的实际调用事实，不可得为 null |
+| started_at / completed_at | 真实 UTC ISO-8601；开始非空，结束可空且 >= 开始 |
+
+- 授权/真实资产归属校验通过后，在检查能力/传输和外部调用前登记 running；预检取得尺寸/格式后只补充该轮原输入的真实事实，不更换修订号或资产，读不到时保留 null。未实际调用模型时 provenance 的 Provider/model 成员保持 null，不把配置值写成已执行事实。执行实际调用后保存真实来源；AgentRun 清理不抹掉 JSON 的执行事实；保存的真实 trace UUID 仅供历史追溯，读取不宣称活体 Trace 仍存在。
+- running 要求 result/error/completed_at 为 null；completed 要求合法 result、真实结束时间且 error=null，只代表调用和输出校验完成；technical_error 要求真实 error/结束时间、result=null。不支持、未就绪、传输失败、缺图、取消/超时、输出非法分别保存原错误，不伪造空成功结果或内容错误。
+- result 保存实际 VisionResult 的 observations、conditions、unresolved_issues、requires_manual_review。observations 含 image_index/kind/description/bbox；conditions 含 image_index/text/evidence_region。服务按本轮 ImageInputRefs 绑定 asset_id，分别给条件与问题生成稳定 condition_id / issue_id；模型不产生持久资源身份。问题保存 {issue_id,asset_ids:list[UUID]|null,message:非空字符串}，null 表示整组或无法可靠归属，不猜具体图片。
+- 条件只来自实际原图，不凭空补数值；requires_manual_review=false 也不能代替教师核对。有无法辨认、矛盾或缺失条件时保留实际问题和 true；非法结构/越界/错误对应按 VISION_OUTPUT_INVALID 处理。模型给出的语义问题不归类为 Provider 技术错误。
+- 除 running 补齐实际结束事实外，已结束轮次的输入、原结果/错误、来源和时间不可改写。新调用追加新轮次，不把人工补充塞进旧机器 conditions，不把技术失败改为 completed。
+
+### 15.4 ImageManualCheck：真实教师核对证据
+
+| 成员 | Schema / 责任 |
+| :--- | :--- |
+| id / check_no | 服务生成 UUID；check_no 为本所属题跨修订单调递增正整数；同题唯一 |
+| context_revision / run_no / run_id / input_refs | 核对时的当前修订及整组输入；run_no 为本题当前最大轮次（从未调用时 0）；run_id 仅在该轮与当前修订相符时引用真实 id，否则 null |
+| status / confirmed_conditions | confirmed / unresolved；确认条件为 [{condition_id:服务生成UUID,asset_id,text:非空,evidence_region:合法bbox或null,source_condition_id:实际机器条件UUID或null}] |
+| image_findings | 每个当前资产恰一项 {asset_id,finding,reason:非空}；finding 为 conditions_confirmed / no_conditions_needed / unresolved |
+| issues / issue_resolutions | 新发现的未解决问题使用本节问题 Schema；处置为 [{issue_id,resolution:resolved/unresolved,reason:非空}] |
+| teacher_id / checked_at / explanation | 当前认证且有课程管理权限的真实教师 UUID、服务记录的真实 UTC ISO-8601、非空核对/修正说明；客户端不能指定身份/时间 |
+
+- 必须查看可读的真实原图及本题上下文；核对可以在技术失败后或未使用 Vision 时由教师独立完成，明确保存“人工核对”的来源，原机器错误/未调用事实仍保留。这不是 §12.4 对 technical_error 伪作内容处置或语义通过。
+- conditions_confirmed 至少有一条该图的实际确认条件；no_conditions_needed 要说明该图为何不提供额外必要条件，不能用空条件数组代表核对成功。任一图 finding=unresolved 或仍有未解决问题，status 必须 unresolved；confirmed 要求整组逐图有依据、必要条件完整。
+- 新发现问题以真实未解决事实追加；后续核对必须对核对时已登记的当前修订机器问题及尚未解决的教师问题逐项保存 issue_resolutions，不因换一条核对记录而丢掉未解决问题。confirmed 不允许新未解决 issues，且所有上述问题须有 resolved 和具体理由；教师可明确说明模型误判，但不能删除原问题或改机器结论。
+- 人工请求使用严格非负整数 expected_context_revision / expected_run_no / expected_check_no，并提交 status、实际条件、逐图判断、问题与说明；在锁内比对当前计数，不符返回 IMAGE_ASSESSMENT_STALE；影响上下文的字段/资产修改先独立保存，再提交核对最终输入的命令，不能同次静默改套修订号。当前修订的最新轮次仍 running 时不能确认未结束输出；如需取消，先记录实际取消结果，不能仅为放行写虚假结束时间。
+- 资产引用须属于当前整组输入；source_condition_id/issue_id 须来自本题真实已登记记录，条件对应同图同上下文，问题处置不接受陌生/重复 id。每次接受核对只追加真实事件，不覆盖先前教师/UTC/条件/问题。pending 是没有当前已结束核对的读取投影，不存合成教师事件。最新 unresolved 不能回退使用旧 confirmed；模型 true 可在教师逐项解决后由服务投影已核对，但原模型布尔值保持原样。
+
+### 15.5 当前判定、并发与语义核验联动
+
+1. 当前机器轮次取本题最大 run_no，且其 context_revision 必须等于当前值；新轮次 running/technical_error 不回退旧成功。当前教师核对取最大 check_no，要求修订号和 run_no 均匹配当前值；无匹配核对时为 pending，历史核对保留并标记 stale，不改写其原 status。confirmed 还要求输入图真实可读、整组对应及问题已按 §15.4 处理。
+2. 图像上下文变化、启动新轮次、追加人工核对及校正/入库/批准共同锁定所属题。暂存操作沿 PaperImport -> ExtractedQuestion 顺序，正式操作沿 §9 既有锁序锁 Question；分配轮次、保存修订/事件与相关内容同事务。外部调用前提交释放锁，结束后重取锁，仅补齐原 id 的实际结果；迟到/被替代结果不改当前条件或题目状态。
+3. 仅当本题尚无人工事件和正式图像调用且目标 context_revision 未变时，合法 imported_review 可以提供当前已确认条件（见 §15.6）；其后出现的修订、调用或人工事件不能使旧绑定重新成为当前。is_current/stale、pending/confirmed/unresolved、requires_manual_review 为读取投影，不另存可独立修改的“已核对”布尔值。
+4. 图像输入变化按 §12 同事务递增 Question.validation_revision；确认条件、有效核对引用或核对资格实际变化（包括开始新轮次使原核对待重核对）也推进一次。单纯补齐历史迟到结果、迁移定位或 trace 清理不推进。人工确认条件不再递增 context_revision，避免确认自身使其立刻失效；两个计数职责分开，不要求数值相等。
+5. G02 QuestionValidationResult 的题图 Evidence.source_data.image_review_ref = {owner_kind:question/extracted_question,owner_id:UUID,check_id:UUID,binding_id:UUID|null}；原生核对引用正式题的实际事件，导入引用原暂存事件且 binding_id 指向本题 imported_review.id。服务在核验输入边界校验真实归属/当前适用性，保存本轮实际使用的确认条件及来源，不只保存短期 Trace。
+6. G02 语义核验只读消费当前图片核对，其自身模型调用保存于 QuestionValidationResult；预览/考试/阅卷只读使用冻结题图与核对，阅卷调用沿原 GradingResult/Trace 规则记录。上述消费不新建 ImageUnderstandingRun 或推进图像轮次，只有显式重新理解条件才按本节启动新轮。
+7. 必要图像条件未经当前确认时，不批准、不用旧 passed、caption、Provider 布尔值放行。图片核对不代替答案/解析/Rubric 的四项语义核验，正式题仍必须有当前 validation_revision 的最新 passed 报告和教师批准。阅卷必须使用既有冻结题图/核对条件；需要图像而 Provider 不可用或文件缺失时明确待处理，不用 OCR-only 或零分制造成功。
+
+### 15.6 校正确认与正式题关联
+
+- commit 在原批次事务内创建 Draft、沿用资产 id/file_id 与顺序，并逐字段比对实际图像上下文（question_type 映射 type、其他文字/金额按其业务值、真实原来源保持）；只有当前 confirmed 核对、可靠同图同序同定位且未改变实际上下文才建立 ImportedImageReview。
+- ImportedImageReview = {id:服务生成UUID,context_revision:正式题初始图像修订号0,input_refs:正式题ImageInputRefs,source_ref:{owner_kind:extracted_question,owner_id:真实暂存题UUID,check_id:当前真实核对UUID,binding_id:null},bound_by:真实确认入库教师UUID,bound_at:实际UTC}。正式 ImageAssessment 初始 runs/manual_checks=[]，imported_review 指向原不可改写事件；不复制或重标其教师/核对时间，不伪装成正式题新 Vision 调用。bound_at 是关联时间，不是重新核对时间。
+- 原调用/问题、技术失败、所有教师历史保留在 ExtractedQuestion.image_assessment，经既有来源关系可回溯；转入关联只继承当前确有依据的条件。任一输入不等、stale/pending/unresolved 或无核对时 imported_review=null，正式题保留可靠题图及原来源，completion_status=needs_completion、Draft；不自动补条件或自动 Approved。无题图按既有 [] 规则，不强行建立空图片报告。
+- image_assessment、正式资产/文件关系、question_id/Corrected 与整批 commit 同事务；失败全回滚并保留原卷/校正记录。重复 commit 返回同一正式结果，不覆盖后来正式核对或重新复制旧证据。
+- Corrected/Rejected 后禁止新图片调用、人工核对或改写原校正内容/已结束证据。终态前已登记的 running 轮次仍可补齐真实最终执行事实，属于历史完成记录，不能改写冻结核对、推进正式题条件或冒充入库时已有证据；数据库失败照实报告，不伪造已保存结果。此窄范围完成规则补充 §13 的终态边界，§14 的物理迁移规则继续适用。
+- 后续正式题修订只更新正式 ImageAssessment，历史 binding/source_ref 保留并因计数不匹配失效，不反写原暂存题；改编候选即使复用原字节也按新业务资产身份重新核对，不把父题确认自动当成本题批准依据。
+
+### 15.7 冻结、旧数据与实施边界
+
+- 新调用/人工核对及条件/图像关联变更都是业务修改，继承 Approved 和已发布/历史引用保护；须按原流程合法退回修订，受发布保护时禁止原地修改核对依据，改编另建候选。仅保存终态前已启动调用的迟到历史结束事实不改变既有考试/结果依据。
+- 历史两列保持 NULL；旧 caption、OCR、模型自信、布尔标记、校正备注或临时 UI 状态不能回填成已确认条件、教师身份/时间或成功调用。已 Approved/发布题状态及历史结果不因此改写，展示“历史图片核对未知”；未批准旧题按 v2.0 新审核路径建立当前真实核对与语义报告。
+- JSON 引用原事件的源暂存题/核对记录不得独立清理；合法清理所属导入/题目时沿既有来源/发布历史保护枚举本节引用，不能留下无从核实的 binding。原文件迁移/备份复用 §14，不增加独立清理/备份系统。
+- 后续验证聚焦多图对应、无能力/非法输出/缺图、独立人工接管、教师身份/UTC 与问题处置、A→B→A、迟到轮次、核对条件变化使语义报告失效、同输入转入/差异不继承、批次回滚与发布冻结；修改测试前按仓库要求形成 TCR。本任务只做文档一致性检查，不宣称数据库或服务已经实施。

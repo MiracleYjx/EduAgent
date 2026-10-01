@@ -521,7 +521,7 @@ M0 工程骨架 + Benchmark
 
 - [X] T137 [HIGH] [设计 G04] **G04 文件身份、导出与备份登记设计**：在 `.specify/data-model.md`、`contracts/file-storage.md` 与 plan §11 确定稳定 file_id 到资源/相对定位/授权的唯一映射、共享字节引用、导出归属及迁移记录；优先复用已有实体身份，确需独立登记再确认。定义 BackupSet manifest、同一写入窗口、恢复核对和失败保留；不把逻辑视图预定为两张新表，关键承载/恢复取舍由用户确认。 依赖：无新增任务前置。per FR-044/045、G04、CHK004（F004） (missing)
 
-- [ ] T138 [HIGH] [设计 G05] **G05 图片理解与人工核对持久设计**：在 `.specify/data-model.md`、`contracts/vision-capability.md`、`contracts/paper-import.md` 明确暂存图/QuestionAsset 的理解条件、问题、实际调用来源、教师身份/UTC 时间/说明和失效关联；与 G02/G03 的承载复用方案共同评审，明确校正确认后如何转入/关联正式题，不以 caption 或单个布尔值替代核对证据。 依赖：T135、T136、T137。per FR-043/047、G05、CHK005（F005） (missing)
+- [X] T138 [HIGH] [设计 G05] **G05 图片理解与人工核对持久设计**：在 `.specify/data-model.md`、`contracts/vision-capability.md`、`contracts/paper-import.md` 明确暂存图/QuestionAsset 的理解条件、问题、实际调用来源、教师身份/UTC 时间/说明和失效关联；与 G02/G03 的承载复用方案共同评审，明确校正确认后如何转入/关联正式题，不以 caption 或单个布尔值替代核对证据。 依赖：T135、T136、T137。per FR-043/047、G05、CHK005（F005） (missing)
 
 - [ ] T139 [MEDIUM] [设计 G06] **G06 导入关系与状态同步**：按已确认模型/导入契约更新 `.specify/plan.md` §8/9及实体引用：Document 非空唯一关联、paper_source 的知识库条件约束、Rejected/Failed/Ready 语义及终态；同步已创建模型/契约的阶段说明，保留 v1.0 原文及知识库状态职责。 依赖：无新增任务前置。per FR-041/042、G06、CHK006（F006） (contradicts)
 
