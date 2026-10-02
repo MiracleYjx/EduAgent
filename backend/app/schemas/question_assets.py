@@ -4,7 +4,7 @@ from __future__ import annotations
 from typing import Literal
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, StrictBool
 
 from backend.app.schemas.file_storage import FileMetadata
 from backend.app.schemas.paper_import import PixelRegion, StagedAsset
@@ -17,6 +17,12 @@ class AssetLinkRequest(BaseModel):
     source_page_id: UUID | None = None
     region: PixelRegion | None = None
     caption: str | None = None
+    student_visible: StrictBool = False
+
+
+class AssetVisibilityRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    student_visible: StrictBool
 
 
 class StagedFileMetadata(FileMetadata):
@@ -40,3 +46,4 @@ class QuestionAssetView(BaseModel):
     source_page_id: UUID | None
     region: PixelRegion | None
     order_index: int | None
+    student_visible: bool = False

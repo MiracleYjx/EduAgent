@@ -376,6 +376,7 @@ Extracted -> Pending Correction -> Corrected -> 正式 Question（Draft）
 | width | Integer；非空 | 资产图片像素宽度；>0 |
 | height | Integer；非空 | 资产图片像素高度；>0 |
 | caption | Text；可空 | 图示说明；不能将不可靠推断冒充原题条件 |
+| student_visible | Boolean；非空；默认 false | 教师显式核对是否允许学生展示；不是题目/课程访问授权，不允许借此开放源卷或完整原页 |
 | source_page_id | UUID；可空；FK SourcePage.id | 可追溯原页；原题导入必须有真实原页，不伪填历史未知来源 |
 | region | JSONB；可空 | 形如 {bbox:[x0,y0,x1,y1]}，在 source_page 原图坐标系表示裁图区域 |
 | created_at | TIMESTAMPTZ；非空；当前 UTC | 资产关系创建时间 |
@@ -383,6 +384,10 @@ Extracted -> Pending Correction -> Corrected -> 正式 Question（Draft）
 索引/约束：索引 question_id、source_page_id；CHECK asset_type 枚举、width/height>0、region 为对象或 NULL。有 bbox 时需 source_page_id 非 NULL，四个坐标满足 0<=x0<x1<=页宽、0<=y0<y1<=页高；同课程和页尺寸由服务校验。引用整页图可 region=NULL，不能捏造裁图框。
 
 无独立状态枚举：是否可修改继承 Question 的 Approved/发布保护；文件是否缺失由文件服务显式报告，图像条件是否可靠由结构化核验/人工校正表达，不靠 caption 或创建成功判断理解完成。新增/替换/删除资产、修改 bbox/图示条件须重核验题干、答案、解析和评分标准；Approved 内容守卫扩展到题图，受发布保护时禁止变更题图集合、图像内容、关联或覆盖原文件。每题最多 5 张由事务内锁定题目后确认计数，不能用单行 CHECK 伪称已限制集合大小。
+
+T154 已确认展示决策：QuestionAsset.student_visible 默认关闭（Python 与数据库均为 false，旧记录也保持 false），教师在合法校正/修订阶段显式开关，T159 提供校正 UI。学生 DTO 与文件 GET 均须同时满足 true、现有开放考试/分配/时间窗或本人已提交答卷的真实题目关联，以及允许展示区域校验；false 不能返回资产标识或字节。教师读取始终看到本课程全部题图，学生不能改开关。
+
+源卷/完整原页仍仅教师可读；完整原页引用（region=null 或完整页框）及其已登记相同字节/定位别名不得凭 true 改作学生题图。需建立仅含本题允许信息的真实裁图；裁切本身不证明无答案，教师显式 true 表示已核对可展示。未关联原页的独立题图同样默认关闭；已知源卷/原页的字节别名仍被拒绝。展示开关是授权意图，不是 G05 理解/人工核对记录，不凭开关生成核对事件或批准题目；单独切换开关不改变图像上下文修订。修改/新建图像关联需重新显式确定展示许可并遵守既有 Approved/发布/历史保护。
 
 ### 7.5 QuestionSourcePaper（question_source_papers）
 
@@ -743,13 +748,14 @@ SourceRegion = {source_page_id: UUID, bbox: [x0, y0, x1, y1]}。source_page_id �
 
 ### 13.3 暂存资产 Schema、顺序与正式映射
 
-StagedAsset = {id: UUID, file_id: 非空不透明字符串标识, asset_type: figure/table/diagram, source_page_id: UUID, region: {bbox: [x0,y0,x1,y1]} | null, caption: str | null}；assets 数组顺序就是题图顺序。
+StagedAsset = {id: UUID, file_id: 非空不透明字符串标识, asset_type: figure/table/diagram, source_page_id: UUID, region: {bbox: [x0,y0,x1,y1]} | null, caption: str | null, student_visible: bool = false}；assets 数组顺序就是题图顺序。
 
 - id 由服务在暂存关联首次建立时生成，同一数组内唯一；创建请求省略 id，由服务返回。编辑只接受本暂存题已有 id 或服务新建项，不能借其他题 id 更换归属。该 id 表示持久暂存关联，Corrected 前不宣称已有 QuestionAsset 行；转入时沿用为 QuestionAsset.id，以便 G05 的实际理解/核对引用保留关联，不新增另一套暂存关系表。
 - file_id 消费 [file-storage.md](contracts/file-storage.md) 的稳定授权标识，不接受客户端路径/外部 URL。服务核对可靠文件、真实图像及同导入来源；source_page_id 必须在本题 source_page_ids 内。原图/裁图均保留原页对应，region 的 bbox 使用 §13.2 同一像素约定；整页引用可为 null，但不得向学生暴露含答案或其他不应展示的信息。
 - width/height 从实际资产图像读取，用于正式 QuestionAsset 的尺寸；裁图 region 使用原页尺寸校验，不能把裁图自身坐标当原页坐标，也不能从不可靠框伪造文件或尺寸。caption 只作说明，不是已确认图像条件。
 - 确认入库前 assets 必须完成关联核对：无题图显式保存 []，有题图保存 1–5 个可靠关联；null 保持待校正。图像语义理解失败/尚待条件核对不伪装为通过，可按既有待补全规则入库 Draft，审核仍消费真实 G05 核对证据。G05 的 image_assessment 结构、身份/时间/条件及失效关联由 T138 补齐，本节不将其塞入 caption 或预定另一张结果表。
 - QuestionAsset 补 order_index：Integer、新资产非空，历史图序未核对可 NULL；CHECK 为 NULL 或 1..5，UNIQUE(question_id, order_index)。创建时从暂存数组依次写 1..N，预览/考试/核验/阅卷按该序读取；后续排序也是题图集合变更，遵守 Approved/发布保护与 §12 修订号规则。每题最多 5 图仍按 §7.4 在题目锁内校验，不以唯一约束代替计数。
+- student_visible 在暂存 JSON 中受严格布尔校验，省略默认 false；校正 PUT 仅由本课程教师在合法状态修改。T158 入库时显式承接到 QuestionAsset.student_visible，终态原 assets 保留原校正许可记录，后续正式题开关只改正式列，不能反写原记录。暂存图即使 true，在真实确认建立 QuestionAsset 之前仍仅教师读取。
 - 转入通过 T137 的统一文件映射将同一真实图像绑定正式 QuestionAsset，规范定位沿用 §7.4，不新增可分叉路径事实源；文件标识不等同于资产关系 id。共享字节不丢失来源或授权，移除暂存关联不直接删除仍被原页/正式题引用的文件。Corrected 之后 assets 保留校正时的来源记录，正式题维护不反写该数组。
 
 以下为校正字段的 Schema 示例，假设真实来源页尺寸为 1000×1400 像素；身份/文件标识仅作示意，不能据此回填或宣称文件/教师核对已存在：

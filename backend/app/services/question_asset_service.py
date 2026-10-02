@@ -43,6 +43,11 @@ from backend.app.services.file_storage_service import (
     FileStorageService,
     StoredFile,
 )
+from backend.app.services.question_asset_access import (
+    permitted_student_image,
+    student_can_read_question,
+    visible_question_assets,
+)
 
 
 def actual_image(content: bytes) -> Image.Image:
@@ -89,6 +94,12 @@ class QuestionAssetService:
             if record.status in {QuestionStatus.APPROVED, QuestionStatus.PUBLISHED}:
                 raise FileStorageError("QUESTION_APPROVED_IMMUTABLE", "已审核题须先合法退回修订再修改题图。", current_status=record.status.value)
         return record
+
+    def _visibility_allowed(self, value: bool, *, page_id: UUID | None, region: dict | None, fingerprint: str | None, locator: str | None = None) -> None:
+        if not isinstance(value, bool):
+            raise FileStorageError("IMAGE_VISIBILITY_INVALID", "学生展示开关必须为布尔值。", http_status=422)
+        if value and not permitted_student_image(self.session, source_page_id=page_id, region=region, fingerprint=fingerprint, locator=locator):
+            raise FileStorageError("IMAGE_STUDENT_DISPLAY_FORBIDDEN", "源卷、完整原页及其整页别名不能开放给学生；请先形成仅含允许信息的题图。", http_status=422)
 
     def _source(self, payload: AssetLinkRequest, actor_id: UUID) -> tuple[bytes, Image.Image, str]:
         path, _view = self.files.download(payload.file_id, actor_id=actor_id)
@@ -184,6 +195,7 @@ class QuestionAssetService:
         page = self.session.get(SourcePage, payload.source_page_id) if payload.source_page_id else None
         if page is None or page.paper_import_id != record.paper_import_id or str(page.id) not in record.source_page_ids:
             raise FileStorageError("FILE_REFERENCE_CONFLICT", "原题题图须来自同导入的真实已关联原页。")
+        self._visibility_allowed(payload.student_visible, page_id=page.id, region=payload.region.model_dump(mode="json") if payload.region else None, fingerprint=hashlib.sha256(content).hexdigest())
         entries = deepcopy(record.assets) or []
         if len(entries) >= 5:
             raise FileStorageError("QUESTION_ASSET_LIMIT", "每题最多关联五图。", http_status=422)
@@ -191,7 +203,7 @@ class QuestionAssetService:
         owner = {"course_id": str(record.paper_import.course_id), "paper_import_id": str(record.paper_import_id), "extracted_question_id": str(record.id), "source_page_id": str(page.id)}
         next_assessment = advance_image_context(record.image_assessment)
         stored = self._store_or_link(identity=identity, kind="staged_asset", owner=owner, payload=payload, actor_id=actor_id, content=content, operation=operation)
-        public = StagedAsset(id=identity, file_id="a_" + identity.hex, asset_type=payload.asset_type, source_page_id=page.id, region=payload.region, caption=payload.caption)
+        public = StagedAsset(id=identity, file_id="a_" + identity.hex, asset_type=payload.asset_type, source_page_id=page.id, region=payload.region, caption=payload.caption, student_visible=payload.student_visible)
         entry = public.model_dump(mode="json") | {"file_meta": stored.metadata.model_dump(mode="json") | {"storage_path": stored.storage_path}}
         StoredStagedAsset.model_validate(entry)
         record.assets = [*entries, entry]
@@ -213,9 +225,13 @@ class QuestionAssetService:
                 if asset.model_dump(mode="json")[field] != original[field]:
                     raise FileStorageError("FILE_IDENTITY_IN_USE", "原图/定位变更须建立新资产身份。")
             image_owner(self.session, StagedAssetResource(record, asset.id))
+            self._visibility_allowed(asset.student_visible, page_id=asset.source_page_id, region=asset.region.model_dump(mode="json") if asset.region else None, fingerprint=original["file_meta"].get("sha256"), locator=original["file_meta"]["storage_path"])
             entries.append(asset.model_dump(mode="json") | {"file_meta": original["file_meta"]})
         if record.assets != entries:
-            record.image_assessment = advance_image_context(record.image_assessment)
+            before = [{key: value for key, value in entry.items() if key != "student_visible"} for entry in record.assets or []]
+            after = [{key: value for key, value in entry.items() if key != "student_visible"} for entry in entries]
+            if before != after:
+                record.image_assessment = advance_image_context(record.image_assessment)
             record.assets = entries
         self._commit()
         return self.list_staged(extracted_id, actor_id=actor_id)
@@ -227,8 +243,17 @@ class QuestionAssetService:
         self.replace_staged(extracted_id, [asset for asset in current if asset.id != asset_id], actor_id=actor_id)
 
     def list_question(self, question_id: UUID | str, *, actor_id: UUID) -> list[QuestionAssetView]:
-        question = self._question(UUID(str(question_id)), actor_id)
-        return [QuestionAssetView.model_validate(asset, from_attributes=True).model_copy(update={"file_id": "a_" + asset.id.hex}) for asset in question.assets]
+        question = self.session.get(Question, UUID(str(question_id)))
+        if question is None:
+            raise FileStorageError("FILE_NOT_FOUND", "正式题不存在。", http_status=404)
+        actor = self.files._actor(actor_id)
+        if self.files._manages(actor, self.files._course(question.course_id)):
+            assets = question.assets
+        elif student_can_read_question(self.session, question, actor):
+            assets = visible_question_assets(self.session, question)
+        else:
+            raise FileStorageError("FILE_FORBIDDEN", "无权读取该题题图。", http_status=403)
+        return [QuestionAssetView.model_validate(asset, from_attributes=True) for asset in assets]
 
     def link_question(self, question_id: UUID | str, payload: AssetLinkRequest, *, actor_id: UUID) -> QuestionAssetView:
         content, image, operation = self._source(payload, actor_id)
@@ -243,9 +268,10 @@ class QuestionAssetService:
             original = question.imported_extracted_question
             if page is None or page.paper_import_id != original.paper_import_id or str(page.id) not in original.source_page_ids:
                 raise FileStorageError("FILE_REFERENCE_CONFLICT", "原题题图须保持同导入页来源。")
+        self._visibility_allowed(payload.student_visible, page_id=payload.source_page_id, region=payload.region.model_dump(mode="json") if payload.region else None, fingerprint=hashlib.sha256(content).hexdigest())
         identity = uuid4()
         next_assessment = advance_image_context(question.image_assessment)
-        asset = QuestionAsset(id=identity, question=question, asset_type=payload.asset_type, width=image.width, height=image.height, source_page_id=payload.source_page_id, region=payload.region.model_dump(mode="json") if payload.region else None, caption=payload.caption, order_index=len(question.assets) + 1)
+        asset = QuestionAsset(id=identity, question=question, asset_type=payload.asset_type, width=image.width, height=image.height, source_page_id=payload.source_page_id, region=payload.region.model_dump(mode="json") if payload.region else None, caption=payload.caption, order_index=len(question.assets) + 1, student_visible=payload.student_visible)
         owner = {"course_id": str(question.course_id), "question_id": str(question.id)}
         if payload.source_page_id is not None:
             assert page is not None
@@ -255,7 +281,7 @@ class QuestionAssetService:
         self.session.add(asset)
         question.image_assessment = next_assessment
         self._commit(stored)
-        return QuestionAssetView(id=asset.id, question_id=question.id, file_id="a_" + asset.id.hex, asset_type=payload.asset_type, width=asset.width, height=asset.height, caption=asset.caption, source_page_id=asset.source_page_id, region=payload.region, order_index=asset.order_index)
+        return QuestionAssetView(id=asset.id, question_id=question.id, file_id="a_" + asset.id.hex, asset_type=payload.asset_type, width=asset.width, height=asset.height, caption=asset.caption, source_page_id=asset.source_page_id, region=payload.region, order_index=asset.order_index, student_visible=asset.student_visible)
 
     def remove_question(self, question_id: UUID | str, asset_id: UUID, *, actor_id: UUID) -> None:
         question = self._question(UUID(str(question_id)), actor_id, writing=True)
@@ -275,17 +301,18 @@ class QuestionAssetService:
         self._commit()
 
 
-    def upload_question(self, question_id: UUID | str, *, content: bytes, asset_type: str, caption: str | None, actor_id: UUID) -> QuestionAssetView:
+    def upload_question(self, question_id: UUID | str, *, content: bytes, asset_type: str, caption: str | None, actor_id: UUID, student_visible: bool = False) -> QuestionAssetView:
         question = self._question(UUID(str(question_id)), actor_id, writing=True)
         if len(question.assets) >= 5:
             raise FileStorageError("QUESTION_ASSET_LIMIT", "每题最多关联五图。", http_status=422)
         if asset_type not in {"figure", "table", "diagram"}:
             raise FileStorageError("IMAGE_TYPE_INVALID", "题图类型无效。", http_status=422)
         image = actual_image(content)
+        self._visibility_allowed(student_visible, page_id=None, region=None, fingerprint=hashlib.sha256(content).hexdigest())
         identity = uuid4()
         next_assessment = advance_image_context(question.image_assessment)
         stored = self.files._store_bytes(resource_type="question_asset", resource_id=identity, owner={"course_id": str(question.course_id), "question_id": str(question.id)}, actor_id=actor_id, filename=f"{identity.hex}.png", content=content, bucket="assets")
-        asset = QuestionAsset(id=identity, question=question, asset_type=asset_type, width=image.width, height=image.height, caption=caption, order_index=len(question.assets) + 1, _file_path=stored.storage_path, _file_metadata=stored.metadata.model_dump(mode="json"))
+        asset = QuestionAsset(id=identity, question=question, asset_type=asset_type, width=image.width, height=image.height, caption=caption, order_index=len(question.assets) + 1, student_visible=student_visible, _file_path=stored.storage_path, _file_metadata=stored.metadata.model_dump(mode="json"))
         self.session.add(asset)
         question.image_assessment = next_assessment
         self._commit(stored)
@@ -305,3 +332,16 @@ class QuestionAssetService:
                 existing[identity].order_index = index
         self._commit()
         return self.list_question(question.id, actor_id=actor_id)
+
+
+    def set_question_visibility(self, question_id: UUID | str, asset_id: UUID, *, student_visible: bool, actor_id: UUID) -> QuestionAssetView:
+        question = self._question(UUID(str(question_id)), actor_id, writing=True)
+        asset = next((entry for entry in question.assets if entry.id == asset_id), None)
+        if asset is None:
+            raise FileStorageError("FILE_NOT_FOUND", "题图关联不存在。", http_status=404)
+        self._visibility_allowed(student_visible, page_id=asset.source_page_id, region=asset.region, fingerprint=(asset.file_metadata or {}).get("sha256"), locator=asset.storage_path)
+        if student_visible:
+            self.files.download(asset.file_id, actor_id=actor_id)
+        asset.student_visible = student_visible
+        self._commit()
+        return QuestionAssetView.model_validate(asset)

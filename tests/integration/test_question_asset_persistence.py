@@ -134,13 +134,13 @@ def test_real_backup_restores_original_pages_staged_and_formal_assets(backup_cas
         session.add_all([pending, corrected])
         session.commit()
         staged = assets.create_staged(pending.id, AssetLinkRequest(file_id="p_" + page.id.hex, source_page_id=page.id, asset_type="figure"), actor_id=ids["teacher"])
-        crop = assets.create_staged(corrected.id, AssetLinkRequest(file_id="p_" + page.id.hex, source_page_id=page.id, asset_type="diagram", region={"bbox": [10, 10, 40, 30]}), actor_id=ids["teacher"])
+        crop = assets.create_staged(corrected.id, AssetLinkRequest(file_id="p_" + page.id.hex, source_page_id=page.id, asset_type="diagram", region={"bbox": [10, 10, 40, 30]}, student_visible=True), actor_id=ids["teacher"])
         origin = deepcopy(corrected.assets)
         original_assessment = deepcopy(corrected.image_assessment)
         question = Question(course_id=ids["course"], type="SHORT_ANSWER", content="原题", analysis=None, knowledge_points=[], score=2, created_by=ids["teacher"], source_type="paper_imported")
         corrected.question = question
         corrected.status = "Corrected"
-        formal = QuestionAsset(id=crop.id, question=question, source_page=page, asset_type="diagram", region={"bbox": [10, 10, 40, 30]}, width=30, height=20, order_index=1)
+        formal = QuestionAsset(id=crop.id, question=question, source_page=page, asset_type="diagram", region={"bbox": [10, 10, 40, 30]}, width=30, height=20, order_index=1, student_visible=crop.student_visible)
         session.add(formal)
         session.commit()
         identifiers = source.id, page.id, pending.id, corrected.id, question.id
@@ -164,6 +164,7 @@ def test_real_backup_restores_original_pages_staged_and_formal_assets(backup_cas
             assert files.download(crop.file_id, actor_id=ids["teacher"])[0].read_bytes() == crop_bytes
             formal = session.get(QuestionAsset, crop.id)
             assert formal._file_path is None
+            assert formal.student_visible is True
             assert session.get(ExtractedQuestion, identifiers[3]).assets == origin
             assert session.get(ExtractedQuestion, identifiers[3]).image_assessment == original_assessment
             for identity in ("d_" + identifiers[0].hex, "p_" + identifiers[1].hex):

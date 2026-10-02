@@ -35,7 +35,7 @@
 - `extracted_by` 真实记录 OCR、LLM 或 TEXT；未知置信度为 null，不以 0 或模型自报置信度证明准确。
 - 校正扩展：question_number 为原题号（未知为 null）；analysis 为解析（未知为 null）；knowledge_points 为课程内知识点列表（未知为 null）；source_regions 为 [{source_page_id, bbox}]（可靠边界未知为 null）。
 - bbox 使用原页像素坐标 [x0,y0,x1,y1]，必须在所属页范围内；跨页来源全部属于本次导入，按页号排列，不允许关联其他导入补位。
-- assets 为待转正式题的原图关联列表：file_id、asset_type、source_page_id、region、caption；最多 5 张，必须来自本次导入的可靠文件及原页，不能用客户端任意路径建立关联。
+- assets 为待转正式题的原图关联列表：file_id、asset_type、source_page_id、region、caption、student_visible（严格 bool，默认 false）；最多 5 张，必须来自本次导入的可靠文件及原页，不能用客户端任意路径建立关联。
 - image_assessment：响应返回已保存的 ImageAssessment 与当前修订/轮次/核对投影；PATCH 只接受下述 manual_check 命令。结构引用 [vision-capability.md](vision-capability.md) 和模型 §15；理解失败保留图像/真实问题，不把 OCR 文本视为图示已理解。
 - 校正扩展与暂存题一起持久保存，重新打开仍能读取。T136 已在 [data-model.md](../data-model.md) §13 定义题号、解析、知识点、来源区域和暂存资产的具体承载与转入规则，不能只存在于 UI 内存或塞进 correction_notes。T138 在模型 §15 定义图片理解/人工核对的持久结构；本契约不宣称目标字段或接口已实施。
 
@@ -149,3 +149,8 @@ error_message 保留真实步骤和中文可处理原因；不得回传凭据或
 - 验证拆题完整性/字段准确性使用标注样本；置信度不等同于实测准确率。页面/图片数量限制不是性能承诺。
 - 重复 commit、校正与 commit 并发、原页缺失、OCR 未就绪必须保留真实结果和来源；增加 PATCH 省略/null/[]、已提供框合法性/未知边界、资产身份/顺序、批次回滚、正式解析映射/失效/冻结的后续验证，不改 v1.0 知识库摄取或既有审核验收标准。
 - T136/T138 只补设计文档和各自任务标记，不新增业务代码、迁移或测试；测试变更先形成 TCR，文档静态检查不等同于运行验收。
+
+
+## T154：学生展示许可
+
+暂存校正数组持久保留 student_visible，教师显式 true 表示已核对资产只含允许学生展示的信息；省略/历史缺省为 false。整页原图及已登记源卷/原页别名不能开放，需先建立真实允许区域题图。源卷/原页本身始终仅教师读取；暂存图没有正式 QuestionAsset 和学生题目授权之前，即使 true 也不开放字节。T158 正式映射承接该字段，终态原数组保持不变；正式题后续许可保存于 QuestionAsset.student_visible。T159 提供教师校正开关。本字段不替代 G05 核对及审核，不构造模型成功/教师意见。

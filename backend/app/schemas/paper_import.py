@@ -50,6 +50,7 @@ class StagedAsset(BaseModel):
     source_page_id: UUID
     region: PixelRegion | None = None
     caption: str | None = None
+    student_visible: bool = Field(default=False, strict=True)
 
 
 class CorrectionFields(BaseModel):

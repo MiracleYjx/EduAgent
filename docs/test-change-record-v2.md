@@ -265,3 +265,29 @@ T154 独立部分的先行用例暴露资产服务入口缺失，后续实际 PN
 本批数据库 eduagent_e2_import_3d186fa5073b 与独立 Redis 已经核对零连接/任务标签后清理，原业务库仍 0012_audit_logs，原 PostgreSQL/Redis 仍 healthy；没有应用业务迁移、切换配置或删除业务材料。Pillow 已由既有 Gradio 环境提供，仅显式登记本批直接依赖，没有安装/升级依赖或调用 OCR/Vision。
 
 T153 达成并勾选。T154 只完成教师端基础，学生展示持久核对方案仍待用户确认；所有新题图默认仅教师可读，源卷/完整原页始终拒绝学生，本批不实现未批准的展示核对字段，也不勾选 T154。完整校正入库、OCR、Vision/人工处置调用、业务 UI 和发布生命周期分别仍属后续任务；不把这些基础用例冒充 T160、T163 或系统验收。
+
+## 11. T154 学生展示开关具体 TCR（2026-10-02，基线 44d7560）
+
+用户已确认方案 A：QuestionAsset.student_visible 为非空 Boolean，Python/数据库默认 false；教师显式选择是否允许学生展示。教师校正开关 UI 留 T159，本批提供受现有权限/内容冻结保护的 API/服务。沿用暂存 JSON 持久字段用于 T159 校正和 T158 转入，不建展示核对事件表、不替代 G05 图像语义核验。
+
+必要性：现有资产只有教师读取，不能证明已开放且学生有权查看的题图成功读取；源卷/原页与同字节整页别名不可因开关绕过。需要覆盖公开 DTO、实际 GET 字节授权和数据库默认值升级旧资产后仍关闭，而不是只测试模型赋值。
+
+新增 tests/contract/test_question_asset_visibility.py：真实 JWT/PNG，默认不显示且字节 GET 拒绝，教师显式开关及列表保持所有资产；学生考试详情和题图列表仅包含 true/允许区域，授权成功可取真实字节；当前考试分配/开放窗口、本人已提交答卷与其他学生/其他题访问区分；关闭立即撤销展示；源卷、完整原页、整页题图及共享字节别名即使标 true 仍拒绝；教师/异课程/学生写权限、Approved 冻结和非法 bool 拒绝。仅修改本批旧资产测试补显式 DTO false 默认断言，其他原断言保持。
+
+新增 tests/integration/test_question_asset_visibility_migration.py：实际 PostgreSQL 0015→0016→0015→0016，旧资产默认 false、直接 INSERT 省略字段也 false、非空 Boolean 约束、数据/其他列原值和降级边界；不升级真实业务库。旧迁移图用例只追加 0016 前驱和 head，不改原 revision 对象断言。
+
+源卷和已登记完整页的相同字节/定位视为原页别名，学生过滤与文件读取共用一个实际规则；不能将裁切当自动去答案判定，教师显式 true 表示已核对资产仅含允许展示内容。暂存没有正式 QuestionAsset 时仍仅教师可读。模型/公开 Schema/合同同步该语义，迁移不能反填 true。
+
+先写目标用例暴露入口缺失，再实施并聚焦；最后执行原 pytest、mypy、Ruff 和隔离库 Alembic check。所有资源/日志位于本批忽略缓存，原 .env 和八个用户文件保持。M0 就绪检查、真实教师标注、OCR/Vision、T159 UI 和完整导入流程不在本批完成声明中。
+
+首次实现聚焦为 12 passed / 2 failed：两项均为新增夹具问题。HTTP 上传使用独立 Session，测试在旧 Session 未刷新时把旧 NULL 核对记录当作快照；改为重新读取真实上传后的记录再验证开关不修改 G05。迁移断言用两次独立反射表构造同名 FROM，产生笛卡尔积/重复别名；改为同一反射表变量，保持原路径/default/非空/降级断言。上述修正先记录，不能修改业务逻辑迎合过期缓存或放宽断言。
+
+聚焦修正后 18 passed（19.55 s）。为直接证明 true 开关随现有同集备份恢复而非只随 ORM 重读保留，在既有本批 test_real_backup_restores_original_pages_staged_and_formal_assets 中将可靠裁图明确标 true，正式映射承接该字段并核对恢复后仍 true；保留原路径投影、来源/核对历史、原页与源卷学生拒绝断言，不更改备份/恢复算法或通用夹具。该项先记录再修改。
+
+### 本批最终结果
+
+先行红灯 5 failed，缺少学生显示字段/开关接口/受校验 Schema；首次实现聚焦 12 passed / 2 failed 是上述新增夹具问题，修正后原节点及考试分配合同 18 passed。原资产用例保持原断言，新 true 恢复覆盖追加于本批既有实际备份用例。
+
+最终全量 1685 collected，1683 passed / 0 failed / 0 errors / 2 skipped / 27 warnings；2026-10-02T05:12:45.152991+00:00，pytest 527.43 s、外层 536.960 s。真实 PostgreSQL bool 默认/非空/升降级、源卷/页/暂存/正式图 dump/恢复 true、唯一路径、核对历史及学生源卷隔离均包含通过。两项 skip 是 M0 缺隔离四变量和 Windows 无符号链接权限，不作为通过门禁。
+
+最终 mypy 161 source files 无问题（5.281 s），Ruff backend/tests/0016 通过（0.176 s），独立库 Alembic check 通过（1.646 s）。报告与详细时间见 validation-report.md 最新 T154 节；日志/JUnit 在 .cache/e2-t154-visible-20261002，本批资源零连接/标签检查后已清理。原业务库仍 0012_audit_logs，原服务 healthy，九项受保护文件（含 .env）字节保持。只勾选 T154，不改就绪清单、T146 或后续任务；开关 UI 按用户决策留 T159。

@@ -24,7 +24,9 @@ from backend.app.core.database import get_db
 from backend.app.core.security import require_permission
 from backend.app.domain.enums import QuestionType, SubmissionStatus
 from backend.app.domain.permissions import Permission
-from backend.app.models import Exam, User
+from backend.app.models import Exam, Question, User
+from backend.app.schemas.question_assets import QuestionAssetView
+from backend.app.services.question_asset_access import visible_question_assets
 from backend.app.services.submission_service import (
     AnswerContent,
     AnswerSummary,
@@ -55,6 +57,7 @@ class StudentQuestionSummary(BaseModel):
     knowledge_points: list[str] = Field(default_factory=list)
     score: Decimal
     position: int
+    assets: list[QuestionAssetView] = Field(default_factory=list)
 
 
 class StudentExamDetail(AvailableExamSummary):
@@ -344,7 +347,7 @@ def _load_student_exam_detail(
     )
     try:
         exam = service.session.scalar(
-            select(Exam).options(selectinload(Exam.questions)).where(Exam.id == exam_id)
+            select(Exam).options(selectinload(Exam.questions).selectinload(Question.assets)).where(Exam.id == exam_id)
         )
     except SQLAlchemyError as exc:
         raise SubmissionServiceError("无法读取考试题目。") from exc
@@ -361,6 +364,7 @@ def _load_student_exam_detail(
             knowledge_points=list(question.knowledge_points or []),
             score=question.score,
             position=position,
+            assets=[QuestionAssetView.model_validate(asset) for asset in visible_question_assets(service.session, question)],
         )
         for position, question in enumerate(exam.questions, start=1)
     ]

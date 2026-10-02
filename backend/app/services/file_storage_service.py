@@ -48,6 +48,10 @@ from backend.app.services.file_resources import (
     resource_kind,
     staged_matches,
 )
+from backend.app.services.question_asset_access import (
+    student_asset_allowed,
+    student_can_read_question,
+)
 
 
 class FileStorageError(RuntimeError):
@@ -158,7 +162,11 @@ class FileStorageService:
             except ValueError as exc:
                 raise FileStorageError("FILE_REFERENCE_CONFLICT", str(exc)) from exc
             course = self._course(UUID(owner["course_id"]))
-            allowed = self._manages(actor, course)
+            allowed = self._manages(actor, course) or (
+                isinstance(resource, QuestionAsset)
+                and student_can_read_question(self.session, resource.question, actor)
+                and student_asset_allowed(self.session, resource)
+            )
         elif isinstance(resource, Document):
             course = self._course(resource.course_id)
             # Current knowledge-base permission is teacher management; no student

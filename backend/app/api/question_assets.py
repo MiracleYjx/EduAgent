@@ -11,7 +11,11 @@ from backend.app.core.config import AppSettings
 from backend.app.core.database import get_db
 from backend.app.core.security import CurrentUser, get_app_settings
 from backend.app.schemas.paper_import import StagedAsset
-from backend.app.schemas.question_assets import AssetLinkRequest, QuestionAssetView
+from backend.app.schemas.question_assets import (
+    AssetLinkRequest,
+    AssetVisibilityRequest,
+    QuestionAssetView,
+)
 from backend.app.services.file_storage_service import FileStorageError
 from backend.app.services.question_asset_service import QuestionAssetService
 
@@ -80,9 +84,9 @@ def link_question(question_id: UUID, payload: AssetLinkRequest, actor: CurrentUs
 
 
 @router.post("/questions/{question_id}/assets/upload", response_model=QuestionAssetView, status_code=201)
-async def upload_question(question_id: UUID, actor: CurrentUser, service: AssetService, file: Annotated[UploadFile, File()], asset_type: Annotated[str, Form()] = "figure", caption: Annotated[str | None, Form()] = None):
+async def upload_question(question_id: UUID, actor: CurrentUser, service: AssetService, file: Annotated[UploadFile, File()], asset_type: Annotated[str, Form()] = "figure", caption: Annotated[str | None, Form()] = None, student_visible: Annotated[bool, Form()] = False):
     try:
-        return service.upload_question(question_id, content=await file.read(), asset_type=asset_type, caption=caption, actor_id=actor.id)
+        return service.upload_question(question_id, content=await file.read(), asset_type=asset_type, caption=caption, student_visible=student_visible, actor_id=actor.id)
     except FileStorageError as exc:
         raise file_http_exception(exc) from None
     finally:
@@ -102,5 +106,13 @@ def remove_question(question_id: UUID, asset_id: UUID, actor: CurrentUser, servi
     try:
         service.remove_question(question_id, asset_id, actor_id=actor.id)
         return Response(status_code=204)
+    except FileStorageError as exc:
+        raise file_http_exception(exc) from None
+
+
+@router.patch("/questions/{question_id}/assets/{asset_id}/visibility", response_model=QuestionAssetView)
+def set_visibility(question_id: UUID, asset_id: UUID, payload: AssetVisibilityRequest, actor: CurrentUser, service: AssetService):
+    try:
+        return service.set_question_visibility(question_id, asset_id, student_visible=payload.student_visible, actor_id=actor.id)
     except FileStorageError as exc:
         raise file_http_exception(exc) from None

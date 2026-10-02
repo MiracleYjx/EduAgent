@@ -349,3 +349,61 @@ T152 的 E1 阶段通过：上传持久化/重启/同名不覆盖、资源越权
 - `tests/integration/test_review_round_migration.py`
 - `.specify/tasks.md`
 - `docs/validation-report.md`
+
+## T154：默认关闭与显式学生展示许可（2026-10-02）
+
+基线 deepcode / 44d7560d31ea7c1fe7752673222a88ddd95948ae。本次沿用 speckit-implement，依据用户明确确认完成此前待决的展示部分；TCR 先于新增/调整用例，见 [test-change-record-v2.md](test-change-record-v2.md) §11。T154 本次完成并勾选，其他任务状态保持。
+
+### 已确认语义及接线
+
+- QuestionAsset.student_visible 为非空 Boolean，Python/数据库均默认 false；0016 在 0015 上新增，旧资产及省略字段的直接数据库 INSERT 均关闭。Schema 严格接受 JSON bool，拒绝整数、NULL 等伪布尔；暂存 StagedAsset JSON 缺省也为 false。
+- 本课程教师可在合法校正/修订状态通过创建/关联、上传及 PATCH /api/questions/{question_id}/assets/{asset_id}/visibility 显式确定展示许可，暂存 PUT 保留该字段。继承已有 Approved/发布/历史保护，不能借开关修改冻结题图。教师列表/字节读取不按学生开关过滤；T159 再提供核对 UI，T158 正式确认编排承接暂存许可。
+- 学生考试 questions[].assets 和题图 GET 列表只含 true 且允许的区域；共享读取规则复用现有考试发布、分配和时间窗，或本人已提交/阅卷/复核答卷中的真实 Answer。只有 true 不授予访问独立题库、其他学生或其他题目的权限。合法题没有开放图返回 []，无题目权限返回 403。
+- 文件 GET 每次按当前正式资产开关、真实题目权限和允许区域检查；暂存图即使 true，在正式 QuestionAsset 尚未建立时仍仅教师读取。源卷与完整页图不开放；整页引用/完整页框及与已登记源卷/原页相同定位或字节的别名即使被标 true 也拒绝。教师需先建立仅含本题允许内容的可靠图并明确许可，裁切及摘要不证明自动去答案或图像理解成功。
+- 正式开关保存于自己的列，不反写终态暂存校正记录；单独开关不修改 G05 历史、图像上下文、文件身份或定位。真实备份/恢复保持暂存及正式 true，迁移不改变许可。0016 降级有 true 时拒绝静默丢失，需要先显式关闭后再降级。
+
+### 实际验证
+
+| 检查 | UTC 开始 / 耗时 | 结果 |
+| --- | --- | --- |
+| 先行学生许可用例 | 2026-10-02T05:00:23.817985+00:00；外层 20.556 s | 5 failed，实际字段/接口/Schema 缺失，不把任意 422 当许可已实现 |
+| 修正后聚焦 | 2026-10-02T05:07:06.341048+00:00；pytest 19.55 s，外层 25.268 s | 18 passed / 6 warnings；真实 JWT、PNG、学生列表/考试详情/字节、默认/显式许可、分配/时间窗/本人/异题边界、原页别名拒绝及原教师接口 |
+| 全量最终 pytest | 2026-10-02T05:12:45.152991+00:00；pytest 527.43 s，外层 536.960 s | 1685 collected；1683 passed / 0 failed / 0 errors / 2 skipped / 27 warnings |
+| 最终 mypy backend/app | 2026-10-02T05:12:32.408198+00:00；5.281 s | 161 source files 通过 |
+| 最终 Ruff backend/tests/0016 | 2026-10-02T05:12:44.783396+00:00；0.176 s | All checks passed |
+| 最终隔离库 Alembic check | 2026-10-02T05:12:54.516111+00:00；1.646 s | No new upgrade operations detected |
+| 真实 PostgreSQL 与备份恢复 | 全量包含本批及原 E1/E2 用例 | 0015→0016→0015→0016、历史 false/default/非空/原值、true 降级拒绝通过；标准 pg_dump/pg_restore 后正式资产 true、原暂存数组/核对历史/字节/原页权限保持 |
+
+首轮实现聚焦为 12 passed / 2 failed；新夹具未刷新 HTTP 上传后的旧 Session、两次独立反射表形成重复同名 FROM。按 TCR 修复生产/读取夹具，不改业务行为迎合旧缓存，不放宽断言；修正后 18 passed，最终全量通过。首轮 Ruff 的导入与简单条件问题已修正，原日志保留。
+
+全量两项 skip 为 M0 缺四项隔离变量和 Windows 符号链接权限，不记作门禁成功。既有 M0 未通过结论、T146 待真实教师标注保持；本批不将 API/模型检查当作教师 UI、OCR/Vision 调用、完整确认入库或模型质量验收。
+
+### 环境与保护回执
+
+使用现有 Python 3.13.13 及既有依赖，未安装/升级依赖；本批没有新增模型调用。所有验证只对专用数据库、Redis、临时 schema 及缓存文件根执行；源卷、原页及真实题图测试字节均有明确隔离归属。
+
+2026-10-02T05:22:54.501220+00:00 已核对零连接及 T154 标签后，仅清理本批 eduagent_e2_visibility_c51deed10352 与 eduagent-e2-visibility-redis-c51deed10352。原业务库仍 0012_audit_logs，原 PostgreSQL/Redis healthy；没有应用业务迁移、切换 .env、恢复或删除用户业务材料。
+
+九项保护文件（.env 和八个 UI/README/测试已有改动）SHA-256 与实施前相同，提交只含下列本批文件。验证对象为当前工作区，包含用户原样保留成果，不宣称干净 checkout 已独立验证。缓存 .cache/e2-t154-visible-20261002 保留先行/首轮/最终输出、JSON 时间与退出码、最终 JUnit、隔离与清理回执；全部被忽略，不提交密钥、dump、manifest 或临时材料。.specify/extensions.yml 不存在，后置 hook 按技能规则跳过。
+
+### 本批文件清单
+
+- `.specify/contracts/file-storage.md`
+- `.specify/contracts/paper-import.md`
+- `.specify/data-model.md`
+- `.specify/tasks.md`
+- `backend/app/api/question_assets.py`
+- `backend/app/api/submissions.py`
+- `backend/app/models/question_asset.py`
+- `backend/app/schemas/paper_import.py`
+- `backend/app/schemas/question_assets.py`
+- `backend/app/services/file_storage_service.py`
+- `backend/app/services/question_asset_service.py`
+- `backend/app/services/question_asset_access.py`
+- `migrations/versions/0016_asset_visibility.py`
+- `tests/contract/test_question_asset_visibility.py`
+- `tests/integration/test_question_asset_visibility_migration.py`
+- `tests/integration/test_question_asset_persistence.py`
+- `tests/unit/models/test_m3_migrations.py`
+- `docs/test-change-record-v2.md`
+- `docs/validation-report.md`

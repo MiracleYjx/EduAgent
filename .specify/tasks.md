@@ -559,7 +559,7 @@ M0 工程骨架 + Benchmark
 
 - [X] T153 [HIGH] [E2] **实现导入实体与校正持久模型**：在 `backend/app/models/`、`schemas/`、`domain/enums.py`、`migrations/versions/` 新增 PaperImport/SourcePage/ExtractedQuestion，扩展 Document.purpose、Question.source_type/frozen_at/analysis 和 G03 校正字段；知识库默认列表/摄取限定 knowledge_base，保持知识库条件非空、Document 原路径唯一事实源、source_page_ids 唯一表达及旧未知来源。新增解析纳入 Approved 守卫，不等 E4 才保护已批准内容。 依赖：T136、T139、T145、T152。per FR-041/042、G03/G06、data-model §7.1–3/8/10（F020） (missing)
 
-- [ ] T154 [HIGH] [E2] **实现题图资产及原页关系**：新增 `backend/app/models/question_asset.py`、`backend/app/api/question_assets.py`、相关 schema/迁移和服务，在文件服务绑定原图、裁图像素坐标、同导入页来源及最多 5 图；提供教师校正原图关联，学生资产仅含允许展示区域，避免把含答案整页当题图。G05 已确认的核对结构随暂存校正可靠保存，完整理解/处置服务在 T163 接入。 依赖：T138、T147、T148、T153。per FR-043、G05、data-model §7.4、file-storage（F021） (missing)
+- [X] T154 [HIGH] [E2] **实现题图资产及原页关系**：新增 `backend/app/models/question_asset.py`、`backend/app/api/question_assets.py`、相关 schema/迁移和服务，在文件服务绑定原图、裁图像素坐标、同导入页来源及最多 5 图；提供教师校正原图关联，学生资产仅含允许展示区域，避免把含答案整页当题图。G05 已确认的核对结构随暂存校正可靠保存，完整理解/处置服务在 T163 接入。 依赖：T138、T147、T148、T153。per FR-043、G05、data-model §7.4、file-storage（F021） (missing)
 
 - [ ] T155 [MEDIUM] [E2] **验证并确认 OCR 推理依赖**：在 `docs/evaluation.md` 记录候选 OCR 在标注扫描/公式表格/跨页与 Windows 打包环境的能力、版本、资源和局限，优先评估 plan 候选 PaddleOCR；给出少量方案的收益/代价，请用户锁定首版适配器与关键依赖后交给 T156。无需实现所有候选，不引入训练依赖。 依赖：T146。per FR-042、plan §9/14、ocr-provider（F022） (missing)
 

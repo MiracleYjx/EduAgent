@@ -8,6 +8,7 @@ from uuid import UUID
 
 from sqlalchemy import (
     JSON,
+    Boolean,
     CheckConstraint,
     DateTime,
     ForeignKey,
@@ -15,6 +16,7 @@ from sqlalchemy import (
     String,
     Text,
     UniqueConstraint,
+    false,
     func,
 )
 from sqlalchemy.dialects.postgresql import JSONB
@@ -45,6 +47,7 @@ class QuestionAsset(UUIDPrimaryKeyMixin, Base):
     width: Mapped[int] = mapped_column(Integer, nullable=False)
     height: Mapped[int] = mapped_column(Integer, nullable=False)
     caption: Mapped[str | None] = mapped_column(Text)
+    student_visible: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false(), nullable=False)
     source_page_id: Mapped[UUID | None] = mapped_column(ForeignKey("source_pages.id", ondelete="RESTRICT"), index=True)
     region: Mapped[dict[str, Any] | None] = mapped_column(JSON(none_as_null=True).with_variant(JSONB(none_as_null=True), "postgresql"))
     order_index: Mapped[int | None] = mapped_column(Integer)
