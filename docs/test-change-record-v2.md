@@ -347,3 +347,22 @@ T158/T159 实际文件补充：HTTP 校正边界独立放入 tests/contract/test
 本轮最终工作区全量为 1767 passed / 2 skipped / 50 warnings（2026-10-02T09:10:56.681445+00:00，pytest 473.24 s，外层 481.972 s）；mypy 176 source files 和 Ruff/隔离 Alembic check 通过。两项 skip 沿既有 M0 隔离配置/Windows 符号链接限制，不计通过。T158 的暂存 options 为 JSONB，对象键序在 PostgreSQL 中不能保留；已提交 JSON 列方案等待用户确认，未擅自调整。故先独立提交 T157；T158/T159 工作及先行证据保留但不勾选，相关测试与 UI 不进入本次 T157 提交。
 
 独立 T157 暂存快照补验 36 passed / 6 warnings，包含真实 PostgreSQL 失败保留与 0017 升降级；mypy 171 source files 和 Ruff 通过。只在暂存快照移除待决 T158 的接口/DTO/并发测试部分，工作区完整保留，未放宽所提交 T157 测试断言。2026-10-02T09:23:53.045025+00:00 已精确清理本批 DB/Redis，原业务库 0012_audit_logs；只有 T157 标记完成。
+
+## 14. T158 JSON 保序与校正确认收尾 TCR（2026-10-02，基线 c7ca20e）
+
+登记 UTC：2026-10-02T09:35:03.228988+00:00
+
+用户已批准 JSON 列、新增 0018 迁移及历史丢序标记；本轮按“每项完成后停下”只完成 T158，T159 源码保留，不勾选/提交其 UI。现有 Question.options 自 0002 起已是 JSON，ExtractedQuestion.options 在 PostgreSQL 为 JSONB；按真实类型转换，不误报正式题曾全部使用 JSONB。
+
+必要性：先前实现可完成校正/事务，但 JSONB 无法保留对象键序，SQLAlchemy 默认字典比较还会把仅重排当成未变，导致重排不落库且图像核对不失效。新增 tests/integration/test_options_json_migration.py：真实 PostgreSQL 0017→0018，历史对象/数组/空对象/NULL、既有 JSON 正式题、从历史暂存对象转入正式题的标记，目标类型 JSON、独立重读、降级丢序拒绝。0018 检查真实旧列类型，JSONB 非空对象标 false，原 JSON 保留已存顺序，不推造原卷排序。
+
+扩展已有本批 tests/integration/test_paper_import_flow.py 与 tests/contract/test_question_correction_api.py：C/A/D/B 原始对象顺序、新 Session 重读、同值仅换键序 PATCH 后持久、A→B→A 图像上下文失效、待补全 Draft 同事务转入/重复确认、order_preserved 服务只读/保留/传播、非法单题导致指定批次整体拒绝。正式 QuestionService.update 的选项重排与标记另以既有框架聚焦验证；不删旧断言，不放宽验收。
+
+order_preserved 仅描述当前选项序列是否被存储保留，不证明 OCR/LLM/源卷内容准确。历史 false 不因只修改解析、选项省略或相同选项重交而变 true；只有明确不同的选项序列/内容保存成功后更新标记，批次确认复制，重复确认不重写正式题。标记不作为新入库门禁。
+
+修改迁移图测试仅追加 0018，保留所有旧 revision/依赖断言。运行聚焦与最终 pytest/mypy/Ruff/隔离 Alembic check；只对本批专用 DB/Redis/文件根，业务库和 .env 不变。提交快照排除所有 T159 和用户既有 UI/README 变更，先行/最终输出保留 .cache/t158-correction-20261002。requirements 16/16，v2-readiness 36 项仍为后续门禁清单，沿用户本次继续执行授权不改勾选。后置 hooks 按 skill 检查。
+
+首轮新用例 3 failed / 5 passed：新标记响应缺失确为 KeyError；两项迁移用例的关联正式题夹具尚未满足 ck_extracted_question_link，未到目标 revision 检查。实施后聚焦 26 passed / 2 failed，剩余同一新夹具问题。先记录，再将已关联题设 Corrected、未关联题保留 Extracted，符合既有约束；不改业务约束/断言。静态导入与新测试未使用变量同时按规范修正。
+
+最终独立 T158 暂存快照全量：1758 passed / 0 failed / 2 skipped / 43 warnings（UTC 2026-10-02T09:46:09.541689+00:00，pytest 475.77 s、外层 484.769 s）。快照排除用户/T159 UI；mypy 173 source files 无问题（123.377 s），Ruff 通过，隔离 Alembic check 无差异。既有 skip 为 M0 缺四项隔离配置和 Windows 符号链接权限，不计门禁通过。
+2026-10-02T09:55:45.503541+00:00 已核对零连接/标签后清理本批 DB eduagent_e2_correction_60f11e107828 和 Redis eduagent-e2-correction-redis-60f11e107828；原业务库仍 0012_audit_logs。13 项保护文件字节相同，仅 T158 勾选，T159 保留等待下一项。

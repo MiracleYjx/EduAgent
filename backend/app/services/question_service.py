@@ -14,8 +14,10 @@ from pydantic import BaseModel, ConfigDict
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session, selectinload
+from sqlalchemy.orm.attributes import flag_modified
 
 from backend.app.domain.enums import QuestionSourceType, QuestionStatus, QuestionType
+from backend.app.domain.question_options import options_equal
 from backend.app.models import Course, Question, User
 from backend.app.services.audit_service import audit_after_commit
 from backend.app.services.course_service import (
@@ -80,6 +82,7 @@ class QuestionSummary(BaseModel):
     type: QuestionType
     content: str
     options: dict[str, Any] | list[Any] | None = None
+    order_preserved: bool = True
     reference_answer: str | None = None
     scoring_rubric: str | None = None
     analysis: str | None = None
@@ -479,7 +482,15 @@ class QuestionService:
             )
         if score is not _UNSET:
             question.score = _normalize_score(score)  # type: ignore[arg-type]
-        if question.image_assessment is not None and previous_image_input != {field: getattr(question, field) for field in image_input_fields}:
+        options_changed = not options_equal(previous_image_input["options"], question.options)
+        if options_changed:
+            flag_modified(question, "options")
+            question.order_preserved = True
+        image_input_changed = options_changed or any(
+            previous_image_input[field] != getattr(question, field)
+            for field in image_input_fields if field != "options"
+        )
+        if question.image_assessment is not None and image_input_changed:
             from backend.app.schemas.image_assessment import advance_image_context
             question.image_assessment = advance_image_context(question.image_assessment)
         return self._commit_question(question, "更新题目失败。")
@@ -629,6 +640,7 @@ class QuestionService:
             type=question.type,
             content=question.content,
             options=deepcopy(question.options),
+            order_preserved=question.order_preserved,
             reference_answer=question.reference_answer,
             scoring_rubric=question.scoring_rubric,
             analysis=question.analysis,

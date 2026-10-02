@@ -59,10 +59,11 @@ EXPECTED_CHAIN: dict[str, str] = {
     "0015_question_assets": "0014_paper_import",
     "0016_asset_visibility": "0015_question_assets",
     "0017_extracted_order": "0016_asset_visibility",
+    "0018_options_json": "0017_extracted_order",
 }
 
 #: 当前 head（逐个任务向后移动）。
-EXPECTED_HEAD = "0017_extracted_order"
+EXPECTED_HEAD = "0018_options_json"
 
 
 @dataclass(frozen=True, slots=True)

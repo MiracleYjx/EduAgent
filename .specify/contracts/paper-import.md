@@ -156,10 +156,21 @@ error_message 保留真实步骤和中文可处理原因；不得回传凭据或
 暂存校正数组持久保留 student_visible，教师显式 true 表示已核对资产只含允许学生展示的信息；省略/历史缺省为 false。整页原图及已登记源卷/原页别名不能开放，需先建立真实允许区域题图。源卷/原页本身始终仅教师读取；暂存图没有正式 QuestionAsset 和学生题目授权之前，即使 true 也不开放字节。T158 正式映射承接该字段，终态原数组保持不变；正式题后续许可保存于 QuestionAsset.student_visible。T159 提供教师校正开关。本字段不替代 G05 核对及审核，不构造模型成功/教师意见。
 
 
-## T157 实施接线补充
+## T157–T158 实施接线补充
 
 - 页图采用 pypdfium2 5.13.0，以 150 DPI 渲染为持久 PNG；文字提取复用 pypdf，扫描/不可靠页调用已配置 OCR。校正坐标对应保存的真实页图像素。原文件可靠落盘并登记后返回 Uploaded，进程内后台处理；启动时将遗留 Uploaded/Parsing/Extracting 收敛为 Failed / PAPER_INTERRUPTED，保留原阶段与材料，教师显式新建导入重试。
 - 拆题通过当前 BaseLLMProvider 按两页分批传入真实文字，携带未完题的原文片段；答案/评分标准/解析必须附可校验原文摘录。后续答案页可补此前暂存题的真实来源与缺失字段；冲突明确失败。零题失败，已完成批次与页图保留；不会生成知识库片段。
 - GET /api/paper-imports?course_id=... 返回当前教师所管理课程的真实导入记录，用于重新打开；GET 对原文件/页图缺失附加 file_diagnostics，不改写旧终态或假定成功。created_at/updated_at 用 UTC；parsed_page_count/question_count 为已保存数量。
+- ExtractedQuestionView / CorrectionPayload 增加 order_index（正整数或 NULL）。字段、唯一性和锁内交换语义见模型实施补充；确认前必须明确题序。数组空值/未知仍沿原规则。
+- PATCH / commit 与题图修改复用 PaperImport → ExtractedQuestion 锁序；提交正式 Draft、同 ID 题图和 question_id/Corrected 为同一事务。题图字节/来源验证失败回滚整批；重复确认只返回原正式题，不反写来源。
+- 本段是实现边界说明，不代表 T160/T168 的教师质量、性能或完整系统验收通过。
 
-ExtractedQuestionView 返回 nullable order_index；新提取题明确排序，历史未知为 NULL。校正/确认与 UI 由 T158/T159 接续。本段不代表 T160/T168 质量或性能验收。
+
+## T158 选项保序、标记与校正接口
+
+- options 沿用对象/数组/null 请求形状，两实体持久列为 JSON。服务的选项比较保留对象键序；仅交换同组选项键也是实际编辑，必须落盘并推进图像上下文，A→B→A 不复用旧核对。
+- ExtractedQuestionView、CommitQuestionView 和正式 QuestionSummary 返回只读 order_preserved。历史不可证明顺序的 JSONB 非空对象标 false，并传播到其关联的正式题；不排序恢复、不用目标 JSON 类型消除历史说明。
+- order_preserved 仅反映当前提交序列在存储链路中是否保留，不等同于源卷字段准确率。省略或原样重交 options/修改解析保持 false；明确不同选项内容或键序保存后为 true。客户端不能直接 PATCH 标记。
+- PATCH 与题图修改沿 PaperImport → ExtractedQuestion 锁序重新读取，拒绝终态改写；显式拒绝须理由。来源页/像素框/资产关系完整校验，未知边界可为 null，无图须 assets=[]。
+- commit 指定非空不重复批次，非法/Rejected/未就绪项使整批拒绝。Draft、QuestionAsset、来源及 question_id/Corrected 同事务；缺答案/Rubric/图像条件仍待补全。部分确认继续 Pending Review，全部处置且有入库题才 Ready，全部拒绝 Rejected。重复确认返回当前既有正式题与标记，不覆盖修订或反写来源。
+- 校正/UI 的历史 false 提示由 T159 衔接；本轮不把 T159 或 T160/T168 验收标为完成。

@@ -567,7 +567,7 @@ M0 工程骨架 + Benchmark
 
 - [X] T157 [HIGH] [E2] **实现试卷上传、按页解析与拆题编排**：在新增 `backend/app/services/paper_import_service.py`、`api/paper_import.py`、`ai/ingestion/paper_pipeline.py`、`paper_extraction/` 及已有 `parsers.py` 中，接入路由/依赖装配：可靠保存原卷后返回 Uploaded，逐页保存页图，文字优先提取、混合/扫描走 OCR，拆题结果经 Pydantic 后暂存；落实最多 50 页、零题失败、实际页/题进度和原错误/中间结果保留，paper_source 不进入 Chunk/Embedding。 依赖：T153、T154、T156。per FR-041/042、paper-import、plan §8/9（F024） (missing)
 
-- [ ] T158 [HIGH] [E2] **实现校正、拒绝与幂等确认入库**：在 `services/question_correction_service.py`、导入服务/API 实现列表/详情/PATCH/commit，持久修改题边界、跨页、顺序、解析与图像关联；同导入串行核对，Question(Draft)、题图/来源与 ExtractedQuestion.question_id/Corrected 同事务，非法指定批次整体拒绝，重复确认返回已有题。缺答案/Rubric 保持待补全；全部拒绝与部分确认的终态按契约处理，确认后不反写来源。 依赖：T157。per FR-041/042、paper-import 事务/状态机、US1-v2/AC2（F025） (missing)
+- [X] T158 [HIGH] [E2] **实现校正、拒绝与幂等确认入库**：在 `services/question_correction_service.py`、导入服务/API 实现列表/详情/PATCH/commit，持久修改题边界、跨页、顺序、解析与图像关联；同导入串行核对，Question(Draft)、题图/来源与 ExtractedQuestion.question_id/Corrected 同事务，非法指定批次整体拒绝，重复确认返回已有题。缺答案/Rubric 保持待补全；全部拒绝与部分确认的终态按契约处理，确认后不反写来源。 依赖：T157。per FR-041/042、paper-import 事务/状态机、US1-v2/AC2（F025） (missing)
 
 - [ ] T159 [HIGH] [E2] **实现原页与结构化题目校正界面**：新增 `backend/app/ui/paper_import_view.py` 和 `paper_correction_view.py`，接入 `gradio_app.py`/导航及真实加载器；提供独立试卷入口、原页与暂存题并排、跨页/题边界/选项/图像关联校正、显式拒绝/批次确认、待补全及失败说明。重新打开读取持久记录；图像理解/核对入口由 T163/T164 补接，不用 UI 状态代替保存。 依赖：T158。per FR-041/042、SC-010、plan Gate 10/11（F026） (missing)
 

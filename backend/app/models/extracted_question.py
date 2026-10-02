@@ -7,6 +7,7 @@ from uuid import UUID
 
 from sqlalchemy import (
     JSON,
+    Boolean,
     CheckConstraint,
     ForeignKey,
     Index,
@@ -14,6 +15,7 @@ from sqlalchemy import (
     Numeric,
     Text,
     UniqueConstraint,
+    true,
 )
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
@@ -49,7 +51,8 @@ class ExtractedQuestion(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     source_page_ids: Mapped[list[str]] = mapped_column(nullable_json(), default=list, server_default="[]", nullable=False)
     question_type: Mapped[QuestionType | None] = mapped_column(enum_type(QuestionType, "extracted_question_type", length=32))
     content: Mapped[str | None] = mapped_column(Text)
-    options: Mapped[dict[str, Any] | list[Any] | None] = mapped_column(nullable_json())
+    options: Mapped[dict[str, Any] | list[Any] | None] = mapped_column(JSON(none_as_null=True))
+    order_preserved: Mapped[bool] = mapped_column(Boolean, default=True, server_default=true(), nullable=False)
     reference_answer: Mapped[str | None] = mapped_column(Text)
     scoring_rubric: Mapped[str | None] = mapped_column(Text)
     score: Mapped[Decimal | None] = mapped_column(Numeric(8, 2))

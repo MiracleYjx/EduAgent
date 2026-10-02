@@ -337,7 +337,7 @@ Uploaded -> Parsing -> Extracting -> Pending Review -> Ready
 | source_page_ids | JSONB UUID 字符串数组；非空；默认 [] | 跨页原题的来源页；确认时非空、去重，按 page_number 顺序排列 |
 | question_type | String(32) 题型枚举；可空 | 未可靠识别可为 NULL；Corrected 前须为有效题型 |
 | content | Text；可空 | 原题题干；Corrected 前非空且完成核对 |
-| options | JSONB 对象/数组；可空 | 保留已有题型选项形状和顺序；选择题确认前必须完整 |
+| options | JSON 对象/数组；可空 | 保留已有题型选项形状和顺序；选择题确认前必须完整 |
 | reference_answer | Text；可空 | 可没有答案，保持待补全，不能假造标准答案 |
 | scoring_rubric | Text；可空 | 原评分标准；缺失主观题标准则保持待补全 |
 | score | Numeric(8,2)；可空 | 原分值未知可为 NULL；已知 >0；转正式题前由教师明确正数分值 |
@@ -1061,3 +1061,14 @@ v1.0 旧考试，以及沿原创建/手动选题接口新建且未保存合法�
 ## T157/T158 实施补充：导入题序（用户确认）
 
 ExtractedQuestion 新增可空 Integer order_index；本次导入内从 1 开始，CHECK 正整数且 UNIQUE(paper_import_id, order_index)。新提取题按实际输出顺序明确赋值，历史未知为 NULL，不由原题号猜测；question_number 独立保留原文。教师调整到另一待校正题所占题序时，同导入锁内交换；占位题已 Corrected/Rejected 时拒绝交换，终态来源不改写。该序号不是 ExamQuestion 题序，确认前须明确。0017 提供迁移；已存在非空题序时不允许静默降级丢失。
+
+
+## T158 实施补充：选项 JSON 与真实顺序标记（用户确认）
+
+ExtractedQuestion.options 使用 SQLAlchemy JSON(none_as_null=True)，Question.options 使用 SQLAlchemy JSON（其初始 0002 即为 JSON）。0018 明确两列为 PostgreSQL JSON，不引入选项顺序数组或关联表，保留既有对象/数组/null 接口形状。JSON 不使用 sort_keys；对象选项键序与数组顺序均由当前输入保留。
+
+两实体新增非空 Boolean order_preserved，默认 true，服务端只读，专指选项序列的存储保留情况，与导入 order_index、ExamQuestion 题序无关。true 不代表 OCR/LLM 质量、源卷顺序已被教师核实；false 表示旧 JSONB 对象的原始键序无法证明，不断言当前序列一定错误。历史 JSONB 非空对象转换后 false，数组/空对象/NULL 为 true；原 JSON 正式题保留当前存储顺序，但经 question_id 关联的旧暂存 false 传播到对应正式题，不因目标为 JSON 伪称原始顺序已恢复。
+
+新提取与新建按当前输入保序。教师省略 options、只改其他字段、或重交相同值及键序，均保留历史标记；实际不同的选项内容/顺序成功保存后 true。仅重排对象键也按实际变化写入数据库并使旧图像上下文失效；不能用 Python 字典相等掩盖变化。确认入库复制当前标记，重复确认返回既有正式题的当前标记而不覆盖修订。标记不是新增入库门禁。
+
+0018 原样转换现存 JSONB，不按题号/答案猜测恢复。降级有 false 标记或暂存非空对象时明确拒绝丢失历史说明/选项键序，须先导出并显式处置；正式题列保持其原 JSON 定义。业务数据库迁移和生产切换另行授权。

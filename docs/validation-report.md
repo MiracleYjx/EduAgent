@@ -521,3 +521,64 @@ T157 先行缺模块/入口用例确实失败；实现后真实渲染/拆题 13 
 - tests/unit/ingestion/test_paper_pipeline.py
 - tests/unit/ingestion/test_paper_provider_lifecycle.py
 - tests/unit/models/test_m3_migrations.py
+
+## T158：校正、拒绝、幂等确认与选项 JSON 保序（2026-10-02）
+
+基线 deepcode / c7ca20e；使用 speckit-implement 按用户确认的 JSON 方案完成本项。用户要求每项完成后停下，本次不提交/勾选 T159。前轮的校正服务/API 与测试继续保留并收尾，TCR §14 在新增/修改测试之前记录。requirements 16/16；v2-readiness 36 项为后续全局门禁，按本次继续执行授权推进，不修改清单或旧任务。
+
+### 实际交付
+
+- PATCH 与 commit、题图修改使用 PaperImport → ExtractedQuestion 锁序，重新读取持久状态，来源页/边界/资产组合法性统一校验。支持持久字段/跨页/题序/解析/图像关联、明确拒绝及部分确认，终态不反写来源。
+- 显式指定批次先完整验证再建正式题；Draft、同 ID QuestionAsset、原页关联及 question_id/Corrected 为同一事务。非法、未就绪或被拒题使整批拒绝；持久化错误整批回滚。重复确认返回已存在正式题当前状态、内容及标记，不复制创建或覆盖修订。缺答案/Rubric/图像条件保持待补全。
+- 0018 将暂存 options 的 JSONB 转为 JSON，并明确正式 Question.options 保持 JSON。正式列自 0002 起已为 JSON；针对真实旧类型反射处理，不误称正式题原本全部使用 JSONB。其余资产/metadata 的 JSONB 不变。
+- 两实体新增只读 order_preserved；JSONB 非空对象的原始键序不可证明，标 false，关联的历史正式题继承 false。数组/空对象/NULL 和原 JSON 数据按存储序列保留。转换不猜测恢复原卷顺序，标记不代替模型准确性或人工核对。
+- 实际不同的选项内容/键序保存后 true，省略或原样重交 options、仅改解析不清除历史 false。确认复制标记；同义重复确认不修改它。仅交换对象键也真实写入数据库并递增图像上下文，A→B→A 不复用原核对。修复范围限于选项，两处实际写入边界使用保序比较，不扩大一般 metadata 比较。
+- 降级存在 false 说明或暂存非空对象时拒绝静默丢失标记/键序，须先导出并显式处置；正式列保持其原 JSON 定义。本批只在独立验证库应用迁移，不升级业务数据库。
+
+### 聚焦验证和先行记录
+
+先行新用例 3 failed / 5 passed：标记响应缺失（KeyError）真实失败；两项新迁移夹具关联了正式题却未设 Corrected，先触发既有 CHECK，不把该夹具错误当作迁移能力证明。实施后 26 passed / 2 failed，剩余同一夹具问题；先补 TCR，再按既有约束修正，未更改业务约束或放宽断言。
+
+修正后 28 passed / 11 warnings；UTC 2026-10-02T09:43:26.259731+00:00，pytest 23.34 s，外层 26.591 s。真实 PostgreSQL 验证规范旧 JSON 与受控旧 JSONB 两种正式列历史、暂存对象/数组/NULL、目标 json 类型及默认值、历史关联 false、降级拒绝、C/A/D/B 键序的新 Session 重读、仅同值重排保存、正式题后续重排与核对失效。API 验证 readonly 标记、非法批次、部分/全拒、资产许可、缺材料、同图当前证据转入和重复确认；并发不同 Session 确认只生成同一题，迟到编辑拒绝。
+
+工作区 mypy 177 source files 和 Ruff 通过；专用库 Alembic check 无新增差异（UTC 09:46:11.879051，1.48 s）。独立提交快照随后运行全量与静态检查，结果见下。没有追加真实模型调用，未开展 T160/T168 教师字段精度或整卷性能验收。
+
+### 环境与范围保护
+
+复用已批准 T157 隔离 Python 3.13.13 运行时，未安装/升级依赖。验证只使用本批专用 PostgreSQL、带 T158 标签的 Redis、缓存文件根和临时 schema；不改业务数据、.env、模型配置或用户材料。
+
+对 .env、两份 README、用户设计系统/题库/相关测试和 T159 UI/接线共 13 项逐字节与本轮初始快照核对。提交快照排除全部 UI、用户未提交变更与 T159 测试，不依赖这些文件完成 T158。缓存 .cache/t158-correction-20261002 保存先行/聚焦/最终输出、JSON 时间/退出码、JUnit、暂存快照与清理回执，不提交秘密、临时数据或运行时。.specify/extensions.yml 不存在，后置 hook 按技能跳过。
+
+### 独立提交最终结果
+
+| 检查 | UTC 开始 / 耗时 | 结果 |
+| --- | --- | --- |
+| 独立 T158 全量 pytest tests/ -q | 2026-10-02T09:46:09.541689+00:00；pytest 475.77 s，外层 484.769 s | 1758 passed / 0 failed / 0 errors / 2 skipped / 43 warnings |
+| 独立 T158 mypy backend/app | 2026-10-02T09:46:03.277129+00:00；123.377 s | 173 source files 无问题 |
+| 独立 T158 Ruff backend/tests/0018 | 2026-10-02T09:46:08.473311+00:00；0.26 s | All checks passed |
+| 专用数据库 Alembic check | 2026-10-02T09:46:11.879051+00:00；1.48 s | No new upgrade operations detected |
+
+两项 skip 保留原 M0 四项隔离配置缺失和 Windows 符号链接权限限制，不作为门禁通过。独立快照没有用户未提交的题库/设计系统测试或 T159 测试，测试数与先前工作区全量不作直接数量比较。没有在全量中追加失败后再放宽断言。所有 T158 代码在该次全量之前已完成，之后只写报告/标记，不重复无关测试。
+
+2026-10-02T09:55:45.503541+00:00 已核对零连接与 T158 任务标签，仅清理 eduagent_e2_correction_60f11e107828 与 eduagent-e2-correction-redis-60f11e107828；业务库仍 0012_audit_logs。13 项保护文件 SHA-256 与本轮开始一致。只勾选 T158；T159 代码/接线/测试与初始快照保持，尚未提交或验收。
+
+### 本项提交文件
+
+- .specify/contracts/paper-import.md
+- .specify/data-model.md
+- .specify/tasks.md
+- backend/app/api/paper_import.py
+- backend/app/domain/question_options.py
+- backend/app/models/extracted_question.py
+- backend/app/models/question.py
+- backend/app/schemas/paper_import.py
+- backend/app/services/question_asset_service.py
+- backend/app/services/question_correction_service.py
+- backend/app/services/question_service.py
+- docs/test-change-record-v2.md
+- docs/validation-report.md
+- migrations/versions/0018_options_json.py
+- tests/contract/test_question_correction_api.py
+- tests/integration/test_options_json_migration.py
+- tests/integration/test_paper_import_flow.py
+- tests/unit/models/test_m3_migrations.py

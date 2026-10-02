@@ -7,7 +7,17 @@ from decimal import Decimal
 from typing import TYPE_CHECKING, Any
 from uuid import UUID
 
-from sqlalchemy import JSON, CheckConstraint, DateTime, ForeignKey, Index, Numeric, Text
+from sqlalchemy import (
+    JSON,
+    Boolean,
+    CheckConstraint,
+    DateTime,
+    ForeignKey,
+    Index,
+    Numeric,
+    Text,
+    true,
+)
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
@@ -37,6 +47,7 @@ class Question(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     )
     content: Mapped[str] = mapped_column(Text, nullable=False)
     options: Mapped[dict[str, Any] | list[Any] | None] = mapped_column(JSON)
+    order_preserved: Mapped[bool] = mapped_column(Boolean, default=True, server_default=true(), nullable=False)
     reference_answer: Mapped[str | None] = mapped_column(Text)
     scoring_rubric: Mapped[str | None] = mapped_column(Text)
     image_assessment: Mapped[dict[str, Any] | None] = mapped_column(JSON(none_as_null=True).with_variant(JSONB(none_as_null=True), "postgresql"))

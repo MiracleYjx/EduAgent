@@ -22,6 +22,9 @@ from backend.app.core.config import AppSettings, ConfigurationError, get_setting
 from backend.app.core.database import get_db, get_session_factory
 from backend.app.core.security import CurrentUser, get_app_settings
 from backend.app.schemas.paper_import import (
+    CommitRequest,
+    CommitResponse,
+    CorrectionPayload,
     ExtractedQuestionView,
     PaperImportView,
 )
@@ -30,6 +33,7 @@ from backend.app.services.paper_import_service import (
     PaperImportRunner,
     PaperImportService,
 )
+from backend.app.services.question_correction_service import QuestionCorrectionService
 
 router = APIRouter(prefix="/api/paper-imports", tags=["试卷导入"])
 
@@ -112,5 +116,46 @@ def get_paper(identity: UUID, actor: CurrentUser, service: ImportService):
 def get_questions(identity: UUID, actor: CurrentUser, service: ImportService):
     try:
         return service.questions(identity, actor_id=actor.id)
+    except FileStorageError as exc:
+        raise file_http_exception(exc) from None
+
+
+def get_correction_service(
+    session: Annotated[Session, Depends(get_db)],
+    settings: Annotated[AppSettings, Depends(get_app_settings)],
+) -> QuestionCorrectionService:
+    return QuestionCorrectionService(session, root=settings.storage_root)
+
+
+CorrectionService = Annotated[
+    QuestionCorrectionService, Depends(get_correction_service)
+]
+
+
+@router.patch(
+    "/{identity}/questions/{question_id}", response_model=ExtractedQuestionView
+)
+def patch_question(
+    identity: UUID,
+    question_id: UUID,
+    payload: CorrectionPayload,
+    actor: CurrentUser,
+    service: CorrectionService,
+):
+    try:
+        return service.patch(identity, question_id, payload, actor_id=actor.id)
+    except FileStorageError as exc:
+        raise file_http_exception(exc) from None
+
+
+@router.post("/{identity}/commit", response_model=CommitResponse)
+def commit_questions(
+    identity: UUID,
+    payload: CommitRequest,
+    actor: CurrentUser,
+    service: CorrectionService,
+):
+    try:
+        return service.commit(identity, payload.question_ids, actor_id=actor.id)
     except FileStorageError as exc:
         raise file_http_exception(exc) from None

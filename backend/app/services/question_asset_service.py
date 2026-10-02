@@ -76,7 +76,7 @@ class QuestionAssetService:
         if record is None:
             raise FileStorageError("FILE_NOT_FOUND", "暂存题不存在。", http_status=404)
         self._teacher(record.paper_import.course_id, actor_id)
-        self.session.scalar(select(PaperImport).where(PaperImport.id == record.paper_import_id).with_for_update())
+        self.session.scalar(select(PaperImport).where(PaperImport.id == record.paper_import_id).with_for_update().execution_options(populate_existing=True))
         record = self.session.scalars(select(ExtractedQuestion).where(ExtractedQuestion.id == identity).with_for_update().execution_options(populate_existing=True)).one()
         if writing and (record.status != ExtractedQuestionStatus.PENDING_CORRECTION or record.paper_import.status != PaperImportStatus.PENDING_REVIEW):
             raise FileStorageError("PAPER_STATE_CONFLICT", "仅待校正题接受题图修改。", current_status=record.status.value)
@@ -213,6 +213,12 @@ class QuestionAssetService:
 
     def replace_staged(self, extracted_id: UUID, assets: list[StagedAsset], *, actor_id: UUID) -> list[StagedAsset]:
         record = self._staged(extracted_id, actor_id, writing=True)
+        self.apply_staged(record, assets, actor_id=actor_id)
+        self._commit()
+        return self.list_staged(extracted_id, actor_id=actor_id)
+
+    def apply_staged(self, record: ExtractedQuestion, assets: list[StagedAsset], *, actor_id: UUID) -> None:
+        """Validate and assign inside the caller-owned correction transaction."""
         if len(assets) > 5 or len({asset.id for asset in assets}) != len(assets):
             raise FileStorageError("QUESTION_ASSET_LIMIT", "资产身份須唯一且最多五图。", http_status=422)
         existing = {UUID(entry["id"]): entry for entry in record.assets or []}
@@ -233,8 +239,6 @@ class QuestionAssetService:
             if before != after:
                 record.image_assessment = advance_image_context(record.image_assessment)
             record.assets = entries
-        self._commit()
-        return self.list_staged(extracted_id, actor_id=actor_id)
 
     def remove_staged(self, extracted_id: UUID, asset_id: UUID, *, actor_id: UUID) -> None:
         current = self.list_staged(extracted_id, actor_id=actor_id)

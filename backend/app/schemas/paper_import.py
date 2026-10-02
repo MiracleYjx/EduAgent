@@ -21,6 +21,7 @@ from backend.app.domain.enums import (
     ExtractedBy,
     ExtractedQuestionStatus,
     PaperImportStatus,
+    QuestionStatus,
     QuestionType,
 )
 
@@ -120,6 +121,7 @@ class ExtractedQuestionData(CorrectionFields):
 
 
 class CorrectionPayload(CorrectionFields):
+    order_index: int | None = Field(default=None, ge=1, strict=True)
     action: Literal["edit", "reject"] = "edit"
     source_page_ids: list[UUID] = Field(default_factory=list)
     @field_validator("source_page_ids")
@@ -153,6 +155,7 @@ class ExtractedQuestionView(ExtractedQuestionData):
     id: UUID
     paper_import_id: UUID
     order_index: int | None
+    order_preserved: bool
     status: ExtractedQuestionStatus
     question_id: UUID | None
     image_assessment: dict[str, Any] | None
@@ -192,3 +195,28 @@ class PaperImportView(BaseModel):
     pages: list[SourcePageView]
     questions: list[ExtractedQuestionView]
     file_diagnostics: list[dict[str, str]] = Field(default_factory=list)
+
+class CommitRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    question_ids: list[UUID] = Field(min_length=1)
+
+    @field_validator("question_ids")
+    @classmethod
+    def unique_ids(cls, values: list[UUID]) -> list[UUID]:
+        if len(values) != len(set(values)):
+            raise ValueError("批次题目不得重复。")
+        return values
+
+
+class CommitQuestionView(BaseModel):
+    extracted_question_id: UUID
+    question_id: UUID
+    question_status: QuestionStatus
+    order_preserved: bool
+    completion_status: Literal["complete", "needs_completion"]
+
+
+class CommitResponse(BaseModel):
+    paper_import_id: UUID
+    status: PaperImportStatus
+    questions: list[CommitQuestionView]
