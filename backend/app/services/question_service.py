@@ -490,6 +490,8 @@ class QuestionService:
             previous_image_input[field] != getattr(question, field)
             for field in image_input_fields if field != "options"
         )
+        if image_input_changed:
+            question.validation_revision += 1
         if question.image_assessment is not None and image_input_changed:
             from backend.app.schemas.image_assessment import advance_image_context
             question.image_assessment = advance_image_context(question.image_assessment)
@@ -542,6 +544,8 @@ class QuestionService:
             raise QuestionValidationError(
                 f"题目状态不能从“{current_status.value}”变更为“{next_status.value}”。"
             )
+        if current_status is QuestionStatus.NEEDS_REVISION and next_status is QuestionStatus.PENDING_REVIEW:
+            question.validation_revision += 1
         question.status = next_status
         if next_status is QuestionStatus.APPROVED:
             question.frozen_at = datetime.now(UTC)
@@ -586,6 +590,7 @@ class QuestionService:
                 .options(selectinload(Question.course))
                 .where(Question.id == normalized_id)
                 .with_for_update()
+                .execution_options(populate_existing=True)
             )
         except SQLAlchemyError as exc:
             raise QuestionServiceError("无法读取题目信息。") from exc

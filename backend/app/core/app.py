@@ -13,6 +13,7 @@ from pydantic import BaseModel
 
 from backend.app.api.admin import router as admin_router
 from backend.app.api.auth import router as auth_router
+from backend.app.api.content_validation import router as content_validation_router
 from backend.app.api.courses import router as courses_router
 from backend.app.api.exams import router as exams_router
 from backend.app.api.file_storage import router as file_storage_router
@@ -112,6 +113,7 @@ def create_app(
     app.include_router(question_generation_router)
     app.include_router(questions_router)
     app.include_router(question_assets_router)
+    app.include_router(content_validation_router)
     app.include_router(paper_import_router)
     app.include_router(exams_router)
     app.include_router(grading_router)

@@ -1,16 +1,31 @@
-"""G05 持久证据 Schema；本批不执行 Vision 或人工语义核对。"""
+"""Persistent image evidence and authenticated manual commands."""
+
 from __future__ import annotations
 
-from typing import Literal, Self
+from typing import Any, Literal, Self
 from uuid import UUID
 
-from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, model_validator
+from pydantic import (
+    AwareDatetime,
+    BaseModel,
+    ConfigDict,
+    Field,
+    field_validator,
+    model_validator,
+)
 
 from backend.app.schemas.paper_import import PixelRegion
 
 
 class EvidenceModel(BaseModel):
     model_config = ConfigDict(extra="forbid")
+
+    @field_validator("*")
+    @classmethod
+    def no_blank_strings(cls, value: Any) -> Any:
+        if isinstance(value, str) and not value.strip():
+            raise ValueError("Evidence text must not be blank.")
+        return value
 
 
 class ImageInput(EvidenceModel):
@@ -31,7 +46,9 @@ class ImageInputRefs(EvidenceModel):
 
     @model_validator(mode="after")
     def image_order(self) -> Self:
-        if [image.image_index for image in self.images] != list(range(1, len(self.images) + 1)):
+        if [image.image_index for image in self.images] != list(
+            range(1, len(self.images) + 1)
+        ):
             raise ValueError("图片序号须连续对应输入顺序。")
         if len({image.asset_id for image in self.images}) != len(self.images):
             raise ValueError("图片输入身份重复。")
@@ -101,12 +118,24 @@ class ImageUnderstandingRun(EvidenceModel):
     @model_validator(mode="after")
     def truthful_outcome(self) -> Self:
         if self.outcome == "running":
-            if any(value is not None for value in (self.result, self.error, self.completed_at)):
+            if any(
+                value is not None
+                for value in (self.result, self.error, self.completed_at)
+            ):
                 raise ValueError("未结束调用不能保存成功/失败结束事实。")
         elif self.completed_at is None or self.completed_at < self.started_at:
             raise ValueError("结束时间须真实且不早于开始。")
         elif self.outcome == "completed":
-            if self.result is None or self.error is not None or any(image.width is None or image.height is None or image.mime_type is None for image in self.input_refs.images):
+            if (
+                self.result is None
+                or self.error is not None
+                or any(
+                    image.width is None
+                    or image.height is None
+                    or image.mime_type is None
+                    for image in self.input_refs.images
+                )
+            ):
                 raise ValueError("成功调用必须有合法结果和真实图像事实。")
         elif self.error is None or self.result is not None:
             raise ValueError("技术失败必须保留真实错误，不保存成功结果。")
@@ -152,16 +181,29 @@ class ImageManualCheck(EvidenceModel):
     @model_validator(mode="after")
     def whole_group_review(self) -> Self:
         ids = {image.asset_id for image in self.input_refs.images}
-        if {finding.asset_id for finding in self.image_findings} != ids or len(self.image_findings) != len(ids):
+        if {finding.asset_id for finding in self.image_findings} != ids or len(
+            self.image_findings
+        ) != len(ids):
             raise ValueError("人工核对必须逐一对应整组当前图像。")
-        if any(image.width is None or image.height is None or image.mime_type is None for image in self.input_refs.images):
+        if any(
+            image.width is None or image.height is None or image.mime_type is None
+            for image in self.input_refs.images
+        ):
             raise ValueError("人工核对须有实际可读图像尺寸/格式。")
-        if any(condition.asset_id not in ids for condition in self.confirmed_conditions):
+        if any(
+            condition.asset_id not in ids for condition in self.confirmed_conditions
+        ):
             raise ValueError("条件引用不属于核对输入。")
         for finding in self.image_findings:
-            if finding.finding == "conditions_confirmed" and not any(c.asset_id == finding.asset_id for c in self.confirmed_conditions):
+            if finding.finding == "conditions_confirmed" and not any(
+                c.asset_id == finding.asset_id for c in self.confirmed_conditions
+            ):
                 raise ValueError("确认必要条件须保存实际条件。")
-        if self.status == "confirmed" and (self.issues or any(f.finding == "unresolved" for f in self.image_findings) or any(r.resolution != "resolved" for r in self.issue_resolutions)):
+        if self.status == "confirmed" and (
+            self.issues
+            or any(f.finding == "unresolved" for f in self.image_findings)
+            or any(r.resolution != "resolved" for r in self.issue_resolutions)
+        ):
             raise ValueError("未解决问题不能宣称已确认。")
         return self
 
@@ -192,7 +234,9 @@ class ImageAssessment(EvidenceModel):
     def unique_events(self) -> Self:
         for events, number in ((self.runs, "run_no"), (self.manual_checks, "check_no")):
             numbers = [getattr(event, number) for event in events]
-            if numbers != sorted(set(numbers)) or len({event.id for event in events}) != len(events):
+            if numbers != sorted(set(numbers)) or len(
+                {event.id for event in events}
+            ) != len(events):
                 raise ValueError("调用/核对轮次或身份重复，或非单调顺序。")
             if any(event.context_revision > self.context_revision for event in events):
                 raise ValueError("事件引用未来修订。")
@@ -205,3 +249,93 @@ def advance_image_context(value: dict | None) -> dict:
     assessment = ImageAssessment.model_validate(value)
     assessment.context_revision += 1
     return assessment.model_dump(mode="json")
+
+
+class ConditionRequest(EvidenceModel):
+    asset_id: UUID
+    text: str = Field(min_length=1)
+    evidence_region: PixelRegion | None = None
+    source_condition_id: UUID | None = None
+
+
+class ImageIssueRequest(EvidenceModel):
+    asset_ids: list[UUID] | None = None
+    message: str = Field(min_length=1)
+
+
+class ImageManualCheckRequest(EvidenceModel):
+    expected_context_revision: int = Field(ge=0, strict=True)
+    expected_run_no: int = Field(ge=0, strict=True)
+    expected_check_no: int = Field(ge=0, strict=True)
+    status: Literal["confirmed", "unresolved"]
+    confirmed_conditions: list[ConditionRequest] = Field(default_factory=list)
+    image_findings: list[ImageFinding]
+    issues: list[ImageIssueRequest] = Field(default_factory=list)
+    issue_resolutions: list[IssueResolution] = Field(default_factory=list)
+    explanation: str = Field(min_length=1)
+
+
+def global_run_no(assessment: ImageAssessment) -> int:
+    return assessment.runs[-1].run_no if assessment.runs else 0
+
+
+def global_check_no(assessment: ImageAssessment) -> int:
+    return assessment.manual_checks[-1].check_no if assessment.manual_checks else 0
+
+
+def current_image_run(assessment: ImageAssessment) -> ImageUnderstandingRun | None:
+    run = assessment.runs[-1] if assessment.runs else None
+    return (
+        run
+        if run is not None and run.context_revision == assessment.context_revision
+        else None
+    )
+
+
+def current_image_check(assessment: ImageAssessment) -> ImageManualCheck | None:
+    check = assessment.manual_checks[-1] if assessment.manual_checks else None
+    run = current_image_run(assessment)
+    if (
+        check is None
+        or check.context_revision != assessment.context_revision
+        or check.run_no != global_run_no(assessment)
+    ):
+        return None
+    if check.run_id != (run.id if run is not None else None) or (
+        run is not None and run.outcome == "running"
+    ):
+        return None
+    return check
+
+
+def applicable_imported_review(
+    assessment: ImageAssessment,
+) -> ImportedImageReview | None:
+    binding = assessment.imported_review
+    return (
+        binding
+        if binding is not None
+        and not assessment.runs
+        and not assessment.manual_checks
+        and binding.context_revision == assessment.context_revision
+        else None
+    )
+
+
+class ImageAssessmentView(EvidenceModel):
+    owner_kind: Literal["question", "extracted_question"]
+    owner_id: UUID
+    assessment: ImageAssessment | None
+    context_revision: int
+    run_no: int
+    check_no: int
+    input_refs: ImageInputRefs | None
+    current_run: ImageUnderstandingRun | None
+    current_check: ImageManualCheck | None
+    imported_review: ImportedImageReview | None
+    status: Literal["pending", "confirmed", "unresolved", "not_required"]
+    confirmed_conditions: list[ConfirmedCondition]
+    requires_manual_review: bool
+    evidence_readable: bool
+    error: TechnicalError | None = None
+    open_issues: list[ImageIssue] = Field(default_factory=list)

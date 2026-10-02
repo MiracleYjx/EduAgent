@@ -60,9 +60,30 @@ IMAGE_TEXT_FIELDS = (
 def completion_status(question: Question) -> Literal["complete", "needs_completion"]:
     if not question.reference_answer or not question.scoring_rubric:
         return "needs_completion"
-    if question.assets and not (question.image_assessment or {}).get("imported_review"):
-        # Current formal manual evidence is consumed by the subsequent semantic validation task.
-        return "needs_completion"
+    if question.assets:
+        from sqlalchemy.orm import object_session
+
+        from backend.app.schemas.image_assessment import (
+            applicable_imported_review,
+            current_image_check,
+        )
+        assessment = ImageAssessment.model_validate(question.image_assessment or {})
+        check = current_image_check(assessment)
+        binding = applicable_imported_review(assessment)
+        refs = check.input_refs if check is not None and check.status == "confirmed" else None
+        if refs is None and binding is not None:
+            original = question.imported_extracted_question
+            source = current_image_check(ImageAssessment.model_validate(original.image_assessment or {})) if original is not None else None
+            if source is not None and source.id == binding.source_ref.check_id and source.status == "confirmed" and source.input_refs == binding.input_refs:
+                refs = binding.input_refs
+        if refs is None or {item.asset_id for item in refs.images} != {asset.id for asset in question.assets}:
+            return "needs_completion"
+        if object_session(question) is None:
+            return "needs_completion"
+        for index, asset in enumerate(question.assets, 1):
+            ref = next((item for item in refs.images if item.asset_id == asset.id), None)
+            if ref is None or ref.image_index != index or ref.file_id != asset.file_id or ref.width != asset.width or ref.height != asset.height or ref.source_page_id != asset.source_page_id or (ref.region.model_dump(mode="json") if ref.region else None) != asset.region:
+                return "needs_completion"
     return "complete"
 
 
@@ -336,26 +357,9 @@ class QuestionCorrectionService(PaperImportService):
         if not images or record.image_assessment is None:
             return None
         assessment = ImageAssessment.model_validate(record.image_assessment)
-        checks = [
-            check
-            for check in assessment.manual_checks
-            if check.context_revision == assessment.context_revision
-        ]
-        runs = [
-            run
-            for run in assessment.runs
-            if run.context_revision == assessment.context_revision
-        ]
-        if not checks:
-            return None
-        check = checks[-1]
-        latest = runs[-1] if runs else None
-        if (
-            check.status != "confirmed"
-            or check.run_no != (latest.run_no if latest else 0)
-            or check.run_id != (latest.id if latest else None)
-            or (latest is not None and latest.outcome == "running")
-        ):
+        from backend.app.schemas.image_assessment import current_image_check
+        check = current_image_check(assessment)
+        if check is None or check.status != "confirmed":
             return None
         refs = ImageInputRefs(
             text_fields=[*IMAGE_TEXT_FIELDS, "caption"],

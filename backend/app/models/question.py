@@ -9,6 +9,7 @@ from uuid import UUID
 
 from sqlalchemy import (
     JSON,
+    BigInteger,
     Boolean,
     CheckConstraint,
     DateTime,
@@ -30,6 +31,7 @@ if TYPE_CHECKING:
     from backend.app.models.exam import Exam
     from backend.app.models.extracted_question import ExtractedQuestion
     from backend.app.models.question_asset import QuestionAsset
+    from backend.app.models.question_validation_result import QuestionValidationResult
     from backend.app.models.user import User
 
 
@@ -37,7 +39,10 @@ class Question(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     """人工或 AI 生成、需经过审核后才能用于考试的题目。"""
 
     __tablename__ = "questions"
-    __table_args__ = (Index("ix_questions_course_status", "course_id", "status"), CheckConstraint("image_assessment IS NULL OR jsonb_typeof(image_assessment) = 'object'", name="ck_question_image_assessment").ddl_if(dialect="postgresql"))
+    __table_args__ = (Index("ix_questions_course_status", "course_id", "status"), CheckConstraint("validation_revision >= 0", name="ck_question_validation_revision"), CheckConstraint("image_assessment IS NULL OR jsonb_typeof(image_assessment) = 'object'", name="ck_question_image_assessment").ddl_if(dialect="postgresql"))
+
+    validation_revision: Mapped[int] = mapped_column(BigInteger, default=0, server_default="0", nullable=False)
+    validation_results: Mapped[list[QuestionValidationResult]] = relationship("QuestionValidationResult", back_populates="question", passive_deletes="all", order_by="QuestionValidationResult.run_no")
 
     course_id: Mapped[UUID] = mapped_column(
         ForeignKey("courses.id", ondelete="CASCADE"), nullable=False, index=True

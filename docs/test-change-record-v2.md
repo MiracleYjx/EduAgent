@@ -430,3 +430,18 @@ T159 修夹具后的主壳先行：2 failed，分别在 generatorfunction 与动
 - 两项既有 skip 为 M0 未提供固定四项隔离变量、Windows 无测试符号链接权限；不作为通过。合成样例、Provider 替身及这些功能检查不证明教师质量/性能，T160/T168/T169 尚未验收。
 - 2026-10-02T12:01:11.182310+00:00 核对任务资源身份、零连接后仅清理 eduagent_e3_scope_c770d09d04f4 与 eduagent-e3-scope-redis-c770d09d04f4。原业务库仍 0012_audit_logs，原容器正常；缓存/JUnit/源日志与失败诊断保留，未迁移业务库或修改 .env。浏览器及验证预览进程已关闭。
 - 用户已有 README、设计系统/题库/布局/主 UI 测试差异保持未暂存；主壳逐字节仅新增 T161 自有 reset 一行。只勾选 T161/T162，T160 与教师标注待办不改；.specify/extensions.yml 缺失，后置 hook 按技能跳过。
+
+
+## 17. T163–T164 核验与图片理解持久化 TCR（2026-10-02；基线 cd19853）
+
+- 登记 UTC：2026-10-02T12:25:24.473516+00:00
+- 必要性：新增真实核验报告、独立修订失效、整组图理解/教师核对、独立图像模型配置涉及持久化与公共接口；必须验证历史保留、并发/迟到、身份来源、文件权限和错误事实，不能沿用空值制造通过。用户批准独立 VISION_MODEL=deepseek-flash，复用当前端点与凭据，文字配置和 .env 保持原值。
+- 范围：新增核心服务/schema/迁移单元与 PostgreSQL 集成测试、授权接口合同测试、Vision 输入/结构化响应/资源生命周期测试，以及导入校正界面核对入口测试。必要时更新既有迁移图断言以反映新增 head，保留旧约束断言。T160 不勾选，测试数据与一次自有合成题图模型调用均不替代教师质量评测。
+- 覆盖：A→B→A 修订递增；并发轮次和当前轮；迟到完成保留历史；technical_error 无伪造 checks；真实教师处置不可覆盖机器结论；当前整组可读原图、全图逐项核对、旧证据失效、暂存转正式只引用同组真实证据；学生不获答案/核验/源整页；配置缺省/不支持/文件缺失/传输/模型/输出错误；BaseLLMProvider 原结构化签名保持。
+- 验证计划：先新增聚焦用例暴露缺口，再实现；独立数据库/Redis/文件根运行迁移和跨 Session 流程，最终 pytest tests/ -q、mypy backend/app、Ruff backend/tests、Alembic check，另一次实际合成题图调用与真实浏览器交互。环境和日志留 .cache/t163-164-20261002，不迁移业务库，不改教师样本或用户已有改动；收尾只清理本批确切命名资源。
+
+- T163 聚焦实施结果：13 核心单元＋10 真实 PostgreSQL 测试共23 passed（18.95s）；T163 HTTP最终6 passed（19.53s）。新增夹具最初缺 Ready 教学资料/完整输入字段，按实际合同补齐真实 owned chunk 与 Ready 状态后复测，未放宽失败/权限/409断言。直接写入/迁移图/旧题目服务35 passed；0020升级和Alembic check通过。首次核心新用例直接通过，不伪称行为红测。
+
+- T163 独立暂存快照：77 passed / 1 warning（72.83s），Ruff backend/tests通过；root4源文件mypy通过。Ruff首次两处仅导入顺序/Decimal字面量写法，按规则修正，未改断言/行为。T164编排两个真正行为红测分别复现关闭取消遗留running和prepare输入失效stage误判，已修且50联合用例通过；不会把缺模块collection错误或首轮直接通过伪称行为红测。
+
+- 浏览器实际发现生产SessionFactory autoflush=False：图片结束写入在commit前生成view，内部populate_existing重载覆盖未flush JSON，界面/数据库仍running；默认autoflush=True测试未覆盖。先新增生产autoflush=False聚焦回归，覆盖图像结束/人工核对和语义start/finish/处置返回及持久结果；在各写入投影前显式flush自身事实，再commit释放锁。保留真实失败running回执，不修改为成功；旧独立本地T163提交待修复后重新验证并amend，尚未推送。
