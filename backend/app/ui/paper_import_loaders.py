@@ -14,6 +14,7 @@ from backend.app.core.config import get_settings
 from backend.app.core.database import get_session_factory
 from backend.app.domain.enums import UserRole
 from backend.app.domain.permissions import PermissionDeniedError
+from backend.app.models import SourcePage
 from backend.app.schemas.paper_import import CommitRequest, CorrectionPayload
 from backend.app.schemas.question_assets import AssetLinkRequest
 from backend.app.services.auth_service import AuthService
@@ -113,16 +114,25 @@ def _image_html(path: Path, label: str) -> str:
     return f'<img alt="{escape(label)}" src="data:{mime};base64,{encoded}" style="max-width:100%;height:auto;max-height:780px;object-fit:contain" />'
 
 
-def page_image(identity: str, page_id: str, state) -> str:
+def page_preview(identity: str, page_id: str, state) -> tuple[str, str]:
+    """Read one current authorized page without rescanning the entire import."""
     with _scope(state) as (service, actor):
-        paper = service.get(UUID(identity), actor_id=actor)
-        page = next((p for p in paper.pages if str(p.id) == page_id), None)
-        if page is None:
+        paper = service.get_record(UUID(identity), actor)
+        page = service.session.get(SourcePage, UUID(page_id))
+        if page is None or page.paper_import_id != paper.id:
             raise ValueError("请选择当前导入的原页。")
-        path, _ = service.files.download(page.file_id, actor_id=actor)
-        return _image_html(
+        path, _ = service.files.download("p_" + page.id.hex, actor_id=actor)
+        image = _image_html(
             path, f"原卷第 {page.page_number} 页，{page.width}×{page.height} 像素"
         )
+        facts = f"原页 {page.width}×{page.height} 像素 · " + (
+            "OCR 已执行" if page.ocr_text is not None else "未执行 OCR"
+        )
+        return image, facts
+
+
+def page_image(identity: str, page_id: str, state) -> str:
+    return page_preview(identity, page_id, state)[0]
 
 
 def asset_image(question_id: str, asset_id: str, state) -> str:

@@ -307,10 +307,12 @@ def create_paper_image_review_view(import_id, selected, state) -> PaperImageRevi
         }
 
     @ui_errors
-    def reload(identity, question_id, current_state, *, editable=True):
+    def reload(identity, question_id, current_state, *, editable=True, loaded_paper=None):
         if not identity or not question_id:
             return clear()
-        paper = loaders.load(identity, current_state)
+        paper = loaded_paper if loaded_paper is not None else loaders.load(identity, current_state)
+        if str(paper.id) != identity:
+            raise ValueError("请选择当前导入的题目。")
         question = next((q for q in paper.questions if str(q.id) == question_id), None)
         if question is None:
             raise ValueError("请选择当前导入的题目。")

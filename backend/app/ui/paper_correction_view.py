@@ -441,7 +441,12 @@ def create_paper_correction_view(import_id, state) -> PaperCorrectionView:
                 crop: "",
             }
         )
-        result.update(image_review.reload(identity, str(q.id) if q else None, current_state, editable=editable))
+        result.update(
+            image_review.reload(
+                identity, str(q.id) if q else None, current_state,
+                editable=editable, loaded_paper=paper,
+            )
+        )
         return result
 
     @ui_errors
@@ -583,17 +588,12 @@ def create_paper_correction_view(import_id, state) -> PaperCorrectionView:
     def show_page(identity, pid, current_state):
         if not identity or not pid:
             return "", ""
-        paper = loaders.load(identity, current_state)
-        page = next((p for p in paper.pages if str(p.id) == pid), None)
-        if page is None:
-            raise ValueError("请选择当前导入的原页。")
-        facts = f"原页 {page.width}×{page.height} 像素 · " + (
-            "OCR 已执行" if page.ocr_text is not None else "未执行 OCR"
-        )
-        return loaders.page_image(identity, pid, current_state), facts
+        return loaders.page_preview(identity, pid, current_state)
 
-    selected.input(reload, inputs=[import_id, selected, state], outputs=outputs)
-    page_select.input(
+    # Single-select input also fires on blur in Gradio; value changes run once
+    # for both mouse and keyboard navigation, while explicit reloads stay current.
+    selected.change(reload, inputs=[import_id, selected, state], outputs=outputs)
+    page_select.change(
         show_page,
         inputs=[import_id, page_select, state],
         outputs=[page_preview, page_facts],
