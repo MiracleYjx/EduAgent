@@ -133,6 +133,20 @@ class AppSettings(BaseSettings):
         validation_alias=AliasChoices("storage_root", "STORAGE_ROOT"),
     )
 
+    # OCR 按需启用；选型/资源校验在扫描处理边界，不阻塞旧文字服务。
+    ocr_enabled: bool = False
+    ocr_provider: str | None = None
+    ocr_model: str | None = None
+    ocr_model_dir: Path | None = None
+
+    @field_validator("ocr_provider", "ocr_model", "ocr_model_dir", mode="before")
+    @classmethod
+    def _normalize_optional_ocr_text(cls, value: Any) -> Any:
+        if isinstance(value, str):
+            value = value.strip()
+            return value or None
+        return value
+
     database_url: PostgresDsn
     redis_url: RedisDsn
     llm_provider: str
@@ -276,6 +290,10 @@ class AppSettings(BaseSettings):
 
         return {
             "storage_root": str(self.storage_root),
+            "ocr_enabled": self.ocr_enabled,
+            "ocr_provider": self.ocr_provider,
+            "ocr_model": self.ocr_model,
+            # 模型目录仅供内部部署；不向日志公开本机路径。
             "database_url": _redact_url(self.database_url),
             "redis_url": _redact_url(self.redis_url),
             "llm_provider": self.llm_provider,

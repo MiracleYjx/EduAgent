@@ -407,3 +407,55 @@ T152 的 E1 阶段通过：上传持久化/重启/同名不覆盖、资源越权
 - `tests/unit/models/test_m3_migrations.py`
 - `docs/test-change-record-v2.md`
 - `docs/validation-report.md`
+
+## T156：可选 RapidOCR Provider（2026-10-02）
+
+基线 deepcode / 980dd48ef67d9cbb88cf9642d67b0189c4d20b5b；使用 speckit-implement，仅实施 T156。T155 已确认 RapidOCR 3.9.2 + ONNX Runtime 1.30.0 CPU、显式 PP-OCRv5 mobile 和预置权重。TCR 先于测试，见 [test-change-record-v2.md](test-change-record-v2.md) §12。
+
+### 实际交付
+
+- 新增 BaseOCRProvider.extract_text/describe、Pydantic OCRResult/OCRRegion/OCRProviderInfo、五类可识别领域错误和单一 rapidocr 工厂。调用方传已授权单页图；本批不写 SourcePage、PaperImport、Question 或数据库。
+- OCR_ENABLED 默认 false；基础依赖不含 OCR SDK，配置缺失或未支持的选型在需要 OCR 时明确报未就绪。pyproject 的 ocr 可选组锁定已批准版本，SDK/模型直到首次识别才加载。真实初始化成功后 describe.ready 才为 true；模型路径不进入公开配置或错误消息。
+- 显式指定检测/识别的 PP-OCRv5 mobile 和 CPU；SDK 初始化需要的分类权重也预置但关闭分类推理。首次加载核对三个官方文件的完整性；模型不存在/坏文件明确失败，不下载、不自动换 Provider、不伪造识别结果。
+- Pillow 解码同一图后交给 SDK，保持存储像素方向。四边形转换成原图包围框，并校验有限值、尺寸、文本/区域/置信度匹配；保留原区域顺序和低置信度文字，不修正公式或表格。SDK 没有总体置信度，所以始终 null。
+- 缺页、坏图、加载失败、推理失败和坏输出分开；领域公开消息脱敏，__cause__ 保留真实底层原因。正常空识别与 None/部分输出/非法空容器区分。CPU 工作移入线程，单实例线程锁保护会话；取消等待不强杀原生推理，其结果不再返回，也不会与下一调用重入。
+
+### 验证结果
+
+| 检查 | 实际结果 |
+| --- | --- |
+| 最终 OCR 聚焦 pytest | 55 passed；2026-10-02T07:39:23.642284+00:00，pytest 14.85 s |
+| 最终全量 pytest tests/ -q | 1740 collected；1738 passed / 0 failed / 0 errors / 2 skipped / 27 warnings；2026-10-02T07:40:39.506290+00:00，pytest 460.28 s，外层 470.170 s |
+| 最终 mypy backend/app | 166 source files 通过；2026-10-02T07:40:24.629553+00:00，5.259 s |
+| 最终 Ruff backend/tests | All checks passed；2026-10-02T07:40:39.225212+00:00，0.154 s |
+| 真实 SDK 最终复验 | 七张页图均有文字/合法框；真实白页为空，坏图/丢失文件给出对应错误；2026-10-02T07:39:37.465772+00:00，外层 21.026 s |
+| 无可选 SDK 回归 | 主机 Python 未安装 rapidocr/onnxruntime；隔离子进程禁止导入二者，原应用构造、文字解析成功，显式调用禁用 OCR 报未就绪 |
+
+真实页使用 T155 的 paper_scan 第 1 页、paper_mixed 两页、paper_cross_page 两页、workload_10 第 1 页和 workload_50 第 50 页。区域数依次 26/26/26/6/9/7/7；结果已持久保存在忽略缓存供核对，没有教师精度标注，不计算准确率，也不把这七页调用耗时当整卷性能承诺。最终复验只在专用虚拟环境使用批准 SDK；NumPy 2.5.3、OpenCV 5.0.0.93、Pillow 12.3.0，Windows/Python 3.13.13。预置模型来自 T155 缓存，OCR 阶段的 Python socket.connect/getaddrinfo 被明确禁止。
+
+先行 collection error、静态首轮问题及空容器三个失败用例按 TCR 记录并修复。最初全量在发现空容器缺口后主动中断，不计成功；以上全量结果来自最终代码的完整重跑。真实验证工具首次过早阻止 Windows asyncio 自唤醒连接，修正为循环建立后再禁止网络；两次真实 OCR 均完整通过，没有修改业务代码规避错误。
+
+两项 skip 分别是 M0 缺 COMPOSE_PROJECT_NAME/POSTGRES_PORT/REDIS_PORT/BACKEND_PORT 隔离配置和 Windows 无测试符号链接权限；不计作相应验收通过。没有新增数据库迁移；全量迁移/备份/恢复用例只在隔离环境执行。本批不宣称已完成 PDF 编排、拆题、校正入库、UI、T168 教师质量评测或 EXE 交付；T157/T158 继续承接，T146 状态保持。
+
+### 环境及提交保护
+
+2026-10-02T07:49:07.989876+00:00 已核对零连接及 T156 容器标签，仅删除本批 eduagent_e2_ocr_3614071ec128 和 eduagent-e2-ocr-redis-3614071ec128。原业务库仍为 0012_audit_logs，未修改 .env、业务文件或主机全局依赖。T155 评估环境原样保留。
+
+9 项保护文件（.env 及 8 个用户已有改动）字节摘要一致，原测试断言不改；仅新增本批两份测试。验证对象为当前工作区，包含用户原样保留成果，不宣称干净 checkout 独立验收。证据保留在 .cache/t156-ocr-20261002（Git 忽略），不提交虚拟环境、模型、样本图、数据库 dump 或连接凭据。.specify/extensions.yml 不存在，后置 hook 按技能规则跳过。
+
+### 本批文件
+
+- .env.example
+- .specify/contracts/ocr-provider.md
+- .specify/tasks.md
+- backend/app/ai/ingestion/ocr/__init__.py
+- backend/app/ai/ingestion/ocr/base.py
+- backend/app/ai/ingestion/ocr/schemas.py
+- backend/app/ai/ingestion/ocr/factory.py
+- backend/app/ai/ingestion/ocr/rapidocr.py
+- backend/app/core/config.py
+- pyproject.toml
+- tests/contract/test_ocr_provider.py
+- tests/unit/ingestion/test_rapidocr_provider.py
+- docs/test-change-record-v2.md
+- docs/validation-report.md

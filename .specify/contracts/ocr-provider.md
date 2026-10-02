@@ -22,7 +22,7 @@ class BaseOCRProvider(ABC):
 ~~~
 
 OCRResult、OCRRegion、OCRProviderInfo 是 Pydantic 模型；业务层依赖该接口，不直接调用具体 SDK。
-PaddleOCR、Tesseract、云端 OCR 是候选 Provider 类型，验证真实扫描件/Windows 推理依赖后选择和锁定；本契约不承诺三类均已实现。
+T155 已确认首版 RapidOCR 3.9.2 + ONNX Runtime 1.30.0 CPU，显式 PP-OCRv5 mobile 检测/识别；候选评估见 [evaluation.md](../../docs/evaluation.md)。本批仅实现 rapidocr，不自动切换其他适配器。
 
 ## 输入与结果
 
@@ -54,8 +54,9 @@ PaddleOCR、Tesseract、云端 OCR 是候选 Provider 类型，验证真实扫�
 | 配置 | 默认 / 要求 | 行为 |
 | :--- | :--- | :--- |
 | OCR_ENABLED | false | 默认不加载 OCR SDK；不阻塞 v1.0 文本服务启动 |
-| OCR_PROVIDER | 启用 OCR 时必填 | 选择显式支持的适配器，例如 paddleocr、tesseract、cloud；非法值明确失败 |
-| OCR_MODEL | 按所选 Provider 要求配置 | 明确实际识别模型；若 Provider 使用内置模型也须在 describe 说明真实身份 |
+| OCR_PROVIDER | 启用 OCR 时必填 | 首版必须为 rapidocr；缺失或不支持的值在需要 OCR 时明确失败 |
+| OCR_MODEL | 缺省为 PP-OCRv5-mobile | 首版仅支持此预置组合；其他值明确失败，describe 返回该真实模型身份 |
+| OCR_MODEL_DIR | 启用后调用前必填 | 三个官方 ONNX 文件所在目录；受信任的部署配置，不是业务文件下载入口 |
 
 - 可选依赖延迟至启用/调用时加载；缺少 SDK、外部识别程序、模型文件或必需凭据时返回 OCR_PROVIDER_NOT_READY。
 - OCR_ENABLED=false 且扫描页需要 OCR 时，任务明确失败/提示配置后重新导入；不能假装已识别，不能自动改用另一 Provider。
@@ -84,3 +85,23 @@ Provider 抛出可识别的领域异常，至少含 code、中文 message 及真
 - 已选择 Provider 的真实扫描页可返回可核对文字、区域和可获得置信度；与标注样本比较字段准确性，不以 describe.ready 替代识别测试。
 - 处理缺失图像、空白页、表格/公式、混合 PDF、未知置信度及失败响应；异常必须与真实阶段对应。
 - 不修改现有 Embedding/LLM 契约，不把 OCR 当成图片语义理解或教师审核。
+
+## T156 首版实现与部署
+
+基础安装不包含 OCR；显式安装 python -m pip install -e ".[ocr]" 后，配置 OCR_ENABLED=true、OCR_PROVIDER=rapidocr、OCR_MODEL=PP-OCRv5-mobile 及 OCR_MODEL_DIR。模型由部署者预置，首次识别检查下表 SHA-256，校验用于权重身份和完整性；不把应用源码/构建版本当运行锁步门禁，不自动下载或替换损坏权重。
+
+| 文件 | 官方模型 SHA-256 |
+| :--- | :--- |
+| ch_PP-OCRv5_det_mobile.onnx | 4d97c44a20d30a81aad087d6a396b08f786c4635742afc391f6621f5c6ae78ae |
+| ch_PP-OCRv5_rec_mobile.onnx | 5825fc7ebf84ae7a412be049820b4d86d77620f204a041697b0494669b1742c5 |
+| ch_ppocr_mobile_v2.0_cls_mobile.onnx | e47acedf663230f8863ff1ab0e64dd2d82b838fceb5957146dab185a89d6215c |
+
+来源为 RapidAI/RapidOCR 的 v3.9.2 ModelScope 官方模型清单，下载及样本证据已记于 T155 评估。检测/识别均显式指定 PP-OCRv5 mobile，CPU 线程数沿用实测 intra=2、inter=1；关闭角度分类推理，但 RapidOCR 构造仍初始化分类会话，所以第三个分类文件也必须预置（PP-OCRv4 配置所对应的 v2.0 分类权重）。三个阶段都传本机 model_path，不触发 SDK 默认模型下载。
+
+业务入口使用 create_ocr_provider(settings) 或进程缓存的 get_ocr_provider()，依赖 BaseOCRProvider。关闭/不支持选型/缺目录配置抛 OCR_PROVIDER_NOT_READY；SDK 与模型仅首次 extract_text 加载。首次加载前 describe.ready=false 并说明尚未加载，真正初始化成功才为 true；初始化失败保留未就绪原因，底层错误在异常链中。describe 和领域异常公开消息不含原页内容、密钥或本机路径。更改配置/模型后重启进程或清理 Provider 缓存；不隐式热切换。
+
+页图使用 Pillow 解码，像素尺寸取自这份已解码图；将同一图交给 SDK，保留存储像素方向、不额外 EXIF 旋转。上游 T157 必须保存最终用于定位的页图及相同尺寸。缺文件、无法解码/读取的图分别报 FILE_MISSING、OCR_INPUT_INVALID。适配器不接受 PDF 编排职责，也不替调用方做课程授权。
+
+SDK 返回原图四边形，取其最小包围框形成 [x0,y0,x1,y1]；检查四点有限数值、框面积、边界、文字/框/置信度数量，保留 SDK 区域顺序，不自行重排表格。原生 text_score 设 0 保留低置信度识别；区域置信度是 SDK 原生比例值，未知为 null，总体置信度始终 null。空结果只接受正常 RapidOCROutput 的无检测/无识别形状，不将 None、部分阶段结果或非法输出当空页；未识别出文字不证明页面物理空白，仍须保留原页供教师核对。
+
+异步接口将解码/首次加载/推理移入工作线程，同一实例用线程锁串行操作会话。取消等待传播 CancelledError；已开始的原生 CPU 推理不能由 asyncio 强制终止，其结果被丢弃且锁保持到线程完成，不与下一调用重入。没有新增自动重试或硬超时承诺；SDK 的真实失败/超时以 OCR_CALL_FAILED 链接原异常传播，后续编排负责失败状态及显式重新处理。

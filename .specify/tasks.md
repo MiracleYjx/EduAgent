@@ -563,7 +563,7 @@ M0 工程骨架 + Benchmark
 
 - [X] T155 [MEDIUM] [E2] **验证并确认 OCR 推理依赖**：在 `docs/evaluation.md` 记录候选 OCR 在标注扫描/公式表格/跨页与 Windows 打包环境的能力、版本、资源和局限，优先评估 plan 候选 PaddleOCR；给出少量方案的收益/代价，请用户锁定首版适配器与关键依赖后交给 T156。无需实现所有候选，不引入训练依赖。 依赖：T146。per FR-042、plan §9/14、ocr-provider（F022） (missing)
 
-- [ ] T156 [HIGH] [E2] **实现可选 OCR Provider**：在新增 `backend/app/ai/ingestion/ocr/`、配置和 `pyproject.toml` 实现 BaseOCRProvider.extract_text/describe 及 T155 已确认适配器，Pydantic OCRResult/区域坐标/置信度校验、可选依赖延迟加载和真实错误传播；OCR_ENABLED 默认 false，扫描需要 OCR 时明确失败，空白页与坏输出分开，不静默换适配器。 依赖：T145、T155。per FR-042、ocr-provider、Constitution III/IV（F023） (missing)
+- [X] T156 [HIGH] [E2] **实现可选 OCR Provider**：在新增 `backend/app/ai/ingestion/ocr/`、配置和 `pyproject.toml` 实现 BaseOCRProvider.extract_text/describe 及 T155 已确认适配器，Pydantic OCRResult/区域坐标/置信度校验、可选依赖延迟加载和真实错误传播；OCR_ENABLED 默认 false，扫描需要 OCR 时明确失败，空白页与坏输出分开，不静默换适配器。 依赖：T145、T155。per FR-042、ocr-provider、Constitution III/IV（F023） (missing)
 
 - [ ] T157 [HIGH] [E2] **实现试卷上传、按页解析与拆题编排**：在新增 `backend/app/services/paper_import_service.py`、`api/paper_import.py`、`ai/ingestion/paper_pipeline.py`、`paper_extraction/` 及已有 `parsers.py` 中，接入路由/依赖装配：可靠保存原卷后返回 Uploaded，逐页保存页图，文字优先提取、混合/扫描走 OCR，拆题结果经 Pydantic 后暂存；落实最多 50 页、零题失败、实际页/题进度和原错误/中间结果保留，paper_source 不进入 Chunk/Embedding。 依赖：T153、T154、T156。per FR-041/042、paper-import、plan §8/9（F024） (missing)
 

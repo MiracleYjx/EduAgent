@@ -29,6 +29,11 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+# T155 已确认的本地 CPU OCR；模型另行预置，基础安装不加载此 SDK。
+ocr = [
+    "rapidocr==3.9.2",
+    "onnxruntime==1.30.0",
+]
 dev = [
     "black>=24.0",
     "httpx>=0.27",
