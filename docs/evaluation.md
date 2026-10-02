@@ -319,3 +319,13 @@ print(out.boxes, out.txts, out.scores)
 UI 资源采样使用服务自己报告的实际 worker PID，各组 PID 一致。1 秒频率下，仅 6 次计时动作有 1 个完整采样周期位于实际动作窗口；其余 18 次计时及 3 次预热无窗口内样本，峰值保持 null。6 个稀疏观察的应用工作集约 250.8–252.2 MiB，同时合计约 440.9–442.4 MiB（数据库为共享 PostgreSQL 容器进程 RSS，含共享页重复计数；浏览器未测）；不代入整组峰值，不据此判资源预算通过。导入批实际应用内存缺测仍独立保留。
 
 详见 [浏览器汇总](../benchmark/results/v2/t160-assisted-20261003/ui-correction-summary/summary.json)、[逐次动作与资源](../benchmark/results/v2/t160-assisted-20261003/ui-correction-summary/attempts.json)、[原始页面证据](../benchmark/results/v2/t160-assisted-20261003/ui-correction/) 和 [总验收回执](../benchmark/results/v2/t160-assisted-20261003/acceptance-summary.json)。2026-10-02T17:31:54.567745+00:00 已停止本批页面 worker/浏览器，仅清理确切隔离 DB/Redis；原业务库仍 0012_audit_logs，10 项用户文件/.env 字节未变，缓存与失败证据保留。后置扩展 hooks 不存在。
+
+## T160 修复后重验（2026-10-03，执行前冻结）
+
+本批来源基线为 02b6406，旧批全部原始结果保留。用户明确授权拆题 schema/提示词、校正页面及实际 worker 内存采样三项局部修复，并授权修复后的完整协议。每项修复独立提交。新增门槛在读取本批模型结果前固定：50 页计时导入至少 6/8 成功，24 次页面响应至少 20 次小于 500 ms；正常成功导入仍记录 <300 秒目标，所有失败/超时和预热保留。另报原 T142 全部计划逐次通过口径，两者不混同。
+
+重复计划不变：5 类正常输入各 3 轮质量调用；1/10/50 页导入各 3 冷＋1 预热＋5 暖；纯文字/带图/跨页校正各 3 冷＋1 预热＋5 暖，并行度 1。业务铁律逐例核对。每轮使用新的持久身份/输出目录；上轮数据只作为失败定位与零云 UI profiling 对照，不能冒充本次实际 OCR/模型结果。
+
+继续冻结 annotation_version=t160-user-authorized-ai-assisted-20261003-1（SHA256 13095b3d62f9e0db14e92412e58923f6b2c1c83c0acf49ea356e306397e2ff9e），用户复核的 AI 辅助参考与独立教师真值 0 的声明保留，T146/T168 原要求不变。模型/Provider、重试策略、OCR依赖沿用本机现有配置，实际请求/响应身份分别保存。修复后的 prompt 版本据实际代码记录。
+
+应用采样必须落在真实业务 worker 及其实际子进程，保留 PID 关系、逐次时间窗口、缺测和原始 bytes。v2 上界按 Backend＋OCR 4 GB、PostgreSQL 1.5 GB、Redis 512 MB、同时总量6 GB检查；展示 MiB 时明确换算。共享 PostgreSQL 容器进程 RSS 是保守容器范围（共享页重复计数），不称本次数据库独占内存。源码重验不代替EXE交付。最终结论等待本批真实结果。

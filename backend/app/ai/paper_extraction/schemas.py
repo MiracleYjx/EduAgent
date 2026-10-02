@@ -1,8 +1,15 @@
 """LLM output contains source page numbers, never trusted file IDs or paths."""
 
-from typing import Any
+from typing import Any, Literal, Self
 
-from pydantic import BaseModel, ConfigDict, Field, StrictInt, field_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    StrictInt,
+    field_validator,
+    model_validator,
+)
 
 from backend.app.domain.enums import QuestionType
 from backend.app.schemas.paper_import import Amount
@@ -21,7 +28,30 @@ class AnswerFields(ExtractionModel):
     reference_answer: str | None = None
     scoring_rubric: str | None = None
     analysis: str | None = None
-    evidence: dict[str, SourceExcerpt] = Field(default_factory=dict)
+    evidence: dict[
+        Literal["reference_answer", "scoring_rubric", "analysis"], SourceExcerpt
+    ] = Field(
+        default_factory=dict,
+        description=(
+            "Only reference_answer, scoring_rubric and analysis are evidence keys. "
+            "Every non-null answer field needs its own literal source excerpt; "
+            "never include content, options, score or knowledge_points here."
+        ),
+    )
+
+    @model_validator(mode="after")
+    def answer_fields_have_literal_evidence(self) -> Self:
+        # Source page existence and exact excerpt provenance are checked by the extractor.
+        for name in ("reference_answer", "scoring_rubric", "analysis"):
+            text = getattr(self, name)
+            if text is None:
+                continue
+            excerpt = self.evidence.get(name)
+            if excerpt is None or not text.strip():
+                raise ValueError("answer/analysis requires an original excerpt")
+            if "".join(text.split()) not in "".join(excerpt.text.split()):
+                raise ValueError("answer/analysis is not a literal source excerpt")
+        return self
 
 
 class Candidate(AnswerFields):
@@ -42,7 +72,14 @@ class Candidate(AnswerFields):
 
 
 class AnswerUpdate(AnswerFields):
-    question_index: int = Field(gt=0, strict=True)
+    question_index: int = Field(
+        gt=0,
+        strict=True,
+        description=(
+            "Copy an index from the input allowed_update_indices/completed_questions. "
+            "It is not an original question_number or an index of this batch's new questions."
+        ),
+    )
 
 
 class ExtractionBatch(ExtractionModel):
