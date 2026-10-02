@@ -57,7 +57,7 @@ from backend.app.ai.agents.state import (
 )
 from backend.app.ai.embedding.base import BaseEmbeddingProvider
 from backend.app.ai.llm.base import BaseLLMProvider, LLMProviderMetadata
-from backend.app.ai.retrieval.base import DEFAULT_TOP_K, BaseRetriever
+from backend.app.ai.retrieval.base import DEFAULT_TOP_K, BaseRetriever, RetrievalError
 from backend.app.ai.retrieval.reranker import BaseReranker
 from backend.app.core.config import AppSettings
 from backend.app.core.retry_policy import ProviderExecutionError
@@ -477,7 +477,7 @@ class GradingAgent:
                     embedding_provider=self._embedding_provider,
                     settings=resolved_settings,
                 )
-            except (SubjectiveGradingError, GradingContextError) as error:
+            except (SubjectiveGradingError, GradingContextError, RetrievalError) as error:
                 return self._failure_from_exception(error)
             except ProviderExecutionError as error:
                 return self._failure_from_provider(error)

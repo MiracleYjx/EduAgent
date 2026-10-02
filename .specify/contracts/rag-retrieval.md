@@ -155,3 +155,12 @@ WHERE d.status = 'Ready'
 - `PATCH /chunks/{chunk_id}/scope` 只提交待核对维度，定位与知识点分别生成真实当前教师身份和服务端 UTC 时间；缺省字段保持原事实，显式 null 清除对应核对，知识点 [] 记录确认无标签。
 - `GET /documents/{document_id}/source-sections` 返回持久原稿按当前 parser/cleaner 生成的完整段落；`POST /documents/{document_id}/resplit` 接收 [{section_index, cut_points}]，切点相对于上述清洗段落，从 0 计数，严格递增且在段内。所有切分/长度重叠均不得跨这些真实边界。
 - Markdown 摄取保留实际标题层级/路径作为候选；连续祖先标题可附到其后继子节，同级及不同章不合并。候选不写入可信章/节或标签；重切分成功事务替换正文、向量、全文字段，新块等待核对。失败保留旧块供诊断并记录 Failed，旧题来源快照不重写。
+
+
+### T162 显式业务范围与阅卷任务意图（用户确认）
+
+- 出题请求新增可空缺省的 `retrieval_scope`，字段为 `document_ids`、`chapter_ids`、`section_range`、`knowledge_points`；课程来自已经授权的当前出题课程。旧 `knowledge_points` 继续用于题库分类/生成提示，不自动投影成 SQL 标签条件。
+- 阅卷触发请求使用同一 `RetrievalScope`，课程从实际答卷 → 考试 → 课程授权链取得。非空显式范围在创建任务前核对真实资料、章节与目录；所有题型均不能静默接受非法范围。后续检索按当前事实再次消费，章节目录改变后不会继续用旧目录查询。
+- 初次受理将规范范围保存到既有 `WorkflowRun.checkpoint.retrieval_scope`，任务状态更新合并原 checkpoint；后台和新执行器读取该持久值，不能依赖请求对象或从历史来源/题目标签反推。旧任务缺键默认空；已存在但损坏的范围明确失败，不能变为空条件。
+- 进行中任务的显式范围必须与已保存范围语义相同才可复用：章/资料/知识点按集合比较，小节按闭区间比较。不同范围返回 `GRADING_TRIGGER_CONFLICT`，不覆盖旧范围、不创建第二任务、不再调度。真正省略范围保持原复用；明确 `{}` 是显式空范围，不能伪装成省略。
+- Query 保存唯一章/节/标签输入；统一 `_filters` 解析为内部不可变 SQL scope，两路及融合/重排共用。Keyword-only 传带范围的 Query 时允许空 embedding，且不会调用 Embedding Provider；旧 primitive 调用保持原用法。

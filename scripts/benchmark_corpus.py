@@ -26,7 +26,11 @@ from backend.app.services.auth_service import hash_password
 from backend.app.services.course_service import CourseService
 from backend.app.services.knowledge_base_service import KnowledgeBaseService
 
-CORPUS_DIR = Path(__file__).resolve().parents[1] / "benchmark" / "corpus"
+# Current production Markdown boundaries; legacy corpus/results remain unchanged.
+CORPUS_DIR = (
+    Path(__file__).resolve().parents[1]
+    / "benchmark" / "corpus" / "heading-v3-20261002"
+)
 SCHEMA_PATTERN = re.compile(r"benchmark_[0-9a-f]{32}")
 
 

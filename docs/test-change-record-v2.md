@@ -410,3 +410,23 @@ T159 修夹具后的主壳先行：2 failed，分别在 generatorfunction 与动
 - 保护：主 UI 只暂存本批一行 reset；README、题库/布局/设计系统及用户 UI 测试改动均排除；T160 保持未勾选。临时资源待 T162 全量验证后按本批精确标识清理。
 
 - T161 最后更新的独立 index：t161_index_ui_final 13 passed/1 warning（12.69s），覆盖新增跨文档清理与基线主 UI；独立全后端 mypy 180 source files 通过（外层 105.615s）。
+
+### T161–T162 全量回归的合成语料版本补充（修改前）
+
+记录 UTC：2026-10-02T11:47:34.938280+00:00。独立最终快照首轮 1880 collected，1861 passed / 17 setup errors / 2 skipped / 68 warnings（pytest 522.42s，外层 532.316s）。17 项错误共用 test_benchmark_reproducibility 的 manifest 夹具，真实 stderr 为“摄取片段数与标注基准不一致，请重新标注”；原稿当前生产得到 30 个真实叶节块，旧合成参考为 21 个跨节块。不能把该失败当环境跳过，也不能让生产分块回退或放宽精确内容映射。
+
+必要性与范围：保留 benchmark/corpus 的旧原稿、21 块、规则/模型标注及所有历史结果原样；新增同原稿/同查询的独立 heading-v3 合成语料版本，静态参考保存真实当前块，按实际节内容明确登记 AI 规则标签（teacher_verified=false，不宣称教师标注/质量）。初始化 CLI 的默认生产输入改为该新版本，--corpus-dir 仍显式选定原目录；旧离线 Benchmark 入口/JSON/CSV/manifest 格式不变，过时参考仍明确失败。
+
+仅更新 tests/integration/test_benchmark_reproducibility.py 中已失效的精确基数 21→30，并同时核对 reference.chunk_count。UUID 与原文一一映射、实际 PostgreSQL/向量/全文索引、四模式、坏原稿拒绝、隔离清理/可复现指纹及全部原断言保留。已有 17 用例先行失败已记录；修正后先完整运行该模块，再重新运行最终全量。修改不填充 T146/T160 的教师标签，不作为新质量基线或可跨旧版本比较的准确率。
+
+### T162 实际交付及本批最终验证（2026-10-02）
+
+- typed_scope_final 114 passed/1 warning（pytest 55.04s）；范围 Schema/四模式真实 PostgreSQL SQL 前过滤、精确标签、目录/归属与空交集、出题/MCP 和旧入口回归通过。
+- grading_scope_prevalidate_green 180 passed/1 warning（32.82s）：真实当前范围触发前校验、包括纯客观答卷；任务 checkpoint 持久保存，新的执行器/Session 重读，旧缺省兼容，坏持久值不改为空值。最初新增 API 夹具 UUID 导入错误单独修正，不算业务先行失败。
+- 进行中任务范围复用先行 7 failed/3 passed，修复后 grading_scope_reuse_green 77 passed/1 warning（31.34s）；显式不同范围 409，不写新 checkpoint/不调度；集合乱序/重复同语义可复用，省略范围保持旧行为，显式 {} 不等于省略。
+- 新版合成分块映射修正后完整可重复性模块 17 passed（15.54s，外层 17.196s）；保留原文一一对应、非 UUID 文件内键、坏来源拒绝、四模式及隔离/重现断言，原旧语料/结果保持。
+- 最终独立暂存快照全量 1880 collected：1878 passed / 0 failed / 0 errors / 2 skipped / 68 warnings；UTC 2026-10-02T11:51:22.339843+00:00，JUnit 519.211s，外层 528.245s。终端真实摘要：1878 passed, 2 skipped, 68 warnings in 519.23s (0:08:39)。
+- 最终 backend mypy 181 source files 通过（UTC 2026-10-02T11:35:34.278824+00:00，116.221s）；Benchmark 补修只改静态目录常量/语料与一个预期基数，不改变已检查后端代码。最终 Ruff backend/tests/benchmark_corpus 通过（0.257s）；隔离 PostgreSQL Alembic check 无新增差异（1.551s）。
+- 两项既有 skip 为 M0 未提供固定四项隔离变量、Windows 无测试符号链接权限；不作为通过。合成样例、Provider 替身及这些功能检查不证明教师质量/性能，T160/T168/T169 尚未验收。
+- 2026-10-02T12:01:11.182310+00:00 核对任务资源身份、零连接后仅清理 eduagent_e3_scope_c770d09d04f4 与 eduagent-e3-scope-redis-c770d09d04f4。原业务库仍 0012_audit_logs，原容器正常；缓存/JUnit/源日志与失败诊断保留，未迁移业务库或修改 .env。浏览器及验证预览进程已关闭。
+- 用户已有 README、设计系统/题库/布局/主 UI 测试差异保持未暂存；主壳逐字节仅新增 T161 自有 reset 一行。只勾选 T161/T162，T160 与教师标注待办不改；.specify/extensions.yml 缺失，后置 hook 按技能跳过。

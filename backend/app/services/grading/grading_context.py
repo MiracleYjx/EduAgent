@@ -34,6 +34,7 @@ from backend.app.ai.embedding.factory import (
     create_embedding_provider,
     get_embedding_provider,
 )
+from backend.app.ai.retrieval._filters import resolve_retrieval_scope
 from backend.app.ai.retrieval.base import (
     DEFAULT_TOP_K,
     BaseRetriever,
@@ -49,6 +50,7 @@ from backend.app.ai.retrieval.base import (
 from backend.app.ai.retrieval.reranker import BaseReranker, build_reranker
 from backend.app.core.config import AppSettings, get_settings
 from backend.app.domain.enums import GradingMode, QuestionType
+from backend.app.schemas.retrieval_scope import RetrievalScope
 from backend.app.services.grading.question_router import (
     QuestionRouter,
     normalize_question_type,
@@ -233,6 +235,7 @@ class SubjectiveGradingSource:
     question_id: UUID | str | None = None
     answer_id: UUID | str | None = None
     submission_id: UUID | str | None = None
+    retrieval_scope: RetrievalScope = field(default_factory=RetrievalScope)
     #: 平台侧的评分模式校验器；默认使用无状态 :class:`QuestionRouter`。
     _router: QuestionRouter = field(default_factory=QuestionRouter, repr=False, compare=False)
 
@@ -421,10 +424,12 @@ def _merge_filters(
     source_knowledge_bases = tuple(
         UUID(value) for value in source.knowledge_base_ids
     )
+    document_ids = source.retrieval_scope.document_ids
     if filters is None:
         return RetrievalFilters(
             course_ids=(course_id,),
             knowledge_base_ids=source_knowledge_bases,
+            document_ids=document_ids,
         )
     resolved = resolve_filters(filters)
     if resolved.course_ids and course_id not in resolved.course_ids:
@@ -442,10 +447,19 @@ def _merge_filters(
                 "调用方知识库过滤条件与题目知识库范围无交集，拒绝跨知识库检索。"
             )
         knowledge_base_ids = merged
+    if document_ids and resolved.document_ids:
+        allowed_documents = set(document_ids)
+        document_ids = tuple(
+            value for value in resolved.document_ids if value in allowed_documents
+        )
+        if not document_ids:
+            raise GradingInputError("调用方资料过滤与显式检索范围无交集，拒绝扩大范围。")
+    else:
+        document_ids = document_ids or resolved.document_ids
     return RetrievalFilters(
         course_ids=(course_id,),
         knowledge_base_ids=knowledge_base_ids,
-        document_ids=resolved.document_ids,
+        document_ids=document_ids,
     )
 
 
@@ -484,9 +498,18 @@ def _build_search_query(
     *,
     query_text: str,
     embedding: Sequence[float] | None,
+    retrieval_scope: RetrievalScope,
 ) -> str | Sequence[float] | RetrievalQuery:
-    """按模式构造检索入参：Hybrid 需要文本 + 向量，Vector 只要向量，Keyword 只要文本。"""
+    """显式范围通过 Query 贯通所有模式；缺省范围保留原调用形式。"""
 
+    if not retrieval_scope.is_empty:
+        return RetrievalQuery(
+            text=query_text,
+            embedding=tuple(embedding or ()),
+            chapter_ids=retrieval_scope.chapter_ids,
+            section_range=retrieval_scope.section_range,
+            knowledge_points=retrieval_scope.knowledge_points,
+        )
     if mode in {RetrievalMode.HYBRID, RetrievalMode.HYBRID_RERANK}:
         if embedding is None:  # pragma: no cover - 由上层保证已计算
             raise GradingInputError("Hybrid 检索需要查询向量。")
@@ -577,6 +600,18 @@ async def build_grading_context(
 
     query_text = build_query_text(source)
     scope = _merge_filters(source, filters)
+    if not source.retrieval_scope.is_empty:
+        scope = resolve_retrieval_scope(
+            session,
+            RetrievalQuery(
+                text=query_text,
+                embedding=(),
+                chapter_ids=source.retrieval_scope.chapter_ids,
+                section_range=source.retrieval_scope.section_range,
+                knowledge_points=source.retrieval_scope.knowledge_points,
+            ),
+            scope,
+        )
 
     embedding: list[float] | None = None
     if resolved_mode in {
@@ -602,6 +637,7 @@ async def build_grading_context(
         resolved_mode,
         query_text=query_text,
         embedding=embedding,
+        retrieval_scope=source.retrieval_scope,
     )
     candidate_limit = (
         resolved_fusion_top_k
@@ -618,7 +654,7 @@ async def build_grading_context(
     else:
         candidates = active_retriever.search(
             session,
-            cast("str | Sequence[float]", search_query),
+            cast("str | Sequence[float] | RetrievalQuery", search_query),
             top_k=candidate_limit,
             filters=scope,
         )

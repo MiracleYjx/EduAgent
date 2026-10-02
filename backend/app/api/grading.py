@@ -26,9 +26,14 @@ from typing import Annotated
 from uuid import uuid4
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy.exc import SQLAlchemyError
 
+from backend.app.ai.retrieval.base import (
+    RETRIEVAL_SCOPE_INVALID,
+    RETRIEVAL_SCOPE_NOT_READY,
+    RETRIEVAL_UNSUPPORTED_DIALECT,
+)
 from backend.app.core.config import AppSettings, ConfigurationError
 from backend.app.core.database import get_session_factory
 from backend.app.core.security import require_permission
@@ -38,6 +43,7 @@ from backend.app.schemas.grading import (
     GradingTaskStatusDTO,
     QuestionResultDTO,
 )
+from backend.app.schemas.retrieval_scope import RetrievalScope
 from backend.app.services.audit_service import AuditService
 from backend.app.services.diagnosis_service import DiagnosisService
 from backend.app.services.grading.diagnosis_report_store import (
@@ -69,6 +75,9 @@ router = APIRouter(prefix="/api/grading", tags=["AI 阅卷"])
 
 #: 错误码到 HTTP 状态码的映射；未列出的错误按 500 处理并保持脱敏。
 _ERROR_STATUS: dict[str, int] = {
+    RETRIEVAL_SCOPE_INVALID: 422,
+    RETRIEVAL_SCOPE_NOT_READY: 503,
+    RETRIEVAL_UNSUPPORTED_DIALECT: 503,
     GRADING_SUBMISSION_NOT_FOUND: 404,
     GRADING_TASK_NOT_FOUND: 404,
     GRADING_RESULT_NOT_FOUND: 404,
@@ -88,6 +97,7 @@ class TriggerGradingRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     regrade: bool = False
+    retrieval_scope: RetrievalScope = Field(default_factory=RetrievalScope)
 
 
 def get_grading_task_service(request: Request) -> GradingTaskService:
@@ -187,6 +197,11 @@ def trigger_grading(
             submission_id,
             teacher_id=str(user.id),
             regrade=payload.regrade,
+            retrieval_scope=(
+                payload.retrieval_scope
+                if "retrieval_scope" in payload.model_fields_set
+                else None
+            ),
             request_id=str(uuid4()),
             scheduler=lambda task_id, target_submission: background_tasks.add_task(
                 service.executor.execute,

@@ -24,7 +24,7 @@ from contextlib import ExitStack
 from datetime import timedelta
 from decimal import Decimal
 from typing import Any
-from uuid import UUID
+from uuid import UUID, uuid4
 
 import gradio as gr
 import pytest
@@ -591,9 +591,11 @@ def test_generate_endpoint_returns_persisted_candidates(
     assert body["sources_persisted"] is True
     assert body["candidates"][0]["sources_persisted"] is True
     assert len(_persisted(scenario["session"], scenario["course"])) == 1
-    traces = scenario["session"].scalars(
-        select(AgentRun).where(AgentRun.request_id == "request-from-header")
-    ).all()
+    traces = (
+        scenario["session"]
+        .scalars(select(AgentRun).where(AgentRun.request_id == "request-from-header"))
+        .all()
+    )
     assert any(
         trace.agent_type == "question"
         and trace.user_id == scenario["teacher"].id
@@ -1007,3 +1009,86 @@ def test_review_requires_teacher_and_course_ownership(
         json=body,
     )
     assert other.status_code == 404
+
+
+def test_generation_api_explicit_scope_reaches_query_without_legacy_label_filter(
+    scenario, client_factory
+):
+    from datetime import UTC, datetime
+
+    from backend.app.ai.retrieval.base import RetrievalQuery
+    from backend.app.models import Chapter
+
+    session = scenario["session"]
+    course = scenario["course"]
+    teacher = scenario["teacher"]
+    chunk = _seed_chunk(
+        session, course=course, teacher=teacher, content=make_chunk().content
+    )
+    chapter = Chapter(
+        course_id=course.id,
+        title="Scope chapter",
+        sections=[{"section_order": 1, "title": "one"}],
+        confirmed_by=teacher.id,
+        confirmed_at=datetime.now(UTC),
+    )
+    session.add(chapter)
+    session.commit()
+    service = _service(
+        session,
+        candidates=[make_candidate(source_context_ids=[str(chunk.id)])],
+        chunks=[
+            make_chunk(
+                str(chunk.id),
+                course_id=str(course.id),
+                document_id=str(chunk.document_id),
+            ),
+        ],
+    )
+    client = client_factory(service)
+    selected = {
+        "document_ids": [str(chunk.document_id)],
+        "chapter_ids": [str(chapter.id)],
+        "section_range": {
+            "chapter_id": str(chapter.id),
+            "start_order": 1,
+            "end_order": 1,
+        },
+    }
+    response = client.post(
+        "/api/question-generation/candidates",
+        headers=_headers(teacher, UserRole.TEACHER),
+        json={
+            "course_id": str(course.id),
+            "knowledge_points": ["legacy prompt only"],
+            "retrieval_scope": selected,
+        },
+    )
+    assert response.status_code == 201
+    call = service._retriever.calls[0]
+    assert isinstance(call["query"], RetrievalQuery)
+    assert call["query"].chapter_ids == (chapter.id,)
+    assert call["query"].section_range.start_order == 1
+    assert call["query"].knowledge_points == ()
+    assert call["filters"].document_ids == (chunk.document_id,)
+    assert len(_persisted(session, course)) == 1
+
+
+def test_generation_api_scope_invalid_is_not_reported_as_gateway_failure(
+    scenario, client_factory
+):
+    service = _service_from_scenario(scenario)
+    client = client_factory(service)
+    response = client.post(
+        "/api/question-generation/candidates",
+        headers=_headers(scenario["teacher"], UserRole.TEACHER),
+        json={
+            "course_id": str(scenario["course"].id),
+            "retrieval_scope": {"chapter_ids": [str(uuid4())]},
+        },
+    )
+    assert response.status_code == 422
+    assert response.json()["detail"]["error_code"] == "RETRIEVAL_SCOPE_INVALID"
+    assert "章节" in response.json()["detail"]["message"]
+    assert service._embedding_provider.queries == []
+    assert _persisted(scenario["session"], scenario["course"]) == []

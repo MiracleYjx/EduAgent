@@ -23,19 +23,22 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 from sqlalchemy.sql.elements import ColumnElement
 
-from backend.app.ai.retrieval._filters import apply_retrieval_filters
+from backend.app.ai.retrieval._filters import (
+    apply_retrieval_filters,
+    resolve_retrieval_scope,
+)
 from backend.app.ai.retrieval.base import (
     DEFAULT_TOP_K,
     BaseRetriever,
     RetrievalFilters,
     RetrievalInputError,
     RetrievalMode,
+    RetrievalQuery,
     RetrievalUnsupportedDialectError,
     RetrievedChunk,
     normalize_query_text,
     normalize_top_k,
     resolve_dialect_name,
-    resolve_filters,
 )
 from backend.app.models import DocumentChunk
 
@@ -69,7 +72,7 @@ class KeywordSearchRetriever(BaseRetriever):
     def search(
         self,
         session: Session,
-        query: str | Sequence[float],
+        query: str | Sequence[float] | RetrievalQuery,
         *,
         top_k: int = DEFAULT_TOP_K,
         filters: RetrievalFilters | None = None,
@@ -77,9 +80,13 @@ class KeywordSearchRetriever(BaseRetriever):
         """按查询文本检索命中的 Top-K 知识片段。"""
 
         # 先校验输入本身，再判断方言，保证错误原因与数据库无关且稳定。
-        text_query = normalize_query_text(query)
+        text_query = normalize_query_text(
+            query.text if isinstance(query, RetrievalQuery) else query
+        )
         limit = normalize_top_k(top_k)
-        scope = resolve_filters(filters)
+        scope = resolve_retrieval_scope(
+            session, query if isinstance(query, RetrievalQuery) else None, filters
+        )
         if resolve_dialect_name(session) != POSTGRES_DIALECT:
             raise RetrievalUnsupportedDialectError(
                 "关键词检索依赖 PostgreSQL tsvector 与 GIN 索引，当前数据库方言不支持。"
@@ -121,6 +128,7 @@ class KeywordSearchRetriever(BaseRetriever):
             else func.websearch_to_tsquery
         )
         return cast("ColumnElement[Any]", builder(self.ts_config, text_query))
+
 
 __all__ = [
     "DEFAULT_TS_CONFIG",

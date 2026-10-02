@@ -237,7 +237,9 @@ class _FailingProvider:
             )
         )
 
-    async def generate_structured(self, messages: Any, schema: Any, **kwargs: Any) -> Any:
+    async def generate_structured(
+        self, messages: Any, schema: Any, **kwargs: Any
+    ) -> Any:
         raise self.error
 
 
@@ -359,11 +361,15 @@ def test_low_confidence_subjective_answer_pauses_for_review() -> None:
     subjective = _RecordingSubjectiveGrader(
         _subjective_result(target, snapshot, score=6.0, confidence=0.3)
     )
-    output = _agent(subjective_grader=subjective).grade_answer(
-        snapshot,
-        target,
-        request_id="request-1",
-    ).output
+    output = (
+        _agent(subjective_grader=subjective)
+        .grade_answer(
+            snapshot,
+            target,
+            request_id="request-1",
+        )
+        .output
+    )
 
     assert output.status is AgentStatus.PENDING_REVIEW
     assert output.requires_review is True
@@ -383,11 +389,15 @@ def test_real_subjective_grader_runs_hybrid_retrieval_once() -> None:
     retriever = StubRetriever([make_chunk("chunk-1")])
     reranker = StubReranker()
     provider = StubScoringProvider(score=8.0, confidence=0.95)
-    output = _agent(
-        provider=provider,
-        retriever=retriever,
-        reranker=reranker,
-    ).grade_answer(snapshot, target, request_id="request-1").output
+    output = (
+        _agent(
+            provider=provider,
+            retriever=retriever,
+            reranker=reranker,
+        )
+        .grade_answer(snapshot, target, request_id="request-1")
+        .output
+    )
 
     assert output.status is AgentStatus.SUCCESS
     assert len(retriever.calls) == 1
@@ -404,11 +414,15 @@ def test_insufficient_context_is_mapped_to_desensitized_failure() -> None:
 
     target = _subjective_target()
     snapshot = _snapshot(target)
-    output = _agent(retriever=StubRetriever([])).grade_answer(
-        snapshot,
-        target,
-        request_id="request-1",
-    ).output
+    output = (
+        _agent(retriever=StubRetriever([]))
+        .grade_answer(
+            snapshot,
+            target,
+            request_id="request-1",
+        )
+        .output
+    )
 
     assert output.status is AgentStatus.FAILURE
     assert output.error is not None
@@ -424,19 +438,29 @@ def test_provider_failures_keep_source_code_and_retryable() -> None:
     target = _subjective_target()
     snapshot = _snapshot(target)
 
-    timeout = _agent(provider=_FailingProvider("ProviderTimeout", retryable=True)).grade_answer(
-        snapshot,
-        target,
-        request_id="request-1",
-    ).output
+    timeout = (
+        _agent(provider=_FailingProvider("ProviderTimeout", retryable=True))
+        .grade_answer(
+            snapshot,
+            target,
+            request_id="request-1",
+        )
+        .output
+    )
     assert timeout.error is not None
     assert timeout.error.error_code == "GRADING_PROVIDER_FAILED"
     assert timeout.error.retryable is True
     assert timeout.error.source_code == "ProviderTimeout"
 
-    invalid = _agent(
-        provider=_FailingProvider("StructuredOutputFailed", retryable=True, attempt_count=2)
-    ).grade_answer(snapshot, target, request_id="request-1").output
+    invalid = (
+        _agent(
+            provider=_FailingProvider(
+                "StructuredOutputFailed", retryable=True, attempt_count=2
+            )
+        )
+        .grade_answer(snapshot, target, request_id="request-1")
+        .output
+    )
     assert invalid.error is not None
     assert invalid.error.error_code == "GRADING_INVALID_LLM_RESPONSE"
     assert invalid.error.source_code == "StructuredOutputFailed"
@@ -448,7 +472,9 @@ def test_missing_rubric_and_missing_session_fail_explicitly() -> None:
 
     without_rubric = _subjective_target(scoring_rubric=None)
     snapshot = _snapshot(without_rubric)
-    output = _agent().grade_answer(snapshot, without_rubric, request_id="request-1").output
+    output = (
+        _agent().grade_answer(snapshot, without_rubric, request_id="request-1").output
+    )
     assert output.status is AgentStatus.FAILURE
     assert output.error is not None
     assert output.error.error_code == "GRADING_INVALID_INPUT"
@@ -461,8 +487,7 @@ def test_missing_rubric_and_missing_session_fail_explicitly() -> None:
             reranker=StubReranker(),
             embedding_provider=StubEmbeddingProvider(),
             settings=_settings(),
-        )
-        .grade_answer_async(
+        ).grade_answer_async(
             no_session,
             target,
             request_id="request-1",
@@ -482,22 +507,32 @@ def test_result_identity_and_validation_mismatch_fail() -> None:
     wrong_identity = _RecordingSubjectiveGrader(
         _subjective_result(target, snapshot, answer_id="answer-other")
     )
-    output = _agent(subjective_grader=wrong_identity).grade_answer(
-        snapshot,
-        target,
-        request_id="request-1",
-    ).output
+    output = (
+        _agent(subjective_grader=wrong_identity)
+        .grade_answer(
+            snapshot,
+            target,
+            request_id="request-1",
+        )
+        .output
+    )
     assert output.error is not None
     assert output.error.error_code == GRADING_AGENT_RESULT_MISMATCH
 
     not_validated = _RecordingSubjectiveGrader(
-        _subjective_result(target, snapshot, validation_status=ValidationStatus.PENDING.value)
+        _subjective_result(
+            target, snapshot, validation_status=ValidationStatus.PENDING.value
+        )
     )
-    output = _agent(subjective_grader=not_validated).grade_answer(
-        snapshot,
-        target,
-        request_id="request-1",
-    ).output
+    output = (
+        _agent(subjective_grader=not_validated)
+        .grade_answer(
+            snapshot,
+            target,
+            request_id="request-1",
+        )
+        .output
+    )
     assert output.error is not None
     assert output.error.error_code == GRADING_AGENT_RESULT_NOT_VALIDATED
 
@@ -576,7 +611,9 @@ def test_state_patch_is_serializable_and_has_no_human_conclusion() -> None:
     snapshot = _snapshot(objective, subjective)
     accepted = _agent(
         objective_grader=_RecordingObjectiveGrader(),
-        subjective_grader=_RecordingSubjectiveGrader(_subjective_result(subjective, snapshot)),
+        subjective_grader=_RecordingSubjectiveGrader(
+            _subjective_result(subjective, snapshot)
+        ),
     ).grade_answer(snapshot, subjective, request_id="request-1")
     pending = _agent(
         objective_grader=_RecordingObjectiveGrader(),
@@ -600,10 +637,19 @@ def test_state_patch_is_serializable_and_has_no_human_conclusion() -> None:
     assert accepted_patch["current_answer_id"] == "answer-2"
     assert accepted_patch["validation_status"] == ValidationStatus.VALIDATED
 
-    workflow_state_to_json({**identity, **accepted_patch, "status": WorkflowStatus.RUNNING})
-    workflow_state_to_json({**identity, **pending_patch, "status": WorkflowStatus.PAUSED})
+    workflow_state_to_json(
+        {**identity, **accepted_patch, "status": WorkflowStatus.RUNNING}
+    )
+    workflow_state_to_json(
+        {**identity, **pending_patch, "status": WorkflowStatus.PAUSED}
+    )
     # 自动决策可以写入复核状态，但绝不能是教师人工结论。
-    assert accepted_patch["review_status"] not in {"Confirmed", "Modified", "Final", "Re-grade"}
+    assert accepted_patch["review_status"] not in {
+        "Confirmed",
+        "Modified",
+        "Final",
+        "Re-grade",
+    }
     assert pending_patch["review_status"] == "Pending Review"
 
 
@@ -612,17 +658,27 @@ def test_objective_and_subjective_use_same_settings_for_confidence() -> None:
 
     target = _subjective_target()
     snapshot = _snapshot(target)
-    subjective = _RecordingSubjectiveGrader(_subjective_result(target, snapshot, confidence=0.5))
-    strict = _agent(
-        subjective_grader=subjective,
-        settings=_settings(confidence_threshold=0.9),
-    ).grade_answer(snapshot, target, request_id="request-1").output
-    lenient = _agent(
-        subjective_grader=_RecordingSubjectiveGrader(
-            _subjective_result(target, snapshot, confidence=0.5)
-        ),
-        settings=_settings(confidence_threshold=0.2),
-    ).grade_answer(snapshot, target, request_id="request-1").output
+    subjective = _RecordingSubjectiveGrader(
+        _subjective_result(target, snapshot, confidence=0.5)
+    )
+    strict = (
+        _agent(
+            subjective_grader=subjective,
+            settings=_settings(confidence_threshold=0.9),
+        )
+        .grade_answer(snapshot, target, request_id="request-1")
+        .output
+    )
+    lenient = (
+        _agent(
+            subjective_grader=_RecordingSubjectiveGrader(
+                _subjective_result(target, snapshot, confidence=0.5)
+            ),
+            settings=_settings(confidence_threshold=0.2),
+        )
+        .grade_answer(snapshot, target, request_id="request-1")
+        .output
+    )
 
     assert strict.confidence_decision is not None
     assert strict.confidence_decision.threshold == 0.9
@@ -648,7 +704,9 @@ def test_per_answer_entry_scores_each_answer_exactly_once() -> None:
     subjective = _subjective_target()
     snapshot = _snapshot(objective, subjective)
     objective_grader = _RecordingObjectiveGrader()
-    subjective_grader = _RecordingSubjectiveGrader(_subjective_result(subjective, snapshot))
+    subjective_grader = _RecordingSubjectiveGrader(
+        _subjective_result(subjective, snapshot)
+    )
     aggregator = _CountingAggregator()
     agent = _agent(
         objective_grader=objective_grader,
@@ -693,7 +751,9 @@ def test_duplicate_answer_ids_never_produce_partial_success() -> None:
         agent.score(repeated)
 
 
-def test_local_settings_win_over_global_configuration(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_local_settings_win_over_global_configuration(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """H02：注入的局部配置决定阈值，且不读取全局配置（M04 配置贯穿的延续）。
 
     TCR：
@@ -717,11 +777,17 @@ def test_local_settings_win_over_global_configuration(monkeypatch: pytest.Monkey
     )
     target = _subjective_target()
     snapshot = _snapshot(target)
-    subjective = _RecordingSubjectiveGrader(_subjective_result(target, snapshot, confidence=0.5))
-    output = _agent(
-        subjective_grader=subjective,
-        settings=_settings(confidence_threshold=0.9),
-    ).grade_answer(snapshot, target, request_id="request-1").output
+    subjective = _RecordingSubjectiveGrader(
+        _subjective_result(target, snapshot, confidence=0.5)
+    )
+    output = (
+        _agent(
+            subjective_grader=subjective,
+            settings=_settings(confidence_threshold=0.9),
+        )
+        .grade_answer(snapshot, target, request_id="request-1")
+        .output
+    )
 
     assert calls == []
     assert output.confidence_decision is not None
@@ -757,7 +823,9 @@ def test_per_call_settings_override_constructor_settings() -> None:
     assert lenient.status is AgentStatus.SUCCESS
 
 
-def test_settings_reach_every_resolved_component_once(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_settings_reach_every_resolved_component_once(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """H02：未注入的组件由同一 `AppSettings` 解析，且检索与重排各一次、不重复装配。
 
     验证链路：注入的评分器替身不参与本用例；Provider/Embedding/Reranker 走 M3 既有工厂，
@@ -787,20 +855,28 @@ def test_settings_reach_every_resolved_component_once(monkeypatch: pytest.Monkey
         seen["provider"] = passed
         return provider
 
-    monkeypatch.setattr(grading_context, "create_embedding_provider", _embedding_factory)
+    monkeypatch.setattr(
+        grading_context, "create_embedding_provider", _embedding_factory
+    )
     monkeypatch.setattr(grading_context, "build_reranker", _reranker_factory)
-    monkeypatch.setattr(subjective_grader_module, "create_llm_provider", _provider_factory)
+    monkeypatch.setattr(
+        subjective_grader_module, "create_llm_provider", _provider_factory
+    )
 
     target = _subjective_target()
     snapshot = _snapshot(target)
     retriever = StubRetriever([make_chunk("chunk-1")])
-    output = _agent(
-        retriever=retriever,
-        reranker=None,
-        embedding_provider=None,
-        provider=None,
-        settings=settings,
-    ).grade_answer(snapshot, target, request_id="request-1").output
+    output = (
+        _agent(
+            retriever=retriever,
+            reranker=None,
+            embedding_provider=None,
+            provider=None,
+            settings=settings,
+        )
+        .grade_answer(snapshot, target, request_id="request-1")
+        .output
+    )
 
     assert output.status is AgentStatus.SUCCESS
     assert output.grading_result is not None
@@ -814,7 +890,9 @@ def test_settings_reach_every_resolved_component_once(monkeypatch: pytest.Monkey
     assert provider.calls[0]["schema"] is SubjectiveGradingPayload
 
 
-def test_default_grading_provider_metadata_is_per_call(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_default_grading_provider_metadata_is_per_call(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """P4.2：真实评分器解析的实例是唯一身份源，不缓存模型、不重新构造 Provider。"""
 
     from backend.app.services.grading import subjective_grader as module
@@ -839,7 +917,9 @@ def test_default_grading_provider_metadata_is_per_call(monkeypatch: pytest.Monke
     ]
     assert [output.model for output in outputs] == ["resolved-grading-v2", "unknown"]
     assert all(output.status is AgentStatus.SUCCESS for output in outputs)
-    assert all(output.prompt_version == SUBJECTIVE_GRADING_PROMPT_VERSION for output in outputs)
+    assert all(
+        output.prompt_version == SUBJECTIVE_GRADING_PROMPT_VERSION for output in outputs
+    )
     assert len(seen) == 2
     assert all(value is settings for value in seen)
     assert all(len(provider.calls) == 1 for provider in providers)
@@ -853,9 +933,15 @@ def test_injected_grader_does_not_claim_unused_provider_metadata() -> None:
     provider = StubScoringProvider()
     provider.model_name = "unused-provider-model"
     grader = _RecordingSubjectiveGrader(_subjective_result(target, snapshot))
-    output = _agent(subjective_grader=grader, provider=provider).grade_answer(
-        snapshot, target, request_id="metadata-unused",
-    ).output
+    output = (
+        _agent(subjective_grader=grader, provider=provider)
+        .grade_answer(
+            snapshot,
+            target,
+            request_id="metadata-unused",
+        )
+        .output
+    )
     assert output.model == "unknown"
     assert output.prompt_version == "unknown"
     assert provider.calls == []
@@ -896,11 +982,15 @@ def test_real_services_satisfy_agent_orchestration_contract() -> None:
         answer_id=target.answer_id,
         submission_id=snapshot.submission_id,
     )
-    output = _agent(objective_grader=ObjectiveGrader()).grade_answer(
-        snapshot,
-        target,
-        request_id="request-1",
-    ).output
+    output = (
+        _agent(objective_grader=ObjectiveGrader())
+        .grade_answer(
+            snapshot,
+            target,
+            request_id="request-1",
+        )
+        .output
+    )
 
     assert output.grading_result is not None
     assert output.grading_result.score == expected.score
@@ -927,12 +1017,18 @@ def test_confidence_decision_snapshot_reuses_m3_facts() -> None:
 
     target = _subjective_target()
     snapshot = _snapshot(target)
-    subjective = _RecordingSubjectiveGrader(_subjective_result(target, snapshot, confidence=0.9))
-    output = _agent(subjective_grader=subjective).grade_answer(
-        snapshot,
-        target,
-        request_id="request-1",
-    ).output
+    subjective = _RecordingSubjectiveGrader(
+        _subjective_result(target, snapshot, confidence=0.9)
+    )
+    output = (
+        _agent(subjective_grader=subjective)
+        .grade_answer(
+            snapshot,
+            target,
+            request_id="request-1",
+        )
+        .output
+    )
 
     decision = ConfidenceDecision(
         confidence=0.9,
@@ -959,11 +1055,16 @@ def test_confidence_decision_snapshot_reuses_m3_facts() -> None:
 
 @pytest.mark.parametrize(
     ("confidence", "expected_status"),
-    [(0.799, AgentStatus.PENDING_REVIEW), (0.8, AgentStatus.SUCCESS),
-     (0.95, AgentStatus.SUCCESS)],
+    [
+        (0.799, AgentStatus.PENDING_REVIEW),
+        (0.8, AgentStatus.SUCCESS),
+        (0.95, AgentStatus.SUCCESS),
+    ],
 )
 def test_default_grader_reuses_single_decision(
-    monkeypatch: pytest.MonkeyPatch, confidence: float, expected_status: AgentStatus,
+    monkeypatch: pytest.MonkeyPatch,
+    confidence: float,
+    expected_status: AgentStatus,
 ) -> None:
     """真实默认评分器一次判定并回填，Agent 原样使用结果和六字段决策。"""
 
@@ -997,7 +1098,9 @@ def test_default_grader_reuses_single_decision(
     agent = _agent(provider=provider, settings=_settings(confidence_threshold=0.99))
 
     output = agent.grade_answer(
-        snapshot, target, request_id="request-single-decision",
+        snapshot,
+        target,
+        request_id="request-single-decision",
         settings=_settings(confidence_threshold=0.8),
     ).output
 
@@ -1033,14 +1136,19 @@ def test_agent_preserves_injected_policy(custom_grader: bool) -> None:
     snapshot = _snapshot(target)
     subjective = (
         _RecordingSubjectiveGrader(_subjective_result(target, snapshot, confidence=0.9))
-        if custom_grader else None
+        if custom_grader
+        else None
     )
-    output = _agent(
-        subjective_grader=subjective,
-        policy=CustomPolicy(threshold=0.95),
-        provider=StubScoringProvider(confidence=0.9),
-        settings=_settings(confidence_threshold=0.1),
-    ).grade_answer(snapshot, target, request_id="request-injected-policy").output
+    output = (
+        _agent(
+            subjective_grader=subjective,
+            policy=CustomPolicy(threshold=0.95),
+            provider=StubScoringProvider(confidence=0.9),
+            settings=_settings(confidence_threshold=0.1),
+        )
+        .grade_answer(snapshot, target, request_id="request-injected-policy")
+        .output
+    )
 
     assert output.error is None
     assert output.status is AgentStatus.PENDING_REVIEW
@@ -1054,3 +1162,84 @@ def test_agent_preserves_injected_policy(custom_grader: bool) -> None:
         assert events == ["evaluate", "apply", "evaluate"]
     else:
         assert events == ["apply", "evaluate", "evaluate", "apply", "evaluate"]
+
+
+@pytest.mark.parametrize(
+    ("error_code", "detail"),
+    [
+        ("RETRIEVAL_SCOPE_INVALID", "所选章节不属于当前授权课程。"),
+        ("RETRIEVAL_SCOPE_NOT_READY", "该章节尚无已确认小节目录。"),
+    ],
+)
+def test_retrieval_scope_errors_keep_code_and_original_reason(
+    error_code: str,
+    detail: str,
+) -> None:
+    from backend.app.ai.retrieval.base import RetrievalError
+
+    target = _subjective_target()
+    snapshot = _snapshot(target)
+    error = RetrievalError(detail)
+    error.error_code = error_code
+    subjective = _RecordingSubjectiveGrader(
+        _subjective_result(target, snapshot), error=error
+    )
+    output = (
+        _agent(subjective_grader=subjective)
+        .grade_answer(snapshot, target, request_id="scope-error")
+        .output
+    )
+    assert output.status is AgentStatus.FAILURE
+    assert output.error.error_code == error_code
+    assert output.error.message == detail
+    assert output.error.retryable is False
+    assert output.grading_result is None
+
+
+def test_explicit_task_scope_reaches_subjective_source() -> None:
+    from dataclasses import replace
+
+    from backend.app.schemas.retrieval_scope import RetrievalScope
+
+    target = _subjective_target()
+    scope = RetrievalScope(knowledge_points=["explicit tag"])
+    snapshot = replace(_snapshot(target), retrieval_scope=scope)
+    subjective = _RecordingSubjectiveGrader(_subjective_result(target, snapshot))
+    output = (
+        _agent(subjective_grader=subjective)
+        .grade_answer(snapshot, target, request_id="scope-source")
+        .output
+    )
+    assert output.status is AgentStatus.SUCCESS
+    assert subjective.calls[0]["source"].retrieval_scope == scope
+    assert subjective.calls[0]["source"].knowledge_points == target.knowledge_points
+
+
+def test_empty_explicit_scope_result_stops_reranker_and_scoring(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from dataclasses import replace
+
+    from backend.app.schemas.retrieval_scope import RetrievalScope
+
+    target = _subjective_target()
+    snapshot = replace(
+        _snapshot(target), retrieval_scope=RetrievalScope(knowledge_points=["tag"])
+    )
+    retriever = StubRetriever([])
+    reranker = StubReranker()
+    provider = StubScoringProvider()
+    monkeypatch.setattr(
+        "backend.app.services.grading.grading_context.resolve_retrieval_scope",
+        lambda session, query, filters: filters,
+    )
+    output = (
+        _agent(retriever=retriever, reranker=reranker, provider=provider)
+        .grade_answer(snapshot, target, request_id="empty-scope")
+        .output
+    )
+    assert output.status is AgentStatus.FAILURE
+    assert output.error.error_code == "GRADING_MISSING_CONTEXT"
+    assert retriever.calls[0]["query"].knowledge_points == ("tag",)
+    assert reranker.calls == []
+    assert provider.calls == []

@@ -302,7 +302,9 @@ def _snapshot(
     )
 
 
-def _result_for(answer_id: str, *, score: str = "10", max_score: str = "10") -> GradingResult:
+def _result_for(
+    answer_id: str, *, score: str = "10", max_score: str = "10"
+) -> GradingResult:
     """构造单题评分结果。"""
 
     return GradingResult(
@@ -320,7 +322,9 @@ def _result_for(answer_id: str, *, score: str = "10", max_score: str = "10") -> 
     )
 
 
-def _outcome(snapshot: SubmissionSnapshot, results: tuple[GradingResult, ...]) -> GradingOutcome:
+def _outcome(
+    snapshot: SubmissionSnapshot, results: tuple[GradingResult, ...]
+) -> GradingOutcome:
     """用 T054 汇总服务构造执行器期望的产出。"""
 
     return GradingOutcome(
@@ -401,7 +405,9 @@ def test_trigger_reuses_in_flight_task_without_rescheduling() -> None:
     """同一答卷已有进行中任务时复用，不重复调度或调用 LLM。"""
 
     repository = InMemoryGradingRepository()
-    existing = make_task("task-existing", SUBMISSION_ID, status=GradingTaskStatus.RUNNING)
+    existing = make_task(
+        "task-existing", SUBMISSION_ID, status=GradingTaskStatus.RUNNING
+    )
     repository.save_task(existing)
     recorder = RecordingExecutor()
     service = _service(repository=repository, executor=recorder)
@@ -420,9 +426,12 @@ def test_trigger_completed_task_requires_regrade() -> None:
     repository.save_task(
         make_task("task-done", SUBMISSION_ID, status=GradingTaskStatus.COMPLETED)
     )
-    service = _service(repository=repository, reader=StubSubmissionReader(
-        {SUBMISSION_ID: _snapshot(status="Graded")}, allowed_teacher_id=TEACHER_ID
-    ))
+    service = _service(
+        repository=repository,
+        reader=StubSubmissionReader(
+            {SUBMISSION_ID: _snapshot(status="Graded")}, allowed_teacher_id=TEACHER_ID
+        ),
+    )
 
     with pytest.raises(GradingTriggerConflictError) as error:
         service.trigger(SUBMISSION_ID, teacher_id=TEACHER_ID)
@@ -565,7 +574,9 @@ def test_executor_persists_outcome_and_progress() -> None:
         pipeline=StubScoringPipeline(outcome),
         progress_updater=progress,
     )
-    repository.save_task(make_task("task-1", SUBMISSION_ID, status=GradingTaskStatus.QUEUED))
+    repository.save_task(
+        make_task("task-1", SUBMISSION_ID, status=GradingTaskStatus.QUEUED)
+    )
 
     executor.execute("task-1", SUBMISSION_ID)
 
@@ -593,7 +604,9 @@ def test_executor_marks_task_failed_on_pipeline_error() -> None:
         ),
         progress_updater=progress,
     )
-    repository.save_task(make_task("task-1", SUBMISSION_ID, status=GradingTaskStatus.QUEUED))
+    repository.save_task(
+        make_task("task-1", SUBMISSION_ID, status=GradingTaskStatus.QUEUED)
+    )
 
     executor.execute("task-1", SUBMISSION_ID)
 
@@ -611,7 +624,9 @@ def test_default_pipeline_grades_objective_items_deterministically() -> None:
 
     snapshot = _snapshot(
         answers=(
-            _objective_answer(order=1, answer_id="answer-1", reference="A", student="A"),
+            _objective_answer(
+                order=1, answer_id="answer-1", reference="A", student="A"
+            ),
             _objective_answer(
                 order=2,
                 answer_id="answer-2",
@@ -660,14 +675,17 @@ def test_question_result_dto_reuse_payload_is_serializable() -> None:
     )
 
     assert dto.model_dump()["answer_id"] == "answer-1"
-    assert ConfidenceDecision(
-        confidence=0.9,
-        threshold=0.8,
-        requires_review=False,
-        review_status="Not Required",
-        grading_status="Accepted",
-        reason="自动接受。",
-    ).requires_review is False
+    assert (
+        ConfidenceDecision(
+            confidence=0.9,
+            threshold=0.8,
+            requires_review=False,
+            review_status="Not Required",
+            grading_status="Accepted",
+            reason="自动接受。",
+        ).requires_review
+        is False
+    )
 
 
 # --------------------------------------------------------------------------- #
@@ -741,7 +759,9 @@ def test_executor_commits_outcome_and_completed_atomically() -> None:
     assert progress.completed == [(SUBMISSION_ID, "Final")]
 
 
-def test_executor_failure_during_commit_keeps_error_code_without_partial_result() -> None:
+def test_executor_failure_during_commit_keeps_error_code_without_partial_result() -> (
+    None
+):
     """提交阶段失败时进入失败处理：任务失败、无整卷结果、错误码保真。"""
 
     class FailingCommitRepository(InMemoryGradingRepository):
@@ -784,6 +804,7 @@ def test_executor_failure_during_commit_keeps_error_code_without_partial_result(
 
 def test_commit_acknowledgement_failure_does_not_rewrite_committed_outcome() -> None:
     """TCR（B01）：提交已成功但回执异常时，以持久化终态为准，不改写为失败。"""
+
     class LostAcknowledgementRepository(InMemoryGradingRepository):
         def save_outcome(self, submission_id, outcome, **kwargs):
             super().save_outcome(submission_id, outcome, **kwargs)
@@ -794,10 +815,14 @@ def test_commit_acknowledgement_failure_does_not_rewrite_committed_outcome() -> 
     outcome = _outcome(snapshot, (_result_for("answer-1"),))
     progress = RecordingProgressUpdater()
     executor = InlineGradingTaskExecutor(
-        repository=repository, reader=StubSubmissionReader({SUBMISSION_ID: snapshot}),
-        pipeline=StubScoringPipeline(outcome), progress_updater=progress,
+        repository=repository,
+        reader=StubSubmissionReader({SUBMISSION_ID: snapshot}),
+        pipeline=StubScoringPipeline(outcome),
+        progress_updater=progress,
     )
-    repository.save_task(make_task("task-1", SUBMISSION_ID, status=GradingTaskStatus.QUEUED))
+    repository.save_task(
+        make_task("task-1", SUBMISSION_ID, status=GradingTaskStatus.QUEUED)
+    )
     executor.execute("task-1", SUBMISSION_ID)
     assert repository.get_task("task-1").status is GradingTaskStatus.COMPLETED
     assert repository.get_exam_result(SUBMISSION_ID) == outcome.exam_result
@@ -967,9 +992,7 @@ def test_real_reader_snapshot_follows_exam_question_set() -> None:
         exam, questions, _ = _seed_exam(
             session, question_contents=("解释变量。", "解释作用域。")
         )
-        submission = _insert_submission(
-            session, exam, answered_questions=questions
-        )
+        submission = _insert_submission(session, exam, answered_questions=questions)
         reader = DatabaseGradingSubmissionReader(session=session)
 
         snapshot = reader.load(str(submission.id))
@@ -1023,9 +1046,7 @@ def test_real_reader_rejects_missing_answer() -> None:
         exam, questions, _ = _seed_exam(
             session, question_contents=("解释变量。", "解释作用域。")
         )
-        submission = _insert_submission(
-            session, exam, answered_questions=questions[:1]
-        )
+        submission = _insert_submission(session, exam, answered_questions=questions[:1])
         reader = DatabaseGradingSubmissionReader(session=session)
 
         with pytest.raises(Exception) as error:
@@ -1112,7 +1133,9 @@ def test_trigger_requires_store_readiness_before_reading_submission() -> None:
     [(0.799, "Pending Review"), (0.8, "Not Required"), (0.95, "Not Required")],
 )
 def test_default_recording_reuses_single_decision(
-    monkeypatch: pytest.MonkeyPatch, confidence: float, expected_status: str,
+    monkeypatch: pytest.MonkeyPatch,
+    confidence: float,
+    expected_status: str,
 ) -> None:
     """默认记录器保存真实回填使用的那次决策，边界值不重复判定。"""
 
@@ -1179,3 +1202,235 @@ def test_recording_preserves_injected_policy(reject: bool) -> None:
     assert recording.decision_for("answer-1") is decisions[0]
     assert updated.review_status == "Pending Review"
     assert updated.suggestions == ["自定义策略的建议"]
+
+
+def test_trigger_persists_explicit_scope_and_executor_reads_it_again() -> None:
+    """T162: execution reads durable task scope instead of ambient request memory."""
+    from backend.app.schemas.retrieval_scope import RetrievalScope
+
+    scope = RetrievalScope(knowledge_points=["explicit grading tag"])
+    repository = InMemoryGradingRepository()
+    reader = StubSubmissionReader(
+        {SUBMISSION_ID: _snapshot()}, allowed_teacher_id=TEACHER_ID
+    )
+    captured: list[SubmissionSnapshot] = []
+
+    class ScopePipeline:
+        def score(self, snapshot: SubmissionSnapshot) -> GradingOutcome:
+            captured.append(snapshot)
+            return _outcome(snapshot, (_result_for(snapshot.answers[0].answer_id),))
+
+    executor = InlineGradingTaskExecutor(
+        repository=repository, reader=reader, pipeline=ScopePipeline()
+    )
+    service = _service(
+        repository=repository,
+        reader=reader,
+        executor=executor,
+        scheduler=lambda *_: None,
+    )
+    task = service.trigger(SUBMISSION_ID, teacher_id=TEACHER_ID, retrieval_scope=scope)
+    assert repository.get_retrieval_scope(task.task_id) == scope
+    executor.execute(task.task_id, SUBMISSION_ID)
+    assert captured[0].retrieval_scope == scope
+    assert reader.load(SUBMISSION_ID).retrieval_scope.is_empty
+
+
+def test_reused_task_retains_original_scope_when_request_omits_scope() -> None:
+    from backend.app.schemas.retrieval_scope import RetrievalScope
+
+    repository = InMemoryGradingRepository()
+    service = _service(repository=repository)
+    original = RetrievalScope(knowledge_points=["original tag"])
+    first = service.trigger(
+        SUBMISSION_ID, teacher_id=TEACHER_ID, retrieval_scope=original
+    )
+    repeated = service.trigger(
+        SUBMISSION_ID,
+        teacher_id=TEACHER_ID,
+        retrieval_scope=None,
+    )
+    assert repeated.reused is True
+    assert repeated.task_id == first.task_id
+    assert repository.get_retrieval_scope(first.task_id) == original
+
+
+def test_subjective_task_error_keeps_scope_failure_reason() -> None:
+    from backend.app.ai.retrieval.base import RetrievalScopeInvalidError
+    from backend.app.services.grading.subjective_pipeline import as_task_error
+
+    error = RetrievalScopeInvalidError("所选资料不属于当前授权课程。")
+    mapped = as_task_error(error)
+    assert mapped.error_code == "RETRIEVAL_SCOPE_INVALID"
+    assert mapped.detail == error.detail
+    assert mapped.retryable is False
+
+
+def test_production_subjective_scorer_preserves_scope_error_in_task(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from dataclasses import replace
+
+    from backend.app.ai.retrieval.base import RetrievalScopeNotReadyError
+    from backend.app.schemas.retrieval_scope import RetrievalScope
+    from backend.app.services.grading.subjective_pipeline import build_subjective_scorer
+
+    scope = RetrievalScope(knowledge_points=["task tag"])
+    snapshot = replace(
+        _snapshot(answers=(_subjective_answer(),)),
+        course_id="3f1a8c2e-0d4f-4b7a-9c1e-2b8d5f6a7c90",
+    )
+    sources: list[object] = []
+    closed: list[bool] = []
+
+    class ReadSession:
+        def close(self) -> None:
+            closed.append(True)
+
+    async def grade(
+        grader: object, session: object, source: object, **kwargs: object
+    ) -> None:
+        sources.append(source)
+        raise RetrievalScopeNotReadyError("该章节尚无已确认小节目录。")
+
+    monkeypatch.setattr(SubjectiveGrader, "grade", grade)
+    repository = InMemoryGradingRepository()
+    reader = StubSubmissionReader(
+        {SUBMISSION_ID: snapshot}, allowed_teacher_id=TEACHER_ID
+    )
+    scorer = build_subjective_scorer(session_factory=ReadSession)
+    executor = InlineGradingTaskExecutor(
+        repository=repository,
+        reader=reader,
+        pipeline=DefaultScoringPipeline(subjective_scorer=scorer),
+    )
+    service = _service(repository=repository, reader=reader, executor=executor)
+    task = service.trigger(SUBMISSION_ID, teacher_id=TEACHER_ID, retrieval_scope=scope)
+    failed = repository.get_task(task.task_id)
+    assert failed.status is GradingTaskStatus.FAILED
+    assert failed.error_code == "RETRIEVAL_SCOPE_NOT_READY"
+    assert failed.error_message == "该章节尚无已确认小节目录。"
+    assert failed.retryable is False
+    assert sources[0].retrieval_scope == scope
+    assert closed == [True]
+    assert repository.exam_results == {}
+
+
+def test_nonempty_scope_requires_a_supported_reader_validator() -> None:
+    from backend.app.schemas.retrieval_scope import RetrievalScope
+
+    backed_reader = StubSubmissionReader(
+        {SUBMISSION_ID: _snapshot()}, allowed_teacher_id=TEACHER_ID
+    )
+
+    class LegacyReader:
+        def load_for_teacher(
+            self, submission_id: str, teacher_id: str
+        ) -> SubmissionSnapshot:
+            return backed_reader.load_for_teacher(submission_id, teacher_id)
+
+        def load(self, submission_id: str) -> SubmissionSnapshot:
+            return backed_reader.load(submission_id)
+
+    repository = InMemoryGradingRepository()
+    executor = RecordingExecutor()
+    service = _service(repository=repository, reader=LegacyReader(), executor=executor)
+    with pytest.raises(GradingExecutionNotReadyError, match="范围校验"):
+        service.trigger(
+            SUBMISSION_ID,
+            teacher_id=TEACHER_ID,
+            retrieval_scope=RetrievalScope(knowledge_points=["explicit tag"]),
+        )
+    assert backed_reader.teacher_loads == [(SUBMISSION_ID, TEACHER_ID)]
+    assert repository.tasks == {}
+    assert executor.executed == []
+
+
+@pytest.mark.parametrize(
+    "dimension",
+    ["document_ids", "chapter_ids", "knowledge_points", "section_range", "empty"],
+)
+def test_active_task_reused_scope_conflict_preserves_task_and_schedule(
+    dimension: str,
+) -> None:
+    from uuid import uuid4
+
+    from backend.app.schemas.retrieval_scope import RetrievalScope, SectionRange
+
+    document_id = uuid4()
+    chapter_id = uuid4()
+    original = RetrievalScope(
+        document_ids=[document_id],
+        chapter_ids=[chapter_id],
+        knowledge_points=["original tag"],
+        section_range=SectionRange(chapter_id=chapter_id, start_order=1, end_order=2),
+    )
+    values = original.model_dump()
+    if dimension == "empty":
+        requested = RetrievalScope()
+    else:
+        if dimension in {"document_ids", "chapter_ids"}:
+            values[dimension] = [uuid4()]
+        elif dimension == "knowledge_points":
+            values[dimension] = ["new tag"]
+        else:
+            values[dimension] = SectionRange(
+                chapter_id=chapter_id, start_order=1, end_order=3
+            )
+        requested = RetrievalScope.model_validate(values)
+    repository = InMemoryGradingRepository()
+    existing = make_task(
+        "active-scope-task", SUBMISSION_ID, status=GradingTaskStatus.RUNNING
+    )
+    repository.save_task(existing, retrieval_scope=original)
+    executor = RecordingExecutor()
+    service = _service(repository=repository, executor=executor)
+    with pytest.raises(GradingTriggerConflictError):
+        service.trigger(
+            SUBMISSION_ID,
+            teacher_id=TEACHER_ID,
+            retrieval_scope=requested,
+            scheduler=executor,
+        )
+    assert repository.tasks == {existing.task_id: existing}
+    assert repository.get_retrieval_scope(existing.task_id) == original
+    assert executor.scheduled == []
+    assert executor.executed == []
+
+
+def test_active_task_reused_scope_uses_set_semantics_and_range_value() -> None:
+    from uuid import uuid4
+
+    from backend.app.schemas.retrieval_scope import RetrievalScope, SectionRange
+
+    documents = [uuid4(), uuid4()]
+    chapters = [uuid4(), uuid4()]
+    original = RetrievalScope(
+        document_ids=documents,
+        chapter_ids=chapters,
+        knowledge_points=["first tag", "second tag"],
+        section_range=SectionRange(chapter_id=chapters[0], start_order=1, end_order=2),
+    )
+    requested = RetrievalScope(
+        document_ids=[documents[1], documents[0], documents[1]],
+        chapter_ids=[chapters[1], chapters[0], chapters[0]],
+        knowledge_points=["second tag", "first tag", "first tag"],
+        section_range=SectionRange(chapter_id=chapters[0], start_order=1, end_order=2),
+    )
+    repository = InMemoryGradingRepository()
+    existing = make_task(
+        "matching-scope-task", SUBMISSION_ID, status=GradingTaskStatus.RUNNING
+    )
+    repository.save_task(existing, retrieval_scope=original)
+    executor = RecordingExecutor()
+    reused = _service(repository=repository, executor=executor).trigger(
+        SUBMISSION_ID,
+        teacher_id=TEACHER_ID,
+        retrieval_scope=requested,
+        scheduler=executor,
+    )
+    assert reused.reused is True
+    assert reused.task_id == existing.task_id
+    assert repository.get_retrieval_scope(existing.task_id) == original
+    assert executor.scheduled == []
+    assert executor.executed == []

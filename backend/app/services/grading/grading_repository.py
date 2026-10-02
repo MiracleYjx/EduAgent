@@ -64,6 +64,7 @@ from backend.app.schemas.grading import (
     QuestionResultDTO,
     SubmissionContext,
 )
+from backend.app.schemas.retrieval_scope import RetrievalScope
 from backend.app.services.grading.confidence_mapping import confidence_decision_snapshot
 from backend.app.services.grading.confidence_policy import ConfidenceDecision
 from backend.app.services.grading.grading_task_service import (
@@ -272,11 +273,26 @@ class DatabaseGradingRepository:
             latest = max(rows, key=lambda item: (item.created_at, item.updated_at))
             return self._task_dto(latest)
 
+    def get_retrieval_scope(self, task_id: str) -> RetrievalScope:
+        """从本执行器的持久任务载荷读取显式范围；旧任务缺省为空。"""
+
+        with self._use_session() as session:
+            row = session.scalars(select(WorkflowRun).where(
+                WorkflowRun.workflow_id == task_id
+            )).one_or_none()
+            if row is None or not _is_own_checkpoint(row):
+                raise GradingTaskError("阅卷任务不存在或不属于当前执行器。")
+            checkpoint = row.checkpoint or {}
+            if "retrieval_scope" not in checkpoint:
+                return RetrievalScope()
+            return RetrievalScope.model_validate(checkpoint["retrieval_scope"])
+
     def save_task(
         self,
         task: GradingTaskStatusDTO,
         *,
         request_id: str | None = None,
+        retrieval_scope: RetrievalScope | None = None,
     ) -> None:
         """单事务写入任务状态、检查点与一致的答卷进度。
 
@@ -309,6 +325,11 @@ class DatabaseGradingRepository:
                 session.flush()
             elif request_id is not None:
                 row.request_id = request_id
+            if retrieval_scope is not None:
+                row.checkpoint = {
+                    **(row.checkpoint or {}),
+                    "retrieval_scope": retrieval_scope.model_dump(mode="json"),
+                }
             self._apply_task(row, task)
             if task.status is GradingTaskStatus.FAILED:
                 self._mark_answers_failed(session, row.submission_id)

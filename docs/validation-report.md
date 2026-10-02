@@ -645,3 +645,79 @@ T157 先行缺模块/入口用例确实失败；实现后真实渲染/拆题 13 
 实际浏览器在隔离合成样例中完成章目录、全块定位、独立标签确认，刷新和服务重启后数据库/界面读取一致。教师账户与 JWT 为真实本批角色夹具，Embedding 是受控替身；没有人工内容质量标签，不宣布 T160/T169 质量验收。
 
 证据：[最终界面截图](evidence/t161-chapter-scope-20261002/chapter-scope-browser.jpg)、[持久重读记录](evidence/t161-chapter-scope-20261002/browser-durable-result.json)。最后 UI 状态清理修正不改变截图控件布局，由聚焦用例补证。测试批次缓存 .cache/t161-162-scope-20261002；临时资源在 T162 完成后清理。
+
+## T162：显式范围与四种检索贯通（2026-10-02）
+
+采用 /speckit.implement，承接独立 T161 提交 d51dfe4；用户已批准显式 retrieval_scope，旧题目知识点仍只用于分类/提示，不从题目标签或历史来源反推检索范围。T160 等真实教师标注，本批未执行。
+
+### 实际交付
+
+- 新增冻结、受 Pydantic 校验的 RetrievalScope(document_ids/chapter_ids/section_range/knowledge_points)，闭区间必须附带具体章节和严格正整数；课程/知识库授权来自原业务上下文，不由范围 DTO 声明。Query 为逻辑章/节/标签唯一消费来源，调用方资料身份投影到原 Filters。
+- 四模式共用范围边界：教学用途 + Ready + 授权课程/知识库/资料 + 章/节 + 已确认精确标签在 SQL 内先过滤，再计算召回分数/Top-K、融合、重排；metadata 保持原 JSON，PostgreSQL 查询投影 JSONB 精确任一成员。各维交集、同维并集；合法无结果维持空集，不扩大或补位。章节/资料异归属、未知及未确认目录保留明确错误。
+- 出题公开请求和 MCP 传入当前范围；关键词路不创建 Embedding。阅卷触发前校验真实答卷→考试课程，包括纯客观答卷；范围存 WorkflowRun.checkpoint.retrieval_scope，状态更新保留该值，后台新实例从真实持久记录重读，坏记录明确失败。
+- 进行中任务按范围语义幂等；显式不同范围 409，无覆盖/重复调度。API 区分省略与显式空对象；同集合乱序/重复复用，旧省略调用沿 v1 行为。没有新表/列/Worker/自动恢复队列；范围选择 UI 留现有后续任务。
+- T161 新真实标题边界使旧 21 块合成参考无法用于生产初始化。保留旧教材/标签/历史结果，新增 heading-v3-20261002 的 30 块版本；逐查询按真实小节登记 AI 规则映射，每条 teacher_verified=false、真实教师身份/标注时间未知。初始化默认使用新输入，旧离线入口/JSON/CSV/manifest v1 和精确原文门禁保持；不是教师质量标签，新旧粒度指标不可直接比较。
+
+### 验证证据
+
+| 检查 | UTC 开始 / 耗时 | 实际结果 |
+| --- | --- | --- |
+| 四模式/出题/MCP 范围及直接回归 | 11:12:54.501686；pytest 55.04s，外层62.233s | 114 passed/1 warning |
+| 阅卷持久范围/公开触发及直接回归 | 11:11:33.529930；pytest32.82s，外层41.303s | 180 passed/1 warning |
+| 任务显式范围复用补修 | 11:32:31.684727；pytest31.34s，外层39.367s | 77 passed/1 warning；先行7 failed/3 passed |
+| 合成语料新版本完整可重现模块 | 2026-10-02T11:50:09.467038+00:00；pytest15.54s，外层17.196s | 17 passed |
+| 最终独立暂存快照全量 pytest | 2026-10-02T11:51:22.339843+00:00；JUnit519.211s，外层528.245s | 1878 passed / 0 failed / 0 errors / 2 skipped / 68 warnings |
+| 全后端 mypy | 2026-10-02T11:35:34.278824+00:00；116.221s | 181 source files 无问题 |
+| 最终 Ruff backend/tests/受影响脚本 | 2026-10-02T11:51:29.244636+00:00；0.257s | All checks passed |
+| 专用数据库 Alembic check | 2026-10-02T11:51:28.414995+00:00；1.551s | No new upgrade operations detected |
+
+首轮全量 1861 passed/17 setup errors/2 skipped/68 warnings：17 项共用同一过时21块夹具，CLI 如实拒绝“摄取片段数与标注基准不一致”，未改为环境跳过/自动扩散旧标签。补 TCR、生成独立静态新版本并仅改受影响真实基数后，先17项完整通过，再执行上述最终全量；旧断言及原文件原值保持。
+
+两项 skip：M0 缺固定四项隔离环境、Windows 无测试符号链接权限，未计通过。全量使用排除用户改动的 index；T161 的实际教师核对 UI/持久重读另见前节截图与证据。真实数据库证明过滤/事务/持久化，受控 Provider/合成样例仅验证功能，不证明 T160/T168/T169 教师标注准确率、真实模型质量或 EXE/系统交付。
+
+### 环境、清理及提交保护
+
+2026-10-02T12:01:11.182310+00:00 在本批资源标识/任务标签和零连接检查后删除 eduagent_e3_scope_c770d09d04f4 与 eduagent-e3-scope-redis-c770d09d04f4；原业务库仍 0012_audit_logs，原数据库/Redis容器正常。临时文件、源日志、UTC/退出码与JUnit保留 .cache/t161-162-scope-20261002，凭据不提交。未安装依赖、升级业务库或改变 .env；章节0019迁移只在隔离库应用。
+
+关闭本批浏览器验证页及准确命令匹配的预览进程。六项既有保护文件（.env/README/设计系统/题库及其新测试）与 prior 已保护基线字节一致；主壳与本批 before 逐字节比较仅增加提交的章节 reset 行。布局/主 UI 测试原有变更留工作区，提交及独立验证不依赖这些差异。只标记 T161/T162；T146、T160 和就绪清单不变。.specify/extensions.yml 不存在，后置 hook 按技能跳过。
+
+### 本项文件
+
+- .specify/contracts/rag-retrieval.md
+- .specify/data-model.md
+- .specify/tasks.md
+- backend/app/ai/agents/grading_agent.py
+- backend/app/ai/agents/question_agent.py
+- backend/app/ai/agents/state.py
+- backend/app/ai/retrieval/_filters.py
+- backend/app/ai/retrieval/base.py
+- backend/app/ai/retrieval/hybrid_search.py
+- backend/app/ai/retrieval/keyword_search.py
+- backend/app/ai/retrieval/vector_search.py
+- backend/app/api/grading.py
+- backend/app/api/question_generation.py
+- backend/app/mcp/tools/knowledge_tools.py
+- backend/app/schemas/retrieval_scope.py
+- backend/app/services/grading/grading_context.py
+- backend/app/services/grading/grading_repository.py
+- backend/app/services/grading/grading_task_service.py
+- backend/app/services/grading/subjective_pipeline.py
+- benchmark/corpus/heading-v3-20261002/README.md
+- benchmark/corpus/heading-v3-20261002/annotations.json
+- benchmark/corpus/heading-v3-20261002/chunks.json
+- benchmark/corpus/heading-v3-20261002/python_basics.md
+- benchmark/corpus/heading-v3-20261002/queries.json
+- docs/test-change-record-v2.md
+- docs/validation-report.md
+- scripts/benchmark_corpus.py
+- tests/contract/test_grading_api_contract.py
+- tests/contract/test_question_generation_api_contract.py
+- tests/contract/test_retrieval_scope_contract.py
+- tests/integration/test_benchmark_reproducibility.py
+- tests/support/grading_doubles.py
+- tests/unit/agents/test_grading_agent.py
+- tests/unit/grading/test_grading_context.py
+- tests/unit/grading/test_grading_repository.py
+- tests/unit/grading/test_grading_task_service.py
+- tests/unit/mcp/test_knowledge_tools.py
+- tests/unit/retrieval/test_retrieval_scope.py

@@ -68,6 +68,10 @@ from backend.app.ai.agents.state import (
     QuestionGenerationRequest,
     RetrievedContextItem,
 )
+from backend.app.ai.retrieval.base import (
+    RETRIEVAL_SCOPE_INVALID,
+    RETRIEVAL_SCOPE_NOT_READY,
+)
 from backend.app.core.config import AppSettings
 from backend.app.core.database import get_session_factory
 from backend.app.core.security import require_permission
@@ -84,6 +88,7 @@ from backend.app.models import (
     User,
 )
 from backend.app.schemas.ai import QuestionCandidate
+from backend.app.schemas.retrieval_scope import RetrievalScope
 from backend.app.services.audit_service import audit_after_commit
 from backend.app.services.question_validator import (
     CANDIDATE_GENERATION_STATUS,
@@ -139,6 +144,8 @@ QUESTION_GENERATION_INVALID_PAGE: str = "QUESTION_GENERATION_INVALID_PAGE"
 
 #: 错误码到 HTTP 状态码的映射；未列出的错误按 500 处理并保持脱敏。
 _ERROR_STATUS: dict[str, int] = {
+    RETRIEVAL_SCOPE_INVALID: 422,
+    RETRIEVAL_SCOPE_NOT_READY: 503,
     # 依赖未就绪：Provider、Embedding、检索存储与候选写入存储
     QUESTION_PROVIDER_NOT_READY: 503,
     QUESTION_EMBEDDING_PROVIDER_NOT_READY: 503,
@@ -266,6 +273,7 @@ class CandidateGenerationRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     course_id: UUID = Field(description="出题所属课程。")
+    retrieval_scope: RetrievalScope = Field(default_factory=RetrievalScope)
     knowledge_points: list[str] = Field(
         default_factory=list,
         max_length=32,
@@ -554,6 +562,7 @@ class QuestionGenerationService:
         difficulty: str | None = None,
         question_type: QuestionType | None = None,
         count: int = 1,
+        retrieval_scope: RetrievalScope | dict[str, Any] | None = None,
     ) -> CandidateGenerationResponse:
         """按教师条件生成候选题、自动校验并整批落库。"""
 
@@ -563,6 +572,7 @@ class QuestionGenerationService:
             difficulty=difficulty,
             question_type=question_type,
             count=count,
+            retrieval_scope=retrieval_scope,
         )
         agent_input = AgentInput(
             agent_type=AgentType.QUESTION,
@@ -577,7 +587,9 @@ class QuestionGenerationService:
             assert self._session is not None
             factory = lambda: Session(bind=self._session.get_bind())
         with bind_trace(
-            request_id=request_id, user_id=actor_id, workflow_id=None,
+            request_id=request_id,
+            user_id=actor_id,
+            workflow_id=None,
             service=TraceService(factory),
         ):
             started_at = perf_counter()
@@ -590,8 +602,10 @@ class QuestionGenerationService:
                     settings=self._settings,
                 )
             record_trace(
-                agent_type="question", status=output.status.value,
-                started_at=started_at, model=output.model,
+                agent_type="question",
+                status=output.status.value,
+                started_at=started_at,
+                model=output.model,
                 prompt_version=output.prompt_version,
                 input_summary="agent:question",
                 output_summary=f"status:{output.status.value}",
@@ -647,6 +661,7 @@ class QuestionGenerationService:
         difficulty: str | None,
         question_type: QuestionType | None,
         count: int,
+        retrieval_scope: RetrievalScope | dict[str, Any] | None = None,
     ) -> QuestionGenerationRequest:
         """构造 T065 出题条件；非法值由 Pydantic 显式拒绝。"""
 
@@ -657,6 +672,9 @@ class QuestionGenerationService:
                 difficulty=difficulty,
                 question_type=question_type,
                 count=count,
+                retrieval_scope=RetrievalScope.model_validate(retrieval_scope)
+                if retrieval_scope is not None
+                else RetrievalScope(),
             )
         except ValueError as error:
             raise GenerationFailedError(
@@ -1205,6 +1223,7 @@ async def generate_candidates(
             difficulty=payload.difficulty,
             question_type=payload.question_type,
             count=payload.count,
+            retrieval_scope=payload.retrieval_scope,
         )
     except QuestionGenerationError as error:
         raise _generation_http_exception(error) from None

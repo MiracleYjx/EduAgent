@@ -55,7 +55,7 @@ def test_setup_ingests_production_corpus_and_maps_actual_uuids(manifest_path):
     current_ids = {item["chunk_id"] for item in chunks}
     assert manifest["corpus"]["document_id"] != reference["document_id"]
     assert current_ids.isdisjoint(item["chunk_id"] for item in reference["chunks"])
-    assert len(current_ids) == manifest["corpus"]["chunk_count"] == 21
+    assert len(current_ids) == manifest["corpus"]["chunk_count"] == reference["chunk_count"] == 30
     assert manifest["embedding"]["provider"] == "stub"
     assert manifest["input_fingerprint"] == corpus.fingerprint(manifest["inputs"])
     old_by_id = {item["chunk_id"]: item["content"] for item in reference["chunks"]}

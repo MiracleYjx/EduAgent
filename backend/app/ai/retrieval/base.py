@@ -23,10 +23,15 @@ from types import MappingProxyType
 from typing import Any, ClassVar, Final
 from uuid import UUID
 
+from pydantic import ValidationError
 from sqlalchemy.orm import Session
+
+from backend.app.schemas.retrieval_scope import RetrievalScope, SectionRange
 
 #: 查询文本或查询向量不合法；必须先修正输入。
 RETRIEVAL_INVALID_INPUT: Final[str] = "RETRIEVAL_INVALID_INPUT"
+RETRIEVAL_SCOPE_INVALID: Final[str] = "RETRIEVAL_SCOPE_INVALID"
+RETRIEVAL_SCOPE_NOT_READY: Final[str] = "RETRIEVAL_SCOPE_NOT_READY"
 #: 当前数据库方言不支持该检索模式（例如非 PostgreSQL 的 tsvector）。
 RETRIEVAL_UNSUPPORTED_DIALECT: Final[str] = "RETRIEVAL_UNSUPPORTED_DIALECT"
 #: 该检索模式尚未实现（当前批次只提供 vector/keyword）。
@@ -36,6 +41,8 @@ RETRIEVAL_MODE_NOT_IMPLEMENTED: Final[str] = "RETRIEVAL_MODE_NOT_IMPLEMENTED"
 RETRIEVAL_ERROR_MESSAGES: Final[Mapping[str, str]] = MappingProxyType(
     {
         RETRIEVAL_INVALID_INPUT: "检索输入不合法，请检查查询内容或过滤条件。",
+        RETRIEVAL_SCOPE_INVALID: "教学范围不属于当前授权课程或目录范围无效。",
+        RETRIEVAL_SCOPE_NOT_READY: "教学范围尚无可用小节目录，请先确认章节定位。",
         RETRIEVAL_UNSUPPORTED_DIALECT: "当前数据库不支持该检索模式，请检查数据库配置。",
         RETRIEVAL_MODE_NOT_IMPLEMENTED: "该检索模式尚未实现，不能返回未经融合或重排的结果。",
     }
@@ -60,13 +67,45 @@ class RetrievalQuery:
 
     text: str
     embedding: tuple[float, ...]
+    chapter_ids: tuple[UUID, ...] = ()
+    section_range: SectionRange | None = None
+    knowledge_points: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "text", normalize_query_text(self.text))
-        object.__setattr__(
-            self,
-            "embedding",
-            tuple(normalize_query_vector(self.embedding)),
+        # Keyword-only scope calls need no embedding; vector/hybrid reject it at their entry.
+        if self.embedding == ():
+            vector: tuple[float, ...] = ()
+        else:
+            vector = tuple(normalize_query_vector(self.embedding))
+        object.__setattr__(self, "embedding", vector)
+        try:
+            scope = RetrievalScope(
+                chapter_ids=self.chapter_ids,
+                section_range=self.section_range,
+                knowledge_points=self.knowledge_points,
+            )
+        except ValidationError as exc:
+            raise RetrievalInputError("章节、小节或知识点范围输入不合法。") from exc
+        object.__setattr__(self, "chapter_ids", scope.chapter_ids)
+        object.__setattr__(self, "section_range", scope.section_range)
+        object.__setattr__(self, "knowledge_points", scope.knowledge_points)
+
+    @property
+    def has_scope(self) -> bool:
+        return bool(self.chapter_ids or self.section_range or self.knowledge_points)
+
+    @classmethod
+    def from_scope(
+        cls, text: str, embedding: Sequence[float], scope: RetrievalScope
+    ) -> RetrievalQuery:
+        """将已校验公共范围投影到唯一 Query 输入；资料维度仍由 Filters 承载。"""
+        return cls(
+            text=text,
+            embedding=tuple(embedding),
+            chapter_ids=scope.chapter_ids,
+            section_range=scope.section_range,
+            knowledge_points=scope.knowledge_points,
         )
 
 
@@ -93,6 +132,18 @@ class RetrievalInputError(RetrievalError):
     """查询文本、查询向量或过滤条件不合法。"""
 
     error_code: ClassVar[str] = RETRIEVAL_INVALID_INPUT
+
+
+class RetrievalScopeInvalidError(RetrievalError):
+    """显式范围非法或超出已授权课程。"""
+
+    error_code: ClassVar[str] = RETRIEVAL_SCOPE_INVALID
+
+
+class RetrievalScopeNotReadyError(RetrievalError):
+    """章节尚无可用于范围查询的小节目录。"""
+
+    error_code: ClassVar[str] = RETRIEVAL_SCOPE_NOT_READY
 
 
 class RetrievalUnsupportedDialectError(RetrievalError):
@@ -317,6 +368,11 @@ def resolve_filters(filters: RetrievalFilters | None) -> RetrievalFilters:
     if isinstance(filters, RetrievalFilters):
         return filters
     if isinstance(filters, Mapping):
+        unknown = set(filters) - {"course_ids", "knowledge_base_ids", "document_ids"}
+        if unknown:
+            raise RetrievalInputError(
+                "过滤适配层不支持此字段；章节和标签范围必须通过 RetrievalQuery 提供。"
+            )
         return RetrievalFilters(
             course_ids=tuple(filters.get("course_ids", ()) or ()),
             knowledge_base_ids=tuple(filters.get("knowledge_base_ids", ()) or ()),
@@ -344,7 +400,7 @@ class BaseRetriever(ABC):
     def search(
         self,
         session: Session,
-        query: str | Sequence[float],
+        query: str | Sequence[float] | RetrievalQuery,
         *,
         top_k: int = DEFAULT_TOP_K,
         filters: RetrievalFilters | None = None,
@@ -403,6 +459,8 @@ __all__ = [
     "RETRIEVAL_ERROR_MESSAGES",
     "RETRIEVAL_INVALID_INPUT",
     "RETRIEVAL_MODE_NOT_IMPLEMENTED",
+    "RETRIEVAL_SCOPE_INVALID",
+    "RETRIEVAL_SCOPE_NOT_READY",
     "RETRIEVAL_UNSUPPORTED_DIALECT",
     "SOURCE_MODE_BOTH",
     "SOURCE_MODE_KEYWORD",
@@ -414,6 +472,8 @@ __all__ = [
     "RetrievalMode",
     "RetrievalModeNotImplementedError",
     "RetrievalQuery",
+    "RetrievalScopeInvalidError",
+    "RetrievalScopeNotReadyError",
     "RetrievalUnsupportedDialectError",
     "RetrievedChunk",
     "get_retriever",

@@ -34,6 +34,7 @@ from backend.app.schemas.ai import (
     QuestionCandidate,
 )
 from backend.app.schemas.grading import ConfidenceDecisionDTO, SubmissionContext
+from backend.app.schemas.retrieval_scope import RetrievalScope
 from backend.app.services.grading.confidence_mapping import confidence_decision_snapshot
 from backend.app.services.grading.confidence_policy import (
     HUMAN_DECIDED_REVIEW_STATES,
@@ -188,6 +189,10 @@ class QuestionGenerationRequest(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True, str_strip_whitespace=True)
 
     course_id: NonEmptyText = Field(description="出题所属课程。")
+    retrieval_scope: RetrievalScope = Field(
+        default_factory=RetrievalScope,
+        description="教师显式指定的教学检索范围；旧知识点不隐式过滤。",
+    )
     knowledge_points: list[NonEmptyText] = Field(
         default_factory=list, description="要求覆盖的知识点。"
     )

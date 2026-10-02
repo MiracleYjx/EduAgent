@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterator, Sequence
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 import pytest
 from sqlalchemy import create_engine, select
@@ -299,3 +299,55 @@ def test_query_knowledge_empty_result_is_explicit(session: Session) -> None:
         "count": 0,
         "message": "未检索到相关知识片段。",
     }
+
+
+def test_mcp_explicit_chapter_scope_reaches_shared_retrieval_boundary(session):
+    from datetime import UTC, datetime
+
+    from backend.app.models import Chapter
+
+    owner = _teacher(session)
+    course = CourseService(session).create_course("Scoped", teacher_id=owner.id)
+    chapter = Chapter(
+        course_id=UUID(course.id),
+        title="Chapter",
+        sections=[],
+        confirmed_by=owner.id,
+        confirmed_at=datetime.now(UTC),
+    )
+    session.add(chapter)
+    session.commit()
+    server, provider, vector = _server()
+    result = server.call_tool(
+        "query_knowledge",
+        {
+            "course_id": course.id,
+            "query": "资料",
+            "retrieval_scope": {"chapter_ids": [str(chapter.id)]},
+        },
+        token=_token(session, owner),
+        session=session,
+    )
+    assert result.ok
+    assert len(provider.queries) == 1
+    assert vector.filters[0].query.chapter_ids == (chapter.id,)
+
+
+def test_mcp_invalid_scope_preserves_reason_without_embedding(session):
+    owner = _teacher(session)
+    course = CourseService(session).create_course("Scoped", teacher_id=owner.id)
+    server, provider, vector = _server()
+    result = server.call_tool(
+        "query_knowledge",
+        {
+            "course_id": course.id,
+            "query": "资料",
+            "retrieval_scope": {"chapter_ids": [str(uuid4())]},
+        },
+        token=_token(session, owner),
+        session=session,
+    )
+    assert not result.ok
+    assert result.error.code == "RETRIEVAL_SCOPE_INVALID"
+    assert "章节" in result.error.message
+    assert provider.queries == [] and vector.filters == []

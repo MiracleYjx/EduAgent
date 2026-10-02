@@ -577,7 +577,7 @@ M0 工程骨架 + Benchmark
 
 - [X] T161 [HIGH] [E3] **实现章节定位生产与迁移**：按 G01 在 `models/document_chunk.py`、`ai/ingestion/chunking.py`、`ai/ingestion/service.py`、知识库服务/API/UI 及迁移实现真实章节/小节/知识点标注、教师核对和 (course_id,chapter_id,section_order) 索引；跨章按真实边界切分，旧片段未知保留 NULL。不能只补查询字段而没有定位生产入口。 依赖：T134、T145、T149、T153。per FR-024/025、G01、rag-retrieval Chunk定位（F028） (partial)
 
-- [ ] T162 [HIGH] [E3] **贯通章节范围与四种检索 SQL**：在 `ai/retrieval/base.py`、`_filters.py`、`vector_search.py`、`keyword_search.py`、`hybrid_search.py` 及 Query 构造/调用方贯通授权课程、资料、章节/小节和知识点；先 SQL 过滤 Ready/knowledge_base 再打分/Top-K/融合/重排。保留无范围默认，跨课程/未映射明确拒绝，合法不足不扩大范围；出题与阅卷共用同一范围消费边界。 依赖：T161。per FR-024/025/032、rag-retrieval §SQL强制过滤（F029） (partial)
+- [X] T162 [HIGH] [E3] **贯通章节范围与四种检索 SQL**：在 `ai/retrieval/base.py`、`_filters.py`、`vector_search.py`、`keyword_search.py`、`hybrid_search.py` 及 Query 构造/调用方贯通授权课程、资料、章节/小节和知识点；先 SQL 过滤 Ready/knowledge_base 再打分/Top-K/融合/重排。保留无范围默认，跨课程/未映射明确拒绝，合法不足不扩大范围；出题与阅卷共用同一范围消费边界。 依赖：T161。per FR-024/025/032、rag-retrieval §SQL强制过滤（F029） (partial)
 
 - [ ] T163 [HIGH] [E3] **实现核验与图片核对持久服务**：按 G02/G05 在 `models/`、`schemas/`、迁移及新增 `services/content_validation_service.py` 实现每轮报告、实际 Agent/Provider 来源、技术错误、教师处置与原图/当前内容关联；接通暂存题转正式题的核对记录及读取/处置接口，变化后旧结果失效但证据保留，不伪造教师身份或将机器报告塞进意见。 依赖：T135、T138、T145、T153、T154。per FR-043/047、G02/G05、agent-workflow、vision-capability（F030） (missing)
 

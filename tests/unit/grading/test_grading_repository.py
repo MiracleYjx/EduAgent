@@ -149,7 +149,9 @@ def _subjective_payload(
     )
 
 
-def _decision(*, confidence: float = 0.5, requires_review: bool = True) -> ConfidenceDecision:
+def _decision(
+    *, confidence: float = 0.5, requires_review: bool = True
+) -> ConfidenceDecision:
     """与主观题结果匹配的置信度决策。"""
 
     return ConfidenceDecision(
@@ -201,9 +203,11 @@ def _outcome(
     """构造一次评分产出（含整卷汇总）。"""
 
     payloads = [_objective_payload(fixture), subjective or _subjective_payload(fixture)]
-    decision_map = decisions if decisions is not None else {
-        str(fixture.subjective_answer_id): _decision()
-    }
+    decision_map = (
+        decisions
+        if decisions is not None
+        else {str(fixture.subjective_answer_id): _decision()}
+    )
     exam_result = ResultAggregator().aggregate(
         _context(fixture),
         results=payloads,
@@ -322,9 +326,7 @@ def test_read_without_checkpoint_uses_degraded_exam_order(
         expected = {
             str(answer.id)
             for answer in session.scalars(
-                select(Answer).where(
-                    Answer.submission_id == fixture.submission_id
-                )
+                select(Answer).where(Answer.submission_id == fixture.submission_id)
             )
         }
     assert {item.answer_id for item in stored.items} == expected
@@ -572,16 +574,24 @@ def test_interrupted_tasks_are_converged_to_failure(
 
 @pytest.mark.parametrize("kind", ["langgraph", "other-executor", None])
 def test_recovery_leaves_foreign_checkpoints_untouched(
-    engine: Engine, fixture: SubmissionFixture,
-    repository: DatabaseGradingRepository, kind: str | None,
+    engine: Engine,
+    fixture: SubmissionFixture,
+    repository: DatabaseGradingRepository,
+    kind: str | None,
 ) -> None:
     checkpoint = {"kind": kind, "state": {"node": "review"}}
     with Session(engine) as session:
-        session.add(WorkflowRun(
-            workflow_id="foreign-task", request_id="foreign-request",
-            submission_id=fixture.submission_id, status=WorkflowStatus.RUNNING,
-            checkpoint=checkpoint, resumable=True, current_node="review",
-        ))
+        session.add(
+            WorkflowRun(
+                workflow_id="foreign-task",
+                request_id="foreign-request",
+                submission_id=fixture.submission_id,
+                status=WorkflowStatus.RUNNING,
+                checkpoint=checkpoint,
+                resumable=True,
+                current_node="review",
+            )
+        )
         session.commit()
 
     assert repository.mark_interrupted_tasks_failed() == 0
@@ -591,7 +601,9 @@ def test_recovery_leaves_foreign_checkpoints_untouched(
         assert row.checkpoint == checkpoint
         assert row.resumable is True
         assert row.current_node == "review"
-        assert all(a.status is AnswerStatus.GRADED for a in session.scalars(select(Answer)))
+        assert all(
+            a.status is AnswerStatus.GRADED for a in session.scalars(select(Answer))
+        )
 
 
 def test_task_queries_ignore_other_executor_runs(
@@ -602,16 +614,20 @@ def test_task_queries_ignore_other_executor_runs(
     """任务查询只读 M3 kind：同答卷的 M4 工作流运行不得被当成后台任务（H05）。"""
 
     with Session(engine) as session:
-        session.add(WorkflowRun(
-            workflow_id="grading-m4-run", request_id="m4-request",
-            submission_id=fixture.submission_id, status=WorkflowStatus.RUNNING,
-            checkpoint={
-                "kind": WORKFLOW_STATE_PAYLOAD_KIND,
-                "version": "1",
-                "state": {"status": "Running"},
-            },
-            current_node="grade",
-        ))
+        session.add(
+            WorkflowRun(
+                workflow_id="grading-m4-run",
+                request_id="m4-request",
+                submission_id=fixture.submission_id,
+                status=WorkflowStatus.RUNNING,
+                checkpoint={
+                    "kind": WORKFLOW_STATE_PAYLOAD_KIND,
+                    "version": "1",
+                    "state": {"status": "Running"},
+                },
+                current_node="grade",
+            )
+        )
         session.commit()
 
     assert repository.get_task("grading-m4-run") is None
@@ -704,7 +720,9 @@ def test_save_workflow_outcome_writes_results_and_state_in_one_transaction(
         assert exam.is_final is True
         assert exam.result_status == ExamResultStatus.FINAL
         assert exam.final_total_score == Decimal("16.00")
-        assert all(a.status is AnswerStatus.GRADED for a in session.scalars(select(Answer)))
+        assert all(
+            a.status is AnswerStatus.GRADED for a in session.scalars(select(Answer))
+        )
         submission = session.get(Submission, fixture.submission_id)
         assert submission is not None
         assert submission.status is SubmissionStatus.REVIEWED
@@ -814,14 +832,26 @@ def test_save_workflow_outcome_marks_answers_failed_without_grades(
 
 @pytest.mark.parametrize("pending_review", [False, True])
 def test_committed_outcome_survives_restart_with_terminal_task(
-    engine: Engine, fixture: SubmissionFixture,
-    repository: DatabaseGradingRepository, pending_review: bool,
+    engine: Engine,
+    fixture: SubmissionFixture,
+    repository: DatabaseGradingRepository,
+    pending_review: bool,
 ) -> None:
     _save_task(repository, fixture, _task(fixture, status=GradingTaskStatus.RUNNING))
-    outcome = _outcome(fixture) if pending_review else _outcome(
-        fixture,
-        subjective=_subjective_payload(fixture, confidence=0.9, review_status="Not Required"),
-        decisions={str(fixture.subjective_answer_id): _decision(confidence=0.9, requires_review=False)},
+    outcome = (
+        _outcome(fixture)
+        if pending_review
+        else _outcome(
+            fixture,
+            subjective=_subjective_payload(
+                fixture, confidence=0.9, review_status="Not Required"
+            ),
+            decisions={
+                str(fixture.subjective_answer_id): _decision(
+                    confidence=0.9, requires_review=False
+                )
+            },
+        )
     )
     repository.save_outcome(str(fixture.submission_id), outcome, task_id="task-1")
     # 模拟提交成功后进程退出：重启只重新建立仓储，不另行发布完成状态。
@@ -842,13 +872,19 @@ def test_committed_outcome_survives_restart_with_terminal_task(
         )
         assert (submission.reviewed_at is not None) is not pending_review
         assert len(session.scalars(select(GradingResult)).all()) == 2
-        assert all(a.status is AnswerStatus.GRADED for a in session.scalars(select(Answer)))
+        assert all(
+            a.status is AnswerStatus.GRADED for a in session.scalars(select(Answer))
+        )
         row = session.scalars(select(WorkflowRun)).one()
-        assert row.status is (WorkflowStatus.PAUSED if pending_review else WorkflowStatus.COMPLETED)
+        assert row.status is (
+            WorkflowStatus.PAUSED if pending_review else WorkflowStatus.COMPLETED
+        )
 
 
 def test_interruption_before_commit_rolls_back_results_progress_and_terminal_task(
-    engine: Engine, fixture: SubmissionFixture, repository: DatabaseGradingRepository,
+    engine: Engine,
+    fixture: SubmissionFixture,
+    repository: DatabaseGradingRepository,
 ) -> None:
     with Session(engine) as session:
         for answer in session.scalars(select(Answer)):
@@ -871,50 +907,79 @@ def test_interruption_before_commit_rolls_back_results_progress_and_terminal_tas
 
     interrupted = DatabaseGradingRepository(session_factory=interrupted_session)
     with pytest.raises(Interrupted):
-        interrupted.save_outcome(str(fixture.submission_id), _outcome(fixture), task_id="task-1")
+        interrupted.save_outcome(
+            str(fixture.submission_id), _outcome(fixture), task_id="task-1"
+        )
     with Session(engine) as session:
         assert session.scalars(select(GradingResult)).all() == []
         assert session.scalars(select(ExamResult)).all() == []
-        assert session.scalars(select(WorkflowRun)).one().status is WorkflowStatus.RUNNING
-        assert all(a.status is AnswerStatus.SUBMITTED for a in session.scalars(select(Answer)))
+        assert (
+            session.scalars(select(WorkflowRun)).one().status is WorkflowStatus.RUNNING
+        )
+        assert all(
+            a.status is AnswerStatus.SUBMITTED for a in session.scalars(select(Answer))
+        )
     assert repository.mark_interrupted_tasks_failed() == 1
     with Session(engine) as session:
-        assert all(a.status is AnswerStatus.FAILED for a in session.scalars(select(Answer)))
+        assert all(
+            a.status is AnswerStatus.FAILED for a in session.scalars(select(Answer))
+        )
 
 
 def test_recovery_preserves_saved_answers_and_only_fails_unscored_answers(
-    engine: Engine, fixture: SubmissionFixture, repository: DatabaseGradingRepository,
+    engine: Engine,
+    fixture: SubmissionFixture,
+    repository: DatabaseGradingRepository,
 ) -> None:
     repository.save_outcome(str(fixture.submission_id), _outcome(fixture))
     _save_task(repository, fixture, _task(fixture, status=GradingTaskStatus.RUNNING))
     with Session(engine) as session:
-        row = session.scalars(select(GradingResult).where(
-            GradingResult.answer_id == fixture.subjective_answer_id,
-        )).one()
+        row = session.scalars(
+            select(GradingResult).where(
+                GradingResult.answer_id == fixture.subjective_answer_id,
+            )
+        ).one()
         session.delete(row)
         answer = session.get(Answer, fixture.subjective_answer_id)
         assert answer is not None
         answer.status = AnswerStatus.GRADING
         session.commit()
-    before = repository.get_single_result(str(fixture.submission_id), str(fixture.objective_answer_id))
+    before = repository.get_single_result(
+        str(fixture.submission_id), str(fixture.objective_answer_id)
+    )
 
     assert repository.mark_interrupted_tasks_failed() == 1
-    assert repository.get_single_result(
-        str(fixture.submission_id), str(fixture.objective_answer_id),
-    ) == before
+    assert (
+        repository.get_single_result(
+            str(fixture.submission_id),
+            str(fixture.objective_answer_id),
+        )
+        == before
+    )
     with Session(engine) as session:
-        assert session.get(Answer, fixture.objective_answer_id).status is AnswerStatus.GRADED
-        assert session.get(Answer, fixture.subjective_answer_id).status is AnswerStatus.FAILED
+        assert (
+            session.get(Answer, fixture.objective_answer_id).status
+            is AnswerStatus.GRADED
+        )
+        assert (
+            session.get(Answer, fixture.subjective_answer_id).status
+            is AnswerStatus.FAILED
+        )
         assert session.scalars(select(ExamResult)).one() is not None
 
 
 def test_outcome_links_result_with_production_session_settings(
-    engine: Engine, fixture: SubmissionFixture,
+    engine: Engine,
+    fixture: SubmissionFixture,
 ) -> None:
     """TCR（B01）：生产会话关闭自动刷新，任务仍须在同次提交关联真实结果主键。"""
-    repository = DatabaseGradingRepository(session_factory=create_session_factory(engine))
+    repository = DatabaseGradingRepository(
+        session_factory=create_session_factory(engine)
+    )
     _save_task(repository, fixture, _task(fixture, status=GradingTaskStatus.RUNNING))
-    repository.save_outcome(str(fixture.submission_id), _outcome(fixture), task_id="task-1")
+    repository.save_outcome(
+        str(fixture.submission_id), _outcome(fixture), task_id="task-1"
+    )
     with Session(engine) as session:
         workflow = session.scalars(select(WorkflowRun)).one()
         result = session.scalars(select(ExamResult)).one()
@@ -996,3 +1061,105 @@ def test_save_single_result_updates_existing_row(
     with Session(engine) as session:
         rows = list(session.scalars(select(GradingResult)))
         assert len(rows) == 2
+
+
+def test_retrieval_scope_round_trips_task_checkpoint_and_preserves_other_keys(
+    engine: Engine,
+    fixture: SubmissionFixture,
+    repository: DatabaseGradingRepository,
+) -> None:
+    """T162: background scope survives repository reconstruction and task updates."""
+    from backend.app.schemas.retrieval_scope import RetrievalScope
+
+    scope = RetrievalScope(
+        document_ids=[fixture.exam_id], knowledge_points=["confirmed tag"]
+    )
+    task = _task(fixture)
+    repository.save_task(task, request_id="scope-request", retrieval_scope=scope)
+    with Session(engine) as session, session.begin():
+        row = session.scalars(
+            select(WorkflowRun).where(WorkflowRun.workflow_id == task.task_id)
+        ).one()
+        row.checkpoint = {
+            **(row.checkpoint or {}),
+            "custom_key": {"unchanged": True},
+            "answer_order": [str(fixture.subjective_answer_id)],
+        }
+    repository.save_task(task.model_copy(update={"status": GradingTaskStatus.RUNNING}))
+    reconstructed = DatabaseGradingRepository(session_factory=lambda: Session(engine))
+    assert reconstructed.get_retrieval_scope(task.task_id) == scope
+    with Session(engine) as session:
+        row = session.scalars(
+            select(WorkflowRun).where(WorkflowRun.workflow_id == task.task_id)
+        ).one()
+        assert row.checkpoint["retrieval_scope"] == scope.model_dump(mode="json")
+        assert row.checkpoint["custom_key"] == {"unchanged": True}
+        assert row.checkpoint["answer_order"] == [str(fixture.subjective_answer_id)]
+
+
+def test_old_task_missing_retrieval_scope_keeps_empty_default(
+    fixture: SubmissionFixture,
+    repository: DatabaseGradingRepository,
+) -> None:
+    from backend.app.schemas.retrieval_scope import RetrievalScope
+
+    _save_task(repository, fixture, _task(fixture))
+    assert repository.get_retrieval_scope("task-1") == RetrievalScope()
+
+
+def test_invalid_persisted_retrieval_scope_is_not_silently_defaulted(
+    engine: Engine,
+    fixture: SubmissionFixture,
+    repository: DatabaseGradingRepository,
+) -> None:
+    from pydantic import ValidationError
+
+    _save_task(repository, fixture, _task(fixture))
+    with Session(engine) as session, session.begin():
+        row = session.scalars(
+            select(WorkflowRun).where(WorkflowRun.workflow_id == "task-1")
+        ).one()
+        row.checkpoint = {**(row.checkpoint or {}), "retrieval_scope": {"unknown": 1}}
+    with pytest.raises(ValidationError):
+        repository.get_retrieval_scope("task-1")
+
+
+def test_reconstructed_executor_loads_persisted_scope_into_subjective_source(
+    engine: Engine,
+    fixture: SubmissionFixture,
+    repository: DatabaseGradingRepository,
+) -> None:
+    from backend.app.schemas.retrieval_scope import RetrievalScope
+    from backend.app.services.grading.grading_task_service import (
+        DatabaseGradingSubmissionReader,
+        InlineGradingTaskExecutor,
+    )
+    from backend.app.services.grading.subjective_pipeline import build_subjective_source
+
+    scope = RetrievalScope(knowledge_points=["persisted tag"])
+    repository.save_task(
+        _task(fixture), request_id="persisted-scope", retrieval_scope=scope
+    )
+    sources: list[object] = []
+
+    class Pipeline:
+        def score(self, snapshot: object) -> GradingOutcome:
+            target = next(
+                answer
+                for answer in snapshot.answers
+                if answer.answer_id == str(fixture.subjective_answer_id)
+            )
+            sources.append(build_subjective_source(snapshot, target))
+            return _outcome(fixture)
+
+    session_factory = lambda: Session(engine)
+    reconstructed = DatabaseGradingRepository(session_factory=session_factory)
+    executor = InlineGradingTaskExecutor(
+        repository=reconstructed,
+        reader=DatabaseGradingSubmissionReader(session_factory=session_factory),
+        pipeline=Pipeline(),
+    )
+    executor.execute("task-1", str(fixture.submission_id))
+    assert sources[0].retrieval_scope == scope
+    assert reconstructed.get_task("task-1").status is GradingTaskStatus.COMPLETED
+    assert reconstructed.get_retrieval_scope("task-1") == scope

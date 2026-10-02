@@ -33,7 +33,7 @@ from __future__ import annotations
 
 from collections.abc import Callable, Iterator, Mapping, Sequence
 from contextlib import AbstractContextManager, contextmanager
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import UTC, datetime
 from decimal import Decimal
 from typing import Any, Final, NoReturn, Protocol
@@ -41,6 +41,13 @@ from uuid import UUID, uuid4
 
 from sqlalchemy.orm import Session
 
+from backend.app.ai.retrieval._filters import resolve_retrieval_scope
+from backend.app.ai.retrieval.base import (
+    RetrievalError,
+    RetrievalFilters,
+    RetrievalQuery,
+    RetrievalScopeInvalidError,
+)
 from backend.app.core.config import AppSettings
 from backend.app.domain.enums import (
     GradingMode,
@@ -57,6 +64,7 @@ from backend.app.schemas.grading import (
     QuestionResultDTO,
     SubmissionContext,
 )
+from backend.app.schemas.retrieval_scope import RetrievalScope
 from backend.app.services.audit_service import AuditService
 from backend.app.services.grading.confidence_policy import (
     ConfidenceDecision,
@@ -127,7 +135,9 @@ class DecisionRecordingPolicy:
         settings: AppSettings | None = None,
     ) -> None:
         self._uses_default_policy = policy is None
-        self._policy = policy if policy is not None else ConfidencePolicy(settings=settings)
+        self._policy = (
+            policy if policy is not None else ConfidencePolicy(settings=settings)
+        )
         self._records: list[RecordedDecision] = []
 
     @property
@@ -294,6 +304,7 @@ class SubmissionSnapshot:
     course_id: str
     status: str
     answers: tuple[GradingTargetAnswer, ...]
+    retrieval_scope: RetrievalScope = field(default_factory=RetrievalScope)
 
     def to_context(self) -> SubmissionContext:
         """转换为 T054 汇总所需的预期题目集合与题序。"""
@@ -369,7 +380,10 @@ class GradingRepository(Protocol):
         task: GradingTaskStatusDTO,
         *,
         request_id: str | None = None,
+        retrieval_scope: RetrievalScope | None = None,
     ) -> None: ...
+
+    def get_retrieval_scope(self, task_id: str) -> RetrievalScope: ...
 
     def lock_submission(self, submission_id: str) -> AbstractContextManager[None]: ...
 
@@ -446,7 +460,11 @@ class NotConfiguredGradingRepository:
         task: GradingTaskStatusDTO,
         *,
         request_id: str | None = None,
+        retrieval_scope: RetrievalScope | None = None,
     ) -> None:
+        self._reject()
+
+    def get_retrieval_scope(self, task_id: str) -> RetrievalScope:
         self._reject()
 
     def lock_submission(self, submission_id: str) -> AbstractContextManager[None]:
@@ -573,6 +591,37 @@ class DatabaseGradingSubmissionReader:
             if str(course.created_by) != str(teacher_id):
                 raise GradingPermissionError("无权访问该答卷所属课程。")
             return self._build_snapshot(session, submission)
+
+    def validate_retrieval_scope(
+        self,
+        snapshot: SubmissionSnapshot,
+        retrieval_scope: RetrievalScope,
+    ) -> None:
+        """创建任务前以真实答卷所属课程校验显式范围，无模型或写入操作。"""
+
+        with self._use_session() as session:
+            submission = self._load_submission(session, snapshot.submission_id)
+            exam = session.get(Exam, submission.exam_id)
+            if exam is None:
+                raise GradingSubmissionNotFoundError("答卷所属考试不存在。")
+            if str(exam.course_id) != snapshot.course_id:
+                raise RetrievalScopeInvalidError(
+                    "答卷所属课程已变化，请重新确认阅卷范围。"
+                )
+            resolve_retrieval_scope(
+                session,
+                RetrievalQuery(
+                    text="阅卷范围校验",
+                    embedding=(),
+                    chapter_ids=retrieval_scope.chapter_ids,
+                    section_range=retrieval_scope.section_range,
+                    knowledge_points=retrieval_scope.knowledge_points,
+                ),
+                RetrievalFilters(
+                    course_ids=(exam.course_id,),
+                    document_ids=retrieval_scope.document_ids,
+                ),
+            )
 
     @staticmethod
     def _load_submission(session: Session, submission_id: str) -> Submission:
@@ -800,7 +849,10 @@ class InlineGradingTaskExecutor:
         if self._progress is not None:
             self._progress.mark_running(submission_id)
         try:
-            snapshot = self._reader.load(submission_id)
+            snapshot = replace(
+                self._reader.load(submission_id),
+                retrieval_scope=self._repository.get_retrieval_scope(task_id),
+            )
             outcome = self._pipeline.score(snapshot)
             exam_result = outcome.exam_result
             if exam_result is None:
@@ -871,6 +923,17 @@ class InlineGradingTaskExecutor:
             self._progress.mark_failed(submission_id, error.error_code)
 
 
+def _same_retrieval_scope(first: RetrievalScope, second: RetrievalScope) -> bool:
+    """集合维度按成员比较；章内区间保留完整值语义。"""
+
+    return (
+        frozenset(first.document_ids) == frozenset(second.document_ids)
+        and frozenset(first.chapter_ids) == frozenset(second.chapter_ids)
+        and frozenset(first.knowledge_points) == frozenset(second.knowledge_points)
+        and first.section_range == second.section_range
+    )
+
+
 class GradingTaskService:
     """阅卷任务应用服务：触发校验、任务状态与单题结果查询。
 
@@ -911,6 +974,7 @@ class GradingTaskService:
         *,
         teacher_id: str,
         regrade: bool = False,
+        retrieval_scope: RetrievalScope | None = None,
         scheduler: Callable[[str, str], None] | None = None,
         request_id: str | None = None,
     ) -> GradingTaskStatusDTO:
@@ -923,20 +987,41 @@ class GradingTaskService:
 
         self._repository.ensure_ready()
         snapshot = self._reader.load_for_teacher(submission_id, teacher_id)
+        scope = retrieval_scope if retrieval_scope is not None else RetrievalScope()
+        if not scope.is_empty:
+            validate_scope = getattr(self._reader, "validate_retrieval_scope", None)
+            if not callable(validate_scope):
+                raise GradingExecutionNotReadyError(
+                    "阅卷快照读取器未提供显式范围校验，无法受理指定范围。"
+                )
+            try:
+                validate_scope(snapshot, scope)
+            except RetrievalError as error:
+                mapped = GradingTaskError(
+                    error.detail,
+                    retryable=error.retryable,
+                    source_code=error.error_code,
+                )
+                mapped.error_code = error.error_code
+                raise mapped from None
         if snapshot.status not in TRIGGERABLE_SUBMISSION_STATES:
             if snapshot.status not in REGREADABLE_SUBMISSION_STATES:
                 raise GradingNotAllowedError(
                     f"答卷状态 {snapshot.status} 不允许触发阅卷。"
                 )
             if not regrade:
-                raise GradingTriggerConflictError(
-                    "答卷已完成评分，需要显式请求重评。"
-                )
+                raise GradingTriggerConflictError("答卷已完成评分，需要显式请求重评。")
         trace_id = request_id or str(uuid4())
         with self._repository.lock_submission(submission_id):
             existing = self._repository.find_task_for_submission(submission_id)
             if existing is not None:
                 if existing.status in IN_FLIGHT_TASK_STATES:
+                    if retrieval_scope is not None and not _same_retrieval_scope(
+                        scope, self._repository.get_retrieval_scope(existing.task_id)
+                    ):
+                        raise GradingTriggerConflictError(
+                            "进行中阅卷任务的检索范围与本次明确请求不同，无法复用。"
+                        )
                     return existing.model_copy(update={"reused": True})
                 if not regrade:
                     raise GradingTriggerConflictError("该答卷已有已完成的阅卷任务。")
@@ -948,7 +1033,11 @@ class GradingTaskService:
                 durable=self._repository.durable,
                 created_at=self._clock(),
             )
-            self._repository.save_task(task, request_id=trace_id)
+            self._repository.save_task(
+                task,
+                request_id=trace_id,
+                retrieval_scope=scope,
+            )
         if self._audit_service is not None:
             self._audit_service.record(
                 actor_id=teacher_id,
@@ -1010,9 +1099,7 @@ class GradingTaskService:
         self._reader.load_for_teacher(submission_id, teacher_id)
         result = self._repository.get_single_result(submission_id, answer_id)
         if result is None:
-            raise GradingResultNotFoundError(
-                f"答案 {answer_id} 尚无结构化评分结果。"
-            )
+            raise GradingResultNotFoundError(f"答案 {answer_id} 尚无结构化评分结果。")
         return result
 
 

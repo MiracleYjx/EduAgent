@@ -733,3 +733,88 @@ def _build(
             settings=settings,
         )
     )
+
+@pytest.mark.parametrize("mode", list(RetrievalMode))
+def test_explicit_retrieval_scope_reaches_all_grading_modes(
+    mode: RetrievalMode, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """T162: logical scope is explicit in every mode; classification stays separate."""
+    from backend.app.schemas.retrieval_scope import RetrievalScope, SectionRange
+
+    scope = RetrievalScope(
+        document_ids=[DOCUMENT_ID],
+        chapter_ids=[KNOWLEDGE_BASE_ID],
+        section_range=SectionRange(
+            chapter_id=KNOWLEDGE_BASE_ID, start_order=1, end_order=2
+        ),
+        knowledge_points=["scope tag"],
+    )
+    source = _source(retrieval_scope=scope, knowledge_points=("classification",))
+    resolutions: list[tuple[Any, Any]] = []
+
+    def resolve_scope(session: Any, query: Any, filters: Any) -> Any:
+        resolutions.append((query, filters))
+        return filters
+
+    monkeypatch.setattr(
+        "backend.app.services.grading.grading_context.resolve_retrieval_scope",
+        resolve_scope,
+    )
+    retriever = StubRetriever(mode=mode)
+    embedding = StubEmbeddingProvider()
+    context = asyncio.run(build_grading_context(
+        _SESSION, source, mode=mode, retriever=retriever,
+        embedding_provider=embedding, require_context=False,
+    ))
+
+    query = retriever.calls[0]["query"]
+    assert isinstance(query, RetrievalQuery)
+    assert len(resolutions) == 1
+    assert resolutions[0][0].embedding == ()
+    assert query.chapter_ids == scope.chapter_ids
+    assert query.section_range == scope.section_range
+    assert query.knowledge_points == ("scope tag",)
+    assert context.filters.document_ids == scope.document_ids
+    assert context.filters.course_ids == (UUID(COURSE_ID),)
+    assert source.knowledge_points == ("classification",)
+    if mode is RetrievalMode.KEYWORD_ONLY:
+        assert embedding.queries == []
+
+
+def test_invalid_scope_stops_before_embedding_or_recall(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from backend.app.ai.retrieval.base import RetrievalScopeInvalidError
+    from backend.app.schemas.retrieval_scope import RetrievalScope
+
+    embedding = StubEmbeddingProvider()
+    retriever = StubRetriever()
+    source = _source(retrieval_scope=RetrievalScope(chapter_ids=[KNOWLEDGE_BASE_ID]))
+
+    def reject_scope(*args: Any) -> Any:
+        raise RetrievalScopeInvalidError("所选章节不属于当前授权课程。")
+
+    monkeypatch.setattr(
+        "backend.app.services.grading.grading_context.resolve_retrieval_scope",
+        reject_scope,
+    )
+    with pytest.raises(RetrievalScopeInvalidError, match="授权课程"):
+        asyncio.run(build_grading_context(
+            _SESSION, source, retriever=retriever, embedding_provider=embedding
+        ))
+    assert embedding.queries == []
+    assert retriever.calls == []
+
+
+def test_question_classification_is_not_an_implicit_retrieval_scope() -> None:
+    retriever = StubRetriever()
+    source = _source(knowledge_points=("classification only",))
+    asyncio.run(build_grading_context(
+        _SESSION, source, mode=RetrievalMode.HYBRID, retriever=retriever,
+        embedding_provider=StubEmbeddingProvider(), require_context=False,
+    ))
+    query = retriever.calls[0]["query"]
+    assert source.retrieval_scope.is_empty
+    assert query.chapter_ids == ()
+    assert query.section_range is None
+    assert query.knowledge_points == ()

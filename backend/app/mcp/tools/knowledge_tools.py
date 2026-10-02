@@ -14,6 +14,7 @@ from backend.app.ai.embedding.factory import (
     EmbeddingProviderFactoryError,
     get_embedding_provider,
 )
+from backend.app.ai.retrieval._filters import resolve_retrieval_scope
 from backend.app.ai.retrieval.base import (
     DEFAULT_TOP_K,
     MAX_TOP_K,
@@ -31,6 +32,7 @@ from backend.app.mcp.registry import (
     ToolRegistry,
     ToolSpec,
 )
+from backend.app.schemas.retrieval_scope import RetrievalScope
 from backend.app.services.course_service import (
     CourseNotFoundError,
     CoursePermissionError,
@@ -80,6 +82,7 @@ class QueryKnowledgeArguments(BaseModel):
     course_id: UUID
     query: str = Field(min_length=1, max_length=2000)
     top_k: int = Field(default=DEFAULT_TOP_K, ge=1, le=MAX_TOP_K)
+    retrieval_scope: RetrievalScope = Field(default_factory=RetrievalScope)
 
     @field_validator("query")
     @classmethod
@@ -197,14 +200,24 @@ def _query_knowledge(
         raise ToolExecutionError("COURSE_QUERY_FAILED", "无法读取课程信息。") from exc
 
     try:
+        selected = args.retrieval_scope
+        filters = RetrievalFilters(
+            course_ids=(args.course_id,), document_ids=selected.document_ids
+        )
+        if not selected.is_empty:
+            filters = resolve_retrieval_scope(
+                context.session,
+                RetrievalQuery.from_scope(args.query, (), selected),
+                filters,
+            )
         provider = embedding_provider or get_embedding_provider()
         embedding = _embed_query(provider, args.query)
         active_retriever = retriever or HybridSearchRetriever()
         chunks = active_retriever.search(
             context.session,
-            RetrievalQuery(text=args.query, embedding=tuple(embedding)),
+            RetrievalQuery.from_scope(args.query, embedding, selected),
             top_k=args.top_k,
-            filters=RetrievalFilters(course_ids=(args.course_id,)),
+            filters=filters,
         )
     except EmbeddingProviderFactoryError as exc:
         raise ToolExecutionError(
@@ -213,7 +226,7 @@ def _query_knowledge(
     except EmbeddingProviderError as exc:
         raise ToolExecutionError(exc.error_code, "查询向量生成失败。") from exc
     except RetrievalError as exc:
-        raise ToolExecutionError(exc.error_code, exc.user_message) from exc
+        raise ToolExecutionError(exc.error_code, exc.detail) from exc
 
     results = [_chunk_result(chunk) for chunk in chunks]
     return {

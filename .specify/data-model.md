@@ -1072,3 +1072,12 @@ ExtractedQuestion.options 使用 SQLAlchemy JSON(none_as_null=True)，Question.o
 新提取与新建按当前输入保序。教师省略 options、只改其他字段、或重交相同值及键序，均保留历史标记；实际不同的选项内容/顺序成功保存后 true。仅重排对象键也按实际变化写入数据库并使旧图像上下文失效；不能用 Python 字典相等掩盖变化。确认入库复制当前标记，重复确认返回既有正式题的当前标记而不覆盖修订。标记不是新增入库门禁。
 
 0018 原样转换现存 JSONB，不按题号/答案猜测恢复。降级有 false 标记或暂存非空对象时明确拒绝丢失历史说明/选项键序，须先导出并显式处置；正式题列保持其原 JSON 定义。业务数据库迁移和生产切换另行授权。
+
+
+## T162 实施补充：显式阅卷检索意图（用户确认）
+
+沿用 WorkflowRun.checkpoint JSON 载荷，新增可缺省 `retrieval_scope` 对象：
+`{document_ids: UUID[], chapter_ids: UUID[], section_range: {chapter_id, start_order, end_order} | null, knowledge_points: string[]}`。
+使用共享 Pydantic RetrievalScope 校验；小节严格正整数闭区间，标签仅 trim/精确去重。课程不由该载荷提供，从实际答卷课程授权取得。初次受理同任务保存，状态写入保持原键；新会话/执行器重读。旧缺键为空范围，非法已存值必须失败；不新增表/列/迁移，不反推题目标签。范围是任务检索意图，实际引用仍是检索结果和既有来源记录。
+
+显式范围不同不得复用进行中旧任务；章/资料/标签集合及区间相同可复用，旧省略保持原兼容，显式空对象和省略区分。失败或进程中断沿已有持久任务状态与教师显式重评，不新增自动恢复队列。

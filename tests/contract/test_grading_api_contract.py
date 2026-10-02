@@ -340,10 +340,14 @@ def test_trigger_enforces_role_boundaries(scenario, client_factory) -> None:
     path = f"/api/grading/submissions/{submission_id}/trigger"
 
     student = client.post(
-        path, headers=headers(scenario["student"], UserRole.STUDENT), json={"regrade": False}
+        path,
+        headers=headers(scenario["student"], UserRole.STUDENT),
+        json={"regrade": False},
     )
     admin = client.post(
-        path, headers=headers(scenario["admin"], UserRole.ADMIN), json={"regrade": False}
+        path,
+        headers=headers(scenario["admin"], UserRole.ADMIN),
+        json={"regrade": False},
     )
     anonymous = client.post(path, json={"regrade": False})
 
@@ -618,7 +622,9 @@ def test_single_result_query_denies_teacher_from_other_course(
     path = f"/api/grading/submissions/{submission.id}/answers/{answer.id}"
 
     allowed = client.get(path, headers=headers(scenario["teacher"], UserRole.TEACHER))
-    denied = client.get(path, headers=headers(_other_teacher(session), UserRole.TEACHER))
+    denied = client.get(
+        path, headers=headers(_other_teacher(session), UserRole.TEACHER)
+    )
 
     assert allowed.status_code == 200
     assert denied.status_code == 403
@@ -778,9 +784,7 @@ def test_trigger_persists_results_and_reads_them_from_database(
     任务状态与单题结果均从数据库读取，且任务状态可持久化查询。
     """
 
-    service = _database_service(
-        session, subjective_scorer=_pending_review_scorer()
-    )
+    service = _database_service(session, subjective_scorer=_pending_review_scorer())
     client = client_factory(service)
     body = _trigger(client, mixed_scenario, mixed_scenario["teacher"])
     submission = mixed_scenario["submission"]
@@ -872,3 +876,155 @@ def test_subjective_failure_keeps_business_error_code_without_partial_results(
         }
         assert statuses == {"Failed"}
         assert check.scalars(select(WorkflowRun)).one().status.value == "Failed"
+
+
+def test_trigger_api_persists_explicit_retrieval_scope(
+    scenario, client_factory
+) -> None:
+    from backend.app.schemas.retrieval_scope import RetrievalScope
+
+    service, repository, _ = _service(scenario)
+    client = client_factory(service)
+    scope = RetrievalScope(knowledge_points=["explicit grading tag"])
+    response = client.post(
+        f"/api/grading/submissions/{scenario['submission'].id}/trigger",
+        headers=headers(scenario["teacher"], UserRole.TEACHER),
+        json={"retrieval_scope": scope.model_dump(mode="json")},
+    )
+    assert response.status_code == 202
+    assert repository.get_retrieval_scope(response.json()["task_id"]) == scope
+
+
+def test_trigger_api_rejects_unknown_scope_field(scenario, client_factory) -> None:
+    service, repository, _ = _service(scenario)
+    client = client_factory(service)
+    response = client.post(
+        f"/api/grading/submissions/{scenario['submission'].id}/trigger",
+        headers=headers(scenario["teacher"], UserRole.TEACHER),
+        json={"retrieval_scope": {"unknown_scope": 1}},
+    )
+    assert response.status_code == 422
+    assert repository.tasks == {}
+
+
+@pytest.mark.parametrize(
+    ("case", "expected_status", "expected_code"),
+    [
+        ("missing_chapter", 422, "RETRIEVAL_SCOPE_INVALID"),
+        ("foreign_chapter", 422, "RETRIEVAL_SCOPE_INVALID"),
+        ("missing_directory", 503, "RETRIEVAL_SCOPE_NOT_READY"),
+        ("out_of_directory", 422, "RETRIEVAL_SCOPE_INVALID"),
+    ],
+)
+def test_trigger_prevalidates_scope_before_creating_task_for_objective_submission(
+    session: Session,
+    scenario,
+    client_factory,
+    case: str,
+    expected_status: int,
+    expected_code: str,
+) -> None:
+    from uuid import uuid4
+
+    from backend.app.models import Chapter
+    from backend.app.schemas.retrieval_scope import RetrievalScope, SectionRange
+
+    scenario["question"].type = QuestionType.SINGLE_CHOICE
+    course = scenario["course"]
+    if case == "foreign_chapter":
+        course = add_course(session, scenario["teacher"])
+    chapter = Chapter(
+        course_id=course.id,
+        title="教师确认章节",
+        sections=[]
+        if case == "missing_directory"
+        else [
+            {"section_order": 1, "title": "第一节"},
+            {"section_order": 2, "title": "第二节"},
+        ],
+        confirmed_by=scenario["teacher"].id,
+        confirmed_at=datetime.now(UTC),
+    )
+    session.add(chapter)
+    session.commit()
+    if case in {"missing_directory", "out_of_directory"}:
+        scope = RetrievalScope(
+            section_range=SectionRange(
+                chapter_id=chapter.id,
+                start_order=1,
+                end_order=3 if case == "out_of_directory" else 1,
+            )
+        )
+    else:
+        scope = RetrievalScope(
+            chapter_ids=[uuid4() if case == "missing_chapter" else chapter.id]
+        )
+    repository = InMemoryGradingRepository()
+    executor = RecordingExecutor()
+    service = GradingTaskService(
+        repository=repository,
+        reader=DatabaseGradingSubmissionReader(session=session),
+        executor=executor,
+    )
+    client = client_factory(service)
+    response = client.post(
+        f"/api/grading/submissions/{scenario['submission'].id}/trigger",
+        headers=headers(scenario["teacher"], UserRole.TEACHER),
+        json={"retrieval_scope": scope.model_dump(mode="json")},
+    )
+    assert response.status_code == expected_status
+    detail = response.json()["detail"]
+    assert detail["error_code"] == expected_code
+    assert detail["message"]
+    assert detail["retryable"] is False
+    assert repository.tasks == {}
+    assert executor.executed == []
+
+
+@pytest.mark.parametrize(
+    ("payload", "expected_status"),
+    [
+        ({}, 202),
+        ({"retrieval_scope": {}}, 409),
+        ({"retrieval_scope": {"knowledge_points": ["other tag"]}}, 409),
+        (
+            {
+                "retrieval_scope": {
+                    "knowledge_points": ["second tag", "first tag", "first tag"]
+                }
+            },
+            202,
+        ),
+    ],
+)
+def test_trigger_api_reused_scope_conflict_distinguishes_omitted_and_explicit(
+    scenario,
+    client_factory,
+    payload: dict[str, object],
+    expected_status: int,
+) -> None:
+    from backend.app.schemas.retrieval_scope import RetrievalScope
+
+    service, repository, recorder = _service(scenario)
+    submission_id = str(scenario["submission"].id)
+    original = RetrievalScope(knowledge_points=["first tag", "second tag"])
+    existing = make_task(
+        "api-active-scope", submission_id, status=GradingTaskStatus.RUNNING
+    )
+    repository.save_task(existing, retrieval_scope=original)
+    client = client_factory(service)
+    response = client.post(
+        f"/api/grading/submissions/{submission_id}/trigger",
+        headers=headers(scenario["teacher"], UserRole.TEACHER),
+        json=payload,
+    )
+    assert response.status_code == expected_status
+    if expected_status == 202:
+        assert response.json()["reused"] is True
+        assert response.json()["task_id"] == existing.task_id
+    else:
+        assert response.json()["detail"]["error_code"] == "GRADING_TRIGGER_CONFLICT"
+    assert repository.tasks == {existing.task_id: existing}
+    assert repository.get_retrieval_scope(existing.task_id) == original
+    assert recorder.scheduled == []
+    assert recorder.executed == []

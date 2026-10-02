@@ -21,6 +21,7 @@ from backend.app.schemas.grading import (
     GradingTaskStatusDTO,
     QuestionResultDTO,
 )
+from backend.app.schemas.retrieval_scope import RetrievalScope
 from backend.app.services.grading.grading_repository import (
     GRADING_TASK_INTERRUPTED,
     INTERRUPTED_TASK_MESSAGE,
@@ -50,6 +51,7 @@ class InMemoryGradingRepository:
         self.single_results: dict[tuple[str, str], QuestionResultDTO] = {}
         self.calls: list[str] = []
         self.request_ids: dict[str, str] = {}
+        self.retrieval_scopes: dict[str, RetrievalScope] = {}
         self.answer_orders: dict[str, tuple[str, ...]] = {}
         self.outcome_calls: list[tuple[str, str | None]] = []
 
@@ -75,11 +77,17 @@ class InMemoryGradingRepository:
         task: GradingTaskStatusDTO,
         *,
         request_id: str | None = None,
+        retrieval_scope: RetrievalScope | None = None,
     ) -> None:
         self.calls.append(f"save_task:{task.task_id}:{task.status.value}")
         if request_id is not None:
             self.request_ids[task.task_id] = request_id
+        if retrieval_scope is not None:
+            self.retrieval_scopes[task.task_id] = retrieval_scope
         self.tasks[task.task_id] = task.model_copy(update={"reused": False})
+
+    def get_retrieval_scope(self, task_id: str) -> RetrievalScope:
+        return self.retrieval_scopes.get(task_id, RetrievalScope())
 
     @contextmanager
     def lock_submission(self, submission_id: str) -> Iterator[None]:
@@ -179,6 +187,7 @@ class StubSubmissionReader:
         self.allowed_teacher_id = allowed_teacher_id
         self.loaded: list[str] = []
         self.teacher_loads: list[tuple[str, str]] = []
+        self.scope_validations: list[tuple[str, RetrievalScope]] = []
 
     def load(self, submission_id: str) -> SubmissionSnapshot:
         self.loaded.append(submission_id)
@@ -199,6 +208,15 @@ class StubSubmissionReader:
         ):
             raise GradingPermissionError("无权访问该答卷所属课程。")
         return self.load(submission_id)
+
+    def validate_retrieval_scope(
+        self,
+        snapshot: SubmissionSnapshot,
+        retrieval_scope: RetrievalScope,
+    ) -> None:
+        """记录显式测试范围；真实归属和目录语义由数据库读取器验证。"""
+
+        self.scope_validations.append((snapshot.submission_id, retrieval_scope))
 
 
 class StubScoringPipeline:

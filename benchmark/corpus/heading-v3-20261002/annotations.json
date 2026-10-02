@@ -1,0 +1,502 @@
+[
+  {
+    "query_id": "q01",
+    "query": "Python 是什么类型的编程语言，它有哪些主要特点？",
+    "positive_chunk_ids": [
+      "heading-00"
+    ],
+    "annotation_method": "ai-rule-section-content",
+    "selection_methods": {
+      "heading-00": [
+        "ai-rule-section-content"
+      ]
+    },
+    "confidence": null,
+    "out_of_scope": false,
+    "out_of_scope_reason": null,
+    "status": "ai_rule_unverified",
+    "teacher_verified": false,
+    "teacher_id": null,
+    "annotated_at": null,
+    "evidence_sections": [
+      "1.1 什么是 Python"
+    ]
+  },
+  {
+    "query_id": "q02",
+    "query": "在 Windows 上装好 Python 后，怎么确认安装成功并能直接在命令行用 python 命令？",
+    "positive_chunk_ids": [
+      "heading-01"
+    ],
+    "annotation_method": "ai-rule-section-content",
+    "selection_methods": {
+      "heading-01": [
+        "ai-rule-section-content"
+      ]
+    },
+    "confidence": null,
+    "out_of_scope": false,
+    "out_of_scope_reason": null,
+    "status": "ai_rule_unverified",
+    "teacher_verified": false,
+    "teacher_id": null,
+    "annotated_at": null,
+    "evidence_sections": [
+      "1.2 安装 Python"
+    ]
+  },
+  {
+    "query_id": "q03",
+    "query": "Python 里变量需要提前声明类型吗？赋值的时候会发生什么？",
+    "positive_chunk_ids": [
+      "heading-03"
+    ],
+    "annotation_method": "ai-rule-section-content",
+    "selection_methods": {
+      "heading-03": [
+        "ai-rule-section-content"
+      ]
+    },
+    "confidence": null,
+    "out_of_scope": false,
+    "out_of_scope_reason": null,
+    "status": "ai_rule_unverified",
+    "teacher_verified": false,
+    "teacher_id": null,
+    "annotated_at": null,
+    "evidence_sections": [
+      "2.1 变量与赋值"
+    ]
+  },
+  {
+    "query_id": "q04",
+    "query": "如果我把字符串 '3.14' 直接和整数相加会怎样？该怎么做类型转换才能正确计算？",
+    "positive_chunk_ids": [
+      "heading-05",
+      "heading-06"
+    ],
+    "annotation_method": "ai-rule-section-content",
+    "selection_methods": {
+      "heading-05": [
+        "ai-rule-section-content"
+      ],
+      "heading-06": [
+        "ai-rule-section-content"
+      ]
+    },
+    "confidence": null,
+    "out_of_scope": false,
+    "out_of_scope_reason": null,
+    "status": "ai_rule_unverified",
+    "teacher_verified": false,
+    "teacher_id": null,
+    "annotated_at": null,
+    "evidence_sections": [
+      "2.3 类型转换",
+      "3.1 算术运算符"
+    ]
+  },
+  {
+    "query_id": "q05",
+    "query": "Python 里 / 和 // 这两个运算符有什么区别？",
+    "positive_chunk_ids": [
+      "heading-06"
+    ],
+    "annotation_method": "ai-rule-section-content",
+    "selection_methods": {
+      "heading-06": [
+        "ai-rule-section-content"
+      ]
+    },
+    "confidence": null,
+    "out_of_scope": false,
+    "out_of_scope_reason": null,
+    "status": "ai_rule_unverified",
+    "teacher_verified": false,
+    "teacher_id": null,
+    "annotated_at": null,
+    "evidence_sections": [
+      "3.1 算术运算符"
+    ]
+  },
+  {
+    "query_id": "q06",
+    "query": "写一个判断闰年的条件，用 and 和 or 组合多个条件时，Python 的短路求值会怎样影响结果？",
+    "positive_chunk_ids": [
+      "heading-07"
+    ],
+    "annotation_method": "ai-rule-section-content",
+    "selection_methods": {
+      "heading-07": [
+        "ai-rule-section-content"
+      ]
+    },
+    "confidence": null,
+    "out_of_scope": false,
+    "out_of_scope_reason": null,
+    "status": "ai_rule_unverified",
+    "teacher_verified": false,
+    "teacher_id": null,
+    "annotated_at": null,
+    "evidence_sections": [
+      "3.2 比较运算符与逻辑运算符"
+    ]
+  },
+  {
+    "query_id": "q07",
+    "query": "Python 的 if...elif...else 是怎么执行的，缩进在这里起什么作用？",
+    "positive_chunk_ids": [
+      "heading-09"
+    ],
+    "annotation_method": "ai-rule-section-content",
+    "selection_methods": {
+      "heading-09": [
+        "ai-rule-section-content"
+      ]
+    },
+    "confidence": null,
+    "out_of_scope": false,
+    "out_of_scope_reason": null,
+    "status": "ai_rule_unverified",
+    "teacher_verified": false,
+    "teacher_id": null,
+    "annotated_at": null,
+    "evidence_sections": [
+      "4.1 条件语句"
+    ]
+  },
+  {
+    "query_id": "q08",
+    "query": "在一个循环里同时用 break 和 continue，它们分别会怎样改变循环的执行流程？",
+    "positive_chunk_ids": [
+      "heading-10",
+      "heading-11"
+    ],
+    "annotation_method": "ai-rule-section-content",
+    "selection_methods": {
+      "heading-10": [
+        "ai-rule-section-content"
+      ],
+      "heading-11": [
+        "ai-rule-section-content"
+      ]
+    },
+    "confidence": null,
+    "out_of_scope": false,
+    "out_of_scope_reason": null,
+    "status": "ai_rule_unverified",
+    "teacher_verified": false,
+    "teacher_id": null,
+    "annotated_at": null,
+    "evidence_sections": [
+      "4.2 循环语句",
+      "4.3 循环中的控制语句"
+    ]
+  },
+  {
+    "query_id": "q09",
+    "query": "Python 中怎么定义一个函数？函数如果没有 return 会返回什么？",
+    "positive_chunk_ids": [
+      "heading-12"
+    ],
+    "annotation_method": "ai-rule-section-content",
+    "selection_methods": {
+      "heading-12": [
+        "ai-rule-section-content"
+      ]
+    },
+    "confidence": null,
+    "out_of_scope": false,
+    "out_of_scope_reason": null,
+    "status": "ai_rule_unverified",
+    "teacher_verified": false,
+    "teacher_id": null,
+    "annotated_at": null,
+    "evidence_sections": [
+      "5.1 定义与调用函数"
+    ]
+  },
+  {
+    "query_id": "q10",
+    "query": "为什么函数的默认参数不要用列表这类可变对象？能举个场景说明会出什么问题吗？",
+    "positive_chunk_ids": [
+      "heading-13"
+    ],
+    "annotation_method": "ai-rule-section-content",
+    "selection_methods": {
+      "heading-13": [
+        "ai-rule-section-content"
+      ]
+    },
+    "confidence": null,
+    "out_of_scope": false,
+    "out_of_scope_reason": null,
+    "status": "ai_rule_unverified",
+    "teacher_verified": false,
+    "teacher_id": null,
+    "annotated_at": null,
+    "evidence_sections": [
+      "5.2 参数传递"
+    ]
+  },
+  {
+    "query_id": "q11",
+    "query": "列表和元组在可变性上有什么不同？分别适合用在什么场合？",
+    "positive_chunk_ids": [
+      "heading-15",
+      "heading-16"
+    ],
+    "annotation_method": "ai-rule-section-content",
+    "selection_methods": {
+      "heading-15": [
+        "ai-rule-section-content"
+      ],
+      "heading-16": [
+        "ai-rule-section-content"
+      ]
+    },
+    "confidence": null,
+    "out_of_scope": false,
+    "out_of_scope_reason": null,
+    "status": "ai_rule_unverified",
+    "teacher_verified": false,
+    "teacher_id": null,
+    "annotated_at": null,
+    "evidence_sections": [
+      "6.1 列表",
+      "6.2 元组与集合"
+    ]
+  },
+  {
+    "query_id": "q12",
+    "query": "我想统计一段文字里出现了哪些不重复的单词，用哪种数据结构比较合适，怎么用？",
+    "positive_chunk_ids": [
+      "heading-16"
+    ],
+    "annotation_method": "ai-rule-section-content",
+    "selection_methods": {
+      "heading-16": [
+        "ai-rule-section-content"
+      ]
+    },
+    "confidence": null,
+    "out_of_scope": false,
+    "out_of_scope_reason": null,
+    "status": "ai_rule_unverified",
+    "teacher_verified": false,
+    "teacher_id": null,
+    "annotated_at": null,
+    "evidence_sections": [
+      "6.2 元组与集合"
+    ]
+  },
+  {
+    "query_id": "q13",
+    "query": "Python 的字符串可不可以修改？如果我调用了 upper()，原来的字符串会变吗？",
+    "positive_chunk_ids": [
+      "heading-18",
+      "heading-19"
+    ],
+    "annotation_method": "ai-rule-section-content",
+    "selection_methods": {
+      "heading-18": [
+        "ai-rule-section-content"
+      ],
+      "heading-19": [
+        "ai-rule-section-content"
+      ]
+    },
+    "confidence": null,
+    "out_of_scope": false,
+    "out_of_scope_reason": null,
+    "status": "ai_rule_unverified",
+    "teacher_verified": false,
+    "teacher_id": null,
+    "annotated_at": null,
+    "evidence_sections": [
+      "7.1 字符串基础",
+      "7.2 常用字符串方法"
+    ]
+  },
+  {
+    "query_id": "q14",
+    "query": "从 '2024-01-15' 这样的日期字符串里把年、月、日分别取出来，用 split 和格式化怎么做？",
+    "positive_chunk_ids": [
+      "heading-19",
+      "heading-20"
+    ],
+    "annotation_method": "ai-rule-section-content",
+    "selection_methods": {
+      "heading-19": [
+        "ai-rule-section-content"
+      ],
+      "heading-20": [
+        "ai-rule-section-content"
+      ]
+    },
+    "confidence": null,
+    "out_of_scope": false,
+    "out_of_scope_reason": null,
+    "status": "ai_rule_unverified",
+    "teacher_verified": false,
+    "teacher_id": null,
+    "annotated_at": null,
+    "evidence_sections": [
+      "7.2 常用字符串方法",
+      "7.3 格式化字符串"
+    ]
+  },
+  {
+    "query_id": "q15",
+    "query": "Python 里打开文件后为什么推荐用 with 语句？",
+    "positive_chunk_ids": [
+      "heading-21"
+    ],
+    "annotation_method": "ai-rule-section-content",
+    "selection_methods": {
+      "heading-21": [
+        "ai-rule-section-content"
+      ]
+    },
+    "confidence": null,
+    "out_of_scope": false,
+    "out_of_scope_reason": null,
+    "status": "ai_rule_unverified",
+    "teacher_verified": false,
+    "teacher_id": null,
+    "annotated_at": null,
+    "evidence_sections": [
+      "8.1 打开与关闭文件"
+    ]
+  },
+  {
+    "query_id": "q16",
+    "query": "要处理一个几 GB 的日志文件，只读模式下一次读一行和一次性 read() 哪种更合适，为什么？",
+    "positive_chunk_ids": [
+      "heading-21",
+      "heading-23"
+    ],
+    "annotation_method": "ai-rule-section-content",
+    "selection_methods": {
+      "heading-21": [
+        "ai-rule-section-content"
+      ],
+      "heading-23": [
+        "ai-rule-section-content"
+      ]
+    },
+    "confidence": null,
+    "out_of_scope": false,
+    "out_of_scope_reason": null,
+    "status": "ai_rule_unverified",
+    "teacher_verified": false,
+    "teacher_id": null,
+    "annotated_at": null,
+    "evidence_sections": [
+      "8.1 打开与关闭文件",
+      "8.3 读取大文件"
+    ]
+  },
+  {
+    "query_id": "q17",
+    "query": "Python 中 try...except 是用来做什么的？",
+    "positive_chunk_ids": [
+      "heading-24",
+      "heading-25"
+    ],
+    "annotation_method": "ai-rule-section-content",
+    "selection_methods": {
+      "heading-24": [
+        "ai-rule-section-content"
+      ],
+      "heading-25": [
+        "ai-rule-section-content"
+      ]
+    },
+    "confidence": null,
+    "out_of_scope": false,
+    "out_of_scope_reason": null,
+    "status": "ai_rule_unverified",
+    "teacher_verified": false,
+    "teacher_id": null,
+    "annotated_at": null,
+    "evidence_sections": [
+      "9.1 异常的概念",
+      "9.2 捕获与抛出异常"
+    ]
+  },
+  {
+    "query_id": "q18",
+    "query": "try 里的 else 和 finally 分别在什么时候执行？如果 except 里又抛出了异常会怎样？",
+    "positive_chunk_ids": [
+      "heading-24"
+    ],
+    "annotation_method": "ai-rule-section-content",
+    "selection_methods": {
+      "heading-24": [
+        "ai-rule-section-content"
+      ]
+    },
+    "confidence": null,
+    "out_of_scope": false,
+    "out_of_scope_reason": null,
+    "status": "ai_rule_unverified",
+    "teacher_verified": false,
+    "teacher_id": null,
+    "annotated_at": null,
+    "evidence_sections": [
+      "9.1 异常的概念"
+    ]
+  },
+  {
+    "query_id": "q19",
+    "query": "什么是 Python 模块？import 一个模块时发生了什么？",
+    "positive_chunk_ids": [
+      "heading-27",
+      "heading-28"
+    ],
+    "annotation_method": "ai-rule-section-content",
+    "selection_methods": {
+      "heading-27": [
+        "ai-rule-section-content"
+      ],
+      "heading-28": [
+        "ai-rule-section-content"
+      ]
+    },
+    "confidence": null,
+    "out_of_scope": false,
+    "out_of_scope_reason": null,
+    "status": "ai_rule_unverified",
+    "teacher_verified": false,
+    "teacher_id": null,
+    "annotated_at": null,
+    "evidence_sections": [
+      "10.1 导入模块",
+      "10.2 创建模块"
+    ]
+  },
+  {
+    "query_id": "q20",
+    "query": "自定义包时 __init__.py 有什么作用？from package import module 和 import package.module 在使用上有什么区别？",
+    "positive_chunk_ids": [
+      "heading-29"
+    ],
+    "annotation_method": "ai-rule-section-content",
+    "selection_methods": {
+      "heading-29": [
+        "ai-rule-section-content"
+      ]
+    },
+    "confidence": null,
+    "out_of_scope": false,
+    "out_of_scope_reason": null,
+    "status": "ai_rule_unverified",
+    "teacher_verified": false,
+    "teacher_id": null,
+    "annotated_at": null,
+    "evidence_sections": [
+      "10.3 包"
+    ]
+  }
+]

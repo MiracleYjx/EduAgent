@@ -25,6 +25,7 @@ from typing import Final
 
 from sqlalchemy.orm import Session
 
+from backend.app.ai.retrieval._filters import resolve_retrieval_scope
 from backend.app.ai.retrieval.base import (
     DEFAULT_TOP_K,
     SOURCE_MODE_BOTH,
@@ -37,8 +38,8 @@ from backend.app.ai.retrieval.base import (
     RetrievalQuery,
     RetrievedChunk,
     get_retriever,
+    normalize_query_vector,
     normalize_top_k,
-    resolve_filters,
 )
 from backend.app.core.config import get_settings
 
@@ -111,7 +112,8 @@ class HybridSearchRetriever(BaseRetriever):
                 "混合检索需要同时提供查询文本与 query embedding，请使用 RetrievalQuery。"
             )
         limit = normalize_top_k(top_k)
-        scope = resolve_filters(filters)
+        normalize_query_vector(query.embedding)
+        scope = resolve_retrieval_scope(session, query, filters)
 
         vector_hits = self._vector.search(
             session,
@@ -152,17 +154,14 @@ class HybridSearchRetriever(BaseRetriever):
                 source_mode = SOURCE_MODE_VECTOR
             else:
                 source_mode = SOURCE_MODE_KEYWORD
-            fusion_score = (
-                self.vector_weight * normalized_vector.get(chunk_id, 0.0)
-                + (1.0 - self.vector_weight) * normalized_keyword.get(chunk_id, 0.0)
-            )
+            fusion_score = self.vector_weight * normalized_vector.get(chunk_id, 0.0) + (
+                1.0 - self.vector_weight
+            ) * normalized_keyword.get(chunk_id, 0.0)
             fused.append(
                 replace(
                     candidate,
                     # 原始分按各自召回路补齐，便于诊断两路真实贡献。
-                    semantic_score=(
-                        vector_scores.get(chunk_id) if in_vector else None
-                    ),
+                    semantic_score=(vector_scores.get(chunk_id) if in_vector else None),
                     keyword_score=(
                         keyword_scores.get(chunk_id) if in_keyword else None
                     ),

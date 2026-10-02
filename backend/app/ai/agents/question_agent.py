@@ -62,6 +62,7 @@ from backend.app.ai.llm.base import (
     describe_llm_provider,
 )
 from backend.app.ai.llm.factory import create_llm_provider
+from backend.app.ai.retrieval._filters import resolve_retrieval_scope
 from backend.app.ai.retrieval.base import (
     DEFAULT_TOP_K,
     BaseRetriever,
@@ -69,6 +70,8 @@ from backend.app.ai.retrieval.base import (
     RetrievalFilters,
     RetrievalMode,
     RetrievalQuery,
+    RetrievalScopeInvalidError,
+    RetrievalScopeNotReadyError,
     RetrievalUnsupportedDialectError,
     RetrievedChunk,
     get_retriever,
@@ -490,7 +493,17 @@ async def build_generation_context(
     resolved_mode = normalize_mode(mode)
     limit = normalize_top_k(top_k)
     query_text = build_generation_query(request)
-    filters = RetrievalFilters(course_ids=(_as_course_uuid(request.course_id),))
+    selected_scope = request.retrieval_scope
+    filters = RetrievalFilters(
+        course_ids=(_as_course_uuid(request.course_id),),
+        document_ids=selected_scope.document_ids,
+    )
+    if not selected_scope.is_empty:
+        filters = resolve_retrieval_scope(
+            session,
+            RetrievalQuery.from_scope(query_text, (), selected_scope),
+            filters,
+        )
 
     embedding: list[float] | None = None
     if resolved_mode is not RetrievalMode.KEYWORD_ONLY:
@@ -523,7 +536,7 @@ async def build_generation_context(
         candidates = _execute_search(
             cast("_HybridLikeRetriever", active_retriever),
             session,
-            RetrievalQuery(text=query_text, embedding=tuple(embedding)),
+            RetrievalQuery.from_scope(query_text, embedding, selected_scope),
             candidate_limit,
             filters,
         )
@@ -532,7 +545,11 @@ async def build_generation_context(
         candidates = _execute_search(
             active_retriever,
             session,
-            tuple(embedding),
+            (
+                RetrievalQuery.from_scope(query_text, embedding, selected_scope)
+                if not selected_scope.is_empty
+                else tuple(embedding)
+            ),
             candidate_limit,
             filters,
         )
@@ -540,7 +557,11 @@ async def build_generation_context(
         candidates = _execute_search(
             active_retriever,
             session,
-            query_text,
+            (
+                RetrievalQuery.from_scope(query_text, (), selected_scope)
+                if not selected_scope.is_empty
+                else query_text
+            ),
             candidate_limit,
             filters,
         )
@@ -677,6 +698,8 @@ class QuestionAgent:
                 "当前数据库不支持所需检索模式，无法获取出题依据。",
                 error=exc,
             )
+        except (RetrievalScopeInvalidError, RetrievalScopeNotReadyError) as exc:
+            return self._failure(exc.error_code, exc.detail, error=exc)
         except RetrievalError as exc:
             return self._failure(
                 QUESTION_RETRIEVAL_FAILED,

@@ -23,18 +23,21 @@ from sqlalchemy import Float, select, text
 from sqlalchemy.orm import Session
 from sqlalchemy.sql.elements import ColumnElement
 
-from backend.app.ai.retrieval._filters import apply_retrieval_filters
+from backend.app.ai.retrieval._filters import (
+    apply_retrieval_filters,
+    resolve_retrieval_scope,
+)
 from backend.app.ai.retrieval.base import (
     DEFAULT_TOP_K,
     BaseRetriever,
     RetrievalFilters,
     RetrievalInputError,
     RetrievalMode,
+    RetrievalQuery,
     RetrievedChunk,
     normalize_query_vector,
     normalize_top_k,
     resolve_dialect_name,
-    resolve_filters,
 )
 from backend.app.models import DocumentChunk
 
@@ -85,16 +88,20 @@ class VectorSearchRetriever(BaseRetriever):
     def search(
         self,
         session: Session,
-        query: str | Sequence[float],
+        query: str | Sequence[float] | RetrievalQuery,
         *,
         top_k: int = DEFAULT_TOP_K,
         filters: RetrievalFilters | None = None,
     ) -> list[RetrievedChunk]:
         """按查询向量检索最相似的 Top-K 知识片段。"""
 
-        vector = normalize_query_vector(query)
+        vector = normalize_query_vector(
+            query.embedding if isinstance(query, RetrievalQuery) else query
+        )
         limit = normalize_top_k(top_k)
-        scope = resolve_filters(filters)
+        scope = resolve_retrieval_scope(
+            session, query if isinstance(query, RetrievalQuery) else None, filters
+        )
         if resolve_dialect_name(session) == POSTGRES_DIALECT:
             return self._search_postgresql(session, vector, limit, scope)
         return self._search_exact(session, vector, limit, scope)
@@ -115,7 +122,9 @@ class VectorSearchRetriever(BaseRetriever):
         distance = cosine_distance_expression(vector).label("distance")
         statement = (
             apply_retrieval_filters(
-                select(DocumentChunk, distance).where(DocumentChunk.embedding.is_not(None)),
+                select(DocumentChunk, distance).where(
+                    DocumentChunk.embedding.is_not(None)
+                ),
                 scope,
             )
             .order_by(distance)
@@ -155,6 +164,7 @@ class VectorSearchRetriever(BaseRetriever):
             RetrievedChunk.from_document_chunk(chunk, rank=rank, semantic_score=score)
             for rank, (chunk, score) in enumerate(scored[:limit])
         ]
+
 
 __all__ = [
     "POSTGRES_DIALECT",

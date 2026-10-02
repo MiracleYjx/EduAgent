@@ -30,7 +30,7 @@ from sqlalchemy.orm import Session
 
 from backend.app.ai.embedding.base import BaseEmbeddingProvider
 from backend.app.ai.llm.base import BaseLLMProvider
-from backend.app.ai.retrieval.base import DEFAULT_TOP_K, BaseRetriever
+from backend.app.ai.retrieval.base import DEFAULT_TOP_K, BaseRetriever, RetrievalError
 from backend.app.ai.retrieval.reranker import BaseReranker
 from backend.app.core.config import AppSettings
 from backend.app.schemas.ai import GradingResult
@@ -110,7 +110,7 @@ def build_subjective_scorer(
                     settings=settings,
                 )
             )
-        except (SubjectiveGradingError, GradingContextError) as error:
+        except (SubjectiveGradingError, GradingContextError, RetrievalError) as error:
             raise as_task_error(error) from None
         finally:
             session.close()
@@ -145,6 +145,7 @@ def build_subjective_source(
         student_answer=student_answer,
         scoring_rubric=target.scoring_rubric,
         knowledge_points=target.knowledge_points,
+        retrieval_scope=snapshot.retrieval_scope,
         question_id=target.question_id,
         answer_id=target.answer_id,
         submission_id=snapshot.submission_id,
@@ -157,8 +158,9 @@ def as_task_error(error: Exception) -> GradingTaskError:
     code = str(getattr(error, "error_code", GRADING_TASK_FAILED))
     retryable = bool(getattr(error, "retryable", False))
     source_code = getattr(error, "source_code", None)
+    detail = error.detail if isinstance(error, RetrievalError) else f"主观题评分失败（来源码 {code}）。"
     mapped = GradingTaskError(
-        f"主观题评分失败（来源码 {code}）。",
+        detail,
         retryable=retryable,
         source_code=str(source_code) if source_code else code,
     )
