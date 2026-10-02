@@ -366,3 +366,16 @@ order_preserved 仅描述当前选项序列是否被存储保留，不证明 OCR
 
 最终独立 T158 暂存快照全量：1758 passed / 0 failed / 2 skipped / 43 warnings（UTC 2026-10-02T09:46:09.541689+00:00，pytest 475.77 s、外层 484.769 s）。快照排除用户/T159 UI；mypy 173 source files 无问题（123.377 s），Ruff 通过，隔离 Alembic check 无差异。既有 skip 为 M0 缺四项隔离配置和 Windows 符号链接权限，不计门禁通过。
 2026-10-02T09:55:45.503541+00:00 已核对零连接/标签后清理本批 DB eduagent_e2_correction_60f11e107828 和 Redis eduagent-e2-correction-redis-60f11e107828；原业务库仍 0012_audit_logs。13 项保护文件字节相同，仅 T158 勾选，T159 保留等待下一项。
+
+## 15. T159 校正界面与主壳接线收尾 TCR（2026-10-02，基线 6abf901）
+
+- 必要性：T158 的只读 order_preserved 需在校正界面说明历史顺序不可证明；主壳认证包装必须保留上传生成器协议，不能返回未执行的 generator；退出/重新登录应清除新页面的动态课程、记录、题目、页/资产 choices、原页字节与上传文件。T159 不新增字段、迁移、模型选型或图片核对命令。
+- 变更边界：继续已有 tests/unit/ui/test_paper_import_view.py 并补主壳行为用例；如修改 tests/unit/ui/test_gradio_app.py，只增加 teacher.paper_import 导航及当前接线所需断言，保留学生/管理员/旧导航、用户 UI 断言。复用现有 files_api、真实 JWT、SQLite 和持久服务，不通过测试特例制造入库成功。
+- 覆盖：当前及历史选项标记展示；原样重保存不抹除 false、仅改键序后实际重新打开仍按新序且 true；未知字段 null、跨页/合法和非法边界；题图裁取/移除、图序与学生明确许可；拒绝、显式批次确认、待补全及幂等；文本选项缺内容不得制造字符串 None；完整主壳的上传回调经认证后仍为生成器且两次 yield，真实上传保存/提取；账号切换清空局部动态值/choices/File/HTML。
+- 验证计划：先运行暴露上述缺口的聚焦用例，再修复业务接线并聚焦回归；在隔离数据库/Redis/文件根验证真实浏览器校正流程。暂存仅本批成果并从暂存区导出独立快照，完成既有 pytest tests/ -q、mypy backend/app、Ruff。模拟拆题只用于确定性界面夹具，不作为 OCR/模型精度或 T160/T168 验收。
+- 保护：初始用户 UI/README/设计系统/题库测试原样保留；只把初始用户快照之后的本批接线差异暂存。requirements 16/16，v2-readiness 36 项未勾选；按本次明确继续 T159 的授权推进，不改清单。
+- 实际结果：实施后追加真实结果，不预填通过。
+
+T159 先行 ui_red：5 failed / 5 passed，legacy 提示和两项空文本确实失败；两项主壳测试先卡在新增回调查找夹具对 functools.partial 的 __name__ 假设。修夹具仅改为 getattr 的实际查找，保留 generator、实际持久上传、choices/File/HTML 断言，再执行主壳先行检查，不把夹具错误当业务红灯。
+
+T159 修夹具后的主壳先行：2 failed，分别在 generatorfunction 与动态 choices 清空处真实失败。最小生产修复后聚焦 27 passed / 8 warnings；最终独立暂存快照 1768 passed / 2 skipped / 64 warnings，mypy 176 文件及 Ruff 通过。新增测试的 Ruff 两项导入/kwargs 格式修正不改断言。浏览器真实字段保存、新会话重新读取、明确拒绝和指定题入库、另一个教师账号清空均通过，并只读核对实际 Draft/null/历史 false；固定 Provider 仅用于页面夹具，没有宣称提取精度或教师质量标签。完整主壳回调沿用既有 eduagent-ui 共享队列，未新增并发体系。详见 validation-report.md 本项记录。

@@ -582,3 +582,53 @@ T157 先行缺模块/入口用例确实失败；实现后真实渲染/拆题 13 
 - tests/integration/test_options_json_migration.py
 - tests/integration/test_paper_import_flow.py
 - tests/unit/models/test_m3_migrations.py
+
+## T159：原页与结构化题目校正界面（2026-10-02）
+
+基线 deepcode / 6abf901；按 speckit-implement 仅完成 T159，TCR §15 先于本批测试修改。requirements 16/16；v2-readiness 36 项后续全局门禁按明确继续授权保持，不改清单。选项承接 T158 JSON 与只读 order_preserved，不新增数据库字段、迁移或关键依赖。
+
+### 实际交付与边界
+
+- 新增 paper_import_view、paper_correction_view 和 paper_import_loaders，接入教师独立导航、面包屑和主壳；每次操作用真实 JWT/当前教师和课程权限，图片字节走文件授权读取，不暴露服务器路径/静态文件地址。
+- 原页与题目并排，支持跨页来源、像素边界、原题号/题序、按行顺序的对象/数组选项、分值/知识点/答案/Rubric/解析，题图裁取/关联/移除、图序/说明及显式学生许可。未知仍为 null；重新打开读取持久记录。历史 false 提示原始顺序不可证明，原样重保存及只改解析不抹除提示，真正换序后落入 JSON 并显示当前序列。
+- 拒绝理由必填，批次只使用教师明确选择的 IDs；新题为 Draft，缺答案/评分条件显示待补全；重复确认沿用服务幂等事实，不复制或覆盖正式题。图像理解/人工核对持久命令仍留 T163/T164。
+- 修复主壳认证包装器的生成器协议，使上传真实执行两次进度回传；与原同步/异步路径及共享队列保持一致。新页面局部账号清理清空 File、动态 choices、输入与原页/题图字节，刷新课程联动清空旧记录。
+
+### 验证结果
+
+| 检查 | UTC 开始 / 耗时 | 实际结果 |
+| --- | --- | --- |
+| 新界面先行 | 10:08:48.708013；外层 22.927 s | 5 failed / 5 passed；历史提示/空文本真实失败，另两项为新回调查找夹具不兼容 partial |
+| 修夹具后主壳先行 | 10:10:17.044896；外层 16.563 s | 2 failed / 8 deselected；generatorfunction 与清 choices 的真实失败 |
+| 工作区聚焦 UI/主壳/校正契约 | 10:11:34.081486；pytest 20.84 s，外层 28.489 s | 27 passed / 8 warnings |
+| 独立暂存快照全量 pytest | 10:16:17.870768；pytest 484.20 s，外层 494.102 s | 1768 passed / 0 failed / 0 errors / 2 skipped / 64 warnings |
+| 独立快照 mypy backend/app | 10:15:07.876120；115.050 s | 176 source files 通过 |
+| 独立快照最终 Ruff backend/tests | 10:16:01.215572；0.147 s | All checks passed |
+| 真实浏览器与持久事实 | 10:12–10:26；数据库只读核对 10:25:10.808696 | 保存/新会话重开/拒绝/指定题入库/换账号清空通过，实际 Ready / Corrected / Rejected / Draft；5.00、解析与 C/A/D/B 序列持久；答案/Rubric null、历史 false 保留 |
+
+全量包含本批 10 项 UI 行为测试，保留旧学生/管理员/异步/同步认证及原阅卷/检索断言。测试仅向本批隔离环境操作；两项 skip 仍是 M0 缺四项隔离配置和 Windows 无符号链接权限，不记为通过。首轮 Ruff 两项仅修新测试导入/kwargs 格式，未放宽断言。
+
+浏览器使用真实主壳、合成 paper_text.pdf、专用真实教师账号，确定性 Provider 只准备暂存题；无新增外部模型调用。保存、拒绝及入库从浏览器点击实际调用持久服务，再用独立读取核对记录；重新打开的新会话读到已保存解析，另一个教师账号的课程选项与页图均为空。截图为实际工作区，保留用户原有设计系统样式；源码独立快照另行排除这些未提交成果。图片不是 OCR/模型准确率、T160/T168 教师质量、T185 样板收敛或 EXE 验收证据。
+
+![T159 原页与持久校正界面](evidence/t159-correction.jpg)
+
+### 环境及提交保护
+
+只复用已批准隔离运行时，不安装依赖、不应用业务库迁移、不改 .env。10:28:00.227251 UTC 核对零连接与 T159 标签后删除本批 eduagent_e2_paper_ui_42a9fd8de3fe 和 eduagent-e2-paper-ui-redis-42a9fd8de3fe，原业务库仍 0012_audit_logs。首次预览进程停止筛选未匹配，清理工具因仍有连接明确拒绝；核对完整命令后只停止本批两个虚拟环境预览进程，再清理成功，未终止其他服务。浏览器及一次性截图通道均关闭。
+
+.env、两份 README、design_system.py、question_view.py 和 test_question_bank_view.py 的字节摘要与实施前一致。三个共享文件只暂存本批接线/导航期望，用户原有差异留在工作区；独立暂存快照已完成全量验证。仅勾选 T159，T146 仍等待真实教师标注，T160 未执行。缓存保存原日志、UTC/退出码/JUnit、夹具及清理/截图收据，凭据不提交。.specify/extensions.yml 不存在，后置 hook 按规则跳过。
+
+### 本批文件
+
+- .specify/contracts/paper-import.md
+- .specify/tasks.md
+- backend/app/ui/gradio_app.py
+- backend/app/ui/layout_view.py
+- backend/app/ui/paper_import_view.py
+- backend/app/ui/paper_correction_view.py
+- backend/app/ui/paper_import_loaders.py
+- tests/unit/ui/test_gradio_app.py
+- tests/unit/ui/test_paper_import_view.py
+- docs/test-change-record-v2.md
+- docs/validation-report.md
+- docs/evidence/t159-correction.jpg

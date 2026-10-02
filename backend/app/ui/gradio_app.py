@@ -67,6 +67,7 @@ from backend.app.ui.layout_view import (
 from backend.app.ui.layout_view import (
     LayoutNavigationItem as NavigationItem,
 )
+from backend.app.ui.paper_import_view import create_paper_import_view
 from backend.app.ui.question_generation_view import (
     QuestionGenerationView,
     create_question_generation_view,
@@ -164,6 +165,7 @@ PAGE_BREADCRUMB_GROUPS: Mapping[str, str] = {
     "teacher.courses": "课程",
     "teacher.knowledge": "课程",
     "teacher.questions": "题库",
+    "teacher.paper_import": "试卷导入",
     "teacher.exams": "考试",
     "teacher.generate": "AI 教学",
     "teacher.review": "AI 教学",
@@ -2319,6 +2321,14 @@ def _guard_view_callback(
 
         return guarded_async
 
+    if inspect.isgeneratorfunction(fn):
+
+        @wraps(fn)
+        def guarded_generator(*args: Any, **kwargs: Any) -> Any:
+            yield from fn(*authenticated_arguments(args), **kwargs)
+
+        return guarded_generator
+
     @wraps(fn)
     def guarded(*args: Any, **kwargs: Any) -> Any:
         values = authenticated_arguments(args)
@@ -2479,6 +2489,7 @@ def create_gradio_app() -> gr.Blocks:
                         question_view: QuestionView = create_question_view(
                             session_state
                         )
+                        paper_import_view = create_paper_import_view(session_state)
                         exam_view: ExamView = create_exam_view(session_state)
                         student_exam_view: StudentExamView = create_student_exam_view(
                             session_state
@@ -2538,6 +2549,7 @@ def create_gradio_app() -> gr.Blocks:
             "teacher.home": teacher_dashboard_view.panel,
             "teacher.courses": knowledge_base_view.panel,
             "teacher.questions": question_view.panel,
+            "teacher.paper_import": paper_import_view.panel,
             "teacher.exams": exam_view.panel,
             "teacher.generate": question_generation_view.panel,
             "teacher.review": review_view.panel,
@@ -2558,6 +2570,7 @@ def create_gradio_app() -> gr.Blocks:
             for panel in [admin_view.panel, *panels.values()]
             for entry in resettable_components(panel)
         ]
+        resets.append((paper_import_view.file, None))
         view_functions = list(demo.fns.values())
         for block_fn in view_functions:
             if block_fn.fn is not None and session_state in block_fn.inputs:
@@ -2733,6 +2746,7 @@ def create_gradio_app() -> gr.Blocks:
                     for component, value in resets
                 }
             )
+            result.update(paper_import_view.reset())
             result.update(
                 {
                     login_panel: gr.update(visible=True),

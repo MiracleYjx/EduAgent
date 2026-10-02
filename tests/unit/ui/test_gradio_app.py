@@ -66,6 +66,7 @@ def test_navigation_is_limited_by_role() -> None:
         "teacher.courses",
         "teacher.knowledge",
         "teacher.questions",
+        "teacher.paper_import",
         "teacher.exams",
         "teacher.generate",
         "teacher.review",

@@ -569,7 +569,7 @@ M0 工程骨架 + Benchmark
 
 - [X] T158 [HIGH] [E2] **实现校正、拒绝与幂等确认入库**：在 `services/question_correction_service.py`、导入服务/API 实现列表/详情/PATCH/commit，持久修改题边界、跨页、顺序、解析与图像关联；同导入串行核对，Question(Draft)、题图/来源与 ExtractedQuestion.question_id/Corrected 同事务，非法指定批次整体拒绝，重复确认返回已有题。缺答案/Rubric 保持待补全；全部拒绝与部分确认的终态按契约处理，确认后不反写来源。 依赖：T157。per FR-041/042、paper-import 事务/状态机、US1-v2/AC2（F025） (missing)
 
-- [ ] T159 [HIGH] [E2] **实现原页与结构化题目校正界面**：新增 `backend/app/ui/paper_import_view.py` 和 `paper_correction_view.py`，接入 `gradio_app.py`/导航及真实加载器；提供独立试卷入口、原页与暂存题并排、跨页/题边界/选项/图像关联校正、显式拒绝/批次确认、待补全及失败说明。重新打开读取持久记录；图像理解/核对入口由 T163/T164 补接，不用 UI 状态代替保存。 依赖：T158。per FR-041/042、SC-010、plan Gate 10/11（F026） (missing)
+- [X] T159 [HIGH] [E2] **实现原页与结构化题目校正界面**：新增 `backend/app/ui/paper_import_view.py` 和 `paper_correction_view.py`，接入 `gradio_app.py`/导航及真实加载器；提供独立试卷入口、原页与暂存题并排、跨页/题边界/选项/图像关联校正、显式拒绝/批次确认、待补全及失败说明。重新打开读取持久记录；图像理解/核对入口由 T163/T164 补接，不用 UI 状态代替保存。 依赖：T158。per FR-041/042、SC-010、plan Gate 10/11（F026） (missing)
 
 - [ ] T160 [HIGH] [E2] **验收导入、OCR、校正与重启**：依 T145 先行用例，在 `tests/contract/`、`tests/integration/` 和 `benchmark/` 运行文字/扫描/混合 PDF、图片、跨页/错序/无答案/损坏/超页、OCR 禁用/失败、并发校正与重复 commit；真实标注逐字段核对并分开报告自动提取和校正结果，验证原卷/页图/题图重启可读与学生源卷隔离。按 T142 记录导入/校正耗时及 Gate 10/11/13 阶段证据。 依赖：T145、T146、T152、T153、T154、T156、T157、T158、T159。per FR-041–045、SC-010、plan Gate 10/11/13（F027） (missing)
 

@@ -409,6 +409,13 @@ ROLE_NAVIGATION: tuple[LayoutNavigationItem, ...] = (
         "教师题库与审核。",
     ),
     LayoutNavigationItem(
+        "teacher.paper_import",
+        "试卷导入",
+        "教学准备",
+        frozenset({UserRole.TEACHER}),
+        "原卷上传、提取与教师校正。",
+    ),
+    LayoutNavigationItem(
         "teacher.exams",
         "考试",
         "教学准备",
