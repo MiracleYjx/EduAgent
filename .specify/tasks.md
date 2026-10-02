@@ -581,7 +581,7 @@ M0 工程骨架 + Benchmark
 
 - [X] T163 [HIGH] [E3] **实现核验与图片核对持久服务**：按 G02/G05 在 `models/`、`schemas/`、迁移及新增 `services/content_validation_service.py` 实现每轮报告、实际 Agent/Provider 来源、技术错误、教师处置与原图/当前内容关联；接通暂存题转正式题的核对记录及读取/处置接口，变化后旧结果失效但证据保留，不伪造教师身份或将机器报告塞进意见。 依赖：T135、T138、T145、T153、T154。per FR-043/047、G02/G05、agent-workflow、vision-capability（F030） (missing)
 
-- [ ] T164 [HIGH] [E3] **实现图片能力与结构化理解**：在 `ai/llm/base.py` 增加默认 False 的 supports_vision，保持 generate_structured 签名；经已配置且确认具备能力的适配器及新增 `ai/vision/base.py`、`ai/vision/provider.py` 处理授权图像/传输/条件 DTO，并接入 T163 的人工核对入口与导入 UI。能力按实际模型判断；若需新增关键 Provider 先提交选型供用户决定，不强迫切换旧模型。无能力/传输不可用/调用失败/不可靠分别处理，可靠人工核对可继续流程。 依赖：T148、T154、T159、T163。per FR-043、vision-capability、plan §10、Constitution III/IV（F031） (missing)
+- [X] T164 [HIGH] [E3] **实现图片能力与结构化理解**：在 `ai/llm/base.py` 增加默认 False 的 supports_vision，保持 generate_structured 签名；经已配置且确认具备能力的适配器及新增 `ai/vision/base.py`、`ai/vision/provider.py` 处理授权图像/传输/条件 DTO，并接入 T163 的人工核对入口与导入 UI。能力按实际模型判断；若需新增关键 Provider 先提交选型供用户决定，不强迫切换旧模型。无能力/传输不可用/调用失败/不可靠分别处理，可靠人工核对可继续流程。 依赖：T148、T154、T159、T163。per FR-043、vision-capability、plan §10、Constitution III/IV（F031） (missing)
 
 - [ ] T165 [HIGH] [E3] **扩展文字生成与原题改编来源**：在 `ai/agents/question_agent.py`、`api/question_generation.py`、新增 `services/question_adaptation_service.py`、来源持久化边界及新增 QuestionSourcePaper 模型/迁移接入章节/资料/目标分值和两种生成路径；新文字题保存真实教学引用，改编候选与父题关系同事务，Course 锁下核对同课程/无环/不自引，复用原图新关联并重核验，不覆盖父题。source_type 来自真实创建路径，旧知识引用状态/快照不重定义。 依赖：T162、T163、T164。per FR-024/025/046、question-source-persistence、US1-v2/AC3（F032） (partial)
 

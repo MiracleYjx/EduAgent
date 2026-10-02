@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import asyncio
+import base64
+import binascii
 import json
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from time import perf_counter
 from typing import Any, cast
 
@@ -12,6 +14,7 @@ from openai import AsyncOpenAI
 from openai.types.chat import ChatCompletionMessageParam
 from pydantic import BaseModel, ValidationError
 
+from backend.app.ai.vision.base import ProviderImage
 from backend.app.core.config import AppSettings
 from backend.app.core.retry_policy import (
     AsyncSleep,
@@ -53,6 +56,14 @@ class DeepSeekProvider(BaseLLMProvider):
             max_retries=0,
         )
 
+    def supports_vision(self) -> bool:
+        """仅声明当前实例模型与官方适配器明确支持的真实图像能力。"""
+        return (
+            self._model in {"deepseek-flash", "deepseek-v4-flash", "deepseek-v4-flash-vision-exp"}
+            and self._settings.deepseek_base_url.host == "api.deepseek.com"
+            and self._fallback_provider is None
+        )
+
     async def aclose(self) -> None:
         if self._owns_client:
             await self._client.close()
@@ -82,6 +93,15 @@ class DeepSeekProvider(BaseLLMProvider):
         if not isinstance(schema, type) or not issubclass(schema, BaseModel):
             raise TypeError("结构化输出 Schema 必须继承 BaseModel。")
 
+        image_input = any(
+            isinstance(message.get("content"), Sequence)
+            and not isinstance(message.get("content"), str)
+            and any(isinstance(part, Mapping) and part.get("type") in {"image", "image_url", "input_image"}
+                    for part in message["content"])
+            for message in messages
+        )
+        if image_input and (not self.supports_vision() or (model is not None and model != self._model)):
+            raise ProviderCallError("VISION_NOT_SUPPORTED", "当前实际配置模型不支持本次图像输入。")
         prepared_messages = self._prepare_messages(messages)
 
         async def request() -> BaseModel:
@@ -201,9 +221,33 @@ class DeepSeekProvider(BaseLLMProvider):
     def _prepare_messages(
         messages: LLMMessages,
     ) -> list[ChatCompletionMessageParam]:
-        prepared = [
-            cast(ChatCompletionMessageParam, dict(message)) for message in messages
-        ]
+        prepared: list[ChatCompletionMessageParam] = []
+        for message in messages:
+            converted = dict(message)
+            content = message.get("content")
+            if isinstance(content, Sequence) and not isinstance(content, str):
+                blocks: list[dict[str, Any]] = []
+                for block in content:
+                    if not isinstance(block, Mapping):
+                        raise ProviderCallError("VISION_IMAGE_TRANSPORT_UNAVAILABLE", "多模态内容块结构无效。")
+                    if block.get("type") == "image":
+                        if message.get("role") != "user":
+                            raise ProviderCallError("VISION_IMAGE_TRANSPORT_UNAVAILABLE", "图像仅允许在 user 消息中传输。")
+                        try:
+                            raw = block.get("image")
+                            image = raw if isinstance(raw, ProviderImage) else ProviderImage.model_validate(raw)
+                            if image.encoding != "base64" or image.mime_type not in {"image/png", "image/jpeg", "image/gif", "image/webp"}:
+                                raise ValueError("unsupported transport")
+                            base64.b64decode(image.value, validate=True)
+                        except (ValidationError, ValueError, binascii.Error):
+                            raise ProviderCallError("VISION_IMAGE_TRANSPORT_UNAVAILABLE", "适配器没有可用的授权 Base64 图像传输。") from None
+                        blocks.append({"type": "image_url", "image_url": {"url": f"data:{image.mime_type};base64,{image.value}"}})
+                    elif block.get("type") in {"image_url", "input_image"}:
+                        raise ProviderCallError("VISION_IMAGE_TRANSPORT_UNAVAILABLE", "图像须使用应用边界的 ProviderImage，不接受外部地址。")
+                    else:
+                        blocks.append(dict(block))
+                converted["content"] = blocks
+            prepared.append(cast(ChatCompletionMessageParam, converted))
         has_json_instruction = any(
             "json" in str(message.get("content", "")).lower() for message in prepared
         )

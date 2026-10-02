@@ -738,3 +738,31 @@ T163 提交前独立暂存快照（排除全部用户既有修改及 T164 未提
 浏览器发现并修复生产会话边界：SessionFactory.autoflush=False 时，结束/人工处置的读投影会在自身写入flush前populate_existing，导致覆盖未持久事实。真实隔离回执保留了原running误差；新增5例均复现失败，随后只在5个写入边界投影前flush。修复后18单元＋10 PostgreSQL共28 passed（19.75s），启动返回当前轮且不保留外部调用期间数据库锁。未修改旧running证据，也未生成教师标签。T163本地未推送提交将在修复复验后更新。
 
 T163 生产会话修复后的独立提交快照：82 passed / 1 warning（62.41s；外层67.986s，UTC 2026-10-02T13:15:42.234620Z）。原77项及新增5项均通过，更新本地未推送T163提交；历史误差回执留cache用于诊断。
+
+## T164：独立图片能力与结构化理解（2026-10-02）
+
+用户确认独立 VISION_MODEL=deepseek-flash，复用当前 DeepSeek 端点及凭据，保留原文字模型和实际 .env。设置留空明确为 VISION_PROVIDER_NOT_READY；配置但实际模型/端点不具备能力明确为 VISION_NOT_SUPPORTED。BaseLLMProvider.supports_vision 默认 False，原 generate_structured 签名不变。结构化输入/图片传输、调用失败和不可靠输出分别保存真实状态，允许当前真实人工核对继续，不能将缺配置当成模型成功。
+
+Vision 层只接收授权图像字节与文字；业务层绑定真实资产/文件/原页身份。模型返回图索引、像素 xyxy、可见条件和问题，业务身份由服务生成。源图区域仅在已知映射尺寸相符时换算，未知保留 null。启动轮次先提交释放事务，执行后关闭资源并保存真实结果；调用取消会先保存失败再传播，关闭失败仍保存已取得结果后传播错误，迟到结果只能留历史。导入校正 UI 接通授权原图、当前/历史结果、真实错误、逐图人工核对及当前修订计数，旧表单409不自动重新提交。
+
+实际独立 Provider 合成题图调用仅一次（无自动重试探针），UTC 12:45:04.804594 至 12:45:40.752565，实际来源 deepseek / deepseek-flash / vision-conditions-v1；结果为 technical_error，VISION_CALL_FAILED / ProviderTimeout，没有生成条件或教师核对。未重复付费调用，不据此声明模型质量或线上成功。证据：[真实调用](evidence/t164-vision-20261002/real-call.json)、[合成题图一](evidence/t164-vision-20261002/synthetic-1.png)、[合成题图二](evidence/t164-vision-20261002/synthetic-2.png)。
+
+实际浏览器在自建教师/合成题图 fixture 上运行默认未配置路径，并点击重新读取：technical_error / VISION_PROVIDER_NOT_READY、图像修订0、调用轮次1、核对轮次0；数据库持久重读一致，真实机器模型来源为 null，人工记录0。浏览器发现的生产 autoflush=False 边界已由 T163 修复，最终独立 T163 提交977460e包含5例真实红测修复。证据：[实际截图](evidence/t164-vision-20261002/image-review-browser.jpg)、[持久重读](evidence/t164-vision-20261002/browser-durable-result.json)。此为技术验证，未伪造教师标注或代替T160/T168。
+
+聚焦验证：Vision及既有LLM/config77 passed；图片编排与Vision联合50 passed；图片HTTP/新旧导入UI22 passed（11 warnings）。已验证实际文件授权、输出绑定、未知定位、无配置/无能力/缺文件/无效输出、取消与清理、迟到/改回/事务回滚、真实JWT权限及人工核对。以上有重叠，不累加作总用例数。完整提交范围的最终pytest/mypy/Ruff/隔离Alembic结果另行登记。
+
+
+### T163–T164 最终提交范围检查与收尾
+
+全部代码取自 Git 暂存快照 final-index，排除用户已有8项源码/README/测试和实际.env；只勾选本批T163/T164，T146/T160仍未完成。T163独立提交977460e；T164随后独立提交。检查结果属于源码、接口与隔离运行验证，未声称模型质量、生产迁移或系统验收。
+
+| 检查 | UTC开始 / 外层耗时 | 实际结果 |
+| --- | --- | --- |
+| 全量 pytest tests/ -q | 2026-10-02T13:33:04.305481Z / 872.539s | 1975 passed / 0 failed / 0 errors / 2 skipped / 73 warnings；pytest857.99s，JUnit857.929s |
+| 全后端 mypy | 2026-10-02T13:32:57.410801Z / 201.131s | 191 source files，无问题 |
+| 全 backend/tests Ruff | 2026-10-02T13:33:04.350914Z / 0.505s | All checks passed |
+| 隔离数据库 Alembic check | 2026-10-02T13:33:04.564694Z / 3.272s | No new upgrade operations detected |
+
+两项跳过保留真实原因：M0缺少独立Compose项目及端口配置，拒绝使用默认项目；本机不允许测试创建符号链接。没有放宽断言或将skip报作通过。最终只读复核没有新的可达缺陷。真实模型超时证据保留，未追加付费调用。
+
+UTC 2026-10-02T13:48:26.213425Z已按本批独占命名/标签、零连接检查清理DB eduagent_e3_vision_cd23640bb598及Redis eduagent-e3-vision-redis-cd23640bb598；实际浏览器预览PID78860与截图接收器已关闭。业务库仍0012_audit_logs，9项受保护文件字节相同，cache内JUnit/日志/诊断保留。执行后检查.specify/extensions.yml不存在，无after_implement hook。

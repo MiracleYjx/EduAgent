@@ -69,6 +69,10 @@ class BaseLLMProvider(ABC):
             self, provider_name=self.provider_name, prompt_version=prompt_version,
         )
 
+    def supports_vision(self) -> bool:
+        """默认不声明图像能力，保持既有文本 Provider 可直接使用。"""
+        return False
+
     async def aclose(self) -> None:
         """Release provider-owned resources; stateless adapters need no cleanup."""
 

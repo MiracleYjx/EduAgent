@@ -1,0 +1,204 @@
+{
+  "started_at": "2026-10-02T12:45:04.804594+00:00",
+  "finished_at": "2026-10-02T12:45:40.752565+00:00",
+  "sample_kind": "self-created synthetic; not teacher annotation or quality acceptance",
+  "configured_vision_model": "deepseek-flash",
+  "text_config_unchanged": true,
+  "question_id": "9ba878be-4654-4cd6-85db-cdf885a7cdb6",
+  "view": {
+    "owner_kind": "question",
+    "owner_id": "9ba878be-4654-4cd6-85db-cdf885a7cdb6",
+    "assessment": {
+      "context_revision": 1,
+      "runs": [
+        {
+          "id": "09eede2c-e9fb-4725-804e-d5c4504654ab",
+          "run_no": 1,
+          "context_revision": 1,
+          "task": "Read both images and list only the visible conditions. Do not solve or add unseen facts.",
+          "input_refs": {
+            "text_fields": [
+              "type",
+              "content",
+              "options",
+              "reference_answer",
+              "scoring_rubric",
+              "analysis",
+              "score",
+              "caption"
+            ],
+            "images": [
+              {
+                "asset_id": "b9378513-b977-4e4e-af53-e3221e31bcf3",
+                "file_id": "a_b9378513b9774e4eaf53e3221e31bcf3",
+                "image_index": 1,
+                "asset_type": "figure",
+                "source_page_id": null,
+                "region": null,
+                "width": 640,
+                "height": 420,
+                "mime_type": "image/png"
+              },
+              {
+                "asset_id": "409dcf29-6386-4d31-a2a8-76c88086047e",
+                "file_id": "a_409dcf2963864d31a2a876c88086047e",
+                "image_index": 2,
+                "asset_type": "table",
+                "source_page_id": null,
+                "region": null,
+                "width": 640,
+                "height": 420,
+                "mime_type": "image/png"
+              }
+            ]
+          },
+          "outcome": "technical_error",
+          "result": null,
+          "error": {
+            "code": "VISION_CALL_FAILED",
+            "message": "LLM Provider 请求超时。",
+            "stage": "call",
+            "retryable": true,
+            "cause": "ProviderTimeout"
+          },
+          "executor_kind": "service",
+          "executor_name": "vision",
+          "requested_by": "0ae29cf8-68f5-40bb-9fba-d18f7b723698",
+          "agent_run_id": null,
+          "provenance": {
+            "provider_name": "deepseek",
+            "model": "deepseek-flash",
+            "model_version": null,
+            "prompt_version": "vision-conditions-v1"
+          },
+          "started_at": "2026-10-02T12:45:04.860233Z",
+          "completed_at": "2026-10-02T12:45:40.661093Z"
+        }
+      ],
+      "manual_checks": [],
+      "imported_review": null
+    },
+    "context_revision": 1,
+    "run_no": 1,
+    "check_no": 0,
+    "input_refs": {
+      "text_fields": [
+        "type",
+        "content",
+        "options",
+        "reference_answer",
+        "scoring_rubric",
+        "analysis",
+        "score",
+        "caption"
+      ],
+      "images": [
+        {
+          "asset_id": "b9378513-b977-4e4e-af53-e3221e31bcf3",
+          "file_id": "a_b9378513b9774e4eaf53e3221e31bcf3",
+          "image_index": 1,
+          "asset_type": "figure",
+          "source_page_id": null,
+          "region": null,
+          "width": 640,
+          "height": 420,
+          "mime_type": "image/png"
+        },
+        {
+          "asset_id": "409dcf29-6386-4d31-a2a8-76c88086047e",
+          "file_id": "a_409dcf2963864d31a2a876c88086047e",
+          "image_index": 2,
+          "asset_type": "table",
+          "source_page_id": null,
+          "region": null,
+          "width": 640,
+          "height": 420,
+          "mime_type": "image/png"
+        }
+      ]
+    },
+    "current_run": {
+      "id": "09eede2c-e9fb-4725-804e-d5c4504654ab",
+      "run_no": 1,
+      "context_revision": 1,
+      "task": "Read both images and list only the visible conditions. Do not solve or add unseen facts.",
+      "input_refs": {
+        "text_fields": [
+          "type",
+          "content",
+          "options",
+          "reference_answer",
+          "scoring_rubric",
+          "analysis",
+          "score",
+          "caption"
+        ],
+        "images": [
+          {
+            "asset_id": "b9378513-b977-4e4e-af53-e3221e31bcf3",
+            "file_id": "a_b9378513b9774e4eaf53e3221e31bcf3",
+            "image_index": 1,
+            "asset_type": "figure",
+            "source_page_id": null,
+            "region": null,
+            "width": 640,
+            "height": 420,
+            "mime_type": "image/png"
+          },
+          {
+            "asset_id": "409dcf29-6386-4d31-a2a8-76c88086047e",
+            "file_id": "a_409dcf2963864d31a2a876c88086047e",
+            "image_index": 2,
+            "asset_type": "table",
+            "source_page_id": null,
+            "region": null,
+            "width": 640,
+            "height": 420,
+            "mime_type": "image/png"
+          }
+        ]
+      },
+      "outcome": "technical_error",
+      "result": null,
+      "error": {
+        "code": "VISION_CALL_FAILED",
+        "message": "LLM Provider 请求超时。",
+        "stage": "call",
+        "retryable": true,
+        "cause": "ProviderTimeout"
+      },
+      "executor_kind": "service",
+      "executor_name": "vision",
+      "requested_by": "0ae29cf8-68f5-40bb-9fba-d18f7b723698",
+      "agent_run_id": null,
+      "provenance": {
+        "provider_name": "deepseek",
+        "model": "deepseek-flash",
+        "model_version": null,
+        "prompt_version": "vision-conditions-v1"
+      },
+      "started_at": "2026-10-02T12:45:04.860233Z",
+      "completed_at": "2026-10-02T12:45:40.661093Z"
+    },
+    "current_check": null,
+    "imported_review": null,
+    "status": "pending",
+    "confirmed_conditions": [],
+    "requires_manual_review": true,
+    "evidence_readable": true,
+    "error": null,
+    "open_issues": []
+  },
+  "images": [
+    {
+      "path": "synthetic-1.png",
+      "width": 640,
+      "height": 420
+    },
+    {
+      "path": "synthetic-2.png",
+      "width": 640,
+      "height": 420
+    }
+  ]
+}

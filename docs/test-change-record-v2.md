@@ -445,3 +445,9 @@ T159 修夹具后的主壳先行：2 failed，分别在 generatorfunction 与动
 - T163 独立暂存快照：77 passed / 1 warning（72.83s），Ruff backend/tests通过；root4源文件mypy通过。Ruff首次两处仅导入顺序/Decimal字面量写法，按规则修正，未改断言/行为。T164编排两个真正行为红测分别复现关闭取消遗留running和prepare输入失效stage误判，已修且50联合用例通过；不会把缺模块collection错误或首轮直接通过伪称行为红测。
 
 - 浏览器实际发现生产SessionFactory autoflush=False：图片结束写入在commit前生成view，内部populate_existing重载覆盖未flush JSON，界面/数据库仍running；默认autoflush=True测试未覆盖。先新增生产autoflush=False聚焦回归，覆盖图像结束/人工核对和语义start/finish/处置返回及持久结果；在各写入投影前显式flush自身事实，再commit释放锁。保留真实失败running回执，不修改为成功；旧独立本地T163提交待修复后重新验证并amend，尚未推送。
+
+- T163 autoflush=False 修复后5项全部由红转绿，核心18＋真实PG10＝28 passed；独立T163最终快照82 passed/1 warning（62.41s），提交977460e。默认缺图像配置的真实浏览器调用及持久重读均technical_error，不遗留新running；历史故障证据保留。
+- T164聚焦：既有LLM/config联合77 passed；编排/Vision50 passed；HTTP/新旧UI22 passed。取消关闭遗留running、prepare输入失效分类两项行为红测已修复；状态断言未放宽。一次真实合成图调用超时，真实模型来源与原始错误持久保存，无再次付费调用；浏览器没有生成教师标签。最终完整检查采用Git暂存快照，排除全部9项用户既有文件/.env。
+
+- 最终完整暂存快照：1975 passed / 0 failed / 0 errors / 2 skipped / 73 warnings；pytest857.99s（JUnit857.929s、外层872.539s，UTC13:33:04.305481Z）。191源文件mypy通过（201.131s），Ruff通过（0.505s），隔离Alembic check无差异（3.272s）。M0独立配置缺失及Windows符号链接权限两项skip保留，不当作通过。无断言放宽或测试特例。
+- 2026-10-02T13:48:26.213425Z精确清理本批DB/Redis；业务库0012_audit_logs未迁移，9项用户文件/.env字节不变，真实浏览器截图/持久重读/一次云调用超时留docs/evidence。只勾选本批T163/T164，T160继续待教师标注；不存在执行后hooks。

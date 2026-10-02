@@ -133,3 +133,34 @@ def asset_image(question_id: str, asset_id: str, state) -> str:
             raise ValueError("请选择本题的题图。")
         path, _ = service.files.download(asset.file_id, actor_id=actor)
         return _image_html(path, asset.caption or "本题原图")
+
+
+def image_assessment(question_id: str, state):
+    from backend.app.services.content_validation_service import ContentValidationService
+
+    with _scope(state) as (service, actor):
+        return ContentValidationService(
+            service.session, root=service.files.root,
+        ).get_image_assessment("extracted_question", UUID(question_id), actor_id=actor)
+
+
+def check_images(question_id: str, payload: dict[str, Any], state):
+    from backend.app.schemas.image_assessment import ImageManualCheckRequest
+    from backend.app.services.content_validation_service import ContentValidationService
+
+    command = ImageManualCheckRequest.model_validate(payload)
+    with _scope(state) as (service, actor):
+        return ContentValidationService(
+            service.session, root=service.files.root,
+        ).manual_image_check("extracted_question", UUID(question_id), command, actor_id=actor)
+
+
+async def understand_images(question_id: str, task: str, state):
+    from backend.app.services.image_understanding_service import (
+        ImageUnderstandingService,
+    )
+
+    with _scope(state) as (service, actor):
+        return await ImageUnderstandingService(
+            service.session, root=service.files.root, settings=get_settings(),
+        ).understand("extracted_question", UUID(question_id), task=task, actor_id=actor)

@@ -23,6 +23,7 @@ from backend.app.api.grading import (
 from backend.app.api.grading import (
     router as grading_router,
 )
+from backend.app.api.image_understanding import router as image_understanding_router
 from backend.app.api.knowledge_bases import router as knowledge_bases_router
 from backend.app.api.paper_import import recover_interrupted_paper_imports
 from backend.app.api.paper_import import router as paper_import_router
@@ -114,6 +115,7 @@ def create_app(
     app.include_router(questions_router)
     app.include_router(question_assets_router)
     app.include_router(content_validation_router)
+    app.include_router(image_understanding_router)
     app.include_router(paper_import_router)
     app.include_router(exams_router)
     app.include_router(grading_router)

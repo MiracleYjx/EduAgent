@@ -153,6 +153,8 @@ class AppSettings(BaseSettings):
     deepseek_api_key: SecretStr
     deepseek_base_url: AnyUrl
     deepseek_model: str
+    # 图像使用显式独立模型；缺省不自动切换旧文字模型。
+    vision_model: str | None = None
     embedding_provider: str
     embedding_model: str | None = None
     embedding_dimension: int = Field(default=EMBEDDING_DIMENSION_DEFAULT, gt=0)
@@ -228,7 +230,7 @@ class AppSettings(BaseSettings):
             raise ValueError("JWT_ALGORITHM 当前仅支持 HS256。")
         return value
 
-    @field_validator("embedding_model", "embedding_base_url", "rerank_model", mode="before")
+    @field_validator("embedding_model", "embedding_base_url", "rerank_model", "vision_model", mode="before")
     @classmethod
     def _normalize_optional_embedding_text(cls, value: Any) -> Any:
         """将空的或占位形式的模型配置规范化为未配置。"""
@@ -300,6 +302,7 @@ class AppSettings(BaseSettings):
             "deepseek_api_key": REDACTED_VALUE,
             "deepseek_base_url": _redact_url(self.deepseek_base_url),
             "deepseek_model": self.deepseek_model,
+            "vision_model": self.vision_model,
             "embedding_provider": self.embedding_provider,
             "embedding_model": self.embedding_model,
             "embedding_dimension": self.embedding_dimension,

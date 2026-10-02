@@ -195,6 +195,9 @@ def create_paper_correction_view(import_id, state) -> PaperCorrectionView:
             add_asset = gr.Button("新增裁图 / 原页关联")
             save_asset = gr.Button("保存题图说明、顺序与展示开关")
             delete_asset = gr.Button("移除此题图")
+    from backend.app.ui.paper_image_review_view import create_paper_image_review_view
+
+    image_review = create_paper_image_review_view(import_id, selected, state)
     batch = gr.CheckboxGroup(label="确认入库的题目", choices=[], interactive=True)
     confirm = gr.Button("确认所选题入库", variant="primary")
     message = gr.Markdown("入库后为题库草稿，仍须补全与审核。")
@@ -232,6 +235,8 @@ def create_paper_correction_view(import_id, state) -> PaperCorrectionView:
         message,
     ]
 
+    outputs.extend(image_review.outputs)
+
     def _question(identity, qid, current_state):
         paper = loaders.load(identity, current_state)
         question = next((q for q in paper.questions if str(q.id) == qid), None)
@@ -244,6 +249,8 @@ def create_paper_correction_view(import_id, state) -> PaperCorrectionView:
         if not identity:
             cleared = {}
             for component in outputs:
+                if component in image_review.outputs:
+                    continue
                 if isinstance(component, gr.Dropdown):
                     cleared[component] = gr.update(
                         choices=[]
@@ -264,6 +271,7 @@ def create_paper_correction_view(import_id, state) -> PaperCorrectionView:
                     cleared[component] = gr.update(value="未知 / 无选项")
                 else:
                     cleared[component] = gr.update(value="")
+            cleared.update(image_review.reload(None, None, {}))
             cleared[message] = "尚未选择导入记录。"
             return cleared
         paper = loaders.load(identity, current_state)
@@ -359,7 +367,7 @@ def create_paper_correction_view(import_id, state) -> PaperCorrectionView:
                     + (
                         " · 题图关联待核对"
                         if q.assets is None
-                        else " · 题图条件仍须核对"
+                        else " · 题图核对状态见下方"
                         if q.assets
                         else ""
                     )
@@ -433,6 +441,7 @@ def create_paper_correction_view(import_id, state) -> PaperCorrectionView:
                 crop: "",
             }
         )
+        result.update(image_review.reload(identity, str(q.id) if q else None, current_state, editable=editable))
         return result
 
     @ui_errors
