@@ -16,6 +16,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from backend.app.core.config import get_settings
+from backend.app.core.maintenance import ensure_storage_writable
 from backend.app.core.security import get_user_roles
 from backend.app.domain.enums import UserRole
 from backend.app.models import (
@@ -106,8 +107,16 @@ class FileStorageService:
             raise FileStorageError("FILE_HISTORY_UNKNOWN", "当前主机无法核对历史文件定位。", http_status=404)
         return Path(locator) if legacy else self.resolve_path(locator)
 
+    @staticmethod
+    def _legacy_metadata(metadata: dict | None) -> bool:
+        return metadata is None or FileMetadata.model_validate(metadata).migration.status not in {"not_required", "migrated"}
+
     def lock_locator(self, locator: str) -> None:
-        path = self.resolve_path(locator)
+        self.lock_path(self.resolve_path(locator))
+
+    def lock_path(self, path: Path) -> None:
+        """Use the same physical key for legacy migration and new references."""
+        path = path.resolve()
         if self.session.get_bind().dialect.name == "postgresql":
             key = int.from_bytes(hashlib.sha256(os.path.normcase(str(path)).encode()).digest()[:8], "big", signed=True)
             self.session.execute(text("SELECT pg_advisory_xact_lock(:key)"), {"key": key})
@@ -184,7 +193,7 @@ class FileStorageService:
             availability = "history_unknown"
         else:
             try:
-                availability = "available" if self._existing_path(locator, legacy=resource.file_metadata is None).is_file() else "missing"
+                availability = "available" if self._existing_path(locator, legacy=self._legacy_metadata(resource.file_metadata)).is_file() else "missing"
             except FileStorageError as exc:
                 if exc.code != "FILE_HISTORY_UNKNOWN":
                     raise
@@ -207,7 +216,7 @@ class FileStorageService:
         if isinstance(resource, ExportFile) and resource.status != "ready":
             raise FileStorageError("FILE_NOT_READY", "导出尚未完成，保留真实生成状态。", current_status=resource.status)
         view = self.get_view(file_id, actor_id=actor_id)
-        path = self._existing_path(resource.storage_path, legacy=resource.file_metadata is None)
+        path = self._existing_path(resource.storage_path, legacy=self._legacy_metadata(resource.file_metadata))
         if not path.is_file():
             state = resource.status.value if isinstance(resource, Document) else resource.status
             raise FileStorageError("FILE_MISSING", "已登记文件缺失，请核对原材料。", http_status=404, current_status=state)
@@ -294,12 +303,12 @@ class FileStorageService:
         if receipt_path.exists():
             try:
                 self._write_receipt(receipt_path, receipt)
-            except OSError as receipt_error:
+            except (OSError, FileStorageError) as receipt_error:
                 message += f"失败收据也未能更新（{type(receipt_error).__name__}），原收据保留。"
         raise FileStorageError(code, message, http_status=503) from error
 
     def read_document(self, document: Document) -> bytes:
-        path = self._existing_path(document.storage_path, legacy=document.file_metadata is None)
+        path = self._existing_path(document.storage_path, legacy=self._legacy_metadata(document.file_metadata))
         try:
             return path.read_bytes()
         except FileNotFoundError:
@@ -308,6 +317,10 @@ class FileStorageService:
             raise FileStorageError("FILE_UNREADABLE", "资料文件不可读。", http_status=503, current_status=document.status.value) from None
 
     def _write_receipt(self, path: Path, receipt: OperationReceipt, *, create: bool = False) -> None:
+        # Also hold a database connection across post-commit receipt acknowledgement.
+        # The maintenance drain must observe this filesystem phase, not just SQL commit.
+        self.lock_locator(receipt.candidate_locator)
+        ensure_storage_writable(self.root)
         data = receipt.model_dump_json(indent=2).encode("utf-8")
         candidate = path if create else path.with_name(uuid4().hex + ".receipt.pending")
         with candidate.open("xb") as stream:
@@ -321,6 +334,7 @@ class FileStorageService:
         self, *, resource_type: Literal["document", "export"], resource_id: UUID, owner: dict[str, str],
         actor_id: UUID, filename: str, content: bytes, bucket: str,
     ) -> StoredFile:
+        ensure_storage_writable(self.root)
         if not isinstance(content, bytes):
             raise FileStorageError("FILE_INVALID_INPUT", "文件内容必须是字节。", http_status=422)
         operation_id = uuid4()
@@ -380,6 +394,7 @@ class FileStorageService:
         exam_id: UUID | None = None, submission_id: UUID | None = None,
     ) -> ManagedFileView:
         """Register bytes from a real business producer; do not invent a format."""
+        ensure_storage_writable(self.root)
         if (
             sum(owner is not None for owner in (course_id, exam_id, submission_id)) != 1
             or audience not in {"teacher_only", "submission_owner"}
@@ -456,7 +471,7 @@ class FileStorageService:
     def commit_receipt(self, stored: StoredFile, *, current_status: str) -> None:
         try:
             self._update_receipt(stored, stage="committed")
-        except (OSError, ValueError) as exc:
+        except (OSError, ValueError, FileStorageError) as exc:
             receipt_id = stored.receipt_path.name.removesuffix(".receipt.json")
             raise FileStorageError(
                 "FILE_RECEIPT_UPDATE_FAILED",
@@ -469,18 +484,20 @@ class FileStorageService:
             self._update_receipt(
                 stored, stage="failed", error=FileErrorDetail(code=code, message=message, stage="reference"),
             )
-        except (OSError, ValueError) as exc:
+        except (OSError, ValueError, FileStorageError) as exc:
             raise FileStorageError("FILE_RECEIPT_UPDATE_FAILED", "原操作失败，失败收据更新也失败；材料保留。", http_status=503) from exc
 
     def delete_unreferenced_bytes(self, locator: str) -> None:
         """Internal explicitly-authorized cleanup; no public deletion endpoint."""
+        ensure_storage_writable(self.root)
         path = self.resolve_path(locator)
         self.lock_locator(locator)
+        ensure_storage_writable(self.root)
         known: tuple[type[Document | ExportFile], ...] = (Document, ExportFile)
         for model in known:
             for record in self.session.scalars(select(model)):
                 resource = cast(Document | ExportFile, record)
-                if resource.storage_path is not None and self._existing_path(resource.storage_path, legacy=resource.file_metadata is None).resolve() == path:
+                if resource.storage_path is not None and self._existing_path(resource.storage_path, legacy=self._legacy_metadata(resource.file_metadata)).resolve() == path:
                     raise FileStorageError("FILE_IN_USE", "文件仍有有效业务引用。")
         # Refuse to ignore future E2 tables until their real resource mapping is attached.
         connection = self.session.connection()
@@ -494,7 +511,7 @@ class FileStorageService:
             for receipt_path in (self.root / bucket).rglob("*.receipt.json"):
                 try:
                     receipt = OperationReceipt.model_validate_json(receipt_path.read_bytes())
-                except (OSError, ValueError) as exc:
+                except (OSError, ValueError, FileStorageError) as exc:
                     raise FileStorageError("FILE_IN_USE", "存在无法核对的操作收据。") from exc
                 if self.resolve_path(receipt.candidate_locator) != path:
                     continue

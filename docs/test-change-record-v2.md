@@ -178,3 +178,45 @@ T149 路径决策补充（用户已确认）：公开元数据请求只可引用
 - 实际 Docker Compose config 验证唯一业务持久卷 storage_data:/app/storage 和 STORAGE_ROOT=/app/storage；不等同容器 build/启动/三容器门禁。T143 的 M0 未通过结论保留，真实 EXE、文件迁移和备份恢复未执行。
 - 本批独立测试数据库/Redis已清理；业务库及现有容器未升级/搬移/清理。8 个用户已有文件 SHA-256 全部与实施前一致，T146 仍待真实教师标注。
 - 原始命令、时间、首轮/最终 JUnit 和日志：.cache/e1-t147-149-20261002（忽略目录，本机保留）；可提交摘要见 docs/validation-report.md。测试对象是当前工作区，包括保持原样的用户未提交成果，不宣称干净 checkout 已独立验证。
+
+## 9. T150–T152 具体 TCR（2026-10-02）
+
+基线：788599d；工作区另有 8 个用户 UI/README 文件，基线摘要保存在 .cache/e1-t150-152-20261002/baseline.json，禁止覆盖或提交这些文件。
+
+必要性：既有文件服务已证明上传/授权/共享保护，但尚无历史迁移脚本、真实 PostgreSQL dump/隔离恢复和持续停写窗口，原用例不能证明复制后事务失败保留原定位、共享历史身份、同集数据库/文件恢复或维护标记拒绝写入。依据 data-model §14、file-storage 迁移/备份契约及 T144 盘点。
+
+已确认方案：用户本批确认离线维护 CLI、停止写进程后核对数据库连接并持有阻写表锁、文件维护标记；仅恢复到新建隔离数据库/目录，验证报告后人工授权切换。工具复用现有管理员 JWT（环境变量传入），验证当前启用账户与管理员角色，收据记录真实用户；不改变课程文件 GET 权限，不新增备份表或依赖，不清理真实旧副本。
+
+变更边界与覆盖：
+- 新增 tests/unit/services/test_storage_migration_service.py：共享绝对/旧相对定位完整事务更新；保持 Document.status/file_id/来源；重复执行验证字节后跳过；真实缺失与未知分列；复制中断、摘要不符、提交失败保留旧引用/字节及失败收据；教师/停用账户不可执行维护。原文件服务断言全部保留。
+- 新增 tests/contract/test_storage_maintenance_contract.py：实际 CLI 入口/参数、JWT 不出现在参数或报告、manifest 规范路径/阶段/complete 约束、隔离恢复报告及文件写入维护拒绝；不镜像算法。
+- 新增 tests/integration/test_storage_migration.py、test_backup_restore.py：真实 PostgreSQL 共享定位事务/并发锁、数据库存在写连接或锁无法排空时真实失败；标准 pg_dump/pg_restore 在本批新建数据库验证同集课程/题目来源/考试/答卷/评分/复核与文件身份/授权归属，四目录实物及真实操作收据保留；缺失/未知/未归属/篡改/复制失败/恢复失败/已存在目标均不宣称 complete/verified，不改原环境。
+- 直接回归：既有 test_file_storage_service、test_file_storage_ingestion、test_file_storage_api、test_file_storage_migration、test_knowledge_base_upload_contract；上传重启、同名不覆盖、资源越权/共享历史来源拒删及 PDF/TXT/Markdown 原入口继续有效。
+
+隔离与替身：单元使用既有 SQLite 夹具但不声称 PG 锁通过；集成使用真实 PostgreSQL 临时 schema 或仅本批新建数据库、tmp_path 文件根、现有容器内 PostgreSQL 16 标准客户端。故障注入限复制/SQL commit/清单写入的真实边界；不修改实际开发数据库、原材料、.env 或用户服务。恢复目标只新建，失败材料保留；测试结束只清理自身命名资源。
+
+先行验证：新增目标先执行记录实际失败；入口尚无时 ImportError 只说明入口缺失，后续须证明目标动作、拒绝和 SQL/实物结果。实现后同节点聚焦；项目必验 pytest、mypy backend/app、ruff backend/ tests/ 并记录 skips/warnings，不将 M0/原卷题图/EXE/模型质量视为已验收。
+
+实际结果：待各任务运行后追加。T150 → T151 → T152 顺序推进；仅完成后勾选对应任务，T146、T160/T191 与就绪检查标记保持原值。
+
+T150 先行：6 failed，迁移模块不存在；该入口失败不是完整行为证明。实现后新增单元与真实 PG 8 passed，原文件服务直接回归合计 30 passed / 1 skipped；修正 Literal 类型和导入顺序后静态检查通过。证据：.cache/e1-t150-152-20261002/t150-focused.xml。
+
+T151 首轮合同：8 failed；包含维护标记存在时仍允许实际文件写入的行为红灯、CLI 缺失及清单 Schema 缺失。实现后与迁移回归 14 passed。真实集成首轮 8 errors，夹具错误提供 GradingResult 并不存在的 grading_status/status 字段；逐字段核对当前模型后移除虚构字段，保留所有真实分数、review_status 和复核断言；该轮不是业务红灯或通过证据。
+
+第二轮仍为同一夹具错误（不存在的 status）；不改业务模型来迎合夹具，不将此错误作为实现失败证据。
+
+T151 复查追加：SQL 提交后的收据确认必须持有同一物理定位锁/数据库连接，才能被离线窗口排空观察；新增真实 PG 用例在提交后收据阶段仍未关闭业务 Session 时拒绝备份，不只测试请求/SQL commit。另补已存在目标数据库、恢复报告可靠写入失败（保留隔离停写标记）、新旧格式版本用于追溯而非锁步，以及真实 CLI 从环境变量加载管理员 JWT。新增前记录本条，原评分/权限/来源断言不放宽。
+
+最终聚焦首次命令误用不存在的 test_file_storage_contract.py，0 项执行；已按实际 test_file_storage_api.py 修正，不当作行为失败或通过。
+
+扩展聚焦首轮 76 passed / 1 failed / 1 skipped，失败是新 CLI 用例在临时 User 对象上清空 roles 导致 SQLAlchemy 父对象被回收；改为持有真实 User 对象后再清空，保留“JWT 旧声明不能绕过当前管理员角色”的原断言。
+
+T151 真实隔离首轮修正后 8 passed（19.57 s）；扩展聚焦除 CLI 夹具生命周期一项外 76 passed / 1 skipped，生命周期修正后该 CLI 节点 1 passed（5.27 s）。实际标准 pg_dump/pg_restore、同集关系、SHARE 写入拒绝、收据连接未排空拒绝和目标失败保留已证明；进入 T152 运行最终全量必验。
+
+T152 复查必要补充：维护标记可能在原稿写入已失败之后出现，保存失败收据又被维护拒绝。新增故障用例必须仍返回最初 FILE_WRITE_FAILED、保留原 OSError 原因与原收据/字节，不能被第二个维护错误覆盖；只修正本次维护边界的错误传播。
+
+T152 全量首轮：1645 passed / 1 failed / 2 skipped / 20 warnings，pytest 439.92 s，外层 450.034 s。失败为新 CLI help 用例使用 Windows 默认 GBK 解码子进程 UTF-8 中文，读取线程 UnicodeDecodeError 使 stdout=None；不是业务 CLI 失败。修改前确定仅在该新用例固定子进程 PYTHONIOENCODING=utf-8 和捕获 encoding=utf-8，保留 exit=0/--token-env 原断言，不吞解码错误或放宽内容检查。
+
+T152 收尾复查：Doc/Export 可共享同一物理原稿；迁移按首个 Doc 选 uploads 会违反已确认的导出独立 exports 目录。追加跨资源共享迁移用例，预期一份字节/完整事务/稳定身份，同时落 exports；只调整已有目标目录选择，不修改原业务格式或权限。追加在测试前，先保留行为红灯，再聚焦全部迁移与 PG 锁验证。全量 1646 passed / 2 skipped / 19 warnings 是本次收尾目录修正前源码，不能标为收尾后的再次全量结果。
+
+T152 实际收尾：UTF-8 help 合同 8 passed；修正后全量 1646 passed / 2 skipped / 19 warnings（392.41 s），mypy 150 source files 和 Ruff 通过。跨 Doc/Export 目录先行实际失败（落 uploads），仅目录分流修正后迁移/真实 PG 10 passed（3.69 s），mypy/Ruff 再次通过；全量结果明确为该收尾目录修正前，不将聚焦计数加成一轮全量。原始错误覆盖红灯已复现并修复，原 OSError/FILE_WRITE_FAILED 保留。只清理本批临时库/Redis，保留缓存、原库 0012 与原服务。

@@ -549,11 +549,11 @@ M0 工程骨架 + Benchmark
 
 - [X] T149 [HIGH] [E1] **接入教学上传与导出文件持久化**：在 `backend/app/api/knowledge_bases.py`、`services/knowledge_base_service.py`、`ai/ingestion/service.py` 及现有导出写入边界统一消费文件服务；让解析器解析服务端持久定位，保留旧 PDF/TXT/Markdown 上传和元数据接口语义。实际导出采用 exports 并登记所属资源，不新造导出格式或伪造历史文件。 依赖：T147、T148。per FR-010/044、plan §11、file-storage（F016） (partial)
 
-- [ ] T150 [HIGH] [E1] **实现历史文件迁移工具**：在 `scripts/migrate_storage_paths.py` 基于 T144 盘点实现先复制核对、后事务更新引用/迁移状态、成功后才可清理旧副本；重复执行识别已迁移项，失败保留原定位/文件，缺失和未知单列。在隔离样本演练并记录 `docs/v2.0-storage-inventory.md`，真实文件清理/恢复等破坏性动作另按授权执行。 依赖：T144、T147、T149。per FR-044、file-storage 历史迁移、data-model §10（F017） (missing)
+- [X] T150 [HIGH] [E1] **实现历史文件迁移工具**：在 `scripts/migrate_storage_paths.py` 基于 T144 盘点实现先复制核对、后事务更新引用/迁移状态、成功后才可清理旧副本；重复执行识别已迁移项，失败保留原定位/文件，缺失和未知单列。在隔离样本演练并记录 `docs/v2.0-storage-inventory.md`，真实文件清理/恢复等破坏性动作另按授权执行。 依赖：T144、T147、T149。per FR-044、file-storage 历史迁移、data-model §10（F017） (missing)
 
-- [ ] T151 [HIGH] [E1] **实现一致备份与恢复工具**：在 `scripts/backup_restore.py` 按 G04 manifest 与写入窗口覆盖数据库、uploads/papers/assets/exports，处理在途写入并在恢复核对通过前关闭业务写入；校验真实关联/文件、报告缺失/未知/部分失败。先在隔离目标演练，保留现有配置/凭据管理；后续 E2–E4 新资源接入登记，最终 T191 用完整业务数据再验恢复。 依赖：T137、T147、T148、T150。per FR-045、file-storage 一致备份与恢复（F018） (missing)
+- [X] T151 [HIGH] [E1] **实现一致备份与恢复工具**：在 `scripts/backup_restore.py` 按 G04 manifest 与写入窗口覆盖数据库、uploads/papers/assets/exports，处理在途写入并在恢复核对通过前关闭业务写入；校验真实关联/文件、报告缺失/未知/部分失败。先在隔离目标演练，保留现有配置/凭据管理；后续 E2–E4 新资源接入登记，最终 T191 用完整业务数据再验恢复。 依赖：T137、T147、T148、T150。per FR-045、file-storage 一致备份与恢复（F018） (missing)
 
-- [ ] T152 [HIGH] [E1] **验收文件持久化和迁移兼容**：依 T145 的先行用例，在 `tests/unit/services/`、`tests/contract/`、`tests/integration/` 验证上传重启、同名不覆盖、资源越权/共享删除、复制与事务失败、幂等迁移、同集恢复及缺失/未知；保留知识库原接口回归，并在 `docs/validation-report.md` 记录 Gate 13 的阶段证据，尚无真实原卷/题图链路的部分留 T160/T191 完成。 依赖：T145、T147、T148、T149、T150、T151。per FR-044/045、SC-010/014、plan Gate 13（F019） (partial)
+- [X] T152 [HIGH] [E1] **验收文件持久化和迁移兼容**：依 T145 的先行用例，在 `tests/unit/services/`、`tests/contract/`、`tests/integration/` 验证上传重启、同名不覆盖、资源越权/共享删除、复制与事务失败、幂等迁移、同集恢复及缺失/未知；保留知识库原接口回归，并在 `docs/validation-report.md` 记录 Gate 13 的阶段证据，尚无真实原卷/题图链路的部分留 T160/T191 完成。 依赖：T145、T147、T148、T149、T150、T151。per FR-044/045、SC-010/014、plan Gate 13（F019） (partial)
 
 ### E2：试卷导入 + OCR + 校正
 

@@ -229,3 +229,40 @@ Buildx 日志读取命令退出 0 仅表示日志成功读取；`m0_build_snapsh
 两项 skip：M0 缺 COMPOSE_PROJECT_NAME/POSTGRES_PORT/REDIS_PORT/BACKEND_PORT，拒绝默认 Compose 项目；Windows 无创建符号链接权限。T143 M0 构建/配置未通过保持，不能以配置或当前工作区测试替代真实三容器、EXE、模型质量或系统验收。SourcePage/QuestionAsset 真正映射与学生材料授权留 E2/E5，发布冻结留 E4；历史物理文件迁移、备份恢复、广泛 E1 验收留 T150–T152。
 
 验证对象含实施前已有 8 个 UI/README/测试改动，全部字节 hash 与基线一致，提交仅纳入本批文件；不宣称在移除这些用户成果后的干净 checkout 已验证。仅测试临时文件执行物理清理，未删除用户材料，业务库未应用新迁移。任务勾选表示本批实施/验证完成，不表示后续文件迁移、备份或发布门禁通过。
+
+## T150–T152：历史迁移、一致备份与 Gate 13 阶段验收（2026-10-02）
+
+基线 deepcode / 788599d，按 speckit-implement 顺序完成 T150 → T151 → T152。TCR 先于每次新增/调整测试，见 [test-change-record-v2.md](test-change-record-v2.md) §9；操作方法与切换边界见 [v2.0-storage-operations.md](v2.0-storage-operations.md)，迁移演练见 [v2.0-storage-inventory.md](v2.0-storage-inventory.md) §7。
+
+已确认并实现的持久语义：
+- 管理员 JWT 从环境变量加载，校验真实启用账户及当前 Admin 角色，收据记录实际用户；工具权限不改变教师/学生/管理员的文件 GET 边界。
+- 旧定位精确读取、先复制并核对源/副本、同一物理事务锁下重新读取共享引用、同事务更新全部路径/迁移证据；失败保留原定位与原稿，缺失/未知分列。重复执行实读后跳过，不覆盖；Doc/Export 共用原稿时统一迁到 exports，保留独立身份/收据。没有自动旧副本清理。
+- 离线维护确认参数配合实际数据库连接排空、所有业务表 SHARE 锁和文件维护标记；提交后的收据阶段仍取得物理锁/连接，不能从排空遗漏。原始写入失败不能被随后维护拒绝覆盖。
+- 标准 pg_dump/pg_restore；同窗口覆盖数据库、四目录实际字节与收据，实际 file_id/归属/共享关系核对，真实 complete/incomplete/failed。恢复只新建隔离数据库/根并写独立报告，核对 FK/资源/字节，保留历史来源/考试/答卷/评分/复核；verified 也保持文件停写标记，不切换 .env 或自动启动业务进程。
+
+### 实际验证
+
+| 检查 | 结果与证据 |
+| --- | --- |
+| 临时库 alembic upgrade head / 最终 check | 退出 0；最终 check 2026-10-02T02:56:39.708917+00:00，1.316 s；原业务库未升级 |
+| 全量 pytest（收尾目录修正前） | 2026-10-02T02:56:41.025887+00:00；1646 passed / 0 failed / 0 errors / 2 skipped / 19 warnings，pytest 392.41 s，外层 401.325 s |
+| 后端 mypy | 150 source files 通过；全量复验 4.394 s，收尾目录修正后再次通过 |
+| Ruff backend/、tests/ 与两个新 CLI | 通过；全量复验 0.170 s，收尾后再次通过 |
+| 新增维护合同/真实同集恢复与直接原接口 | 首次扩展聚焦 76 passed / 1 failed / 1 skipped；新 CLI 夹具生命周期修正后该项 1 passed；最终全量包括这些行为全部通过 |
+| 收尾最终迁移聚焦 | 10 passed / 3.69 s；跨 Doc/Export exports 定位、共享/失败/幂等与真实 PG 提交/55P03 锁冲突通过；未将此结果冒充收尾后再次全量运行 |
+| 原 v1.0 回归 | 最终全量包含 PDF/TXT/Markdown 上传、空元数据登记、权限、重启可读、重名不覆盖、共享历史来源拒删与原业务/迁移回归 |
+| 真实隔离恢复 | 标准容器客户端 16.15；恢复后的教师 JWT、学生授权导出、共享资料、来源快照、已发布考试/答卷、7.25 评分和复核历史 NULL 实际核对；原 manifest 不改写 |
+
+先行/中间失败均保留：迁移入口缺失；维护标记下仍写文件；新夹具误用不存在字段、ORM 临时父对象回收；首次全量 CLI 中文输出 UTF-8/GBK 读取线程失败；原稿写入失败被维护错误覆盖；Doc/Export 错落 uploads。全部按真实原因修复，没有扩大权限、放宽断言或改业务模型迎合夹具。首轮全量 1645 passed / 1 failed / 2 skipped / 20 warnings，439.92 s，原日志不覆盖。
+
+### Gate 13 完成范围与保留边界
+
+T152 的 E1 阶段通过：上传持久化/重启/同名不覆盖、资源越权/共享历史拒删、复制/SQL 提交故障保留、幂等迁移、同集隔离恢复、缺失/未知/未归属/篡改诊断、停写不能排空、失败材料/原环境保留及已有知识库接口均有实际证据。
+
+当前真实资源映射为 Document/ExportFile；papers/assets 目录通过有真实归属的失败操作材料验证字节覆盖，没有伪造 SourcePage/QuestionAsset 或宣称真实原卷/题图链已通过。新 E2 表未接入时工具明确拒绝漏迁移/漏备份；T160/T191 需接入真实原页/题图、发布历史及完整业务数据后再验 Gate 13/SC-010/014。真实配置切换、业务库恢复、旧副本清理、EXE、模型质量和 M0 三容器门禁未执行。
+
+两项 skip 为缺四项 M0 隔离变量与 Windows 符号链接权限；T143 未通过的 M0 结论保持。T146 仍待真实教师标注，本批没有勾选就绪检查或其他任务。
+
+临时全量库 eduagent_e1_maintenance_fd4ffaeed672、任务标签 T150-T152 的独立 Redis 已核对零数据库连接/标签后删除；所有测试新建的备份/恢复数据库由自身夹具清理。原 PostgreSQL/Redis 仍 healthy，原业务库仍 0012_audit_logs，原 .env/文件/来源及评分未迁移、恢复或清理。
+
+本机证据：.cache/e1-t150-152-20261002，包含 baseline/scope-audit/cleanup、checks-confirmed.json、pytest-full-final.xml/log、首轮失败、迁移聚焦及隔离 manifest/dump/files/restore-report。缓存受忽略且不提交。验证对象包含保持原样的 8 个用户 UI/README/测试文件；不声称移除这些成果后的干净 checkout 已独立验证。
