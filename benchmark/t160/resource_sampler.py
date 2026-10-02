@@ -55,8 +55,8 @@ class PROCESSENTRY32W(ctypes.Structure):
     ]
 
 
-def verified_worker_chain(worker_pid: int, launched_pid: int) -> list[int]:
-    """Prove a handshaken worker belongs to the controller's exact launched subtree."""
+def windows_process_parents() -> dict[int, int]:
+    """Read the current Windows process identities and parent relationships."""
     if os.name != "nt":
         raise RuntimeError("Windows process-tree verification required")
     kernel = ctypes.WinDLL("kernel32", use_last_error=True)
@@ -81,6 +81,12 @@ def verified_worker_chain(worker_pid: int, launched_pid: int) -> list[int]:
             valid = kernel.Process32NextW(handle, ctypes.byref(row))
     finally:
         kernel.CloseHandle(handle)
+    return parents
+
+
+def verified_worker_chain(worker_pid: int, launched_pid: int) -> list[int]:
+    """Prove a handshaken worker belongs to the controller's exact launched subtree."""
+    parents = windows_process_parents()
     chain = [int(worker_pid)]
     for _ in range(32):
         if chain[-1] == int(launched_pid) and chain[-1] in parents:
@@ -124,6 +130,78 @@ def windows_working_set(pid: int):
         return int(counters.WorkingSetSize), None
     finally:
         kernel.CloseHandle(handle)
+
+
+def windows_application_working_set(root_pid: int):
+    """Observe the verified worker and its actual descendants; exclude its parents."""
+    try:
+        parents = windows_process_parents()
+    except RuntimeError as exc:
+        return (
+            None,
+            [],
+            {"code": "APPLICATION_TREE_UNAVAILABLE", "type": type(exc).__name__},
+        )
+    if root_pid not in parents:
+        return None, [], {"code": "APPLICATION_PROCESS_NOT_FOUND"}
+    identities = {root_pid}
+    while True:
+        children = {
+            pid for pid, parent in parents.items() if parent in identities
+        } - identities
+        if not children:
+            break
+        identities.update(children)
+    rows = []
+    for pid in [root_pid, *sorted(identities - {root_pid})]:
+        value, error = windows_working_set(pid)
+        rows.append(
+            {
+                "pid": pid,
+                "parent_pid": parents[pid],
+                "working_set_bytes": value,
+                "error": error,
+            }
+        )
+    if any(row["working_set_bytes"] is None for row in rows):
+        return None, rows, {"code": "APPLICATION_PROCESS_SAMPLE_MISSING"}
+    return sum(row["working_set_bytes"] for row in rows), rows, None
+
+
+def evaluate_v2_memory_budget(resources):
+    """Compare complete measured windows with plan v2 soft upper budgets."""
+    limits = {
+        "app_working_set_bytes": 4_000_000_000,
+        "postgres_container_process_rss_bytes": 1_500_000_000,
+        "redis_container_process_rss_bytes": 512_000_000,
+        "simultaneous_observed_sum_bytes": 6_000_000_000,
+    }
+    peaks = resources.get("peaks", {})
+    complete = resources.get(
+        "complete_at_requested_sampling_resolution", False
+    ) and all(peaks.get(key) is not None for key in limits)
+    passes = {
+        key: peaks[key] <= value if complete else None for key, value in limits.items()
+    }
+    return {
+        "protocol": "plan-v2-memory-soft-upper-budgets",
+        "unit_policy": "GB=1000000000 bytes; MB=1000000 bytes; display MiB=1048576 bytes",
+        "limits_bytes": limits,
+        "limits_mib": {key: value / 1_048_576 for key, value in limits.items()},
+        "observed_peaks_bytes": {key: peaks.get(key) for key in limits},
+        "observed_peaks_mib": {
+            key: peaks[key] / 1_048_576 if peaks.get(key) is not None else None
+            for key in limits
+        },
+        "observed_over_budget": {
+            key: peaks[key] > value if peaks.get(key) is not None else None
+            for key, value in limits.items()
+        },
+        "resource_complete": bool(complete),
+        "component_pass": passes,
+        "budget_pass": all(passes.values()) if complete else None,
+        "scope": "Observed application subtree working set plus PostgreSQL/Redis process RSS. Shared pages may be counted repeatedly; not unique physical memory or EXE acceptance.",
+    }
 
 
 def container_rss(container: str, process_name: str):
@@ -217,7 +295,7 @@ class ResourceSampler:
             if self._stream is None:
                 raise RuntimeError("sampler is not running")
             start = time.perf_counter()
-            app, app_error = windows_working_set(self.pid)
+            app, app_rows, app_error = windows_application_working_set(self.pid)
             pg, pg_rows, pg_error = container_rss(self.pg_container, "postgres")
             redis, redis_rows, redis_error = container_rss(
                 self.redis_container, "redis-server"
@@ -228,6 +306,8 @@ class ResourceSampler:
                 "sample_completed_perf": time.perf_counter(),
                 "pid": self.pid,
                 "app_working_set_bytes": app,
+                "application_processes": app_rows,
+                "application_root_pid": self.pid,
                 "postgres_container_process_rss_bytes": pg,
                 "redis_container_process_rss_bytes": redis,
                 "postgres_processes": pg_rows,
@@ -287,8 +367,14 @@ class ResourceSampler:
         }
         observed = [r["perf_counter"] for r in rows]
         gaps = [b - a for a, b in pairwise(observed)]
-        complete = bool(rows) and all(
-            not r["errors"] and all(r[key] is not None for key in keys) for r in rows
+        coverage_span = observed[-1] - observed[0] if observed else None
+        complete = (
+            len(rows) >= 2
+            and coverage_span >= self.interval_seconds
+            and all(
+                not r["errors"] and all(r[key] is not None for key in keys)
+                for r in rows
+            )
         )
         if start_perf is not None:
             complete = (
@@ -306,6 +392,17 @@ class ResourceSampler:
             complete = False
         return {
             "sample_count": len(rows),
+            "observed_sampling_span_seconds": coverage_span,
+            "window_duration_seconds": (
+                end_perf - start_perf
+                if start_perf is not None and end_perf is not None
+                else None
+            ),
+            "full_sampling_cycles_observed": (
+                int(coverage_span / self.interval_seconds)
+                if coverage_span is not None
+                else 0
+            ),
             "requested_interval_seconds": self.interval_seconds,
             "max_observed_gap_seconds": maximum_gap,
             "complete_at_requested_sampling_resolution": complete,
@@ -314,7 +411,7 @@ class ResourceSampler:
             "first_sample_at": rows[0]["sampled_at"] if rows else None,
             "last_sample_at": rows[-1]["sampled_at"] if rows else None,
             "scope": {
-                "app": "specified Windows application process working set; excludes experiment controller",
+                "app": "verified Windows worker and actual descendant process working sets; excludes experiment controller and parent redirector",
                 "postgres": "sum of all postgres process RSS in shared "
                 + self.pg_container
                 + "; not isolated database attribution; shared pages can be counted repeatedly",

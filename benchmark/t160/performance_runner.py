@@ -32,10 +32,10 @@ MODEL_DIR = REPO / ".cache/t155-ocr-20261002/rapid-models"
 ISOLATION_FILE = RUN / "isolation.json"
 SOURCE_COMMIT = "unrecorded"
 sys.path.insert(0, str(SOURCE))
-sys.path.insert(0, str(RUN))
 from resource_sampler import (
     ResourceSampler,
     container_rss,
+    evaluate_v2_memory_budget,
     verified_worker_chain,
     windows_working_set,
 )
@@ -51,9 +51,13 @@ def digest(data):
 
 def write_json(path, value):
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(
-        json.dumps(value, ensure_ascii=False, indent=2, default=str), encoding="utf-8"
-    )
+    content = json.dumps(value, ensure_ascii=False, indent=2, default=str)
+    candidate = path.with_name("." + path.name + "." + uuid4().hex + ".tmp")
+    try:
+        candidate.write_text(content, encoding="utf-8")
+        os.replace(candidate, path)
+    finally:
+        candidate.unlink(missing_ok=True)
 
 
 def isolated_env():
@@ -101,6 +105,7 @@ def isolated_env():
 def make_plan():
     from pypdf import PdfReader
 
+    from backend.app.ai.paper_extraction.service import PROMPT_VERSION
     from backend.app.core.retry_policy import RetryPolicy
 
     _env, _isolation, settings = isolated_env()
@@ -162,7 +167,7 @@ def make_plan():
             "provider": settings.llm_provider,
             "configured_model": settings.deepseek_model,
             "endpoint_host": settings.deepseek_base_url.host,
-            "prompt_version": "paper-extraction-v1",
+            "prompt_version": PROMPT_VERSION,
             "batch_size": 2,
             "retry_policy": {
                 "max_retries": policy.max_retries,
@@ -203,7 +208,9 @@ def make_plan():
         },
         "budgets": {
             "import_terminal_seconds_strict_less_than": 300,
-            "interpretation": "All 24 measured imports must reach Pending Review and individually satisfy duration. Warmups separate. Resource sampling is observed process RSS/workset, not unique physical memory or EXE budget proof.",
+            "interpretation": "Original T142 all-24 criterion and user-authorized T160 50-page at-least-6/8 criterion are reported separately. Warmups separate. Memory soft budgets use complete measured application-subtree/RSS observations, not unique physical memory or EXE proof.",
+            "memory": evaluate_v2_memory_budget({}),
+            "process_deadline_seconds": "300 per planned trial plus 60 total startup/cleanup allowance; handshake has independent30s limit",
         },
         "historical_acceptance_environment": {
             "cpu": "AMD Ryzen 5 4600H",
@@ -240,6 +247,7 @@ async def worker_async(job):
     from sqlalchemy.orm import Session
 
     import backend.app.services.paper_import_service as runner_module
+    from backend.app.ai.paper_extraction.service import PROMPT_VERSION
     from backend.app.core.app import create_app
     from backend.app.core.config import get_settings
     from backend.app.core.database import (
@@ -428,12 +436,10 @@ async def worker_async(job):
             logical = {
                 "logical_call_no": len(current["record"]["llm_calls"]) + 1,
                 "schema": schema.__name__,
-                "prompt_version": "paper-extraction-v1",
+                "prompt_version": PROMPT_VERSION,
                 "started_at": utc(),
                 "start_perf": time.perf_counter(),
-                "provider_metadata": provider.describe(
-                    prompt_version="paper-extraction-v1"
-                ),
+                "provider_metadata": provider.describe(prompt_version=PROMPT_VERSION),
                 "attempts": [],
             }
             current["record"]["llm_calls"].append(logical)
@@ -567,7 +573,7 @@ async def worker_async(job):
                     "http_requests": [],
                     "provider": "deepseek",
                     "configured_model": settings.deepseek_model,
-                    "prompt_version": "paper-extraction-v1",
+                    "prompt_version": PROMPT_VERSION,
                     "ocr": {
                         "enabled": True,
                         "provider": "rapidocr",
@@ -720,28 +726,49 @@ def launch_job(job, env, isolation):
     actual_worker = None
     worker_chain = None
     started = utc()
+    timeout_limit = 300 * len(job["trials"]) + 60
+    timed_out = False
+    timeout_perf = None
+
+    def stop_owned_worker():
+        if process is None or process.poll() is not None:
+            return
+        assert process.args == command
+        if actual_worker is not None and worker_chain is not None:
+            verified_worker_chain(actual_worker["pid"], process.pid)
+            subprocess.run(
+                ["taskkill", "/PID", str(actual_worker["pid"]), "/T", "/F"],
+                check=False,
+                capture_output=True,
+                creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0,
+            )
+        if process.poll() is None:
+            process.terminate()
+        process.wait(timeout=20)
+
     try:
+        command = [
+            sys.executable,
+            str(Path(__file__).resolve()),
+            "--repo-root",
+            str(REPO),
+            "--source-root",
+            str(SOURCE),
+            "--run-root",
+            str(RUN),
+            "--output-root",
+            str(OUT),
+            "--model-dir",
+            str(MODEL_DIR),
+            "--isolation-file",
+            str(ISOLATION_FILE),
+            "--source-commit",
+            SOURCE_COMMIT,
+            "--worker",
+            str(directory / "job.json"),
+        ]
         process = subprocess.Popen(
-            [
-                sys.executable,
-                str(Path(__file__).resolve()),
-                "--repo-root",
-                str(REPO),
-                "--source-root",
-                str(SOURCE),
-                "--run-root",
-                str(RUN),
-                "--output-root",
-                str(OUT),
-                "--model-dir",
-                str(MODEL_DIR),
-                "--isolation-file",
-                str(ISOLATION_FILE),
-                "--source-commit",
-                SOURCE_COMMIT,
-                "--worker",
-                str(directory / "job.json"),
-            ],
+            command,
             env=env,
             cwd=SOURCE,
             stdout=log,
@@ -774,7 +801,13 @@ def launch_job(job, env, isolation):
             },
         )
         os.replace(ready_candidate, directory / "controller-ready.json")
-        code = process.wait()
+        try:
+            code = process.wait(timeout=timeout_limit)
+        except subprocess.TimeoutExpired:
+            timed_out = True
+            timeout_perf = time.perf_counter()
+            code = None
+            stop_owned_worker()
         sampler.stop()
         facts = {
             "pid": actual_worker["pid"],
@@ -784,50 +817,37 @@ def launch_job(job, env, isolation):
             "started_at": started,
             "ended_at": utc(),
             "exit_code": code,
+            "timed_out": timed_out,
+            "timeout_limit_seconds": timeout_limit,
+            "timeout_observed_perf": timeout_perf,
+            "post_timeout_exit_code": process.poll() if timed_out else None,
             "resources": sampler.summary(),
         }
+        facts["memory_budget"] = evaluate_v2_memory_budget(facts["resources"])
         for path in sorted((directory / "runs").glob("*.json")):
             result = json.loads(path.read_text(encoding="utf-8"))
             # Report observations in the timed interval; short intervals may be incomplete.
-            end = result.get("terminal_perf") or result.get("completed_perf")
+            end = (
+                result.get("terminal_perf")
+                or result.get("completed_perf")
+                or timeout_perf
+            )
+            if timed_out and "completed_at" not in result:
+                result["process_timeout"] = {
+                    "code": "T160_PROCESS_TIMEOUT",
+                    "observed_perf": timeout_perf,
+                    "limit_seconds": timeout_limit,
+                }
+                # Preserve actual persisted business state; a killed process is not a fabricated Failed transition.
             result["resources"] = sampler.summary(
                 start_perf=result["receive_start_perf"], end_perf=end
             )
+            result["memory_budget"] = evaluate_v2_memory_budget(result["resources"])
             write_json(path, result)
         write_json(directory / "process.json", facts)
         return facts
     finally:
-        if process is not None and process.poll() is None:
-            assert process.args == [
-                sys.executable,
-                str(Path(__file__).resolve()),
-                "--repo-root",
-                str(REPO),
-                "--source-root",
-                str(SOURCE),
-                "--run-root",
-                str(RUN),
-                "--output-root",
-                str(OUT),
-                "--model-dir",
-                str(MODEL_DIR),
-                "--isolation-file",
-                str(ISOLATION_FILE),
-                "--source-commit",
-                SOURCE_COMMIT,
-                "--worker",
-                str(directory / "job.json"),
-            ]
-            if actual_worker is not None and worker_chain is not None:
-                verified_worker_chain(actual_worker["pid"], process.pid)
-                subprocess.run(
-                    ["taskkill", "/PID", str(actual_worker["pid"]), "/T", "/F"],
-                    check=False,
-                    capture_output=True,
-                    creationflags=subprocess.CREATE_NO_WINDOW,
-                )
-            process.terminate()
-            process.wait(timeout=20)
+        stop_owned_worker()
         if sampler is not None:
             sampler.stop()
         log.close()
@@ -900,6 +920,12 @@ def summarize(plan):
                 and result.get("within_import_target", False),
                 "resource_complete": complete
                 and resources["complete_at_requested_sampling_resolution"],
+                "memory_budget_pass": (
+                    evaluate_v2_memory_budget(resources)["budget_pass"]
+                    if complete
+                    else None
+                ),
+                "process_timeout": "process_timeout" in result,
                 **resources["peaks"],
                 "raw_result": str(path.relative_to(REPO)),
             }
@@ -951,6 +977,26 @@ def summarize(plan):
         and all(r["within_import_target"] for r in measured),
         "all_measured_resource_complete": len(measured) == 24
         and all(r["resource_complete"] for r in measured),
+        "all_measured_memory_budget_pass": (
+            all(r["memory_budget_pass"] for r in measured)
+            if len(measured) == 24
+            and all(r["memory_budget_pass"] is not None for r in measured)
+            else None
+        ),
+        "user_authorized_50_page_gate": {
+            "planned_timed": 8,
+            "minimum_successes_within_300_seconds": 6,
+            "passed_count": sum(
+                r["case"] == "workload_50_pages" and r["within_import_target"]
+                for r in measured
+            ),
+            "pass": sum(
+                r["case"] == "workload_50_pages" and r["within_import_target"]
+                for r in measured
+            )
+            >= 6
+            and sum(r["case"] == "workload_50_pages" for r in measured) == 8,
+        },
         "request_attempts": sum(
             r["request_attempts"] for r in rows if r["request_attempts"] is not None
         ),
