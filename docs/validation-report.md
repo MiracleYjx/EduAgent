@@ -632,3 +632,16 @@ T157 先行缺模块/入口用例确实失败；实现后真实渲染/拆题 13 
 - docs/test-change-record-v2.md
 - docs/validation-report.md
 - docs/evidence/t159-correction.jpg
+
+
+## T161：章节定位生产与迁移（2026-10-02）
+
+采用 /speckit.implement；基线 fe90ece，分支 deepcode；只完成 T161，T160 等真实教师标签。本批独立 PostgreSQL/Redis/文件目录隔离；业务库不升级。章节身份与教师确认沿 G01，知识点存原 JSON metadata，无新增关联表。
+
+课程章节登记/维护、完整片段定位与独立知识点核对已接 API/Gradio；真实 Markdown 标题边界保留候选层级/路径，短块不跨同级或不同章。原稿重切以持久原文件的清洗段落为基准，切点严格内部递增，原长度/overlap 仅段内。新块待核对，旧未知不猜测。目录重新登记清除影响定位；教师明确只修正标题且顺序/含义未变时保留，无法借此新增/删除目录项。
+
+验证：完整聚焦 143 passed/7 warnings；排除用户/T162 改动的 index 聚焦 59 passed/7 warnings；index mypy 180 files、全仓 Ruff 通过。最后审查修复跨文档预览/切点串用和旧块显示，追加聚焦 11 passed/1 warning。真实 PostgreSQL 已证明旧迁移原样、同源原子发布、失败保留与重试、并发互斥和 QuestionSourceChunk 快照。完整全仓 pytest 在 T162 最终快照统一执行。
+
+实际浏览器在隔离合成样例中完成章目录、全块定位、独立标签确认，刷新和服务重启后数据库/界面读取一致。教师账户与 JWT 为真实本批角色夹具，Embedding 是受控替身；没有人工内容质量标签，不宣布 T160/T169 质量验收。
+
+证据：[最终界面截图](evidence/t161-chapter-scope-20261002/chapter-scope-browser.jpg)、[持久重读记录](evidence/t161-chapter-scope-20261002/browser-durable-result.json)。最后 UI 状态清理修正不改变截图控件布局，由聚焦用例补证。测试批次缓存 .cache/t161-162-scope-20261002；临时资源在 T162 完成后清理。

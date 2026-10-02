@@ -55,7 +55,9 @@ _HTML_COMMENT_PATTERN: Final[re.Pattern[str]] = re.compile(r"<!--.*?-->", re.DOT
 _FENCE_PATTERN: Final[re.Pattern[str]] = re.compile(r"^[ \t]*(?:```|~~~)")
 _RULE_PATTERN: Final[re.Pattern[str]] = re.compile(r"^([-*_])[ \t]*(?:\1[ \t]*){2,}$")
 _EMPTY_HEADING_PATTERN: Final[re.Pattern[str]] = re.compile(r"^#{1,6}[ \t]*$")
-_HEADING_PATTERN: Final[re.Pattern[str]] = re.compile(r"^(#{1,6})[ \t]+(.*?)[ \t]*#*[ \t]*$")
+_HEADING_PATTERN: Final[re.Pattern[str]] = re.compile(
+    r"^(#{1,6})[ \t]+(.*?)[ \t]*#*[ \t]*$"
+)
 _LIST_MARKER_PATTERN: Final[re.Pattern[str]] = re.compile(
     r"^[ \t]*(?:[-*+]|\d{1,3}[.)])[ \t]+"
 )
@@ -105,6 +107,8 @@ class ParsedSection:
     index: int
     location: str
     text: str
+    heading_level: int | None = None
+    heading_path: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -153,7 +157,9 @@ def decode_text_bytes(data: bytes) -> str:
         if "\x00" in text:
             break
         return text
-    raise DocumentParseError(DOCUMENT_CORRUPTED, detail="文本编码无法识别或包含二进制内容")
+    raise DocumentParseError(
+        DOCUMENT_CORRUPTED, detail="文本编码无法识别或包含二进制内容"
+    )
 
 
 class DocumentParser(ABC):
@@ -178,12 +184,16 @@ class TextDocumentParser(DocumentParser):
     def parse(self, data: bytes, *, filename: str) -> ParsedDocument:
         text = normalize_newlines(decode_text_bytes(data))
         if not has_meaningful_text(text):
-            raise DocumentParseError(DOCUMENT_NO_TEXT, detail="TXT 中没有可提取的文本内容")
+            raise DocumentParseError(
+                DOCUMENT_NO_TEXT, detail="TXT 中没有可提取的文本内容"
+            )
         paragraphs = [
             block.strip() for block in _BLANK_LINE_PATTERN.split(text) if block.strip()
         ]
         if not paragraphs:
-            raise DocumentParseError(DOCUMENT_NO_TEXT, detail="TXT 中没有可提取的文本内容")
+            raise DocumentParseError(
+                DOCUMENT_NO_TEXT, detail="TXT 中没有可提取的文本内容"
+            )
         sections = tuple(
             ParsedSection(index=index, location=f"第 {index} 段", text=paragraph)
             for index, paragraph in enumerate(paragraphs, start=1)
@@ -206,7 +216,9 @@ class MarkdownDocumentParser(DocumentParser):
         lines = _markdown_lines(_strip_front_matter(raw))
         text = "\n".join(content for _is_heading, content in lines)
         if not has_meaningful_text(text):
-            raise DocumentParseError(DOCUMENT_NO_TEXT, detail="Markdown 中没有可提取的文本内容")
+            raise DocumentParseError(
+                DOCUMENT_NO_TEXT, detail="Markdown 中没有可提取的文本内容"
+            )
         return ParsedDocument(
             file_format=self.format_name,
             text=text,
@@ -242,7 +254,9 @@ class PdfDocumentParser(DocumentParser):
 
         text = "\n\n".join(page_texts)
         if not has_meaningful_text(text):
-            raise DocumentParseError(DOCUMENT_NO_TEXT, detail="PDF 中没有可提取的文本内容")
+            raise DocumentParseError(
+                DOCUMENT_NO_TEXT, detail="PDF 中没有可提取的文本内容"
+            )
         return ParsedDocument(
             file_format=self.format_name,
             text=text,
@@ -265,7 +279,9 @@ class PdfDocumentParser(DocumentParser):
                 DOCUMENT_CORRUPTED, detail="PDF 结构损坏，无法读取页面"
             ) from exc
         except Exception as exc:
-            raise DocumentParseError(DOCUMENT_PARSE_FAILED, detail="PDF 解析失败") from exc
+            raise DocumentParseError(
+                DOCUMENT_PARSE_FAILED, detail="PDF 解析失败"
+            ) from exc
 
     @staticmethod
     def _extract_page_text(page: object, page_number: int) -> str:
@@ -282,7 +298,9 @@ class PdfDocumentParser(DocumentParser):
                 DOCUMENT_CORRUPTED, detail=f"PDF 第 {page_number} 页结构损坏"
             ) from exc
         except Exception as exc:
-            raise DocumentParseError(DOCUMENT_PARSE_FAILED, detail="PDF 文本提取失败") from exc
+            raise DocumentParseError(
+                DOCUMENT_PARSE_FAILED, detail="PDF 文本提取失败"
+            ) from exc
         return normalize_newlines(extracted or "")
 
 
@@ -318,10 +336,10 @@ def _strip_inline_markup(line: str) -> str:
     return stripped.strip()
 
 
-def _markdown_lines(text: str) -> list[tuple[bool, str]]:
-    """把 Markdown 正文规范化为“是否为标题 + 内容”的行序列。"""
+def _markdown_lines(text: str) -> list[tuple[int | None, str]]:
+    """把 Markdown 正文规范化为“真实标题层级或空值 + 内容”的行序列。"""
 
-    lines: list[tuple[bool, str]] = []
+    lines: list[tuple[int | None, str]] = []
     inside_fence = False
     for raw_line in text.split("\n"):
         if _FENCE_PATTERN.match(raw_line):
@@ -331,7 +349,7 @@ def _markdown_lines(text: str) -> list[tuple[bool, str]]:
         if inside_fence:
             # 代码内容必须保留原有缩进，避免破坏代码类教学内容。
             if raw_line.strip():
-                lines.append((False, raw_line.rstrip()))
+                lines.append((None, raw_line.rstrip()))
             continue
 
         candidate = _strip_inline_markup(raw_line.strip())
@@ -343,37 +361,44 @@ def _markdown_lines(text: str) -> list[tuple[bool, str]]:
         if heading is not None:
             title = heading.group(2).strip()
             if title:
-                lines.append((True, title))
+                lines.append((len(heading.group(1)), title))
             continue
-        lines.append((False, _LIST_MARKER_PATTERN.sub("", candidate).strip()))
+        lines.append((None, _LIST_MARKER_PATTERN.sub("", candidate).strip()))
     return lines
 
 
-def _markdown_sections(lines: list[tuple[bool, str]]) -> tuple[ParsedSection, ...]:
-    """按标题边界生成来源片段；标题前的内容归入“前言”。"""
-
+def _markdown_sections(
+    lines: list[tuple[int | None, str]],
+) -> tuple[ParsedSection, ...]:
+    """Keep actual heading hierarchy as source evidence, never as course identity."""
     sections: list[ParsedSection] = []
     location = "前言"
     buffer: list[str] = []
+    heading_level: int | None = None
+    headings: list[tuple[int, str]] = []
 
     def flush() -> None:
-        if not buffer:
-            return
-        sections.append(
-            ParsedSection(
-                index=len(sections) + 1,
-                location=location,
-                text="\n".join(buffer),
+        if buffer:
+            sections.append(
+                ParsedSection(
+                    index=len(sections) + 1,
+                    location=location,
+                    text="\n".join(buffer),
+                    heading_level=heading_level,
+                    heading_path=tuple(title for _level, title in headings),
+                )
             )
-        )
 
-    for is_heading, content in lines:
-        if is_heading:
+    for level, content in lines:
+        if level is not None:
             flush()
             buffer = [content]
+            headings = [(depth, title) for depth, title in headings if depth < level]
+            headings.append((level, content))
+            heading_level = level
             location = f"标题：{content}"
-            continue
-        buffer.append(content)
+        else:
+            buffer.append(content)
     flush()
     return tuple(sections)
 

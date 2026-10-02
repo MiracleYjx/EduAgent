@@ -18,7 +18,7 @@
 from __future__ import annotations
 
 import inspect
-from collections.abc import Awaitable, Callable, Mapping
+from collections.abc import Awaitable, Callable, Mapping, Sequence
 from dataclasses import dataclass
 from types import MappingProxyType
 from typing import Final
@@ -56,6 +56,7 @@ from backend.app.ai.ingestion.parsers import (
     parse_document,
 )
 from backend.app.domain.enums import DocumentStatus
+from backend.app.schemas.chapter_scope import SourceSplit
 
 #: 资料未形成任何有效知识片段；属于摄取终态失败，不重试。
 KNOWLEDGE_BASE_EMPTY: Final[str] = "KNOWLEDGE_BASE_EMPTY"
@@ -79,7 +80,9 @@ type Cleaner = Callable[[ParsedDocument], CleanedDocument]
 #: 分块器契约：与 :func:`backend.app.ai.ingestion.chunking.chunk_document` 一致。
 type Chunker = Callable[..., tuple[TextChunk, ...]]
 #: Provider 构造器契约：同步或异步返回一个 Embedding Provider。
-type ProviderBuilder = Callable[[], BaseEmbeddingProvider | Awaitable[BaseEmbeddingProvider]]
+type ProviderBuilder = Callable[
+    [], BaseEmbeddingProvider | Awaitable[BaseEmbeddingProvider]
+]
 #: 状态流转监听器，供 Service 层把流转落库或推送界面。
 type StatusListener = Callable[["IngestionTransition"], None]
 
@@ -135,6 +138,17 @@ def resolve_error_message(error_code: str) -> str:
     )
 
 
+def prepare_document_source(
+    filename: str,
+    data: bytes,
+    *,
+    parser_registry: DocumentParserRegistry | None = None,
+    cleaner: Cleaner = clean_document,
+) -> CleanedDocument:
+    """Return the same cleaned source sections used for preview and teacher cuts."""
+    return cleaner(parse_document(filename, data, registry=parser_registry))
+
+
 class IngestionService:
     """把一份上传资料编排为待持久化的知识片段集合。"""
 
@@ -167,6 +181,7 @@ class IngestionService:
         document_id: UUID | None = None,
         course_id: UUID | None = None,
         knowledge_base_id: UUID | None = None,
+        source_splits: Sequence[SourceSplit] | None = None,
     ) -> IngestionResult:
         """按 Uploaded -> Parsing -> Chunking -> Embedding -> Ready 摄取资料。
 
@@ -249,6 +264,7 @@ class IngestionService:
                 original_filename=filename,
                 max_chars=self._max_chars,
                 overlap_chars=self._overlap_chars,
+                **({"source_splits": source_splits} if source_splits else {}),
             )
         except DocumentParseError as exc:
             return fail(
@@ -370,5 +386,6 @@ __all__ = [
     "IngestionTransition",
     "ProviderBuilder",
     "StatusListener",
+    "prepare_document_source",
     "resolve_error_message",
 ]

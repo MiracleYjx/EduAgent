@@ -8,13 +8,17 @@
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Final
 
 from backend.app.ai.ingestion.parsers import ParsedDocument
 
-_CONTROL_PATTERN: Final[re.Pattern[str]] = re.compile(r"[\u0000-\u0008\u000b-\u001f\u007f]")
-_ZERO_WIDTH_PATTERN: Final[re.Pattern[str]] = re.compile(r"[\u00ad\u200b-\u200d\u2060\ufeff]")
+_CONTROL_PATTERN: Final[re.Pattern[str]] = re.compile(
+    r"[\u0000-\u0008\u000b-\u001f\u007f]"
+)
+_ZERO_WIDTH_PATTERN: Final[re.Pattern[str]] = re.compile(
+    r"[\u00ad\u200b-\u200d\u2060\ufeff]"
+)
 _SPACE_LIKE_PATTERN: Final[re.Pattern[str]] = re.compile(r"[\t\u3000]+")
 _INNER_SPACE_PATTERN: Final[re.Pattern[str]] = re.compile(r" {2,}")
 _BLANK_LINE_PATTERN: Final[re.Pattern[str]] = re.compile(r"\n{2,}")
@@ -30,6 +34,8 @@ class CleanedSection:
     index: int
     location: str
     text: str
+    heading_level: int | None = None
+    heading_path: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -85,14 +91,60 @@ def clean_document(document: ParsedDocument) -> CleanedDocument:
         if is_blank(text):
             continue
         sections.append(
-            CleanedSection(index=section.index, location=section.location, text=text)
+            CleanedSection(
+                index=section.index,
+                location=section.location,
+                text=text,
+                heading_level=section.heading_level,
+                heading_path=section.heading_path,
+            )
         )
     return CleanedDocument(
         file_format=document.file_format,
         text=clean_text(document.text),
-        sections=tuple(sections),
+        sections=(
+            _attach_markdown_parent_headings(sections)
+            if document.file_format == "markdown"
+            else tuple(sections)
+        ),
         page_count=document.page_count,
     )
+
+
+def _attach_markdown_parent_headings(
+    sections: list[CleanedSection],
+) -> tuple[CleanedSection, ...]:
+    """Attach heading-only ancestors only to their next descendant source section.
+
+    The resulting cleaned section is the preview and character-offset source. Sibling
+    headings and a new chapter flush pending headings instead of crossing their boundary.
+    """
+    result: list[CleanedSection] = []
+    pending: list[CleanedSection] = []
+    for section in sections:
+        if pending and not all(
+            len(parent.heading_path) < len(section.heading_path)
+            and section.heading_path[: len(parent.heading_path)] == parent.heading_path
+            for parent in pending
+        ):
+            result.extend(pending)
+            pending.clear()
+        heading_only = section.heading_level is not None and "\n" not in section.text
+        if heading_only:
+            pending.append(section)
+            continue
+        if pending:
+            section = replace(
+                section,
+                text="\n\n".join([parent.text for parent in pending] + [section.text]),
+                location="；".join(
+                    [parent.location for parent in pending] + [section.location]
+                ),
+            )
+            pending.clear()
+        result.append(section)
+    result.extend(pending)
+    return tuple(result)
 
 
 __all__ = [

@@ -24,6 +24,11 @@ from backend.app.core.security import get_app_settings, require_permission
 from backend.app.domain.enums import DocumentStatus
 from backend.app.domain.permissions import Permission
 from backend.app.models import User
+from backend.app.schemas.chapter_scope import (
+    ChapterWrite,
+    ChunkScopeUpdate,
+    SourceSplit,
+)
 from backend.app.services.course_service import CourseNotFoundError, CourseServiceError
 from backend.app.services.file_storage_service import FileStorageError
 from backend.app.services.knowledge_base_service import (
@@ -41,6 +46,7 @@ from backend.app.services.knowledge_base_service import (
 )
 
 router = APIRouter(prefix="/api/knowledge-bases", tags=["知识库"])
+
 
 class KnowledgeBaseCreateRequest(BaseModel):
     """创建知识库时使用的请求体。"""
@@ -173,9 +179,13 @@ class DocumentStatusUpdateRequest(BaseModel):
         """外部请求只能报告处理中或失败，不能声明摄取成功。"""
 
         if value not in {
-            DocumentStatus.PARSING, DocumentStatus.EMBEDDING, DocumentStatus.FAILED,
+            DocumentStatus.PARSING,
+            DocumentStatus.EMBEDDING,
+            DocumentStatus.FAILED,
         }:
-            raise ValueError("状态更新只允许 Parsing、Embedding、Failed；Ready 由摄取事务设置。")
+            raise ValueError(
+                "状态更新只允许 Parsing、Embedding、Failed；Ready 由摄取事务设置。"
+            )
         return value
 
     @field_validator("error_code", "error_message", mode="before")
@@ -411,7 +421,12 @@ def create_document(
             storage_path=payload.storage_path,
             teacher_id=teacher.id,
         )
-    except (CourseServiceError, KnowledgeBaseServiceError, FileStorageError, ValueError) as exc:
+    except (
+        CourseServiceError,
+        KnowledgeBaseServiceError,
+        FileStorageError,
+        ValueError,
+    ) as exc:
         raise _knowledge_base_http_exception(exc) from None
 
 
@@ -450,7 +465,13 @@ def upload_and_ingest_document(
             document.id,
             teacher_id=teacher.id,
         )
-    except (CourseServiceError, KnowledgeBaseServiceError, FileStorageError, ValueError, OSError) as exc:
+    except (
+        CourseServiceError,
+        KnowledgeBaseServiceError,
+        FileStorageError,
+        ValueError,
+        OSError,
+    ) as exc:
         raise _knowledge_base_http_exception(exc) from None
 
 
@@ -518,6 +539,123 @@ def retry_document(
         _ensure_document_belongs_to_knowledge_base(document, knowledge_base_id)
         return service.retry_document(document_id, teacher_id=teacher.id)
     except (CourseServiceError, KnowledgeBaseServiceError, ValueError) as exc:
+        raise _knowledge_base_http_exception(exc) from None
+
+
+@router.get("/courses/{course_id}/chapters")
+def list_course_chapters(
+    course_id: UUID,
+    teacher: KnowledgeBaseManager,
+    service: KnowledgeBaseServiceDependency,
+) -> list[dict[str, Any]]:
+    try:
+        return service.list_chapters(course_id, teacher.id)
+    except (CourseServiceError, ValueError) as exc:
+        raise _knowledge_base_http_exception(exc) from None
+
+
+@router.post("/courses/{course_id}/chapters", status_code=201)
+def register_course_chapter(
+    course_id: UUID,
+    payload: ChapterWrite,
+    teacher: KnowledgeBaseManager,
+    service: KnowledgeBaseServiceDependency,
+) -> dict[str, Any]:
+    try:
+        return service.create_chapter(course_id, payload, teacher.id)
+    except (CourseServiceError, ValueError) as exc:
+        raise _knowledge_base_http_exception(exc) from None
+
+
+@router.put("/chapters/{chapter_id}")
+def revise_course_chapter(
+    chapter_id: UUID,
+    payload: ChapterWrite,
+    teacher: KnowledgeBaseManager,
+    service: KnowledgeBaseServiceDependency,
+) -> dict[str, Any]:
+    try:
+        return service.update_chapter(chapter_id, payload, teacher.id)
+    except (CourseServiceError, ValueError) as exc:
+        raise _knowledge_base_http_exception(exc) from None
+
+
+@router.patch("/chapters/{chapter_id}/titles")
+def correct_chapter_titles(
+    chapter_id: UUID,
+    payload: ChapterWrite,
+    teacher: KnowledgeBaseManager,
+    service: KnowledgeBaseServiceDependency,
+) -> dict[str, Any]:
+    """Teacher explicitly confirms unchanged section meanings and order."""
+    try:
+        return service.update_chapter(
+            chapter_id, payload, teacher.id, preserve_section_meaning=True
+        )
+    except (CourseServiceError, ValueError) as exc:
+        raise _knowledge_base_http_exception(exc) from None
+
+
+@router.delete("/chapters/{chapter_id}", status_code=204)
+def remove_course_chapter(
+    chapter_id: UUID,
+    teacher: KnowledgeBaseManager,
+    service: KnowledgeBaseServiceDependency,
+) -> Response:
+    try:
+        service.delete_chapter(chapter_id, teacher.id)
+        return Response(status_code=204)
+    except (CourseServiceError, ValueError) as exc:
+        raise _knowledge_base_http_exception(exc) from None
+
+
+@router.get("/documents/{document_id}/chunks")
+def list_scope_chunks(
+    document_id: UUID,
+    teacher: KnowledgeBaseManager,
+    service: KnowledgeBaseServiceDependency,
+) -> list[dict[str, Any]]:
+    try:
+        return service.list_document_chunks(document_id, teacher.id)
+    except (CourseServiceError, ValueError) as exc:
+        raise _knowledge_base_http_exception(exc) from None
+
+
+@router.patch("/chunks/{chunk_id}/scope")
+def confirm_scope(
+    chunk_id: UUID,
+    payload: ChunkScopeUpdate,
+    teacher: KnowledgeBaseManager,
+    service: KnowledgeBaseServiceDependency,
+) -> dict[str, Any]:
+    try:
+        return service.confirm_chunk_scope(chunk_id, payload, teacher.id)
+    except (CourseServiceError, ValueError) as exc:
+        raise _knowledge_base_http_exception(exc) from None
+
+
+@router.get("/documents/{document_id}/source-sections")
+def source_sections(
+    document_id: UUID,
+    teacher: KnowledgeBaseManager,
+    service: KnowledgeBaseServiceDependency,
+) -> list[dict[str, Any]]:
+    try:
+        return service.document_source_sections(document_id, teacher.id)
+    except (CourseServiceError, FileStorageError, ValueError) as exc:
+        raise _knowledge_base_http_exception(exc) from None
+
+
+@router.post("/documents/{document_id}/resplit", response_model=DocumentIngestionResult)
+def resplit_scope_document(
+    document_id: UUID,
+    payload: list[SourceSplit],
+    teacher: KnowledgeBaseManager,
+    service: KnowledgeBaseServiceDependency,
+) -> DocumentIngestionResult:
+    try:
+        return service.resplit_document(document_id, payload, teacher.id)
+    except (CourseServiceError, FileStorageError, ValueError) as exc:
         raise _knowledge_base_http_exception(exc) from None
 
 

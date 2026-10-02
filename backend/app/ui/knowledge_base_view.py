@@ -27,6 +27,10 @@ from backend.app.services.knowledge_base_service import (
     KnowledgeBaseServiceError,
     KnowledgeBaseSummary,
 )
+from backend.app.ui.chapter_scope_view import (
+    ChapterScopeView,
+    create_chapter_scope_view,
+)
 from backend.app.ui.layout_view import (
     bind_confirmation,
     empty_state,
@@ -55,6 +59,7 @@ class KnowledgeBaseView:
     knowledge_bases_dropdown: gr.Dropdown
     documents_table: gr.Dataframe
     message: gr.Markdown
+    chapter_scope: ChapterScopeView
 
 
 def _empty_state() -> dict[str, Any]:
@@ -81,7 +86,9 @@ def _format_error(error: BaseException) -> str:
 
     if isinstance(error, PermissionDeniedError):
         message = str(error) or "当前账号无权执行此操作。"
-    elif isinstance(error, (CourseServiceError, KnowledgeBaseServiceError, FileStorageError)):
+    elif isinstance(
+        error, (CourseServiceError, KnowledgeBaseServiceError, FileStorageError)
+    ):
         message = str(error) or _GENERIC_ERROR
     elif isinstance(error, SQLAlchemyError):
         message = "系统暂时无法连接数据库，请稍后重试。"
@@ -324,7 +331,9 @@ def upload_document(
         normalized_id = (knowledge_base_id or "").strip()
         if not normalized_id:
             raise ValueError("请先选择知识库。")
-        raw_path = file_value[0] if isinstance(file_value, (list, tuple)) else file_value
+        raw_path = (
+            file_value[0] if isinstance(file_value, (list, tuple)) else file_value
+        )
         if not raw_path:
             raise ValueError("请选择要上传的 PDF、TXT 或 Markdown 文件。")
         path = Path(str(raw_path))
@@ -785,7 +794,9 @@ def create_knowledge_base_view(session_state: Any | None = None) -> KnowledgeBas
         )
         gr.Markdown(_document_status_legend())
         with gr.Accordion("来源详情与失败原因", open=False):
-            source_details = gr.Markdown(empty_state("上传资料后展示来源片段与失败原因。"))
+            source_details = gr.Markdown(
+                empty_state("上传资料后展示来源片段与失败原因。")
+            )
         message = gr.Markdown(empty_state("请刷新课程列表。"))
 
         refresh_button.click(
@@ -967,12 +978,17 @@ def create_knowledge_base_view(session_state: Any | None = None) -> KnowledgeBas
             ],
         )
 
+        chapter_scope = create_chapter_scope_view(
+            selected_course_id, selected_knowledge_base_id, state
+        )
+
     return KnowledgeBaseView(
         panel=panel,
         courses_table=courses_table,
         knowledge_bases_dropdown=knowledge_bases_dropdown,
         documents_table=documents_table,
         message=message,
+        chapter_scope=chapter_scope,
     )
 
 

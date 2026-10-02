@@ -18,7 +18,15 @@ from typing import TYPE_CHECKING, Any, Final
 from uuid import UUID
 
 from pgvector.sqlalchemy import Vector
-from sqlalchemy import JSON, ForeignKey, Index, Integer, Text, UniqueConstraint
+from sqlalchemy import (
+    JSON,
+    CheckConstraint,
+    ForeignKey,
+    Index,
+    Integer,
+    Text,
+    UniqueConstraint,
+)
 from sqlalchemy.dialects.postgresql import TSVECTOR
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.types import TypeDecorator, TypeEngine
@@ -89,6 +97,16 @@ class DocumentChunk(UUIDPrimaryKeyMixin, TimestampMixin, Base):
 
     __tablename__ = "document_chunks"
     __table_args__ = (
+        CheckConstraint(
+            "section_order IS NULL OR (section_order > 0 AND chapter_id IS NOT NULL)",
+            name="ck_document_chunks_section_chapter",
+        ),
+        Index(
+            "ix_document_chunks_course_chapter_section",
+            "course_id",
+            "chapter_id",
+            "section_order",
+        ),
         UniqueConstraint(
             "document_id",
             "chunk_index",
@@ -117,6 +135,10 @@ class DocumentChunk(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     knowledge_base_id: Mapped[UUID] = mapped_column(
         ForeignKey("knowledge_bases.id", ondelete="CASCADE"), nullable=False, index=True
     )
+    chapter_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("chapters.id", ondelete="RESTRICT")
+    )
+    section_order: Mapped[int | None] = mapped_column(Integer)
     chunk_index: Mapped[int] = mapped_column(Integer, nullable=False)
     content: Mapped[str] = mapped_column(Text, nullable=False)
     embedding: Mapped[list[float] | None] = mapped_column(

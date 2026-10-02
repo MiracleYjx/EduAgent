@@ -1,0 +1,15 @@
+{
+  "utc": "2026-10-02T11:29:39.223798+00:00",
+  "document_id": "d9cb68f8-eb91-4262-8a62-eaed15dfada7",
+  "chunk_id": "ba57fc94-4d21-4852-b7b2-c1421aad90a7",
+  "chapter_id": "7a688e38-edba-480f-8a9e-73fc9bd59010",
+  "section_order": 1,
+  "knowledge_points": [
+    "受力分析",
+    "Newton"
+  ],
+  "real_role_account_fixture": true,
+  "provider_fixture": true,
+  "server_restart_reread": true,
+  "teacher_quality_acceptance": false
+}

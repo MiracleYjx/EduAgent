@@ -2747,6 +2747,7 @@ def create_gradio_app() -> gr.Blocks:
                 }
             )
             result.update(paper_import_view.reset())
+            result.update(knowledge_base_view.chapter_scope.reset())
             result.update(
                 {
                     login_panel: gr.update(visible=True),

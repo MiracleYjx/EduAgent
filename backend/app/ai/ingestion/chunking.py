@@ -12,11 +12,14 @@
 from __future__ import annotations
 
 import hashlib
+from collections.abc import Sequence
 from dataclasses import dataclass
+from itertools import pairwise
 from typing import Final
 from uuid import UUID
 
 from backend.app.ai.ingestion.cleaning import CleanedDocument, is_blank
+from backend.app.schemas.chapter_scope import SourceSplit
 
 DEFAULT_MAX_CHARS: Final[int] = 500
 DEFAULT_OVERLAP_CHARS: Final[int] = 80
@@ -50,15 +53,21 @@ class ChunkSourceMetadata:
     start_char: int
     end_char: int
     content_sha256: str
+    heading_level: int | None = None
+    heading_path: tuple[str, ...] = ()
 
-    def as_dict(self) -> dict[str, str | int | None]:
+    def as_dict(self) -> dict[str, object]:
         """返回可写入 ``DocumentChunk.metadata`` 的 JSON 兼容字典。"""
 
-        return {
-            "document_id": str(self.document_id) if self.document_id is not None else None,
+        metadata: dict[str, object] = {
+            "document_id": str(self.document_id)
+            if self.document_id is not None
+            else None,
             "course_id": str(self.course_id) if self.course_id is not None else None,
             "knowledge_base_id": (
-                str(self.knowledge_base_id) if self.knowledge_base_id is not None else None
+                str(self.knowledge_base_id)
+                if self.knowledge_base_id is not None
+                else None
             ),
             "original_filename": self.original_filename,
             "file_format": self.file_format,
@@ -68,6 +77,10 @@ class ChunkSourceMetadata:
             "end_char": self.end_char,
             "content_sha256": self.content_sha256,
         }
+        if self.heading_level is not None:
+            metadata["heading_level"] = self.heading_level
+            metadata["heading_path"] = list(self.heading_path)
+        return metadata
 
 
 @dataclass(frozen=True, slots=True)
@@ -129,7 +142,9 @@ def _find_boundary(text: str, start: int, end: int, max_chars: int) -> int:
     return end
 
 
-def _split_spans(text: str, max_chars: int, overlap_chars: int) -> list[tuple[int, int]]:
+def _split_spans(
+    text: str, max_chars: int, overlap_chars: int
+) -> list[tuple[int, int]]:
     """按字符上限和重叠长度生成确定性切片区间。"""
 
     spans: list[tuple[int, int]] = []
@@ -160,6 +175,8 @@ def _build_chunk(
     file_format: str,
     location: str,
     section_index: int,
+    heading_level: int | None = None,
+    heading_path: tuple[str, ...] = (),
 ) -> TextChunk:
     """按切片区间构造带来源元数据的片段。"""
 
@@ -179,6 +196,8 @@ def _build_chunk(
             start_char=start,
             end_char=end,
             content_sha256=_content_sha256(content),
+            heading_level=heading_level,
+            heading_path=heading_path,
         ),
     )
 
@@ -218,6 +237,24 @@ def chunk_text(
     )
 
 
+def validate_source_splits(
+    document: CleanedDocument,
+    source_splits: Sequence[SourceSplit] | None,
+) -> dict[int, list[int]]:
+    """Validate teacher cuts against the exact preview, before creating any chunks."""
+    sections = {section.index: section for section in document.sections}
+    cuts: dict[int, list[int]] = {}
+    for split in source_splits or ():
+        split = SourceSplit.model_validate(split)
+        section = sections.get(split.section_index)
+        if section is None or split.section_index in cuts:
+            raise ValueError("Split source section is unknown or duplicated.")
+        if any(point >= len(section.text) for point in split.cut_points):
+            raise ValueError("Cut points must be strictly inside the source section.")
+        cuts[split.section_index] = split.cut_points
+    return cuts
+
+
 def chunk_document(
     document: CleanedDocument,
     *,
@@ -227,116 +264,33 @@ def chunk_document(
     original_filename: str = "",
     max_chars: int = DEFAULT_MAX_CHARS,
     overlap_chars: int = DEFAULT_OVERLAP_CHARS,
+    source_splits: Sequence[SourceSplit] | None = None,
 ) -> tuple[TextChunk, ...]:
-    """按来源片段切分清洗后的资料，并保持全局递增的分块序号。"""
-
+    """Split each real source boundary independently, then apply length and overlap."""
     _validate_limits(max_chars, overlap_chars)
-    if document.file_format == "markdown":
-        return _chunk_markdown_document(
-            document,
-            document_id=document_id,
-            course_id=course_id,
-            knowledge_base_id=knowledge_base_id,
-            original_filename=original_filename,
-            max_chars=max_chars,
-            overlap_chars=overlap_chars,
-        )
+    cuts = validate_source_splits(document, source_splits)
     chunks: list[TextChunk] = []
     for section in document.sections:
-        if is_blank(section.text):
-            continue
-        for span in _split_spans(section.text, max_chars, overlap_chars):
-            chunks.append(
-                _build_chunk(
-                    len(chunks),
-                    section.text,
-                    span,
-                    document_id=document_id,
-                    course_id=course_id,
-                    knowledge_base_id=knowledge_base_id,
-                    original_filename=original_filename,
-                    file_format=document.file_format,
-                    location=section.location,
-                    section_index=section.index,
+        endpoints = [0, *cuts.get(section.index, []), len(section.text)]
+        for range_start, range_end in pairwise(endpoints):
+            text = section.text[range_start:range_end]
+            for start, end in _split_spans(text, max_chars, overlap_chars):
+                chunks.append(
+                    _build_chunk(
+                        len(chunks),
+                        section.text,
+                        (range_start + start, range_start + end),
+                        document_id=document_id,
+                        course_id=course_id,
+                        knowledge_base_id=knowledge_base_id,
+                        original_filename=original_filename,
+                        file_format=document.file_format,
+                        location=section.location,
+                        section_index=section.index,
+                        heading_level=section.heading_level,
+                        heading_path=section.heading_path,
+                    )
                 )
-            )
-    return tuple(chunks)
-
-
-def _chunk_markdown_document(
-    document: CleanedDocument,
-    *,
-    document_id: UUID | None,
-    course_id: UUID | None,
-    knowledge_base_id: UUID | None,
-    original_filename: str,
-    max_chars: int,
-    overlap_chars: int,
-) -> tuple[TextChunk, ...]:
-    """合并 Markdown 标题与相邻正文后再分块，避免标题或短 section 单独成块。"""
-
-    groups: list[tuple[str, str, int]] = []
-    current_text: list[str] = []
-    current_locations: list[str] = []
-    current_section_index = 0
-    pending_heading_text: list[str] = []
-    pending_heading_locations: list[str] = []
-
-    def flush() -> None:
-        if not current_text:
-            return
-        groups.append(
-            (
-                "\n\n".join(current_text),
-                "；".join(current_locations),
-                current_section_index,
-            )
-        )
-
-    for section in document.sections:
-        # 解析器把没有正文的章节标题作为独立 section；暂存到下一段正文前，避免标题单独成块。
-        if "\n" not in section.text:
-            pending_heading_text.append(section.text)
-            pending_heading_locations.append(section.location)
-            continue
-
-        section_text = "\n\n".join((*pending_heading_text, section.text))
-        section_locations = [*pending_heading_locations, section.location]
-        pending_heading_text.clear()
-        pending_heading_locations.clear()
-        candidate = "\n\n".join((*current_text, section_text))
-        # 小于 100 字符的短 section 即使略超上限也与相邻正文合并。
-        short_section = len(section_text) < 100
-        if current_text and len(candidate) > max_chars and not short_section:
-            flush()
-            current_text.clear()
-            current_locations.clear()
-            current_section_index = 0
-        if not current_text:
-            current_section_index = section.index
-        current_text.append(section_text)
-        current_locations.extend(section_locations)
-    # 末尾没有正文的标题不单独产出 chunk。
-    flush()
-
-    chunks: list[TextChunk] = []
-    for merged_text, location, section_index in groups:
-        spans = _split_spans(merged_text, max_chars, overlap_chars)
-        for span in spans:
-            chunks.append(
-                _build_chunk(
-                    len(chunks),
-                    merged_text,
-                    span,
-                    document_id=document_id,
-                    course_id=course_id,
-                    knowledge_base_id=knowledge_base_id,
-                    original_filename=original_filename,
-                    file_format=document.file_format,
-                    location=location,
-                    section_index=section_index,
-                )
-            )
     return tuple(chunks)
 
 
@@ -347,4 +301,5 @@ __all__ = [
     "TextChunk",
     "chunk_document",
     "chunk_text",
+    "validate_source_splits",
 ]

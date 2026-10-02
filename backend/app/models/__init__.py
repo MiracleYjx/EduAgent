@@ -5,6 +5,7 @@ from backend.app.models.agent_run import AgentRun
 from backend.app.models.answer import Answer
 from backend.app.models.associations import exam_questions, user_roles
 from backend.app.models.audit_log import AuditLog
+from backend.app.models.chapter import Chapter
 from backend.app.models.course import Course
 from backend.app.models.diagnosis_report import DiagnosisReport
 from backend.app.models.document import Document
@@ -39,6 +40,7 @@ __all__ = [
     "Answer",
     "AuditLog",
     "Base",
+    "Chapter",
     "Course",
     "DiagnosisReport",
     "Document",

@@ -6,7 +6,8 @@ import asyncio
 import hashlib
 import re
 from collections.abc import Callable, Sequence
-from datetime import datetime
+from copy import deepcopy
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 from uuid import UUID, uuid4
@@ -17,18 +18,32 @@ from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session, selectinload
 
 from backend.app.ai.embedding.base import EMBEDDING_DIMENSION_MISMATCH
-from backend.app.ai.ingestion.parsers import DOCUMENT_PARSE_FAILED
+from backend.app.ai.ingestion.chunking import chunk_document
+from backend.app.ai.ingestion.parsers import DOCUMENT_PARSE_FAILED, DocumentParseError
 from backend.app.ai.ingestion.service import (
     KNOWLEDGE_BASE_EMPTY,
     IngestionResult,
     IngestionService,
     IngestionTransition,
     StatusListener,
+    prepare_document_source,
     resolve_error_message,
 )
-from backend.app.domain.enums import DocumentPurpose, DocumentStatus
-from backend.app.models import Course, Document, DocumentChunk, KnowledgeBase, User
+from backend.app.domain.enums import DocumentPurpose, DocumentStatus, UserRole
+from backend.app.models import (
+    Chapter,
+    Course,
+    Document,
+    DocumentChunk,
+    KnowledgeBase,
+    User,
+)
 from backend.app.models.document_chunk import EMBEDDING_VECTOR_DIMENSION
+from backend.app.schemas.chapter_scope import (
+    ChapterWrite,
+    ChunkScopeUpdate,
+    SourceSplit,
+)
 from backend.app.services.audit_service import audit_after_commit
 from backend.app.services.course_service import (
     CourseNotFoundError,
@@ -579,7 +594,6 @@ class KnowledgeBaseService:
         )
         return document
 
-
     def upload_document(
         self,
         course_id: UUID | str | None = None,
@@ -796,6 +810,345 @@ class KnowledgeBaseService:
             teacher_id=teacher_id,
         )
 
+    def _scope_teacher(
+        self, course_id: UUID | str, teacher_id: UUID | str | None
+    ) -> UUID:
+        """Scope facts require an active real teacher and a serialized course write boundary."""
+        actor = _resolve_actor_id(teacher_id)
+        course = self._load_course(course_id)
+        if actor is None:
+            raise KnowledgeBasePermissionError("章节核对必须由已登录教师操作。")
+        self._ensure_course_access(course, actor)
+        user = self.session.get(User, actor)
+        if (
+            user is None
+            or not user.is_active
+            or not any(role.name == UserRole.TEACHER for role in user.roles)
+        ):
+            raise KnowledgeBasePermissionError("章节核对必须由真实启用的教师账户操作。")
+        self.session.execute(
+            select(Course.id).where(Course.id == course.id).with_for_update()
+        )
+        return actor
+
+    @staticmethod
+    def _chapter_detail(chapter: Chapter) -> dict[str, Any]:
+        return {
+            "id": str(chapter.id),
+            "course_id": str(chapter.course_id),
+            "title": chapter.title,
+            "sections": deepcopy(chapter.sections),
+            "confirmed_by": str(chapter.confirmed_by),
+            "confirmed_at": chapter.confirmed_at,
+            "created_at": chapter.created_at,
+            "updated_at": chapter.updated_at,
+        }
+
+    def _load_chapter(self, chapter_id: UUID | str) -> Chapter:
+        chapter = self.session.get(Chapter, _normalize_uuid(chapter_id, "章节标识"))
+        if chapter is None:
+            raise KnowledgeBaseNotFoundError("章节不存在。")
+        return chapter
+
+    def _commit_scope(self) -> None:
+        try:
+            self.session.commit()
+        except IntegrityError as exc:
+            self.session.rollback()
+            raise KnowledgeBaseConflictError("章节或片段变更与当前引用冲突。") from exc
+        except SQLAlchemyError as exc:
+            self.session.rollback()
+            raise KnowledgeBaseServiceError("章节核对保存失败。") from exc
+
+    def list_chapters(
+        self, course_id: UUID | str, teacher_id: UUID | str | None
+    ) -> list[dict[str, Any]]:
+        self._scope_teacher(course_id, teacher_id)
+        chapters = self.session.scalars(
+            select(Chapter)
+            .where(Chapter.course_id == _normalize_uuid(course_id, "课程标识"))
+            .order_by(Chapter.created_at, Chapter.id)
+        ).all()
+        return [self._chapter_detail(chapter) for chapter in chapters]
+
+    def create_chapter(
+        self,
+        course_id: UUID | str,
+        request: ChapterWrite,
+        teacher_id: UUID | str | None,
+    ) -> dict[str, Any]:
+        actor = self._scope_teacher(course_id, teacher_id)
+        request = ChapterWrite.model_validate(request)
+        chapter = Chapter(
+            course_id=_normalize_uuid(course_id, "课程标识"),
+            title=request.title,
+            sections=[section.model_dump() for section in request.sections],
+            confirmed_by=actor,
+            confirmed_at=datetime.now(UTC),
+        )
+        self.session.add(chapter)
+        self._commit_scope()
+        return self._chapter_detail(chapter)
+
+    def update_chapter(
+        self,
+        chapter_id: UUID | str,
+        request: ChapterWrite,
+        teacher_id: UUID | str | None,
+        *,
+        preserve_section_meaning: bool = False,
+    ) -> dict[str, Any]:
+        chapter = self._load_chapter(chapter_id)
+        actor = self._scope_teacher(chapter.course_id, teacher_id)
+        self.session.refresh(chapter)
+        request = ChapterWrite.model_validate(request)
+        sections = [section.model_dump() for section in request.sections]
+        if preserve_section_meaning and [
+            entry["section_order"] for entry in sections
+        ] != [entry["section_order"] for entry in chapter.sections]:
+            raise KnowledgeBaseValidationError(
+                "只修正标题时不得新增、删减或改变小节序号。"
+            )
+        if sections != chapter.sections and not preserve_section_meaning:
+            # A revised directory does not prove any old chunk still belongs to this chapter.
+            chunks = self.session.scalars(
+                select(DocumentChunk)
+                .where(DocumentChunk.chapter_id == chapter.id)
+                .with_for_update()
+            ).all()
+            for chunk in chunks:
+                metadata = self._scope_metadata(chunk)
+                confirmation = metadata.setdefault("scope_confirmation", {})
+                confirmation.pop("location", None)
+                chunk.chunk_metadata = metadata
+                chunk.chapter_id = None
+                chunk.section_order = None
+        chapter.title = request.title
+        chapter.sections = sections
+        chapter.confirmed_by = actor
+        chapter.confirmed_at = datetime.now(UTC)
+        self._commit_scope()
+        return self._chapter_detail(chapter)
+
+    def delete_chapter(
+        self, chapter_id: UUID | str, teacher_id: UUID | str | None
+    ) -> None:
+        chapter = self._load_chapter(chapter_id)
+        self._scope_teacher(chapter.course_id, teacher_id)
+        if (
+            self.session.scalar(
+                select(DocumentChunk.id)
+                .where(DocumentChunk.chapter_id == chapter.id)
+                .limit(1)
+            )
+            is not None
+        ):
+            raise KnowledgeBaseConflictError(
+                "章节仍被知识片段引用，请先核对并清除或重新定位。"
+            )
+        self.session.delete(chapter)
+        self._commit_scope()
+
+    @staticmethod
+    def _scope_metadata(chunk: DocumentChunk) -> dict[str, Any]:
+        metadata = deepcopy(chunk.chunk_metadata)
+        if not isinstance(metadata, dict):
+            raise KnowledgeBaseValidationError(
+                "片段历史 metadata 不是对象，请人工检查。"
+            )
+        confirmation = metadata.get("scope_confirmation")
+        if confirmation is not None and not isinstance(confirmation, dict):
+            raise KnowledgeBaseValidationError("片段历史核对记录格式错误，请人工检查。")
+        if confirmation is None:
+            metadata.pop("scope_confirmation", None)
+        return metadata
+
+    @staticmethod
+    def _chunk_detail(chunk: DocumentChunk) -> dict[str, Any]:
+        return {
+            "id": str(chunk.id),
+            "chunk_index": chunk.chunk_index,
+            "content": chunk.content,
+            "metadata": deepcopy(chunk.chunk_metadata),
+            "has_embedding": chunk.embedding is not None,
+            "chapter_id": str(chunk.chapter_id)
+            if chunk.chapter_id is not None
+            else None,
+            "section_order": chunk.section_order,
+        }
+
+    def confirm_chunk_scope(
+        self,
+        chunk_id: UUID | str,
+        request: ChunkScopeUpdate,
+        teacher_id: UUID | str | None,
+    ) -> dict[str, Any]:
+        chunk = self.session.get(DocumentChunk, _normalize_uuid(chunk_id, "片段标识"))
+        if chunk is None:
+            raise KnowledgeBaseNotFoundError("知识片段不存在。")
+        actor = self._scope_teacher(chunk.course_id, teacher_id)
+        self.session.refresh(chunk)
+        document = self._load_document(chunk.document_id)
+        self.session.refresh(document)
+        kb = self._load_knowledge_base(chunk.knowledge_base_id)
+        if not (
+            chunk.course_id == document.course_id == kb.course_id
+            and document.knowledge_base_id == kb.id
+        ):
+            raise KnowledgeBaseValidationError(
+                "片段、教学资料与知识库的课程归属不一致。"
+            )
+        if document.status != DocumentStatus.READY:
+            raise KnowledgeBaseValidationError(
+                "只有 Ready 教学资料可以核对定位和标签。"
+            )
+        request = ChunkScopeUpdate.model_validate(request)
+        if not request.model_fields_set:
+            raise KnowledgeBaseValidationError(
+                "请明确提交需要确认或清除的定位/知识点。"
+            )
+        metadata = self._scope_metadata(chunk)
+        confirmation = metadata.setdefault("scope_confirmation", {})
+        evidence = {
+            "confirmed_by": str(actor),
+            "confirmed_at": datetime.now(UTC).isoformat(),
+        }
+        if request.model_fields_set & {"chapter_id", "section_order"}:
+            chapter_id = (
+                request.chapter_id
+                if "chapter_id" in request.model_fields_set
+                else chunk.chapter_id
+            )
+            section_order = (
+                request.section_order
+                if "section_order" in request.model_fields_set
+                else chunk.section_order
+            )
+            if (
+                "chapter_id" in request.model_fields_set
+                and chapter_id != chunk.chapter_id
+                and "section_order" not in request.model_fields_set
+            ):
+                section_order = None
+            if chapter_id is None:
+                if (
+                    "section_order" in request.model_fields_set
+                    and section_order is not None
+                ):
+                    raise KnowledgeBaseValidationError("未知章节不能确认小节序号。")
+                section_order = None
+                confirmation.pop("location", None)
+            else:
+                chapter = self._load_chapter(chapter_id)
+                if chapter.course_id != chunk.course_id:
+                    raise KnowledgeBaseValidationError("章节不属于片段所在课程。")
+                if section_order is not None and section_order not in {
+                    section["section_order"] for section in chapter.sections
+                }:
+                    raise KnowledgeBaseValidationError(
+                        "小节序号不在当前已确认章节目录中。"
+                    )
+                confirmation["location"] = dict(evidence)
+            chunk.chapter_id, chunk.section_order = chapter_id, section_order
+        if "knowledge_points" in request.model_fields_set:
+            metadata["knowledge_points"] = request.knowledge_points
+            if request.knowledge_points is None:
+                confirmation.pop("knowledge_points", None)
+            else:
+                confirmation["knowledge_points"] = dict(evidence)
+        chunk.chunk_metadata = metadata
+        self._commit_scope()
+        return self._chunk_detail(chunk)
+
+    @staticmethod
+    def _prepare_scope_source(document: Document, payload: bytes):
+        try:
+            return prepare_document_source(
+                filename=document.original_filename, data=payload
+            )
+        except DocumentParseError as exc:
+            raise DocumentValidationError(
+                f"{exc.error_code}：{exc.user_message}"
+            ) from exc
+
+    def document_source_sections(
+        self, document_id: UUID | str, teacher_id: UUID | str | None
+    ) -> list[dict[str, Any]]:
+        document = self._load_document(document_id)
+        self._scope_teacher(document.course_id, teacher_id)
+        cleaned = self._prepare_scope_source(
+            document, self._read_document_content(document, None)
+        )
+        return [
+            {
+                "section_index": section.index,
+                "location": section.location,
+                "text": section.text,
+                "heading_level": section.heading_level,
+                "heading_path": list(section.heading_path),
+                "start_char": 0,
+                "end_char": len(section.text),
+            }
+            for section in cleaned.sections
+        ]
+
+    def resplit_document(
+        self,
+        document_id: UUID | str,
+        source_splits: Sequence[SourceSplit],
+        teacher_id: UUID | str | None,
+        *,
+        ingestion_service_factory: Callable[[StatusListener], IngestionService]
+        | None = None,
+    ) -> DocumentIngestionResult:
+        document = self._load_document(document_id)
+        self._scope_teacher(document.course_id, teacher_id)
+        self.session.refresh(document)
+        if document.status not in {DocumentStatus.READY, DocumentStatus.FAILED}:
+            raise KnowledgeBaseValidationError("当前资料正在处理，不能同时重切分。")
+        payload = self._read_document_content(document, None)
+        splits = [SourceSplit.model_validate(value) for value in source_splits]
+        if not splits:
+            raise KnowledgeBaseValidationError(
+                "重切分必须明确提供至少一个原稿段落的真实边界。"
+            )
+        cleaned = self._prepare_scope_source(document, payload)
+        # Validate all cuts before changing lifecycle state or invoking an embedding provider.
+        chunk_document(
+            cleaned,
+            document_id=document.id,
+            course_id=document.course_id,
+            knowledge_base_id=document.knowledge_base_id,
+            original_filename=document.original_filename,
+            source_splits=splits,
+        )
+
+        def persist_transition(transition: IngestionTransition) -> None:
+            if transition.status in {DocumentStatus.CHUNKING, DocumentStatus.EMBEDDING}:
+                self.update_document_status(
+                    document.id, transition.status, teacher_id=teacher_id
+                )
+
+        self.update_document_status(
+            document.id, DocumentStatus.PARSING, teacher_id=teacher_id
+        )
+        runner = (ingestion_service_factory or _default_ingestion_service_factory)(
+            persist_transition
+        )
+        result = asyncio.run(
+            runner.ingest(
+                filename=document.original_filename,
+                data=payload,
+                document_id=document.id,
+                course_id=document.course_id,
+                knowledge_base_id=document.knowledge_base_id,
+                source_splits=splits,
+            )
+        )
+        return self._persist_ingestion_result(
+            document, result, teacher_id=teacher_id, preserve_failed_chunks=True
+        )
+
     def list_document_chunks(
         self,
         document_id: UUID | str,
@@ -817,16 +1170,7 @@ class KnowledgeBaseService:
             chunks = self.session.scalars(statement).all()
         except SQLAlchemyError as exc:
             raise KnowledgeBaseServiceError("无法读取知识片段。") from exc
-        return [
-            {
-                "id": str(chunk.id),
-                "chunk_index": chunk.chunk_index,
-                "content": chunk.content,
-                "metadata": chunk.chunk_metadata,
-                "has_embedding": chunk.embedding is not None,
-            }
-            for chunk in chunks
-        ]
+        return [self._chunk_detail(chunk) for chunk in chunks]
 
     def _read_document_content(self, document: Document, content: bytes | None) -> bytes:
         """Native files use persisted originals; explicit legacy byte callers remain supported."""
@@ -849,10 +1193,12 @@ class KnowledgeBaseService:
         result: IngestionResult,
         *,
         teacher_id: UUID | str | None = None,
+        preserve_failed_chunks: bool = False,
     ) -> DocumentIngestionResult:
-        """把摄取结果写入文档状态与知识片段，失败时清理残留片段。"""
+        """Publish replacement chunks atomically; explicit re-split failures retain diagnostic originals."""
 
-        self._delete_document_chunks(document.id)
+        if not preserve_failed_chunks:
+            self._delete_document_chunks(document.id)
         if not result.succeeded:
             return self._mark_ingestion_failed(document, result, teacher_id=teacher_id)
 
@@ -890,6 +1236,8 @@ class KnowledgeBaseService:
             for row in rows:
                 row.search_vector = func.to_tsvector("simple", row.content)
         try:
+            if preserve_failed_chunks:
+                self._delete_document_chunks(document.id)
             self.session.add_all(rows)
             self.session.flush()
             self._mark_document_ready(document)
@@ -897,7 +1245,8 @@ class KnowledgeBaseService:
             self.session.commit()
         except DocumentValidationError as exc:
             self.session.rollback()
-            self._delete_document_chunks(document.id)
+            if not preserve_failed_chunks:
+                self._delete_document_chunks(document.id)
             return self._mark_ingestion_failed(
                 document,
                 result,
@@ -908,7 +1257,8 @@ class KnowledgeBaseService:
             )
         except (IntegrityError, SQLAlchemyError) as exc:
             self.session.rollback()
-            self._delete_document_chunks(document.id)
+            if not preserve_failed_chunks:
+                self._delete_document_chunks(document.id)
             return self._mark_ingestion_failed(
                 document,
                 result,
