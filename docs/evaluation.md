@@ -123,3 +123,120 @@ T168 依据此协议的原始计数、失败/覆盖率和分层基线提出各�
 来源为 Codex 新编固定合成原稿和夹具；AI 草稿建议单列，正式教师身份/时间/标签、独立统计表均留空。当前真实教师标注 0，ready_for_formal_baseline=false，quality_thresholds=null。候选 Approved 仅是未来隔离夹具目标，无真实教师批准；同题两场的分值与最终/待复核/失败/缺依据是输入场景，不是已产生的新业务记录。
 
 本次仅核对文件/页数/文字层/渲染、结构/引用/摘要、组合和固定 Decimal 算术。没有模型、OCR、性能、资源、EXE 或恢复实验结果，不声明 SC/Gate 通过。教师补齐独立真值和真实来源后另建/冻结版本，再核对全量覆盖、实际数量/ID及未知项；T160/T168/T179/T189/T190/T191 承接正式执行，T168 真实基线后再提出质量阈值。
+
+
+## T155 OCR 候选依赖技术评估（2026-10-02）
+
+### 本批范围与证据边界
+
+按用户本次明确指令，T155 仅使用现有扫描件样本进行推理依赖评估，**不等待 T146 教师标注**；T146 保持未完成，教师真值和质量阈值由 T168 承接。本批不填写 CER/WER、字段准确率或教师认可比例，也不宣告正式质量、系统性能或产品 EXE 验收通过。用户已确认首版 RapidOCR＋ONNX CPU；本批只记录选型，适配器和业务依赖交 T156 实施。
+
+输入为 `benchmark/corpus/v2-draft-20261001`，dataset_version=`v2-draft-20261001-1`。扫描件来自合成数学试卷栅格化，未覆盖实拍噪声、倾斜、手写、复杂分式/根式、复杂合并单元格。报告下述成功次数仅表示 SDK 返回可校验文字/区域，不能解释为内容准确率。
+
+### 样本与路由核对
+
+| 文件 | 页数 | 无文字层页 | 原生文字读取中位耗时（3 次，ms） | SHA256 前 12 位 |
+| :--- | ---: | :--- | ---: | :--- |
+| paper_cross_page.pdf | 2 | 无 | 6.67 | 8c6a18f125a3 |
+| paper_mixed.pdf | 2 | [2] | 5.59 | 5c0affa1fb5e |
+| paper_scan.pdf | 1 | [1] | 1.08 | 16aaa00c8b41 |
+| workload_10_pages.pdf | 10 | 无 | 23.06 | bdca8f730b98 |
+| workload_50_pages.pdf | 50 | 无 | 108.39 | 11fceae00e43 |
+| workload_51_pages.pdf | 51 | 无 | 111.69 | e37bf3d92a7e |
+
+扫描卷第 1 页和混合卷第 2 页需 OCR；跨页卷与负载卷有原生文字，正常导入应按契约优先读取文字。本批将 1/2/10/50 页全部渲染成图作为额外 OCR 压力试验，不把该耗时等同实际导入耗时。51 页样本读取/渲染已核对，只记录超出 50 页准入上限，不送 OCR，也不声称尚待 T157 实施的业务拒绝已验收。
+
+### 环境和候选
+
+Windows 11 家庭版中文，10.0.26200；AMD Ryzen 5 4600H，6 核/12 逻辑处理器，约 15.37 GiB RAM；CPython 3.13.13 x64。单进程串行，CPU 推理线程 2，未限制 CPU 亲和性、未停止其他本机服务。Poppler `pdftoppm -r 150 -png`，每页 1241×1754 像素；相同 PNG 提供给两个 SDK，其内部缩放/过滤保留各自默认并分别记录，不视为算法公平性基准。
+
+- **A：PaddleOCR 3.7.0 / PaddlePaddle 3.3.1 CPU / PaddleX 3.7.2 / PP-OCRv5_mobile_det + PP-OCRv5_mobile_rec**。显式关闭文档方向、矫正和行方向模块，仅基础 OCR 推理，无训练包及 `all/doc-parser` 扩展。安装解析 72 个分发包（含测量 psutil），site-packages 721.29 MiB；独立模型参数约 20.17 MiB（尚未计配置/结构文件）。基础文字 OCR 与公式/表格结构识别是不同能力组，不能用文字块冒充公式 LaTeX 或表格关系。[官方安装与能力分组](https://www.paddleocr.ai/main/en/version3.x/installation.html)、[3.7.0 发行元数据](https://pypi.org/project/paddleocr/3.7.0/)。
+- **B：RapidOCR 3.9.2 / ONNX Runtime 1.30.0 CPU / PP-OCRv5 mobile 检测与识别模型**。通过 SDK 枚举显式选 PP-OCRv5 mobile，避免该版本默认 PP-OCRv6 small 随配置混入；关闭行方向调用，但 SDK 初始化仍加载 PP-OCRv4 分类模型。推理初始环境 23 个包（含 psutil），加入独立打包工具后 site-packages 260.59 MiB。无 PaddlePaddle、CUDA、训练依赖；输出同样是区域文字与置信度，不能自行恢复表格/流程关系。[官方快速开始](https://rapidai.github.io/RapidOCRDocs/main/quickstart/)、[模型与默认版本说明](https://rapidai.github.io/RapidOCRDocs/main/model_list/)、[3.9.2 发行元数据](https://pypi.org/project/rapidocr/3.9.2/)。
+
+NumPy/OpenCV 实测版本不同：A=2.3.5/4.10.0.84（contrib），B=2.5.3/5.0.0.93；完整安装快照保留于本机缓存，均未修改 `pyproject.toml` 或现有应用环境。安装目录体积包含 Python 包及测量工具，并非产品包大小；B 另含 PyInstaller 工具，不能作为两者最小压缩体积的精确比较。
+
+### 真实故障与观察
+
+A 默认 MKL-DNN/oneDNN 配置在首个扫描页即抛出 `NotImplementedError: ConvertPirAttribute2RuntimeAttribute not support [pir::ArrayAttribute<pir::DoubleAttribute>]`（onednn_instruction.cc:118）；默认配置整批未产生可用 OCR。已保留失败，另行显式 `enable_mkldnn=False` 评估同版模型，此配置可识别扫描及跨页页图；不添加运行时自动降级。
+
+B SDK 首次从 ModelScope 流式下载检测模型时出现 `ChunkedEncodingError / IncompleteRead(0 bytes read, 4819576 more expected)`。后以同一官方 URL 预置模型、校验 SDK 清单 SHA256 后读取成功，未换模型/Provider。离线交付应预置所选模型并验证可读；缺失/坏文件/初始化失败继续明确报错。首次下载和依赖安装不计入页推理耗时。
+
+两者扫描页均返回 26 个文字区域，保留原选项 `C.7 A.5 B.6 D.8`、`cm²`、`2 × 3 + 1` 及图中高/底文字；扫描表格表头出现 `说明 / X / y` 的平面文字顺序，大小写和空格亦有变化。跨页续文与流程节点可识别，但合并同一道题、图形/箭头关系和答案核验仍属于下游拆题/图片理解/教师校正，不能由 OCR 输出自动认定正确。
+
+### 计时、资源及 Windows 打包
+
+每候选成功配置串行完成 65 次页图调用（样本含重复内容，次数不代表独立质量样本），每个输入页仅 1 次；另在扫描页进行 1 次预热＋5 次暖态推理。A 默认配置的 65 次失败独立保留，失败耗时不当作识别性能。坐标按原图像素检查，原生四角区域各点均在 1241×1754 范围内，置信度有限且在 [0,1]，两成功配置的 65 页均通过该技术检查。教师真值未参与，所以不称准确率。
+
+| 指标 | A（显式关闭 MKL-DNN） | B（ONNX CPU） |
+| :--- | ---: | ---: |
+| 扫描卷，1 页，总推理秒数 | 12.86 | 2.61 |
+| 混合卷栅格化，2 页，总推理秒数 | 25.81 | 7.27 |
+| 跨页卷栅格化，2 页，总推理秒数 | 12.71 | 4.97 |
+| 10 页栅格化压力，总推理秒数 | 69.09 | 15.17 |
+| 50 页栅格化压力，总推理秒数 | 351.42 | 73.58 |
+| 成功返回/实际页调用数 | 65/65 | 65/65 |
+| 扫描页 5 次暖态中位数，秒 | 12.943 | 2.334 |
+| 预置模型的新进程初始化，秒（含 SDK 导入） | 25.899 | 1.577 |
+| 全批进程 RSS 峰值，MiB（20 ms 采样） | 559.25 | 1039.19 |
+
+
+B 首轮暖态秒数为 [2.528, 6.480, 5.343, 4.167, 3.955]，与 A 安装尾段重叠，仅保留观察值；安装和 A 推理结束后独立复测为 [2.334, 2.328, 2.305, 2.339, 2.356]，表中使用后者，首轮记录不删除。A 暖态为 [12.848, 13.169, 12.943, 13.103, 12.855]。B 全批完成 UTC=2026-10-02T06:42:54.824584+00:00，A 成功配置完成 UTC=2026-10-02T06:55:03.184601+00:00，B 复测完成 UTC=2026-10-02T06:55:33.783732+00:00；源码基线 fb7f883ff9bdef346d3652c56420b7bec510c6f5，仅用于追溯。
+
+A 首次 49.082 秒初始化含模型下载/网络检查，另有缓存后 25.899 秒；B 首次 2.976 秒仍含分类模型下载，复测 1.577 秒使用全部预置模型。不能将它们当作正式应用冷启动 3 轮统计。RSS 是整个独立进程瞬时观测，包含 SDK、图像处理及评测代码，非持久占用或完整系统预算；未做多并发、长时间运行或性能达标承诺。页总耗时不含渲染、下载、模型初始化、拆题、模型调用、教师校正和持久化。
+
+**Windows 独立 OCR 打包实测**：PyInstaller 6.22.3 / hooks 2026.8 的 onedir 构建完成；目录 254.00 MiB（含 SDK 自带数据，不含外置 v5 模型），EXE 9209733 bytes。清除 PYTHONPATH/PYTHONHOME、PATH 仅制品目录＋System32，HTTP/HTTPS/ALL_PROXY 设为不可用的 127.0.0.1:9，在同机读取预置模型，运行 4.825 秒、退出码 0，扫描页 26 个文字区域的文本序列与 Python 原输出一致。仅此 OCR 冒烟制品，没有构建 EduAgent UI/API/数据库启动器、验证干净 Windows 主机或 onefile；不宣告 T186/T189 完成。
+
+构建过程中提示未安装 TensorRT 和 ONNX 量化模块；本次选 CPU ONNX 推理，EXE 实际推理通过，未为消除无关模块提示引入 GPU/导出依赖。Windows ONNX Runtime 仍有 Visual C++ 2019 runtime 要求，干净机器需核对。[官方 ONNX Runtime 安装条件](https://onnxruntime.ai/docs/install/)。A 本批未做 EXE 构建；官方 PyInstaller 指南需收集 Paddle 动态库、PaddleX 数据及依赖 metadata，列出的已测试组合是 Python 3.10/PaddleOCR 3.1，不能视为本次 3.13/3.7 制品通过。[PaddleOCR 官方打包指南](https://github.com/PaddlePaddle/PaddleOCR/blob/main/docs/version3.x/inference_deployment/others/packaging.en.md)。
+
+### 已选模型与复现入口
+
+模型来源为所安装 RapidOCR 3.9.2 的 default_models.yaml 所列 ModelScope v3.9.2 官方资源；手工预置检测/识别文件与 SDK 清单摘要一致，分类文件由 SDK 成功下载，随后同样核对。
+
+| 文件 | bytes | SHA256 |
+| :--- | ---: | :--- |
+| ch_PP-OCRv5_det_mobile.onnx | 4819576 | 4d97c44a20d30a81aad087d6a396b08f786c4635742afc391f6621f5c6ae78ae |
+| ch_PP-OCRv5_rec_mobile.onnx | 16631306 | 5825fc7ebf84ae7a412be049820b4d86d77620f204a041697b0494669b1742c5 |
+| ch_ppocr_mobile_v2.0_cls_mobile.onnx | 585532 | e47acedf663230f8863ff1ab0e64dd2d82b838fceb5957146dab185a89d6215c |
+
+
+同机原始证据保留在忽略 Git 的 `.cache/t155-ocr-20261002/`：samples.json、native-timings.json、render-timings.json，paddle/rapid/rapid-quick/paddle-no-mkldnn 的 result.json 与 pages.jsonl、错误/构建日志、packaging-result.json、两环境 lock.txt、模型清单与评测脚本。它们是本机临时实验材料，不承诺随 Git 分发或长期保留；本页的输入指纹、版本、原始暖态值、结果与故障摘要随提交保存。不是 v2 正式质量基线目录或 v1 Benchmark 结果格式。
+
+复现关键命令（在隔离 Python 环境执行，模型按上表预置；源码评测脚本本机可用）：
+
+```powershell
+uv venv .cache/t155-recheck --python D:\develop\Python\python.exe
+uv pip install --python .cache/t155-recheck/Scripts/python.exe rapidocr==3.9.2 onnxruntime==1.30.0 psutil pyinstaller==6.22.3
+# 本机完整原始试验
+.cache/t155-ocr-20261002/rapid-env/Scripts/python.exe .cache/t155-ocr-20261002/evaluate_ocr.py rapid
+.cache/t155-ocr-20261002/paddle-env/Scripts/python.exe .cache/t155-ocr-20261002/evaluate_ocr.py paddle-no-mkldnn
+# 独立构建所选 OCR，模型目录外置
+.cache/t155-ocr-20261002/rapid-env/Scripts/python.exe -m PyInstaller --onedir --name t155_rapid_smoke --distpath .cache/t155-ocr-20261002/dist --workpath .cache/t155-ocr-20261002/build --specpath .cache/t155-ocr-20261002 --collect-all rapidocr --collect-all onnxruntime --copy-metadata rapidocr --copy-metadata onnxruntime .cache/t155-ocr-20261002/rapid_smoke.py
+```
+
+无需本机脚本的最小识别入口（不是业务适配器；输入采用 150 DPI PNG，models 目录含上表 3 个文件）：
+
+```python
+from rapidocr import RapidOCR, OCRVersion, ModelType
+
+engine = RapidOCR(params={
+    "Global.model_root_dir": "models",
+    "Global.use_cls": False,
+    "EngineConfig.onnxruntime.intra_op_num_threads": 2,
+    "EngineConfig.onnxruntime.inter_op_num_threads": 1,
+    "Det.ocr_version": OCRVersion.PPOCRV5,
+    "Det.model_type": ModelType.MOBILE,
+    "Rec.ocr_version": OCRVersion.PPOCRV5,
+    "Rec.model_type": ModelType.MOBILE,
+})
+out = engine("paper_scan-1.png")
+print(out.boxes, out.txts, out.scores)
+```
+
+实际接口使用 SDK 枚举，初试字符串值触发 TypeError，修正后才进入模型准备；此配置错误亦保留，不能归为模型识别质量故障。PDF 文字层可靠性与图中缺失文字的判断仍交 T157/T158；这里的字符计数只是路由清点，不把“有任意文字”自动等同整页信息完整。本批是依赖技术试验，不执行 T142 完整应用 3 冷/5 暖、教师标签或 EXE 首次/后续启动协议。
+
+
+### 推荐与首版决策（已确认）
+
+推荐并按用户本次答复锁定 B 的 CPU ONNX 路线：已完成扫描、混合、跨页和 10/50 页真实识别，依赖体积较小，避免本机 A 默认 oneDNN 兼容故障。B 的实际瞬时 RSS 峰值约 1 GiB，不能宣称与完整后端共存后满足 4 GiB 总预算。A 关闭 MKL-DNN 后可作为另一候选，但不得隐去默认配置失败及耗时成本。
+
+用户于 2026-10-02 明确选择“采用 RapidOCR＋ONNX CPU（推荐）”：首版关键依赖锁定 rapidocr==3.9.2、onnxruntime==1.30.0 CPU，检测/识别明确使用 PP-OCRv5 mobile，不随 SDK 默认升级为 v6；方向分类本轮关闭，但当前 SDK 初始化仍需对应 v4 分类文件。T156 延迟加载且默认关闭 OCR，首次模型准备需明确完成，依赖/模型未就绪与实际调用失败如实区分；不得在故障后自动切到 Paddle/云端。本批不修改 pyproject.toml、不实现 Provider、不新增迁移或测试。正式质量比较等待 T168 教师真值，产品 EXE 与资源验收由 E6/T189 承接。

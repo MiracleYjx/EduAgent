@@ -561,7 +561,7 @@ M0 工程骨架 + Benchmark
 
 - [X] T154 [HIGH] [E2] **实现题图资产及原页关系**：新增 `backend/app/models/question_asset.py`、`backend/app/api/question_assets.py`、相关 schema/迁移和服务，在文件服务绑定原图、裁图像素坐标、同导入页来源及最多 5 图；提供教师校正原图关联，学生资产仅含允许展示区域，避免把含答案整页当题图。G05 已确认的核对结构随暂存校正可靠保存，完整理解/处置服务在 T163 接入。 依赖：T138、T147、T148、T153。per FR-043、G05、data-model §7.4、file-storage（F021） (missing)
 
-- [ ] T155 [MEDIUM] [E2] **验证并确认 OCR 推理依赖**：在 `docs/evaluation.md` 记录候选 OCR 在标注扫描/公式表格/跨页与 Windows 打包环境的能力、版本、资源和局限，优先评估 plan 候选 PaddleOCR；给出少量方案的收益/代价，请用户锁定首版适配器与关键依赖后交给 T156。无需实现所有候选，不引入训练依赖。 依赖：T146。per FR-042、plan §9/14、ocr-provider（F022） (missing)
+- [X] T155 [MEDIUM] [E2] **验证并确认 OCR 推理依赖**：在 `docs/evaluation.md` 记录候选 OCR 在标注扫描/公式表格/跨页与 Windows 打包环境的能力、版本、资源和局限，优先评估 plan 候选 PaddleOCR；给出少量方案的收益/代价，请用户锁定首版适配器与关键依赖后交给 T156。无需实现所有候选，不引入训练依赖。 依赖：T146。per FR-042、plan §9/14、ocr-provider（F022） (missing)
 
 - [ ] T156 [HIGH] [E2] **实现可选 OCR Provider**：在新增 `backend/app/ai/ingestion/ocr/`、配置和 `pyproject.toml` 实现 BaseOCRProvider.extract_text/describe 及 T155 已确认适配器，Pydantic OCRResult/区域坐标/置信度校验、可选依赖延迟加载和真实错误传播；OCR_ENABLED 默认 false，扫描需要 OCR 时明确失败，空白页与坏输出分开，不静默换适配器。 依赖：T145、T155。per FR-042、ocr-provider、Constitution III/IV（F023） (missing)
 
