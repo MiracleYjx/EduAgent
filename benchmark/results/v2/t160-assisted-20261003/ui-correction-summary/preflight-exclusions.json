@@ -1,0 +1,30 @@
+[
+  {
+    "directory": "D:\\YJX\\MyCode\\EduAgent\\.cache\\t160-acceptance-20261002\\ui-correction\\text-cold-1",
+    "reason": "setup_preflight_no_actual_browser_start",
+    "diagnostic_ref": "D:\\YJX\\MyCode\\EduAgent\\.cache\\t160-acceptance-20261002\\ui-correction\\text-cold-1\\setup-diagnostic.json",
+    "has_service_receipt": true,
+    "is_formal_measurement": false
+  },
+  {
+    "directory": "D:\\YJX\\MyCode\\EduAgent\\.cache\\t160-acceptance-20261002\\ui-correction\\text-cold-1-js-observer",
+    "reason": "setup_preflight_no_actual_browser_start",
+    "diagnostic_ref": "D:\\YJX\\MyCode\\EduAgent\\.cache\\t160-acceptance-20261002\\ui-correction\\text-cold-1-js-observer\\setup-diagnostic.json",
+    "has_service_receipt": true,
+    "is_formal_measurement": false
+  },
+  {
+    "directory": "D:\\YJX\\MyCode\\EduAgent\\.cache\\t160-acceptance-20261002\\ui-correction\\text-cold-1-observer-fix",
+    "reason": "setup_preflight_no_actual_browser_start",
+    "diagnostic_ref": "D:\\YJX\\MyCode\\EduAgent\\.cache\\t160-acceptance-20261002\\ui-correction\\text-cold-1-observer-fix\\setup-diagnostic.json",
+    "has_service_receipt": true,
+    "is_formal_measurement": false
+  },
+  {
+    "directory": "D:\\YJX\\MyCode\\EduAgent\\.cache\\t160-acceptance-20261002\\ui-correction\\text-cold-1-observer-ready",
+    "reason": "setup_preflight_no_actual_browser_start",
+    "diagnostic_ref": "D:\\YJX\\MyCode\\EduAgent\\.cache\\t160-acceptance-20261002\\ui-correction\\text-cold-1-observer-ready\\setup-diagnostic.json",
+    "has_service_receipt": true,
+    "is_formal_measurement": false
+  }
+]

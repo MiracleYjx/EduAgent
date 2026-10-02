@@ -1,0 +1,74 @@
+{
+  "kind": "t160_experiment_script_provenance",
+  "recorded_at": "2026-10-02T17:14:26.723110+00:00",
+  "historical_business_source_commit": "6cea2ad",
+  "frozen_sources_unchanged_during_copy_preparation": true,
+  "submitted_copies_executed_on_paid_models": false,
+  "evidence_interpretation": "Historical evidence belongs to the frozen execution scripts and plans, not to the corrected portable copies. Resource-scope audit invalidates application/total budget coverage; no paid run was repeated. Frozen hashes are archived at packaging time, not claimed as pre-run signatures.",
+  "scripts": [
+    {
+      "frozen_execution_source": ".cache/t160-acceptance-20261002/performance-runner.py",
+      "frozen_source_sha256": "74b0ffbe2cf990607f2b517ea21c160c68d443ebb580e35168f28954acf188b1",
+      "submitted_copy": "benchmark/t160/performance_runner.py",
+      "submitted_copy_sha256": "1100d724a952e78dceab61e95d285ecce04adf87646acc426c075bf60fd91c50",
+      "changes_from_executed_source": [
+        "portable CLI defaults and unrecorded source identity unless explicitly provided",
+        "historical host metadata labelled historical",
+        "direct worker checks actual isolated database, Redis and storage before engine creation",
+        "incomplete worker records retain missing values and unobserved planned slots",
+        "actual worker PID handshake with verified Windows launched-parent chain; sample actual business worker instead of venv redirector",
+        "cleanup targets verified actual worker subtree; formatting and lint only otherwise",
+        "atomic two-way PID/sampling handshake; business work waits for verified real-worker sampling"
+      ]
+    },
+    {
+      "frozen_execution_source": ".cache/t160-acceptance-20261002/resource_sampler.py",
+      "frozen_source_sha256": "2244b4074e6b53e827ee7333e6af24fa1a6ec7fc0cb14346e9d162851b6e4d20",
+      "submitted_copy": "benchmark/t160/resource_sampler.py",
+      "submitted_copy_sha256": "4f440b3c16d7afb6af60ae11016c5d87c33e987f5ebce496fc7ebad9984f124e",
+      "changes_from_executed_source": [
+        "strict end window excludes samples completed after terminal boundary",
+        "read-only Windows process-tree verification helper",
+        "explicit subprocess check=False and equivalent pairwise iteration",
+        "formatting and lint"
+      ]
+    },
+    {
+      "frozen_execution_source": ".cache/t160-acceptance-20261002/fault-cases.py",
+      "frozen_source_sha256": "bbc5881de281b1e71161ac0db25072b80030febeaa9485ba60a6f141253f6a52",
+      "submitted_copy": "benchmark/t160/fault_cases.py",
+      "submitted_copy_sha256": "39178f0ece571b1e4115899c24e497d9d96dc5f87f6421c2c88505e396257fc5",
+      "changes_from_executed_source": [
+        "portable default run/isolation/output paths and unrecorded source identity",
+        "formatting and lint"
+      ]
+    }
+  ],
+  "plans": [
+    {
+      "path": "benchmark/results/v2/t160-assisted-20261003/import-performance/plan.json",
+      "sha256": "0545ff85bafc4ff4b9a7de5654a538bda1a6c0fd2c5a9a4ecd83ea06b3656494"
+    },
+    {
+      "path": ".cache/t160-acceptance-20261002/performance-plan.json",
+      "sha256": "a60937756cfcde3eea6132285373fd4b0320247cb6166c04c2c134b5da0a472a"
+    },
+    {
+      "path": ".cache/t160-acceptance-20261002/fault-plan.json",
+      "sha256": "ad8680ea90ac30b949cfe4eb27b5ca6dbe0282d13393ee1d2d5fafa60a40cb36"
+    }
+  ],
+  "resource_scope_audit": "benchmark/results/v2/t160-assisted-20261003/import-performance/resource-scope-audit.json",
+  "submitted_static_checks": {
+    "ruff": "passed",
+    "black_check_py313": "passed",
+    "py_compile": "passed",
+    "fault_plan_only": {
+      "cases": 4,
+      "cloud_requests": 0,
+      "database_writes": 0
+    },
+    "windows_parent_chain_probe": "read-only native check passed; no Docker or business work"
+  },
+  "updated_at": "2026-10-02T17:19:17.420178+00:00"
+}

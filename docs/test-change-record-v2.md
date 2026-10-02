@@ -451,3 +451,40 @@ T159 修夹具后的主壳先行：2 failed，分别在 generatorfunction 与动
 
 - 最终完整暂存快照：1975 passed / 0 failed / 0 errors / 2 skipped / 73 warnings；pytest857.99s（JUnit857.929s、外层872.539s，UTC13:33:04.305481Z）。191源文件mypy通过（201.131s），Ruff通过（0.505s），隔离Alembic check无差异（3.272s）。M0独立配置缺失及Windows符号链接权限两项skip保留，不当作通过。无断言放宽或测试特例。
 - 2026-10-02T13:48:26.213425Z精确清理本批DB/Redis；业务库0012_audit_logs未迁移，9项用户文件/.env字节不变，真实浏览器截图/持久重读/一次云调用超时留docs/evidence。只勾选本批T163/T164，T160继续待教师标注；不存在执行后hooks。
+
+## 18. T160 导入技术验收与授权代拟标注 TCR（2026-10-02；基线6cea2ad）
+
+登记UTC：2026-10-02T15:54:20.112159+00:00。用户要求现在执行T160，并授权AI代拟其所需导入标注。现有57条原标注全空；本次单独制作5个正常导入case的AI辅助逐字段草稿，登记时保留真实来源并待用户复核；用户于 16:14:48 UTC 实际确认后冻结为独立新版本。不改原包、developer_review阅卷分数或伪造教师身份/复核时间。T160勾选仍以实际完成证据为准。
+- 先运行既有导入/校正/资产合同、真PG集成和UI聚焦用例，原有断言不改。旧stub仅证明业务，不计OCR/LLM质量。
+- 已识别必要新覆盖：真PG生产autoflush=False同时PATCH与commit锁竞争，先校正后确认必须读取新值，先确认后编辑必须终态拒绝；注入明确OCRProviderError验证真实错误映射及原卷/已保存页图保留，不能假装空题成功。独立测试文件tests/integration/test_t160_import_acceptance.py；详细先行TCR由审计代理附录登记后才写测试。
+- 实际后端使用本批独立DB/Redis/目录启动、关闭并重启，验证持久原卷/页图/题图字节以及学生403；新Session/新Engine不冒充进程重启。使用已授权合成数据与受控拆题时明确technical_selftest，不声称模型质量或教师真值。
+- T142正式3轮质量、导入/切页3冷5暖计时与资源结论只能据实际运行；缺标签/真实模型/合法浏览器终点的部分保留待验。只清理本批确切命名资源，不迁移原业务库。全部10项用户文件（含.env/新增阅卷样本改动）受字节保护。
+### T160 最小技术验收测试变更申请（先行登记，已执行）
+
+#### 必要性
+既有真 PostgreSQL 测试仅证明两个 commit 并发幂等，以及完成后旧 Session 的迟到编辑被拒绝；没有证明 PATCH 持有真实业务锁期间 commit 会等待并读取已提交的新值。既有 OCR 禁用测试不证明调用失败与缺配置被区分。T160 明确要求并发校正/确认与 OCR 失败证据，需补足这两类行为，保留所有既有断言。
+
+#### 文件与范围
+新增 tests/integration/test_t160_import_acceptance.py；复用现有 test_paper_import_flow.context/receive/detail 及真实 PDF 样本和本地 PostgreSQL fixture，使用 autoflush=False 以匹配生产 SessionFactory。不改业务代码、旧测试、模型、依赖或契约，不调用云模型、不生成教师标签，不将 fault injection 或结构化 Provider stub 当作真实内容质量。
+
+#### 登记的行为用例（3 项已执行通过）
+1. PATCH 已持有同一导入的业务锁、在事务提交边界暂缓；另一个真实数据库 Session 发起 commit。通过 PostgreSQL pg_blocking_pids 观察确实等待该 Session，再释放提交；正式题须消费 PATCH 新题干/分值，原来源一致、只有一份正式题。
+2. commit 先完成后，先前已载入旧暂存身份的 Session 执行迟到 PATCH，须 PAPER_STATE_CONFLICT；不改变 Corrected/Ready、正式题及原校正内容。它是与第一例配套的反向顺序，不声称两个请求同时完成。
+3. 扫描 PDF 渲染并保存原卷/页图后，已声明就绪的本地 OCR 测试 Provider 在真实调用边界抛 OCRProviderError(OCR_CALL_FAILED)。结果须 Failed/PAPER_OCR_FAILED，保留明确阶段和原错误码，原卷/已保存 PNG 字节可读，无暂存题/无伪造 OCR 文字。另保留原有 OCR_PROVIDER_NOT_READY 回归，区分配置缺失与调用故障。
+
+#### 实际执行与范围边界
+本附录先登记到 docs/test-change-record-v2.md，根代理授权后才创建测试。2026-10-02T15:57:10.300679+00:00，在本批隔离 PostgreSQL/持久目录实际运行新增 3 项，3 passed（pytest 13.13s，外层 17.013s，exit 0）。未改业务实现或既有断言，无云调用。原始日志见 benchmark/results/v2/t160-assisted-20261003/technical/t160_added_first.log；原 TCR 计划与执行记录分开保留。
+
+
+### T160 本批验收口径确认与真实运行授权
+
+2026-10-02T16:14:48+00:00，用户明确确认 AI 代拟/原页对照后的参考，并采用“用户复核的 AI 辅助标注”口径；独立教师标签为 0，不改写原样本包。已授权完整 T142 的质量 3 轮、1/10/50 页导入及三类校正各 3 冷＋1 预热＋5 暖；实际文字模型请求预计约 300 次，不含现有策略重试，用户已知按 token 计费。沿用当前文本模型/端点/凭据，.env 保持原值。实际结果和未知/失败保存原始记录，不通过测试替身证明模型质量。
+
+### T160 本批已执行结果（2026-10-03）
+
+- 既有聚焦 75 passed（JUnit 82.474s，外层 92.331s）加新增 3 passed，共 78；只新增上述独立验收文件，未重写既有断言。实际 PostgreSQL 锁等待、迟到校正及明确 OCR_CALL_FAILED 均通过，配置未就绪与调用故障分开。
+- 固定损坏卷/51 页/OCR 未启用/显式 OCR 故障 4/4 通过，0 云调用。真实 create_app/lifespan 两次进程启动、30 项 HTTP 核对及 4 个中断记录恢复通过；minimal Gradio 测试壳、受控夹具明确为技术验收，不称生产 UI/EXE/内容质量。
+- 用户确认的 AI 辅助参考为 5 个 case、16 题；真实质量执行 15/15，14 Pending Review、1 Failed，自动严格匹配 43/48、辅助校正 45/48，后置实际 31 次裁图 0 失败、最终关联 45/48。独立教师真值仍为 0，失败 3 题继续计分母，未知字段单列，不改变 T146/T168 要求。
+- 导入实际 27 次含 3 预热，24 计时中 12 成功/12 失败，50 页 0/8。实际 83 次性能 HTTP 加 15 次质量 HTTP 共 98 次，total tokens 243347，费用 null；请求 deepseek-chat、响应 deepseek-flash 分开记录，不推断 alias。
+- 资源范围旁证证明 12/12 原采样 PID 是 venv redirector，与 27 次业务 worker 不同。原 raw/summary 保留，旁证 app_missing=true、all_component_complete=false，应用峰值/同刻总量/预算结论均 null，不能声明资源完整或达标。
+- 浏览器完整执行24计时＋3预热，均真实渲染完成、27张Cua截图；仅2/24低于500ms。UI实际workerPID一致，6次动作各有1个窗口内资源样本、其余缺测保持null，不能判预算通过。四个无起点预检单列。已精确清理隔离资源，原业务库0012_audit_logs与10项用户文件字节不变；无后置hooks。当前 T160 验收未通过，保持 [ ]，不执行 T165；建议先定位收窄提示词与结构化来源合同冲突后另批复验。详情见 docs/evaluation.md、docs/validation-report.md 本批章节和 benchmark/results/v2/t160-assisted-20261003。

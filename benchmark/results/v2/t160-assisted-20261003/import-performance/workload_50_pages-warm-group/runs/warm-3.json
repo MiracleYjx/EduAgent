@@ -1,0 +1,1071 @@
+{
+  "kind": "real-import-performance-run",
+  "teacher_annotation": false,
+  "case": "workload_50_pages",
+  "mode": "warm",
+  "repetition": 3,
+  "pid": 87932,
+  "source_commit": "6cea2ad",
+  "input_sha256": "11fceae00e43a3ea0438bdc2efcef0ce242f7254f6012398c1aeddc08bd828f5",
+  "input_bytes": 67151,
+  "page_count": 50,
+  "initial_state": "new import; not an idempotent completed operation",
+  "llm_calls": [
+    {
+      "logical_call_no": 1,
+      "schema": "ExtractionBatch",
+      "prompt_version": "paper-extraction-v1",
+      "started_at": "2026-10-02T16:44:30.466354+00:00",
+      "start_perf": 264871.164647,
+      "provider_metadata": {
+        "provider": "deepseek",
+        "model": "deepseek-chat",
+        "prompt_version": "paper-extraction-v1",
+        "call_path": "__main__.worker_async.<locals>.observe_factory.<locals>.generate"
+      },
+      "attempts": [
+        {
+          "attempt_number": 1,
+          "started_at": "2026-10-02T16:44:30.466437+00:00",
+          "start_perf": 264871.1647205,
+          "configured_model": "deepseek-chat",
+          "response_model": "deepseek-flash",
+          "usage": {
+            "prompt_tokens": 1564,
+            "completion_tokens": 565,
+            "total_tokens": 2129
+          },
+          "status": "success",
+          "ended_at": "2026-10-02T16:44:32.750055+00:00",
+          "elapsed_seconds": 2.2836184999905527
+        }
+      ],
+      "status": "success",
+      "validated_output_fields": {
+        "questions": [
+          {
+            "reference_answer": "3",
+            "scoring_rubric": null,
+            "analysis": "先乘后加。",
+            "evidence": {
+              "reference_answer": {
+                "page_number": 1,
+                "text": "原稿答案：3；解析：先乘后加。知识点：一次函数。"
+              },
+              "analysis": {
+                "page_number": 1,
+                "text": "原稿答案：3；解析：先乘后加。知识点：一次函数。"
+              }
+            },
+            "source_pages": [
+              1
+            ],
+            "question_number": "1",
+            "question_type": "SHORT_ANSWER",
+            "content": "计算 2 × 1 + 1。（1.00 分）",
+            "options": null,
+            "score": "1.0",
+            "knowledge_points": [
+              "一次函数"
+            ]
+          },
+          {
+            "reference_answer": "5",
+            "scoring_rubric": null,
+            "analysis": "先乘后加。",
+            "evidence": {
+              "reference_answer": {
+                "page_number": 1,
+                "text": "原稿答案：5；解析：先乘后加。知识点：一次函数。"
+              },
+              "analysis": {
+                "page_number": 1,
+                "text": "原稿答案：5；解析：先乘后加。知识点：一次函数。"
+              }
+            },
+            "source_pages": [
+              1
+            ],
+            "question_number": "2",
+            "question_type": "SHORT_ANSWER",
+            "content": "计算 2 × 2 + 1。（1.00 分）",
+            "options": null,
+            "score": "1.0",
+            "knowledge_points": [
+              "一次函数"
+            ]
+          },
+          {
+            "reference_answer": "7",
+            "scoring_rubric": null,
+            "analysis": "先乘后加。",
+            "evidence": {
+              "reference_answer": {
+                "page_number": 2,
+                "text": "原稿答案：7；解析：先乘后加。知识点：一次函数。"
+              },
+              "analysis": {
+                "page_number": 2,
+                "text": "原稿答案：7；解析：先乘后加。知识点：一次函数。"
+              }
+            },
+            "source_pages": [
+              2
+            ],
+            "question_number": "3",
+            "question_type": "SHORT_ANSWER",
+            "content": "计算 2 × 3 + 1。（1.00 分）",
+            "options": null,
+            "score": "1.0",
+            "knowledge_points": [
+              "一次函数"
+            ]
+          },
+          {
+            "reference_answer": "9",
+            "scoring_rubric": null,
+            "analysis": "先乘后加。",
+            "evidence": {
+              "reference_answer": {
+                "page_number": 2,
+                "text": "原稿答案：9；解析：先乘后加。知识点：一次函数。"
+              },
+              "analysis": {
+                "page_number": 2,
+                "text": "原稿答案：9；解析：先乘后加。知识点：一次函数。"
+              }
+            },
+            "source_pages": [
+              2
+            ],
+            "question_number": "4",
+            "question_type": "SHORT_ANSWER",
+            "content": "计算 2 × 4 + 1。（1.00 分）",
+            "options": null,
+            "score": "1.0",
+            "knowledge_points": [
+              "一次函数"
+            ]
+          }
+        ],
+        "updates": [],
+        "pending": []
+      },
+      "ended_at": "2026-10-02T16:44:32.751022+00:00",
+      "elapsed_seconds": 2.2846654999884777
+    },
+    {
+      "logical_call_no": 2,
+      "schema": "ExtractionBatch",
+      "prompt_version": "paper-extraction-v1",
+      "started_at": "2026-10-02T16:44:32.765362+00:00",
+      "start_perf": 264873.4636537,
+      "provider_metadata": {
+        "provider": "deepseek",
+        "model": "deepseek-chat",
+        "prompt_version": "paper-extraction-v1",
+        "call_path": "__main__.worker_async.<locals>.observe_factory.<locals>.generate"
+      },
+      "attempts": [
+        {
+          "attempt_number": 1,
+          "started_at": "2026-10-02T16:44:32.765445+00:00",
+          "start_perf": 264873.4637281,
+          "configured_model": "deepseek-chat",
+          "response_model": "deepseek-flash",
+          "usage": {
+            "prompt_tokens": 1745,
+            "completion_tokens": 765,
+            "total_tokens": 2510
+          },
+          "status": "success",
+          "ended_at": "2026-10-02T16:44:35.150459+00:00",
+          "elapsed_seconds": 2.3850186999770813
+        }
+      ],
+      "status": "success",
+      "validated_output_fields": {
+        "questions": [
+          {
+            "reference_answer": "11",
+            "scoring_rubric": null,
+            "analysis": "先乘后加。",
+            "evidence": {
+              "reference_answer": {
+                "page_number": 3,
+                "text": "原稿答案：11；解析：先乘后加。知识点：一次函数。"
+              },
+              "analysis": {
+                "page_number": 3,
+                "text": "原稿答案：11；解析：先乘后加。知识点：一次函数。"
+              },
+              "knowledge_points": {
+                "page_number": 3,
+                "text": "原稿答案：11；解析：先乘后加。知识点：一次函数。"
+              }
+            },
+            "source_pages": [
+              3
+            ],
+            "question_number": "5",
+            "question_type": "SHORT_ANSWER",
+            "content": "计算 2 × 5 + 1。（1.00 分）\n原稿答案：11；解析：先乘后加。知识点：一次函数。",
+            "options": null,
+            "score": "1.00",
+            "knowledge_points": [
+              "一次函数"
+            ]
+          },
+          {
+            "reference_answer": "13",
+            "scoring_rubric": null,
+            "analysis": "先乘后加。",
+            "evidence": {
+              "reference_answer": {
+                "page_number": 3,
+                "text": "原稿答案：13；解析：先乘后加。知识点：一次函数。"
+              },
+              "analysis": {
+                "page_number": 3,
+                "text": "原稿答案：13；解析：先乘后加。知识点：一次函数。"
+              },
+              "knowledge_points": {
+                "page_number": 3,
+                "text": "原稿答案：13；解析：先乘后加。知识点：一次函数。"
+              }
+            },
+            "source_pages": [
+              3
+            ],
+            "question_number": "6",
+            "question_type": "SHORT_ANSWER",
+            "content": "计算 2 × 6 + 1。（1.00 分）\n原稿答案：13；解析：先乘后加。知识点：一次函数。",
+            "options": null,
+            "score": "1.00",
+            "knowledge_points": [
+              "一次函数"
+            ]
+          },
+          {
+            "reference_answer": "15",
+            "scoring_rubric": null,
+            "analysis": "先乘后加。",
+            "evidence": {
+              "reference_answer": {
+                "page_number": 4,
+                "text": "原稿答案：15；解析：先乘后加。知识点：一次函数。"
+              },
+              "analysis": {
+                "page_number": 4,
+                "text": "原稿答案：15；解析：先乘后加。知识点：一次函数。"
+              },
+              "knowledge_points": {
+                "page_number": 4,
+                "text": "原稿答案：15；解析：先乘后加。知识点：一次函数。"
+              }
+            },
+            "source_pages": [
+              4
+            ],
+            "question_number": "7",
+            "question_type": "SHORT_ANSWER",
+            "content": "计算 2 × 7 + 1。（1.00 分）\n原稿答案：15；解析：先乘后加。知识点：一次函数。",
+            "options": null,
+            "score": "1.00",
+            "knowledge_points": [
+              "一次函数"
+            ]
+          },
+          {
+            "reference_answer": "17",
+            "scoring_rubric": null,
+            "analysis": "先乘后加。",
+            "evidence": {
+              "reference_answer": {
+                "page_number": 4,
+                "text": "原稿答案：17；解析：先乘后加。知识点：一次函数。"
+              },
+              "analysis": {
+                "page_number": 4,
+                "text": "原稿答案：17；解析：先乘后加。知识点：一次函数。"
+              },
+              "knowledge_points": {
+                "page_number": 4,
+                "text": "原稿答案：17；解析：先乘后加。知识点：一次函数。"
+              }
+            },
+            "source_pages": [
+              4
+            ],
+            "question_number": "8",
+            "question_type": "SHORT_ANSWER",
+            "content": "计算 2 × 8 + 1。（1.00 分）\n原稿答案：17；解析：先乘后加。知识点：一次函数。",
+            "options": null,
+            "score": "1.00",
+            "knowledge_points": [
+              "一次函数"
+            ]
+          }
+        ],
+        "updates": [],
+        "pending": []
+      },
+      "ended_at": "2026-10-02T16:44:35.151518+00:00",
+      "elapsed_seconds": 2.386157799977809
+    }
+  ],
+  "http_requests": [
+    {
+      "http_attempt_no": 1,
+      "logical_call_no": 1,
+      "provider_attempt_no": 1,
+      "started_at": "2026-10-02T16:44:30.467927+00:00",
+      "start_perf": 264871.1662183,
+      "method": "POST",
+      "host": "api.deepseek.com",
+      "path": "/chat/completions",
+      "response_observed": true,
+      "measurement": "httpx request event hook entered before transport; not proof server received bytes",
+      "requested_model": "deepseek-chat",
+      "status_code": 200,
+      "response_headers_received_at": "2026-10-02T16:44:30.596254+00:00",
+      "response_header_elapsed_seconds": 0.12833139998838305,
+      "response_model": "deepseek-flash",
+      "response_model_evidence": "actual SDK parsed HTTP response.model; distinct from configured/request body model",
+      "sdk_call_finished_at": "2026-10-02T16:44:32.749915+00:00",
+      "sdk_elapsed_seconds": 2.281985600013286
+    },
+    {
+      "http_attempt_no": 2,
+      "logical_call_no": 2,
+      "provider_attempt_no": 1,
+      "started_at": "2026-10-02T16:44:32.766373+00:00",
+      "start_perf": 264873.4646582,
+      "method": "POST",
+      "host": "api.deepseek.com",
+      "path": "/chat/completions",
+      "response_observed": true,
+      "measurement": "httpx request event hook entered before transport; not proof server received bytes",
+      "requested_model": "deepseek-chat",
+      "status_code": 200,
+      "response_headers_received_at": "2026-10-02T16:44:32.923458+00:00",
+      "response_header_elapsed_seconds": 0.1570962000405416,
+      "response_model": "deepseek-flash",
+      "response_model_evidence": "actual SDK parsed HTTP response.model; distinct from configured/request body model",
+      "sdk_call_finished_at": "2026-10-02T16:44:35.150208+00:00",
+      "sdk_elapsed_seconds": 2.383846100012306
+    }
+  ],
+  "provider": "deepseek",
+  "configured_model": "deepseek-chat",
+  "prompt_version": "paper-extraction-v1",
+  "ocr": {
+    "enabled": true,
+    "provider": "rapidocr",
+    "model": "PP-OCRv5-mobile",
+    "default_ocr_argument": null,
+    "instance_reuse_across_imports": false
+  },
+  "receive_started_at": "2026-10-02T16:44:24.247375+00:00",
+  "receive_start_perf": 264864.9456663,
+  "original_file_store": {
+    "started_at": "2026-10-02T16:44:24.264245+00:00",
+    "start_perf": 264864.9625365,
+    "status": "written_candidate",
+    "bytes": 67151,
+    "ended_at": "2026-10-02T16:44:24.291387+00:00",
+    "elapsed_seconds": 0.02716840000357479
+  },
+  "paper_import_id": "3351d1db-2292-46d2-a324-66c1060a800b",
+  "teacher_fixture_id": "34632db6-4d1a-4d69-9f81-93d9cf926792",
+  "course_id": "d2e3f0f1-e3b9-44db-bedb-87f92c9d33bc",
+  "upload_returned_at": "2026-10-02T16:44:24.345873+00:00",
+  "upload_end_perf": 264865.0441659,
+  "upload_seconds": 0.09849959996063262,
+  "terminal_perf": 264875.8600822,
+  "terminal_at": "2026-10-02T16:44:35.161806+00:00",
+  "status": "Failed",
+  "error_code": "PAPER_EXTRACTION_FAILED",
+  "error_message": "分批拆题与结构化暂存失败：原文来源校验失败：unknown evidence field",
+  "runner_returned_at": "2026-10-02T16:44:35.163828+00:00",
+  "runner_end_perf": 264875.8621237,
+  "persisted_output_fields": {
+    "id": "3351d1db-2292-46d2-a324-66c1060a800b",
+    "course_id": "d2e3f0f1-e3b9-44db-bedb-87f92c9d33bc",
+    "uploaded_by": "34632db6-4d1a-4d69-9f81-93d9cf926792",
+    "document_id": "75240db4-a724-4d70-9e47-e078726cfeaa",
+    "original_filename": "workload_50_pages.pdf",
+    "page_count": 50,
+    "status": "Failed",
+    "error_code": "PAPER_EXTRACTION_FAILED",
+    "error_message": "分批拆题与结构化暂存失败：原文来源校验失败：unknown evidence field",
+    "created_at": "2026-10-02T16:44:24.296053Z",
+    "updated_at": "2026-10-02T16:44:35.157466Z",
+    "original_file_id": "d_75240db4a7244d709e47e078726cfeaa",
+    "parsed_page_count": 50,
+    "question_count": 4,
+    "pages": [
+      {
+        "id": "843bb9e9-1ce7-49d3-b3ce-7577dd62b25d",
+        "paper_import_id": "3351d1db-2292-46d2-a324-66c1060a800b",
+        "page_number": 1,
+        "file_id": "p_843bb9e91ce749d3b3ce7577dd62b25d",
+        "width": 1241,
+        "height": 1754,
+        "ocr_text": null,
+        "ocr_confidence": null
+      },
+      {
+        "id": "d8d7547f-a375-4044-a0f7-8eed152a8eb5",
+        "paper_import_id": "3351d1db-2292-46d2-a324-66c1060a800b",
+        "page_number": 2,
+        "file_id": "p_d8d7547fa3754044a0f78eed152a8eb5",
+        "width": 1241,
+        "height": 1754,
+        "ocr_text": null,
+        "ocr_confidence": null
+      },
+      {
+        "id": "b4ae6621-359b-486f-b191-8e3c2df9b451",
+        "paper_import_id": "3351d1db-2292-46d2-a324-66c1060a800b",
+        "page_number": 3,
+        "file_id": "p_b4ae6621359b486fb1918e3c2df9b451",
+        "width": 1241,
+        "height": 1754,
+        "ocr_text": null,
+        "ocr_confidence": null
+      },
+      {
+        "id": "a7b58a65-1618-44ca-a8b7-5c87a6f3b082",
+        "paper_import_id": "3351d1db-2292-46d2-a324-66c1060a800b",
+        "page_number": 4,
+        "file_id": "p_a7b58a65161844caa8b75c87a6f3b082",
+        "width": 1241,
+        "height": 1754,
+        "ocr_text": null,
+        "ocr_confidence": null
+      },
+      {
+        "id": "21d9dda9-53aa-472d-9990-efd3463ae0fb",
+        "paper_import_id": "3351d1db-2292-46d2-a324-66c1060a800b",
+        "page_number": 5,
+        "file_id": "p_21d9dda953aa472d9990efd3463ae0fb",
+        "width": 1241,
+        "height": 1754,
+        "ocr_text": null,
+        "ocr_confidence": null
+      },
+      {
+        "id": "aa543740-1761-4485-b8cf-5f2e20a61230",
+        "paper_import_id": "3351d1db-2292-46d2-a324-66c1060a800b",
+        "page_number": 6,
+        "file_id": "p_aa54374017614485b8cf5f2e20a61230",
+        "width": 1241,
+        "height": 1754,
+        "ocr_text": null,
+        "ocr_confidence": null
+      },
+      {
+        "id": "a182e475-f447-4566-bc93-0226ffbdc0ff",
+        "paper_import_id": "3351d1db-2292-46d2-a324-66c1060a800b",
+        "page_number": 7,
+        "file_id": "p_a182e475f4474566bc930226ffbdc0ff",
+        "width": 1241,
+        "height": 1754,
+        "ocr_text": null,
+        "ocr_confidence": null
+      },
+      {
+        "id": "18f1b941-301a-4e47-8a5d-19f99951a0cf",
+        "paper_import_id": "3351d1db-2292-46d2-a324-66c1060a800b",
+        "page_number": 8,
+        "file_id": "p_18f1b941301a4e478a5d19f99951a0cf",
+        "width": 1241,
+        "height": 1754,
+        "ocr_text": null,
+        "ocr_confidence": null
+      },
+      {
+        "id": "ed8141db-a6d0-4f3d-8eef-0c717e3ca7c3",
+        "paper_import_id": "3351d1db-2292-46d2-a324-66c1060a800b",
+        "page_number": 9,
+        "file_id": "p_ed8141dba6d04f3d8eef0c717e3ca7c3",
+        "width": 1241,
+        "height": 1754,
+        "ocr_text": null,
+        "ocr_confidence": null
+      },
+      {
+        "id": "e8dd5ca6-60fd-4fa2-868b-06acb9062e55",
+        "paper_import_id": "3351d1db-2292-46d2-a324-66c1060a800b",
+        "page_number": 10,
+        "file_id": "p_e8dd5ca660fd4fa2868b06acb9062e55",
+        "width": 1241,
+        "height": 1754,
+        "ocr_text": null,
+        "ocr_confidence": null
+      },
+      {
+        "id": "a087b399-bd80-4903-8ea5-46a429399701",
+        "paper_import_id": "3351d1db-2292-46d2-a324-66c1060a800b",
+        "page_number": 11,
+        "file_id": "p_a087b399bd8049038ea546a429399701",
+        "width": 1241,
+        "height": 1754,
+        "ocr_text": null,
+        "ocr_confidence": null
+      },
+      {
+        "id": "552cb58e-133d-4ac4-81d5-9d6f1687d3a5",
+        "paper_import_id": "3351d1db-2292-46d2-a324-66c1060a800b",
+        "page_number": 12,
+        "file_id": "p_552cb58e133d4ac481d59d6f1687d3a5",
+        "width": 1241,
+        "height": 1754,
+        "ocr_text": null,
+        "ocr_confidence": null
+      },
+      {
+        "id": "f254b422-603c-4c28-8402-d2cac85bf51a",
+        "paper_import_id": "3351d1db-2292-46d2-a324-66c1060a800b",
+        "page_number": 13,
+        "file_id": "p_f254b422603c4c288402d2cac85bf51a",
+        "width": 1241,
+        "height": 1754,
+        "ocr_text": null,
+        "ocr_confidence": null
+      },
+      {
+        "id": "076d6381-a52f-4739-9522-1895b24be7d0",
+        "paper_import_id": "3351d1db-2292-46d2-a324-66c1060a800b",
+        "page_number": 14,
+        "file_id": "p_076d6381a52f473995221895b24be7d0",
+        "width": 1241,
+        "height": 1754,
+        "ocr_text": null,
+        "ocr_confidence": null
+      },
+      {
+        "id": "96efeba2-aadc-4191-95a7-e4fdceafb6a6",
+        "paper_import_id": "3351d1db-2292-46d2-a324-66c1060a800b",
+        "page_number": 15,
+        "file_id": "p_96efeba2aadc419195a7e4fdceafb6a6",
+        "width": 1241,
+        "height": 1754,
+        "ocr_text": null,
+        "ocr_confidence": null
+      },
+      {
+        "id": "e911d51c-d70e-4aaa-9f9e-7d08222de3e4",
+        "paper_import_id": "3351d1db-2292-46d2-a324-66c1060a800b",
+        "page_number": 16,
+        "file_id": "p_e911d51cd70e4aaa9f9e7d08222de3e4",
+        "width": 1241,
+        "height": 1754,
+        "ocr_text": null,
+        "ocr_confidence": null
+      },
+      {
+        "id": "4a67675e-33e2-4dd1-a317-564e476d2f06",
+        "paper_import_id": "3351d1db-2292-46d2-a324-66c1060a800b",
+        "page_number": 17,
+        "file_id": "p_4a67675e33e24dd1a317564e476d2f06",
+        "width": 1241,
+        "height": 1754,
+        "ocr_text": null,
+        "ocr_confidence": null
+      },
+      {
+        "id": "792c4fc5-4fe4-420e-8459-53d8f80882fc",
+        "paper_import_id": "3351d1db-2292-46d2-a324-66c1060a800b",
+        "page_number": 18,
+        "file_id": "p_792c4fc54fe4420e845953d8f80882fc",
+        "width": 1241,
+        "height": 1754,
+        "ocr_text": null,
+        "ocr_confidence": null
+      },
+      {
+        "id": "26be5bfc-e560-4733-b54d-100c137c8ef9",
+        "paper_import_id": "3351d1db-2292-46d2-a324-66c1060a800b",
+        "page_number": 19,
+        "file_id": "p_26be5bfce5604733b54d100c137c8ef9",
+        "width": 1241,
+        "height": 1754,
+        "ocr_text": null,
+        "ocr_confidence": null
+      },
+      {
+        "id": "772cae67-79ec-4c73-bcd3-a856c3c483fe",
+        "paper_import_id": "3351d1db-2292-46d2-a324-66c1060a800b",
+        "page_number": 20,
+        "file_id": "p_772cae6779ec4c73bcd3a856c3c483fe",
+        "width": 1241,
+        "height": 1754,
+        "ocr_text": null,
+        "ocr_confidence": null
+      },
+      {
+        "id": "27769fdb-4fcb-4976-9c50-1723112e2be3",
+        "paper_import_id": "3351d1db-2292-46d2-a324-66c1060a800b",
+        "page_number": 21,
+        "file_id": "p_27769fdb4fcb49769c501723112e2be3",
+        "width": 1241,
+        "height": 1754,
+        "ocr_text": null,
+        "ocr_confidence": null
+      },
+      {
+        "id": "ddf9985d-1f7b-4fae-910c-e653073ab1ca",
+        "paper_import_id": "3351d1db-2292-46d2-a324-66c1060a800b",
+        "page_number": 22,
+        "file_id": "p_ddf9985d1f7b4fae910ce653073ab1ca",
+        "width": 1241,
+        "height": 1754,
+        "ocr_text": null,
+        "ocr_confidence": null
+      },
+      {
+        "id": "17770fe0-ee0d-47c2-9653-893051ddd374",
+        "paper_import_id": "3351d1db-2292-46d2-a324-66c1060a800b",
+        "page_number": 23,
+        "file_id": "p_17770fe0ee0d47c29653893051ddd374",
+        "width": 1241,
+        "height": 1754,
+        "ocr_text": null,
+        "ocr_confidence": null
+      },
+      {
+        "id": "6c8f00ba-dd9d-4f4f-b623-d5461ffdf5dc",
+        "paper_import_id": "3351d1db-2292-46d2-a324-66c1060a800b",
+        "page_number": 24,
+        "file_id": "p_6c8f00badd9d4f4fb623d5461ffdf5dc",
+        "width": 1241,
+        "height": 1754,
+        "ocr_text": null,
+        "ocr_confidence": null
+      },
+      {
+        "id": "6fb097cf-86d7-44e7-b5ab-8d2f38bb6e7d",
+        "paper_import_id": "3351d1db-2292-46d2-a324-66c1060a800b",
+        "page_number": 25,
+        "file_id": "p_6fb097cf86d744e7b5ab8d2f38bb6e7d",
+        "width": 1241,
+        "height": 1754,
+        "ocr_text": null,
+        "ocr_confidence": null
+      },
+      {
+        "id": "cce9b7e1-3646-4a39-b449-725a6f19e63d",
+        "paper_import_id": "3351d1db-2292-46d2-a324-66c1060a800b",
+        "page_number": 26,
+        "file_id": "p_cce9b7e136464a39b449725a6f19e63d",
+        "width": 1241,
+        "height": 1754,
+        "ocr_text": null,
+        "ocr_confidence": null
+      },
+      {
+        "id": "c8795060-b754-4b01-8abe-04dd288c92ab",
+        "paper_import_id": "3351d1db-2292-46d2-a324-66c1060a800b",
+        "page_number": 27,
+        "file_id": "p_c8795060b7544b018abe04dd288c92ab",
+        "width": 1241,
+        "height": 1754,
+        "ocr_text": null,
+        "ocr_confidence": null
+      },
+      {
+        "id": "1d02a589-3c31-43db-9ec4-92918bae9ade",
+        "paper_import_id": "3351d1db-2292-46d2-a324-66c1060a800b",
+        "page_number": 28,
+        "file_id": "p_1d02a5893c3143db9ec492918bae9ade",
+        "width": 1241,
+        "height": 1754,
+        "ocr_text": null,
+        "ocr_confidence": null
+      },
+      {
+        "id": "9fee56e3-0d15-48a7-860b-ca1076d8a84c",
+        "paper_import_id": "3351d1db-2292-46d2-a324-66c1060a800b",
+        "page_number": 29,
+        "file_id": "p_9fee56e30d1548a7860bca1076d8a84c",
+        "width": 1241,
+        "height": 1754,
+        "ocr_text": null,
+        "ocr_confidence": null
+      },
+      {
+        "id": "325cfe7f-564f-4a97-bee8-127b7cfbb5c0",
+        "paper_import_id": "3351d1db-2292-46d2-a324-66c1060a800b",
+        "page_number": 30,
+        "file_id": "p_325cfe7f564f4a97bee8127b7cfbb5c0",
+        "width": 1241,
+        "height": 1754,
+        "ocr_text": null,
+        "ocr_confidence": null
+      },
+      {
+        "id": "a9646447-02b0-4dae-80c5-8d88136ae46a",
+        "paper_import_id": "3351d1db-2292-46d2-a324-66c1060a800b",
+        "page_number": 31,
+        "file_id": "p_a964644702b04dae80c58d88136ae46a",
+        "width": 1241,
+        "height": 1754,
+        "ocr_text": null,
+        "ocr_confidence": null
+      },
+      {
+        "id": "d3df3cf9-58ed-4ce6-b8b3-cd5bdff14912",
+        "paper_import_id": "3351d1db-2292-46d2-a324-66c1060a800b",
+        "page_number": 32,
+        "file_id": "p_d3df3cf958ed4ce6b8b3cd5bdff14912",
+        "width": 1241,
+        "height": 1754,
+        "ocr_text": null,
+        "ocr_confidence": null
+      },
+      {
+        "id": "99732baf-d891-43f0-b2a2-4a860949d06a",
+        "paper_import_id": "3351d1db-2292-46d2-a324-66c1060a800b",
+        "page_number": 33,
+        "file_id": "p_99732bafd89143f0b2a24a860949d06a",
+        "width": 1241,
+        "height": 1754,
+        "ocr_text": null,
+        "ocr_confidence": null
+      },
+      {
+        "id": "015dfbab-828c-4f2b-b7e3-6e06655265ab",
+        "paper_import_id": "3351d1db-2292-46d2-a324-66c1060a800b",
+        "page_number": 34,
+        "file_id": "p_015dfbab828c4f2bb7e36e06655265ab",
+        "width": 1241,
+        "height": 1754,
+        "ocr_text": null,
+        "ocr_confidence": null
+      },
+      {
+        "id": "6ed36ff0-5047-4207-8042-502e12cf1cef",
+        "paper_import_id": "3351d1db-2292-46d2-a324-66c1060a800b",
+        "page_number": 35,
+        "file_id": "p_6ed36ff0504742078042502e12cf1cef",
+        "width": 1241,
+        "height": 1754,
+        "ocr_text": null,
+        "ocr_confidence": null
+      },
+      {
+        "id": "b35acd8d-e4d9-40d0-a634-5ac7c19bec13",
+        "paper_import_id": "3351d1db-2292-46d2-a324-66c1060a800b",
+        "page_number": 36,
+        "file_id": "p_b35acd8de4d940d0a6345ac7c19bec13",
+        "width": 1241,
+        "height": 1754,
+        "ocr_text": null,
+        "ocr_confidence": null
+      },
+      {
+        "id": "eba693a6-8f7c-4202-b13f-c7eb6694735c",
+        "paper_import_id": "3351d1db-2292-46d2-a324-66c1060a800b",
+        "page_number": 37,
+        "file_id": "p_eba693a68f7c4202b13fc7eb6694735c",
+        "width": 1241,
+        "height": 1754,
+        "ocr_text": null,
+        "ocr_confidence": null
+      },
+      {
+        "id": "d1797399-3370-45d2-9061-c8705730238c",
+        "paper_import_id": "3351d1db-2292-46d2-a324-66c1060a800b",
+        "page_number": 38,
+        "file_id": "p_d1797399337045d29061c8705730238c",
+        "width": 1241,
+        "height": 1754,
+        "ocr_text": null,
+        "ocr_confidence": null
+      },
+      {
+        "id": "d6bd646f-f2ce-41e7-bbde-8c51f87f46ae",
+        "paper_import_id": "3351d1db-2292-46d2-a324-66c1060a800b",
+        "page_number": 39,
+        "file_id": "p_d6bd646ff2ce41e7bbde8c51f87f46ae",
+        "width": 1241,
+        "height": 1754,
+        "ocr_text": null,
+        "ocr_confidence": null
+      },
+      {
+        "id": "4be34cca-e46e-48c5-9457-cdd292ead5a9",
+        "paper_import_id": "3351d1db-2292-46d2-a324-66c1060a800b",
+        "page_number": 40,
+        "file_id": "p_4be34ccae46e48c59457cdd292ead5a9",
+        "width": 1241,
+        "height": 1754,
+        "ocr_text": null,
+        "ocr_confidence": null
+      },
+      {
+        "id": "f4053c52-b0f6-4876-9320-6001182229a3",
+        "paper_import_id": "3351d1db-2292-46d2-a324-66c1060a800b",
+        "page_number": 41,
+        "file_id": "p_f4053c52b0f6487693206001182229a3",
+        "width": 1241,
+        "height": 1754,
+        "ocr_text": null,
+        "ocr_confidence": null
+      },
+      {
+        "id": "cd7a2009-c2af-4779-90a9-0f92df43e81a",
+        "paper_import_id": "3351d1db-2292-46d2-a324-66c1060a800b",
+        "page_number": 42,
+        "file_id": "p_cd7a2009c2af477990a90f92df43e81a",
+        "width": 1241,
+        "height": 1754,
+        "ocr_text": null,
+        "ocr_confidence": null
+      },
+      {
+        "id": "b113a6a9-1f93-4b64-b45f-2855bcb19d36",
+        "paper_import_id": "3351d1db-2292-46d2-a324-66c1060a800b",
+        "page_number": 43,
+        "file_id": "p_b113a6a91f934b64b45f2855bcb19d36",
+        "width": 1241,
+        "height": 1754,
+        "ocr_text": null,
+        "ocr_confidence": null
+      },
+      {
+        "id": "34c4de4e-2788-4d00-be65-b1bbfbc6f754",
+        "paper_import_id": "3351d1db-2292-46d2-a324-66c1060a800b",
+        "page_number": 44,
+        "file_id": "p_34c4de4e27884d00be65b1bbfbc6f754",
+        "width": 1241,
+        "height": 1754,
+        "ocr_text": null,
+        "ocr_confidence": null
+      },
+      {
+        "id": "018abf17-0e85-477b-8809-583bf63d26c3",
+        "paper_import_id": "3351d1db-2292-46d2-a324-66c1060a800b",
+        "page_number": 45,
+        "file_id": "p_018abf170e85477b8809583bf63d26c3",
+        "width": 1241,
+        "height": 1754,
+        "ocr_text": null,
+        "ocr_confidence": null
+      },
+      {
+        "id": "1b752c47-1123-4e42-8a91-50bd7625ccb9",
+        "paper_import_id": "3351d1db-2292-46d2-a324-66c1060a800b",
+        "page_number": 46,
+        "file_id": "p_1b752c4711234e428a9150bd7625ccb9",
+        "width": 1241,
+        "height": 1754,
+        "ocr_text": null,
+        "ocr_confidence": null
+      },
+      {
+        "id": "abdf9b73-036f-496a-ae82-2563bd2d4ebf",
+        "paper_import_id": "3351d1db-2292-46d2-a324-66c1060a800b",
+        "page_number": 47,
+        "file_id": "p_abdf9b73036f496aae822563bd2d4ebf",
+        "width": 1241,
+        "height": 1754,
+        "ocr_text": null,
+        "ocr_confidence": null
+      },
+      {
+        "id": "44b924d3-d4ec-42f9-a966-89dfd4e1c659",
+        "paper_import_id": "3351d1db-2292-46d2-a324-66c1060a800b",
+        "page_number": 48,
+        "file_id": "p_44b924d3d4ec42f9a96689dfd4e1c659",
+        "width": 1241,
+        "height": 1754,
+        "ocr_text": null,
+        "ocr_confidence": null
+      },
+      {
+        "id": "de444aeb-7727-418b-b3a8-cb7d9ee628df",
+        "paper_import_id": "3351d1db-2292-46d2-a324-66c1060a800b",
+        "page_number": 49,
+        "file_id": "p_de444aeb7727418bb3a8cb7d9ee628df",
+        "width": 1241,
+        "height": 1754,
+        "ocr_text": null,
+        "ocr_confidence": null
+      },
+      {
+        "id": "8e05e1e8-af04-4d6b-b47d-57650ea0d5ce",
+        "paper_import_id": "3351d1db-2292-46d2-a324-66c1060a800b",
+        "page_number": 50,
+        "file_id": "p_8e05e1e8af044d6bb47d57650ea0d5ce",
+        "width": 1241,
+        "height": 1754,
+        "ocr_text": null,
+        "ocr_confidence": null
+      }
+    ],
+    "questions": [
+      {
+        "question_type": "SHORT_ANSWER",
+        "content": "计算 2 × 1 + 1。（1.00 分）",
+        "options": null,
+        "reference_answer": "3",
+        "scoring_rubric": null,
+        "score": "1.00",
+        "correction_notes": null,
+        "question_number": "1",
+        "analysis": "先乘后加。",
+        "knowledge_points": [
+          "一次函数"
+        ],
+        "source_regions": null,
+        "assets": null,
+        "source_page_ids": [
+          "843bb9e9-1ce7-49d3-b3ce-7577dd62b25d"
+        ],
+        "extracted_by": "LLM",
+        "extraction_confidence": null,
+        "id": "4061c6df-1266-4225-9d1a-17d57e9fe3c6",
+        "paper_import_id": "3351d1db-2292-46d2-a324-66c1060a800b",
+        "order_index": 1,
+        "order_preserved": true,
+        "status": "Pending Correction",
+        "question_id": null,
+        "image_assessment": null,
+        "created_at": "2026-10-02T16:44:32.756684Z",
+        "updated_at": "2026-10-02T16:44:32.756686Z"
+      },
+      {
+        "question_type": "SHORT_ANSWER",
+        "content": "计算 2 × 2 + 1。（1.00 分）",
+        "options": null,
+        "reference_answer": "5",
+        "scoring_rubric": null,
+        "score": "1.00",
+        "correction_notes": null,
+        "question_number": "2",
+        "analysis": "先乘后加。",
+        "knowledge_points": [
+          "一次函数"
+        ],
+        "source_regions": null,
+        "assets": null,
+        "source_page_ids": [
+          "843bb9e9-1ce7-49d3-b3ce-7577dd62b25d"
+        ],
+        "extracted_by": "LLM",
+        "extraction_confidence": null,
+        "id": "3936a343-0eb0-4074-8ea7-bd873c59e5ee",
+        "paper_import_id": "3351d1db-2292-46d2-a324-66c1060a800b",
+        "order_index": 2,
+        "order_preserved": true,
+        "status": "Pending Correction",
+        "question_id": null,
+        "image_assessment": null,
+        "created_at": "2026-10-02T16:44:32.756687Z",
+        "updated_at": "2026-10-02T16:44:32.756688Z"
+      },
+      {
+        "question_type": "SHORT_ANSWER",
+        "content": "计算 2 × 3 + 1。（1.00 分）",
+        "options": null,
+        "reference_answer": "7",
+        "scoring_rubric": null,
+        "score": "1.00",
+        "correction_notes": null,
+        "question_number": "3",
+        "analysis": "先乘后加。",
+        "knowledge_points": [
+          "一次函数"
+        ],
+        "source_regions": null,
+        "assets": null,
+        "source_page_ids": [
+          "d8d7547f-a375-4044-a0f7-8eed152a8eb5"
+        ],
+        "extracted_by": "LLM",
+        "extraction_confidence": null,
+        "id": "df019d72-3bcb-4881-80b1-38138066a918",
+        "paper_import_id": "3351d1db-2292-46d2-a324-66c1060a800b",
+        "order_index": 3,
+        "order_preserved": true,
+        "status": "Pending Correction",
+        "question_id": null,
+        "image_assessment": null,
+        "created_at": "2026-10-02T16:44:32.756689Z",
+        "updated_at": "2026-10-02T16:44:32.756690Z"
+      },
+      {
+        "question_type": "SHORT_ANSWER",
+        "content": "计算 2 × 4 + 1。（1.00 分）",
+        "options": null,
+        "reference_answer": "9",
+        "scoring_rubric": null,
+        "score": "1.00",
+        "correction_notes": null,
+        "question_number": "4",
+        "analysis": "先乘后加。",
+        "knowledge_points": [
+          "一次函数"
+        ],
+        "source_regions": null,
+        "assets": null,
+        "source_page_ids": [
+          "d8d7547f-a375-4044-a0f7-8eed152a8eb5"
+        ],
+        "extracted_by": "LLM",
+        "extraction_confidence": null,
+        "id": "30cd8c79-671c-4130-b8b3-6214ba6d2ada",
+        "paper_import_id": "3351d1db-2292-46d2-a324-66c1060a800b",
+        "order_index": 4,
+        "order_preserved": true,
+        "status": "Pending Correction",
+        "question_id": null,
+        "image_assessment": null,
+        "created_at": "2026-10-02T16:44:32.756690Z",
+        "updated_at": "2026-10-02T16:44:32.756691Z"
+      }
+    ],
+    "file_diagnostics": []
+  },
+  "terminal_observed_by_after_commit": true,
+  "terminal_elapsed_seconds": 10.914415899955202,
+  "runner_elapsed_seconds": 10.916457399958745,
+  "post_terminal_cleanup_seconds": 0.002041500003542751,
+  "completed_at": "2026-10-02T16:44:35.928532+00:00",
+  "completed_perf": 264876.6268223,
+  "logical_call_count": 2,
+  "provider_attempt_count": 2,
+  "actual_request_attempt_count": 2,
+  "requested_models": [
+    "deepseek-chat"
+  ],
+  "response_models": [
+    "deepseek-flash"
+  ],
+  "business_success": false,
+  "within_import_target": false,
+  "resources": {
+    "sample_count": 11,
+    "requested_interval_seconds": 1.0,
+    "max_observed_gap_seconds": 1.0090123999980278,
+    "complete_at_requested_sampling_resolution": true,
+    "peaks": {
+      "app_working_set_bytes": 4382720,
+      "postgres_container_process_rss_bytes": 214904832,
+      "redis_container_process_rss_bytes": 8589312,
+      "simultaneous_observed_sum_bytes": 227876864
+    },
+    "missing_sample_count": 0,
+    "first_sample_at": "2026-10-02T16:44:24.816419+00:00",
+    "last_sample_at": "2026-10-02T16:44:34.796217+00:00",
+    "scope": {
+      "app": "specified Windows application process working set; excludes experiment controller",
+      "postgres": "sum of all postgres process RSS in shared eduagent-postgres-1; not isolated database attribution; shared pages can be counted repeatedly",
+      "redis": "sum of all redis-server process RSS in dedicated eduagent-e2-acceptance-redis-247aae862cab",
+      "sum": "observations within one sample, read sequentially; sampled peaks, not a continuous physical-memory high-water mark"
+    }
+  }
+}

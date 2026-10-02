@@ -1,0 +1,6 @@
+{
+  "recorded_at": "2026-10-02T17:17:42.911615+00:00",
+  "formal_target_clicked": true,
+  "measurement_count": 0,
+  "diagnosis": "Gradio role option text contains hidden checkmark; exact aria-label should identify native target. Target changed but timing absent; excluded from planned measurements."
+}

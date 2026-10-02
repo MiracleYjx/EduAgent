@@ -1,0 +1,19 @@
+{
+  "protected_file_count": 10,
+  "all_bytes_unchanged": true,
+  "files": {
+    "README.md": true,
+    "README.zh-CN.md": true,
+    "backend/app/ui/gradio_app.py": true,
+    "backend/app/ui/layout_view.py": true,
+    "backend/app/ui/question_view.py": true,
+    "tests/unit/ui/test_gradio_app.py": true,
+    "backend/app/ui/design_system.py": true,
+    "tests/unit/ui/test_question_bank_view.py": true,
+    "benchmark/corpus/grading_samples.json": true,
+    ".env": true
+  },
+  "business_source_changed": false,
+  "tasks_marked_complete": false,
+  "extensions_exists": false
+}

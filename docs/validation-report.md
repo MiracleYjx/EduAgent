@@ -766,3 +766,34 @@ Vision 层只接收授权图像字节与文字；业务层绑定真实资产/文
 两项跳过保留真实原因：M0缺少独立Compose项目及端口配置，拒绝使用默认项目；本机不允许测试创建符号链接。没有放宽断言或将skip报作通过。最终只读复核没有新的可达缺陷。真实模型超时证据保留，未追加付费调用。
 
 UTC 2026-10-02T13:48:26.213425Z已按本批独占命名/标签、零连接检查清理DB eduagent_e3_vision_cd23640bb598及Redis eduagent-e3-vision-redis-cd23640bb598；实际浏览器预览PID78860与截图接收器已关闭。业务库仍0012_audit_logs，9项受保护文件字节相同，cache内JUnit/日志/诊断保留。执行后检查.specify/extensions.yml不存在，无after_implement hook。
+
+## T160：真实导入与校正验收结果（2026-10-03；未通过）
+
+按 /speckit.implement 在 deepcode / 6cea2ad 执行本批独立验收；未改业务源码、数据库迁移或 .env，业务库仍为 0012_audit_logs，专用验收库升级至 0020_content_validation。用户于 2026-10-02T16:14:48+00:00 授权以用户复核的 AI 辅助参考开展完整重复协议，5 个正常输入、16 个独立参考题冻结为新版本；独立教师真值 0。本批替代口径仅适用于 T160，T146/T168 仍要求原定独立教师基准。质量阈值 null，不作教师准确率声明。
+
+**验收未通过，T160 保持 [ ]。** 真实 Provider 拆题存在结构化来源验证失败，50 页所有计时运行均失败；应用 worker 内存缺测。完整结果见 [T160 证据目录](../benchmark/results/v2/t160-assisted-20261003/) 和 [本批评测详细口径](evaluation.md)。
+
+| 验证 | 实际结果 | 证据与边界 |
+| --- | --- | --- |
+| 既有聚焦合同/集成/UI | 75 passed；JUnit 82.474s，外层 92.331s | existing-acceptance.xml；受控 Provider 只证业务，不证模型质量 |
+| 新增必要技术验收 | 3 passed；pytest 13.13s，外层 17.013s | 真 PG、autoflush=False；PATCH 持锁时 pg_blocking_pids 证明确认等待及消费新值、反向串行迟到校正拒绝、OCRProviderError 原卷/页图保留 |
+| 固定输入/故障业务 | 4/4 passed，0 云请求 | 损坏卷 PAPER_PARSE_FAILED、51 页 PAPER_TOO_MANY_PAGES、OCR_PROVIDER_NOT_READY 与显式 PAPER_OCR_FAILED 分别保存 |
+| 实际进程重启 | 30 项 HTTP 核对通过、4 个中断记录 PAPER_INTERRUPTED | 两次实际 create_app/lifespan 进程启动，教师字节一致、学生许可隔离；minimal Gradio 测试壳，不代表生产 UI/EXE |
+| 真实质量批 | 15/15 次执行，14 Pending Review、1 Failed | 5 case 各 3 轮；原失败与全部 HTTP 输出保留，不挑成功重跑 |
+| 严格题目匹配 | 自动 43/48；辅助字段校正 45/48 | 固定 48 分母保留失败 3 题，按原题号及来源页一对一匹配 |
+| 后置真实题图关联 | 31 次实际裁图、0 失败；45/48 | 当前原页经资产服务登记，默认 student_visible=false；AI 操作、不伪造教师核对；不自动整卷批准 |
+| 真实整卷性能 | 27 次含 3 预热；24 计时中 12 Pending Review、12 Failed | 1 页 8/8、10 页 4/8、50 页 0/8，成功均小于 300 秒；失败观察时间不当完成时间 |
+| 导入资源预算 | application_peak=null；simultaneous_peak=null；budget=null | resource-scope-audit：12/12 原采样 PID 为 venv redirector，27 次实际 worker PID 均不同，应用覆盖缺失 |
+| 浏览器校正切页 | 24 计时＋3 预热全部渲染完成，仅 2/24 <500 ms | 原生事件至真实字段/原页/图片、队列空闲及稳定双帧；27 张 Cua 截图；性能失败、资源预算 null |
+
+78 项聚焦用例未放宽既有断言，重复确认幂等、并发校正、事务回滚、来源校验及学生隔离通过；技术故障不生成空题成功。真实重启中原卷/页图/暂存/隐藏题图/整页资产学生均 403，获准正式题图可读，ID 与教师字节在新进程中一致。中断在启动恢复时转为 Failed，原卷保留；该证据不替代模型或完整主界面验收。
+
+自动与辅助快照分开，原稿缺答案/解析保持 null，未知题型 3 个实例和来源框 48 个实例另报排除数。自动字段及逐轮计数见 quality/quality-aggregate.json；已知题图从未因模型缺失而排除。31 张后置裁图保留真实文件/资产 ID、来源页和顺序；根代理查看真实 figure/table/diagram 代表图，未将未知参考框改写成真值，未自动建立 Teacher 图像核对。
+
+质量失败 IMP-TEXT r3 为 PAPER_EXTRACTION_FAILED / unknown evidence field。性能批 15 个失败（含预热）分别为 unknown evidence field 12 次、answer update must refer to a previously completed question 2 次、answer/analysis requires an original excerpt 1 次。50 页失败观察耗时 10.914–33.269 秒，失败止点不算完成；全部原始记录保留。
+
+质量 15 次与性能 83 次实际 HTTP 尝试合计 98 次，prompt/completion/total tokens 分别 181628/61719/243347，费用 null。请求 model=deepseek-chat；实际响应 model=deepseek-flash，分别作为事实追溯，不推断 alias 或更换配置。T155 批准的 RapidOCR 3.9.2 / ONNX Runtime 1.30.0 CPU、PP-OCRv5 mobile 仅在专用验收配置中启用。
+
+资源原始 summary 曾记录 complete=true，后续 PID 旁证明确这只覆盖重定向进程和 PG/Redis 容器，不能证明应用完整。原采样和结果未覆盖改写；范围审计作为补充证据令 app_missing=true、all_component_complete=false，真实应用与同刻系统总量未知，不能声明 4 GiB 总预算通过。实际主机 6 核/12 逻辑处理器，未限制至计划 2–4 vCPU；源码进程、minimal Gradio 重启与合成输入亦不能证明正式 EXE 或生产规模。
+
+本批新增可复现质量/题图/性能/故障工具与原始证据用于审阅；便携整理副本和冻结实际执行脚本分别记录来源及哈希，未用副本差异伪造历史运行。建议下一批先定位 paper-extraction-v1 提示词与输出 schema/来源字段及跨批答案更新合同的冲突，先登记必要 TCR、修复并复验，再重新完成 T160；不自动执行 T165，也不改变旧批次或 T146/T168 标签要求。浏览器协议完整执行、仅2/24低于500ms；测量预检保留且未计分母。仅6个动作窗口有单个正确PID资源样本，其他峰值null，不能判资源预算通过。2026-10-02T17:31:54.567745Z仅清理本批隔离DB/Redis，原业务库0012_audit_logs和10项用户改动/.env字节不变；浏览器及实际页面worker均关闭，后置hooks不存在。总回执见 benchmark/results/v2/t160-assisted-20261003/acceptance-summary.json。

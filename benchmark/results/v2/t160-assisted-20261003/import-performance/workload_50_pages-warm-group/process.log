@@ -1,0 +1,12 @@
+paper_import=737e7f0f-ad67-428c-b4d6-f5bb39f558a6 phase=分批拆题与结构化暂存 error=PAPER_EXTRACTION_FAILED cause=PaperExtractionError
+{"case": "workload_50_pages", "mode": "warmup", "repetition": 1, "status": "Failed", "logical_calls": 7, "requests": 7}
+paper_import=1f809e34-e7ae-4970-ab06-9bab3ac60236 phase=分批拆题与结构化暂存 error=PAPER_EXTRACTION_FAILED cause=PaperExtractionError
+{"case": "workload_50_pages", "mode": "warm", "repetition": 1, "status": "Failed", "logical_calls": 6, "requests": 6}
+paper_import=8d660669-63ee-49fb-837c-6bf2de84191d phase=分批拆题与结构化暂存 error=PAPER_EXTRACTION_FAILED cause=PaperExtractionError
+{"case": "workload_50_pages", "mode": "warm", "repetition": 2, "status": "Failed", "logical_calls": 3, "requests": 3}
+paper_import=3351d1db-2292-46d2-a324-66c1060a800b phase=分批拆题与结构化暂存 error=PAPER_EXTRACTION_FAILED cause=PaperExtractionError
+{"case": "workload_50_pages", "mode": "warm", "repetition": 3, "status": "Failed", "logical_calls": 2, "requests": 2}
+paper_import=e04d17e4-6382-4470-9f26-bba7d4456f93 phase=分批拆题与结构化暂存 error=PAPER_EXTRACTION_FAILED cause=PaperExtractionError
+{"case": "workload_50_pages", "mode": "warm", "repetition": 4, "status": "Failed", "logical_calls": 4, "requests": 4}
+paper_import=f58330bd-7dca-4add-952e-c2adc367dcab phase=分批拆题与结构化暂存 error=PAPER_EXTRACTION_FAILED cause=PaperExtractionError
+{"case": "workload_50_pages", "mode": "warm", "repetition": 5, "status": "Failed", "logical_calls": 5, "requests": 5}

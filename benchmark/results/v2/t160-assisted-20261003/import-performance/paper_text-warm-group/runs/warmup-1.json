@@ -1,0 +1,251 @@
+{
+  "kind": "real-import-performance-run",
+  "teacher_annotation": false,
+  "case": "paper_text",
+  "mode": "warmup",
+  "repetition": 1,
+  "pid": 66488,
+  "source_commit": "6cea2ad",
+  "input_sha256": "74e4f9a21fd7bf778bab474f89bcede2680010e957cc435774205dbaa648c167",
+  "input_bytes": 72250,
+  "page_count": 1,
+  "initial_state": "new import; not an idempotent completed operation",
+  "llm_calls": [
+    {
+      "logical_call_no": 1,
+      "schema": "ExtractionBatch",
+      "prompt_version": "paper-extraction-v1",
+      "started_at": "2026-10-02T16:38:47.924865+00:00",
+      "start_perf": 264528.6231567,
+      "provider_metadata": {
+        "provider": "deepseek",
+        "model": "deepseek-chat",
+        "prompt_version": "paper-extraction-v1",
+        "call_path": "__main__.worker_async.<locals>.observe_factory.<locals>.generate"
+      },
+      "attempts": [
+        {
+          "attempt_number": 1,
+          "started_at": "2026-10-02T16:38:47.924952+00:00",
+          "start_perf": 264528.623236,
+          "configured_model": "deepseek-chat",
+          "response_model": "deepseek-flash",
+          "usage": {
+            "prompt_tokens": 1543,
+            "completion_tokens": 408,
+            "total_tokens": 1951
+          },
+          "status": "success",
+          "ended_at": "2026-10-02T16:38:50.477967+00:00",
+          "elapsed_seconds": 2.553016599966213
+        }
+      ],
+      "status": "success",
+      "validated_output_fields": {
+        "questions": [
+          {
+            "reference_answer": "C",
+            "scoring_rubric": null,
+            "analysis": "2 × 3 + 1 = 7。",
+            "evidence": {
+              "reference_answer": {
+                "page_number": 1,
+                "text": "原稿答案：C；原稿解析：2 × 3 + 1 = 7。"
+              },
+              "analysis": {
+                "page_number": 1,
+                "text": "原稿答案：C；原稿解析：2 × 3 + 1 = 7。"
+              }
+            },
+            "source_pages": [
+              1
+            ],
+            "question_number": "1",
+            "question_type": "SINGLE_CHOICE",
+            "content": "单选：y = 2x + 1，x = 3 时 y 为多少？",
+            "options": [
+              "C. 7",
+              "A. 5",
+              "B. 6",
+              "D. 8"
+            ],
+            "score": "2.00",
+            "knowledge_points": null
+          },
+          {
+            "reference_answer": null,
+            "scoring_rubric": null,
+            "analysis": null,
+            "evidence": {},
+            "source_pages": [
+              1
+            ],
+            "question_number": "2",
+            "question_type": "TRUE_FALSE",
+            "content": "判断：右图三角形面积为 24 cm²。",
+            "options": [
+              "正确",
+              "错误"
+            ],
+            "score": "2.00",
+            "knowledge_points": null
+          },
+          {
+            "reference_answer": null,
+            "scoring_rubric": "正确关系式 1.00；说明代入过程 2.00。",
+            "analysis": null,
+            "evidence": {
+              "scoring_rubric": {
+                "page_number": 1,
+                "text": "评分要点：正确关系式 1.00；说明代入过程 2.00。"
+              },
+              "knowledge_points": {
+                "page_number": 1,
+                "text": "知识点：一次函数、表达与计算。"
+              }
+            },
+            "source_pages": [
+              1
+            ],
+            "question_number": "3",
+            "question_type": "SHORT_ANSWER",
+            "content": "简答：根据下表写出 y 关于 x 的关系式。",
+            "options": null,
+            "score": "3.00",
+            "knowledge_points": [
+              "一次函数",
+              "表达与计算"
+            ]
+          }
+        ],
+        "updates": [],
+        "pending": []
+      },
+      "ended_at": "2026-10-02T16:38:50.478964+00:00",
+      "elapsed_seconds": 2.554101800022181
+    }
+  ],
+  "http_requests": [
+    {
+      "http_attempt_no": 1,
+      "logical_call_no": 1,
+      "provider_attempt_no": 1,
+      "started_at": "2026-10-02T16:38:47.983263+00:00",
+      "start_perf": 264528.6815532,
+      "method": "POST",
+      "host": "api.deepseek.com",
+      "path": "/chat/completions",
+      "response_observed": true,
+      "measurement": "httpx request event hook entered before transport; not proof server received bytes",
+      "requested_model": "deepseek-chat",
+      "status_code": 200,
+      "response_headers_received_at": "2026-10-02T16:38:48.640284+00:00",
+      "response_header_elapsed_seconds": 0.6570221000001766,
+      "response_model": "deepseek-flash",
+      "response_model_evidence": "actual SDK parsed HTTP response.model; distinct from configured/request body model",
+      "sdk_call_finished_at": "2026-10-02T16:38:50.477761+00:00",
+      "sdk_elapsed_seconds": 2.4945019999868236
+    }
+  ],
+  "provider": "deepseek",
+  "configured_model": "deepseek-chat",
+  "prompt_version": "paper-extraction-v1",
+  "ocr": {
+    "enabled": true,
+    "provider": "rapidocr",
+    "model": "PP-OCRv5-mobile",
+    "default_ocr_argument": null,
+    "instance_reuse_across_imports": false
+  },
+  "receive_started_at": "2026-10-02T16:38:44.705048+00:00",
+  "receive_start_perf": 264525.4033397,
+  "original_file_store": {
+    "started_at": "2026-10-02T16:38:44.721682+00:00",
+    "start_perf": 264525.4199731,
+    "status": "written_candidate",
+    "bytes": 72250,
+    "ended_at": "2026-10-02T16:38:44.747118+00:00",
+    "elapsed_seconds": 0.025443099963013083
+  },
+  "paper_import_id": "3d3927a3-eae6-44e3-8658-426117e0cb5f",
+  "teacher_fixture_id": "7da326d8-f991-45ec-9f4a-da694a64d445",
+  "course_id": "6e5a6cf3-55a4-4958-b48d-12401a361dc2",
+  "upload_returned_at": "2026-10-02T16:38:44.803477+00:00",
+  "upload_end_perf": 264525.50177,
+  "upload_seconds": 0.09843029995681718,
+  "terminal_perf": 264531.1873312,
+  "terminal_at": "2026-10-02T16:38:50.489056+00:00",
+  "status": "Failed",
+  "error_code": "PAPER_EXTRACTION_FAILED",
+  "error_message": "分批拆题与结构化暂存失败：原文来源校验失败：unknown evidence field",
+  "runner_returned_at": "2026-10-02T16:38:50.490365+00:00",
+  "runner_end_perf": 264531.1886574,
+  "persisted_output_fields": {
+    "id": "3d3927a3-eae6-44e3-8658-426117e0cb5f",
+    "course_id": "6e5a6cf3-55a4-4958-b48d-12401a361dc2",
+    "uploaded_by": "7da326d8-f991-45ec-9f4a-da694a64d445",
+    "document_id": "58fb8d4b-def1-41b9-bd7f-440d531922ae",
+    "original_filename": "paper_text.pdf",
+    "page_count": 1,
+    "status": "Failed",
+    "error_code": "PAPER_EXTRACTION_FAILED",
+    "error_message": "分批拆题与结构化暂存失败：原文来源校验失败：unknown evidence field",
+    "created_at": "2026-10-02T16:38:44.751915Z",
+    "updated_at": "2026-10-02T16:38:50.485104Z",
+    "original_file_id": "d_58fb8d4bdef141b9bd7f440d531922ae",
+    "parsed_page_count": 1,
+    "question_count": 0,
+    "pages": [
+      {
+        "id": "cbe604af-5e6c-4bbd-b3ab-0285d2c27f10",
+        "paper_import_id": "3d3927a3-eae6-44e3-8658-426117e0cb5f",
+        "page_number": 1,
+        "file_id": "p_cbe604af5e6c4bbdb3ab0285d2c27f10",
+        "width": 1241,
+        "height": 1754,
+        "ocr_text": null,
+        "ocr_confidence": null
+      }
+    ],
+    "questions": [],
+    "file_diagnostics": []
+  },
+  "terminal_observed_by_after_commit": true,
+  "terminal_elapsed_seconds": 5.783991499978583,
+  "runner_elapsed_seconds": 5.785317700006999,
+  "post_terminal_cleanup_seconds": 0.0013262000284157693,
+  "completed_at": "2026-10-02T16:38:50.543178+00:00",
+  "completed_perf": 264531.2414724,
+  "logical_call_count": 1,
+  "provider_attempt_count": 1,
+  "actual_request_attempt_count": 1,
+  "requested_models": [
+    "deepseek-chat"
+  ],
+  "response_models": [
+    "deepseek-flash"
+  ],
+  "business_success": false,
+  "within_import_target": false,
+  "resources": {
+    "sample_count": 6,
+    "requested_interval_seconds": 1.0,
+    "max_observed_gap_seconds": 1.0124619000125676,
+    "complete_at_requested_sampling_resolution": true,
+    "peaks": {
+      "app_working_set_bytes": 4395008,
+      "postgres_container_process_rss_bytes": 212574208,
+      "redis_container_process_rss_bytes": 8589312,
+      "simultaneous_observed_sum_bytes": 225558528
+    },
+    "missing_sample_count": 0,
+    "first_sample_at": "2026-10-02T16:38:45.579133+00:00",
+    "last_sample_at": "2026-10-02T16:38:50.533516+00:00",
+    "scope": {
+      "app": "specified Windows application process working set; excludes experiment controller",
+      "postgres": "sum of all postgres process RSS in shared eduagent-postgres-1; not isolated database attribution; shared pages can be counted repeatedly",
+      "redis": "sum of all redis-server process RSS in dedicated eduagent-e2-acceptance-redis-247aae862cab",
+      "sum": "observations within one sample, read sequentially; sampled peaks, not a continuous physical-memory high-water mark"
+    }
+  }
+}

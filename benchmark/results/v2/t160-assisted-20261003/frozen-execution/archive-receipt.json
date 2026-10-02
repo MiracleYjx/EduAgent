@@ -1,0 +1,41 @@
+{
+  "archive": "benchmark/results/v2/t160-assisted-20261003/frozen-execution/actual-execution-sources.zip",
+  "purpose": "Preserve exact executed source bytes despite Git line ending normalization; archive members remain unmodified.",
+  "members": [
+    {
+      "archive_entry": "crop-assist.py",
+      "sha256": "97c7c744691e428398d1c414e7f0c3d2c67ba0479659a8400a0887df22ccdf7e",
+      "original_source_copy": "benchmark/results/v2/t160-assisted-20261003/frozen-execution/crop-assist.py"
+    },
+    {
+      "archive_entry": "fault-cases.py",
+      "sha256": "bbc5881de281b1e71161ac0db25072b80030febeaa9485ba60a6f141253f6a52",
+      "original_source_copy": "benchmark/results/v2/t160-assisted-20261003/frozen-execution/fault-cases.py"
+    },
+    {
+      "archive_entry": "fault-plan.json",
+      "sha256": "ad8680ea90ac30b949cfe4eb27b5ca6dbe0282d13393ee1d2d5fafa60a40cb36",
+      "original_source_copy": "benchmark/results/v2/t160-assisted-20261003/frozen-execution/fault-plan.json"
+    },
+    {
+      "archive_entry": "performance-plan.json",
+      "sha256": "a60937756cfcde3eea6132285373fd4b0320247cb6166c04c2c134b5da0a472a",
+      "original_source_copy": "benchmark/results/v2/t160-assisted-20261003/frozen-execution/performance-plan.json"
+    },
+    {
+      "archive_entry": "performance-runner.py",
+      "sha256": "74b0ffbe2cf990607f2b517ea21c160c68d443ebb580e35168f28954acf188b1",
+      "original_source_copy": "benchmark/results/v2/t160-assisted-20261003/frozen-execution/performance-runner.py"
+    },
+    {
+      "archive_entry": "quality-runner.py",
+      "sha256": "e730da09a6a792286e8d4023e2c4464d6aae8be9603d2118b969910153701504",
+      "original_source_copy": "benchmark/results/v2/t160-assisted-20261003/frozen-execution/quality-runner.py"
+    },
+    {
+      "archive_entry": "resource_sampler.py",
+      "sha256": "2244b4074e6b53e827ee7333e6af24fa1a6ec7fc0cb14346e9d162851b6e4d20",
+      "original_source_copy": "benchmark/results/v2/t160-assisted-20261003/frozen-execution/resource_sampler.py"
+    }
+  ]
+}

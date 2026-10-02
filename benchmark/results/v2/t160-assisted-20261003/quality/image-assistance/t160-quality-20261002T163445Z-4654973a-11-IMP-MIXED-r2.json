@@ -1,0 +1,441 @@
+{
+  "stage": "after_image_assistance",
+  "snapshot": {
+    "id": "e6321fb0-52f4-4a1e-978e-2d5173aa6f46",
+    "course_id": "c9cd3a23-1388-4ec5-a71e-efa737ada185",
+    "uploaded_by": "84d0f6fc-b512-4fd5-8cdd-87b3a0f99067",
+    "document_id": "34576ec9-676c-4dd3-8a48-88cec4e09ed0",
+    "original_filename": "paper_mixed.pdf",
+    "page_count": 2,
+    "status": "Pending Review",
+    "error_code": null,
+    "error_message": null,
+    "created_at": "2026-10-02T16:36:12.743730Z",
+    "updated_at": "2026-10-02T16:36:21.233307Z",
+    "original_file_id": "d_34576ec9676c4dd38a4888cec4e09ed0",
+    "parsed_page_count": 2,
+    "question_count": 6,
+    "pages": [
+      {
+        "id": "e36a60e5-acbc-4667-9470-d4234b3261de",
+        "paper_import_id": "e6321fb0-52f4-4a1e-978e-2d5173aa6f46",
+        "page_number": 1,
+        "file_id": "p_e36a60e5acbc46679470d4234b3261de",
+        "width": 1241,
+        "height": 1754,
+        "ocr_text": null,
+        "ocr_confidence": null
+      },
+      {
+        "id": "7670ab98-ed26-4173-9c1b-5ef2b0fca33a",
+        "paper_import_id": "e6321fb0-52f4-4a1e-978e-2d5173aa6f46",
+        "page_number": 2,
+        "file_id": "p_7670ab98ed2641739c1b5ef2b0fca33a",
+        "width": 1241,
+        "height": 1754,
+        "ocr_text": "数学样本试卷\n合成原稿－待教师复核；不是正式验收真值\n4.单选：y= 2x +1，x = 3 时y为多少？(2.00分)\n选项原顺序：C.7 A.5 B.6 D.8\n原稿答案：C；原稿解析：2 × 3 +1=7。\n5.判断：右图三角形面积为24cm2。（2.00分)\n选项原顺序：正确/错误。原稿未附此题答案与解析。\n三角形\n高4cm\n底6cm\n6．简答：根据下表写出y关于x的关系式。（3.00分）\n评分要点：正确关系式1.00；说明代入过程2.00。\n原稿未附此题答案与解析。知识点：一次函数、表达与计算。\n说明\nX\ny\n1\n3\n第一行\n2\n5\n第二行\n3\n7\n第三行\nEduAgent v2 draft | 2/2",
+        "ocr_confidence": null
+      }
+    ],
+    "questions": [
+      {
+        "question_type": "SINGLE_CHOICE",
+        "content": "y = 2x + 1，x = 3 时 y 为多少？",
+        "options": {
+          "C": "7",
+          "A": "5",
+          "B": "6",
+          "D": "8"
+        },
+        "reference_answer": "C",
+        "scoring_rubric": null,
+        "score": "2.00",
+        "correction_notes": "T160 approved AI-assisted reference; not independent teacher annotation.",
+        "question_number": "1",
+        "analysis": "2 × 3 + 1 = 7。",
+        "knowledge_points": [],
+        "source_regions": null,
+        "assets": [],
+        "source_page_ids": [
+          "e36a60e5-acbc-4667-9470-d4234b3261de"
+        ],
+        "extracted_by": "LLM",
+        "extraction_confidence": null,
+        "id": "f12b4769-9986-469c-9013-b73988e84b04",
+        "paper_import_id": "e6321fb0-52f4-4a1e-978e-2d5173aa6f46",
+        "order_index": 1,
+        "order_preserved": true,
+        "status": "Pending Correction",
+        "question_id": null,
+        "image_assessment": {
+          "context_revision": 0,
+          "runs": [],
+          "manual_checks": [],
+          "imported_review": null
+        },
+        "created_at": "2026-10-02T16:36:21.223614Z",
+        "updated_at": "2026-10-02T16:36:21.329513Z"
+      },
+      {
+        "question_type": "TRUE_FALSE",
+        "content": "右图三角形面积为 24 cm²。",
+        "options": [
+          "正确",
+          "错误"
+        ],
+        "reference_answer": null,
+        "scoring_rubric": null,
+        "score": "2.00",
+        "correction_notes": "T160 approved AI-assisted reference; not independent teacher annotation.",
+        "question_number": "2",
+        "analysis": null,
+        "knowledge_points": [],
+        "source_regions": null,
+        "assets": [
+          {
+            "id": "abaedf57-f973-4841-af1a-4f75858e1e04",
+            "file_id": "a_abaedf57f9734841af1a4f75858e1e04",
+            "asset_type": "figure",
+            "source_page_id": "e36a60e5-acbc-4667-9470-d4234b3261de",
+            "region": {
+              "bbox": [
+                650,
+                500,
+                1100,
+                825
+              ]
+            },
+            "caption": null,
+            "student_visible": false
+          }
+        ],
+        "source_page_ids": [
+          "e36a60e5-acbc-4667-9470-d4234b3261de"
+        ],
+        "extracted_by": "LLM",
+        "extraction_confidence": null,
+        "id": "722193bc-b1cc-4137-b664-0a4373fa0996",
+        "paper_import_id": "e6321fb0-52f4-4a1e-978e-2d5173aa6f46",
+        "order_index": 2,
+        "order_preserved": true,
+        "status": "Pending Correction",
+        "question_id": null,
+        "image_assessment": {
+          "context_revision": 1,
+          "runs": [],
+          "manual_checks": [],
+          "imported_review": null
+        },
+        "created_at": "2026-10-02T16:36:21.223619Z",
+        "updated_at": "2026-10-02T16:50:36.596256Z"
+      },
+      {
+        "question_type": "SHORT_ANSWER",
+        "content": "根据下表写出 y 关于 x 的关系式。",
+        "options": null,
+        "reference_answer": null,
+        "scoring_rubric": "正确关系式 1.00；说明代入过程 2.00。",
+        "score": "3.00",
+        "correction_notes": "T160 approved AI-assisted reference; not independent teacher annotation.",
+        "question_number": "3",
+        "analysis": null,
+        "knowledge_points": [
+          "一次函数",
+          "表达与计算"
+        ],
+        "source_regions": null,
+        "assets": [
+          {
+            "id": "9f5335ab-bf7b-4f27-810e-c12c1ebfd676",
+            "file_id": "a_9f5335abbf7b4f27810ec12c1ebfd676",
+            "asset_type": "table",
+            "source_page_id": "e36a60e5-acbc-4667-9470-d4234b3261de",
+            "region": {
+              "bbox": [
+                375,
+                1062,
+                850,
+                1412
+              ]
+            },
+            "caption": null,
+            "student_visible": false
+          }
+        ],
+        "source_page_ids": [
+          "e36a60e5-acbc-4667-9470-d4234b3261de"
+        ],
+        "extracted_by": "LLM",
+        "extraction_confidence": null,
+        "id": "fdc4978f-f300-4114-9191-189955768c03",
+        "paper_import_id": "e6321fb0-52f4-4a1e-978e-2d5173aa6f46",
+        "order_index": 3,
+        "order_preserved": true,
+        "status": "Pending Correction",
+        "question_id": null,
+        "image_assessment": {
+          "context_revision": 1,
+          "runs": [],
+          "manual_checks": [],
+          "imported_review": null
+        },
+        "created_at": "2026-10-02T16:36:21.223620Z",
+        "updated_at": "2026-10-02T16:50:36.708017Z"
+      },
+      {
+        "question_type": "SINGLE_CHOICE",
+        "content": "y = 2x + 1，x = 3 时 y 为多少？",
+        "options": {
+          "C": "7",
+          "A": "5",
+          "B": "6",
+          "D": "8"
+        },
+        "reference_answer": "C",
+        "scoring_rubric": null,
+        "score": "2.00",
+        "correction_notes": "T160 approved AI-assisted reference; not independent teacher annotation.",
+        "question_number": "4",
+        "analysis": "2 × 3 + 1 = 7。",
+        "knowledge_points": [],
+        "source_regions": null,
+        "assets": [],
+        "source_page_ids": [
+          "7670ab98-ed26-4173-9c1b-5ef2b0fca33a"
+        ],
+        "extracted_by": "LLM",
+        "extraction_confidence": null,
+        "id": "b5af01ab-f156-48e8-9442-528bd4cf75d0",
+        "paper_import_id": "e6321fb0-52f4-4a1e-978e-2d5173aa6f46",
+        "order_index": 4,
+        "order_preserved": true,
+        "status": "Pending Correction",
+        "question_id": null,
+        "image_assessment": {
+          "context_revision": 0,
+          "runs": [],
+          "manual_checks": [],
+          "imported_review": null
+        },
+        "created_at": "2026-10-02T16:36:21.223622Z",
+        "updated_at": "2026-10-02T16:36:21.381692Z"
+      },
+      {
+        "question_type": "TRUE_FALSE",
+        "content": "右图三角形面积为 24 cm²。",
+        "options": [
+          "正确",
+          "错误"
+        ],
+        "reference_answer": null,
+        "scoring_rubric": null,
+        "score": "2.00",
+        "correction_notes": "T160 approved AI-assisted reference; not independent teacher annotation.",
+        "question_number": "5",
+        "analysis": null,
+        "knowledge_points": [],
+        "source_regions": null,
+        "assets": [
+          {
+            "id": "1aa41c9e-9b05-4526-8709-efc10b20dfb7",
+            "file_id": "a_1aa41c9e9b0545268709efc10b20dfb7",
+            "asset_type": "figure",
+            "source_page_id": "7670ab98-ed26-4173-9c1b-5ef2b0fca33a",
+            "region": {
+              "bbox": [
+                650,
+                500,
+                1100,
+                825
+              ]
+            },
+            "caption": null,
+            "student_visible": false
+          }
+        ],
+        "source_page_ids": [
+          "7670ab98-ed26-4173-9c1b-5ef2b0fca33a"
+        ],
+        "extracted_by": "LLM",
+        "extraction_confidence": null,
+        "id": "f06dfb88-bac0-4136-b224-adc921844534",
+        "paper_import_id": "e6321fb0-52f4-4a1e-978e-2d5173aa6f46",
+        "order_index": 5,
+        "order_preserved": true,
+        "status": "Pending Correction",
+        "question_id": null,
+        "image_assessment": {
+          "context_revision": 1,
+          "runs": [],
+          "manual_checks": [],
+          "imported_review": null
+        },
+        "created_at": "2026-10-02T16:36:21.223623Z",
+        "updated_at": "2026-10-02T16:50:36.816710Z"
+      },
+      {
+        "question_type": "SHORT_ANSWER",
+        "content": "根据下表写出 y 关于 x 的关系式。",
+        "options": null,
+        "reference_answer": null,
+        "scoring_rubric": "正确关系式 1.00；说明代入过程 2.00。",
+        "score": "3.00",
+        "correction_notes": "T160 approved AI-assisted reference; not independent teacher annotation.",
+        "question_number": "6",
+        "analysis": null,
+        "knowledge_points": [
+          "一次函数",
+          "表达与计算"
+        ],
+        "source_regions": null,
+        "assets": [
+          {
+            "id": "36d00224-20cb-4a0e-8543-42bda8e64a0e",
+            "file_id": "a_36d0022420cb4a0e854342bda8e64a0e",
+            "asset_type": "table",
+            "source_page_id": "7670ab98-ed26-4173-9c1b-5ef2b0fca33a",
+            "region": {
+              "bbox": [
+                375,
+                1062,
+                850,
+                1412
+              ]
+            },
+            "caption": null,
+            "student_visible": false
+          }
+        ],
+        "source_page_ids": [
+          "7670ab98-ed26-4173-9c1b-5ef2b0fca33a"
+        ],
+        "extracted_by": "LLM",
+        "extraction_confidence": null,
+        "id": "e91bfaf6-770a-45fe-ac00-ec4a6d39504e",
+        "paper_import_id": "e6321fb0-52f4-4a1e-978e-2d5173aa6f46",
+        "order_index": 6,
+        "order_preserved": true,
+        "status": "Pending Correction",
+        "question_id": null,
+        "image_assessment": {
+          "context_revision": 1,
+          "runs": [],
+          "manual_checks": [],
+          "imported_review": null
+        },
+        "created_at": "2026-10-02T16:36:21.223624Z",
+        "updated_at": "2026-10-02T16:50:36.925623Z"
+      }
+    ],
+    "file_diagnostics": []
+  },
+  "reference_sha256": "13095b3d62f9e0db14e92412e58923f6b2c1c83c0acf49ea356e306397e2ff9e",
+  "independent_teacher_review": false,
+  "cloud_calls": 0,
+  "image_association_comparison": [
+    {
+      "reference_identity": "1faa8619-84cc-5d65-86ae-244c7f68645e",
+      "extracted_question_id": "f12b4769-9986-469c-9013-b73988e84b04",
+      "expected": [],
+      "actual": [],
+      "evaluable": true,
+      "correct": true,
+      "reason": "ordered type/page association only; independent teacher/pixel correctness not claimed"
+    },
+    {
+      "reference_identity": "545de13f-3fe9-524b-a917-7ab04807806f",
+      "extracted_question_id": "722193bc-b1cc-4137-b664-0a4373fa0996",
+      "expected": [
+        {
+          "asset_type": "figure",
+          "source_page_number": 1,
+          "order_index": 1
+        }
+      ],
+      "actual": [
+        {
+          "asset_type": "figure",
+          "source_page_number": 1,
+          "order_index": 1
+        }
+      ],
+      "evaluable": true,
+      "correct": true,
+      "reason": "ordered type/page association only; independent teacher/pixel correctness not claimed"
+    },
+    {
+      "reference_identity": "85533f46-eb86-5893-8742-33939e77750f",
+      "extracted_question_id": "fdc4978f-f300-4114-9191-189955768c03",
+      "expected": [
+        {
+          "asset_type": "table",
+          "source_page_number": 1,
+          "order_index": 1
+        }
+      ],
+      "actual": [
+        {
+          "asset_type": "table",
+          "source_page_number": 1,
+          "order_index": 1
+        }
+      ],
+      "evaluable": true,
+      "correct": true,
+      "reason": "ordered type/page association only; independent teacher/pixel correctness not claimed"
+    },
+    {
+      "reference_identity": "0fa8d57e-58c2-5aa4-b8cd-e52e96380a38",
+      "extracted_question_id": "b5af01ab-f156-48e8-9442-528bd4cf75d0",
+      "expected": [],
+      "actual": [],
+      "evaluable": true,
+      "correct": true,
+      "reason": "ordered type/page association only; independent teacher/pixel correctness not claimed"
+    },
+    {
+      "reference_identity": "455720b9-9061-5bce-83af-d6d53c6c84e1",
+      "extracted_question_id": "f06dfb88-bac0-4136-b224-adc921844534",
+      "expected": [
+        {
+          "asset_type": "figure",
+          "source_page_number": 2,
+          "order_index": 1
+        }
+      ],
+      "actual": [
+        {
+          "asset_type": "figure",
+          "source_page_number": 2,
+          "order_index": 1
+        }
+      ],
+      "evaluable": true,
+      "correct": true,
+      "reason": "ordered type/page association only; independent teacher/pixel correctness not claimed"
+    },
+    {
+      "reference_identity": "bf862f8d-df39-5559-bab5-d942fccb2432",
+      "extracted_question_id": "e91bfaf6-770a-45fe-ac00-ec4a6d39504e",
+      "expected": [
+        {
+          "asset_type": "table",
+          "source_page_number": 2,
+          "order_index": 1
+        }
+      ],
+      "actual": [
+        {
+          "asset_type": "table",
+          "source_page_number": 2,
+          "order_index": 1
+        }
+      ],
+      "evaluable": true,
+      "correct": true,
+      "reason": "ordered type/page association only; independent teacher/pixel correctness not claimed"
+    }
+  ],
+  "image_association_numerator": 6,
+  "image_association_denominator": 6
+}

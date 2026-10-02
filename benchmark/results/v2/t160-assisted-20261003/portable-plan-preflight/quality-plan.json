@@ -1,0 +1,190 @@
+{
+  "protocol_version": "v2-evaluation-1",
+  "source_commit": "6cea2adc245998b58ab1fe4cd10e6e6d4e2b092e",
+  "source_root": "D:\\YJX\\MyCode\\EduAgent\\.cache\\t160-acceptance-20261002\\source-head",
+  "runner_sha256": "5420ed2d7f302c8b7536d774cc907f11351dc2dda006ec2a44db225d3b8ba267",
+  "dataset_version": "v2-draft-20261001-1",
+  "annotation_version": "t160-user-authorized-ai-assisted-20261003-1",
+  "annotation_sha256": "13095b3d62f9e0db14e92412e58923f6b2c1c83c0acf49ea356e306397e2ff9e",
+  "annotation_status": "user_confirmed_ai_assisted",
+  "reference_origin": "user_confirmed_ai_assisted",
+  "independent_teacher_labeled_cases": 0,
+  "user_review_confirmation": {
+    "statement": "确认标注并采用 AI 辅助口径（推荐）",
+    "confirmed_at": "2026-10-02T16:14:48+00:00",
+    "reviewed_by": "current_chat_user",
+    "reviewer_kind": "human",
+    "confirmation_source": "current_chat_user_message",
+    "scope": "5 个正常导入 case 的 AI 辅助标注与原稿缺失/未知口径",
+    "is_independent_teacher_truth": false
+  },
+  "reviewed_by": "current_chat_user",
+  "reviewed_at": "2026-10-02T16:14:48+00:00",
+  "quality_thresholds": null,
+  "threshold_status": "pending_baseline",
+  "environment": {
+    "os": "Windows-11-10.0.26200-SP0",
+    "cpu": "AMD64 Family 23 Model 96 Stepping 1, AuthenticAMD",
+    "logical_cpus": 12,
+    "python": "3.13.13 (tags/v3.13.13:01104ce, Apr  7 2026, 19:25:48) [MSC v.1944 64 bit (AMD64)]",
+    "packages": {
+      "rapidocr": "3.9.2",
+      "onnxruntime": "1.30.0",
+      "pypdf": "6.18.1",
+      "pypdfium2": "5.13.0",
+      "openai": "2.54.0",
+      "httpx": "0.28.1",
+      "sqlalchemy": "2.0.50"
+    }
+  },
+  "config": {
+    "provider": "deepseek",
+    "model": "deepseek-chat",
+    "provider_host": "api.deepseek.com",
+    "prompt": "paper-extraction-v1",
+    "batch_size": 2,
+    "provider_timeout_seconds": 30,
+    "sdk_retries": 0,
+    "retry_policy": "unchanged production RetryPolicy",
+    "concurrency": 1,
+    "ocr_enabled": true,
+    "ocr_provider": "rapidocr",
+    "ocr_model": "PP-OCRv5-mobile",
+    "model_files": [
+      {
+        "file": "ch_PP-OCRv5_det_mobile.onnx",
+        "sha256": "4d97c44a20d30a81aad087d6a396b08f786c4635742afc391f6621f5c6ae78ae"
+      },
+      {
+        "file": "ch_PP-OCRv5_rec_mobile.onnx",
+        "sha256": "5825fc7ebf84ae7a412be049820b4d86d77620f204a041697b0494669b1742c5"
+      },
+      {
+        "file": "ch_ppocr_mobile_v2.0_cls_mobile.onnx",
+        "sha256": "e47acedf663230f8863ff1ab0e64dd2d82b838fceb5957146dab185a89d6215c"
+      }
+    ],
+    "render_dpi": 150,
+    "autoflush": false,
+    "database": "eduagent_e2_acceptance_247aae862cab",
+    "application_state": "quality repetitions; new provider/OCR per import; no cold/warm claim"
+  },
+  "planned_runs": [
+    {
+      "case_id": "IMP-TEXT",
+      "repeat_index": 1,
+      "source_ref": "inputs/paper_text.pdf",
+      "source_sha256": "74e4f9a21fd7bf778bab474f89bcede2680010e957cc435774205dbaa648c167",
+      "reference_questions": 3
+    },
+    {
+      "case_id": "IMP-TEXT",
+      "repeat_index": 2,
+      "source_ref": "inputs/paper_text.pdf",
+      "source_sha256": "74e4f9a21fd7bf778bab474f89bcede2680010e957cc435774205dbaa648c167",
+      "reference_questions": 3
+    },
+    {
+      "case_id": "IMP-TEXT",
+      "repeat_index": 3,
+      "source_ref": "inputs/paper_text.pdf",
+      "source_sha256": "74e4f9a21fd7bf778bab474f89bcede2680010e957cc435774205dbaa648c167",
+      "reference_questions": 3
+    },
+    {
+      "case_id": "IMP-SCAN",
+      "repeat_index": 1,
+      "source_ref": "inputs/paper_scan.pdf",
+      "source_sha256": "16aaa00c8b41ca1f5e5e77d6248e918953d054e725ebfb30548fec84cfe9ba5b",
+      "reference_questions": 3
+    },
+    {
+      "case_id": "IMP-SCAN",
+      "repeat_index": 2,
+      "source_ref": "inputs/paper_scan.pdf",
+      "source_sha256": "16aaa00c8b41ca1f5e5e77d6248e918953d054e725ebfb30548fec84cfe9ba5b",
+      "reference_questions": 3
+    },
+    {
+      "case_id": "IMP-SCAN",
+      "repeat_index": 3,
+      "source_ref": "inputs/paper_scan.pdf",
+      "source_sha256": "16aaa00c8b41ca1f5e5e77d6248e918953d054e725ebfb30548fec84cfe9ba5b",
+      "reference_questions": 3
+    },
+    {
+      "case_id": "IMP-IMAGE",
+      "repeat_index": 1,
+      "source_ref": "inputs/paper_image.png",
+      "source_sha256": "31cdc03d0d958c33d6d7815e330f521febe40e23eab0122f687344f8ed311199",
+      "reference_questions": 3
+    },
+    {
+      "case_id": "IMP-IMAGE",
+      "repeat_index": 2,
+      "source_ref": "inputs/paper_image.png",
+      "source_sha256": "31cdc03d0d958c33d6d7815e330f521febe40e23eab0122f687344f8ed311199",
+      "reference_questions": 3
+    },
+    {
+      "case_id": "IMP-IMAGE",
+      "repeat_index": 3,
+      "source_ref": "inputs/paper_image.png",
+      "source_sha256": "31cdc03d0d958c33d6d7815e330f521febe40e23eab0122f687344f8ed311199",
+      "reference_questions": 3
+    },
+    {
+      "case_id": "IMP-MIXED",
+      "repeat_index": 1,
+      "source_ref": "inputs/paper_mixed.pdf",
+      "source_sha256": "5c0affa1fb5ec3f3267972bce7cfbf67cf3abe067b59c9cdac0b45edd025f4ba",
+      "reference_questions": 6
+    },
+    {
+      "case_id": "IMP-MIXED",
+      "repeat_index": 2,
+      "source_ref": "inputs/paper_mixed.pdf",
+      "source_sha256": "5c0affa1fb5ec3f3267972bce7cfbf67cf3abe067b59c9cdac0b45edd025f4ba",
+      "reference_questions": 6
+    },
+    {
+      "case_id": "IMP-MIXED",
+      "repeat_index": 3,
+      "source_ref": "inputs/paper_mixed.pdf",
+      "source_sha256": "5c0affa1fb5ec3f3267972bce7cfbf67cf3abe067b59c9cdac0b45edd025f4ba",
+      "reference_questions": 6
+    },
+    {
+      "case_id": "IMP-CROSS",
+      "repeat_index": 1,
+      "source_ref": "inputs/paper_cross_page.pdf",
+      "source_sha256": "8c6a18f125a37ff9107a563efb52f5e61ec8ce1debdb516059a1d5b7d58d1a23",
+      "reference_questions": 1
+    },
+    {
+      "case_id": "IMP-CROSS",
+      "repeat_index": 2,
+      "source_ref": "inputs/paper_cross_page.pdf",
+      "source_sha256": "8c6a18f125a37ff9107a563efb52f5e61ec8ce1debdb516059a1d5b7d58d1a23",
+      "reference_questions": 1
+    },
+    {
+      "case_id": "IMP-CROSS",
+      "repeat_index": 3,
+      "source_ref": "inputs/paper_cross_page.pdf",
+      "source_sha256": "8c6a18f125a37ff9107a563efb52f5e61ec8ce1debdb516059a1d5b7d58d1a23",
+      "reference_questions": 1
+    }
+  ],
+  "planned_imports": 15,
+  "distinct_reference_questions": 16,
+  "policy": {
+    "automatic_identity": "original number + real ordered source pages, unique one-to-one",
+    "correction_identity": "explicit unique original number; no guessed content match",
+    "normalize": "only line endings/trim; preserve option keys/order; Decimal score; exact label set",
+    "unknown": "exclude and count; known missing values and known image requirements remain evaluable",
+    "images": "ordered type/source-page association; not pixel quality or independent teacher truth"
+  },
+  "planned_at": "2026-10-02T17:40:03.872277+00:00",
+  "cloud_calls_executed": 0
+}

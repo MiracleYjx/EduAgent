@@ -1,0 +1,161 @@
+{
+  "kind": "real-import-performance-summary",
+  "completed_at": "2026-10-02T16:45:10.885315+00:00",
+  "planned_total": 27,
+  "observed_total": 27,
+  "measured_count": 24,
+  "all_planned_business_success": false,
+  "all_measured_within_300_seconds": false,
+  "all_measured_resource_complete": true,
+  "request_attempts": 83,
+  "provider_attempts": 83,
+  "logical_calls": 83,
+  "configured_model": "deepseek-chat",
+  "requested_models": [
+    "deepseek-chat"
+  ],
+  "response_models": [
+    "deepseek-flash"
+  ],
+  "model_alias_reason": "not inferred; configuration/requested/response models are independently recorded without a model-equality gate",
+  "groups": [
+    {
+      "case": "paper_text",
+      "mode": "cold",
+      "planned": 3,
+      "observed": 3,
+      "success": 3,
+      "failed": 0,
+      "target_passed": 3,
+      "successful_seconds": {
+        "min": 4.800541399978101,
+        "median": 4.852210299985018,
+        "max": 5.259018199983984
+      },
+      "complete_at_resource_sampling_resolution": true
+    },
+    {
+      "case": "paper_text",
+      "mode": "warm",
+      "planned": 5,
+      "observed": 5,
+      "success": 5,
+      "failed": 0,
+      "target_passed": 5,
+      "successful_seconds": {
+        "min": 3.479826900002081,
+        "median": 3.9227069999906234,
+        "max": 4.2103803000063635
+      },
+      "complete_at_resource_sampling_resolution": true
+    },
+    {
+      "case": "paper_text",
+      "mode": "warmup",
+      "planned": 1,
+      "observed": 1,
+      "success": 0,
+      "failed": 1,
+      "target_passed": 0,
+      "successful_seconds": {
+        "min": null,
+        "median": null,
+        "max": null
+      },
+      "complete_at_resource_sampling_resolution": true
+    },
+    {
+      "case": "workload_10_pages",
+      "mode": "cold",
+      "planned": 3,
+      "observed": 3,
+      "success": 1,
+      "failed": 2,
+      "target_passed": 1,
+      "successful_seconds": {
+        "min": 14.451447899977211,
+        "median": 14.451447899977211,
+        "max": 14.451447899977211
+      },
+      "complete_at_resource_sampling_resolution": true
+    },
+    {
+      "case": "workload_10_pages",
+      "mode": "warm",
+      "planned": 5,
+      "observed": 5,
+      "success": 3,
+      "failed": 2,
+      "target_passed": 3,
+      "successful_seconds": {
+        "min": 14.331950600026175,
+        "median": 14.90518709999742,
+        "max": 15.495716199977323
+      },
+      "complete_at_resource_sampling_resolution": true
+    },
+    {
+      "case": "workload_10_pages",
+      "mode": "warmup",
+      "planned": 1,
+      "observed": 1,
+      "success": 0,
+      "failed": 1,
+      "target_passed": 0,
+      "successful_seconds": {
+        "min": null,
+        "median": null,
+        "max": null
+      },
+      "complete_at_resource_sampling_resolution": true
+    },
+    {
+      "case": "workload_50_pages",
+      "mode": "cold",
+      "planned": 3,
+      "observed": 3,
+      "success": 0,
+      "failed": 3,
+      "target_passed": 0,
+      "successful_seconds": {
+        "min": null,
+        "median": null,
+        "max": null
+      },
+      "complete_at_resource_sampling_resolution": true
+    },
+    {
+      "case": "workload_50_pages",
+      "mode": "warm",
+      "planned": 5,
+      "observed": 5,
+      "success": 0,
+      "failed": 5,
+      "target_passed": 0,
+      "successful_seconds": {
+        "min": null,
+        "median": null,
+        "max": null
+      },
+      "complete_at_resource_sampling_resolution": true
+    },
+    {
+      "case": "workload_50_pages",
+      "mode": "warmup",
+      "planned": 1,
+      "observed": 1,
+      "success": 0,
+      "failed": 1,
+      "target_passed": 0,
+      "successful_seconds": {
+        "min": null,
+        "median": null,
+        "max": null
+      },
+      "complete_at_resource_sampling_resolution": true
+    }
+  ],
+  "physical_memory_or_exe_budget_proven": false,
+  "teacher_annotation": false,
+  "input_quality_acceptance": false
+}

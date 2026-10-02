@@ -1,0 +1,89 @@
+{
+  "stage": "after_image_assistance",
+  "reference_origin": "user_confirmed_ai_assisted",
+  "independent_teacher_reviews": 0,
+  "actual_persisted_crops": 31,
+  "crop_failures": 0,
+  "cloud_calls": 0,
+  "association_numerator": 45,
+  "association_denominator": 48,
+  "association_value": 0.9375,
+  "executed_reference_questions": 45,
+  "not_executed_reference_questions": 3,
+  "planned_denominator_reason": "Retain IMP-TEXT r3 failed import 3 reference questions in fixed planned48; do not count absent post-crop snapshots as success.",
+  "association_scope": "One-to-one original number/source-page identity plus ordered image type/page references; no independent teacher/pixel correctness rate.",
+  "reference_sha256": "13095b3d62f9e0db14e92412e58923f6b2c1c83c0acf49ea356e306397e2ff9e",
+  "per_snapshot": [
+    {
+      "snapshot_ref": "image-assistance\\t160-quality-20261002T163445Z-4654973a-01-IMP-TEXT-r1.json",
+      "numerator": 3,
+      "executed_denominator": 3
+    },
+    {
+      "snapshot_ref": "image-assistance\\t160-quality-20261002T163445Z-4654973a-02-IMP-TEXT-r2.json",
+      "numerator": 3,
+      "executed_denominator": 3
+    },
+    {
+      "snapshot_ref": "image-assistance\\t160-quality-20261002T163445Z-4654973a-04-IMP-SCAN-r1.json",
+      "numerator": 3,
+      "executed_denominator": 3
+    },
+    {
+      "snapshot_ref": "image-assistance\\t160-quality-20261002T163445Z-4654973a-05-IMP-SCAN-r2.json",
+      "numerator": 3,
+      "executed_denominator": 3
+    },
+    {
+      "snapshot_ref": "image-assistance\\t160-quality-20261002T163445Z-4654973a-06-IMP-SCAN-r3.json",
+      "numerator": 3,
+      "executed_denominator": 3
+    },
+    {
+      "snapshot_ref": "image-assistance\\t160-quality-20261002T163445Z-4654973a-07-IMP-IMAGE-r1.json",
+      "numerator": 3,
+      "executed_denominator": 3
+    },
+    {
+      "snapshot_ref": "image-assistance\\t160-quality-20261002T163445Z-4654973a-08-IMP-IMAGE-r2.json",
+      "numerator": 3,
+      "executed_denominator": 3
+    },
+    {
+      "snapshot_ref": "image-assistance\\t160-quality-20261002T163445Z-4654973a-09-IMP-IMAGE-r3.json",
+      "numerator": 3,
+      "executed_denominator": 3
+    },
+    {
+      "snapshot_ref": "image-assistance\\t160-quality-20261002T163445Z-4654973a-10-IMP-MIXED-r1.json",
+      "numerator": 6,
+      "executed_denominator": 6
+    },
+    {
+      "snapshot_ref": "image-assistance\\t160-quality-20261002T163445Z-4654973a-11-IMP-MIXED-r2.json",
+      "numerator": 6,
+      "executed_denominator": 6
+    },
+    {
+      "snapshot_ref": "image-assistance\\t160-quality-20261002T163445Z-4654973a-12-IMP-MIXED-r3.json",
+      "numerator": 6,
+      "executed_denominator": 6
+    },
+    {
+      "snapshot_ref": "image-assistance\\t160-quality-20261002T163445Z-4654973a-13-IMP-CROSS-r1.json",
+      "numerator": 1,
+      "executed_denominator": 1
+    },
+    {
+      "snapshot_ref": "image-assistance\\t160-quality-20261002T163445Z-4654973a-14-IMP-CROSS-r2.json",
+      "numerator": 1,
+      "executed_denominator": 1
+    },
+    {
+      "snapshot_ref": "image-assistance\\t160-quality-20261002T163445Z-4654973a-15-IMP-CROSS-r3.json",
+      "numerator": 1,
+      "executed_denominator": 1
+    }
+  ],
+  "copied_at": "2026-10-02T16:52:28.642954+00:00"
+}

@@ -1,0 +1,8 @@
+{
+  "phase": "premeasurement_setup",
+  "planned_measurement_recorded": false,
+  "measurement_rows": 0,
+  "reason": "Observer head script present but no installation/start event. Changed wrapper to Gradio mount js load hook and added observable installed marker before any formal measurement.",
+  "actual_target_click_observed": true,
+  "performance_result": null
+}

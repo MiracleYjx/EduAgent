@@ -1,0 +1,8 @@
+D:\YJX\MyCode\EduAgent\.cache\t160-acceptance-20261002\correction_ui_server.py:76: UserWarning: The parameters have been moved from the Blocks constructor to the launch() method in Gradio 6.0: head. Please pass these parameters to launch() instead.
+  with gr.Blocks(title="T160 correction timing",head="<script>"+js+"</script>") as panel:
+D:\develop\Python\Lib\site-packages\gradio\components\dataframe.py:197: UserWarning: The `column_limits` parameter is not yet implemented.
+  warnings.warn(
+D:\develop\Python\Lib\site-packages\gradio\components\dataframe.py:197: UserWarning: The `column_limits` parameter is not yet implemented.
+  warnings.warn(
+D:\develop\Python\Lib\site-packages\gradio\components\dataframe.py:197: UserWarning: The `column_limits` parameter is not yet implemented.
+  warnings.warn(

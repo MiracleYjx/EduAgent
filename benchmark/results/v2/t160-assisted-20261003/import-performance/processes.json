@@ -1,0 +1,326 @@
+[
+  {
+    "pid": 80616,
+    "started_at": "2026-10-02T16:37:43.100487+00:00",
+    "ended_at": "2026-10-02T16:38:00.195615+00:00",
+    "exit_code": 0,
+    "resources": {
+      "sample_count": 17,
+      "requested_interval_seconds": 1.0,
+      "max_observed_gap_seconds": 1.5324303999659605,
+      "complete_at_requested_sampling_resolution": true,
+      "peaks": {
+        "app_working_set_bytes": 4395008,
+        "postgres_container_process_rss_bytes": 212287488,
+        "redis_container_process_rss_bytes": 8581120,
+        "simultaneous_observed_sum_bytes": 225263616
+      },
+      "missing_sample_count": 0,
+      "first_sample_at": "2026-10-02T16:37:43.633670+00:00",
+      "last_sample_at": "2026-10-02T16:38:00.195219+00:00",
+      "scope": {
+        "app": "specified Windows application process working set; excludes experiment controller",
+        "postgres": "sum of all postgres process RSS in shared eduagent-postgres-1; not isolated database attribution; shared pages can be counted repeatedly",
+        "redis": "sum of all redis-server process RSS in dedicated eduagent-e2-acceptance-redis-247aae862cab",
+        "sum": "observations within one sample, read sequentially; sampled peaks, not a continuous physical-memory high-water mark"
+      }
+    }
+  },
+  {
+    "pid": 61620,
+    "started_at": "2026-10-02T16:38:00.201981+00:00",
+    "ended_at": "2026-10-02T16:38:17.274226+00:00",
+    "exit_code": 0,
+    "resources": {
+      "sample_count": 17,
+      "requested_interval_seconds": 1.0,
+      "max_observed_gap_seconds": 1.535519800032489,
+      "complete_at_requested_sampling_resolution": true,
+      "peaks": {
+        "app_working_set_bytes": 4395008,
+        "postgres_container_process_rss_bytes": 212561920,
+        "redis_container_process_rss_bytes": 8581120,
+        "simultaneous_observed_sum_bytes": 225538048
+      },
+      "missing_sample_count": 0,
+      "first_sample_at": "2026-10-02T16:38:00.739311+00:00",
+      "last_sample_at": "2026-10-02T16:38:17.273880+00:00",
+      "scope": {
+        "app": "specified Windows application process working set; excludes experiment controller",
+        "postgres": "sum of all postgres process RSS in shared eduagent-postgres-1; not isolated database attribution; shared pages can be counted repeatedly",
+        "redis": "sum of all redis-server process RSS in dedicated eduagent-e2-acceptance-redis-247aae862cab",
+        "sum": "observations within one sample, read sequentially; sampled peaks, not a continuous physical-memory high-water mark"
+      }
+    }
+  },
+  {
+    "pid": 83056,
+    "started_at": "2026-10-02T16:38:17.280999+00:00",
+    "ended_at": "2026-10-02T16:38:34.396287+00:00",
+    "exit_code": 0,
+    "resources": {
+      "sample_count": 17,
+      "requested_interval_seconds": 1.0,
+      "max_observed_gap_seconds": 1.5403993999934755,
+      "complete_at_requested_sampling_resolution": true,
+      "peaks": {
+        "app_working_set_bytes": 4395008,
+        "postgres_container_process_rss_bytes": 212574208,
+        "redis_container_process_rss_bytes": 8589312,
+        "simultaneous_observed_sum_bytes": 225558528
+      },
+      "missing_sample_count": 0,
+      "first_sample_at": "2026-10-02T16:38:17.815866+00:00",
+      "last_sample_at": "2026-10-02T16:38:34.395858+00:00",
+      "scope": {
+        "app": "specified Windows application process working set; excludes experiment controller",
+        "postgres": "sum of all postgres process RSS in shared eduagent-postgres-1; not isolated database attribution; shared pages can be counted repeatedly",
+        "redis": "sum of all redis-server process RSS in dedicated eduagent-e2-acceptance-redis-247aae862cab",
+        "sum": "observations within one sample, read sequentially; sampled peaks, not a continuous physical-memory high-water mark"
+      }
+    }
+  },
+  {
+    "pid": 75364,
+    "started_at": "2026-10-02T16:38:34.402177+00:00",
+    "ended_at": "2026-10-02T16:39:11.527728+00:00",
+    "exit_code": 0,
+    "resources": {
+      "sample_count": 37,
+      "requested_interval_seconds": 1.0,
+      "max_observed_gap_seconds": 1.5904925999930128,
+      "complete_at_requested_sampling_resolution": true,
+      "peaks": {
+        "app_working_set_bytes": 4395008,
+        "postgres_container_process_rss_bytes": 213196800,
+        "redis_container_process_rss_bytes": 8589312,
+        "simultaneous_observed_sum_bytes": 226168832
+      },
+      "missing_sample_count": 0,
+      "first_sample_at": "2026-10-02T16:38:34.996848+00:00",
+      "last_sample_at": "2026-10-02T16:39:11.527350+00:00",
+      "scope": {
+        "app": "specified Windows application process working set; excludes experiment controller",
+        "postgres": "sum of all postgres process RSS in shared eduagent-postgres-1; not isolated database attribution; shared pages can be counted repeatedly",
+        "redis": "sum of all redis-server process RSS in dedicated eduagent-e2-acceptance-redis-247aae862cab",
+        "sum": "observations within one sample, read sequentially; sampled peaks, not a continuous physical-memory high-water mark"
+      }
+    }
+  },
+  {
+    "pid": 81768,
+    "started_at": "2026-10-02T16:39:11.538577+00:00",
+    "ended_at": "2026-10-02T16:39:32.849758+00:00",
+    "exit_code": 0,
+    "resources": {
+      "sample_count": 21,
+      "requested_interval_seconds": 1.0,
+      "max_observed_gap_seconds": 1.5352881999569945,
+      "complete_at_requested_sampling_resolution": true,
+      "peaks": {
+        "app_working_set_bytes": 4395008,
+        "postgres_container_process_rss_bytes": 225259520,
+        "redis_container_process_rss_bytes": 8589312,
+        "simultaneous_observed_sum_bytes": 238243840
+      },
+      "missing_sample_count": 0,
+      "first_sample_at": "2026-10-02T16:39:12.078830+00:00",
+      "last_sample_at": "2026-10-02T16:39:32.611702+00:00",
+      "scope": {
+        "app": "specified Windows application process working set; excludes experiment controller",
+        "postgres": "sum of all postgres process RSS in shared eduagent-postgres-1; not isolated database attribution; shared pages can be counted repeatedly",
+        "redis": "sum of all redis-server process RSS in dedicated eduagent-e2-acceptance-redis-247aae862cab",
+        "sum": "observations within one sample, read sequentially; sampled peaks, not a continuous physical-memory high-water mark"
+      }
+    }
+  },
+  {
+    "pid": 85560,
+    "started_at": "2026-10-02T16:39:32.856098+00:00",
+    "ended_at": "2026-10-02T16:39:53.939340+00:00",
+    "exit_code": 0,
+    "resources": {
+      "sample_count": 21,
+      "requested_interval_seconds": 1.0,
+      "max_observed_gap_seconds": 1.5332764000049792,
+      "complete_at_requested_sampling_resolution": true,
+      "peaks": {
+        "app_working_set_bytes": 4395008,
+        "postgres_container_process_rss_bytes": 213327872,
+        "redis_container_process_rss_bytes": 8589312,
+        "simultaneous_observed_sum_bytes": 226312192
+      },
+      "missing_sample_count": 0,
+      "first_sample_at": "2026-10-02T16:39:33.393754+00:00",
+      "last_sample_at": "2026-10-02T16:39:53.938954+00:00",
+      "scope": {
+        "app": "specified Windows application process working set; excludes experiment controller",
+        "postgres": "sum of all postgres process RSS in shared eduagent-postgres-1; not isolated database attribution; shared pages can be counted repeatedly",
+        "redis": "sum of all redis-server process RSS in dedicated eduagent-e2-acceptance-redis-247aae862cab",
+        "sum": "observations within one sample, read sequentially; sampled peaks, not a continuous physical-memory high-water mark"
+      }
+    }
+  },
+  {
+    "pid": 62860,
+    "started_at": "2026-10-02T16:39:53.944315+00:00",
+    "ended_at": "2026-10-02T16:40:20.023371+00:00",
+    "exit_code": 0,
+    "resources": {
+      "sample_count": 26,
+      "requested_interval_seconds": 1.0,
+      "max_observed_gap_seconds": 1.540058400016278,
+      "complete_at_requested_sampling_resolution": true,
+      "peaks": {
+        "app_working_set_bytes": 4390912,
+        "postgres_container_process_rss_bytes": 213213184,
+        "redis_container_process_rss_bytes": 8589312,
+        "simultaneous_observed_sum_bytes": 226193408
+      },
+      "missing_sample_count": 0,
+      "first_sample_at": "2026-10-02T16:39:54.480133+00:00",
+      "last_sample_at": "2026-10-02T16:40:20.023030+00:00",
+      "scope": {
+        "app": "specified Windows application process working set; excludes experiment controller",
+        "postgres": "sum of all postgres process RSS in shared eduagent-postgres-1; not isolated database attribution; shared pages can be counted repeatedly",
+        "redis": "sum of all redis-server process RSS in dedicated eduagent-e2-acceptance-redis-247aae862cab",
+        "sum": "observations within one sample, read sequentially; sampled peaks, not a continuous physical-memory high-water mark"
+      }
+    }
+  },
+  {
+    "pid": 70872,
+    "started_at": "2026-10-02T16:40:20.029522+00:00",
+    "ended_at": "2026-10-02T16:41:41.106318+00:00",
+    "exit_code": 0,
+    "resources": {
+      "sample_count": 81,
+      "requested_interval_seconds": 1.0,
+      "max_observed_gap_seconds": 1.5303907000343315,
+      "complete_at_requested_sampling_resolution": true,
+      "peaks": {
+        "app_working_set_bytes": 4395008,
+        "postgres_container_process_rss_bytes": 214048768,
+        "redis_container_process_rss_bytes": 8589312,
+        "simultaneous_observed_sum_bytes": 227020800
+      },
+      "missing_sample_count": 0,
+      "first_sample_at": "2026-10-02T16:40:20.564946+00:00",
+      "last_sample_at": "2026-10-02T16:41:41.105922+00:00",
+      "scope": {
+        "app": "specified Windows application process working set; excludes experiment controller",
+        "postgres": "sum of all postgres process RSS in shared eduagent-postgres-1; not isolated database attribution; shared pages can be counted repeatedly",
+        "redis": "sum of all redis-server process RSS in dedicated eduagent-e2-acceptance-redis-247aae862cab",
+        "sum": "observations within one sample, read sequentially; sampled peaks, not a continuous physical-memory high-water mark"
+      }
+    }
+  },
+  {
+    "pid": 75876,
+    "started_at": "2026-10-02T16:41:41.121414+00:00",
+    "ended_at": "2026-10-02T16:42:05.288905+00:00",
+    "exit_code": 0,
+    "resources": {
+      "sample_count": 24,
+      "requested_interval_seconds": 1.0,
+      "max_observed_gap_seconds": 1.5605644999886863,
+      "complete_at_requested_sampling_resolution": true,
+      "peaks": {
+        "app_working_set_bytes": 4390912,
+        "postgres_container_process_rss_bytes": 213434368,
+        "redis_container_process_rss_bytes": 8589312,
+        "simultaneous_observed_sum_bytes": 226414592
+      },
+      "missing_sample_count": 0,
+      "first_sample_at": "2026-10-02T16:41:41.687227+00:00",
+      "last_sample_at": "2026-10-02T16:42:05.288482+00:00",
+      "scope": {
+        "app": "specified Windows application process working set; excludes experiment controller",
+        "postgres": "sum of all postgres process RSS in shared eduagent-postgres-1; not isolated database attribution; shared pages can be counted repeatedly",
+        "redis": "sum of all redis-server process RSS in dedicated eduagent-e2-acceptance-redis-247aae862cab",
+        "sum": "observations within one sample, read sequentially; sampled peaks, not a continuous physical-memory high-water mark"
+      }
+    }
+  },
+  {
+    "pid": 88216,
+    "started_at": "2026-10-02T16:42:05.295011+00:00",
+    "ended_at": "2026-10-02T16:42:50.614750+00:00",
+    "exit_code": 0,
+    "resources": {
+      "sample_count": 45,
+      "requested_interval_seconds": 1.0,
+      "max_observed_gap_seconds": 1.5501050999737345,
+      "complete_at_requested_sampling_resolution": true,
+      "peaks": {
+        "app_working_set_bytes": 4395008,
+        "postgres_container_process_rss_bytes": 213962752,
+        "redis_container_process_rss_bytes": 8589312,
+        "simultaneous_observed_sum_bytes": 226934784
+      },
+      "missing_sample_count": 0,
+      "first_sample_at": "2026-10-02T16:42:05.835820+00:00",
+      "last_sample_at": "2026-10-02T16:42:50.377872+00:00",
+      "scope": {
+        "app": "specified Windows application process working set; excludes experiment controller",
+        "postgres": "sum of all postgres process RSS in shared eduagent-postgres-1; not isolated database attribution; shared pages can be counted repeatedly",
+        "redis": "sum of all redis-server process RSS in dedicated eduagent-e2-acceptance-redis-247aae862cab",
+        "sum": "observations within one sample, read sequentially; sampled peaks, not a continuous physical-memory high-water mark"
+      }
+    }
+  },
+  {
+    "pid": 66668,
+    "started_at": "2026-10-02T16:42:50.623458+00:00",
+    "ended_at": "2026-10-02T16:43:15.711677+00:00",
+    "exit_code": 0,
+    "resources": {
+      "sample_count": 25,
+      "requested_interval_seconds": 1.0,
+      "max_observed_gap_seconds": 1.5447593000135385,
+      "complete_at_requested_sampling_resolution": true,
+      "peaks": {
+        "app_working_set_bytes": 4395008,
+        "postgres_container_process_rss_bytes": 213590016,
+        "redis_container_process_rss_bytes": 8589312,
+        "simultaneous_observed_sum_bytes": 226574336
+      },
+      "missing_sample_count": 0,
+      "first_sample_at": "2026-10-02T16:42:51.171091+00:00",
+      "last_sample_at": "2026-10-02T16:43:15.711221+00:00",
+      "scope": {
+        "app": "specified Windows application process working set; excludes experiment controller",
+        "postgres": "sum of all postgres process RSS in shared eduagent-postgres-1; not isolated database attribution; shared pages can be counted repeatedly",
+        "redis": "sum of all redis-server process RSS in dedicated eduagent-e2-acceptance-redis-247aae862cab",
+        "sum": "observations within one sample, read sequentially; sampled peaks, not a continuous physical-memory high-water mark"
+      }
+    }
+  },
+  {
+    "pid": 77908,
+    "started_at": "2026-10-02T16:43:15.717638+00:00",
+    "ended_at": "2026-10-02T16:45:10.847433+00:00",
+    "exit_code": 0,
+    "resources": {
+      "sample_count": 115,
+      "requested_interval_seconds": 1.0,
+      "max_observed_gap_seconds": 1.561525100027211,
+      "complete_at_requested_sampling_resolution": true,
+      "peaks": {
+        "app_working_set_bytes": 4395008,
+        "postgres_container_process_rss_bytes": 215019520,
+        "redis_container_process_rss_bytes": 8589312,
+        "simultaneous_observed_sum_bytes": 227991552
+      },
+      "missing_sample_count": 0,
+      "first_sample_at": "2026-10-02T16:43:16.274046+00:00",
+      "last_sample_at": "2026-10-02T16:45:10.847050+00:00",
+      "scope": {
+        "app": "specified Windows application process working set; excludes experiment controller",
+        "postgres": "sum of all postgres process RSS in shared eduagent-postgres-1; not isolated database attribution; shared pages can be counted repeatedly",
+        "redis": "sum of all redis-server process RSS in dedicated eduagent-e2-acceptance-redis-247aae862cab",
+        "sum": "observations within one sample, read sequentially; sampled peaks, not a continuous physical-memory high-water mark"
+      }
+    }
+  }
+]

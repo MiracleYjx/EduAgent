@@ -1,0 +1,26 @@
+{
+  "archive": "benchmark/t160/ui-correction/frozen-runtime-sources/actual-ui-sources.zip",
+  "purpose": "Preserve exact executed source bytes despite Git line ending normalization; archive members remain unmodified.",
+  "members": [
+    {
+      "archive_entry": "correction_observer.js",
+      "sha256": "b6eca6981837e37871609a1cd20b60c8cb5da0cc69596e6c42c33f7f773c8a0e",
+      "original_source_copy": "benchmark/t160/ui-correction/frozen-runtime-sources/correction_observer.js"
+    },
+    {
+      "archive_entry": "correction_ui_launch.py",
+      "sha256": "9ffc74e95996955ba20e8ceaddfbe5a135d87d10c0613d8f64757efbc441b2e6",
+      "original_source_copy": "benchmark/t160/ui-correction/frozen-runtime-sources/correction_ui_launch.py"
+    },
+    {
+      "archive_entry": "correction_ui_replay.py",
+      "sha256": "68be6078a63829aa5bb7a64a6dec07a0a4ecad15a6e6e081ccb26a8658709e25",
+      "original_source_copy": "benchmark/t160/ui-correction/frozen-runtime-sources/correction_ui_replay.py"
+    },
+    {
+      "archive_entry": "correction_ui_server.py",
+      "sha256": "73661e7faf0e7d35a1643886a8240cb6801c9eb825bfea4f3ae30fb6d97eb138",
+      "original_source_copy": "benchmark/t160/ui-correction/frozen-runtime-sources/correction_ui_server.py"
+    }
+  ]
+}

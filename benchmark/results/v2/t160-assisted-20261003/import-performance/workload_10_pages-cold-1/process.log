@@ -1,0 +1,2 @@
+paper_import=275a36a0-3e2f-4728-a438-dc87dcac6222 phase=分批拆题与结构化暂存 error=PAPER_EXTRACTION_FAILED cause=PaperExtractionError
+{"case": "workload_10_pages", "mode": "cold", "repetition": 1, "status": "Failed", "logical_calls": 3, "requests": 3}

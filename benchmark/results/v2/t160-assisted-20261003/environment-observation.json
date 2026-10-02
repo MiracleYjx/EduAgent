@@ -1,0 +1,23 @@
+{
+  "observed_at": "2026-10-02T16:43:51.270830+00:00",
+  "os": "Windows (same host, source execution)",
+  "cpu": "AMD Ryzen 5 4600H with Radeon Graphics",
+  "physical_cores": 6,
+  "logical_processors": 12,
+  "total_physical_memory_bytes": 16505966592,
+  "disk": {
+    "model": "SAMSUNG MZVLB512HBJQ-000L2",
+    "media": "SSD",
+    "bus": "NVMe"
+  },
+  "postgresql": "16.15 (Debian 16.15-1.pgdg12+2)",
+  "pgvector": "0.8.6",
+  "postgres_scope": "existing shared Docker container; only isolated database mutated",
+  "cpu_affinity_or_vcpu_limit": null,
+  "plan_2_to_4_vcpu_budget_host_verified": false,
+  "budget_limitation": "Actual host has 12 logical processors. No claim of performance on a 2–4 vCPU host.",
+  "source_commit": "6cea2adc245998b58ab1fe4cd10e6e6d4e2b092e",
+  "production_database_revision": "0012_audit_logs",
+  "isolated_database_revision": "0020_content_validation",
+  "credentials_recorded": false
+}

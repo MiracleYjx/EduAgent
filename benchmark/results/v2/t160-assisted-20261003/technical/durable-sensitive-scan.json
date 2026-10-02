@@ -1,0 +1,9 @@
+{
+  "kind": "read_only_durable_evidence_scan",
+  "scanned_at": "2026-10-02T17:19:17.480981+00:00",
+  "files_scanned": 166,
+  "known_credential_matches": [],
+  "jwt_like_token_files": [],
+  "workspace_absolute_or_cache_path_file_count": 16,
+  "path_interpretation": "Local workspace/cache paths remain in original raw evidence for reproducibility; no credential value is printed by this scan."
+}

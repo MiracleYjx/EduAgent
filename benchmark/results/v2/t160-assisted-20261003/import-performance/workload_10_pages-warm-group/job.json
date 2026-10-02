@@ -1,0 +1,38 @@
+{
+  "case": "workload_10_pages",
+  "filename": "workload_10_pages.pdf",
+  "page_count": 10,
+  "bytes": 38362,
+  "sha256": "bdca8f730b989d0213f0efc7d31cdb2f252705c0d3a3da2c9c0736dffb14bee6",
+  "planned_cold": 3,
+  "planned_warmup": 1,
+  "planned_warm": 5,
+  "base_logical_requests_per_success": 5,
+  "directory": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-assisted-20261003\\import-performance\\workload_10_pages-warm-group",
+  "trials": [
+    {
+      "mode": "warmup",
+      "repetition": 1
+    },
+    {
+      "mode": "warm",
+      "repetition": 1
+    },
+    {
+      "mode": "warm",
+      "repetition": 2
+    },
+    {
+      "mode": "warm",
+      "repetition": 3
+    },
+    {
+      "mode": "warm",
+      "repetition": 4
+    },
+    {
+      "mode": "warm",
+      "repetition": 5
+    }
+  ]
+}

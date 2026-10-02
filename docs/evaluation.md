@@ -240,3 +240,82 @@ print(out.boxes, out.txts, out.scores)
 推荐并按用户本次答复锁定 B 的 CPU ONNX 路线：已完成扫描、混合、跨页和 10/50 页真实识别，依赖体积较小，避免本机 A 默认 oneDNN 兼容故障。B 的实际瞬时 RSS 峰值约 1 GiB，不能宣称与完整后端共存后满足 4 GiB 总预算。A 关闭 MKL-DNN 后可作为另一候选，但不得隐去默认配置失败及耗时成本。
 
 用户于 2026-10-02 明确选择“采用 RapidOCR＋ONNX CPU（推荐）”：首版关键依赖锁定 rapidocr==3.9.2、onnxruntime==1.30.0 CPU，检测/识别明确使用 PP-OCRv5 mobile，不随 SDK 默认升级为 v6；方向分类本轮关闭，但当前 SDK 初始化仍需对应 v4 分类文件。T156 延迟加载且默认关闭 OCR，首次模型准备需明确完成，依赖/模型未就绪与实际调用失败如实区分；不得在故障后自动切到 Paddle/云端。本批不修改 pyproject.toml、不实现 Provider、不新增迁移或测试。正式质量比较等待 T168 教师真值，产品 EXE 与资源验收由 E6/T189 承接。
+
+
+## T160 用户复核的 AI 辅助验收（2026-10-03）
+
+用户已在本次会话明确确认采用“用户复核的 AI 辅助标注”作为本批 T160 的对照依据，并授权执行 v2-evaluation-1 完整重复协议。此决定仅替代本批 T160 原要求的独立教师真值口径；T146、T168 的独立教师标注要求不变。参考源为原页逐字段阅读后代拟的 5 份、16 题标签，不由本次 OCR/拆题输出回填。
+
+冻结参考见 [标注与原页对照](../benchmark/corpus/t160-assisted-20261003/review.md)，annotation_version=t160-user-authorized-ai-assisted-20261003-1、dataset_version=v2-draft-20261001-1；会话确认 UTC 为 2026-10-02T16:14:48+00:00。保留 AI 作者、用户真实会话确认、教师身份 null、独立教师标签数 0 和 ready_for_formal_baseline=false。结果称为 AI 辅助参考一致性，不称独立教师准确率；质量阈值仍待 T168。原稿没有的答案/解析不推算补写，未测像素框及来源未写的题型保留未知，另报可评与未知分母。
+
+计划固定为 5 个正常 case × 3 轮实际 Provider 导入；1/10/50 页导入各 3 冷、1 预热、5 暖；校正纯文字/带图/跨页各 3 冷、1 预热、5 暖。并行度 1，沿用 deepseek-chat 和既有重试；所有计划内失败、迟到、资源缺测均保留。OCR 仅在隔离验收设置中启用既定 RapidOCR/ONNX CPU 与预置 PP-OCRv5 mobile；不改业务库或 .env。
+
+### T160 本批实际结果与未通过结论
+
+本批已经运行，**T160 验收未通过，任务保持未勾选**。合同及事务保护通过不能抵消真实整卷拆题失败；质量阈值仍为 null。完整原始证据保存在 [T160 结果目录](../benchmark/results/v2/t160-assisted-20261003/)，源码追溯基线为 deepcode / 6cea2adc245998b58ab1fe4cd10e6e6d4e2b092e。旧 T146/T155 记录保留其当时结论，当前本批授权不追溯改变 T146/T168 的独立教师要求。
+
+#### 自动提取、辅助校正与题图关联
+
+固定执行 IMP-TEXT、IMP-SCAN、IMP-IMAGE、IMP-MIXED、IMP-CROSS 各 3 轮，共 15/15 次；14 次真实 Pending Review、1 次 Failed。16 个独立参考题重复 3 轮，固定 48 个题实例分母；严格按原题号与真实来源页一对一匹配，自动 43/48，辅助字段校正后 45/48。失败的 IMP-TEXT 第 3 轮 3 题始终计入分母；IMP-MIXED 第 2 轮的两题来源页差异如实保留于自动快照。文字比较仅统一换行、首尾空白，选项不排序，金额按 Decimal，标签按精确集合；这是参考字段一致性，不能据题干字面差异推算 CER/WER 或语义错误率。
+
+| 字段 | 自动提取 | 辅助字段校正 | 未知排除实例 |
+| --- | --- | --- | --- |
+| 题干 | 6/48 | 45/48 | 0 |
+| 原题号 | 43/48 | 45/48 | 0 |
+| 题序 | 43/48 | 45/48 | 0 |
+| 选项及键顺序 | 39/48 | 45/48 | 0 |
+| 题型 | 40/45 | 42/45 | 3 |
+| 分值 | 43/48 | 45/48 | 0 |
+| 原文答案 | 43/48 | 45/48 | 0 |
+| 原文评分标准 | 30/48 | 45/48 | 0 |
+| 原文解析 | 34/48 | 45/48 | 0 |
+| 知识点 | 13/48 | 45/48 | 0 |
+| 来源页 | 43/48 | 45/48 | 0 |
+| 题图关联 | 0/48 | 14/48 | 0 |
+| 来源像素框 | null（0 个可评） | null（0 个可评） | 48 |
+
+题型的 3 个未知实例、像素框的 48 个未知实例仅从相应字段分母排除；已知题图关联继续在 48 个题实例分母中，不能因机器未给资产而排除。纯字段校正阶段关联为 14/48，后置使用真实 SourcePage 和资产服务创建 31 张裁图，0 次失败、0 次云调用，最终有序资产类型/来源页关联为 45/48。裁框是另行测量的 AI 辅助操作，未写回未知的参考框，也未伪造教师图像核对或自动批准整卷；原自动、字段校正及后置图像快照分开保存。根代理实际查看 figure/table/diagram 代表裁图，条件完整且未包含答案/整页；此观察不构成独立教师或像素精度统计。
+
+本批参考由用户确认，独立教师真值仍为 0。字段校正通过真实服务执行，原稿缺失的答案/解析保留 null；未从自动结果回填参考标签。详见 [逐轮与字段汇总](../benchmark/results/v2/t160-assisted-20261003/quality/quality-aggregate.json)、[后置图关联](../benchmark/results/v2/t160-assisted-20261003/quality/image-assistance/association-summary.json) 及 [原始失败](../benchmark/results/v2/t160-assisted-20261003/quality/failures.jsonl)。
+
+#### 整卷导入耗时与资源
+
+1/10/50 页输入各执行 3 冷、1 预热、5 暖，共 27 次实际导入，3 次预热单列，24 次计时中 12 次成功、12 次失败；3 次预热也均失败。计时使用服务接受原卷至真实持久终态的单调时钟，含文字/OCR、真实 Provider 等待和结构校验。冷态为新源码进程，暖态复用该组进程，全部串行；不作为 EXE 启动指标。
+
+| 输入 | 冷态成功/计划 | 暖态成功/计划 | 成功耗时冷 min/median/max（秒） | 成功耗时暖 min/median/max（秒） | 业务成功且低于 300 秒 |
+| --- | --- | --- | --- | --- | --- |
+| 1 页 paper_text | 3/3 | 5/5 | 4.801 / 4.852 / 5.259 | 3.480 / 3.923 / 4.210 | 8/8 |
+| 10 页 workload_10_pages | 1/3 | 3/5 | 14.451 / 14.451 / 14.451 | 14.332 / 14.905 / 15.496 | 4/8 |
+| 50 页 workload_50_pages | 0/3 | 0/5 | null | null | 0/8 |
+
+15 个失败运行（含预热）均为 PAPER_EXTRACTION_FAILED：12 次 unknown evidence field、2 次 answer update must refer to a previously completed question、1 次 answer/analysis requires an original excerpt。50 页失败观察耗时 10.914–33.269 秒，止于失败，不能当作完成耗时或达标。原文件、已保存页图、实际输出与错误留存；未挑结果重跑、替换 Provider 或降低目标。详见 [逐次计时](../benchmark/results/v2/t160-assisted-20261003/import-performance/timings.csv) 和 [导入汇总](../benchmark/results/v2/t160-assisted-20261003/import-performance/summary.json)。
+
+资源采样范围审计发现 12/12 组记录的 Popen/sample PID 是 Windows venv redirector，27 次业务回执的真实 os.getpid 均属于另一 worker。原 summary 的 complete=true 只证明重定向进程及容器采样，并未覆盖真实应用 worker；以 [resource-scope-audit.json](../benchmark/results/v2/t160-assisted-20261003/import-performance/resource-scope-audit.json) 为范围判定依据：app_missing=true、all_component_complete=false，应用峰值、同刻组件总峰值及预算结果均为 null。不能将不完整观测称为应用/整系统占用或预算通过。PG 为共享容器所有 postgres 进程 RSS，Redis 为专属容器进程 RSS，仍保留原始观测及作用域，不填补缺失应用数据。实际主机为 Ryzen 5 4600H、6 核/12 逻辑处理器、约 15.37 GiB RAM，未限制到 2–4 vCPU；不推断该预算主机或 EXE 性能。
+
+#### 技术保护、模型追溯与待完成项
+
+75 个既有聚焦测试加 3 个新测试，共 78 passed。新测试在真实 PostgreSQL、autoflush=False 下用 pg_blocking_pids 证明 PATCH 持锁时确认等待且消费已提交的新值；另验证确认先完成后的迟到校正拒绝、真实 OCRProviderError 映射并保留原卷/页图。既有并发重复确认、事务回滚、来源及学生许可断言未放宽。另固定故障 4/4 通过：损坏文件、51 页拒绝、OCR 未配置、明确 OCR_CALL_FAILED；0 次云调用。证据见 [聚焦测试](../benchmark/results/v2/t160-assisted-20261003/technical/existing-acceptance.xml)、[新增测试日志](../benchmark/results/v2/t160-assisted-20261003/technical/t160_added_first.log) 和 [故障记录](../benchmark/results/v2/t160-assisted-20261003/technical/fault-cases/summary.json)。
+
+实际 create_app 和完整 lifespan 启动、退出后换进程重新启动，完成 30 项真实 HTTP 核对：教师原卷/页图/暂存与正式资产字节持久一致，学生只读获许可题图，原卷、原页、暂存、隐藏及整页别名继续 403；4 个在途记录明确转 Failed/PAPER_INTERRUPTED，源卷保留。此实验使用 minimal Gradio 测试壳及受控合成夹具，是后端技术验收，不代表生产 UI、真实模型质量或 EXE 启动。见 [重启回执](../benchmark/results/v2/t160-assisted-20261003/technical/restart-receipt.json)。
+
+质量实际 HTTP 尝试 15 次，导入性能 83 次，合计 98 次；实际 usage 为 prompt 181628、completion 61719、total 243347 tokens，费用未知 null。98 个请求体 model 为 deepseek-chat，98 个实际响应 model 记录为 deepseek-flash；配置、请求及响应身份分别保存，不推断 alias，也不据此修改 .env 或冒充另一配置评测。
+
+浏览器纯文字/带图/跨页校正协议已完成，24计时＋3预热均渲染完成，仅2/24低于500ms；详见下方逐组耗时与真实浏览器终点，接口耗时未代替页面计时。当前 T160 不声明 Gate 10/11/13 全通过。建议先定位并收窄 paper-extraction-v1 提示词与结构化来源字段/跨批答案更新合同的冲突，按 TCR 增补必要回归，再执行新的完整 T160 批次；本批不执行 T165，不追溯修改失败证据。
+
+根因定位依据：`backend/app/ai/paper_extraction/schemas.py` 的 `AnswerFields.evidence` 目前声明为任意字符串键字典，提供给模型的 JSON Schema 未约束只能有答案/评分标准/解析三种键；`service.py` 在收到结果后才拒绝额外键。提示词未逐项列出此白名单。因而这些输出可符合结构化 schema，却不符合业务来源校验。两次 updates 还指向当前批新题，而运行时只允许之前已完成的题。下一批应先让生产者提示与 schema 表达既有业务约束，保留来源检查及失败事实，再进行针对性复验。该定位来自现有代码和实际响应；本批未修改业务代码。
+
+#### 校正页面真实浏览器测量与收尾
+
+固定 27 次动作已完成（24 次计时＋3 次预热），27 次均真实加载完成，27 张 Cua JPEG 截图及开始/结束回执保留。正式 24 次只有 2 次低于 500 ms，性能验收失败。计时由浏览器原生目标选择事件的 `performance.now()` 起，到目标原页及字段/图片加载、队列空闲、控件可交互、连续稳定双帧止；不使用 Cua 工具往返时间。浏览器保持可见与焦点，实际状态写入每次回执。
+
+| 场景 | 动作 | 冷态 min/median/max（ms，3 次） | 暖态 min/median/max（ms，5 次） | <500 ms |
+| --- | --- | --- | --- | --- |
+| 纯文字 | 单页题 2→题 1 | 635.3 / 686.3 / 687.0 | 838.5 / 886.6 / 1109.2 | 0/8 |
+| 带图 | 单页题 1→题 2 | 748.2 / 768.1 / 776.7 | 811.2 / 817.2 / 977.4 | 0/8 |
+| 跨页 | 同一题 4 的原页 1→原页 2 | 265.0 / 543.2 / 564.6 | 465.4 / 595.7 / 855.1 | 2/8 |
+
+纯文字和带图输入只有一页，因此明确测量题目切换而不虚称跨页。UI 输入来自实际第一轮自动提取快照，经真实服务复制为 27 个新持久身份，标记 `source_backed_replay_for_ui_timing`；没有再次 OCR/模型调用，不属于新的内容质量样本。实际调用 HEAD 的生产校正视图和认证加载器，外层为测量壳，未加载用户未提交主界面改动，不证明七页主界面/EXE 交付。四个观测器预检目录保留并单列排除：脚本挂载位置、未调用函数、含隐藏勾号的选项文本使观测器未触发；其中两次实际目标点击没有合法计时，均不伪造耗时或代入正式分母。修正的是测量脚本，生产界面未改。
+
+UI 资源采样使用服务自己报告的实际 worker PID，各组 PID 一致。1 秒频率下，仅 6 次计时动作有 1 个完整采样周期位于实际动作窗口；其余 18 次计时及 3 次预热无窗口内样本，峰值保持 null。6 个稀疏观察的应用工作集约 250.8–252.2 MiB，同时合计约 440.9–442.4 MiB（数据库为共享 PostgreSQL 容器进程 RSS，含共享页重复计数；浏览器未测）；不代入整组峰值，不据此判资源预算通过。导入批实际应用内存缺测仍独立保留。
+
+详见 [浏览器汇总](../benchmark/results/v2/t160-assisted-20261003/ui-correction-summary/summary.json)、[逐次动作与资源](../benchmark/results/v2/t160-assisted-20261003/ui-correction-summary/attempts.json)、[原始页面证据](../benchmark/results/v2/t160-assisted-20261003/ui-correction/) 和 [总验收回执](../benchmark/results/v2/t160-assisted-20261003/acceptance-summary.json)。2026-10-02T17:31:54.567745+00:00 已停止本批页面 worker/浏览器，仅清理确切隔离 DB/Redis；原业务库仍 0012_audit_logs，10 项用户文件/.env 字节未变，缓存与失败证据保留。后置扩展 hooks 不存在。

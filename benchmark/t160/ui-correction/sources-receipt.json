@@ -1,0 +1,42 @@
+{
+  "captured_at": "2026-10-02T17:31:44.441293+00:00",
+  "source_head_commit": "6cea2adc245998b58ab1fe4cd10e6e6d4e2b092e",
+  "capture_scope": "Prepared source capture after root confirmed the first real browser start/end success; distinct from portable formatting/path parameterization.",
+  "no_runtime_hash_gate": true,
+  "entries": [
+    {
+      "file": "correction_ui_launch.py",
+      "frozen_cache_runtime_sha256": "9ffc74e95996955ba20e8ceaddfbe5a135d87d10c0613d8f64757efbc441b2e6",
+      "portable_sha256": "df824ea31ee6c51477e23692b06157bf98499f57a05bec0863d71221cca3573f",
+      "bytes_frozen": 1960,
+      "bytes_portable": 4114,
+      "frozen_ref": "frozen-runtime-sources/correction_ui_launch.py"
+    },
+    {
+      "file": "correction_ui_server.py",
+      "frozen_cache_runtime_sha256": "73661e7faf0e7d35a1643886a8240cb6801c9eb825bfea4f3ae30fb6d97eb138",
+      "portable_sha256": "45ef61fcb9e965c0da43f030b39bc211ddd0a5de95ee3061ff3ac6892d886d50",
+      "bytes_frozen": 9565,
+      "bytes_portable": 12168,
+      "frozen_ref": "frozen-runtime-sources/correction_ui_server.py"
+    },
+    {
+      "file": "correction_ui_replay.py",
+      "frozen_cache_runtime_sha256": "68be6078a63829aa5bb7a64a6dec07a0a4ecad15a6e6e081ccb26a8658709e25",
+      "portable_sha256": "d4633d34d5e43164cf28bdcd8476018edcee992ac02710673ea666604b9e97c4",
+      "bytes_frozen": 7648,
+      "bytes_portable": 10725,
+      "frozen_ref": "frozen-runtime-sources/correction_ui_replay.py"
+    },
+    {
+      "file": "correction_observer.js",
+      "frozen_cache_runtime_sha256": "b6eca6981837e37871609a1cd20b60c8cb5da0cc69596e6c42c33f7f773c8a0e",
+      "portable_sha256": "b6eca6981837e37871609a1cd20b60c8cb5da0cc69596e6c42c33f7f773c8a0e",
+      "bytes_frozen": 8324,
+      "bytes_portable": 8324,
+      "frozen_ref": "frozen-runtime-sources/correction_observer.js"
+    }
+  ],
+  "aggregate_sha256": "64ff927c3dc6f0f79c837a2bfedd938c89d16744aa23ef94eae8db2a94a2145b",
+  "static_checks": "Ruff passed; Python AST passed; browser observer syntax passed previously; aggregate not executed."
+}

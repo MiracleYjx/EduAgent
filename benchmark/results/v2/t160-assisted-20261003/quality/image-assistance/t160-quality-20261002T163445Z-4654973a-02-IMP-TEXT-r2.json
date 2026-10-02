@@ -1,0 +1,236 @@
+{
+  "stage": "after_image_assistance",
+  "snapshot": {
+    "id": "5e71130d-a182-4845-aac0-7a1918e1701e",
+    "course_id": "c9cd3a23-1388-4ec5-a71e-efa737ada185",
+    "uploaded_by": "84d0f6fc-b512-4fd5-8cdd-87b3a0f99067",
+    "document_id": "bb50a5e1-62fd-44e6-9fdc-75917babf38e",
+    "original_filename": "paper_text.pdf",
+    "page_count": 1,
+    "status": "Pending Review",
+    "error_code": null,
+    "error_message": null,
+    "created_at": "2026-10-02T16:34:55.377704Z",
+    "updated_at": "2026-10-02T16:34:59.059480Z",
+    "original_file_id": "d_bb50a5e162fd44e69fdc75917babf38e",
+    "parsed_page_count": 1,
+    "question_count": 3,
+    "pages": [
+      {
+        "id": "92e740f8-9e43-462f-b30a-14140a59b3d2",
+        "paper_import_id": "5e71130d-a182-4845-aac0-7a1918e1701e",
+        "page_number": 1,
+        "file_id": "p_92e740f89e43462fb30a14140a59b3d2",
+        "width": 1241,
+        "height": 1754,
+        "ocr_text": null,
+        "ocr_confidence": null
+      }
+    ],
+    "questions": [
+      {
+        "question_type": "SINGLE_CHOICE",
+        "content": "y = 2x + 1，x = 3 时 y 为多少？",
+        "options": {
+          "C": "7",
+          "A": "5",
+          "B": "6",
+          "D": "8"
+        },
+        "reference_answer": "C",
+        "scoring_rubric": null,
+        "score": "2.00",
+        "correction_notes": "T160 approved AI-assisted reference; not independent teacher annotation.",
+        "question_number": "1",
+        "analysis": "2 × 3 + 1 = 7。",
+        "knowledge_points": [],
+        "source_regions": null,
+        "assets": [],
+        "source_page_ids": [
+          "92e740f8-9e43-462f-b30a-14140a59b3d2"
+        ],
+        "extracted_by": "LLM",
+        "extraction_confidence": null,
+        "id": "ae47c930-21e9-4039-880f-338aab8691b7",
+        "paper_import_id": "5e71130d-a182-4845-aac0-7a1918e1701e",
+        "order_index": 1,
+        "order_preserved": true,
+        "status": "Pending Correction",
+        "question_id": null,
+        "image_assessment": {
+          "context_revision": 0,
+          "runs": [],
+          "manual_checks": [],
+          "imported_review": null
+        },
+        "created_at": "2026-10-02T16:34:59.049036Z",
+        "updated_at": "2026-10-02T16:34:59.130362Z"
+      },
+      {
+        "question_type": "TRUE_FALSE",
+        "content": "右图三角形面积为 24 cm²。",
+        "options": [
+          "正确",
+          "错误"
+        ],
+        "reference_answer": null,
+        "scoring_rubric": null,
+        "score": "2.00",
+        "correction_notes": "T160 approved AI-assisted reference; not independent teacher annotation.",
+        "question_number": "2",
+        "analysis": null,
+        "knowledge_points": [],
+        "source_regions": null,
+        "assets": [
+          {
+            "id": "94da220e-1d67-42ba-8b9b-76cc66e35d89",
+            "file_id": "a_94da220e1d6742ba8b9b76cc66e35d89",
+            "asset_type": "figure",
+            "source_page_id": "92e740f8-9e43-462f-b30a-14140a59b3d2",
+            "region": {
+              "bbox": [
+                650,
+                500,
+                1100,
+                825
+              ]
+            },
+            "caption": null,
+            "student_visible": false
+          }
+        ],
+        "source_page_ids": [
+          "92e740f8-9e43-462f-b30a-14140a59b3d2"
+        ],
+        "extracted_by": "LLM",
+        "extraction_confidence": null,
+        "id": "8043ffc3-2f48-4c23-ad5e-2f909942cb3a",
+        "paper_import_id": "5e71130d-a182-4845-aac0-7a1918e1701e",
+        "order_index": 2,
+        "order_preserved": true,
+        "status": "Pending Correction",
+        "question_id": null,
+        "image_assessment": {
+          "context_revision": 1,
+          "runs": [],
+          "manual_checks": [],
+          "imported_review": null
+        },
+        "created_at": "2026-10-02T16:34:59.049040Z",
+        "updated_at": "2026-10-02T16:50:34.582318Z"
+      },
+      {
+        "question_type": "SHORT_ANSWER",
+        "content": "根据下表写出 y 关于 x 的关系式。",
+        "options": null,
+        "reference_answer": null,
+        "scoring_rubric": "正确关系式 1.00；说明代入过程 2.00。",
+        "score": "3.00",
+        "correction_notes": "T160 approved AI-assisted reference; not independent teacher annotation.",
+        "question_number": "3",
+        "analysis": null,
+        "knowledge_points": [
+          "一次函数",
+          "表达与计算"
+        ],
+        "source_regions": null,
+        "assets": [
+          {
+            "id": "f6a5d0f5-8cb1-46ce-ab0f-cbb7ade54107",
+            "file_id": "a_f6a5d0f58cb146ceab0fcbb7ade54107",
+            "asset_type": "table",
+            "source_page_id": "92e740f8-9e43-462f-b30a-14140a59b3d2",
+            "region": {
+              "bbox": [
+                375,
+                1062,
+                850,
+                1412
+              ]
+            },
+            "caption": null,
+            "student_visible": false
+          }
+        ],
+        "source_page_ids": [
+          "92e740f8-9e43-462f-b30a-14140a59b3d2"
+        ],
+        "extracted_by": "LLM",
+        "extraction_confidence": null,
+        "id": "7f2dab28-3c39-4cde-a386-da003a1bdf5f",
+        "paper_import_id": "5e71130d-a182-4845-aac0-7a1918e1701e",
+        "order_index": 3,
+        "order_preserved": true,
+        "status": "Pending Correction",
+        "question_id": null,
+        "image_assessment": {
+          "context_revision": 1,
+          "runs": [],
+          "manual_checks": [],
+          "imported_review": null
+        },
+        "created_at": "2026-10-02T16:34:59.049041Z",
+        "updated_at": "2026-10-02T16:50:34.694618Z"
+      }
+    ],
+    "file_diagnostics": []
+  },
+  "reference_sha256": "13095b3d62f9e0db14e92412e58923f6b2c1c83c0acf49ea356e306397e2ff9e",
+  "independent_teacher_review": false,
+  "cloud_calls": 0,
+  "image_association_comparison": [
+    {
+      "reference_identity": "1194af49-5301-51bb-a173-0e6f524ac810",
+      "extracted_question_id": "ae47c930-21e9-4039-880f-338aab8691b7",
+      "expected": [],
+      "actual": [],
+      "evaluable": true,
+      "correct": true,
+      "reason": "ordered type/page association only; independent teacher/pixel correctness not claimed"
+    },
+    {
+      "reference_identity": "8e0aecaf-072d-5ed7-9b43-5d33ad202cc1",
+      "extracted_question_id": "8043ffc3-2f48-4c23-ad5e-2f909942cb3a",
+      "expected": [
+        {
+          "asset_type": "figure",
+          "source_page_number": 1,
+          "order_index": 1
+        }
+      ],
+      "actual": [
+        {
+          "asset_type": "figure",
+          "source_page_number": 1,
+          "order_index": 1
+        }
+      ],
+      "evaluable": true,
+      "correct": true,
+      "reason": "ordered type/page association only; independent teacher/pixel correctness not claimed"
+    },
+    {
+      "reference_identity": "fdef73bd-f984-58d1-8a53-3eea668a9f83",
+      "extracted_question_id": "7f2dab28-3c39-4cde-a386-da003a1bdf5f",
+      "expected": [
+        {
+          "asset_type": "table",
+          "source_page_number": 1,
+          "order_index": 1
+        }
+      ],
+      "actual": [
+        {
+          "asset_type": "table",
+          "source_page_number": 1,
+          "order_index": 1
+        }
+      ],
+      "evaluable": true,
+      "correct": true,
+      "reason": "ordered type/page association only; independent teacher/pixel correctness not claimed"
+    }
+  ],
+  "image_association_numerator": 3,
+  "image_association_denominator": 3
+}

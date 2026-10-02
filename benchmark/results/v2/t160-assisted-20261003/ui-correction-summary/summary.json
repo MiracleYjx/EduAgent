@@ -1,0 +1,83 @@
+{
+  "aggregated_at": "2026-10-02T17:32:12.137122+00:00",
+  "status": "complete_protocol_attempts",
+  "planned_timed": 24,
+  "planned_warmup": 3,
+  "attempted_timed": 24,
+  "attempted_warmup": 3,
+  "successful_timed": 24,
+  "timed_below_500_ms": 2,
+  "target_acceptance": false,
+  "business_render_acceptance": true,
+  "resource_budget_acceptance": null,
+  "missing_run_ids": [],
+  "duplicate_run_ids": [],
+  "parsing_errors": [],
+  "preflight_excluded_count": 4,
+  "by_group": {
+    "text-cold": {
+      "planned": 3,
+      "attempted": 3,
+      "success": 3,
+      "below_500_ms": 0,
+      "failed_or_incomplete": 0,
+      "min_ms": 635.2999999821186,
+      "median_ms": 686.2999999821186,
+      "max_ms": 687
+    },
+    "text-warm": {
+      "planned": 5,
+      "attempted": 5,
+      "success": 5,
+      "below_500_ms": 0,
+      "failed_or_incomplete": 0,
+      "min_ms": 838.5,
+      "median_ms": 886.5999999940395,
+      "max_ms": 1109.199999988079
+    },
+    "figure-cold": {
+      "planned": 3,
+      "attempted": 3,
+      "success": 3,
+      "below_500_ms": 0,
+      "failed_or_incomplete": 0,
+      "min_ms": 748.2000000178814,
+      "median_ms": 768.0999999940395,
+      "max_ms": 776.6999999880791
+    },
+    "figure-warm": {
+      "planned": 5,
+      "attempted": 5,
+      "success": 5,
+      "below_500_ms": 0,
+      "failed_or_incomplete": 0,
+      "min_ms": 811.1999999880791,
+      "median_ms": 817.1999999880791,
+      "max_ms": 977.4000000059605
+    },
+    "cross-cold": {
+      "planned": 3,
+      "attempted": 3,
+      "success": 3,
+      "below_500_ms": 1,
+      "failed_or_incomplete": 0,
+      "min_ms": 265,
+      "median_ms": 543.1999999880791,
+      "max_ms": 564.5999999940395
+    },
+    "cross-warm": {
+      "planned": 5,
+      "attempted": 5,
+      "success": 5,
+      "below_500_ms": 1,
+      "failed_or_incomplete": 0,
+      "min_ms": 465.40000000596046,
+      "median_ms": 595.6999999880791,
+      "max_ms": 855.1000000238419
+    }
+  },
+  "reference_origin": "Actual first-round raw source replay, not new extraction or teacher quality assessment.",
+  "timing_source": "Browser performance.now from actual native target selection to target fields/page/images loaded and queue idle/stable doubleRAF.",
+  "tool_transport_in_duration": false,
+  "screenshot_verified_actions": 27
+}

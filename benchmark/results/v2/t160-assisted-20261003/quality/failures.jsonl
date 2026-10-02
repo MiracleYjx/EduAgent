@@ -1,0 +1,1 @@
+{"run_id": "t160-quality-20261002T163445Z-4654973a-03-IMP-TEXT-r3", "case_id": "IMP-TEXT", "stage": "automatic", "code": "PAPER_EXTRACTION_FAILED", "message": "分批拆题与结构化暂存失败：原文来源校验失败：unknown evidence field", "evidence_ref": "runs\\t160-quality-20261002T163445Z-4654973a-03-IMP-TEXT-r3\\result.json"}

@@ -1,0 +1,1191 @@
+{
+  "protocol_version": "v2-evaluation-1",
+  "annotation_version": "t160-user-authorized-ai-assisted-20261003-1",
+  "status": "user_confirmed_ai_assisted",
+  "input_dataset_version": "v2-draft-20261001-1",
+  "annotation_origin": "user_authorized_ai_draft",
+  "authorization_source": "用户授权代做 T160 标注；未将授权冒充独立教师阅读或复核。",
+  "author_kind": "ai_assistant",
+  "author_name": "Codex",
+  "teacher_verified": false,
+  "teacher_id": null,
+  "reviewed_by": "current_chat_user",
+  "reviewed_at": "2026-10-02T16:14:48+00:00",
+  "is_independent_teacher_truth": false,
+  "ready_for_formal_baseline": false,
+  "comparison_policy": "用户已确认的 AI 辅助标注单列参考比对；不得记为独立教师真值或独立教师字段准确率。",
+  "visual_review": {
+    "renderer": "Poppler pdftoppm",
+    "dpi": 120,
+    "pdf_files": [
+      "inputs/paper_text.pdf",
+      "inputs/paper_scan.pdf",
+      "inputs/paper_mixed.pdf",
+      "inputs/paper_cross_page.pdf"
+    ],
+    "direct_images": [
+      "inputs/paper_image.png",
+      "assets/figure.png",
+      "assets/table.png",
+      "assets/diagram.png"
+    ],
+    "ocr_used": false,
+    "llm_used": false,
+    "review_scope": "逐页原稿视觉核对；文字PDF以pypdf文本辅助核字；扫描/PNG均直接查看原像素。"
+  },
+  "entries": [
+    {
+      "case_id": "IMP-TEXT",
+      "teacher_id": null,
+      "annotated_at": null,
+      "reviewed_by": "current_chat_user",
+      "reviewed_at": "2026-10-02T16:14:48+00:00",
+      "teacher_verified": false,
+      "source_refs": [
+        "inputs/paper_text.pdf"
+      ],
+      "labels": {
+        "questions": [
+          {
+            "question_type": "SINGLE_CHOICE",
+            "content": "y = 2x + 1，x = 3 时 y 为多少？",
+            "options": {
+              "C": "7",
+              "A": "5",
+              "B": "6",
+              "D": "8"
+            },
+            "reference_answer": "C",
+            "analysis": "2 × 3 + 1 = 7。",
+            "score": "2.00",
+            "scoring_rubric": null,
+            "knowledge_points": [],
+            "assets": [],
+            "known_missing": [
+              "scoring_rubric",
+              "knowledge_points"
+            ],
+            "unknown": [
+              "source_regions"
+            ],
+            "field_notes": {
+              "scoring_rubric": "原稿未提供评分标准；不由原答案或满分反推。",
+              "knowledge_points": "原稿未为本题标注知识点；不按题干内容推断。",
+              "source_regions": "未测量题目在原页上的可靠像素边界；保持 null。"
+            },
+            "question_number": "1",
+            "order_index": 1,
+            "source_file": "inputs/paper_text.pdf",
+            "source_page_numbers": [
+              1
+            ],
+            "source_regions": null,
+            "teacher_verified": false,
+            "question_identity": "1194af49-5301-51bb-a173-0e6f524ac810",
+            "source_sha256": "74e4f9a21fd7bf778bab474f89bcede2680010e957cc435774205dbaa648c167",
+            "not_applicable_fields": [],
+            "field_states": {
+              "question_type": "source_provided",
+              "content": "source_provided",
+              "options": "source_provided",
+              "reference_answer": "source_provided",
+              "analysis": "source_provided",
+              "score": "source_provided",
+              "scoring_rubric": "known_missing",
+              "knowledge_points": "known_missing",
+              "source_regions": "unknown"
+            }
+          },
+          {
+            "question_type": "TRUE_FALSE",
+            "content": "右图三角形面积为 24 cm²。",
+            "options": [
+              "正确",
+              "错误"
+            ],
+            "reference_answer": null,
+            "analysis": null,
+            "score": "2.00",
+            "scoring_rubric": null,
+            "knowledge_points": [],
+            "assets": [
+              {
+                "asset_id": "839f8584-dff3-526a-8cbe-85ac6784a3e2",
+                "fixture_file": "assets/figure.png",
+                "kind": "figure",
+                "order_index": 1,
+                "width": 640,
+                "height": 400,
+                "visible_source_text": [
+                  "三角形",
+                  "高 4 cm",
+                  "底 6 cm"
+                ],
+                "identity_scope": "fixture_identity_not_persisted_service_file_id",
+                "source_region": null,
+                "source_file": "inputs/paper_text.pdf",
+                "source_page_number": 1,
+                "fixture_sha256": "b5c34d74a385a5dca9bec9c56c0d5a2eb2ca5e0dc64338829aab50b90d488336"
+              }
+            ],
+            "known_missing": [
+              "reference_answer",
+              "analysis",
+              "scoring_rubric",
+              "knowledge_points"
+            ],
+            "unknown": [
+              "source_regions"
+            ],
+            "field_notes": {
+              "reference_answer": "原稿明确写“原稿未附此题答案与解析”；不计算面积补答案。",
+              "analysis": "原稿明确未附解析。",
+              "scoring_rubric": "原稿未提供本题评分标准。",
+              "knowledge_points": "原稿未为本题标注知识点。",
+              "source_regions": "未测量题目/题图在原页上的可靠像素边界；保持 null。",
+              "options": "原稿只有“正确 / 错误”两个文字选项，无 A/B 键；保存有序列表，不发明键。"
+            },
+            "question_number": "2",
+            "order_index": 2,
+            "source_file": "inputs/paper_text.pdf",
+            "source_page_numbers": [
+              1
+            ],
+            "source_regions": null,
+            "teacher_verified": false,
+            "question_identity": "8e0aecaf-072d-5ed7-9b43-5d33ad202cc1",
+            "source_sha256": "74e4f9a21fd7bf778bab474f89bcede2680010e957cc435774205dbaa648c167",
+            "not_applicable_fields": [],
+            "field_states": {
+              "question_type": "source_provided",
+              "content": "source_provided",
+              "options": "source_provided",
+              "reference_answer": "known_missing",
+              "analysis": "known_missing",
+              "score": "source_provided",
+              "scoring_rubric": "known_missing",
+              "knowledge_points": "known_missing",
+              "source_regions": "unknown"
+            }
+          },
+          {
+            "question_type": "SHORT_ANSWER",
+            "content": "根据下表写出 y 关于 x 的关系式。",
+            "options": null,
+            "reference_answer": null,
+            "analysis": null,
+            "score": "3.00",
+            "scoring_rubric": "正确关系式 1.00；说明代入过程 2.00。",
+            "knowledge_points": [
+              "一次函数",
+              "表达与计算"
+            ],
+            "assets": [
+              {
+                "asset_id": "34fa6905-e80a-5a0f-a7fa-2abac6ba9850",
+                "fixture_file": "assets/table.png",
+                "kind": "table",
+                "order_index": 1,
+                "width": 640,
+                "height": 400,
+                "visible_source_text": [
+                  "x | y | 说明",
+                  "1 | 3 | 第一行",
+                  "2 | 5 | 第二行",
+                  "3 | 7 | 第三行"
+                ],
+                "identity_scope": "fixture_identity_not_persisted_service_file_id",
+                "source_region": null,
+                "source_file": "inputs/paper_text.pdf",
+                "source_page_number": 1,
+                "fixture_sha256": "6eb1e116bbe9df9a4071a355c3b77d26e3b1e596e5c3437042dfe21918ff9dd6"
+              }
+            ],
+            "known_missing": [
+              "reference_answer",
+              "analysis"
+            ],
+            "unknown": [
+              "source_regions"
+            ],
+            "field_notes": {
+              "reference_answer": "原稿明确写“原稿未附此题答案与解析”；不推导关系式补答案。",
+              "analysis": "原稿明确未附解析。",
+              "options": "简答题原稿没有选项；null 表示不适用。",
+              "source_regions": "未测量题目/题图在原页上的可靠像素边界；保持 null。"
+            },
+            "question_number": "3",
+            "order_index": 3,
+            "source_file": "inputs/paper_text.pdf",
+            "source_page_numbers": [
+              1
+            ],
+            "source_regions": null,
+            "teacher_verified": false,
+            "question_identity": "fdef73bd-f984-58d1-8a53-3eea668a9f83",
+            "source_sha256": "74e4f9a21fd7bf778bab474f89bcede2680010e957cc435774205dbaa648c167",
+            "not_applicable_fields": [
+              "options"
+            ],
+            "field_states": {
+              "question_type": "source_provided",
+              "content": "source_provided",
+              "options": "not_applicable",
+              "reference_answer": "known_missing",
+              "analysis": "known_missing",
+              "score": "source_provided",
+              "scoring_rubric": "source_provided",
+              "knowledge_points": "source_provided",
+              "source_regions": "unknown"
+            }
+          }
+        ]
+      },
+      "notes": [],
+      "status": "user_confirmed_ai_assisted",
+      "reviewer_kind": "human",
+      "human_verified": true
+    },
+    {
+      "case_id": "IMP-SCAN",
+      "teacher_id": null,
+      "annotated_at": null,
+      "reviewed_by": "current_chat_user",
+      "reviewed_at": "2026-10-02T16:14:48+00:00",
+      "teacher_verified": false,
+      "source_refs": [
+        "inputs/paper_scan.pdf"
+      ],
+      "labels": {
+        "questions": [
+          {
+            "question_type": "SINGLE_CHOICE",
+            "content": "y = 2x + 1，x = 3 时 y 为多少？",
+            "options": {
+              "C": "7",
+              "A": "5",
+              "B": "6",
+              "D": "8"
+            },
+            "reference_answer": "C",
+            "analysis": "2 × 3 + 1 = 7。",
+            "score": "2.00",
+            "scoring_rubric": null,
+            "knowledge_points": [],
+            "assets": [],
+            "known_missing": [
+              "scoring_rubric",
+              "knowledge_points"
+            ],
+            "unknown": [
+              "source_regions"
+            ],
+            "field_notes": {
+              "scoring_rubric": "原稿未提供评分标准；不由原答案或满分反推。",
+              "knowledge_points": "原稿未为本题标注知识点；不按题干内容推断。",
+              "source_regions": "未测量题目在原页上的可靠像素边界；保持 null。"
+            },
+            "question_number": "1",
+            "order_index": 1,
+            "source_file": "inputs/paper_scan.pdf",
+            "source_page_numbers": [
+              1
+            ],
+            "source_regions": null,
+            "teacher_verified": false,
+            "question_identity": "74d666eb-fc46-5106-8ea2-ea5c967c6457",
+            "source_sha256": "16aaa00c8b41ca1f5e5e77d6248e918953d054e725ebfb30548fec84cfe9ba5b",
+            "not_applicable_fields": [],
+            "field_states": {
+              "question_type": "source_provided",
+              "content": "source_provided",
+              "options": "source_provided",
+              "reference_answer": "source_provided",
+              "analysis": "source_provided",
+              "score": "source_provided",
+              "scoring_rubric": "known_missing",
+              "knowledge_points": "known_missing",
+              "source_regions": "unknown"
+            }
+          },
+          {
+            "question_type": "TRUE_FALSE",
+            "content": "右图三角形面积为 24 cm²。",
+            "options": [
+              "正确",
+              "错误"
+            ],
+            "reference_answer": null,
+            "analysis": null,
+            "score": "2.00",
+            "scoring_rubric": null,
+            "knowledge_points": [],
+            "assets": [
+              {
+                "asset_id": "839f8584-dff3-526a-8cbe-85ac6784a3e2",
+                "fixture_file": "assets/figure.png",
+                "kind": "figure",
+                "order_index": 1,
+                "width": 640,
+                "height": 400,
+                "visible_source_text": [
+                  "三角形",
+                  "高 4 cm",
+                  "底 6 cm"
+                ],
+                "identity_scope": "fixture_identity_not_persisted_service_file_id",
+                "source_region": null,
+                "source_file": "inputs/paper_scan.pdf",
+                "source_page_number": 1,
+                "fixture_sha256": "b5c34d74a385a5dca9bec9c56c0d5a2eb2ca5e0dc64338829aab50b90d488336"
+              }
+            ],
+            "known_missing": [
+              "reference_answer",
+              "analysis",
+              "scoring_rubric",
+              "knowledge_points"
+            ],
+            "unknown": [
+              "source_regions"
+            ],
+            "field_notes": {
+              "reference_answer": "原稿明确写“原稿未附此题答案与解析”；不计算面积补答案。",
+              "analysis": "原稿明确未附解析。",
+              "scoring_rubric": "原稿未提供本题评分标准。",
+              "knowledge_points": "原稿未为本题标注知识点。",
+              "source_regions": "未测量题目/题图在原页上的可靠像素边界；保持 null。",
+              "options": "原稿只有“正确 / 错误”两个文字选项，无 A/B 键；保存有序列表，不发明键。"
+            },
+            "question_number": "2",
+            "order_index": 2,
+            "source_file": "inputs/paper_scan.pdf",
+            "source_page_numbers": [
+              1
+            ],
+            "source_regions": null,
+            "teacher_verified": false,
+            "question_identity": "5f47ee64-edec-5327-9172-bb8454c7640d",
+            "source_sha256": "16aaa00c8b41ca1f5e5e77d6248e918953d054e725ebfb30548fec84cfe9ba5b",
+            "not_applicable_fields": [],
+            "field_states": {
+              "question_type": "source_provided",
+              "content": "source_provided",
+              "options": "source_provided",
+              "reference_answer": "known_missing",
+              "analysis": "known_missing",
+              "score": "source_provided",
+              "scoring_rubric": "known_missing",
+              "knowledge_points": "known_missing",
+              "source_regions": "unknown"
+            }
+          },
+          {
+            "question_type": "SHORT_ANSWER",
+            "content": "根据下表写出 y 关于 x 的关系式。",
+            "options": null,
+            "reference_answer": null,
+            "analysis": null,
+            "score": "3.00",
+            "scoring_rubric": "正确关系式 1.00；说明代入过程 2.00。",
+            "knowledge_points": [
+              "一次函数",
+              "表达与计算"
+            ],
+            "assets": [
+              {
+                "asset_id": "34fa6905-e80a-5a0f-a7fa-2abac6ba9850",
+                "fixture_file": "assets/table.png",
+                "kind": "table",
+                "order_index": 1,
+                "width": 640,
+                "height": 400,
+                "visible_source_text": [
+                  "x | y | 说明",
+                  "1 | 3 | 第一行",
+                  "2 | 5 | 第二行",
+                  "3 | 7 | 第三行"
+                ],
+                "identity_scope": "fixture_identity_not_persisted_service_file_id",
+                "source_region": null,
+                "source_file": "inputs/paper_scan.pdf",
+                "source_page_number": 1,
+                "fixture_sha256": "6eb1e116bbe9df9a4071a355c3b77d26e3b1e596e5c3437042dfe21918ff9dd6"
+              }
+            ],
+            "known_missing": [
+              "reference_answer",
+              "analysis"
+            ],
+            "unknown": [
+              "source_regions"
+            ],
+            "field_notes": {
+              "reference_answer": "原稿明确写“原稿未附此题答案与解析”；不推导关系式补答案。",
+              "analysis": "原稿明确未附解析。",
+              "options": "简答题原稿没有选项；null 表示不适用。",
+              "source_regions": "未测量题目/题图在原页上的可靠像素边界；保持 null。"
+            },
+            "question_number": "3",
+            "order_index": 3,
+            "source_file": "inputs/paper_scan.pdf",
+            "source_page_numbers": [
+              1
+            ],
+            "source_regions": null,
+            "teacher_verified": false,
+            "question_identity": "d6acd365-a6d5-5eb8-9b54-66f26a915094",
+            "source_sha256": "16aaa00c8b41ca1f5e5e77d6248e918953d054e725ebfb30548fec84cfe9ba5b",
+            "not_applicable_fields": [
+              "options"
+            ],
+            "field_states": {
+              "question_type": "source_provided",
+              "content": "source_provided",
+              "options": "not_applicable",
+              "reference_answer": "known_missing",
+              "analysis": "known_missing",
+              "score": "source_provided",
+              "scoring_rubric": "source_provided",
+              "knowledge_points": "source_provided",
+              "source_regions": "unknown"
+            }
+          }
+        ]
+      },
+      "notes": [],
+      "status": "user_confirmed_ai_assisted",
+      "reviewer_kind": "human",
+      "human_verified": true
+    },
+    {
+      "case_id": "IMP-IMAGE",
+      "teacher_id": null,
+      "annotated_at": null,
+      "reviewed_by": "current_chat_user",
+      "reviewed_at": "2026-10-02T16:14:48+00:00",
+      "teacher_verified": false,
+      "source_refs": [
+        "inputs/paper_image.png"
+      ],
+      "labels": {
+        "questions": [
+          {
+            "question_type": "SINGLE_CHOICE",
+            "content": "y = 2x + 1，x = 3 时 y 为多少？",
+            "options": {
+              "C": "7",
+              "A": "5",
+              "B": "6",
+              "D": "8"
+            },
+            "reference_answer": "C",
+            "analysis": "2 × 3 + 1 = 7。",
+            "score": "2.00",
+            "scoring_rubric": null,
+            "knowledge_points": [],
+            "assets": [],
+            "known_missing": [
+              "scoring_rubric",
+              "knowledge_points"
+            ],
+            "unknown": [
+              "source_regions"
+            ],
+            "field_notes": {
+              "scoring_rubric": "原稿未提供评分标准；不由原答案或满分反推。",
+              "knowledge_points": "原稿未为本题标注知识点；不按题干内容推断。",
+              "source_regions": "未测量题目在原页上的可靠像素边界；保持 null。"
+            },
+            "question_number": "1",
+            "order_index": 1,
+            "source_file": "inputs/paper_image.png",
+            "source_page_numbers": [
+              1
+            ],
+            "source_regions": null,
+            "teacher_verified": false,
+            "question_identity": "c4d750a5-4dc4-5a35-83e2-dee4ca44aca1",
+            "source_sha256": "31cdc03d0d958c33d6d7815e330f521febe40e23eab0122f687344f8ed311199",
+            "not_applicable_fields": [],
+            "field_states": {
+              "question_type": "source_provided",
+              "content": "source_provided",
+              "options": "source_provided",
+              "reference_answer": "source_provided",
+              "analysis": "source_provided",
+              "score": "source_provided",
+              "scoring_rubric": "known_missing",
+              "knowledge_points": "known_missing",
+              "source_regions": "unknown"
+            }
+          },
+          {
+            "question_type": "TRUE_FALSE",
+            "content": "右图三角形面积为 24 cm²。",
+            "options": [
+              "正确",
+              "错误"
+            ],
+            "reference_answer": null,
+            "analysis": null,
+            "score": "2.00",
+            "scoring_rubric": null,
+            "knowledge_points": [],
+            "assets": [
+              {
+                "asset_id": "839f8584-dff3-526a-8cbe-85ac6784a3e2",
+                "fixture_file": "assets/figure.png",
+                "kind": "figure",
+                "order_index": 1,
+                "width": 640,
+                "height": 400,
+                "visible_source_text": [
+                  "三角形",
+                  "高 4 cm",
+                  "底 6 cm"
+                ],
+                "identity_scope": "fixture_identity_not_persisted_service_file_id",
+                "source_region": null,
+                "source_file": "inputs/paper_image.png",
+                "source_page_number": 1,
+                "fixture_sha256": "b5c34d74a385a5dca9bec9c56c0d5a2eb2ca5e0dc64338829aab50b90d488336"
+              }
+            ],
+            "known_missing": [
+              "reference_answer",
+              "analysis",
+              "scoring_rubric",
+              "knowledge_points"
+            ],
+            "unknown": [
+              "source_regions"
+            ],
+            "field_notes": {
+              "reference_answer": "原稿明确写“原稿未附此题答案与解析”；不计算面积补答案。",
+              "analysis": "原稿明确未附解析。",
+              "scoring_rubric": "原稿未提供本题评分标准。",
+              "knowledge_points": "原稿未为本题标注知识点。",
+              "source_regions": "未测量题目/题图在原页上的可靠像素边界；保持 null。",
+              "options": "原稿只有“正确 / 错误”两个文字选项，无 A/B 键；保存有序列表，不发明键。"
+            },
+            "question_number": "2",
+            "order_index": 2,
+            "source_file": "inputs/paper_image.png",
+            "source_page_numbers": [
+              1
+            ],
+            "source_regions": null,
+            "teacher_verified": false,
+            "question_identity": "e418791a-1462-52b7-98fe-396ce71b8d48",
+            "source_sha256": "31cdc03d0d958c33d6d7815e330f521febe40e23eab0122f687344f8ed311199",
+            "not_applicable_fields": [],
+            "field_states": {
+              "question_type": "source_provided",
+              "content": "source_provided",
+              "options": "source_provided",
+              "reference_answer": "known_missing",
+              "analysis": "known_missing",
+              "score": "source_provided",
+              "scoring_rubric": "known_missing",
+              "knowledge_points": "known_missing",
+              "source_regions": "unknown"
+            }
+          },
+          {
+            "question_type": "SHORT_ANSWER",
+            "content": "根据下表写出 y 关于 x 的关系式。",
+            "options": null,
+            "reference_answer": null,
+            "analysis": null,
+            "score": "3.00",
+            "scoring_rubric": "正确关系式 1.00；说明代入过程 2.00。",
+            "knowledge_points": [
+              "一次函数",
+              "表达与计算"
+            ],
+            "assets": [
+              {
+                "asset_id": "34fa6905-e80a-5a0f-a7fa-2abac6ba9850",
+                "fixture_file": "assets/table.png",
+                "kind": "table",
+                "order_index": 1,
+                "width": 640,
+                "height": 400,
+                "visible_source_text": [
+                  "x | y | 说明",
+                  "1 | 3 | 第一行",
+                  "2 | 5 | 第二行",
+                  "3 | 7 | 第三行"
+                ],
+                "identity_scope": "fixture_identity_not_persisted_service_file_id",
+                "source_region": null,
+                "source_file": "inputs/paper_image.png",
+                "source_page_number": 1,
+                "fixture_sha256": "6eb1e116bbe9df9a4071a355c3b77d26e3b1e596e5c3437042dfe21918ff9dd6"
+              }
+            ],
+            "known_missing": [
+              "reference_answer",
+              "analysis"
+            ],
+            "unknown": [
+              "source_regions"
+            ],
+            "field_notes": {
+              "reference_answer": "原稿明确写“原稿未附此题答案与解析”；不推导关系式补答案。",
+              "analysis": "原稿明确未附解析。",
+              "options": "简答题原稿没有选项；null 表示不适用。",
+              "source_regions": "未测量题目/题图在原页上的可靠像素边界；保持 null。"
+            },
+            "question_number": "3",
+            "order_index": 3,
+            "source_file": "inputs/paper_image.png",
+            "source_page_numbers": [
+              1
+            ],
+            "source_regions": null,
+            "teacher_verified": false,
+            "question_identity": "e5c1555f-e927-575c-b68c-85eb341a3202",
+            "source_sha256": "31cdc03d0d958c33d6d7815e330f521febe40e23eab0122f687344f8ed311199",
+            "not_applicable_fields": [
+              "options"
+            ],
+            "field_states": {
+              "question_type": "source_provided",
+              "content": "source_provided",
+              "options": "not_applicable",
+              "reference_answer": "known_missing",
+              "analysis": "known_missing",
+              "score": "source_provided",
+              "scoring_rubric": "source_provided",
+              "knowledge_points": "source_provided",
+              "source_regions": "unknown"
+            }
+          }
+        ]
+      },
+      "notes": [],
+      "status": "user_confirmed_ai_assisted",
+      "reviewer_kind": "human",
+      "human_verified": true
+    },
+    {
+      "case_id": "IMP-MIXED",
+      "teacher_id": null,
+      "annotated_at": null,
+      "reviewed_by": "current_chat_user",
+      "reviewed_at": "2026-10-02T16:14:48+00:00",
+      "teacher_verified": false,
+      "source_refs": [
+        "inputs/paper_mixed.pdf"
+      ],
+      "labels": {
+        "questions": [
+          {
+            "question_type": "SINGLE_CHOICE",
+            "content": "y = 2x + 1，x = 3 时 y 为多少？",
+            "options": {
+              "C": "7",
+              "A": "5",
+              "B": "6",
+              "D": "8"
+            },
+            "reference_answer": "C",
+            "analysis": "2 × 3 + 1 = 7。",
+            "score": "2.00",
+            "scoring_rubric": null,
+            "knowledge_points": [],
+            "assets": [],
+            "known_missing": [
+              "scoring_rubric",
+              "knowledge_points"
+            ],
+            "unknown": [
+              "source_regions"
+            ],
+            "field_notes": {
+              "scoring_rubric": "原稿未提供评分标准；不由原答案或满分反推。",
+              "knowledge_points": "原稿未为本题标注知识点；不按题干内容推断。",
+              "source_regions": "未测量题目在原页上的可靠像素边界；保持 null。"
+            },
+            "question_number": "1",
+            "order_index": 1,
+            "source_file": "inputs/paper_mixed.pdf",
+            "source_page_numbers": [
+              1
+            ],
+            "source_regions": null,
+            "teacher_verified": false,
+            "question_identity": "1faa8619-84cc-5d65-86ae-244c7f68645e",
+            "source_sha256": "5c0affa1fb5ec3f3267972bce7cfbf67cf3abe067b59c9cdac0b45edd025f4ba",
+            "not_applicable_fields": [],
+            "field_states": {
+              "question_type": "source_provided",
+              "content": "source_provided",
+              "options": "source_provided",
+              "reference_answer": "source_provided",
+              "analysis": "source_provided",
+              "score": "source_provided",
+              "scoring_rubric": "known_missing",
+              "knowledge_points": "known_missing",
+              "source_regions": "unknown"
+            }
+          },
+          {
+            "question_type": "TRUE_FALSE",
+            "content": "右图三角形面积为 24 cm²。",
+            "options": [
+              "正确",
+              "错误"
+            ],
+            "reference_answer": null,
+            "analysis": null,
+            "score": "2.00",
+            "scoring_rubric": null,
+            "knowledge_points": [],
+            "assets": [
+              {
+                "asset_id": "839f8584-dff3-526a-8cbe-85ac6784a3e2",
+                "fixture_file": "assets/figure.png",
+                "kind": "figure",
+                "order_index": 1,
+                "width": 640,
+                "height": 400,
+                "visible_source_text": [
+                  "三角形",
+                  "高 4 cm",
+                  "底 6 cm"
+                ],
+                "identity_scope": "fixture_identity_not_persisted_service_file_id",
+                "source_region": null,
+                "source_file": "inputs/paper_mixed.pdf",
+                "source_page_number": 1,
+                "fixture_sha256": "b5c34d74a385a5dca9bec9c56c0d5a2eb2ca5e0dc64338829aab50b90d488336"
+              }
+            ],
+            "known_missing": [
+              "reference_answer",
+              "analysis",
+              "scoring_rubric",
+              "knowledge_points"
+            ],
+            "unknown": [
+              "source_regions"
+            ],
+            "field_notes": {
+              "reference_answer": "原稿明确写“原稿未附此题答案与解析”；不计算面积补答案。",
+              "analysis": "原稿明确未附解析。",
+              "scoring_rubric": "原稿未提供本题评分标准。",
+              "knowledge_points": "原稿未为本题标注知识点。",
+              "source_regions": "未测量题目/题图在原页上的可靠像素边界；保持 null。",
+              "options": "原稿只有“正确 / 错误”两个文字选项，无 A/B 键；保存有序列表，不发明键。"
+            },
+            "question_number": "2",
+            "order_index": 2,
+            "source_file": "inputs/paper_mixed.pdf",
+            "source_page_numbers": [
+              1
+            ],
+            "source_regions": null,
+            "teacher_verified": false,
+            "question_identity": "545de13f-3fe9-524b-a917-7ab04807806f",
+            "source_sha256": "5c0affa1fb5ec3f3267972bce7cfbf67cf3abe067b59c9cdac0b45edd025f4ba",
+            "not_applicable_fields": [],
+            "field_states": {
+              "question_type": "source_provided",
+              "content": "source_provided",
+              "options": "source_provided",
+              "reference_answer": "known_missing",
+              "analysis": "known_missing",
+              "score": "source_provided",
+              "scoring_rubric": "known_missing",
+              "knowledge_points": "known_missing",
+              "source_regions": "unknown"
+            }
+          },
+          {
+            "question_type": "SHORT_ANSWER",
+            "content": "根据下表写出 y 关于 x 的关系式。",
+            "options": null,
+            "reference_answer": null,
+            "analysis": null,
+            "score": "3.00",
+            "scoring_rubric": "正确关系式 1.00；说明代入过程 2.00。",
+            "knowledge_points": [
+              "一次函数",
+              "表达与计算"
+            ],
+            "assets": [
+              {
+                "asset_id": "34fa6905-e80a-5a0f-a7fa-2abac6ba9850",
+                "fixture_file": "assets/table.png",
+                "kind": "table",
+                "order_index": 1,
+                "width": 640,
+                "height": 400,
+                "visible_source_text": [
+                  "x | y | 说明",
+                  "1 | 3 | 第一行",
+                  "2 | 5 | 第二行",
+                  "3 | 7 | 第三行"
+                ],
+                "identity_scope": "fixture_identity_not_persisted_service_file_id",
+                "source_region": null,
+                "source_file": "inputs/paper_mixed.pdf",
+                "source_page_number": 1,
+                "fixture_sha256": "6eb1e116bbe9df9a4071a355c3b77d26e3b1e596e5c3437042dfe21918ff9dd6"
+              }
+            ],
+            "known_missing": [
+              "reference_answer",
+              "analysis"
+            ],
+            "unknown": [
+              "source_regions"
+            ],
+            "field_notes": {
+              "reference_answer": "原稿明确写“原稿未附此题答案与解析”；不推导关系式补答案。",
+              "analysis": "原稿明确未附解析。",
+              "options": "简答题原稿没有选项；null 表示不适用。",
+              "source_regions": "未测量题目/题图在原页上的可靠像素边界；保持 null。"
+            },
+            "question_number": "3",
+            "order_index": 3,
+            "source_file": "inputs/paper_mixed.pdf",
+            "source_page_numbers": [
+              1
+            ],
+            "source_regions": null,
+            "teacher_verified": false,
+            "question_identity": "85533f46-eb86-5893-8742-33939e77750f",
+            "source_sha256": "5c0affa1fb5ec3f3267972bce7cfbf67cf3abe067b59c9cdac0b45edd025f4ba",
+            "not_applicable_fields": [
+              "options"
+            ],
+            "field_states": {
+              "question_type": "source_provided",
+              "content": "source_provided",
+              "options": "not_applicable",
+              "reference_answer": "known_missing",
+              "analysis": "known_missing",
+              "score": "source_provided",
+              "scoring_rubric": "source_provided",
+              "knowledge_points": "source_provided",
+              "source_regions": "unknown"
+            }
+          },
+          {
+            "question_type": "SINGLE_CHOICE",
+            "content": "y = 2x + 1，x = 3 时 y 为多少？",
+            "options": {
+              "C": "7",
+              "A": "5",
+              "B": "6",
+              "D": "8"
+            },
+            "reference_answer": "C",
+            "analysis": "2 × 3 + 1 = 7。",
+            "score": "2.00",
+            "scoring_rubric": null,
+            "knowledge_points": [],
+            "assets": [],
+            "known_missing": [
+              "scoring_rubric",
+              "knowledge_points"
+            ],
+            "unknown": [
+              "source_regions"
+            ],
+            "field_notes": {
+              "scoring_rubric": "原稿未提供评分标准；不由原答案或满分反推。",
+              "knowledge_points": "原稿未为本题标注知识点；不按题干内容推断。",
+              "source_regions": "未测量题目在原页上的可靠像素边界；保持 null。"
+            },
+            "question_number": "4",
+            "order_index": 4,
+            "source_file": "inputs/paper_mixed.pdf",
+            "source_page_numbers": [
+              2
+            ],
+            "source_regions": null,
+            "teacher_verified": false,
+            "question_identity": "0fa8d57e-58c2-5aa4-b8cd-e52e96380a38",
+            "source_sha256": "5c0affa1fb5ec3f3267972bce7cfbf67cf3abe067b59c9cdac0b45edd025f4ba",
+            "not_applicable_fields": [],
+            "field_states": {
+              "question_type": "source_provided",
+              "content": "source_provided",
+              "options": "source_provided",
+              "reference_answer": "source_provided",
+              "analysis": "source_provided",
+              "score": "source_provided",
+              "scoring_rubric": "known_missing",
+              "knowledge_points": "known_missing",
+              "source_regions": "unknown"
+            }
+          },
+          {
+            "question_type": "TRUE_FALSE",
+            "content": "右图三角形面积为 24 cm²。",
+            "options": [
+              "正确",
+              "错误"
+            ],
+            "reference_answer": null,
+            "analysis": null,
+            "score": "2.00",
+            "scoring_rubric": null,
+            "knowledge_points": [],
+            "assets": [
+              {
+                "asset_id": "839f8584-dff3-526a-8cbe-85ac6784a3e2",
+                "fixture_file": "assets/figure.png",
+                "kind": "figure",
+                "order_index": 1,
+                "width": 640,
+                "height": 400,
+                "visible_source_text": [
+                  "三角形",
+                  "高 4 cm",
+                  "底 6 cm"
+                ],
+                "identity_scope": "fixture_identity_not_persisted_service_file_id",
+                "source_region": null,
+                "source_file": "inputs/paper_mixed.pdf",
+                "source_page_number": 2,
+                "fixture_sha256": "b5c34d74a385a5dca9bec9c56c0d5a2eb2ca5e0dc64338829aab50b90d488336"
+              }
+            ],
+            "known_missing": [
+              "reference_answer",
+              "analysis",
+              "scoring_rubric",
+              "knowledge_points"
+            ],
+            "unknown": [
+              "source_regions"
+            ],
+            "field_notes": {
+              "reference_answer": "原稿明确写“原稿未附此题答案与解析”；不计算面积补答案。",
+              "analysis": "原稿明确未附解析。",
+              "scoring_rubric": "原稿未提供本题评分标准。",
+              "knowledge_points": "原稿未为本题标注知识点。",
+              "source_regions": "未测量题目/题图在原页上的可靠像素边界；保持 null。",
+              "options": "原稿只有“正确 / 错误”两个文字选项，无 A/B 键；保存有序列表，不发明键。"
+            },
+            "question_number": "5",
+            "order_index": 5,
+            "source_file": "inputs/paper_mixed.pdf",
+            "source_page_numbers": [
+              2
+            ],
+            "source_regions": null,
+            "teacher_verified": false,
+            "question_identity": "455720b9-9061-5bce-83af-d6d53c6c84e1",
+            "source_sha256": "5c0affa1fb5ec3f3267972bce7cfbf67cf3abe067b59c9cdac0b45edd025f4ba",
+            "not_applicable_fields": [],
+            "field_states": {
+              "question_type": "source_provided",
+              "content": "source_provided",
+              "options": "source_provided",
+              "reference_answer": "known_missing",
+              "analysis": "known_missing",
+              "score": "source_provided",
+              "scoring_rubric": "known_missing",
+              "knowledge_points": "known_missing",
+              "source_regions": "unknown"
+            }
+          },
+          {
+            "question_type": "SHORT_ANSWER",
+            "content": "根据下表写出 y 关于 x 的关系式。",
+            "options": null,
+            "reference_answer": null,
+            "analysis": null,
+            "score": "3.00",
+            "scoring_rubric": "正确关系式 1.00；说明代入过程 2.00。",
+            "knowledge_points": [
+              "一次函数",
+              "表达与计算"
+            ],
+            "assets": [
+              {
+                "asset_id": "34fa6905-e80a-5a0f-a7fa-2abac6ba9850",
+                "fixture_file": "assets/table.png",
+                "kind": "table",
+                "order_index": 1,
+                "width": 640,
+                "height": 400,
+                "visible_source_text": [
+                  "x | y | 说明",
+                  "1 | 3 | 第一行",
+                  "2 | 5 | 第二行",
+                  "3 | 7 | 第三行"
+                ],
+                "identity_scope": "fixture_identity_not_persisted_service_file_id",
+                "source_region": null,
+                "source_file": "inputs/paper_mixed.pdf",
+                "source_page_number": 2,
+                "fixture_sha256": "6eb1e116bbe9df9a4071a355c3b77d26e3b1e596e5c3437042dfe21918ff9dd6"
+              }
+            ],
+            "known_missing": [
+              "reference_answer",
+              "analysis"
+            ],
+            "unknown": [
+              "source_regions"
+            ],
+            "field_notes": {
+              "reference_answer": "原稿明确写“原稿未附此题答案与解析”；不推导关系式补答案。",
+              "analysis": "原稿明确未附解析。",
+              "options": "简答题原稿没有选项；null 表示不适用。",
+              "source_regions": "未测量题目/题图在原页上的可靠像素边界；保持 null。"
+            },
+            "question_number": "6",
+            "order_index": 6,
+            "source_file": "inputs/paper_mixed.pdf",
+            "source_page_numbers": [
+              2
+            ],
+            "source_regions": null,
+            "teacher_verified": false,
+            "question_identity": "bf862f8d-df39-5559-bab5-d942fccb2432",
+            "source_sha256": "5c0affa1fb5ec3f3267972bce7cfbf67cf3abe067b59c9cdac0b45edd025f4ba",
+            "not_applicable_fields": [
+              "options"
+            ],
+            "field_states": {
+              "question_type": "source_provided",
+              "content": "source_provided",
+              "options": "not_applicable",
+              "reference_answer": "known_missing",
+              "analysis": "known_missing",
+              "score": "source_provided",
+              "scoring_rubric": "source_provided",
+              "knowledge_points": "source_provided",
+              "source_regions": "unknown"
+            }
+          }
+        ]
+      },
+      "notes": [
+        "实际PDF有2页；页1页脚印刷1/1，页2页脚印刷2/2。来源以真实PDF页序1、2为准。",
+        "第2页重复相同题目内容但题号为4、5、6；保留六个独立原题实例。"
+      ],
+      "status": "user_confirmed_ai_assisted",
+      "reviewer_kind": "human",
+      "human_verified": true
+    },
+    {
+      "case_id": "IMP-CROSS",
+      "teacher_id": null,
+      "annotated_at": null,
+      "reviewed_by": "current_chat_user",
+      "reviewed_at": "2026-10-02T16:14:48+00:00",
+      "teacher_verified": false,
+      "source_refs": [
+        "inputs/paper_cross_page.pdf"
+      ],
+      "labels": {
+        "questions": [
+          {
+            "question_type": null,
+            "content": "阅读下页流程图：输入 x = 3，计算输出 y。\n按下图流程完成计算。",
+            "options": null,
+            "reference_answer": null,
+            "analysis": null,
+            "score": "5.00",
+            "scoring_rubric": "正确中间计算 2.00；最终输出 3.00。",
+            "knowledge_points": [],
+            "assets": [
+              {
+                "asset_id": "31d1b223-0422-5f9f-b323-7ecac2ad4367",
+                "fixture_file": "assets/diagram.png",
+                "kind": "diagram",
+                "order_index": 1,
+                "width": 640,
+                "height": 400,
+                "visible_source_text": [
+                  "输入 x",
+                  "y = 2 * x + 1",
+                  "输出 y"
+                ],
+                "identity_scope": "fixture_identity_not_persisted_service_file_id",
+                "source_region": null,
+                "source_page_number": 2,
+                "fixture_sha256": "44bbbce885cdf7f8965364579d2007b375c069a904d79f487ac64518ae602b97"
+              }
+            ],
+            "known_missing": [
+              "reference_answer",
+              "analysis",
+              "knowledge_points"
+            ],
+            "unknown": [
+              "question_type",
+              "source_regions"
+            ],
+            "field_notes": {
+              "question_type": "原稿未明确标注题型；保持 null，待用户确认分类。",
+              "content": "第1页题干与第2页“第4题续”合并为一题，保留原续文，不把说明/页眉计入题干。",
+              "reference_answer": "原稿明确写“本卷未附参考答案”；不代算输出。",
+              "analysis": "两页原稿均未给本题解析。",
+              "knowledge_points": "原稿没有本题知识点标注。",
+              "options": "两页原稿均没有选项。",
+              "source_regions": "已确认真实来源页为[1,2]，尚未测量可靠题目边界；保持 null。"
+            },
+            "question_number": "4",
+            "order_index": 1,
+            "source_file": "inputs/paper_cross_page.pdf",
+            "source_page_numbers": [
+              1,
+              2
+            ],
+            "source_regions": null,
+            "teacher_verified": false,
+            "question_identity": "239d78f4-ab44-59ec-ab7f-e11e454e26f1",
+            "source_sha256": "8c6a18f125a37ff9107a563efb52f5e61ec8ce1debdb516059a1d5b7d58d1a23",
+            "not_applicable_fields": [
+              "options"
+            ],
+            "field_states": {
+              "question_type": "unknown",
+              "content": "source_provided",
+              "options": "not_applicable",
+              "reference_answer": "known_missing",
+              "analysis": "known_missing",
+              "score": "source_provided",
+              "scoring_rubric": "source_provided",
+              "knowledge_points": "known_missing",
+              "source_regions": "unknown"
+            }
+          }
+        ]
+      },
+      "notes": [
+        "“第4题续”是同题续文；本卷只有一个题目实例。"
+      ],
+      "status": "user_confirmed_ai_assisted",
+      "reviewer_kind": "human",
+      "human_verified": true
+    }
+  ],
+  "drafted_at": "2026-10-02T15:57:14.847716+00:00",
+  "case_count": 5,
+  "question_instance_count": 16,
+  "drafted_for": "current_user_by_explicit_chat_authorization",
+  "reviewer_kind": "human",
+  "human_verified_cases": 5,
+  "independent_teacher_verified_cases": 0,
+  "user_review_confirmation": {
+    "statement": "确认标注并采用 AI 辅助口径（推荐）",
+    "confirmed_at": "2026-10-02T16:14:48+00:00",
+    "reviewed_by": "current_chat_user",
+    "reviewer_kind": "human",
+    "confirmation_source": "current_chat_user_message",
+    "scope": "5 个正常导入 case 的 AI 辅助标注与原稿缺失/未知口径",
+    "is_independent_teacher_truth": false
+  }
+}

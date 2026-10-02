@@ -1,0 +1,7 @@
+{
+  "phase": "premeasurement_setup",
+  "planned_action_executed": false,
+  "measurement_rows": 0,
+  "reason": "Gradio 6 ignores Blocks(head=...). Browser DOM showed observer script absent. Corrected test wrapper to mount_gradio_app(head=...), without product changes.",
+  "service_pid": 88972
+}

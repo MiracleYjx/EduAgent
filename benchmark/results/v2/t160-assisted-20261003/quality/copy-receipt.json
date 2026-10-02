@@ -1,0 +1,13 @@
+{
+  "copied_at": "2026-10-02T16:41:47.128848+00:00",
+  "sensitive_value_scan_files": 53,
+  "sensitive_values_exposed": false,
+  "original_output": "D:\\YJX\\MyCode\\EduAgent\\.cache\\t160-acceptance-20261002\\t160-quality-20261002T163445Z-4654973a",
+  "copied_output": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-assisted-20261003\\quality",
+  "frozen_executed_runner_sha256": "e730da09a6a792286e8d4023e2c4464d6aae8be9603d2118b969910153701504",
+  "recorded_execution_runner_sha256": "e730da09a6a792286e8d4023e2c4464d6aae8be9603d2118b969910153701504",
+  "portable_runner_note": "New CLI copy/formatted source differs from frozen executed cache runner; trace hashes do not replace runtime evidence.",
+  "portable_quality_runner_sha256": "5420ed2d7f302c8b7536d774cc907f11351dc2dda006ec2a44db225d3b8ba267",
+  "portable_crop_assist_sha256": "6ca507aa9390d21919881b50094f8285c32b28f4c8e34ebdccd5a4541867b904",
+  "after_image_assistance_copied": true
+}

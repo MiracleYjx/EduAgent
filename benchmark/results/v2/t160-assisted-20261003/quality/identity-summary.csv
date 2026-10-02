@@ -1,0 +1,31 @@
+run_id,case_id,repeat_index,stage,numerator,denominator,technical_status
+t160-quality-20261002T163445Z-4654973a-01-IMP-TEXT-r1,IMP-TEXT,1,automatic,3,3,Pending Review
+t160-quality-20261002T163445Z-4654973a-01-IMP-TEXT-r1,IMP-TEXT,1,assisted_corrected,3,3,Pending Review
+t160-quality-20261002T163445Z-4654973a-02-IMP-TEXT-r2,IMP-TEXT,2,automatic,3,3,Pending Review
+t160-quality-20261002T163445Z-4654973a-02-IMP-TEXT-r2,IMP-TEXT,2,assisted_corrected,3,3,Pending Review
+t160-quality-20261002T163445Z-4654973a-03-IMP-TEXT-r3,IMP-TEXT,3,automatic,0,3,Failed
+t160-quality-20261002T163445Z-4654973a-03-IMP-TEXT-r3,IMP-TEXT,3,assisted_corrected,0,3,Failed
+t160-quality-20261002T163445Z-4654973a-04-IMP-SCAN-r1,IMP-SCAN,1,automatic,3,3,Pending Review
+t160-quality-20261002T163445Z-4654973a-04-IMP-SCAN-r1,IMP-SCAN,1,assisted_corrected,3,3,Pending Review
+t160-quality-20261002T163445Z-4654973a-05-IMP-SCAN-r2,IMP-SCAN,2,automatic,3,3,Pending Review
+t160-quality-20261002T163445Z-4654973a-05-IMP-SCAN-r2,IMP-SCAN,2,assisted_corrected,3,3,Pending Review
+t160-quality-20261002T163445Z-4654973a-06-IMP-SCAN-r3,IMP-SCAN,3,automatic,3,3,Pending Review
+t160-quality-20261002T163445Z-4654973a-06-IMP-SCAN-r3,IMP-SCAN,3,assisted_corrected,3,3,Pending Review
+t160-quality-20261002T163445Z-4654973a-07-IMP-IMAGE-r1,IMP-IMAGE,1,automatic,3,3,Pending Review
+t160-quality-20261002T163445Z-4654973a-07-IMP-IMAGE-r1,IMP-IMAGE,1,assisted_corrected,3,3,Pending Review
+t160-quality-20261002T163445Z-4654973a-08-IMP-IMAGE-r2,IMP-IMAGE,2,automatic,3,3,Pending Review
+t160-quality-20261002T163445Z-4654973a-08-IMP-IMAGE-r2,IMP-IMAGE,2,assisted_corrected,3,3,Pending Review
+t160-quality-20261002T163445Z-4654973a-09-IMP-IMAGE-r3,IMP-IMAGE,3,automatic,3,3,Pending Review
+t160-quality-20261002T163445Z-4654973a-09-IMP-IMAGE-r3,IMP-IMAGE,3,assisted_corrected,3,3,Pending Review
+t160-quality-20261002T163445Z-4654973a-10-IMP-MIXED-r1,IMP-MIXED,1,automatic,6,6,Pending Review
+t160-quality-20261002T163445Z-4654973a-10-IMP-MIXED-r1,IMP-MIXED,1,assisted_corrected,6,6,Pending Review
+t160-quality-20261002T163445Z-4654973a-11-IMP-MIXED-r2,IMP-MIXED,2,automatic,4,6,Pending Review
+t160-quality-20261002T163445Z-4654973a-11-IMP-MIXED-r2,IMP-MIXED,2,assisted_corrected,6,6,Pending Review
+t160-quality-20261002T163445Z-4654973a-12-IMP-MIXED-r3,IMP-MIXED,3,automatic,6,6,Pending Review
+t160-quality-20261002T163445Z-4654973a-12-IMP-MIXED-r3,IMP-MIXED,3,assisted_corrected,6,6,Pending Review
+t160-quality-20261002T163445Z-4654973a-13-IMP-CROSS-r1,IMP-CROSS,1,automatic,1,1,Pending Review
+t160-quality-20261002T163445Z-4654973a-13-IMP-CROSS-r1,IMP-CROSS,1,assisted_corrected,1,1,Pending Review
+t160-quality-20261002T163445Z-4654973a-14-IMP-CROSS-r2,IMP-CROSS,2,automatic,1,1,Pending Review
+t160-quality-20261002T163445Z-4654973a-14-IMP-CROSS-r2,IMP-CROSS,2,assisted_corrected,1,1,Pending Review
+t160-quality-20261002T163445Z-4654973a-15-IMP-CROSS-r3,IMP-CROSS,3,automatic,1,1,Pending Review
+t160-quality-20261002T163445Z-4654973a-15-IMP-CROSS-r3,IMP-CROSS,3,assisted_corrected,1,1,Pending Review

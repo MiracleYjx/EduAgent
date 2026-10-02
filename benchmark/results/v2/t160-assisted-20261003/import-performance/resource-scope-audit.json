@@ -1,0 +1,257 @@
+{
+  "kind": "resource_scope_audit",
+  "audited_at": "2026-10-02T17:07:32.016516+00:00",
+  "original_evidence_modified": false,
+  "process_count": 12,
+  "business_run_count": 27,
+  "app_missing": true,
+  "actual_worker_memory_coverage": false,
+  "all_component_complete": false,
+  "application_peak_bytes": null,
+  "simultaneous_component_peak_bytes": null,
+  "resource_budget_pass": null,
+  "interpretation": "Original sampler/process PIDs refer to Windows venv redirectors; os.getpid in actual business-run receipts identifies different workers. Original complete=true only proves probes for sampled redirector and containers, not application-worker coverage. No missing application bytes or total budget is inferred as zero. Timing and outcome records remain unchanged.",
+  "postgres_redis_observations": "Retained as original container process RSS observations with their shared/dedicated scope. They cannot repair missing application-worker samples.",
+  "processes": [
+    {
+      "process_directory": "paper_text-cold-1",
+      "controller_popen_pid": 80616,
+      "sampled_pids": [
+        80616
+      ],
+      "actual_worker_pids_from_business_records": [
+        88300
+      ],
+      "business_runs": 1,
+      "pid_scope_matches_actual_worker": false,
+      "app_missing": true,
+      "original_helper_complete": true,
+      "original_working_set_scope": "Windows venv python redirector; not business worker",
+      "application_peak_bytes": null,
+      "simultaneous_component_peak_bytes": null,
+      "resource_budget_pass": null,
+      "raw_process_ref": "benchmark/results/v2/t160-assisted-20261003/import-performance/paper_text-cold-1/process.json",
+      "raw_resources_ref": "benchmark/results/v2/t160-assisted-20261003/import-performance/paper_text-cold-1/resources.jsonl"
+    },
+    {
+      "process_directory": "paper_text-cold-2",
+      "controller_popen_pid": 61620,
+      "sampled_pids": [
+        61620
+      ],
+      "actual_worker_pids_from_business_records": [
+        80572
+      ],
+      "business_runs": 1,
+      "pid_scope_matches_actual_worker": false,
+      "app_missing": true,
+      "original_helper_complete": true,
+      "original_working_set_scope": "Windows venv python redirector; not business worker",
+      "application_peak_bytes": null,
+      "simultaneous_component_peak_bytes": null,
+      "resource_budget_pass": null,
+      "raw_process_ref": "benchmark/results/v2/t160-assisted-20261003/import-performance/paper_text-cold-2/process.json",
+      "raw_resources_ref": "benchmark/results/v2/t160-assisted-20261003/import-performance/paper_text-cold-2/resources.jsonl"
+    },
+    {
+      "process_directory": "paper_text-cold-3",
+      "controller_popen_pid": 83056,
+      "sampled_pids": [
+        83056
+      ],
+      "actual_worker_pids_from_business_records": [
+        86724
+      ],
+      "business_runs": 1,
+      "pid_scope_matches_actual_worker": false,
+      "app_missing": true,
+      "original_helper_complete": true,
+      "original_working_set_scope": "Windows venv python redirector; not business worker",
+      "application_peak_bytes": null,
+      "simultaneous_component_peak_bytes": null,
+      "resource_budget_pass": null,
+      "raw_process_ref": "benchmark/results/v2/t160-assisted-20261003/import-performance/paper_text-cold-3/process.json",
+      "raw_resources_ref": "benchmark/results/v2/t160-assisted-20261003/import-performance/paper_text-cold-3/resources.jsonl"
+    },
+    {
+      "process_directory": "paper_text-warm-group",
+      "controller_popen_pid": 75364,
+      "sampled_pids": [
+        75364
+      ],
+      "actual_worker_pids_from_business_records": [
+        66488
+      ],
+      "business_runs": 6,
+      "pid_scope_matches_actual_worker": false,
+      "app_missing": true,
+      "original_helper_complete": true,
+      "original_working_set_scope": "Windows venv python redirector; not business worker",
+      "application_peak_bytes": null,
+      "simultaneous_component_peak_bytes": null,
+      "resource_budget_pass": null,
+      "raw_process_ref": "benchmark/results/v2/t160-assisted-20261003/import-performance/paper_text-warm-group/process.json",
+      "raw_resources_ref": "benchmark/results/v2/t160-assisted-20261003/import-performance/paper_text-warm-group/resources.jsonl"
+    },
+    {
+      "process_directory": "workload_10_pages-cold-1",
+      "controller_popen_pid": 81768,
+      "sampled_pids": [
+        81768
+      ],
+      "actual_worker_pids_from_business_records": [
+        77860
+      ],
+      "business_runs": 1,
+      "pid_scope_matches_actual_worker": false,
+      "app_missing": true,
+      "original_helper_complete": true,
+      "original_working_set_scope": "Windows venv python redirector; not business worker",
+      "application_peak_bytes": null,
+      "simultaneous_component_peak_bytes": null,
+      "resource_budget_pass": null,
+      "raw_process_ref": "benchmark/results/v2/t160-assisted-20261003/import-performance/workload_10_pages-cold-1/process.json",
+      "raw_resources_ref": "benchmark/results/v2/t160-assisted-20261003/import-performance/workload_10_pages-cold-1/resources.jsonl"
+    },
+    {
+      "process_directory": "workload_10_pages-cold-2",
+      "controller_popen_pid": 85560,
+      "sampled_pids": [
+        85560
+      ],
+      "actual_worker_pids_from_business_records": [
+        89076
+      ],
+      "business_runs": 1,
+      "pid_scope_matches_actual_worker": false,
+      "app_missing": true,
+      "original_helper_complete": true,
+      "original_working_set_scope": "Windows venv python redirector; not business worker",
+      "application_peak_bytes": null,
+      "simultaneous_component_peak_bytes": null,
+      "resource_budget_pass": null,
+      "raw_process_ref": "benchmark/results/v2/t160-assisted-20261003/import-performance/workload_10_pages-cold-2/process.json",
+      "raw_resources_ref": "benchmark/results/v2/t160-assisted-20261003/import-performance/workload_10_pages-cold-2/resources.jsonl"
+    },
+    {
+      "process_directory": "workload_10_pages-cold-3",
+      "controller_popen_pid": 62860,
+      "sampled_pids": [
+        62860
+      ],
+      "actual_worker_pids_from_business_records": [
+        77464
+      ],
+      "business_runs": 1,
+      "pid_scope_matches_actual_worker": false,
+      "app_missing": true,
+      "original_helper_complete": true,
+      "original_working_set_scope": "Windows venv python redirector; not business worker",
+      "application_peak_bytes": null,
+      "simultaneous_component_peak_bytes": null,
+      "resource_budget_pass": null,
+      "raw_process_ref": "benchmark/results/v2/t160-assisted-20261003/import-performance/workload_10_pages-cold-3/process.json",
+      "raw_resources_ref": "benchmark/results/v2/t160-assisted-20261003/import-performance/workload_10_pages-cold-3/resources.jsonl"
+    },
+    {
+      "process_directory": "workload_10_pages-warm-group",
+      "controller_popen_pid": 70872,
+      "sampled_pids": [
+        70872
+      ],
+      "actual_worker_pids_from_business_records": [
+        88784
+      ],
+      "business_runs": 6,
+      "pid_scope_matches_actual_worker": false,
+      "app_missing": true,
+      "original_helper_complete": true,
+      "original_working_set_scope": "Windows venv python redirector; not business worker",
+      "application_peak_bytes": null,
+      "simultaneous_component_peak_bytes": null,
+      "resource_budget_pass": null,
+      "raw_process_ref": "benchmark/results/v2/t160-assisted-20261003/import-performance/workload_10_pages-warm-group/process.json",
+      "raw_resources_ref": "benchmark/results/v2/t160-assisted-20261003/import-performance/workload_10_pages-warm-group/resources.jsonl"
+    },
+    {
+      "process_directory": "workload_50_pages-cold-1",
+      "controller_popen_pid": 75876,
+      "sampled_pids": [
+        75876
+      ],
+      "actual_worker_pids_from_business_records": [
+        86584
+      ],
+      "business_runs": 1,
+      "pid_scope_matches_actual_worker": false,
+      "app_missing": true,
+      "original_helper_complete": true,
+      "original_working_set_scope": "Windows venv python redirector; not business worker",
+      "application_peak_bytes": null,
+      "simultaneous_component_peak_bytes": null,
+      "resource_budget_pass": null,
+      "raw_process_ref": "benchmark/results/v2/t160-assisted-20261003/import-performance/workload_50_pages-cold-1/process.json",
+      "raw_resources_ref": "benchmark/results/v2/t160-assisted-20261003/import-performance/workload_50_pages-cold-1/resources.jsonl"
+    },
+    {
+      "process_directory": "workload_50_pages-cold-2",
+      "controller_popen_pid": 88216,
+      "sampled_pids": [
+        88216
+      ],
+      "actual_worker_pids_from_business_records": [
+        79312
+      ],
+      "business_runs": 1,
+      "pid_scope_matches_actual_worker": false,
+      "app_missing": true,
+      "original_helper_complete": true,
+      "original_working_set_scope": "Windows venv python redirector; not business worker",
+      "application_peak_bytes": null,
+      "simultaneous_component_peak_bytes": null,
+      "resource_budget_pass": null,
+      "raw_process_ref": "benchmark/results/v2/t160-assisted-20261003/import-performance/workload_50_pages-cold-2/process.json",
+      "raw_resources_ref": "benchmark/results/v2/t160-assisted-20261003/import-performance/workload_50_pages-cold-2/resources.jsonl"
+    },
+    {
+      "process_directory": "workload_50_pages-cold-3",
+      "controller_popen_pid": 66668,
+      "sampled_pids": [
+        66668
+      ],
+      "actual_worker_pids_from_business_records": [
+        88444
+      ],
+      "business_runs": 1,
+      "pid_scope_matches_actual_worker": false,
+      "app_missing": true,
+      "original_helper_complete": true,
+      "original_working_set_scope": "Windows venv python redirector; not business worker",
+      "application_peak_bytes": null,
+      "simultaneous_component_peak_bytes": null,
+      "resource_budget_pass": null,
+      "raw_process_ref": "benchmark/results/v2/t160-assisted-20261003/import-performance/workload_50_pages-cold-3/process.json",
+      "raw_resources_ref": "benchmark/results/v2/t160-assisted-20261003/import-performance/workload_50_pages-cold-3/resources.jsonl"
+    },
+    {
+      "process_directory": "workload_50_pages-warm-group",
+      "controller_popen_pid": 77908,
+      "sampled_pids": [
+        77908
+      ],
+      "actual_worker_pids_from_business_records": [
+        87932
+      ],
+      "business_runs": 6,
+      "pid_scope_matches_actual_worker": false,
+      "app_missing": true,
+      "original_helper_complete": true,
+      "original_working_set_scope": "Windows venv python redirector; not business worker",
+      "application_peak_bytes": null,
+      "simultaneous_component_peak_bytes": null,
+      "resource_budget_pass": null,
+      "raw_process_ref": "benchmark/results/v2/t160-assisted-20261003/import-performance/workload_50_pages-warm-group/process.json",
+      "raw_resources_ref": "benchmark/results/v2/t160-assisted-20261003/import-performance/workload_50_pages-warm-group/resources.jsonl"
+    }
+  ]
+}

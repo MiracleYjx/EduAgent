@@ -1,0 +1,15 @@
+{
+  "quality_plan_exit_code": 0,
+  "performance_initial_exit_code": 1,
+  "initial_reason": "root chose cache output; parser requires a dedicated import-performance under benchmark/results; rejection before business/cloud work",
+  "performance_corrected_exit_code": 0,
+  "performance_corrected_elapsed_seconds": 2.1413374000112526,
+  "cloud_calls": 0,
+  "business_database_writes": 0,
+  "scope": "portable parser/preflight only; does not repair historical missing resources",
+  "ruff": "passed",
+  "black_py313": "passed",
+  "plan_output_note": "Portable plan-only commands wrote cache plan paths. Their derived plans are archived separately. Original performance plan restored byte-for-byte from frozen archive; original quality execution manifest and all HTTP/results unchanged. Earlier standalone cache quality pre-plan was replaced; it is not used as execution evidence.",
+  "historical_execution_evidence": "quality/manifest.json and frozen-execution/performance-plan.json",
+  "portable_plans": "portable-plan-preflight/"
+}

@@ -1,0 +1,32 @@
+{
+  "sampler_pid": 88560,
+  "service_pid": 86584,
+  "started_at": "2026-10-02T17:20:28.766889+00:00",
+  "start_perf": 267029.4651829,
+  "stop_file": "D:\\YJX\\MyCode\\EduAgent\\.cache\\t160-acceptance-20261002\\ui-correction\\text-cold-2-measured\\stop-resource",
+  "status": "stopped_by_file",
+  "ready_at": "2026-10-02T17:20:29.297963+00:00",
+  "ended_at": "2026-10-02T17:21:36.075907+00:00",
+  "end_perf": 267096.7741963,
+  "resources": {
+    "sample_count": 68,
+    "requested_interval_seconds": 1.0,
+    "max_observed_gap_seconds": 1.533755199983716,
+    "complete_at_requested_sampling_resolution": true,
+    "peaks": {
+      "app_working_set_bytes": 263393280,
+      "postgres_container_process_rss_bytes": 190795776,
+      "redis_container_process_rss_bytes": 8589312,
+      "simultaneous_observed_sum_bytes": 462778368
+    },
+    "missing_sample_count": 0,
+    "first_sample_at": "2026-10-02T17:20:29.297506+00:00",
+    "last_sample_at": "2026-10-02T17:21:36.075548+00:00",
+    "scope": {
+      "app": "specified Windows application process working set; excludes experiment controller",
+      "postgres": "sum of all postgres process RSS in shared eduagent-postgres-1; not isolated database attribution; shared pages can be counted repeatedly",
+      "redis": "sum of all redis-server process RSS in dedicated eduagent-e2-acceptance-redis-247aae862cab",
+      "sum": "observations within one sample, read sequentially; sampled peaks, not a continuous physical-memory high-water mark"
+    }
+  }
+}

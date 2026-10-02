@@ -1,0 +1,41 @@
+{
+  "dataset_version": "v2-draft-20261001-1",
+  "annotation_version": "t160-user-authorized-ai-assisted-20261003-1",
+  "annotation_origin": "user_authorized_ai_draft",
+  "prepared_at": "2026-10-02T16:05:10.922316+00:00",
+  "input_root": "../v2-draft-20261001",
+  "input_sha256": {
+    "inputs/paper_text.pdf": "74e4f9a21fd7bf778bab474f89bcede2680010e957cc435774205dbaa648c167",
+    "inputs/paper_scan.pdf": "16aaa00c8b41ca1f5e5e77d6248e918953d054e725ebfb30548fec84cfe9ba5b",
+    "inputs/paper_image.png": "31cdc03d0d958c33d6d7815e330f521febe40e23eab0122f687344f8ed311199",
+    "inputs/paper_mixed.pdf": "5c0affa1fb5ec3f3267972bce7cfbf67cf3abe067b59c9cdac0b45edd025f4ba",
+    "inputs/paper_cross_page.pdf": "8c6a18f125a37ff9107a563efb52f5e61ec8ce1debdb516059a1d5b7d58d1a23"
+  },
+  "case_ids": [
+    "IMP-TEXT",
+    "IMP-SCAN",
+    "IMP-IMAGE",
+    "IMP-MIXED",
+    "IMP-CROSS"
+  ],
+  "case_count": 5,
+  "question_instance_count": 16,
+  "teacher_verified_cases": 0,
+  "ready_for_formal_baseline": false,
+  "status": "user_confirmed_ai_assisted",
+  "note": "用户已确认AI辅助标注；保留原样本版本、AI作者与原稿缺失/未知标签。人工会话确认5例，独立教师标注0例，不虚构教师身份。",
+  "reviewed_by": "current_chat_user",
+  "reviewer_kind": "human",
+  "reviewed_at": "2026-10-02T16:14:48+00:00",
+  "human_verified_cases": 5,
+  "independent_teacher_verified_cases": 0,
+  "user_review_confirmation": {
+    "statement": "确认标注并采用 AI 辅助口径（推荐）",
+    "confirmed_at": "2026-10-02T16:14:48+00:00",
+    "reviewed_by": "current_chat_user",
+    "reviewer_kind": "human",
+    "confirmation_source": "current_chat_user_message",
+    "scope": "5 个正常导入 case 的 AI 辅助标注与原稿缺失/未知口径",
+    "is_independent_teacher_truth": false
+  }
+}

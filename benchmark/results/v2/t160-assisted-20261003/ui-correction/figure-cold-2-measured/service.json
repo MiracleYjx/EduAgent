@@ -1,0 +1,11 @@
+{
+  "pid": 75884,
+  "port": 7871,
+  "workload": "figure",
+  "temperature": "cold",
+  "repeat": 2,
+  "started_at": "2026-10-02T17:25:46.410378+00:00",
+  "fixtures": "D:\\YJX\\MyCode\\EduAgent\\.cache\\t160-acceptance-20261002\\correction-ui-fixtures.json",
+  "source_kind": "source_backed_replay_for_ui_timing",
+  "cloud_calls": 0
+}

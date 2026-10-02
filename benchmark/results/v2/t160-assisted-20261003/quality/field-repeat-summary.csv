@@ -1,0 +1,79 @@
+stage,repeat_index,field,numerator,denominator,value,planned_reference_questions,unknown_excluded,reference_states,reason
+assisted_corrected,1,analysis,16,16,1.0,16,0,"{""source_provided"": 5, ""known_missing"": 11}",Known failed/missing outputs remain in fixed planned denominator; independent teacher denominator 0.
+assisted_corrected,1,assets,5,16,0.3125,16,0,"{""source_provided"": 16}",Known failed/missing outputs remain in fixed planned denominator; independent teacher denominator 0.
+assisted_corrected,1,content,16,16,1.0,16,0,"{""source_provided"": 16}",Known failed/missing outputs remain in fixed planned denominator; independent teacher denominator 0.
+assisted_corrected,1,knowledge_points,16,16,1.0,16,0,"{""known_missing"": 11, ""source_provided"": 5}",Known failed/missing outputs remain in fixed planned denominator; independent teacher denominator 0.
+assisted_corrected,1,options,16,16,1.0,16,0,"{""source_provided"": 10, ""not_applicable"": 6}",Known failed/missing outputs remain in fixed planned denominator; independent teacher denominator 0.
+assisted_corrected,1,order_index,16,16,1.0,16,0,"{""source_provided"": 16}",Known failed/missing outputs remain in fixed planned denominator; independent teacher denominator 0.
+assisted_corrected,1,question_number,16,16,1.0,16,0,"{""source_provided"": 16}",Known failed/missing outputs remain in fixed planned denominator; independent teacher denominator 0.
+assisted_corrected,1,question_type,15,15,1.0,16,1,"{""source_provided"": 15, ""unknown"": 1}",Known failed/missing outputs remain in fixed planned denominator; independent teacher denominator 0.
+assisted_corrected,1,reference_answer,16,16,1.0,16,0,"{""source_provided"": 5, ""known_missing"": 11}",Known failed/missing outputs remain in fixed planned denominator; independent teacher denominator 0.
+assisted_corrected,1,score,16,16,1.0,16,0,"{""source_provided"": 16}",Known failed/missing outputs remain in fixed planned denominator; independent teacher denominator 0.
+assisted_corrected,1,scoring_rubric,16,16,1.0,16,0,"{""known_missing"": 10, ""source_provided"": 6}",Known failed/missing outputs remain in fixed planned denominator; independent teacher denominator 0.
+assisted_corrected,1,source_page_numbers,16,16,1.0,16,0,"{""source_provided"": 16}",Known failed/missing outputs remain in fixed planned denominator; independent teacher denominator 0.
+assisted_corrected,1,source_regions,0,0,,16,16,"{""unknown"": 16}",Known failed/missing outputs remain in fixed planned denominator; independent teacher denominator 0.
+assisted_corrected,2,analysis,16,16,1.0,16,0,"{""source_provided"": 5, ""known_missing"": 11}",Known failed/missing outputs remain in fixed planned denominator; independent teacher denominator 0.
+assisted_corrected,2,assets,5,16,0.3125,16,0,"{""source_provided"": 16}",Known failed/missing outputs remain in fixed planned denominator; independent teacher denominator 0.
+assisted_corrected,2,content,16,16,1.0,16,0,"{""source_provided"": 16}",Known failed/missing outputs remain in fixed planned denominator; independent teacher denominator 0.
+assisted_corrected,2,knowledge_points,16,16,1.0,16,0,"{""known_missing"": 11, ""source_provided"": 5}",Known failed/missing outputs remain in fixed planned denominator; independent teacher denominator 0.
+assisted_corrected,2,options,16,16,1.0,16,0,"{""source_provided"": 10, ""not_applicable"": 6}",Known failed/missing outputs remain in fixed planned denominator; independent teacher denominator 0.
+assisted_corrected,2,order_index,16,16,1.0,16,0,"{""source_provided"": 16}",Known failed/missing outputs remain in fixed planned denominator; independent teacher denominator 0.
+assisted_corrected,2,question_number,16,16,1.0,16,0,"{""source_provided"": 16}",Known failed/missing outputs remain in fixed planned denominator; independent teacher denominator 0.
+assisted_corrected,2,question_type,15,15,1.0,16,1,"{""source_provided"": 15, ""unknown"": 1}",Known failed/missing outputs remain in fixed planned denominator; independent teacher denominator 0.
+assisted_corrected,2,reference_answer,16,16,1.0,16,0,"{""source_provided"": 5, ""known_missing"": 11}",Known failed/missing outputs remain in fixed planned denominator; independent teacher denominator 0.
+assisted_corrected,2,score,16,16,1.0,16,0,"{""source_provided"": 16}",Known failed/missing outputs remain in fixed planned denominator; independent teacher denominator 0.
+assisted_corrected,2,scoring_rubric,16,16,1.0,16,0,"{""known_missing"": 10, ""source_provided"": 6}",Known failed/missing outputs remain in fixed planned denominator; independent teacher denominator 0.
+assisted_corrected,2,source_page_numbers,16,16,1.0,16,0,"{""source_provided"": 16}",Known failed/missing outputs remain in fixed planned denominator; independent teacher denominator 0.
+assisted_corrected,2,source_regions,0,0,,16,16,"{""unknown"": 16}",Known failed/missing outputs remain in fixed planned denominator; independent teacher denominator 0.
+assisted_corrected,3,analysis,13,16,0.8125,16,0,"{""source_provided"": 5, ""known_missing"": 11}",Known failed/missing outputs remain in fixed planned denominator; independent teacher denominator 0.
+assisted_corrected,3,assets,4,16,0.25,16,0,"{""source_provided"": 16}",Known failed/missing outputs remain in fixed planned denominator; independent teacher denominator 0.
+assisted_corrected,3,content,13,16,0.8125,16,0,"{""source_provided"": 16}",Known failed/missing outputs remain in fixed planned denominator; independent teacher denominator 0.
+assisted_corrected,3,knowledge_points,13,16,0.8125,16,0,"{""known_missing"": 11, ""source_provided"": 5}",Known failed/missing outputs remain in fixed planned denominator; independent teacher denominator 0.
+assisted_corrected,3,options,13,16,0.8125,16,0,"{""source_provided"": 10, ""not_applicable"": 6}",Known failed/missing outputs remain in fixed planned denominator; independent teacher denominator 0.
+assisted_corrected,3,order_index,13,16,0.8125,16,0,"{""source_provided"": 16}",Known failed/missing outputs remain in fixed planned denominator; independent teacher denominator 0.
+assisted_corrected,3,question_number,13,16,0.8125,16,0,"{""source_provided"": 16}",Known failed/missing outputs remain in fixed planned denominator; independent teacher denominator 0.
+assisted_corrected,3,question_type,12,15,0.8,16,1,"{""source_provided"": 15, ""unknown"": 1}",Known failed/missing outputs remain in fixed planned denominator; independent teacher denominator 0.
+assisted_corrected,3,reference_answer,13,16,0.8125,16,0,"{""source_provided"": 5, ""known_missing"": 11}",Known failed/missing outputs remain in fixed planned denominator; independent teacher denominator 0.
+assisted_corrected,3,score,13,16,0.8125,16,0,"{""source_provided"": 16}",Known failed/missing outputs remain in fixed planned denominator; independent teacher denominator 0.
+assisted_corrected,3,scoring_rubric,13,16,0.8125,16,0,"{""known_missing"": 10, ""source_provided"": 6}",Known failed/missing outputs remain in fixed planned denominator; independent teacher denominator 0.
+assisted_corrected,3,source_page_numbers,13,16,0.8125,16,0,"{""source_provided"": 16}",Known failed/missing outputs remain in fixed planned denominator; independent teacher denominator 0.
+assisted_corrected,3,source_regions,0,0,,16,16,"{""unknown"": 16}",Known failed/missing outputs remain in fixed planned denominator; independent teacher denominator 0.
+automatic,1,analysis,13,16,0.8125,16,0,"{""source_provided"": 5, ""known_missing"": 11}",Known failed/missing outputs remain in fixed planned denominator; independent teacher denominator 0.
+automatic,1,assets,0,16,0.0,16,0,"{""source_provided"": 16}",Known failed/missing outputs remain in fixed planned denominator; independent teacher denominator 0.
+automatic,1,content,6,16,0.375,16,0,"{""source_provided"": 16}",Known failed/missing outputs remain in fixed planned denominator; independent teacher denominator 0.
+automatic,1,knowledge_points,5,16,0.3125,16,0,"{""known_missing"": 11, ""source_provided"": 5}",Known failed/missing outputs remain in fixed planned denominator; independent teacher denominator 0.
+automatic,1,options,13,16,0.8125,16,0,"{""source_provided"": 10, ""not_applicable"": 6}",Known failed/missing outputs remain in fixed planned denominator; independent teacher denominator 0.
+automatic,1,order_index,16,16,1.0,16,0,"{""source_provided"": 16}",Known failed/missing outputs remain in fixed planned denominator; independent teacher denominator 0.
+automatic,1,question_number,16,16,1.0,16,0,"{""source_provided"": 16}",Known failed/missing outputs remain in fixed planned denominator; independent teacher denominator 0.
+automatic,1,question_type,15,15,1.0,16,1,"{""source_provided"": 15, ""unknown"": 1}",Known failed/missing outputs remain in fixed planned denominator; independent teacher denominator 0.
+automatic,1,reference_answer,16,16,1.0,16,0,"{""source_provided"": 5, ""known_missing"": 11}",Known failed/missing outputs remain in fixed planned denominator; independent teacher denominator 0.
+automatic,1,score,16,16,1.0,16,0,"{""source_provided"": 16}",Known failed/missing outputs remain in fixed planned denominator; independent teacher denominator 0.
+automatic,1,scoring_rubric,12,16,0.75,16,0,"{""known_missing"": 10, ""source_provided"": 6}",Known failed/missing outputs remain in fixed planned denominator; independent teacher denominator 0.
+automatic,1,source_page_numbers,16,16,1.0,16,0,"{""source_provided"": 16}",Known failed/missing outputs remain in fixed planned denominator; independent teacher denominator 0.
+automatic,1,source_regions,0,0,,16,16,"{""unknown"": 16}",Known failed/missing outputs remain in fixed planned denominator; independent teacher denominator 0.
+automatic,2,analysis,11,16,0.6875,16,0,"{""source_provided"": 5, ""known_missing"": 11}",Known failed/missing outputs remain in fixed planned denominator; independent teacher denominator 0.
+automatic,2,assets,0,16,0.0,16,0,"{""source_provided"": 16}",Known failed/missing outputs remain in fixed planned denominator; independent teacher denominator 0.
+automatic,2,content,0,16,0.0,16,0,"{""source_provided"": 16}",Known failed/missing outputs remain in fixed planned denominator; independent teacher denominator 0.
+automatic,2,knowledge_points,4,16,0.25,16,0,"{""known_missing"": 11, ""source_provided"": 5}",Known failed/missing outputs remain in fixed planned denominator; independent teacher denominator 0.
+automatic,2,options,14,16,0.875,16,0,"{""source_provided"": 10, ""not_applicable"": 6}",Known failed/missing outputs remain in fixed planned denominator; independent teacher denominator 0.
+automatic,2,order_index,14,16,0.875,16,0,"{""source_provided"": 16}",Known failed/missing outputs remain in fixed planned denominator; independent teacher denominator 0.
+automatic,2,question_number,14,16,0.875,16,0,"{""source_provided"": 16}",Known failed/missing outputs remain in fixed planned denominator; independent teacher denominator 0.
+automatic,2,question_type,13,15,0.8666666666666667,16,1,"{""source_provided"": 15, ""unknown"": 1}",Known failed/missing outputs remain in fixed planned denominator; independent teacher denominator 0.
+automatic,2,reference_answer,14,16,0.875,16,0,"{""source_provided"": 5, ""known_missing"": 11}",Known failed/missing outputs remain in fixed planned denominator; independent teacher denominator 0.
+automatic,2,score,14,16,0.875,16,0,"{""source_provided"": 16}",Known failed/missing outputs remain in fixed planned denominator; independent teacher denominator 0.
+automatic,2,scoring_rubric,10,16,0.625,16,0,"{""known_missing"": 10, ""source_provided"": 6}",Known failed/missing outputs remain in fixed planned denominator; independent teacher denominator 0.
+automatic,2,source_page_numbers,14,16,0.875,16,0,"{""source_provided"": 16}",Known failed/missing outputs remain in fixed planned denominator; independent teacher denominator 0.
+automatic,2,source_regions,0,0,,16,16,"{""unknown"": 16}",Known failed/missing outputs remain in fixed planned denominator; independent teacher denominator 0.
+automatic,3,analysis,10,16,0.625,16,0,"{""source_provided"": 5, ""known_missing"": 11}",Known failed/missing outputs remain in fixed planned denominator; independent teacher denominator 0.
+automatic,3,assets,0,16,0.0,16,0,"{""source_provided"": 16}",Known failed/missing outputs remain in fixed planned denominator; independent teacher denominator 0.
+automatic,3,content,0,16,0.0,16,0,"{""source_provided"": 16}",Known failed/missing outputs remain in fixed planned denominator; independent teacher denominator 0.
+automatic,3,knowledge_points,4,16,0.25,16,0,"{""known_missing"": 11, ""source_provided"": 5}",Known failed/missing outputs remain in fixed planned denominator; independent teacher denominator 0.
+automatic,3,options,12,16,0.75,16,0,"{""source_provided"": 10, ""not_applicable"": 6}",Known failed/missing outputs remain in fixed planned denominator; independent teacher denominator 0.
+automatic,3,order_index,13,16,0.8125,16,0,"{""source_provided"": 16}",Known failed/missing outputs remain in fixed planned denominator; independent teacher denominator 0.
+automatic,3,question_number,13,16,0.8125,16,0,"{""source_provided"": 16}",Known failed/missing outputs remain in fixed planned denominator; independent teacher denominator 0.
+automatic,3,question_type,12,15,0.8,16,1,"{""source_provided"": 15, ""unknown"": 1}",Known failed/missing outputs remain in fixed planned denominator; independent teacher denominator 0.
+automatic,3,reference_answer,13,16,0.8125,16,0,"{""source_provided"": 5, ""known_missing"": 11}",Known failed/missing outputs remain in fixed planned denominator; independent teacher denominator 0.
+automatic,3,score,13,16,0.8125,16,0,"{""source_provided"": 16}",Known failed/missing outputs remain in fixed planned denominator; independent teacher denominator 0.
+automatic,3,scoring_rubric,8,16,0.5,16,0,"{""known_missing"": 10, ""source_provided"": 6}",Known failed/missing outputs remain in fixed planned denominator; independent teacher denominator 0.
+automatic,3,source_page_numbers,13,16,0.8125,16,0,"{""source_provided"": 16}",Known failed/missing outputs remain in fixed planned denominator; independent teacher denominator 0.
+automatic,3,source_regions,0,0,,16,16,"{""unknown"": 16}",Known failed/missing outputs remain in fixed planned denominator; independent teacher denominator 0.

@@ -1,0 +1,1873 @@
+{
+  "kind": "after_image_assistance",
+  "cloud_calls": 0,
+  "independent_teacher_reviews": 0,
+  "reference_origin": "user_confirmed_ai_assisted",
+  "reference_sha256": "13095b3d62f9e0db14e92412e58923f6b2c1c83c0acf49ea356e306397e2ff9e",
+  "crop_basis": "AI new measurement from original 120-DPI pixels; not original source-region truth",
+  "planned_at": "2026-10-02T16:50:34.072286+00:00",
+  "actions": [
+    {
+      "run_id": "t160-quality-20261002T163445Z-4654973a-01-IMP-TEXT-r1",
+      "case_id": "IMP-TEXT",
+      "paper_import_id": "372ea2b9-8a13-42a2-89e1-57a4ee0b1aa3",
+      "extracted_question_id": "7f8db72e-6da4-4e31-bb4f-0a85303ae782",
+      "actor_id": "84d0f6fc-b512-4fd5-8cdd-87b3a0f99067",
+      "reference_identity": "8e0aecaf-072d-5ed7-9b43-5d33ad202cc1",
+      "asset_type": "figure",
+      "order_index": 1,
+      "source_page_id": "b88aea4b-c064-4cde-9bfa-5577dab9f32b",
+      "source_page_number": 1,
+      "source_file_id": "p_b88aea4bc0644cde9bfa5577dab9f32b",
+      "actual_page_size": [
+        1241,
+        1754
+      ],
+      "normalized_crop_rect": [
+        0.5236656596173213,
+        0.2849002849002849,
+        0.8862034239677744,
+        0.4700854700854701
+      ],
+      "new_ai_crop_bbox": [
+        650,
+        500,
+        1100,
+        825
+      ],
+      "reference_source_regions_state": "unknown_unchanged",
+      "status": "persisted",
+      "student_visible": false,
+      "teacher_review_created": false,
+      "started_at": "2026-10-02T16:50:34.164450+00:00",
+      "actual_asset": {
+        "id": "c7d292f4-ac38-4e74-8231-a8c3adecd5a5",
+        "file_id": "a_c7d292f4ac384e748231a8c3adecd5a5",
+        "asset_type": "figure",
+        "source_page_id": "b88aea4b-c064-4cde-9bfa-5577dab9f32b",
+        "region": {
+          "bbox": [
+            650,
+            500,
+            1100,
+            825
+          ]
+        },
+        "caption": null,
+        "student_visible": false
+      },
+      "actual_crop_size": [
+        450,
+        325
+      ],
+      "crop_sha256": "3587ef23e69e96a22e033e54c1919570dfa7651a16f65637bcd2b40be702d0f6",
+      "crop_evidence_ref": "image-assistance\\crop-001-figure.png",
+      "completed_at": "2026-10-02T16:50:34.399213+00:00"
+    },
+    {
+      "run_id": "t160-quality-20261002T163445Z-4654973a-01-IMP-TEXT-r1",
+      "case_id": "IMP-TEXT",
+      "paper_import_id": "372ea2b9-8a13-42a2-89e1-57a4ee0b1aa3",
+      "extracted_question_id": "45061355-3841-43d2-af32-eb4f6e93c76b",
+      "actor_id": "84d0f6fc-b512-4fd5-8cdd-87b3a0f99067",
+      "reference_identity": "fdef73bd-f984-58d1-8a53-3eea668a9f83",
+      "asset_type": "table",
+      "order_index": 1,
+      "source_page_id": "b88aea4b-c064-4cde-9bfa-5577dab9f32b",
+      "source_page_number": 1,
+      "source_file_id": "p_b88aea4bc0644cde9bfa5577dab9f32b",
+      "actual_page_size": [
+        1241,
+        1754
+      ],
+      "normalized_crop_rect": [
+        0.3021148036253776,
+        0.6054131054131054,
+        0.6847935548841894,
+        0.8048433048433048
+      ],
+      "new_ai_crop_bbox": [
+        375,
+        1062,
+        850,
+        1412
+      ],
+      "reference_source_regions_state": "unknown_unchanged",
+      "status": "persisted",
+      "student_visible": false,
+      "teacher_review_created": false,
+      "started_at": "2026-10-02T16:50:34.400613+00:00",
+      "actual_asset": {
+        "id": "a5ebf996-e695-4af8-a35a-8d8a9928d2a5",
+        "file_id": "a_a5ebf996e6954af8a35a8d8a9928d2a5",
+        "asset_type": "table",
+        "source_page_id": "b88aea4b-c064-4cde-9bfa-5577dab9f32b",
+        "region": {
+          "bbox": [
+            375,
+            1062,
+            850,
+            1412
+          ]
+        },
+        "caption": null,
+        "student_visible": false
+      },
+      "actual_crop_size": [
+        475,
+        350
+      ],
+      "crop_sha256": "896dfad1841b196bdf7501cd01d477c6b44f73509434536fd33ad12343a9281c",
+      "crop_evidence_ref": "image-assistance\\crop-002-table.png",
+      "completed_at": "2026-10-02T16:50:34.513146+00:00"
+    },
+    {
+      "run_id": "t160-quality-20261002T163445Z-4654973a-02-IMP-TEXT-r2",
+      "case_id": "IMP-TEXT",
+      "paper_import_id": "5e71130d-a182-4845-aac0-7a1918e1701e",
+      "extracted_question_id": "8043ffc3-2f48-4c23-ad5e-2f909942cb3a",
+      "actor_id": "84d0f6fc-b512-4fd5-8cdd-87b3a0f99067",
+      "reference_identity": "8e0aecaf-072d-5ed7-9b43-5d33ad202cc1",
+      "asset_type": "figure",
+      "order_index": 1,
+      "source_page_id": "92e740f8-9e43-462f-b30a-14140a59b3d2",
+      "source_page_number": 1,
+      "source_file_id": "p_92e740f89e43462fb30a14140a59b3d2",
+      "actual_page_size": [
+        1241,
+        1754
+      ],
+      "normalized_crop_rect": [
+        0.5236656596173213,
+        0.2849002849002849,
+        0.8862034239677744,
+        0.4700854700854701
+      ],
+      "new_ai_crop_bbox": [
+        650,
+        500,
+        1100,
+        825
+      ],
+      "reference_source_regions_state": "unknown_unchanged",
+      "status": "persisted",
+      "student_visible": false,
+      "teacher_review_created": false,
+      "started_at": "2026-10-02T16:50:34.514331+00:00",
+      "actual_asset": {
+        "id": "94da220e-1d67-42ba-8b9b-76cc66e35d89",
+        "file_id": "a_94da220e1d6742ba8b9b76cc66e35d89",
+        "asset_type": "figure",
+        "source_page_id": "92e740f8-9e43-462f-b30a-14140a59b3d2",
+        "region": {
+          "bbox": [
+            650,
+            500,
+            1100,
+            825
+          ]
+        },
+        "caption": null,
+        "student_visible": false
+      },
+      "actual_crop_size": [
+        450,
+        325
+      ],
+      "crop_sha256": "3587ef23e69e96a22e033e54c1919570dfa7651a16f65637bcd2b40be702d0f6",
+      "crop_evidence_ref": "image-assistance\\crop-003-figure.png",
+      "completed_at": "2026-10-02T16:50:34.622898+00:00"
+    },
+    {
+      "run_id": "t160-quality-20261002T163445Z-4654973a-02-IMP-TEXT-r2",
+      "case_id": "IMP-TEXT",
+      "paper_import_id": "5e71130d-a182-4845-aac0-7a1918e1701e",
+      "extracted_question_id": "7f2dab28-3c39-4cde-a386-da003a1bdf5f",
+      "actor_id": "84d0f6fc-b512-4fd5-8cdd-87b3a0f99067",
+      "reference_identity": "fdef73bd-f984-58d1-8a53-3eea668a9f83",
+      "asset_type": "table",
+      "order_index": 1,
+      "source_page_id": "92e740f8-9e43-462f-b30a-14140a59b3d2",
+      "source_page_number": 1,
+      "source_file_id": "p_92e740f89e43462fb30a14140a59b3d2",
+      "actual_page_size": [
+        1241,
+        1754
+      ],
+      "normalized_crop_rect": [
+        0.3021148036253776,
+        0.6054131054131054,
+        0.6847935548841894,
+        0.8048433048433048
+      ],
+      "new_ai_crop_bbox": [
+        375,
+        1062,
+        850,
+        1412
+      ],
+      "reference_source_regions_state": "unknown_unchanged",
+      "status": "persisted",
+      "student_visible": false,
+      "teacher_review_created": false,
+      "started_at": "2026-10-02T16:50:34.624373+00:00",
+      "actual_asset": {
+        "id": "f6a5d0f5-8cb1-46ce-ab0f-cbb7ade54107",
+        "file_id": "a_f6a5d0f58cb146ceab0fcbb7ade54107",
+        "asset_type": "table",
+        "source_page_id": "92e740f8-9e43-462f-b30a-14140a59b3d2",
+        "region": {
+          "bbox": [
+            375,
+            1062,
+            850,
+            1412
+          ]
+        },
+        "caption": null,
+        "student_visible": false
+      },
+      "actual_crop_size": [
+        475,
+        350
+      ],
+      "crop_sha256": "896dfad1841b196bdf7501cd01d477c6b44f73509434536fd33ad12343a9281c",
+      "crop_evidence_ref": "image-assistance\\crop-004-table.png",
+      "completed_at": "2026-10-02T16:50:34.735025+00:00"
+    },
+    {
+      "run_id": "t160-quality-20261002T163445Z-4654973a-03-IMP-TEXT-r3",
+      "status": "not_executed",
+      "reason": "no_real_corrected_snapshot",
+      "automatic_status": "Failed"
+    },
+    {
+      "run_id": "t160-quality-20261002T163445Z-4654973a-04-IMP-SCAN-r1",
+      "case_id": "IMP-SCAN",
+      "paper_import_id": "e826cefa-0e8e-4eba-912e-4ca0ac2da2d7",
+      "extracted_question_id": "fc38c95d-b6d3-4361-a39a-9630afe58757",
+      "actor_id": "84d0f6fc-b512-4fd5-8cdd-87b3a0f99067",
+      "reference_identity": "5f47ee64-edec-5327-9172-bb8454c7640d",
+      "asset_type": "figure",
+      "order_index": 1,
+      "source_page_id": "e733d062-250e-4236-8d07-d3c2bee7b469",
+      "source_page_number": 1,
+      "source_file_id": "p_e733d062250e42368d07d3c2bee7b469",
+      "actual_page_size": [
+        1241,
+        1754
+      ],
+      "normalized_crop_rect": [
+        0.5236656596173213,
+        0.2849002849002849,
+        0.8862034239677744,
+        0.4700854700854701
+      ],
+      "new_ai_crop_bbox": [
+        650,
+        500,
+        1100,
+        825
+      ],
+      "reference_source_regions_state": "unknown_unchanged",
+      "status": "persisted",
+      "student_visible": false,
+      "teacher_review_created": false,
+      "started_at": "2026-10-02T16:50:34.736248+00:00",
+      "actual_asset": {
+        "id": "a05c5055-e116-48b6-a5e0-47db4467672b",
+        "file_id": "a_a05c5055e11648b6a5e047db4467672b",
+        "asset_type": "figure",
+        "source_page_id": "e733d062-250e-4236-8d07-d3c2bee7b469",
+        "region": {
+          "bbox": [
+            650,
+            500,
+            1100,
+            825
+          ]
+        },
+        "caption": null,
+        "student_visible": false
+      },
+      "actual_crop_size": [
+        450,
+        325
+      ],
+      "crop_sha256": "3587ef23e69e96a22e033e54c1919570dfa7651a16f65637bcd2b40be702d0f6",
+      "crop_evidence_ref": "image-assistance\\crop-006-figure.png",
+      "completed_at": "2026-10-02T16:50:34.848473+00:00"
+    },
+    {
+      "run_id": "t160-quality-20261002T163445Z-4654973a-04-IMP-SCAN-r1",
+      "case_id": "IMP-SCAN",
+      "paper_import_id": "e826cefa-0e8e-4eba-912e-4ca0ac2da2d7",
+      "extracted_question_id": "b4c8d6f7-82b4-44f0-8c5c-2f9033bfca81",
+      "actor_id": "84d0f6fc-b512-4fd5-8cdd-87b3a0f99067",
+      "reference_identity": "d6acd365-a6d5-5eb8-9b54-66f26a915094",
+      "asset_type": "table",
+      "order_index": 1,
+      "source_page_id": "e733d062-250e-4236-8d07-d3c2bee7b469",
+      "source_page_number": 1,
+      "source_file_id": "p_e733d062250e42368d07d3c2bee7b469",
+      "actual_page_size": [
+        1241,
+        1754
+      ],
+      "normalized_crop_rect": [
+        0.3021148036253776,
+        0.6054131054131054,
+        0.6847935548841894,
+        0.8048433048433048
+      ],
+      "new_ai_crop_bbox": [
+        375,
+        1062,
+        850,
+        1412
+      ],
+      "reference_source_regions_state": "unknown_unchanged",
+      "status": "persisted",
+      "student_visible": false,
+      "teacher_review_created": false,
+      "started_at": "2026-10-02T16:50:34.849634+00:00",
+      "actual_asset": {
+        "id": "5b9accd2-4a47-44e2-aec4-ee6e385ba795",
+        "file_id": "a_5b9accd24a4744e2aec4ee6e385ba795",
+        "asset_type": "table",
+        "source_page_id": "e733d062-250e-4236-8d07-d3c2bee7b469",
+        "region": {
+          "bbox": [
+            375,
+            1062,
+            850,
+            1412
+          ]
+        },
+        "caption": null,
+        "student_visible": false
+      },
+      "actual_crop_size": [
+        475,
+        350
+      ],
+      "crop_sha256": "896dfad1841b196bdf7501cd01d477c6b44f73509434536fd33ad12343a9281c",
+      "crop_evidence_ref": "image-assistance\\crop-007-table.png",
+      "completed_at": "2026-10-02T16:50:34.965187+00:00"
+    },
+    {
+      "run_id": "t160-quality-20261002T163445Z-4654973a-05-IMP-SCAN-r2",
+      "case_id": "IMP-SCAN",
+      "paper_import_id": "a2a8df67-21b5-46b9-9283-506edde396e6",
+      "extracted_question_id": "1efbd6c9-e0ba-4405-8b44-a8ccfd2c789a",
+      "actor_id": "84d0f6fc-b512-4fd5-8cdd-87b3a0f99067",
+      "reference_identity": "5f47ee64-edec-5327-9172-bb8454c7640d",
+      "asset_type": "figure",
+      "order_index": 1,
+      "source_page_id": "1ae9ed84-4026-453a-a4fa-6b53711e7c67",
+      "source_page_number": 1,
+      "source_file_id": "p_1ae9ed844026453aa4fa6b53711e7c67",
+      "actual_page_size": [
+        1241,
+        1754
+      ],
+      "normalized_crop_rect": [
+        0.5236656596173213,
+        0.2849002849002849,
+        0.8862034239677744,
+        0.4700854700854701
+      ],
+      "new_ai_crop_bbox": [
+        650,
+        500,
+        1100,
+        825
+      ],
+      "reference_source_regions_state": "unknown_unchanged",
+      "status": "persisted",
+      "student_visible": false,
+      "teacher_review_created": false,
+      "started_at": "2026-10-02T16:50:34.966377+00:00",
+      "actual_asset": {
+        "id": "31914efe-ad32-45d0-a046-b9060a453556",
+        "file_id": "a_31914efead3245d0a046b9060a453556",
+        "asset_type": "figure",
+        "source_page_id": "1ae9ed84-4026-453a-a4fa-6b53711e7c67",
+        "region": {
+          "bbox": [
+            650,
+            500,
+            1100,
+            825
+          ]
+        },
+        "caption": null,
+        "student_visible": false
+      },
+      "actual_crop_size": [
+        450,
+        325
+      ],
+      "crop_sha256": "3587ef23e69e96a22e033e54c1919570dfa7651a16f65637bcd2b40be702d0f6",
+      "crop_evidence_ref": "image-assistance\\crop-008-figure.png",
+      "completed_at": "2026-10-02T16:50:35.078467+00:00"
+    },
+    {
+      "run_id": "t160-quality-20261002T163445Z-4654973a-05-IMP-SCAN-r2",
+      "case_id": "IMP-SCAN",
+      "paper_import_id": "a2a8df67-21b5-46b9-9283-506edde396e6",
+      "extracted_question_id": "36d0109f-a06b-4728-8586-463b7adc1332",
+      "actor_id": "84d0f6fc-b512-4fd5-8cdd-87b3a0f99067",
+      "reference_identity": "d6acd365-a6d5-5eb8-9b54-66f26a915094",
+      "asset_type": "table",
+      "order_index": 1,
+      "source_page_id": "1ae9ed84-4026-453a-a4fa-6b53711e7c67",
+      "source_page_number": 1,
+      "source_file_id": "p_1ae9ed844026453aa4fa6b53711e7c67",
+      "actual_page_size": [
+        1241,
+        1754
+      ],
+      "normalized_crop_rect": [
+        0.3021148036253776,
+        0.6054131054131054,
+        0.6847935548841894,
+        0.8048433048433048
+      ],
+      "new_ai_crop_bbox": [
+        375,
+        1062,
+        850,
+        1412
+      ],
+      "reference_source_regions_state": "unknown_unchanged",
+      "status": "persisted",
+      "student_visible": false,
+      "teacher_review_created": false,
+      "started_at": "2026-10-02T16:50:35.079782+00:00",
+      "actual_asset": {
+        "id": "c8963ba3-1dd3-4884-a51a-d9f45a9d15b3",
+        "file_id": "a_c8963ba31dd34884a51ad9f45a9d15b3",
+        "asset_type": "table",
+        "source_page_id": "1ae9ed84-4026-453a-a4fa-6b53711e7c67",
+        "region": {
+          "bbox": [
+            375,
+            1062,
+            850,
+            1412
+          ]
+        },
+        "caption": null,
+        "student_visible": false
+      },
+      "actual_crop_size": [
+        475,
+        350
+      ],
+      "crop_sha256": "896dfad1841b196bdf7501cd01d477c6b44f73509434536fd33ad12343a9281c",
+      "crop_evidence_ref": "image-assistance\\crop-009-table.png",
+      "completed_at": "2026-10-02T16:50:35.189762+00:00"
+    },
+    {
+      "run_id": "t160-quality-20261002T163445Z-4654973a-06-IMP-SCAN-r3",
+      "case_id": "IMP-SCAN",
+      "paper_import_id": "65e35493-fc32-4f4c-af0a-8981c684c39f",
+      "extracted_question_id": "30de0b73-8253-472a-9d6a-a20c77297db1",
+      "actor_id": "84d0f6fc-b512-4fd5-8cdd-87b3a0f99067",
+      "reference_identity": "5f47ee64-edec-5327-9172-bb8454c7640d",
+      "asset_type": "figure",
+      "order_index": 1,
+      "source_page_id": "43913ff2-646b-424d-8516-67759ac28a93",
+      "source_page_number": 1,
+      "source_file_id": "p_43913ff2646b424d851667759ac28a93",
+      "actual_page_size": [
+        1241,
+        1754
+      ],
+      "normalized_crop_rect": [
+        0.5236656596173213,
+        0.2849002849002849,
+        0.8862034239677744,
+        0.4700854700854701
+      ],
+      "new_ai_crop_bbox": [
+        650,
+        500,
+        1100,
+        825
+      ],
+      "reference_source_regions_state": "unknown_unchanged",
+      "status": "persisted",
+      "student_visible": false,
+      "teacher_review_created": false,
+      "started_at": "2026-10-02T16:50:35.191121+00:00",
+      "actual_asset": {
+        "id": "a988ec03-3b93-4b1d-946d-1edd92479460",
+        "file_id": "a_a988ec033b934b1d946d1edd92479460",
+        "asset_type": "figure",
+        "source_page_id": "43913ff2-646b-424d-8516-67759ac28a93",
+        "region": {
+          "bbox": [
+            650,
+            500,
+            1100,
+            825
+          ]
+        },
+        "caption": null,
+        "student_visible": false
+      },
+      "actual_crop_size": [
+        450,
+        325
+      ],
+      "crop_sha256": "3587ef23e69e96a22e033e54c1919570dfa7651a16f65637bcd2b40be702d0f6",
+      "crop_evidence_ref": "image-assistance\\crop-010-figure.png",
+      "completed_at": "2026-10-02T16:50:35.303168+00:00"
+    },
+    {
+      "run_id": "t160-quality-20261002T163445Z-4654973a-06-IMP-SCAN-r3",
+      "case_id": "IMP-SCAN",
+      "paper_import_id": "65e35493-fc32-4f4c-af0a-8981c684c39f",
+      "extracted_question_id": "05f1aac3-a64b-4610-a14b-744ce994eb6c",
+      "actor_id": "84d0f6fc-b512-4fd5-8cdd-87b3a0f99067",
+      "reference_identity": "d6acd365-a6d5-5eb8-9b54-66f26a915094",
+      "asset_type": "table",
+      "order_index": 1,
+      "source_page_id": "43913ff2-646b-424d-8516-67759ac28a93",
+      "source_page_number": 1,
+      "source_file_id": "p_43913ff2646b424d851667759ac28a93",
+      "actual_page_size": [
+        1241,
+        1754
+      ],
+      "normalized_crop_rect": [
+        0.3021148036253776,
+        0.6054131054131054,
+        0.6847935548841894,
+        0.8048433048433048
+      ],
+      "new_ai_crop_bbox": [
+        375,
+        1062,
+        850,
+        1412
+      ],
+      "reference_source_regions_state": "unknown_unchanged",
+      "status": "persisted",
+      "student_visible": false,
+      "teacher_review_created": false,
+      "started_at": "2026-10-02T16:50:35.304437+00:00",
+      "actual_asset": {
+        "id": "90979711-35b1-4951-85e7-6045e7bcb389",
+        "file_id": "a_9097971135b1495185e76045e7bcb389",
+        "asset_type": "table",
+        "source_page_id": "43913ff2-646b-424d-8516-67759ac28a93",
+        "region": {
+          "bbox": [
+            375,
+            1062,
+            850,
+            1412
+          ]
+        },
+        "caption": null,
+        "student_visible": false
+      },
+      "actual_crop_size": [
+        475,
+        350
+      ],
+      "crop_sha256": "896dfad1841b196bdf7501cd01d477c6b44f73509434536fd33ad12343a9281c",
+      "crop_evidence_ref": "image-assistance\\crop-011-table.png",
+      "completed_at": "2026-10-02T16:50:35.410424+00:00"
+    },
+    {
+      "run_id": "t160-quality-20261002T163445Z-4654973a-07-IMP-IMAGE-r1",
+      "case_id": "IMP-IMAGE",
+      "paper_import_id": "8630a2ca-fd20-4b8c-9b53-a2160d802ae9",
+      "extracted_question_id": "d32494c0-011c-4f0e-b867-e68761cfcf66",
+      "actor_id": "84d0f6fc-b512-4fd5-8cdd-87b3a0f99067",
+      "reference_identity": "e418791a-1462-52b7-98fe-396ce71b8d48",
+      "asset_type": "figure",
+      "order_index": 1,
+      "source_page_id": "253f8ebc-b7ba-4776-bf3d-b0901870922b",
+      "source_page_number": 1,
+      "source_file_id": "p_253f8ebcb7ba4776bf3db0901870922b",
+      "actual_page_size": [
+        1241,
+        1754
+      ],
+      "normalized_crop_rect": [
+        0.5236656596173213,
+        0.2849002849002849,
+        0.8862034239677744,
+        0.4700854700854701
+      ],
+      "new_ai_crop_bbox": [
+        650,
+        500,
+        1100,
+        825
+      ],
+      "reference_source_regions_state": "unknown_unchanged",
+      "status": "persisted",
+      "student_visible": false,
+      "teacher_review_created": false,
+      "started_at": "2026-10-02T16:50:35.412066+00:00",
+      "actual_asset": {
+        "id": "b9b584ef-9d1f-4ecb-b2e8-9517272dcf8a",
+        "file_id": "a_b9b584ef9d1f4ecbb2e89517272dcf8a",
+        "asset_type": "figure",
+        "source_page_id": "253f8ebc-b7ba-4776-bf3d-b0901870922b",
+        "region": {
+          "bbox": [
+            650,
+            500,
+            1100,
+            825
+          ]
+        },
+        "caption": null,
+        "student_visible": false
+      },
+      "actual_crop_size": [
+        450,
+        325
+      ],
+      "crop_sha256": "3587ef23e69e96a22e033e54c1919570dfa7651a16f65637bcd2b40be702d0f6",
+      "crop_evidence_ref": "image-assistance\\crop-012-figure.png",
+      "completed_at": "2026-10-02T16:50:35.523834+00:00"
+    },
+    {
+      "run_id": "t160-quality-20261002T163445Z-4654973a-07-IMP-IMAGE-r1",
+      "case_id": "IMP-IMAGE",
+      "paper_import_id": "8630a2ca-fd20-4b8c-9b53-a2160d802ae9",
+      "extracted_question_id": "07b2c5ea-282c-4e94-955e-a07f90b3084a",
+      "actor_id": "84d0f6fc-b512-4fd5-8cdd-87b3a0f99067",
+      "reference_identity": "e5c1555f-e927-575c-b68c-85eb341a3202",
+      "asset_type": "table",
+      "order_index": 1,
+      "source_page_id": "253f8ebc-b7ba-4776-bf3d-b0901870922b",
+      "source_page_number": 1,
+      "source_file_id": "p_253f8ebcb7ba4776bf3db0901870922b",
+      "actual_page_size": [
+        1241,
+        1754
+      ],
+      "normalized_crop_rect": [
+        0.3021148036253776,
+        0.6054131054131054,
+        0.6847935548841894,
+        0.8048433048433048
+      ],
+      "new_ai_crop_bbox": [
+        375,
+        1062,
+        850,
+        1412
+      ],
+      "reference_source_regions_state": "unknown_unchanged",
+      "status": "persisted",
+      "student_visible": false,
+      "teacher_review_created": false,
+      "started_at": "2026-10-02T16:50:35.525350+00:00",
+      "actual_asset": {
+        "id": "f157023c-d2e8-4eda-b468-f64c8d9c1216",
+        "file_id": "a_f157023cd2e84edab468f64c8d9c1216",
+        "asset_type": "table",
+        "source_page_id": "253f8ebc-b7ba-4776-bf3d-b0901870922b",
+        "region": {
+          "bbox": [
+            375,
+            1062,
+            850,
+            1412
+          ]
+        },
+        "caption": null,
+        "student_visible": false
+      },
+      "actual_crop_size": [
+        475,
+        350
+      ],
+      "crop_sha256": "896dfad1841b196bdf7501cd01d477c6b44f73509434536fd33ad12343a9281c",
+      "crop_evidence_ref": "image-assistance\\crop-013-table.png",
+      "completed_at": "2026-10-02T16:50:35.633471+00:00"
+    },
+    {
+      "run_id": "t160-quality-20261002T163445Z-4654973a-08-IMP-IMAGE-r2",
+      "case_id": "IMP-IMAGE",
+      "paper_import_id": "d3099d5e-6da4-44e1-82ab-179e891fbd1b",
+      "extracted_question_id": "0003b186-626f-41d8-a8fb-1b5eb193e8d9",
+      "actor_id": "84d0f6fc-b512-4fd5-8cdd-87b3a0f99067",
+      "reference_identity": "e418791a-1462-52b7-98fe-396ce71b8d48",
+      "asset_type": "figure",
+      "order_index": 1,
+      "source_page_id": "ecca3b87-378d-4d78-850d-1aafa0f3f723",
+      "source_page_number": 1,
+      "source_file_id": "p_ecca3b87378d4d78850d1aafa0f3f723",
+      "actual_page_size": [
+        1241,
+        1754
+      ],
+      "normalized_crop_rect": [
+        0.5236656596173213,
+        0.2849002849002849,
+        0.8862034239677744,
+        0.4700854700854701
+      ],
+      "new_ai_crop_bbox": [
+        650,
+        500,
+        1100,
+        825
+      ],
+      "reference_source_regions_state": "unknown_unchanged",
+      "status": "persisted",
+      "student_visible": false,
+      "teacher_review_created": false,
+      "started_at": "2026-10-02T16:50:35.634707+00:00",
+      "actual_asset": {
+        "id": "52fc06b3-df35-43ca-a1f7-5a53344d6634",
+        "file_id": "a_52fc06b3df3543caa1f75a53344d6634",
+        "asset_type": "figure",
+        "source_page_id": "ecca3b87-378d-4d78-850d-1aafa0f3f723",
+        "region": {
+          "bbox": [
+            650,
+            500,
+            1100,
+            825
+          ]
+        },
+        "caption": null,
+        "student_visible": false
+      },
+      "actual_crop_size": [
+        450,
+        325
+      ],
+      "crop_sha256": "3587ef23e69e96a22e033e54c1919570dfa7651a16f65637bcd2b40be702d0f6",
+      "crop_evidence_ref": "image-assistance\\crop-014-figure.png",
+      "completed_at": "2026-10-02T16:50:35.744380+00:00"
+    },
+    {
+      "run_id": "t160-quality-20261002T163445Z-4654973a-08-IMP-IMAGE-r2",
+      "case_id": "IMP-IMAGE",
+      "paper_import_id": "d3099d5e-6da4-44e1-82ab-179e891fbd1b",
+      "extracted_question_id": "82edb5ac-b503-41e8-9dc2-536933b473ec",
+      "actor_id": "84d0f6fc-b512-4fd5-8cdd-87b3a0f99067",
+      "reference_identity": "e5c1555f-e927-575c-b68c-85eb341a3202",
+      "asset_type": "table",
+      "order_index": 1,
+      "source_page_id": "ecca3b87-378d-4d78-850d-1aafa0f3f723",
+      "source_page_number": 1,
+      "source_file_id": "p_ecca3b87378d4d78850d1aafa0f3f723",
+      "actual_page_size": [
+        1241,
+        1754
+      ],
+      "normalized_crop_rect": [
+        0.3021148036253776,
+        0.6054131054131054,
+        0.6847935548841894,
+        0.8048433048433048
+      ],
+      "new_ai_crop_bbox": [
+        375,
+        1062,
+        850,
+        1412
+      ],
+      "reference_source_regions_state": "unknown_unchanged",
+      "status": "persisted",
+      "student_visible": false,
+      "teacher_review_created": false,
+      "started_at": "2026-10-02T16:50:35.745582+00:00",
+      "actual_asset": {
+        "id": "431a5a57-18cc-4f5c-89d5-6f47cb7da072",
+        "file_id": "a_431a5a5718cc4f5c89d56f47cb7da072",
+        "asset_type": "table",
+        "source_page_id": "ecca3b87-378d-4d78-850d-1aafa0f3f723",
+        "region": {
+          "bbox": [
+            375,
+            1062,
+            850,
+            1412
+          ]
+        },
+        "caption": null,
+        "student_visible": false
+      },
+      "actual_crop_size": [
+        475,
+        350
+      ],
+      "crop_sha256": "896dfad1841b196bdf7501cd01d477c6b44f73509434536fd33ad12343a9281c",
+      "crop_evidence_ref": "image-assistance\\crop-015-table.png",
+      "completed_at": "2026-10-02T16:50:35.857741+00:00"
+    },
+    {
+      "run_id": "t160-quality-20261002T163445Z-4654973a-09-IMP-IMAGE-r3",
+      "case_id": "IMP-IMAGE",
+      "paper_import_id": "db37b8ce-5f04-4567-ad37-b4d09a09d2dc",
+      "extracted_question_id": "d9fcf1ce-58ae-4867-b376-481769f4c2c6",
+      "actor_id": "84d0f6fc-b512-4fd5-8cdd-87b3a0f99067",
+      "reference_identity": "e418791a-1462-52b7-98fe-396ce71b8d48",
+      "asset_type": "figure",
+      "order_index": 1,
+      "source_page_id": "3013897f-3579-4cd6-9630-7f636679c788",
+      "source_page_number": 1,
+      "source_file_id": "p_3013897f35794cd696307f636679c788",
+      "actual_page_size": [
+        1241,
+        1754
+      ],
+      "normalized_crop_rect": [
+        0.5236656596173213,
+        0.2849002849002849,
+        0.8862034239677744,
+        0.4700854700854701
+      ],
+      "new_ai_crop_bbox": [
+        650,
+        500,
+        1100,
+        825
+      ],
+      "reference_source_regions_state": "unknown_unchanged",
+      "status": "persisted",
+      "student_visible": false,
+      "teacher_review_created": false,
+      "started_at": "2026-10-02T16:50:35.859299+00:00",
+      "actual_asset": {
+        "id": "7b390345-2221-4beb-97cc-0b6e8270dfa4",
+        "file_id": "a_7b39034522214beb97cc0b6e8270dfa4",
+        "asset_type": "figure",
+        "source_page_id": "3013897f-3579-4cd6-9630-7f636679c788",
+        "region": {
+          "bbox": [
+            650,
+            500,
+            1100,
+            825
+          ]
+        },
+        "caption": null,
+        "student_visible": false
+      },
+      "actual_crop_size": [
+        450,
+        325
+      ],
+      "crop_sha256": "3587ef23e69e96a22e033e54c1919570dfa7651a16f65637bcd2b40be702d0f6",
+      "crop_evidence_ref": "image-assistance\\crop-016-figure.png",
+      "completed_at": "2026-10-02T16:50:35.967286+00:00"
+    },
+    {
+      "run_id": "t160-quality-20261002T163445Z-4654973a-09-IMP-IMAGE-r3",
+      "case_id": "IMP-IMAGE",
+      "paper_import_id": "db37b8ce-5f04-4567-ad37-b4d09a09d2dc",
+      "extracted_question_id": "e2e6168e-42c9-47e6-921a-83f099b92bd4",
+      "actor_id": "84d0f6fc-b512-4fd5-8cdd-87b3a0f99067",
+      "reference_identity": "e5c1555f-e927-575c-b68c-85eb341a3202",
+      "asset_type": "table",
+      "order_index": 1,
+      "source_page_id": "3013897f-3579-4cd6-9630-7f636679c788",
+      "source_page_number": 1,
+      "source_file_id": "p_3013897f35794cd696307f636679c788",
+      "actual_page_size": [
+        1241,
+        1754
+      ],
+      "normalized_crop_rect": [
+        0.3021148036253776,
+        0.6054131054131054,
+        0.6847935548841894,
+        0.8048433048433048
+      ],
+      "new_ai_crop_bbox": [
+        375,
+        1062,
+        850,
+        1412
+      ],
+      "reference_source_regions_state": "unknown_unchanged",
+      "status": "persisted",
+      "student_visible": false,
+      "teacher_review_created": false,
+      "started_at": "2026-10-02T16:50:35.969302+00:00",
+      "actual_asset": {
+        "id": "a01b022c-eeb4-42be-b115-b9e4522861a5",
+        "file_id": "a_a01b022ceeb442beb115b9e4522861a5",
+        "asset_type": "table",
+        "source_page_id": "3013897f-3579-4cd6-9630-7f636679c788",
+        "region": {
+          "bbox": [
+            375,
+            1062,
+            850,
+            1412
+          ]
+        },
+        "caption": null,
+        "student_visible": false
+      },
+      "actual_crop_size": [
+        475,
+        350
+      ],
+      "crop_sha256": "896dfad1841b196bdf7501cd01d477c6b44f73509434536fd33ad12343a9281c",
+      "crop_evidence_ref": "image-assistance\\crop-017-table.png",
+      "completed_at": "2026-10-02T16:50:36.080133+00:00"
+    },
+    {
+      "run_id": "t160-quality-20261002T163445Z-4654973a-10-IMP-MIXED-r1",
+      "case_id": "IMP-MIXED",
+      "paper_import_id": "33486ad6-f765-4bac-a103-04a7cc687f73",
+      "extracted_question_id": "05e9fb1c-1d00-4493-97fe-cd4aa11cd1ca",
+      "actor_id": "84d0f6fc-b512-4fd5-8cdd-87b3a0f99067",
+      "reference_identity": "545de13f-3fe9-524b-a917-7ab04807806f",
+      "asset_type": "figure",
+      "order_index": 1,
+      "source_page_id": "054ee1bd-dd5c-42b2-b339-ab2e97da25ca",
+      "source_page_number": 1,
+      "source_file_id": "p_054ee1bddd5c42b2b339ab2e97da25ca",
+      "actual_page_size": [
+        1241,
+        1754
+      ],
+      "normalized_crop_rect": [
+        0.5236656596173213,
+        0.2849002849002849,
+        0.8862034239677744,
+        0.4700854700854701
+      ],
+      "new_ai_crop_bbox": [
+        650,
+        500,
+        1100,
+        825
+      ],
+      "reference_source_regions_state": "unknown_unchanged",
+      "status": "persisted",
+      "student_visible": false,
+      "teacher_review_created": false,
+      "started_at": "2026-10-02T16:50:36.081502+00:00",
+      "actual_asset": {
+        "id": "be21822f-2a59-45e7-ac16-1dae7f6d114c",
+        "file_id": "a_be21822f2a5945e7ac161dae7f6d114c",
+        "asset_type": "figure",
+        "source_page_id": "054ee1bd-dd5c-42b2-b339-ab2e97da25ca",
+        "region": {
+          "bbox": [
+            650,
+            500,
+            1100,
+            825
+          ]
+        },
+        "caption": null,
+        "student_visible": false
+      },
+      "actual_crop_size": [
+        450,
+        325
+      ],
+      "crop_sha256": "3587ef23e69e96a22e033e54c1919570dfa7651a16f65637bcd2b40be702d0f6",
+      "crop_evidence_ref": "image-assistance\\crop-018-figure.png",
+      "completed_at": "2026-10-02T16:50:36.190041+00:00"
+    },
+    {
+      "run_id": "t160-quality-20261002T163445Z-4654973a-10-IMP-MIXED-r1",
+      "case_id": "IMP-MIXED",
+      "paper_import_id": "33486ad6-f765-4bac-a103-04a7cc687f73",
+      "extracted_question_id": "15e21f84-1b9f-42b7-891d-fa11a3ca6e2d",
+      "actor_id": "84d0f6fc-b512-4fd5-8cdd-87b3a0f99067",
+      "reference_identity": "85533f46-eb86-5893-8742-33939e77750f",
+      "asset_type": "table",
+      "order_index": 1,
+      "source_page_id": "054ee1bd-dd5c-42b2-b339-ab2e97da25ca",
+      "source_page_number": 1,
+      "source_file_id": "p_054ee1bddd5c42b2b339ab2e97da25ca",
+      "actual_page_size": [
+        1241,
+        1754
+      ],
+      "normalized_crop_rect": [
+        0.3021148036253776,
+        0.6054131054131054,
+        0.6847935548841894,
+        0.8048433048433048
+      ],
+      "new_ai_crop_bbox": [
+        375,
+        1062,
+        850,
+        1412
+      ],
+      "reference_source_regions_state": "unknown_unchanged",
+      "status": "persisted",
+      "student_visible": false,
+      "teacher_review_created": false,
+      "started_at": "2026-10-02T16:50:36.191336+00:00",
+      "actual_asset": {
+        "id": "4c41be79-70e0-4218-a5db-6f044b28702c",
+        "file_id": "a_4c41be7970e04218a5db6f044b28702c",
+        "asset_type": "table",
+        "source_page_id": "054ee1bd-dd5c-42b2-b339-ab2e97da25ca",
+        "region": {
+          "bbox": [
+            375,
+            1062,
+            850,
+            1412
+          ]
+        },
+        "caption": null,
+        "student_visible": false
+      },
+      "actual_crop_size": [
+        475,
+        350
+      ],
+      "crop_sha256": "896dfad1841b196bdf7501cd01d477c6b44f73509434536fd33ad12343a9281c",
+      "crop_evidence_ref": "image-assistance\\crop-019-table.png",
+      "completed_at": "2026-10-02T16:50:36.298159+00:00"
+    },
+    {
+      "run_id": "t160-quality-20261002T163445Z-4654973a-10-IMP-MIXED-r1",
+      "case_id": "IMP-MIXED",
+      "paper_import_id": "33486ad6-f765-4bac-a103-04a7cc687f73",
+      "extracted_question_id": "e031ecd4-33d0-4247-afee-64e376a8eeeb",
+      "actor_id": "84d0f6fc-b512-4fd5-8cdd-87b3a0f99067",
+      "reference_identity": "455720b9-9061-5bce-83af-d6d53c6c84e1",
+      "asset_type": "figure",
+      "order_index": 1,
+      "source_page_id": "6aebb38f-6b31-47b4-953a-ae6927c50358",
+      "source_page_number": 2,
+      "source_file_id": "p_6aebb38f6b3147b4953aae6927c50358",
+      "actual_page_size": [
+        1241,
+        1754
+      ],
+      "normalized_crop_rect": [
+        0.5236656596173213,
+        0.2849002849002849,
+        0.8862034239677744,
+        0.4700854700854701
+      ],
+      "new_ai_crop_bbox": [
+        650,
+        500,
+        1100,
+        825
+      ],
+      "reference_source_regions_state": "unknown_unchanged",
+      "status": "persisted",
+      "student_visible": false,
+      "teacher_review_created": false,
+      "started_at": "2026-10-02T16:50:36.299713+00:00",
+      "actual_asset": {
+        "id": "3c082621-22c3-4bc6-bb5c-3f2bc4c068cc",
+        "file_id": "a_3c08262122c34bc6bb5c3f2bc4c068cc",
+        "asset_type": "figure",
+        "source_page_id": "6aebb38f-6b31-47b4-953a-ae6927c50358",
+        "region": {
+          "bbox": [
+            650,
+            500,
+            1100,
+            825
+          ]
+        },
+        "caption": null,
+        "student_visible": false
+      },
+      "actual_crop_size": [
+        450,
+        325
+      ],
+      "crop_sha256": "3587ef23e69e96a22e033e54c1919570dfa7651a16f65637bcd2b40be702d0f6",
+      "crop_evidence_ref": "image-assistance\\crop-020-figure.png",
+      "completed_at": "2026-10-02T16:50:36.413228+00:00"
+    },
+    {
+      "run_id": "t160-quality-20261002T163445Z-4654973a-10-IMP-MIXED-r1",
+      "case_id": "IMP-MIXED",
+      "paper_import_id": "33486ad6-f765-4bac-a103-04a7cc687f73",
+      "extracted_question_id": "a32336e7-0405-477d-89bb-10f269686920",
+      "actor_id": "84d0f6fc-b512-4fd5-8cdd-87b3a0f99067",
+      "reference_identity": "bf862f8d-df39-5559-bab5-d942fccb2432",
+      "asset_type": "table",
+      "order_index": 1,
+      "source_page_id": "6aebb38f-6b31-47b4-953a-ae6927c50358",
+      "source_page_number": 2,
+      "source_file_id": "p_6aebb38f6b3147b4953aae6927c50358",
+      "actual_page_size": [
+        1241,
+        1754
+      ],
+      "normalized_crop_rect": [
+        0.3021148036253776,
+        0.6054131054131054,
+        0.6847935548841894,
+        0.8048433048433048
+      ],
+      "new_ai_crop_bbox": [
+        375,
+        1062,
+        850,
+        1412
+      ],
+      "reference_source_regions_state": "unknown_unchanged",
+      "status": "persisted",
+      "student_visible": false,
+      "teacher_review_created": false,
+      "started_at": "2026-10-02T16:50:36.414658+00:00",
+      "actual_asset": {
+        "id": "49ac10b3-1730-4116-ad98-bf40bd71e2bc",
+        "file_id": "a_49ac10b317304116ad98bf40bd71e2bc",
+        "asset_type": "table",
+        "source_page_id": "6aebb38f-6b31-47b4-953a-ae6927c50358",
+        "region": {
+          "bbox": [
+            375,
+            1062,
+            850,
+            1412
+          ]
+        },
+        "caption": null,
+        "student_visible": false
+      },
+      "actual_crop_size": [
+        475,
+        350
+      ],
+      "crop_sha256": "896dfad1841b196bdf7501cd01d477c6b44f73509434536fd33ad12343a9281c",
+      "crop_evidence_ref": "image-assistance\\crop-021-table.png",
+      "completed_at": "2026-10-02T16:50:36.522996+00:00"
+    },
+    {
+      "run_id": "t160-quality-20261002T163445Z-4654973a-11-IMP-MIXED-r2",
+      "case_id": "IMP-MIXED",
+      "paper_import_id": "e6321fb0-52f4-4a1e-978e-2d5173aa6f46",
+      "extracted_question_id": "722193bc-b1cc-4137-b664-0a4373fa0996",
+      "actor_id": "84d0f6fc-b512-4fd5-8cdd-87b3a0f99067",
+      "reference_identity": "545de13f-3fe9-524b-a917-7ab04807806f",
+      "asset_type": "figure",
+      "order_index": 1,
+      "source_page_id": "e36a60e5-acbc-4667-9470-d4234b3261de",
+      "source_page_number": 1,
+      "source_file_id": "p_e36a60e5acbc46679470d4234b3261de",
+      "actual_page_size": [
+        1241,
+        1754
+      ],
+      "normalized_crop_rect": [
+        0.5236656596173213,
+        0.2849002849002849,
+        0.8862034239677744,
+        0.4700854700854701
+      ],
+      "new_ai_crop_bbox": [
+        650,
+        500,
+        1100,
+        825
+      ],
+      "reference_source_regions_state": "unknown_unchanged",
+      "status": "persisted",
+      "student_visible": false,
+      "teacher_review_created": false,
+      "started_at": "2026-10-02T16:50:36.524432+00:00",
+      "actual_asset": {
+        "id": "abaedf57-f973-4841-af1a-4f75858e1e04",
+        "file_id": "a_abaedf57f9734841af1a4f75858e1e04",
+        "asset_type": "figure",
+        "source_page_id": "e36a60e5-acbc-4667-9470-d4234b3261de",
+        "region": {
+          "bbox": [
+            650,
+            500,
+            1100,
+            825
+          ]
+        },
+        "caption": null,
+        "student_visible": false
+      },
+      "actual_crop_size": [
+        450,
+        325
+      ],
+      "crop_sha256": "3587ef23e69e96a22e033e54c1919570dfa7651a16f65637bcd2b40be702d0f6",
+      "crop_evidence_ref": "image-assistance\\crop-022-figure.png",
+      "completed_at": "2026-10-02T16:50:36.637760+00:00"
+    },
+    {
+      "run_id": "t160-quality-20261002T163445Z-4654973a-11-IMP-MIXED-r2",
+      "case_id": "IMP-MIXED",
+      "paper_import_id": "e6321fb0-52f4-4a1e-978e-2d5173aa6f46",
+      "extracted_question_id": "fdc4978f-f300-4114-9191-189955768c03",
+      "actor_id": "84d0f6fc-b512-4fd5-8cdd-87b3a0f99067",
+      "reference_identity": "85533f46-eb86-5893-8742-33939e77750f",
+      "asset_type": "table",
+      "order_index": 1,
+      "source_page_id": "e36a60e5-acbc-4667-9470-d4234b3261de",
+      "source_page_number": 1,
+      "source_file_id": "p_e36a60e5acbc46679470d4234b3261de",
+      "actual_page_size": [
+        1241,
+        1754
+      ],
+      "normalized_crop_rect": [
+        0.3021148036253776,
+        0.6054131054131054,
+        0.6847935548841894,
+        0.8048433048433048
+      ],
+      "new_ai_crop_bbox": [
+        375,
+        1062,
+        850,
+        1412
+      ],
+      "reference_source_regions_state": "unknown_unchanged",
+      "status": "persisted",
+      "student_visible": false,
+      "teacher_review_created": false,
+      "started_at": "2026-10-02T16:50:36.639491+00:00",
+      "actual_asset": {
+        "id": "9f5335ab-bf7b-4f27-810e-c12c1ebfd676",
+        "file_id": "a_9f5335abbf7b4f27810ec12c1ebfd676",
+        "asset_type": "table",
+        "source_page_id": "e36a60e5-acbc-4667-9470-d4234b3261de",
+        "region": {
+          "bbox": [
+            375,
+            1062,
+            850,
+            1412
+          ]
+        },
+        "caption": null,
+        "student_visible": false
+      },
+      "actual_crop_size": [
+        475,
+        350
+      ],
+      "crop_sha256": "896dfad1841b196bdf7501cd01d477c6b44f73509434536fd33ad12343a9281c",
+      "crop_evidence_ref": "image-assistance\\crop-023-table.png",
+      "completed_at": "2026-10-02T16:50:36.747949+00:00"
+    },
+    {
+      "run_id": "t160-quality-20261002T163445Z-4654973a-11-IMP-MIXED-r2",
+      "case_id": "IMP-MIXED",
+      "paper_import_id": "e6321fb0-52f4-4a1e-978e-2d5173aa6f46",
+      "extracted_question_id": "f06dfb88-bac0-4136-b224-adc921844534",
+      "actor_id": "84d0f6fc-b512-4fd5-8cdd-87b3a0f99067",
+      "reference_identity": "455720b9-9061-5bce-83af-d6d53c6c84e1",
+      "asset_type": "figure",
+      "order_index": 1,
+      "source_page_id": "7670ab98-ed26-4173-9c1b-5ef2b0fca33a",
+      "source_page_number": 2,
+      "source_file_id": "p_7670ab98ed2641739c1b5ef2b0fca33a",
+      "actual_page_size": [
+        1241,
+        1754
+      ],
+      "normalized_crop_rect": [
+        0.5236656596173213,
+        0.2849002849002849,
+        0.8862034239677744,
+        0.4700854700854701
+      ],
+      "new_ai_crop_bbox": [
+        650,
+        500,
+        1100,
+        825
+      ],
+      "reference_source_regions_state": "unknown_unchanged",
+      "status": "persisted",
+      "student_visible": false,
+      "teacher_review_created": false,
+      "started_at": "2026-10-02T16:50:36.749174+00:00",
+      "actual_asset": {
+        "id": "1aa41c9e-9b05-4526-8709-efc10b20dfb7",
+        "file_id": "a_1aa41c9e9b0545268709efc10b20dfb7",
+        "asset_type": "figure",
+        "source_page_id": "7670ab98-ed26-4173-9c1b-5ef2b0fca33a",
+        "region": {
+          "bbox": [
+            650,
+            500,
+            1100,
+            825
+          ]
+        },
+        "caption": null,
+        "student_visible": false
+      },
+      "actual_crop_size": [
+        450,
+        325
+      ],
+      "crop_sha256": "3587ef23e69e96a22e033e54c1919570dfa7651a16f65637bcd2b40be702d0f6",
+      "crop_evidence_ref": "image-assistance\\crop-024-figure.png",
+      "completed_at": "2026-10-02T16:50:36.857572+00:00"
+    },
+    {
+      "run_id": "t160-quality-20261002T163445Z-4654973a-11-IMP-MIXED-r2",
+      "case_id": "IMP-MIXED",
+      "paper_import_id": "e6321fb0-52f4-4a1e-978e-2d5173aa6f46",
+      "extracted_question_id": "e91bfaf6-770a-45fe-ac00-ec4a6d39504e",
+      "actor_id": "84d0f6fc-b512-4fd5-8cdd-87b3a0f99067",
+      "reference_identity": "bf862f8d-df39-5559-bab5-d942fccb2432",
+      "asset_type": "table",
+      "order_index": 1,
+      "source_page_id": "7670ab98-ed26-4173-9c1b-5ef2b0fca33a",
+      "source_page_number": 2,
+      "source_file_id": "p_7670ab98ed2641739c1b5ef2b0fca33a",
+      "actual_page_size": [
+        1241,
+        1754
+      ],
+      "normalized_crop_rect": [
+        0.3021148036253776,
+        0.6054131054131054,
+        0.6847935548841894,
+        0.8048433048433048
+      ],
+      "new_ai_crop_bbox": [
+        375,
+        1062,
+        850,
+        1412
+      ],
+      "reference_source_regions_state": "unknown_unchanged",
+      "status": "persisted",
+      "student_visible": false,
+      "teacher_review_created": false,
+      "started_at": "2026-10-02T16:50:36.858958+00:00",
+      "actual_asset": {
+        "id": "36d00224-20cb-4a0e-8543-42bda8e64a0e",
+        "file_id": "a_36d0022420cb4a0e854342bda8e64a0e",
+        "asset_type": "table",
+        "source_page_id": "7670ab98-ed26-4173-9c1b-5ef2b0fca33a",
+        "region": {
+          "bbox": [
+            375,
+            1062,
+            850,
+            1412
+          ]
+        },
+        "caption": null,
+        "student_visible": false
+      },
+      "actual_crop_size": [
+        475,
+        350
+      ],
+      "crop_sha256": "896dfad1841b196bdf7501cd01d477c6b44f73509434536fd33ad12343a9281c",
+      "crop_evidence_ref": "image-assistance\\crop-025-table.png",
+      "completed_at": "2026-10-02T16:50:36.967424+00:00"
+    },
+    {
+      "run_id": "t160-quality-20261002T163445Z-4654973a-12-IMP-MIXED-r3",
+      "case_id": "IMP-MIXED",
+      "paper_import_id": "6430bbb0-5977-48cb-a6e9-9d2e60ab3e29",
+      "extracted_question_id": "9e172b13-a2d1-4200-9f2b-d3005bbd0736",
+      "actor_id": "84d0f6fc-b512-4fd5-8cdd-87b3a0f99067",
+      "reference_identity": "545de13f-3fe9-524b-a917-7ab04807806f",
+      "asset_type": "figure",
+      "order_index": 1,
+      "source_page_id": "5a4df27c-b1b5-4196-96f5-203856b880be",
+      "source_page_number": 1,
+      "source_file_id": "p_5a4df27cb1b5419696f5203856b880be",
+      "actual_page_size": [
+        1241,
+        1754
+      ],
+      "normalized_crop_rect": [
+        0.5236656596173213,
+        0.2849002849002849,
+        0.8862034239677744,
+        0.4700854700854701
+      ],
+      "new_ai_crop_bbox": [
+        650,
+        500,
+        1100,
+        825
+      ],
+      "reference_source_regions_state": "unknown_unchanged",
+      "status": "persisted",
+      "student_visible": false,
+      "teacher_review_created": false,
+      "started_at": "2026-10-02T16:50:36.968780+00:00",
+      "actual_asset": {
+        "id": "fdfcde44-feea-4cb7-ad0d-182b893ed5a5",
+        "file_id": "a_fdfcde44feea4cb7ad0d182b893ed5a5",
+        "asset_type": "figure",
+        "source_page_id": "5a4df27c-b1b5-4196-96f5-203856b880be",
+        "region": {
+          "bbox": [
+            650,
+            500,
+            1100,
+            825
+          ]
+        },
+        "caption": null,
+        "student_visible": false
+      },
+      "actual_crop_size": [
+        450,
+        325
+      ],
+      "crop_sha256": "3587ef23e69e96a22e033e54c1919570dfa7651a16f65637bcd2b40be702d0f6",
+      "crop_evidence_ref": "image-assistance\\crop-026-figure.png",
+      "completed_at": "2026-10-02T16:50:37.078225+00:00"
+    },
+    {
+      "run_id": "t160-quality-20261002T163445Z-4654973a-12-IMP-MIXED-r3",
+      "case_id": "IMP-MIXED",
+      "paper_import_id": "6430bbb0-5977-48cb-a6e9-9d2e60ab3e29",
+      "extracted_question_id": "acfcad96-de8f-4dac-8062-367f062bd87a",
+      "actor_id": "84d0f6fc-b512-4fd5-8cdd-87b3a0f99067",
+      "reference_identity": "85533f46-eb86-5893-8742-33939e77750f",
+      "asset_type": "table",
+      "order_index": 1,
+      "source_page_id": "5a4df27c-b1b5-4196-96f5-203856b880be",
+      "source_page_number": 1,
+      "source_file_id": "p_5a4df27cb1b5419696f5203856b880be",
+      "actual_page_size": [
+        1241,
+        1754
+      ],
+      "normalized_crop_rect": [
+        0.3021148036253776,
+        0.6054131054131054,
+        0.6847935548841894,
+        0.8048433048433048
+      ],
+      "new_ai_crop_bbox": [
+        375,
+        1062,
+        850,
+        1412
+      ],
+      "reference_source_regions_state": "unknown_unchanged",
+      "status": "persisted",
+      "student_visible": false,
+      "teacher_review_created": false,
+      "started_at": "2026-10-02T16:50:37.079771+00:00",
+      "actual_asset": {
+        "id": "f04fede3-37b7-4d61-a3e1-86e140eb8c88",
+        "file_id": "a_f04fede337b74d61a3e186e140eb8c88",
+        "asset_type": "table",
+        "source_page_id": "5a4df27c-b1b5-4196-96f5-203856b880be",
+        "region": {
+          "bbox": [
+            375,
+            1062,
+            850,
+            1412
+          ]
+        },
+        "caption": null,
+        "student_visible": false
+      },
+      "actual_crop_size": [
+        475,
+        350
+      ],
+      "crop_sha256": "896dfad1841b196bdf7501cd01d477c6b44f73509434536fd33ad12343a9281c",
+      "crop_evidence_ref": "image-assistance\\crop-027-table.png",
+      "completed_at": "2026-10-02T16:50:37.187270+00:00"
+    },
+    {
+      "run_id": "t160-quality-20261002T163445Z-4654973a-12-IMP-MIXED-r3",
+      "case_id": "IMP-MIXED",
+      "paper_import_id": "6430bbb0-5977-48cb-a6e9-9d2e60ab3e29",
+      "extracted_question_id": "6bc7ecda-75d4-4006-b419-39af271657c6",
+      "actor_id": "84d0f6fc-b512-4fd5-8cdd-87b3a0f99067",
+      "reference_identity": "455720b9-9061-5bce-83af-d6d53c6c84e1",
+      "asset_type": "figure",
+      "order_index": 1,
+      "source_page_id": "95d59129-569a-4d57-91bd-a080de73ceaa",
+      "source_page_number": 2,
+      "source_file_id": "p_95d59129569a4d5791bda080de73ceaa",
+      "actual_page_size": [
+        1241,
+        1754
+      ],
+      "normalized_crop_rect": [
+        0.5236656596173213,
+        0.2849002849002849,
+        0.8862034239677744,
+        0.4700854700854701
+      ],
+      "new_ai_crop_bbox": [
+        650,
+        500,
+        1100,
+        825
+      ],
+      "reference_source_regions_state": "unknown_unchanged",
+      "status": "persisted",
+      "student_visible": false,
+      "teacher_review_created": false,
+      "started_at": "2026-10-02T16:50:37.188659+00:00",
+      "actual_asset": {
+        "id": "e1f4c82c-afe0-416c-8142-90de7c6cea79",
+        "file_id": "a_e1f4c82cafe0416c814290de7c6cea79",
+        "asset_type": "figure",
+        "source_page_id": "95d59129-569a-4d57-91bd-a080de73ceaa",
+        "region": {
+          "bbox": [
+            650,
+            500,
+            1100,
+            825
+          ]
+        },
+        "caption": null,
+        "student_visible": false
+      },
+      "actual_crop_size": [
+        450,
+        325
+      ],
+      "crop_sha256": "3587ef23e69e96a22e033e54c1919570dfa7651a16f65637bcd2b40be702d0f6",
+      "crop_evidence_ref": "image-assistance\\crop-028-figure.png",
+      "completed_at": "2026-10-02T16:50:37.301221+00:00"
+    },
+    {
+      "run_id": "t160-quality-20261002T163445Z-4654973a-12-IMP-MIXED-r3",
+      "case_id": "IMP-MIXED",
+      "paper_import_id": "6430bbb0-5977-48cb-a6e9-9d2e60ab3e29",
+      "extracted_question_id": "c2577475-54ca-48b2-b45d-33b566556f30",
+      "actor_id": "84d0f6fc-b512-4fd5-8cdd-87b3a0f99067",
+      "reference_identity": "bf862f8d-df39-5559-bab5-d942fccb2432",
+      "asset_type": "table",
+      "order_index": 1,
+      "source_page_id": "95d59129-569a-4d57-91bd-a080de73ceaa",
+      "source_page_number": 2,
+      "source_file_id": "p_95d59129569a4d5791bda080de73ceaa",
+      "actual_page_size": [
+        1241,
+        1754
+      ],
+      "normalized_crop_rect": [
+        0.3021148036253776,
+        0.6054131054131054,
+        0.6847935548841894,
+        0.8048433048433048
+      ],
+      "new_ai_crop_bbox": [
+        375,
+        1062,
+        850,
+        1412
+      ],
+      "reference_source_regions_state": "unknown_unchanged",
+      "status": "persisted",
+      "student_visible": false,
+      "teacher_review_created": false,
+      "started_at": "2026-10-02T16:50:37.302667+00:00",
+      "actual_asset": {
+        "id": "6e954d65-eb51-4c25-89af-cb629479c889",
+        "file_id": "a_6e954d65eb514c2589afcb629479c889",
+        "asset_type": "table",
+        "source_page_id": "95d59129-569a-4d57-91bd-a080de73ceaa",
+        "region": {
+          "bbox": [
+            375,
+            1062,
+            850,
+            1412
+          ]
+        },
+        "caption": null,
+        "student_visible": false
+      },
+      "actual_crop_size": [
+        475,
+        350
+      ],
+      "crop_sha256": "896dfad1841b196bdf7501cd01d477c6b44f73509434536fd33ad12343a9281c",
+      "crop_evidence_ref": "image-assistance\\crop-029-table.png",
+      "completed_at": "2026-10-02T16:50:37.410222+00:00"
+    },
+    {
+      "run_id": "t160-quality-20261002T163445Z-4654973a-13-IMP-CROSS-r1",
+      "case_id": "IMP-CROSS",
+      "paper_import_id": "7a27db92-4a0f-46f5-8a38-3c6919b91a4d",
+      "extracted_question_id": "5ff1ae62-f774-44d8-99ab-76b578082dee",
+      "actor_id": "84d0f6fc-b512-4fd5-8cdd-87b3a0f99067",
+      "reference_identity": "239d78f4-ab44-59ec-ab7f-e11e454e26f1",
+      "asset_type": "diagram",
+      "order_index": 1,
+      "source_page_id": "23a31c76-47b7-498a-8ebe-ad77894d8add",
+      "source_page_number": 2,
+      "source_file_id": "p_23a31c7647b7498a8ebead77894d8add",
+      "actual_page_size": [
+        1241,
+        1754
+      ],
+      "normalized_crop_rect": [
+        0.3323262839879154,
+        0.24216524216524216,
+        0.6344410876132931,
+        0.45227920227920226
+      ],
+      "new_ai_crop_bbox": [
+        412,
+        425,
+        787,
+        793
+      ],
+      "reference_source_regions_state": "unknown_unchanged",
+      "status": "persisted",
+      "student_visible": false,
+      "teacher_review_created": false,
+      "started_at": "2026-10-02T16:50:37.411517+00:00",
+      "actual_asset": {
+        "id": "91e57922-8424-40ab-bca5-d69674b32a40",
+        "file_id": "a_91e57922842440abbca5d69674b32a40",
+        "asset_type": "diagram",
+        "source_page_id": "23a31c76-47b7-498a-8ebe-ad77894d8add",
+        "region": {
+          "bbox": [
+            412,
+            425,
+            787,
+            793
+          ]
+        },
+        "caption": null,
+        "student_visible": false
+      },
+      "actual_crop_size": [
+        375,
+        368
+      ],
+      "crop_sha256": "0a0dacf4621b52b784e4a10a1a598364ad2527a4e9e0f6ad6dedf633061c9336",
+      "crop_evidence_ref": "image-assistance\\crop-030-diagram.png",
+      "completed_at": "2026-10-02T16:50:37.516085+00:00"
+    },
+    {
+      "run_id": "t160-quality-20261002T163445Z-4654973a-14-IMP-CROSS-r2",
+      "case_id": "IMP-CROSS",
+      "paper_import_id": "35b7edcb-ff75-4974-92aa-0bd543aa3b62",
+      "extracted_question_id": "1aa09159-afdf-441d-8b63-c9505f5b5c9a",
+      "actor_id": "84d0f6fc-b512-4fd5-8cdd-87b3a0f99067",
+      "reference_identity": "239d78f4-ab44-59ec-ab7f-e11e454e26f1",
+      "asset_type": "diagram",
+      "order_index": 1,
+      "source_page_id": "c5c98a3d-3ba7-43b7-9406-30f523007ba1",
+      "source_page_number": 2,
+      "source_file_id": "p_c5c98a3d3ba743b7940630f523007ba1",
+      "actual_page_size": [
+        1241,
+        1754
+      ],
+      "normalized_crop_rect": [
+        0.3323262839879154,
+        0.24216524216524216,
+        0.6344410876132931,
+        0.45227920227920226
+      ],
+      "new_ai_crop_bbox": [
+        412,
+        425,
+        787,
+        793
+      ],
+      "reference_source_regions_state": "unknown_unchanged",
+      "status": "persisted",
+      "student_visible": false,
+      "teacher_review_created": false,
+      "started_at": "2026-10-02T16:50:37.517545+00:00",
+      "actual_asset": {
+        "id": "62f1abec-1aec-4313-931d-a4ad52994b16",
+        "file_id": "a_62f1abec1aec4313931da4ad52994b16",
+        "asset_type": "diagram",
+        "source_page_id": "c5c98a3d-3ba7-43b7-9406-30f523007ba1",
+        "region": {
+          "bbox": [
+            412,
+            425,
+            787,
+            793
+          ]
+        },
+        "caption": null,
+        "student_visible": false
+      },
+      "actual_crop_size": [
+        375,
+        368
+      ],
+      "crop_sha256": "0a0dacf4621b52b784e4a10a1a598364ad2527a4e9e0f6ad6dedf633061c9336",
+      "crop_evidence_ref": "image-assistance\\crop-031-diagram.png",
+      "completed_at": "2026-10-02T16:50:37.625009+00:00"
+    },
+    {
+      "run_id": "t160-quality-20261002T163445Z-4654973a-15-IMP-CROSS-r3",
+      "case_id": "IMP-CROSS",
+      "paper_import_id": "f3f70b47-0752-45d4-8ed3-d81a744ba094",
+      "extracted_question_id": "aab5370a-cb4e-47c8-8931-47ce715d113e",
+      "actor_id": "84d0f6fc-b512-4fd5-8cdd-87b3a0f99067",
+      "reference_identity": "239d78f4-ab44-59ec-ab7f-e11e454e26f1",
+      "asset_type": "diagram",
+      "order_index": 1,
+      "source_page_id": "a3fdeddd-7c4d-4cc1-854b-d9357289a7de",
+      "source_page_number": 2,
+      "source_file_id": "p_a3fdeddd7c4d4cc1854bd9357289a7de",
+      "actual_page_size": [
+        1241,
+        1754
+      ],
+      "normalized_crop_rect": [
+        0.3323262839879154,
+        0.24216524216524216,
+        0.6344410876132931,
+        0.45227920227920226
+      ],
+      "new_ai_crop_bbox": [
+        412,
+        425,
+        787,
+        793
+      ],
+      "reference_source_regions_state": "unknown_unchanged",
+      "status": "persisted",
+      "student_visible": false,
+      "teacher_review_created": false,
+      "started_at": "2026-10-02T16:50:37.626427+00:00",
+      "actual_asset": {
+        "id": "a8e42562-8924-4e25-bbc2-c045a3f135e7",
+        "file_id": "a_a8e4256289244e25bbc2c045a3f135e7",
+        "asset_type": "diagram",
+        "source_page_id": "a3fdeddd-7c4d-4cc1-854b-d9357289a7de",
+        "region": {
+          "bbox": [
+            412,
+            425,
+            787,
+            793
+          ]
+        },
+        "caption": null,
+        "student_visible": false
+      },
+      "actual_crop_size": [
+        375,
+        368
+      ],
+      "crop_sha256": "0a0dacf4621b52b784e4a10a1a598364ad2527a4e9e0f6ad6dedf633061c9336",
+      "crop_evidence_ref": "image-assistance\\crop-032-diagram.png",
+      "completed_at": "2026-10-02T16:50:37.734490+00:00"
+    }
+  ],
+  "completed_at": "2026-10-02T16:50:38.597105+00:00",
+  "snapshots": [
+    {
+      "run_id": "t160-quality-20261002T163445Z-4654973a-01-IMP-TEXT-r1",
+      "case_id": "IMP-TEXT",
+      "paper_import_id": "372ea2b9-8a13-42a2-89e1-57a4ee0b1aa3",
+      "snapshot_ref": "image-assistance\\t160-quality-20261002T163445Z-4654973a-01-IMP-TEXT-r1.json"
+    },
+    {
+      "run_id": "t160-quality-20261002T163445Z-4654973a-02-IMP-TEXT-r2",
+      "case_id": "IMP-TEXT",
+      "paper_import_id": "5e71130d-a182-4845-aac0-7a1918e1701e",
+      "snapshot_ref": "image-assistance\\t160-quality-20261002T163445Z-4654973a-02-IMP-TEXT-r2.json"
+    },
+    {
+      "run_id": "t160-quality-20261002T163445Z-4654973a-04-IMP-SCAN-r1",
+      "case_id": "IMP-SCAN",
+      "paper_import_id": "e826cefa-0e8e-4eba-912e-4ca0ac2da2d7",
+      "snapshot_ref": "image-assistance\\t160-quality-20261002T163445Z-4654973a-04-IMP-SCAN-r1.json"
+    },
+    {
+      "run_id": "t160-quality-20261002T163445Z-4654973a-05-IMP-SCAN-r2",
+      "case_id": "IMP-SCAN",
+      "paper_import_id": "a2a8df67-21b5-46b9-9283-506edde396e6",
+      "snapshot_ref": "image-assistance\\t160-quality-20261002T163445Z-4654973a-05-IMP-SCAN-r2.json"
+    },
+    {
+      "run_id": "t160-quality-20261002T163445Z-4654973a-06-IMP-SCAN-r3",
+      "case_id": "IMP-SCAN",
+      "paper_import_id": "65e35493-fc32-4f4c-af0a-8981c684c39f",
+      "snapshot_ref": "image-assistance\\t160-quality-20261002T163445Z-4654973a-06-IMP-SCAN-r3.json"
+    },
+    {
+      "run_id": "t160-quality-20261002T163445Z-4654973a-07-IMP-IMAGE-r1",
+      "case_id": "IMP-IMAGE",
+      "paper_import_id": "8630a2ca-fd20-4b8c-9b53-a2160d802ae9",
+      "snapshot_ref": "image-assistance\\t160-quality-20261002T163445Z-4654973a-07-IMP-IMAGE-r1.json"
+    },
+    {
+      "run_id": "t160-quality-20261002T163445Z-4654973a-08-IMP-IMAGE-r2",
+      "case_id": "IMP-IMAGE",
+      "paper_import_id": "d3099d5e-6da4-44e1-82ab-179e891fbd1b",
+      "snapshot_ref": "image-assistance\\t160-quality-20261002T163445Z-4654973a-08-IMP-IMAGE-r2.json"
+    },
+    {
+      "run_id": "t160-quality-20261002T163445Z-4654973a-09-IMP-IMAGE-r3",
+      "case_id": "IMP-IMAGE",
+      "paper_import_id": "db37b8ce-5f04-4567-ad37-b4d09a09d2dc",
+      "snapshot_ref": "image-assistance\\t160-quality-20261002T163445Z-4654973a-09-IMP-IMAGE-r3.json"
+    },
+    {
+      "run_id": "t160-quality-20261002T163445Z-4654973a-10-IMP-MIXED-r1",
+      "case_id": "IMP-MIXED",
+      "paper_import_id": "33486ad6-f765-4bac-a103-04a7cc687f73",
+      "snapshot_ref": "image-assistance\\t160-quality-20261002T163445Z-4654973a-10-IMP-MIXED-r1.json"
+    },
+    {
+      "run_id": "t160-quality-20261002T163445Z-4654973a-11-IMP-MIXED-r2",
+      "case_id": "IMP-MIXED",
+      "paper_import_id": "e6321fb0-52f4-4a1e-978e-2d5173aa6f46",
+      "snapshot_ref": "image-assistance\\t160-quality-20261002T163445Z-4654973a-11-IMP-MIXED-r2.json"
+    },
+    {
+      "run_id": "t160-quality-20261002T163445Z-4654973a-12-IMP-MIXED-r3",
+      "case_id": "IMP-MIXED",
+      "paper_import_id": "6430bbb0-5977-48cb-a6e9-9d2e60ab3e29",
+      "snapshot_ref": "image-assistance\\t160-quality-20261002T163445Z-4654973a-12-IMP-MIXED-r3.json"
+    },
+    {
+      "run_id": "t160-quality-20261002T163445Z-4654973a-13-IMP-CROSS-r1",
+      "case_id": "IMP-CROSS",
+      "paper_import_id": "7a27db92-4a0f-46f5-8a38-3c6919b91a4d",
+      "snapshot_ref": "image-assistance\\t160-quality-20261002T163445Z-4654973a-13-IMP-CROSS-r1.json"
+    },
+    {
+      "run_id": "t160-quality-20261002T163445Z-4654973a-14-IMP-CROSS-r2",
+      "case_id": "IMP-CROSS",
+      "paper_import_id": "35b7edcb-ff75-4974-92aa-0bd543aa3b62",
+      "snapshot_ref": "image-assistance\\t160-quality-20261002T163445Z-4654973a-14-IMP-CROSS-r2.json"
+    },
+    {
+      "run_id": "t160-quality-20261002T163445Z-4654973a-15-IMP-CROSS-r3",
+      "case_id": "IMP-CROSS",
+      "paper_import_id": "f3f70b47-0752-45d4-8ed3-d81a744ba094",
+      "snapshot_ref": "image-assistance\\t160-quality-20261002T163445Z-4654973a-15-IMP-CROSS-r3.json"
+    }
+  ],
+  "persisted_crops": 31,
+  "failed_crops": 0
+}

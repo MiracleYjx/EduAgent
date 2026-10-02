@@ -1,0 +1,363 @@
+{
+  "kind": "technical_selftest",
+  "teacher_annotation": false,
+  "cloud_calls": 0,
+  "source_commit": "6cea2ad",
+  "started_at": "2026-10-02T16:01:29.124147+00:00",
+  "application": "actual create_app, full lifespan, minimal injected Gradio test shell",
+  "processes": [
+    {
+      "number": 1,
+      "pid": 86628,
+      "started_at": "2026-10-02T16:01:30.217729+00:00",
+      "server_script_sha256": "c7c5aa92dcbe907c31ccd6fff7cbc44cadec85c63e410ed903e54a28e5287a39",
+      "ready_at": "2026-10-02T16:01:47.393708+00:00",
+      "ready_status": "ok",
+      "stopped_at": "2026-10-02T16:01:52.160050+00:00",
+      "exit_code": 0
+    },
+    {
+      "number": 2,
+      "pid": 81448,
+      "started_at": "2026-10-02T16:01:52.271418+00:00",
+      "server_script_sha256": "c7c5aa92dcbe907c31ccd6fff7cbc44cadec85c63e410ed903e54a28e5287a39",
+      "ready_at": "2026-10-02T16:02:04.797552+00:00",
+      "ready_status": "ok",
+      "stopped_at": "2026-10-02T16:02:10.443419+00:00",
+      "exit_code": 0
+    }
+  ],
+  "checks": [
+    {
+      "iteration": 1,
+      "actor": "teacher_fixture",
+      "resource": "original",
+      "file_id": "d_b6782941b94b49908ded322e9d9e1dbf",
+      "status": 200,
+      "bytes": 154527,
+      "sha256": "16aaa00c8b41ca1f5e5e77d6248e918953d054e725ebfb30548fec84cfe9ba5b"
+    },
+    {
+      "iteration": 1,
+      "actor": "student_fixture",
+      "resource": "original",
+      "status": 403,
+      "error_code": "FILE_FORBIDDEN"
+    },
+    {
+      "iteration": 1,
+      "actor": "teacher_fixture",
+      "resource": "page",
+      "file_id": "p_833cf8f702704d9f85817f7aaae5e612",
+      "status": 200,
+      "bytes": 157944,
+      "sha256": "31cdc03d0d958c33d6d7815e330f521febe40e23eab0122f687344f8ed311199"
+    },
+    {
+      "iteration": 1,
+      "actor": "student_fixture",
+      "resource": "page",
+      "status": 403,
+      "error_code": "FILE_FORBIDDEN"
+    },
+    {
+      "iteration": 1,
+      "actor": "teacher_fixture",
+      "resource": "staged",
+      "file_id": "a_1b8e40bad774490b95fa98f45913cbe2",
+      "status": 200,
+      "bytes": 13655,
+      "sha256": "892fff466346ed59d7d354e28564038b68d4b815faf0b1ee57d823fed9944c38"
+    },
+    {
+      "iteration": 1,
+      "actor": "student_fixture",
+      "resource": "staged",
+      "status": 403,
+      "error_code": "FILE_FORBIDDEN"
+    },
+    {
+      "iteration": 1,
+      "actor": "teacher_fixture",
+      "resource": "visible",
+      "file_id": "a_65191be1e60c4f108cce3efc41c5d4df",
+      "status": 200,
+      "bytes": 13655,
+      "sha256": "892fff466346ed59d7d354e28564038b68d4b815faf0b1ee57d823fed9944c38"
+    },
+    {
+      "iteration": 1,
+      "actor": "student_fixture",
+      "resource": "visible",
+      "status": 200,
+      "same_as_teacher_bytes": true
+    },
+    {
+      "iteration": 1,
+      "actor": "teacher_fixture",
+      "resource": "hidden",
+      "file_id": "a_a461b6a112e141ae8daf6981287aa765",
+      "status": 200,
+      "bytes": 10067,
+      "sha256": "f64b889a14fb02fc6b538db68e71ac52a086ed34146245ac770dd4ea15700871"
+    },
+    {
+      "iteration": 1,
+      "actor": "student_fixture",
+      "resource": "hidden",
+      "status": 403,
+      "error_code": "FILE_FORBIDDEN"
+    },
+    {
+      "iteration": 1,
+      "actor": "teacher_fixture",
+      "resource": "full_page_asset",
+      "file_id": "a_cec3cc12b853408ebf0b9d820af2c868",
+      "status": 200,
+      "bytes": 157944,
+      "sha256": "31cdc03d0d958c33d6d7815e330f521febe40e23eab0122f687344f8ed311199"
+    },
+    {
+      "iteration": 1,
+      "actor": "student_fixture",
+      "resource": "full_page_asset",
+      "status": 403,
+      "error_code": "FILE_FORBIDDEN"
+    },
+    {
+      "iteration": 1,
+      "actor": "teacher_fixture",
+      "resource": "formal_asset_listing",
+      "status": 200,
+      "asset_ids": [
+        "65191be1-e60c-4f10-8cce-3efc41c5d4df",
+        "a461b6a1-12e1-41ae-8daf-6981287aa765",
+        "cec3cc12-b853-408e-bf0b-9d820af2c868"
+      ]
+    },
+    {
+      "iteration": 1,
+      "actor": "student_fixture",
+      "resource": "formal_asset_listing",
+      "status": 200,
+      "asset_ids": [
+        "65191be1-e60c-4f10-8cce-3efc41c5d4df"
+      ]
+    },
+    {
+      "iteration": 1,
+      "resource": "paper_import_detail",
+      "status": 200,
+      "identity_and_file_refs_preserved": true
+    },
+    {
+      "iteration": 2,
+      "actor": "teacher_fixture",
+      "resource": "original",
+      "file_id": "d_b6782941b94b49908ded322e9d9e1dbf",
+      "status": 200,
+      "bytes": 154527,
+      "sha256": "16aaa00c8b41ca1f5e5e77d6248e918953d054e725ebfb30548fec84cfe9ba5b",
+      "same_bytes_after_restart": true
+    },
+    {
+      "iteration": 2,
+      "actor": "student_fixture",
+      "resource": "original",
+      "status": 403,
+      "error_code": "FILE_FORBIDDEN"
+    },
+    {
+      "iteration": 2,
+      "actor": "teacher_fixture",
+      "resource": "page",
+      "file_id": "p_833cf8f702704d9f85817f7aaae5e612",
+      "status": 200,
+      "bytes": 157944,
+      "sha256": "31cdc03d0d958c33d6d7815e330f521febe40e23eab0122f687344f8ed311199",
+      "same_bytes_after_restart": true
+    },
+    {
+      "iteration": 2,
+      "actor": "student_fixture",
+      "resource": "page",
+      "status": 403,
+      "error_code": "FILE_FORBIDDEN"
+    },
+    {
+      "iteration": 2,
+      "actor": "teacher_fixture",
+      "resource": "staged",
+      "file_id": "a_1b8e40bad774490b95fa98f45913cbe2",
+      "status": 200,
+      "bytes": 13655,
+      "sha256": "892fff466346ed59d7d354e28564038b68d4b815faf0b1ee57d823fed9944c38",
+      "same_bytes_after_restart": true
+    },
+    {
+      "iteration": 2,
+      "actor": "student_fixture",
+      "resource": "staged",
+      "status": 403,
+      "error_code": "FILE_FORBIDDEN"
+    },
+    {
+      "iteration": 2,
+      "actor": "teacher_fixture",
+      "resource": "visible",
+      "file_id": "a_65191be1e60c4f108cce3efc41c5d4df",
+      "status": 200,
+      "bytes": 13655,
+      "sha256": "892fff466346ed59d7d354e28564038b68d4b815faf0b1ee57d823fed9944c38",
+      "same_bytes_after_restart": true
+    },
+    {
+      "iteration": 2,
+      "actor": "student_fixture",
+      "resource": "visible",
+      "status": 200,
+      "same_as_teacher_bytes": true
+    },
+    {
+      "iteration": 2,
+      "actor": "teacher_fixture",
+      "resource": "hidden",
+      "file_id": "a_a461b6a112e141ae8daf6981287aa765",
+      "status": 200,
+      "bytes": 10067,
+      "sha256": "f64b889a14fb02fc6b538db68e71ac52a086ed34146245ac770dd4ea15700871",
+      "same_bytes_after_restart": true
+    },
+    {
+      "iteration": 2,
+      "actor": "student_fixture",
+      "resource": "hidden",
+      "status": 403,
+      "error_code": "FILE_FORBIDDEN"
+    },
+    {
+      "iteration": 2,
+      "actor": "teacher_fixture",
+      "resource": "full_page_asset",
+      "file_id": "a_cec3cc12b853408ebf0b9d820af2c868",
+      "status": 200,
+      "bytes": 157944,
+      "sha256": "31cdc03d0d958c33d6d7815e330f521febe40e23eab0122f687344f8ed311199",
+      "same_bytes_after_restart": true
+    },
+    {
+      "iteration": 2,
+      "actor": "student_fixture",
+      "resource": "full_page_asset",
+      "status": 403,
+      "error_code": "FILE_FORBIDDEN"
+    },
+    {
+      "iteration": 2,
+      "actor": "teacher_fixture",
+      "resource": "formal_asset_listing",
+      "status": 200,
+      "asset_ids": [
+        "65191be1-e60c-4f10-8cce-3efc41c5d4df",
+        "a461b6a1-12e1-41ae-8daf-6981287aa765",
+        "cec3cc12-b853-408e-bf0b-9d820af2c868"
+      ]
+    },
+    {
+      "iteration": 2,
+      "actor": "student_fixture",
+      "resource": "formal_asset_listing",
+      "status": 200,
+      "asset_ids": [
+        "65191be1-e60c-4f10-8cce-3efc41c5d4df"
+      ]
+    },
+    {
+      "iteration": 2,
+      "resource": "paper_import_detail",
+      "status": 200,
+      "identity_and_file_refs_preserved": true
+    }
+  ],
+  "interrupted_imports": [
+    {
+      "id": "1149cc5c-fd87-4a4b-a835-aee29f933d57",
+      "before": "Uploaded",
+      "original_file_id": "d_315c406e3c7844ab9e102cc44e8a5d11",
+      "after_launch_1": {
+        "status": "Failed",
+        "error_code": "PAPER_INTERRUPTED",
+        "source_retained_sha256": "16aaa00c8b41ca1f5e5e77d6248e918953d054e725ebfb30548fec84cfe9ba5b"
+      },
+      "after_launch_2": {
+        "status": "Failed",
+        "error_code": "PAPER_INTERRUPTED",
+        "source_retained_sha256": "16aaa00c8b41ca1f5e5e77d6248e918953d054e725ebfb30548fec84cfe9ba5b"
+      }
+    },
+    {
+      "id": "fe9d43cc-4cc8-46df-a7e9-45bab156fe4f",
+      "before": "Parsing",
+      "original_file_id": "d_b4aa4131cb2a465da9985757fc70907e",
+      "after_launch_1": {
+        "status": "Failed",
+        "error_code": "PAPER_INTERRUPTED",
+        "source_retained_sha256": "16aaa00c8b41ca1f5e5e77d6248e918953d054e725ebfb30548fec84cfe9ba5b"
+      },
+      "after_launch_2": {
+        "status": "Failed",
+        "error_code": "PAPER_INTERRUPTED",
+        "source_retained_sha256": "16aaa00c8b41ca1f5e5e77d6248e918953d054e725ebfb30548fec84cfe9ba5b"
+      }
+    },
+    {
+      "id": "972cdf78-5398-4d84-86bd-18d89cc80dcd",
+      "before": "Extracting",
+      "original_file_id": "d_4ebf695a7b8e4c33ae7d76ba39ea7443",
+      "after_launch_1": {
+        "status": "Failed",
+        "error_code": "PAPER_INTERRUPTED",
+        "source_retained_sha256": "16aaa00c8b41ca1f5e5e77d6248e918953d054e725ebfb30548fec84cfe9ba5b"
+      },
+      "after_launch_2": {
+        "status": "Failed",
+        "error_code": "PAPER_INTERRUPTED",
+        "source_retained_sha256": "16aaa00c8b41ca1f5e5e77d6248e918953d054e725ebfb30548fec84cfe9ba5b"
+      }
+    },
+    {
+      "id": "518f2492-c4ec-483d-9158-a1b04f24717c",
+      "before": "Extracting",
+      "created_between_launches": true,
+      "original_file_id": "d_72e0c5a6c75b4da99a23d60420a73b3a",
+      "after_launch_2": {
+        "status": "Failed",
+        "error_code": "PAPER_INTERRUPTED",
+        "source_retained_sha256": "16aaa00c8b41ca1f5e5e77d6248e918953d054e725ebfb30548fec84cfe9ba5b"
+      }
+    }
+  ],
+  "passed": true,
+  "fixtures": {
+    "teacher_id": "2a3a9cf3-9b7c-41f5-8670-25d6bd756a23",
+    "student_id": "abd87ff7-3428-4de8-8a58-df571a8dd508",
+    "course_id": "1c192e12-b3d9-42c5-93de-0ba4102c526d",
+    "paper_import_id": "735cf421-6abe-435e-9050-30889c4552b8",
+    "source_page_id": "833cf8f7-0270-4d9f-8581-7f7aaae5e612",
+    "extracted_question_id": "7160eae9-64ae-4a88-a474-625a31b20fa2",
+    "question_id": "700e1b4b-d11f-4af5-b71a-fd45d5e0f25a",
+    "exam_id": "43e9cc4c-bd2a-4ad4-ab4d-87b8b13c7f39",
+    "file_ids": {
+      "original": "d_b6782941b94b49908ded322e9d9e1dbf",
+      "page": "p_833cf8f702704d9f85817f7aaae5e612",
+      "staged": "a_1b8e40bad774490b95fa98f45913cbe2",
+      "visible": "a_65191be1e60c4f108cce3efc41c5d4df",
+      "hidden": "a_a461b6a112e141ae8daf6981287aa765",
+      "full_page_asset": "a_cec3cc12b853408ebf0b9d820af2c868"
+    },
+    "source_pdf_sha256": "16aaa00c8b41ca1f5e5e77d6248e918953d054e725ebfb30548fec84cfe9ba5b",
+    "source_fixture": "paper_scan.pdf",
+    "seeded_structured_text_is_quality_truth": false
+  },
+  "completed_at": "2026-10-02T16:02:10.443544+00:00"
+}
