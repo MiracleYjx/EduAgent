@@ -1,0 +1,12 @@
+{
+  "group": "cross-cold-2",
+  "launcher_pid": 82388,
+  "service_pid": 84580,
+  "service_created_at": "2026-10-02T19:03:17.558026Z",
+  "started_at": "2026-10-02T19:03:26.4699047Z",
+  "port": 7871,
+  "output": "D:\\YJX\\MyCode\\EduAgent\\.cache\\t160-retest-20261003\\ui-formal\\cross-cold-2",
+  "status": "stopped",
+  "sampler_launcher_pid": 88688,
+  "stopped_at": "2026-10-02T19:04:01.6356121Z"
+}

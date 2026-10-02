@@ -1,0 +1,39 @@
+{
+  "sampler_pid": 88300,
+  "service_pid": 82928,
+  "verified_worker_chain": [
+    82928,
+    88140,
+    88144,
+    77500
+  ],
+  "started_at": "2026-10-02T19:04:13.614053+00:00",
+  "status": "stopped_by_file",
+  "scope": "background lifetime observation; NOT action-window peaks",
+  "ready_at": "2026-10-02T19:04:14.170055+00:00",
+  "ended_at": "2026-10-02T19:04:44.757162+00:00",
+  "lifetime_observation": {
+    "sample_count": 32,
+    "observed_sampling_span_seconds": 30.613883499987423,
+    "window_duration_seconds": null,
+    "full_sampling_cycles_observed": 30,
+    "requested_interval_seconds": 1.0,
+    "max_observed_gap_seconds": 1.55599500000244,
+    "complete_at_requested_sampling_resolution": true,
+    "peaks": {
+      "app_working_set_bytes": 262631424,
+      "postgres_container_process_rss_bytes": 219848704,
+      "redis_container_process_rss_bytes": 8642560,
+      "simultaneous_observed_sum_bytes": 491122688
+    },
+    "missing_sample_count": 0,
+    "first_sample_at": "2026-10-02T19:04:14.169530+00:00",
+    "last_sample_at": "2026-10-02T19:04:44.756695+00:00",
+    "scope": {
+      "app": "verified Windows worker and actual descendant process working sets; excludes experiment controller and parent redirector",
+      "postgres": "sum of all postgres process RSS in shared eduagent-postgres-1; not isolated database attribution; shared pages can be counted repeatedly",
+      "redis": "sum of all redis-server process RSS in dedicated eduagent-e2-acceptance-redis-ac14a149cc18",
+      "sum": "observations within one sample, read sequentially; sampled peaks, not a continuous physical-memory high-water mark"
+    }
+  }
+}

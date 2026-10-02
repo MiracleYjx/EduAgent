@@ -1,0 +1,28 @@
+{
+  "case": "IMP-DAMAGED",
+  "filename": "damaged.pdf",
+  "bytes": 50,
+  "sha256": "8928a9081f6cca2462be8412f4a520f471dbe79020e0576f1a3ce61bdfb5a3a5",
+  "expected_status": "Upload Rejected",
+  "expected_error": "PAPER_PARSE_FAILED",
+  "fault_injection": null,
+  "started_at": "2026-10-02T18:50:43.733873+00:00",
+  "steps": [
+    {
+      "stage": "format_validation",
+      "status": "rejected",
+      "error_code": "PAPER_PARSE_FAILED"
+    }
+  ],
+  "bytechecks": [],
+  "injected_errors": [],
+  "status": "Upload Rejected",
+  "error_code": "PAPER_PARSE_FAILED",
+  "error_message": "原卷无法解析为有效 PDF 或单页 PNG/JPEG。",
+  "records_created": [
+    0,
+    0
+  ],
+  "passed": true,
+  "completed_at": "2026-10-02T18:50:43.757360+00:00"
+}

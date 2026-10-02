@@ -1,0 +1,39 @@
+{
+  "source_kind": "source_backed_replay_for_ui_timing",
+  "cloud_calls": 0,
+  "is_new_extraction": false,
+  "prepared_at": "2026-10-02T18:01:33.457591+00:00",
+  "actor_id": "0d406e71-5295-45b2-b299-bd89cb69d88f",
+  "instances": [
+    {
+      "workload": "text",
+      "paper_import_id": "477467cd-8d5a-4833-a35d-2ac14f05418a",
+      "initial_question_id": "647356f0-a779-4dcb-b226-2a0ddeaab322",
+      "target_question_id": "a5d56c82-8257-47cb-879a-804676836243",
+      "target_page_id": "face96bf-f197-4308-8ba8-b80beadc0781",
+      "source_raw_result_ref": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-assisted-20261003\\quality\\runs\\t160-quality-20261002T163445Z-4654973a-01-IMP-TEXT-r1\\result.json",
+      "source_raw_result_sha256": "ec9ba51d728ec7b8269917d521e646b36fd35bebdd43a417d3b0d20a8cb33fa1",
+      "original_sha256": "74e4f9a21fd7bf778bab474f89bcede2680010e957cc435774205dbaa648c167"
+    },
+    {
+      "workload": "figure",
+      "paper_import_id": "cefa0365-c390-4511-879f-98b0863b63ba",
+      "initial_question_id": "4cceca91-2bea-43b8-9ded-a84c9efc41ca",
+      "target_question_id": "6b16be2f-0514-4486-8dcb-8885edb809d3",
+      "target_page_id": "8f84fd3f-ebeb-4458-baec-99c609404db7",
+      "source_raw_result_ref": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-assisted-20261003\\quality\\runs\\t160-quality-20261002T163445Z-4654973a-07-IMP-IMAGE-r1\\result.json",
+      "source_raw_result_sha256": "8f0e5026822c269092f94a02f8fe3a26277bfcee77782478d10a94eda783aa8b",
+      "original_sha256": "31cdc03d0d958c33d6d7815e330f521febe40e23eab0122f687344f8ed311199"
+    },
+    {
+      "workload": "cross",
+      "paper_import_id": "d81cb036-60a8-4538-80c0-baab270219e7",
+      "initial_question_id": "25cf1955-1831-443b-bf1b-58b978b1805f",
+      "target_question_id": "25cf1955-1831-443b-bf1b-58b978b1805f",
+      "target_page_id": "181443ef-a5cf-4fc0-87ac-6ae3cb64691a",
+      "source_raw_result_ref": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-assisted-20261003\\quality\\runs\\t160-quality-20261002T163445Z-4654973a-13-IMP-CROSS-r1\\result.json",
+      "source_raw_result_sha256": "25e87611e5b7b4c728d663c45da54fc5874b327c0256a74c53c259f8d95d3588",
+      "original_sha256": "8c6a18f125a37ff9107a563efb52f5e61ec8ce1debdb516059a1d5b7d58d1a23"
+    }
+  ]
+}

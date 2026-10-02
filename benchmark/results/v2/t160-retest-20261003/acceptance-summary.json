@@ -1,0 +1,1791 @@
+{
+  "task_id": "T160 retest",
+  "generated_at": "2026-10-02T19:07:51.135298+00:00",
+  "aggregation_status": "complete_evidence",
+  "source_commits_observed": [
+    "9c9e79f4f2376b7a6fd84f02e5800659d210f9da"
+  ],
+  "source_evidence_modified": false,
+  "task_checkbox_not_written": true,
+  "reference_origin": "user_confirmed_ai_assisted",
+  "independent_teacher_labeled_cases": 0,
+  "reference": {
+    "annotation_version": "t160-user-authorized-ai-assisted-20261003-1",
+    "sha256": "13095b3d62f9e0db14e92412e58923f6b2c1c83c0acf49ea356e306397e2ff9e",
+    "author_kind": "ai_assistant",
+    "author_name": "Codex",
+    "human_confirmation": {
+      "statement": "确认标注并采用 AI 辅助口径（推荐）",
+      "confirmed_at": "2026-10-02T16:14:48+00:00",
+      "reviewed_by": "current_chat_user",
+      "reviewer_kind": "human",
+      "confirmation_source": "current_chat_user_message",
+      "scope": "5 个正常导入 case 的 AI 辅助标注与原稿缺失/未知口径",
+      "is_independent_teacher_truth": false
+    },
+    "independent_teacher_truth": false
+  },
+  "fixed_denominators": {
+    "quality_question_instances": 48,
+    "quality_imports": 15,
+    "import_timed": 24,
+    "import_warmups": 3,
+    "ui_timed": 24,
+    "ui_warmups": 3,
+    "fifty_page_timed": 8
+  },
+  "quality": {
+    "attempted": 15,
+    "pending_review": 15,
+    "failed": 0,
+    "runner_errors": 0,
+    "protocol_complete": true,
+    "all_imports_pending_review_observation": true,
+    "evidence_completeness_semantics": "All 15 planned attempts have a completed result with a terminal business status or explicit runner error. Each comparison has verifiable fields or records zero credit from the actual failed attempt; failed slots retain the fixed 48-question denominator. This is protocol completeness, not a quality success threshold.",
+    "missing_slots": [],
+    "duplicate_slots": [],
+    "unexpected_slots": [],
+    "identities": [
+      {
+        "stage": "automatic",
+        "numerator": 48,
+        "denominator": 48,
+        "observed_run_slots": 15,
+        "explicit_failure_zero_slots": [],
+        "complete": true
+      },
+      {
+        "stage": "assisted_corrected",
+        "numerator": 48,
+        "denominator": 48,
+        "observed_run_slots": 15,
+        "explicit_failure_zero_slots": [],
+        "complete": true
+      }
+    ],
+    "fields": [
+      {
+        "stage": "automatic",
+        "field": "question_number",
+        "numerator": 48,
+        "denominator": 48,
+        "planned_reference_questions": 48,
+        "unknown_excluded": 0,
+        "observed_run_slots": 15,
+        "explicit_failure_zero_slots": [],
+        "planned_run_slots": 15,
+        "complete": true,
+        "value": 1.0
+      },
+      {
+        "stage": "automatic",
+        "field": "order_index",
+        "numerator": 45,
+        "denominator": 48,
+        "planned_reference_questions": 48,
+        "unknown_excluded": 0,
+        "observed_run_slots": 15,
+        "explicit_failure_zero_slots": [],
+        "planned_run_slots": 15,
+        "complete": true,
+        "value": 0.9375
+      },
+      {
+        "stage": "automatic",
+        "field": "source_page_numbers",
+        "numerator": 48,
+        "denominator": 48,
+        "planned_reference_questions": 48,
+        "unknown_excluded": 0,
+        "observed_run_slots": 15,
+        "explicit_failure_zero_slots": [],
+        "planned_run_slots": 15,
+        "complete": true,
+        "value": 1.0
+      },
+      {
+        "stage": "automatic",
+        "field": "question_type",
+        "numerator": 45,
+        "denominator": 45,
+        "planned_reference_questions": 48,
+        "unknown_excluded": 3,
+        "observed_run_slots": 15,
+        "explicit_failure_zero_slots": [],
+        "planned_run_slots": 15,
+        "complete": true,
+        "value": 1.0
+      },
+      {
+        "stage": "automatic",
+        "field": "content",
+        "numerator": 6,
+        "denominator": 48,
+        "planned_reference_questions": 48,
+        "unknown_excluded": 0,
+        "observed_run_slots": 15,
+        "explicit_failure_zero_slots": [],
+        "planned_run_slots": 15,
+        "complete": true,
+        "value": 0.125
+      },
+      {
+        "stage": "automatic",
+        "field": "options",
+        "numerator": 45,
+        "denominator": 48,
+        "planned_reference_questions": 48,
+        "unknown_excluded": 0,
+        "observed_run_slots": 15,
+        "explicit_failure_zero_slots": [],
+        "planned_run_slots": 15,
+        "complete": true,
+        "value": 0.9375
+      },
+      {
+        "stage": "automatic",
+        "field": "reference_answer",
+        "numerator": 48,
+        "denominator": 48,
+        "planned_reference_questions": 48,
+        "unknown_excluded": 0,
+        "observed_run_slots": 15,
+        "explicit_failure_zero_slots": [],
+        "planned_run_slots": 15,
+        "complete": true,
+        "value": 1.0
+      },
+      {
+        "stage": "automatic",
+        "field": "analysis",
+        "numerator": 39,
+        "denominator": 48,
+        "planned_reference_questions": 48,
+        "unknown_excluded": 0,
+        "observed_run_slots": 15,
+        "explicit_failure_zero_slots": [],
+        "planned_run_slots": 15,
+        "complete": true,
+        "value": 0.8125
+      },
+      {
+        "stage": "automatic",
+        "field": "score",
+        "numerator": 48,
+        "denominator": 48,
+        "planned_reference_questions": 48,
+        "unknown_excluded": 0,
+        "observed_run_slots": 15,
+        "explicit_failure_zero_slots": [],
+        "planned_run_slots": 15,
+        "complete": true,
+        "value": 1.0
+      },
+      {
+        "stage": "automatic",
+        "field": "scoring_rubric",
+        "numerator": 38,
+        "denominator": 48,
+        "planned_reference_questions": 48,
+        "unknown_excluded": 0,
+        "observed_run_slots": 15,
+        "explicit_failure_zero_slots": [],
+        "planned_run_slots": 15,
+        "complete": true,
+        "value": 0.7916666666666666
+      },
+      {
+        "stage": "automatic",
+        "field": "knowledge_points",
+        "numerator": 15,
+        "denominator": 48,
+        "planned_reference_questions": 48,
+        "unknown_excluded": 0,
+        "observed_run_slots": 15,
+        "explicit_failure_zero_slots": [],
+        "planned_run_slots": 15,
+        "complete": true,
+        "value": 0.3125
+      },
+      {
+        "stage": "automatic",
+        "field": "source_regions",
+        "numerator": 0,
+        "denominator": 0,
+        "planned_reference_questions": 48,
+        "unknown_excluded": 48,
+        "observed_run_slots": 15,
+        "explicit_failure_zero_slots": [],
+        "planned_run_slots": 15,
+        "complete": true,
+        "value": null
+      },
+      {
+        "stage": "automatic",
+        "field": "assets",
+        "numerator": 0,
+        "denominator": 48,
+        "planned_reference_questions": 48,
+        "unknown_excluded": 0,
+        "observed_run_slots": 15,
+        "explicit_failure_zero_slots": [],
+        "planned_run_slots": 15,
+        "complete": true,
+        "value": 0.0
+      },
+      {
+        "stage": "assisted_corrected",
+        "field": "question_number",
+        "numerator": 48,
+        "denominator": 48,
+        "planned_reference_questions": 48,
+        "unknown_excluded": 0,
+        "observed_run_slots": 15,
+        "explicit_failure_zero_slots": [],
+        "planned_run_slots": 15,
+        "complete": true,
+        "value": 1.0
+      },
+      {
+        "stage": "assisted_corrected",
+        "field": "order_index",
+        "numerator": 48,
+        "denominator": 48,
+        "planned_reference_questions": 48,
+        "unknown_excluded": 0,
+        "observed_run_slots": 15,
+        "explicit_failure_zero_slots": [],
+        "planned_run_slots": 15,
+        "complete": true,
+        "value": 1.0
+      },
+      {
+        "stage": "assisted_corrected",
+        "field": "source_page_numbers",
+        "numerator": 48,
+        "denominator": 48,
+        "planned_reference_questions": 48,
+        "unknown_excluded": 0,
+        "observed_run_slots": 15,
+        "explicit_failure_zero_slots": [],
+        "planned_run_slots": 15,
+        "complete": true,
+        "value": 1.0
+      },
+      {
+        "stage": "assisted_corrected",
+        "field": "question_type",
+        "numerator": 45,
+        "denominator": 45,
+        "planned_reference_questions": 48,
+        "unknown_excluded": 3,
+        "observed_run_slots": 15,
+        "explicit_failure_zero_slots": [],
+        "planned_run_slots": 15,
+        "complete": true,
+        "value": 1.0
+      },
+      {
+        "stage": "assisted_corrected",
+        "field": "content",
+        "numerator": 48,
+        "denominator": 48,
+        "planned_reference_questions": 48,
+        "unknown_excluded": 0,
+        "observed_run_slots": 15,
+        "explicit_failure_zero_slots": [],
+        "planned_run_slots": 15,
+        "complete": true,
+        "value": 1.0
+      },
+      {
+        "stage": "assisted_corrected",
+        "field": "options",
+        "numerator": 48,
+        "denominator": 48,
+        "planned_reference_questions": 48,
+        "unknown_excluded": 0,
+        "observed_run_slots": 15,
+        "explicit_failure_zero_slots": [],
+        "planned_run_slots": 15,
+        "complete": true,
+        "value": 1.0
+      },
+      {
+        "stage": "assisted_corrected",
+        "field": "reference_answer",
+        "numerator": 48,
+        "denominator": 48,
+        "planned_reference_questions": 48,
+        "unknown_excluded": 0,
+        "observed_run_slots": 15,
+        "explicit_failure_zero_slots": [],
+        "planned_run_slots": 15,
+        "complete": true,
+        "value": 1.0
+      },
+      {
+        "stage": "assisted_corrected",
+        "field": "analysis",
+        "numerator": 48,
+        "denominator": 48,
+        "planned_reference_questions": 48,
+        "unknown_excluded": 0,
+        "observed_run_slots": 15,
+        "explicit_failure_zero_slots": [],
+        "planned_run_slots": 15,
+        "complete": true,
+        "value": 1.0
+      },
+      {
+        "stage": "assisted_corrected",
+        "field": "score",
+        "numerator": 48,
+        "denominator": 48,
+        "planned_reference_questions": 48,
+        "unknown_excluded": 0,
+        "observed_run_slots": 15,
+        "explicit_failure_zero_slots": [],
+        "planned_run_slots": 15,
+        "complete": true,
+        "value": 1.0
+      },
+      {
+        "stage": "assisted_corrected",
+        "field": "scoring_rubric",
+        "numerator": 48,
+        "denominator": 48,
+        "planned_reference_questions": 48,
+        "unknown_excluded": 0,
+        "observed_run_slots": 15,
+        "explicit_failure_zero_slots": [],
+        "planned_run_slots": 15,
+        "complete": true,
+        "value": 1.0
+      },
+      {
+        "stage": "assisted_corrected",
+        "field": "knowledge_points",
+        "numerator": 48,
+        "denominator": 48,
+        "planned_reference_questions": 48,
+        "unknown_excluded": 0,
+        "observed_run_slots": 15,
+        "explicit_failure_zero_slots": [],
+        "planned_run_slots": 15,
+        "complete": true,
+        "value": 1.0
+      },
+      {
+        "stage": "assisted_corrected",
+        "field": "source_regions",
+        "numerator": 0,
+        "denominator": 0,
+        "planned_reference_questions": 48,
+        "unknown_excluded": 48,
+        "observed_run_slots": 15,
+        "explicit_failure_zero_slots": [],
+        "planned_run_slots": 15,
+        "complete": true,
+        "value": null
+      },
+      {
+        "stage": "assisted_corrected",
+        "field": "assets",
+        "numerator": 15,
+        "denominator": 48,
+        "planned_reference_questions": 48,
+        "unknown_excluded": 0,
+        "observed_run_slots": 15,
+        "explicit_failure_zero_slots": [],
+        "planned_run_slots": 15,
+        "complete": true,
+        "value": 0.3125
+      }
+    ],
+    "quality_threshold": null,
+    "quality_acceptance": "not_claimed",
+    "resource_observation": {
+      "planned_windows": 15,
+      "observed_windows": 15,
+      "complete_windows": 12,
+      "incomplete_run_ids": [
+        "t160-quality-20261002T182955Z-75789e35-13-IMP-CROSS-r1",
+        "t160-quality-20261002T182955Z-75789e35-14-IMP-CROSS-r2",
+        "t160-quality-20261002T182955Z-75789e35-15-IMP-CROSS-r3"
+      ],
+      "by_case": [
+        {
+          "case_id": "IMP-TEXT",
+          "planned_windows": 3,
+          "observed_windows": 3,
+          "complete_windows": 3,
+          "incomplete_windows": 0,
+          "observed_sampled_peaks_bytes": {
+            "app_working_set_bytes": 164990976,
+            "postgres_container_process_rss_bytes": 196464640,
+            "redis_container_process_rss_bytes": 8597504,
+            "simultaneous_observed_sum_bytes": 370053120
+          },
+          "peaks_across_complete_windows_bytes": {
+            "app_working_set_bytes": 164990976,
+            "postgres_container_process_rss_bytes": 196464640,
+            "redis_container_process_rss_bytes": 8597504,
+            "simultaneous_observed_sum_bytes": 370053120
+          },
+          "complete_window_budget_pass": true,
+          "all_planned_windows_budget_pass": true,
+          "group_peak_is_not_a_replacement_for_any_missing_window": true
+        },
+        {
+          "case_id": "IMP-SCAN",
+          "planned_windows": 3,
+          "observed_windows": 3,
+          "complete_windows": 3,
+          "incomplete_windows": 0,
+          "observed_sampled_peaks_bytes": {
+            "app_working_set_bytes": 503738368,
+            "postgres_container_process_rss_bytes": 196567040,
+            "redis_container_process_rss_bytes": 8597504,
+            "simultaneous_observed_sum_bytes": 708902912
+          },
+          "peaks_across_complete_windows_bytes": {
+            "app_working_set_bytes": 503738368,
+            "postgres_container_process_rss_bytes": 196567040,
+            "redis_container_process_rss_bytes": 8597504,
+            "simultaneous_observed_sum_bytes": 708902912
+          },
+          "complete_window_budget_pass": true,
+          "all_planned_windows_budget_pass": true,
+          "group_peak_is_not_a_replacement_for_any_missing_window": true
+        },
+        {
+          "case_id": "IMP-IMAGE",
+          "planned_windows": 3,
+          "observed_windows": 3,
+          "complete_windows": 3,
+          "incomplete_windows": 0,
+          "observed_sampled_peaks_bytes": {
+            "app_working_set_bytes": 509468672,
+            "postgres_container_process_rss_bytes": 196661248,
+            "redis_container_process_rss_bytes": 8597504,
+            "simultaneous_observed_sum_bytes": 714727424
+          },
+          "peaks_across_complete_windows_bytes": {
+            "app_working_set_bytes": 509468672,
+            "postgres_container_process_rss_bytes": 196661248,
+            "redis_container_process_rss_bytes": 8597504,
+            "simultaneous_observed_sum_bytes": 714727424
+          },
+          "complete_window_budget_pass": true,
+          "all_planned_windows_budget_pass": true,
+          "group_peak_is_not_a_replacement_for_any_missing_window": true
+        },
+        {
+          "case_id": "IMP-MIXED",
+          "planned_windows": 3,
+          "observed_windows": 3,
+          "complete_windows": 3,
+          "incomplete_windows": 0,
+          "observed_sampled_peaks_bytes": {
+            "app_working_set_bytes": 443699200,
+            "postgres_container_process_rss_bytes": 197099520,
+            "redis_container_process_rss_bytes": 8597504,
+            "simultaneous_observed_sum_bytes": 649396224
+          },
+          "peaks_across_complete_windows_bytes": {
+            "app_working_set_bytes": 443699200,
+            "postgres_container_process_rss_bytes": 197099520,
+            "redis_container_process_rss_bytes": 8597504,
+            "simultaneous_observed_sum_bytes": 649396224
+          },
+          "complete_window_budget_pass": true,
+          "all_planned_windows_budget_pass": true,
+          "group_peak_is_not_a_replacement_for_any_missing_window": true
+        },
+        {
+          "case_id": "IMP-CROSS",
+          "planned_windows": 3,
+          "observed_windows": 3,
+          "complete_windows": 0,
+          "incomplete_windows": 3,
+          "observed_sampled_peaks_bytes": {
+            "app_working_set_bytes": 261705728,
+            "postgres_container_process_rss_bytes": 197382144,
+            "redis_container_process_rss_bytes": 8597504,
+            "simultaneous_observed_sum_bytes": 467410944
+          },
+          "peaks_across_complete_windows_bytes": {
+            "app_working_set_bytes": null,
+            "postgres_container_process_rss_bytes": null,
+            "redis_container_process_rss_bytes": null,
+            "simultaneous_observed_sum_bytes": null
+          },
+          "complete_window_budget_pass": null,
+          "all_planned_windows_budget_pass": null,
+          "group_peak_is_not_a_replacement_for_any_missing_window": true
+        }
+      ],
+      "windows": [
+        {
+          "run_id": "t160-quality-20261002T182955Z-75789e35-01-IMP-TEXT-r1",
+          "case_id": "IMP-TEXT",
+          "repeat_index": 1,
+          "source_result_ref": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\quality\\runs\\t160-quality-20261002T182955Z-75789e35-01-IMP-TEXT-r1\\result.json",
+          "resource_samples_ref": "runs\\t160-quality-20261002T182955Z-75789e35-01-IMP-TEXT-r1\\resource-samples.jsonl",
+          "actual_ocr_pages": 0,
+          "sample_count": 3,
+          "observed_sampling_span_seconds": 1.9953529000049457,
+          "window_duration_seconds": 4.165816800028551,
+          "requested_interval_seconds": 1.0,
+          "complete_at_requested_sampling_resolution": true,
+          "source_complete_flag": true,
+          "observed_sampled_peaks_bytes": {
+            "app_working_set_bytes": 158224384,
+            "postgres_container_process_rss_bytes": 195784704,
+            "redis_container_process_rss_bytes": 8597504,
+            "simultaneous_observed_sum_bytes": 362606592
+          },
+          "budget_valid_window_peaks_bytes": {
+            "app_working_set_bytes": 158224384,
+            "postgres_container_process_rss_bytes": 195784704,
+            "redis_container_process_rss_bytes": 8597504,
+            "simultaneous_observed_sum_bytes": 362606592
+          },
+          "budget_pass": true,
+          "scope": {
+            "app": "verified Windows worker and actual descendant process working sets; excludes experiment controller and parent redirector",
+            "postgres": "sum of all postgres process RSS in shared eduagent-postgres-1; not isolated database attribution; shared pages can be counted repeatedly",
+            "redis": "sum of all redis-server process RSS in dedicated eduagent-e2-acceptance-redis-ac14a149cc18",
+            "sum": "observations within one sample, read sequentially; sampled peaks, not a continuous physical-memory high-water mark"
+          },
+          "limitation": null
+        },
+        {
+          "run_id": "t160-quality-20261002T182955Z-75789e35-02-IMP-TEXT-r2",
+          "case_id": "IMP-TEXT",
+          "repeat_index": 2,
+          "source_result_ref": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\quality\\runs\\t160-quality-20261002T182955Z-75789e35-02-IMP-TEXT-r2\\result.json",
+          "resource_samples_ref": "runs\\t160-quality-20261002T182955Z-75789e35-02-IMP-TEXT-r2\\resource-samples.jsonl",
+          "actual_ocr_pages": 0,
+          "sample_count": 3,
+          "observed_sampling_span_seconds": 2.0048656999715604,
+          "window_duration_seconds": 3.8517800999688916,
+          "requested_interval_seconds": 1.0,
+          "complete_at_requested_sampling_resolution": true,
+          "source_complete_flag": true,
+          "observed_sampled_peaks_bytes": {
+            "app_working_set_bytes": 162521088,
+            "postgres_container_process_rss_bytes": 196345856,
+            "redis_container_process_rss_bytes": 8597504,
+            "simultaneous_observed_sum_bytes": 367464448
+          },
+          "budget_valid_window_peaks_bytes": {
+            "app_working_set_bytes": 162521088,
+            "postgres_container_process_rss_bytes": 196345856,
+            "redis_container_process_rss_bytes": 8597504,
+            "simultaneous_observed_sum_bytes": 367464448
+          },
+          "budget_pass": true,
+          "scope": {
+            "app": "verified Windows worker and actual descendant process working sets; excludes experiment controller and parent redirector",
+            "postgres": "sum of all postgres process RSS in shared eduagent-postgres-1; not isolated database attribution; shared pages can be counted repeatedly",
+            "redis": "sum of all redis-server process RSS in dedicated eduagent-e2-acceptance-redis-ac14a149cc18",
+            "sum": "observations within one sample, read sequentially; sampled peaks, not a continuous physical-memory high-water mark"
+          },
+          "limitation": null
+        },
+        {
+          "run_id": "t160-quality-20261002T182955Z-75789e35-03-IMP-TEXT-r3",
+          "case_id": "IMP-TEXT",
+          "repeat_index": 3,
+          "source_result_ref": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\quality\\runs\\t160-quality-20261002T182955Z-75789e35-03-IMP-TEXT-r3\\result.json",
+          "resource_samples_ref": "runs\\t160-quality-20261002T182955Z-75789e35-03-IMP-TEXT-r3\\resource-samples.jsonl",
+          "actual_ocr_pages": 0,
+          "sample_count": 3,
+          "observed_sampling_span_seconds": 2.0038501999806613,
+          "window_duration_seconds": 3.683354100037832,
+          "requested_interval_seconds": 1.0,
+          "complete_at_requested_sampling_resolution": true,
+          "source_complete_flag": true,
+          "observed_sampled_peaks_bytes": {
+            "app_working_set_bytes": 164990976,
+            "postgres_container_process_rss_bytes": 196464640,
+            "redis_container_process_rss_bytes": 8597504,
+            "simultaneous_observed_sum_bytes": 370053120
+          },
+          "budget_valid_window_peaks_bytes": {
+            "app_working_set_bytes": 164990976,
+            "postgres_container_process_rss_bytes": 196464640,
+            "redis_container_process_rss_bytes": 8597504,
+            "simultaneous_observed_sum_bytes": 370053120
+          },
+          "budget_pass": true,
+          "scope": {
+            "app": "verified Windows worker and actual descendant process working sets; excludes experiment controller and parent redirector",
+            "postgres": "sum of all postgres process RSS in shared eduagent-postgres-1; not isolated database attribution; shared pages can be counted repeatedly",
+            "redis": "sum of all redis-server process RSS in dedicated eduagent-e2-acceptance-redis-ac14a149cc18",
+            "sum": "observations within one sample, read sequentially; sampled peaks, not a continuous physical-memory high-water mark"
+          },
+          "limitation": null
+        },
+        {
+          "run_id": "t160-quality-20261002T182955Z-75789e35-04-IMP-SCAN-r1",
+          "case_id": "IMP-SCAN",
+          "repeat_index": 1,
+          "source_result_ref": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\quality\\runs\\t160-quality-20261002T182955Z-75789e35-04-IMP-SCAN-r1\\result.json",
+          "resource_samples_ref": "runs\\t160-quality-20261002T182955Z-75789e35-04-IMP-SCAN-r1\\resource-samples.jsonl",
+          "actual_ocr_pages": 1,
+          "sample_count": 8,
+          "observed_sampling_span_seconds": 7.008674500044435,
+          "window_duration_seconds": 8.518680999986827,
+          "requested_interval_seconds": 1.0,
+          "complete_at_requested_sampling_resolution": true,
+          "source_complete_flag": true,
+          "observed_sampled_peaks_bytes": {
+            "app_working_set_bytes": 409235456,
+            "postgres_container_process_rss_bytes": 196464640,
+            "redis_container_process_rss_bytes": 8597504,
+            "simultaneous_observed_sum_bytes": 614297600
+          },
+          "budget_valid_window_peaks_bytes": {
+            "app_working_set_bytes": 409235456,
+            "postgres_container_process_rss_bytes": 196464640,
+            "redis_container_process_rss_bytes": 8597504,
+            "simultaneous_observed_sum_bytes": 614297600
+          },
+          "budget_pass": true,
+          "scope": {
+            "app": "verified Windows worker and actual descendant process working sets; excludes experiment controller and parent redirector",
+            "postgres": "sum of all postgres process RSS in shared eduagent-postgres-1; not isolated database attribution; shared pages can be counted repeatedly",
+            "redis": "sum of all redis-server process RSS in dedicated eduagent-e2-acceptance-redis-ac14a149cc18",
+            "sum": "observations within one sample, read sequentially; sampled peaks, not a continuous physical-memory high-water mark"
+          },
+          "limitation": null
+        },
+        {
+          "run_id": "t160-quality-20261002T182955Z-75789e35-05-IMP-SCAN-r2",
+          "case_id": "IMP-SCAN",
+          "repeat_index": 2,
+          "source_result_ref": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\quality\\runs\\t160-quality-20261002T182955Z-75789e35-05-IMP-SCAN-r2\\result.json",
+          "resource_samples_ref": "runs\\t160-quality-20261002T182955Z-75789e35-05-IMP-SCAN-r2\\resource-samples.jsonl",
+          "actual_ocr_pages": 1,
+          "sample_count": 6,
+          "observed_sampling_span_seconds": 4.99703640001826,
+          "window_duration_seconds": 6.73188300000038,
+          "requested_interval_seconds": 1.0,
+          "complete_at_requested_sampling_resolution": true,
+          "source_complete_flag": true,
+          "observed_sampled_peaks_bytes": {
+            "app_working_set_bytes": 418516992,
+            "postgres_container_process_rss_bytes": 196464640,
+            "redis_container_process_rss_bytes": 8597504,
+            "simultaneous_observed_sum_bytes": 623579136
+          },
+          "budget_valid_window_peaks_bytes": {
+            "app_working_set_bytes": 418516992,
+            "postgres_container_process_rss_bytes": 196464640,
+            "redis_container_process_rss_bytes": 8597504,
+            "simultaneous_observed_sum_bytes": 623579136
+          },
+          "budget_pass": true,
+          "scope": {
+            "app": "verified Windows worker and actual descendant process working sets; excludes experiment controller and parent redirector",
+            "postgres": "sum of all postgres process RSS in shared eduagent-postgres-1; not isolated database attribution; shared pages can be counted repeatedly",
+            "redis": "sum of all redis-server process RSS in dedicated eduagent-e2-acceptance-redis-ac14a149cc18",
+            "sum": "observations within one sample, read sequentially; sampled peaks, not a continuous physical-memory high-water mark"
+          },
+          "limitation": null
+        },
+        {
+          "run_id": "t160-quality-20261002T182955Z-75789e35-06-IMP-SCAN-r3",
+          "case_id": "IMP-SCAN",
+          "repeat_index": 3,
+          "source_result_ref": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\quality\\runs\\t160-quality-20261002T182955Z-75789e35-06-IMP-SCAN-r3\\result.json",
+          "resource_samples_ref": "runs\\t160-quality-20261002T182955Z-75789e35-06-IMP-SCAN-r3\\resource-samples.jsonl",
+          "actual_ocr_pages": 1,
+          "sample_count": 6,
+          "observed_sampling_span_seconds": 5.0014192999806255,
+          "window_duration_seconds": 6.581453100021463,
+          "requested_interval_seconds": 1.0,
+          "complete_at_requested_sampling_resolution": true,
+          "source_complete_flag": true,
+          "observed_sampled_peaks_bytes": {
+            "app_working_set_bytes": 503738368,
+            "postgres_container_process_rss_bytes": 196567040,
+            "redis_container_process_rss_bytes": 8597504,
+            "simultaneous_observed_sum_bytes": 708902912
+          },
+          "budget_valid_window_peaks_bytes": {
+            "app_working_set_bytes": 503738368,
+            "postgres_container_process_rss_bytes": 196567040,
+            "redis_container_process_rss_bytes": 8597504,
+            "simultaneous_observed_sum_bytes": 708902912
+          },
+          "budget_pass": true,
+          "scope": {
+            "app": "verified Windows worker and actual descendant process working sets; excludes experiment controller and parent redirector",
+            "postgres": "sum of all postgres process RSS in shared eduagent-postgres-1; not isolated database attribution; shared pages can be counted repeatedly",
+            "redis": "sum of all redis-server process RSS in dedicated eduagent-e2-acceptance-redis-ac14a149cc18",
+            "sum": "observations within one sample, read sequentially; sampled peaks, not a continuous physical-memory high-water mark"
+          },
+          "limitation": null
+        },
+        {
+          "run_id": "t160-quality-20261002T182955Z-75789e35-07-IMP-IMAGE-r1",
+          "case_id": "IMP-IMAGE",
+          "repeat_index": 1,
+          "source_result_ref": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\quality\\runs\\t160-quality-20261002T182955Z-75789e35-07-IMP-IMAGE-r1\\result.json",
+          "resource_samples_ref": "runs\\t160-quality-20261002T182955Z-75789e35-07-IMP-IMAGE-r1\\resource-samples.jsonl",
+          "actual_ocr_pages": 1,
+          "sample_count": 6,
+          "observed_sampling_span_seconds": 5.00754770002095,
+          "window_duration_seconds": 6.571706499962602,
+          "requested_interval_seconds": 1.0,
+          "complete_at_requested_sampling_resolution": true,
+          "source_complete_flag": true,
+          "observed_sampled_peaks_bytes": {
+            "app_working_set_bytes": 486449152,
+            "postgres_container_process_rss_bytes": 196616192,
+            "redis_container_process_rss_bytes": 8597504,
+            "simultaneous_observed_sum_bytes": 691642368
+          },
+          "budget_valid_window_peaks_bytes": {
+            "app_working_set_bytes": 486449152,
+            "postgres_container_process_rss_bytes": 196616192,
+            "redis_container_process_rss_bytes": 8597504,
+            "simultaneous_observed_sum_bytes": 691642368
+          },
+          "budget_pass": true,
+          "scope": {
+            "app": "verified Windows worker and actual descendant process working sets; excludes experiment controller and parent redirector",
+            "postgres": "sum of all postgres process RSS in shared eduagent-postgres-1; not isolated database attribution; shared pages can be counted repeatedly",
+            "redis": "sum of all redis-server process RSS in dedicated eduagent-e2-acceptance-redis-ac14a149cc18",
+            "sum": "observations within one sample, read sequentially; sampled peaks, not a continuous physical-memory high-water mark"
+          },
+          "limitation": null
+        },
+        {
+          "run_id": "t160-quality-20261002T182955Z-75789e35-08-IMP-IMAGE-r2",
+          "case_id": "IMP-IMAGE",
+          "repeat_index": 2,
+          "source_result_ref": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\quality\\runs\\t160-quality-20261002T182955Z-75789e35-08-IMP-IMAGE-r2\\result.json",
+          "resource_samples_ref": "runs\\t160-quality-20261002T182955Z-75789e35-08-IMP-IMAGE-r2\\resource-samples.jsonl",
+          "actual_ocr_pages": 1,
+          "sample_count": 6,
+          "observed_sampling_span_seconds": 5.007565200037789,
+          "window_duration_seconds": 7.006268700002693,
+          "requested_interval_seconds": 1.0,
+          "complete_at_requested_sampling_resolution": true,
+          "source_complete_flag": true,
+          "observed_sampled_peaks_bytes": {
+            "app_working_set_bytes": 502996992,
+            "postgres_container_process_rss_bytes": 196648960,
+            "redis_container_process_rss_bytes": 8597504,
+            "simultaneous_observed_sum_bytes": 708243456
+          },
+          "budget_valid_window_peaks_bytes": {
+            "app_working_set_bytes": 502996992,
+            "postgres_container_process_rss_bytes": 196648960,
+            "redis_container_process_rss_bytes": 8597504,
+            "simultaneous_observed_sum_bytes": 708243456
+          },
+          "budget_pass": true,
+          "scope": {
+            "app": "verified Windows worker and actual descendant process working sets; excludes experiment controller and parent redirector",
+            "postgres": "sum of all postgres process RSS in shared eduagent-postgres-1; not isolated database attribution; shared pages can be counted repeatedly",
+            "redis": "sum of all redis-server process RSS in dedicated eduagent-e2-acceptance-redis-ac14a149cc18",
+            "sum": "observations within one sample, read sequentially; sampled peaks, not a continuous physical-memory high-water mark"
+          },
+          "limitation": null
+        },
+        {
+          "run_id": "t160-quality-20261002T182955Z-75789e35-09-IMP-IMAGE-r3",
+          "case_id": "IMP-IMAGE",
+          "repeat_index": 3,
+          "source_result_ref": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\quality\\runs\\t160-quality-20261002T182955Z-75789e35-09-IMP-IMAGE-r3\\result.json",
+          "resource_samples_ref": "runs\\t160-quality-20261002T182955Z-75789e35-09-IMP-IMAGE-r3\\resource-samples.jsonl",
+          "actual_ocr_pages": 1,
+          "sample_count": 6,
+          "observed_sampling_span_seconds": 5.003740899963304,
+          "window_duration_seconds": 6.648114400042687,
+          "requested_interval_seconds": 1.0,
+          "complete_at_requested_sampling_resolution": true,
+          "source_complete_flag": true,
+          "observed_sampled_peaks_bytes": {
+            "app_working_set_bytes": 509468672,
+            "postgres_container_process_rss_bytes": 196661248,
+            "redis_container_process_rss_bytes": 8597504,
+            "simultaneous_observed_sum_bytes": 714727424
+          },
+          "budget_valid_window_peaks_bytes": {
+            "app_working_set_bytes": 509468672,
+            "postgres_container_process_rss_bytes": 196661248,
+            "redis_container_process_rss_bytes": 8597504,
+            "simultaneous_observed_sum_bytes": 714727424
+          },
+          "budget_pass": true,
+          "scope": {
+            "app": "verified Windows worker and actual descendant process working sets; excludes experiment controller and parent redirector",
+            "postgres": "sum of all postgres process RSS in shared eduagent-postgres-1; not isolated database attribution; shared pages can be counted repeatedly",
+            "redis": "sum of all redis-server process RSS in dedicated eduagent-e2-acceptance-redis-ac14a149cc18",
+            "sum": "observations within one sample, read sequentially; sampled peaks, not a continuous physical-memory high-water mark"
+          },
+          "limitation": null
+        },
+        {
+          "run_id": "t160-quality-20261002T182955Z-75789e35-10-IMP-MIXED-r1",
+          "case_id": "IMP-MIXED",
+          "repeat_index": 1,
+          "source_result_ref": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\quality\\runs\\t160-quality-20261002T182955Z-75789e35-10-IMP-MIXED-r1\\result.json",
+          "resource_samples_ref": "runs\\t160-quality-20261002T182955Z-75789e35-10-IMP-MIXED-r1\\resource-samples.jsonl",
+          "actual_ocr_pages": 1,
+          "sample_count": 7,
+          "observed_sampling_span_seconds": 6.006660400016699,
+          "window_duration_seconds": 7.7403711000224575,
+          "requested_interval_seconds": 1.0,
+          "complete_at_requested_sampling_resolution": true,
+          "source_complete_flag": true,
+          "observed_sampled_peaks_bytes": {
+            "app_working_set_bytes": 415404032,
+            "postgres_container_process_rss_bytes": 196997120,
+            "redis_container_process_rss_bytes": 8597504,
+            "simultaneous_observed_sum_bytes": 620998656
+          },
+          "budget_valid_window_peaks_bytes": {
+            "app_working_set_bytes": 415404032,
+            "postgres_container_process_rss_bytes": 196997120,
+            "redis_container_process_rss_bytes": 8597504,
+            "simultaneous_observed_sum_bytes": 620998656
+          },
+          "budget_pass": true,
+          "scope": {
+            "app": "verified Windows worker and actual descendant process working sets; excludes experiment controller and parent redirector",
+            "postgres": "sum of all postgres process RSS in shared eduagent-postgres-1; not isolated database attribution; shared pages can be counted repeatedly",
+            "redis": "sum of all redis-server process RSS in dedicated eduagent-e2-acceptance-redis-ac14a149cc18",
+            "sum": "observations within one sample, read sequentially; sampled peaks, not a continuous physical-memory high-water mark"
+          },
+          "limitation": null
+        },
+        {
+          "run_id": "t160-quality-20261002T182955Z-75789e35-11-IMP-MIXED-r2",
+          "case_id": "IMP-MIXED",
+          "repeat_index": 2,
+          "source_result_ref": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\quality\\runs\\t160-quality-20261002T182955Z-75789e35-11-IMP-MIXED-r2\\result.json",
+          "resource_samples_ref": "runs\\t160-quality-20261002T182955Z-75789e35-11-IMP-MIXED-r2\\resource-samples.jsonl",
+          "actual_ocr_pages": 1,
+          "sample_count": 7,
+          "observed_sampling_span_seconds": 6.00590559997363,
+          "window_duration_seconds": 8.10363959998358,
+          "requested_interval_seconds": 1.0,
+          "complete_at_requested_sampling_resolution": true,
+          "source_complete_flag": true,
+          "observed_sampled_peaks_bytes": {
+            "app_working_set_bytes": 443699200,
+            "postgres_container_process_rss_bytes": 197099520,
+            "redis_container_process_rss_bytes": 8597504,
+            "simultaneous_observed_sum_bytes": 649396224
+          },
+          "budget_valid_window_peaks_bytes": {
+            "app_working_set_bytes": 443699200,
+            "postgres_container_process_rss_bytes": 197099520,
+            "redis_container_process_rss_bytes": 8597504,
+            "simultaneous_observed_sum_bytes": 649396224
+          },
+          "budget_pass": true,
+          "scope": {
+            "app": "verified Windows worker and actual descendant process working sets; excludes experiment controller and parent redirector",
+            "postgres": "sum of all postgres process RSS in shared eduagent-postgres-1; not isolated database attribution; shared pages can be counted repeatedly",
+            "redis": "sum of all redis-server process RSS in dedicated eduagent-e2-acceptance-redis-ac14a149cc18",
+            "sum": "observations within one sample, read sequentially; sampled peaks, not a continuous physical-memory high-water mark"
+          },
+          "limitation": null
+        },
+        {
+          "run_id": "t160-quality-20261002T182955Z-75789e35-12-IMP-MIXED-r3",
+          "case_id": "IMP-MIXED",
+          "repeat_index": 3,
+          "source_result_ref": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\quality\\runs\\t160-quality-20261002T182955Z-75789e35-12-IMP-MIXED-r3\\result.json",
+          "resource_samples_ref": "runs\\t160-quality-20261002T182955Z-75789e35-12-IMP-MIXED-r3\\resource-samples.jsonl",
+          "actual_ocr_pages": 1,
+          "sample_count": 7,
+          "observed_sampling_span_seconds": 6.005358499998692,
+          "window_duration_seconds": 7.6278889999957755,
+          "requested_interval_seconds": 1.0,
+          "complete_at_requested_sampling_resolution": true,
+          "source_complete_flag": true,
+          "observed_sampled_peaks_bytes": {
+            "app_working_set_bytes": 417923072,
+            "postgres_container_process_rss_bytes": 197099520,
+            "redis_container_process_rss_bytes": 8597504,
+            "simultaneous_observed_sum_bytes": 623620096
+          },
+          "budget_valid_window_peaks_bytes": {
+            "app_working_set_bytes": 417923072,
+            "postgres_container_process_rss_bytes": 197099520,
+            "redis_container_process_rss_bytes": 8597504,
+            "simultaneous_observed_sum_bytes": 623620096
+          },
+          "budget_pass": true,
+          "scope": {
+            "app": "verified Windows worker and actual descendant process working sets; excludes experiment controller and parent redirector",
+            "postgres": "sum of all postgres process RSS in shared eduagent-postgres-1; not isolated database attribution; shared pages can be counted repeatedly",
+            "redis": "sum of all redis-server process RSS in dedicated eduagent-e2-acceptance-redis-ac14a149cc18",
+            "sum": "observations within one sample, read sequentially; sampled peaks, not a continuous physical-memory high-water mark"
+          },
+          "limitation": null
+        },
+        {
+          "run_id": "t160-quality-20261002T182955Z-75789e35-13-IMP-CROSS-r1",
+          "case_id": "IMP-CROSS",
+          "repeat_index": 1,
+          "source_result_ref": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\quality\\runs\\t160-quality-20261002T182955Z-75789e35-13-IMP-CROSS-r1\\result.json",
+          "resource_samples_ref": "runs\\t160-quality-20261002T182955Z-75789e35-13-IMP-CROSS-r1\\resource-samples.jsonl",
+          "actual_ocr_pages": 0,
+          "sample_count": 2,
+          "observed_sampling_span_seconds": 0.9998362999758683,
+          "window_duration_seconds": 3.254950199974701,
+          "requested_interval_seconds": 1.0,
+          "complete_at_requested_sampling_resolution": false,
+          "source_complete_flag": false,
+          "observed_sampled_peaks_bytes": {
+            "app_working_set_bytes": 261705728,
+            "postgres_container_process_rss_bytes": 197107712,
+            "redis_container_process_rss_bytes": 8597504,
+            "simultaneous_observed_sum_bytes": 467410944
+          },
+          "budget_valid_window_peaks_bytes": {
+            "app_working_set_bytes": null,
+            "postgres_container_process_rss_bytes": null,
+            "redis_container_process_rss_bytes": null,
+            "simultaneous_observed_sum_bytes": null
+          },
+          "budget_pass": null,
+          "scope": {
+            "app": "verified Windows worker and actual descendant process working sets; excludes experiment controller and parent redirector",
+            "postgres": "sum of all postgres process RSS in shared eduagent-postgres-1; not isolated database attribution; shared pages can be counted repeatedly",
+            "redis": "sum of all redis-server process RSS in dedicated eduagent-e2-acceptance-redis-ac14a149cc18",
+            "sum": "observations within one sample, read sequentially; sampled peaks, not a continuous physical-memory high-water mark"
+          },
+          "limitation": "Incomplete actual window: observations are retained, but no whole-window budget conclusion or replacement peak is inferred."
+        },
+        {
+          "run_id": "t160-quality-20261002T182955Z-75789e35-14-IMP-CROSS-r2",
+          "case_id": "IMP-CROSS",
+          "repeat_index": 2,
+          "source_result_ref": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\quality\\runs\\t160-quality-20261002T182955Z-75789e35-14-IMP-CROSS-r2\\result.json",
+          "resource_samples_ref": "runs\\t160-quality-20261002T182955Z-75789e35-14-IMP-CROSS-r2\\resource-samples.jsonl",
+          "actual_ocr_pages": 0,
+          "sample_count": 2,
+          "observed_sampling_span_seconds": 0.993869999947492,
+          "window_duration_seconds": 3.352096199989319,
+          "requested_interval_seconds": 1.0,
+          "complete_at_requested_sampling_resolution": false,
+          "source_complete_flag": false,
+          "observed_sampled_peaks_bytes": {
+            "app_working_set_bytes": 240807936,
+            "postgres_container_process_rss_bytes": 197308416,
+            "redis_container_process_rss_bytes": 8597504,
+            "simultaneous_observed_sum_bytes": 446713856
+          },
+          "budget_valid_window_peaks_bytes": {
+            "app_working_set_bytes": null,
+            "postgres_container_process_rss_bytes": null,
+            "redis_container_process_rss_bytes": null,
+            "simultaneous_observed_sum_bytes": null
+          },
+          "budget_pass": null,
+          "scope": {
+            "app": "verified Windows worker and actual descendant process working sets; excludes experiment controller and parent redirector",
+            "postgres": "sum of all postgres process RSS in shared eduagent-postgres-1; not isolated database attribution; shared pages can be counted repeatedly",
+            "redis": "sum of all redis-server process RSS in dedicated eduagent-e2-acceptance-redis-ac14a149cc18",
+            "sum": "observations within one sample, read sequentially; sampled peaks, not a continuous physical-memory high-water mark"
+          },
+          "limitation": "Incomplete actual window: observations are retained, but no whole-window budget conclusion or replacement peak is inferred."
+        },
+        {
+          "run_id": "t160-quality-20261002T182955Z-75789e35-15-IMP-CROSS-r3",
+          "case_id": "IMP-CROSS",
+          "repeat_index": 3,
+          "source_result_ref": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\quality\\runs\\t160-quality-20261002T182955Z-75789e35-15-IMP-CROSS-r3\\result.json",
+          "resource_samples_ref": "runs\\t160-quality-20261002T182955Z-75789e35-15-IMP-CROSS-r3\\resource-samples.jsonl",
+          "actual_ocr_pages": 0,
+          "sample_count": 2,
+          "observed_sampling_span_seconds": 0.9949059000355192,
+          "window_duration_seconds": 3.1018462000065483,
+          "requested_interval_seconds": 1.0,
+          "complete_at_requested_sampling_resolution": false,
+          "source_complete_flag": false,
+          "observed_sampled_peaks_bytes": {
+            "app_working_set_bytes": 251506688,
+            "postgres_container_process_rss_bytes": 197382144,
+            "redis_container_process_rss_bytes": 8597504,
+            "simultaneous_observed_sum_bytes": 457486336
+          },
+          "budget_valid_window_peaks_bytes": {
+            "app_working_set_bytes": null,
+            "postgres_container_process_rss_bytes": null,
+            "redis_container_process_rss_bytes": null,
+            "simultaneous_observed_sum_bytes": null
+          },
+          "budget_pass": null,
+          "scope": {
+            "app": "verified Windows worker and actual descendant process working sets; excludes experiment controller and parent redirector",
+            "postgres": "sum of all postgres process RSS in shared eduagent-postgres-1; not isolated database attribution; shared pages can be counted repeatedly",
+            "redis": "sum of all redis-server process RSS in dedicated eduagent-e2-acceptance-redis-ac14a149cc18",
+            "sum": "observations within one sample, read sequentially; sampled peaks, not a continuous physical-memory high-water mark"
+          },
+          "limitation": "Incomplete actual window: observations are retained, but no whole-window budget conclusion or replacement peak is inferred."
+        }
+      ],
+      "limits_bytes": {
+        "app_working_set_bytes": 4000000000,
+        "postgres_container_process_rss_bytes": 1500000000,
+        "redis_container_process_rss_bytes": 512000000,
+        "simultaneous_observed_sum_bytes": 6000000000
+      },
+      "additional_acceptance_gate": false,
+      "scope": "Actual quality import windows include scanned/image/mixed OCR when page evidence records OCR. Each simultaneous sum is the maximum of real within-sample component sums, never a sum of independent component maxima. Group maxima describe observations only; incomplete windows retain null budget conclusions."
+    }
+  },
+  "import_performance": {
+    "observed": 27,
+    "timed_observed": 24,
+    "ocr_observations": [
+      {
+        "case": "paper_text",
+        "mode": "cold",
+        "repeat_index": 1,
+        "actual_ocr_pages": 0
+      },
+      {
+        "case": "paper_text",
+        "mode": "cold",
+        "repeat_index": 2,
+        "actual_ocr_pages": 0
+      },
+      {
+        "case": "paper_text",
+        "mode": "cold",
+        "repeat_index": 3,
+        "actual_ocr_pages": 0
+      },
+      {
+        "case": "paper_text",
+        "mode": "warm",
+        "repeat_index": 1,
+        "actual_ocr_pages": 0
+      },
+      {
+        "case": "paper_text",
+        "mode": "warm",
+        "repeat_index": 2,
+        "actual_ocr_pages": 0
+      },
+      {
+        "case": "paper_text",
+        "mode": "warm",
+        "repeat_index": 3,
+        "actual_ocr_pages": 0
+      },
+      {
+        "case": "paper_text",
+        "mode": "warm",
+        "repeat_index": 4,
+        "actual_ocr_pages": 0
+      },
+      {
+        "case": "paper_text",
+        "mode": "warm",
+        "repeat_index": 5,
+        "actual_ocr_pages": 0
+      },
+      {
+        "case": "paper_text",
+        "mode": "warmup",
+        "repeat_index": 1,
+        "actual_ocr_pages": 0
+      },
+      {
+        "case": "workload_10_pages",
+        "mode": "cold",
+        "repeat_index": 1,
+        "actual_ocr_pages": 0
+      },
+      {
+        "case": "workload_10_pages",
+        "mode": "cold",
+        "repeat_index": 2,
+        "actual_ocr_pages": 0
+      },
+      {
+        "case": "workload_10_pages",
+        "mode": "cold",
+        "repeat_index": 3,
+        "actual_ocr_pages": 0
+      },
+      {
+        "case": "workload_10_pages",
+        "mode": "warm",
+        "repeat_index": 1,
+        "actual_ocr_pages": 0
+      },
+      {
+        "case": "workload_10_pages",
+        "mode": "warm",
+        "repeat_index": 2,
+        "actual_ocr_pages": 0
+      },
+      {
+        "case": "workload_10_pages",
+        "mode": "warm",
+        "repeat_index": 3,
+        "actual_ocr_pages": 0
+      },
+      {
+        "case": "workload_10_pages",
+        "mode": "warm",
+        "repeat_index": 4,
+        "actual_ocr_pages": 0
+      },
+      {
+        "case": "workload_10_pages",
+        "mode": "warm",
+        "repeat_index": 5,
+        "actual_ocr_pages": 0
+      },
+      {
+        "case": "workload_10_pages",
+        "mode": "warmup",
+        "repeat_index": 1,
+        "actual_ocr_pages": 0
+      },
+      {
+        "case": "workload_50_pages",
+        "mode": "cold",
+        "repeat_index": 1,
+        "actual_ocr_pages": 0
+      },
+      {
+        "case": "workload_50_pages",
+        "mode": "cold",
+        "repeat_index": 2,
+        "actual_ocr_pages": 0
+      },
+      {
+        "case": "workload_50_pages",
+        "mode": "cold",
+        "repeat_index": 3,
+        "actual_ocr_pages": 0
+      },
+      {
+        "case": "workload_50_pages",
+        "mode": "warm",
+        "repeat_index": 1,
+        "actual_ocr_pages": 0
+      },
+      {
+        "case": "workload_50_pages",
+        "mode": "warm",
+        "repeat_index": 2,
+        "actual_ocr_pages": 0
+      },
+      {
+        "case": "workload_50_pages",
+        "mode": "warm",
+        "repeat_index": 3,
+        "actual_ocr_pages": 0
+      },
+      {
+        "case": "workload_50_pages",
+        "mode": "warm",
+        "repeat_index": 4,
+        "actual_ocr_pages": 0
+      },
+      {
+        "case": "workload_50_pages",
+        "mode": "warm",
+        "repeat_index": 5,
+        "actual_ocr_pages": 0
+      },
+      {
+        "case": "workload_50_pages",
+        "mode": "warmup",
+        "repeat_index": 1,
+        "actual_ocr_pages": 0
+      }
+    ],
+    "resource_workload_scope": "The performance inputs are the fixed 1/10/50-page text workloads; recorded actual OCR page counts determine whether OCR ran. OCR memory observations are separately available in quality.resource_observation.",
+    "timed_business_success": 23,
+    "timed_within_300_seconds": 23,
+    "fifty_page_business_success": 7,
+    "fifty_page_within_300_seconds": 7,
+    "fifty_page_planned": 8,
+    "unaffected_1_and_10_page_planned": 16,
+    "unaffected_1_and_10_page_within_300_seconds": 16,
+    "unaffected_1_and_10_page_gate": true,
+    "protocol_complete": true,
+    "missing_slots": [],
+    "duplicate_slots": [],
+    "groups": [
+      {
+        "case": "paper_text",
+        "mode": "cold",
+        "planned": 3,
+        "observed": 3,
+        "success": 3,
+        "failed": 0,
+        "target_passed": 3,
+        "successful_seconds": {
+          "min": 4.564801100001205,
+          "median": 4.723759699962102,
+          "max": 4.9529319000430405
+        },
+        "complete_at_resource_sampling_resolution": true
+      },
+      {
+        "case": "paper_text",
+        "mode": "warm",
+        "planned": 5,
+        "observed": 5,
+        "success": 5,
+        "failed": 0,
+        "target_passed": 5,
+        "successful_seconds": {
+          "min": 3.628360499977134,
+          "median": 3.8386079000192694,
+          "max": 3.92391700000735
+        },
+        "complete_at_resource_sampling_resolution": true
+      },
+      {
+        "case": "paper_text",
+        "mode": "warmup",
+        "planned": 1,
+        "observed": 1,
+        "success": 1,
+        "failed": 0,
+        "target_passed": 1,
+        "successful_seconds": {
+          "min": 4.955237800022587,
+          "median": 4.955237800022587,
+          "max": 4.955237800022587
+        },
+        "complete_at_resource_sampling_resolution": true
+      },
+      {
+        "case": "workload_10_pages",
+        "mode": "cold",
+        "planned": 3,
+        "observed": 3,
+        "success": 3,
+        "failed": 0,
+        "target_passed": 3,
+        "successful_seconds": {
+          "min": 14.410306000034325,
+          "median": 15.734540899982676,
+          "max": 16.81685760000255
+        },
+        "complete_at_resource_sampling_resolution": true
+      },
+      {
+        "case": "workload_10_pages",
+        "mode": "warm",
+        "planned": 5,
+        "observed": 5,
+        "success": 5,
+        "failed": 0,
+        "target_passed": 5,
+        "successful_seconds": {
+          "min": 13.367057900002692,
+          "median": 15.114604100002907,
+          "max": 16.059651800023858
+        },
+        "complete_at_resource_sampling_resolution": true
+      },
+      {
+        "case": "workload_10_pages",
+        "mode": "warmup",
+        "planned": 1,
+        "observed": 1,
+        "success": 1,
+        "failed": 0,
+        "target_passed": 1,
+        "successful_seconds": {
+          "min": 14.631126500025857,
+          "median": 14.631126500025857,
+          "max": 14.631126500025857
+        },
+        "complete_at_resource_sampling_resolution": true
+      },
+      {
+        "case": "workload_50_pages",
+        "mode": "cold",
+        "planned": 3,
+        "observed": 3,
+        "success": 2,
+        "failed": 1,
+        "target_passed": 2,
+        "successful_seconds": {
+          "min": 66.25049200002104,
+          "median": 70.07788045002962,
+          "max": 73.90526890003821
+        },
+        "complete_at_resource_sampling_resolution": true
+      },
+      {
+        "case": "workload_50_pages",
+        "mode": "warm",
+        "planned": 5,
+        "observed": 5,
+        "success": 5,
+        "failed": 0,
+        "target_passed": 5,
+        "successful_seconds": {
+          "min": 61.43127729999833,
+          "median": 65.61799619998783,
+          "max": 87.74924849998206
+        },
+        "complete_at_resource_sampling_resolution": true
+      },
+      {
+        "case": "workload_50_pages",
+        "mode": "warmup",
+        "planned": 1,
+        "observed": 1,
+        "success": 1,
+        "failed": 0,
+        "target_passed": 1,
+        "successful_seconds": {
+          "min": 75.71614899998531,
+          "median": 75.71614899998531,
+          "max": 75.71614899998531
+        },
+        "complete_at_resource_sampling_resolution": true
+      }
+    ],
+    "resource_complete": true,
+    "observed_window_peaks_bytes": {
+      "app_working_set_bytes": 317911040,
+      "postgres_container_process_rss_bytes": 231591936,
+      "redis_container_process_rss_bytes": 8642560,
+      "simultaneous_observed_sum_bytes": 548904960
+    },
+    "observed_window_peaks_mib": {
+      "app_working_set_bytes": 303.18359375,
+      "postgres_container_process_rss_bytes": 220.86328125,
+      "redis_container_process_rss_bytes": 8.2421875,
+      "simultaneous_observed_sum_bytes": 523.4765625
+    },
+    "limits_bytes": {
+      "app_working_set_bytes": 4000000000,
+      "postgres_container_process_rss_bytes": 1500000000,
+      "redis_container_process_rss_bytes": 512000000,
+      "simultaneous_observed_sum_bytes": 6000000000
+    },
+    "memory_budget_pass": true,
+    "memory_scope": "Maximum observed per-run window values; simultaneous sum is an actual sample sum, not sum of component maxima. Shared PostgreSQL container RSS can double-count shared pages. Peaks here cover the 24 timed receive-to-terminal windows; three warmups remain separate in raw runs and are not included in these maxima."
+  },
+  "overall_observed_app_peak": {
+    "phase": "quality",
+    "case_id": "IMP-IMAGE",
+    "run_id": "t160-quality-20261002T182955Z-75789e35-09-IMP-IMAGE-r3",
+    "repeat_index": 3,
+    "bytes": 509468672,
+    "mib": 485.8671875,
+    "window_complete": true,
+    "source_result_ref": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\quality\\runs\\t160-quality-20261002T182955Z-75789e35-09-IMP-IMAGE-r3\\result.json"
+  },
+  "overall_observed_app_peak_scope": "Largest actual sampled application-window observation across quality and all performance runs, including separately identified warmups. This is a descriptive observation with its own window completeness, not a replacement for any missing per-run measurement and not a new acceptance gate.",
+  "correction_ui": {
+    "timed_observed": 24,
+    "below_500_ms": 24,
+    "planned_timed": 24,
+    "protocol_complete": true,
+    "by_group": {
+      "text-cold": {
+        "planned": 3,
+        "attempted": 3,
+        "success": 3,
+        "below_500_ms": 3,
+        "failed_or_incomplete": 0,
+        "min_ms": 354.60000002384186,
+        "median_ms": 357.5,
+        "max_ms": 420.30000001192093
+      },
+      "text-warm": {
+        "planned": 5,
+        "attempted": 5,
+        "success": 5,
+        "below_500_ms": 5,
+        "failed_or_incomplete": 0,
+        "min_ms": 315.7000000476837,
+        "median_ms": 350.39999997615814,
+        "max_ms": 360.39999997615814
+      },
+      "figure-cold": {
+        "planned": 3,
+        "attempted": 3,
+        "success": 3,
+        "below_500_ms": 3,
+        "failed_or_incomplete": 0,
+        "min_ms": 319.60000002384186,
+        "median_ms": 325.4000000357628,
+        "max_ms": 360.89999997615814
+      },
+      "figure-warm": {
+        "planned": 5,
+        "attempted": 5,
+        "success": 5,
+        "below_500_ms": 5,
+        "failed_or_incomplete": 0,
+        "min_ms": 359.19999998807907,
+        "median_ms": 378.30000001192093,
+        "max_ms": 396.0999999642372
+      },
+      "cross-cold": {
+        "planned": 3,
+        "attempted": 3,
+        "success": 3,
+        "below_500_ms": 3,
+        "failed_or_incomplete": 0,
+        "min_ms": 176.69999998807907,
+        "median_ms": 186.60000002384186,
+        "max_ms": 192
+      },
+      "cross-warm": {
+        "planned": 5,
+        "attempted": 5,
+        "success": 5,
+        "below_500_ms": 5,
+        "failed_or_incomplete": 0,
+        "min_ms": 189.89999997615814,
+        "median_ms": 193.89999997615814,
+        "max_ms": 222.80000001192093
+      }
+    },
+    "missing_slots": [],
+    "duplicate_slots": [],
+    "browser_render_success": true,
+    "browser_resource_budget": null
+  },
+  "technical": {
+    "fault_cases_passed": 4,
+    "fault_receipt_declared_pass": true,
+    "fault_receipt_pass": true,
+    "restart_receipt_declared_pass": true,
+    "restart_receipt_pass": true,
+    "restart_http_checks": 30,
+    "restart_interrupted_records": 4,
+    "junit_receipts": [
+      {
+        "path": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\technical\\final-pytest.xml",
+        "tests": 2009,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 2,
+        "passed": true
+      }
+    ],
+    "junit_counts_are_selected_execution_receipts_not_unique_test_ids": true,
+    "gate": true
+  },
+  "user_authorized_gates": {
+    "fifty_page_6_of_8_within_300_seconds": true,
+    "unaffected_1_and_10_page_gate": true,
+    "ui_20_of_24_below_500_ms": true,
+    "import_memory_budget": true,
+    "complete_protocol": true,
+    "technical": true
+  },
+  "original_strict_gates": {
+    "import_24_of_24_within_300_seconds": false,
+    "ui_24_of_24_below_500_ms": true,
+    "import_memory_budget": true,
+    "warmups_are_reported_separately": true
+  },
+  "acceptance_passed": true,
+  "original_strict_acceptance_passed": false,
+  "cloud": {
+    "actual_http_attempts": 292,
+    "requested_models": [
+      "deepseek-chat"
+    ],
+    "response_models": [
+      "deepseek-flash"
+    ],
+    "response_usage_records": 292,
+    "tokens": {
+      "prompt_tokens": 1039991,
+      "completion_tokens": 217680,
+      "total_tokens": 1257671
+    },
+    "fee": null,
+    "fee_reason": "provider fee not returned; no pricing estimate invented"
+  },
+  "missing_artifacts": [],
+  "aggregation_errors": [],
+  "input_artifacts": [
+    {
+      "path": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\corpus\\t160-assisted-20261003\\annotations.draft.json",
+      "sha256": "13095b3d62f9e0db14e92412e58923f6b2c1c83c0acf49ea356e306397e2ff9e",
+      "bytes": 47888
+    },
+    {
+      "path": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\quality\\manifest.json",
+      "sha256": "be5454ea66a451ac7f258c48e6fe4a72b5e387b0cf79253302844cf12e7d709f",
+      "bytes": 7310
+    },
+    {
+      "path": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\quality\\summary.json",
+      "sha256": "aaa4c184467a70c1f088f79ac7e02dcbf6de2293dd761d02839fd7e87bd35546",
+      "bytes": 545
+    },
+    {
+      "path": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\quality\\runs\\t160-quality-20261002T182955Z-75789e35-01-IMP-TEXT-r1\\result.json",
+      "sha256": "645751a2aacc9e58d0531b7cc4c7aa53791e98e0903d5ddf6a42cd28991b339e",
+      "bytes": 89983
+    },
+    {
+      "path": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\quality\\runs\\t160-quality-20261002T182955Z-75789e35-02-IMP-TEXT-r2\\result.json",
+      "sha256": "7fc556afdbc38de445ccd7b33c1d32bf9a80cba93e229702f524746129200c44",
+      "bytes": 89898
+    },
+    {
+      "path": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\quality\\runs\\t160-quality-20261002T182955Z-75789e35-03-IMP-TEXT-r3\\result.json",
+      "sha256": "721f02429999b6b715308ade1ba1627cb8a3456cdb086287edf7cb898c7435ad",
+      "bytes": 89977
+    },
+    {
+      "path": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\quality\\runs\\t160-quality-20261002T182955Z-75789e35-04-IMP-SCAN-r1\\result.json",
+      "sha256": "35af7d73d0626f8c8f273ec9752f102095b466da968448f8067e8821b166d9ee",
+      "bytes": 92139
+    },
+    {
+      "path": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\quality\\runs\\t160-quality-20261002T182955Z-75789e35-05-IMP-SCAN-r2\\result.json",
+      "sha256": "f00e9997d12ec8077d1d415c75547918697668b82c4df4a375852776ddbfaf62",
+      "bytes": 91317
+    },
+    {
+      "path": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\quality\\runs\\t160-quality-20261002T182955Z-75789e35-06-IMP-SCAN-r3\\result.json",
+      "sha256": "5beee04476cb01c0050b6b998f3aa7febca4443db8d212b0bd3012819822cc2a",
+      "bytes": 91487
+    },
+    {
+      "path": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\quality\\runs\\t160-quality-20261002T182955Z-75789e35-07-IMP-IMAGE-r1\\result.json",
+      "sha256": "e994c85451b8c8380c7c290c0368c7d9efa9ee9b0d153a2e24d1c6d31cdcfca4",
+      "bytes": 91483
+    },
+    {
+      "path": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\quality\\runs\\t160-quality-20261002T182955Z-75789e35-08-IMP-IMAGE-r2\\result.json",
+      "sha256": "ed6b03c48c65110221a3681671112a52242cb338f5d55e33dd41e7966d26c204",
+      "bytes": 91531
+    },
+    {
+      "path": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\quality\\runs\\t160-quality-20261002T182955Z-75789e35-09-IMP-IMAGE-r3\\result.json",
+      "sha256": "022fbc2a48d6879234ee860eac5864dbb2ad9804cb6b7a042087aa9ec2c42b4d",
+      "bytes": 91808
+    },
+    {
+      "path": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\quality\\runs\\t160-quality-20261002T182955Z-75789e35-10-IMP-MIXED-r1\\result.json",
+      "sha256": "9cd63e9ddacf274a6b1c7a8d84d6ec0eb80f8c4e96d59a3ff02d5e1025b00525",
+      "bytes": 154106
+    },
+    {
+      "path": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\quality\\runs\\t160-quality-20261002T182955Z-75789e35-11-IMP-MIXED-r2\\result.json",
+      "sha256": "642311471a4697085ce167d152676118aa8483ebf43a1cef1940a753ad9c5c6f",
+      "bytes": 155172
+    },
+    {
+      "path": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\quality\\runs\\t160-quality-20261002T182955Z-75789e35-12-IMP-MIXED-r3\\result.json",
+      "sha256": "1068be2889164a3c040c05a0dd301cbd999827440c1028557eecca3f933b153c",
+      "bytes": 153423
+    },
+    {
+      "path": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\quality\\runs\\t160-quality-20261002T182955Z-75789e35-13-IMP-CROSS-r1\\result.json",
+      "sha256": "011eebe90c15078ca2073b367b650fde0c8ce8c819a6d2101c19cf6e8e0e09ed",
+      "bytes": 50547
+    },
+    {
+      "path": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\quality\\runs\\t160-quality-20261002T182955Z-75789e35-14-IMP-CROSS-r2\\result.json",
+      "sha256": "b0057b2909630bae54b756cfc3ca6ba9286d26d7a186fdd604036b811fdacbfb",
+      "bytes": 50589
+    },
+    {
+      "path": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\quality\\runs\\t160-quality-20261002T182955Z-75789e35-15-IMP-CROSS-r3\\result.json",
+      "sha256": "559adf22aa47bd156be26da40de6958bbd91b198cdbf39fbbc01e876b85d1800",
+      "bytes": 50745
+    },
+    {
+      "path": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\quality\\metrics.csv",
+      "sha256": "9000abfc9b712fb3f952a81c668da3cd545b40ec5cde6819450fa03863a3d393",
+      "bytes": 92162
+    },
+    {
+      "path": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\import-performance\\summary.json",
+      "sha256": "93a2fcd2cd4a166709ac829d624d35b3b7757c8f958342ab3c4506e490897329",
+      "bytes": 4604
+    },
+    {
+      "path": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\import-performance\\paper_text-cold-1\\runs\\cold-1.json",
+      "sha256": "7dc6c237c4781afefbd3f36c7548f38fd7855fdd67465f12bdc9c3d8e73219d7",
+      "bytes": 14252
+    },
+    {
+      "path": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\import-performance\\paper_text-cold-2\\runs\\cold-2.json",
+      "sha256": "0a16ff0b2b684629df4bac589c33832f063112e2d30d866eb99d19714bac94fb",
+      "bytes": 14360
+    },
+    {
+      "path": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\import-performance\\paper_text-cold-3\\runs\\cold-3.json",
+      "sha256": "a08624150b16a8c6e3ac853659e0b609b83cef79c7d4d609e981dc505e5af9bd",
+      "bytes": 14170
+    },
+    {
+      "path": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\import-performance\\paper_text-warm-group\\runs\\warm-1.json",
+      "sha256": "8405ec4b1370390b11faa4945f3dd2218fbadd4ec1872c8b61eaad528e3fccdf",
+      "bytes": 14168
+    },
+    {
+      "path": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\import-performance\\paper_text-warm-group\\runs\\warm-2.json",
+      "sha256": "71e87908ef5eff716919f544b4ed3dd278d7922d5a43ab0936bbe44a0cebef09",
+      "bytes": 14355
+    },
+    {
+      "path": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\import-performance\\paper_text-warm-group\\runs\\warm-3.json",
+      "sha256": "1a3db829e68253366fddfa75c762a3e775d51974bf6447715bc837adeef3a0e0",
+      "bytes": 14314
+    },
+    {
+      "path": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\import-performance\\paper_text-warm-group\\runs\\warm-4.json",
+      "sha256": "d1108eb6c32c4aeca73ab1126be305a08cbf72a0999cc157c352b5845cafb865",
+      "bytes": 14215
+    },
+    {
+      "path": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\import-performance\\paper_text-warm-group\\runs\\warm-5.json",
+      "sha256": "7edce5aed3606f420df7d4536d375664e2fe0673405cb4a1720ea1ed63eb09d4",
+      "bytes": 14220
+    },
+    {
+      "path": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\import-performance\\paper_text-warm-group\\runs\\warmup-1.json",
+      "sha256": "cc071257578e015f4b4562f99e445ac8dd392771ed5ea5cb9d6b219ad74cd1c0",
+      "bytes": 14218
+    },
+    {
+      "path": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\import-performance\\workload_10_pages-cold-1\\runs\\cold-1.json",
+      "sha256": "775eaab55be684ab469047e315ce9378bb3a3f0bbe7d5eb67722b146ed0da50b",
+      "bytes": 60454
+    },
+    {
+      "path": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\import-performance\\workload_10_pages-cold-2\\runs\\cold-2.json",
+      "sha256": "2b651dab829884b2269c49348832f6dee85a5d12610c05748e36755a795e8b07",
+      "bytes": 60460
+    },
+    {
+      "path": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\import-performance\\workload_10_pages-cold-3\\runs\\cold-3.json",
+      "sha256": "5d46620072152e0f659dc40bb4c0427d4cf5f2594ddafeddb15b5cb4494f7e67",
+      "bytes": 58932
+    },
+    {
+      "path": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\import-performance\\workload_10_pages-warm-group\\runs\\warm-1.json",
+      "sha256": "8bc6546517f02ca7372d69bf29aadb220fd5ad6846f8ffc03eaa9de393619c60",
+      "bytes": 59526
+    },
+    {
+      "path": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\import-performance\\workload_10_pages-warm-group\\runs\\warm-2.json",
+      "sha256": "df57dca4871a03cf1192d4dbafc1a747dea937f2570247a99638095cbf2db5c5",
+      "bytes": 60535
+    },
+    {
+      "path": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\import-performance\\workload_10_pages-warm-group\\runs\\warm-3.json",
+      "sha256": "c9fbe88277665bcd15cc7a179d5e4877bef80c3b2698fdea13321c21b5e69b45",
+      "bytes": 60214
+    },
+    {
+      "path": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\import-performance\\workload_10_pages-warm-group\\runs\\warm-4.json",
+      "sha256": "316e484f4e3a3b00f20ea37e2181fc92ddea40e0fd9530a9745f7018e58c7152",
+      "bytes": 63526
+    },
+    {
+      "path": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\import-performance\\workload_10_pages-warm-group\\runs\\warm-5.json",
+      "sha256": "1672b3f5c2d522f903a465c886ca648e6d570038ae8272f470366807f61718d3",
+      "bytes": 59190
+    },
+    {
+      "path": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\import-performance\\workload_10_pages-warm-group\\runs\\warmup-1.json",
+      "sha256": "79f58f6c15d6bce54a7c57c018915585b660e98f2a9d4349fd25ef292d047822",
+      "bytes": 59263
+    },
+    {
+      "path": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\import-performance\\workload_50_pages-cold-1\\runs\\cold-1.json",
+      "sha256": "556ee6195c5487c3e82263ad3b171120d9ec953943bd9614ee1569d0ee4dcc16",
+      "bytes": 276445
+    },
+    {
+      "path": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\import-performance\\workload_50_pages-cold-2\\runs\\cold-2.json",
+      "sha256": "fb9ecf7fe51ba008be04c3cdb080ee9fc540d17fdcf46f7ee2e7d143ca460230",
+      "bytes": 295360
+    },
+    {
+      "path": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\import-performance\\workload_50_pages-cold-3\\runs\\cold-3.json",
+      "sha256": "a3ea9269dbbdec7361b8aa8a13f04cd9e08394b95f98ad2ecab041c8bf8e0ad3",
+      "bytes": 193944
+    },
+    {
+      "path": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\import-performance\\workload_50_pages-warm-group\\runs\\warm-1.json",
+      "sha256": "11b5c0fdeb8778435a6d7524cad784566a22d65fcf5b7e904c9a9753ab8dc175",
+      "bytes": 275122
+    },
+    {
+      "path": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\import-performance\\workload_50_pages-warm-group\\runs\\warm-2.json",
+      "sha256": "a92b2177e01dec9d420d3289688ca5221f216a6f6db5ffaede015e6d058d13f0",
+      "bytes": 276843
+    },
+    {
+      "path": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\import-performance\\workload_50_pages-warm-group\\runs\\warm-3.json",
+      "sha256": "ed7d944d358a6cf10a5604adf7f81d6ab58627ae86dcd4811b731fd7bce82811",
+      "bytes": 278165
+    },
+    {
+      "path": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\import-performance\\workload_50_pages-warm-group\\runs\\warm-4.json",
+      "sha256": "81fd831356239228a8528b25e09b32217b1fbdeb3eedbd06c67c75e66392b5f7",
+      "bytes": 277114
+    },
+    {
+      "path": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\import-performance\\workload_50_pages-warm-group\\runs\\warm-5.json",
+      "sha256": "f2292f2e7f36daa34240c516c7ff0069f24d4faa33af1e81b21d72efb222946f",
+      "bytes": 277626
+    },
+    {
+      "path": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\import-performance\\workload_50_pages-warm-group\\runs\\warmup-1.json",
+      "sha256": "6cf0378d3a319dc0479ea48cf9e4d2492a8a6cb450dbb2109e4b294748589f1d",
+      "bytes": 278556
+    },
+    {
+      "path": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction-summary\\summary.json",
+      "sha256": "4ffb31c1c794770138dc5c12bc7eba8e668ee69a52a677b6755fd7bc8c8228dc",
+      "bytes": 2418
+    },
+    {
+      "path": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction-summary\\attempts.json",
+      "sha256": "2499a447869de0817cb901ffa67c5ff73faef11a6dad556919f166c8fa181616",
+      "bytes": 85924
+    },
+    {
+      "path": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\technical\\fault-cases\\summary.json",
+      "sha256": "89f111029d994ea50fbafa2720d1b60d6b4683cc78c413d384a78f7d34a4add6",
+      "bytes": 5959
+    },
+    {
+      "path": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\technical\\restart\\restart-receipt.json",
+      "sha256": "f6c31cbcee18ec76dab51ca72e2cc2d5cfb0fae7a5bd3bfc0d3ee5da277a12b0",
+      "bytes": 11687
+    },
+    {
+      "path": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\technical\\final-pytest.xml",
+      "sha256": "47a4d3825324a14118dea14ac4c78678aa41b7e39daeff83f9081b7056aec47c",
+      "bytes": 295218
+    }
+  ],
+  "aggregation_script_sha256": "4dd7eb78fa0b62c1439b8f9f716349529168a5f75cae994db50c9f299a422337"
+}

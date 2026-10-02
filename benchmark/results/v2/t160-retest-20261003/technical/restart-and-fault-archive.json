@@ -1,0 +1,70 @@
+{
+  "archived_at": "2026-10-02T18:52:50.523413+00:00",
+  "private_configured_values_matched": 0,
+  "jwt_values_matched": 0,
+  "redaction_needed": false,
+  "source_commit": "9c9e79f4f2376b7a6fd84f02e5800659d210f9da",
+  "business_db_modified": false,
+  "restart_checks": 30,
+  "interrupted_records": 4,
+  "fault_cases": 4,
+  "cloud_http_requests": 0,
+  "teacher_annotation": false,
+  "application": "actual create_app/full lifespan with minimal injected Gradio shell",
+  "files": [
+    {
+      "source": ".cache\\t160-retest-20261003\\restart-receipt.json",
+      "target": "benchmark\\results\\v2\\t160-retest-20261003\\technical\\restart\\restart-receipt.json",
+      "bytes": 11687,
+      "sha256": "f6c31cbcee18ec76dab51ca72e2cc2d5cfb0fae7a5bd3bfc0d3ee5da277a12b0"
+    },
+    {
+      "source": ".cache\\t160-retest-20261003\\restart-worker-1.json",
+      "target": "benchmark\\results\\v2\\t160-retest-20261003\\technical\\restart\\restart-worker-1.json",
+      "bytes": 261,
+      "sha256": "aea01c1a6956df94e68873d820219f474b91761518bbd2fb4f29f931ed566870"
+    },
+    {
+      "source": ".cache\\t160-retest-20261003\\restart-worker-2.json",
+      "target": "benchmark\\results\\v2\\t160-retest-20261003\\technical\\restart\\restart-worker-2.json",
+      "bytes": 261,
+      "sha256": "5352690eba86e40da0799eb2d49584305bd9307ef1926b9b1e25945ea5565663"
+    },
+    {
+      "source": ".cache\\t160-retest-20261003\\restart-acceptance.log",
+      "target": "benchmark\\results\\v2\\t160-retest-20261003\\technical\\restart\\restart-acceptance.stdout.txt",
+      "bytes": 196,
+      "sha256": "b01070c334f98a4f0bc689e2a96e48b3172b14003aeacbffb9016280c3ef553b"
+    },
+    {
+      "source": ".cache\\t160-retest-20261003\\restart-server-1.log",
+      "target": "benchmark\\results\\v2\\t160-retest-20261003\\technical\\restart\\restart-server-1.stdout.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source": ".cache\\t160-retest-20261003\\restart-server-2.log",
+      "target": "benchmark\\results\\v2\\t160-retest-20261003\\technical\\restart\\restart-server-2.stdout.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source": ".cache\\t160-retest-20261003\\restart-adaptation-plan.json",
+      "target": "benchmark\\results\\v2\\t160-retest-20261003\\technical\\restart\\restart-adaptation-plan.json",
+      "bytes": 1319,
+      "sha256": "b99fd35568efc0ad16d7eb8739d0cffa8810a9870263bc1719b239ae878d177a"
+    },
+    {
+      "source": ".cache\\t160-retest-20261003\\fault_cases_retest.log",
+      "target": "benchmark\\results\\v2\\t160-retest-20261003\\technical\\fault-cases\\execution.stdout.txt",
+      "bytes": 313,
+      "sha256": "210c2046e647d8dd821e1bbc49097b06117fd9cf9285dac9040434714212ffd9"
+    },
+    {
+      "source": ".cache\\t160-retest-20261003\\fault_cases_retest.json",
+      "target": "benchmark\\results\\v2\\t160-retest-20261003\\technical\\fault-cases\\execution-receipt.json",
+      "bytes": 130,
+      "sha256": "552a1b2bb2b7094e8d4da84f53824f4ae924bcc68ca62e57557e452236c314cb"
+    }
+  ]
+}

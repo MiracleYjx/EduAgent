@@ -1,0 +1,214 @@
+F.FF.FFFF                                                                [100%]
+================================== FAILURES ===================================
+__________ test_one_observation_does_not_prove_a_full_sampling_cycle __________
+
+tmp_path = WindowsPath('D:/YJX/Cache/Temp/pytest-of-10169/pytest-175/test_one_observation_does_not_0')
+
+    def test_one_observation_does_not_prove_a_full_sampling_cycle(tmp_path):
+        result = observer(tmp_path, [observed(10.1)]).summary(start_perf=10.0, end_perf=10.4)
+        assert result["sample_count"] == 1
+        assert result["peaks"]["app_working_set_bytes"] == 300
+>       assert result["complete_at_requested_sampling_resolution"] is False
+E       assert True is False
+
+tests\unit\benchmark\test_t160_resource_sampling.py:42: AssertionError
+______ test_missing_component_cannot_pass_budget_or_be_filled_with_zero _______
+
+tmp_path = WindowsPath('D:/YJX/Cache/Temp/pytest-of-10169/pytest-175/test_missing_component_cannot_0')
+
+    def test_missing_component_cannot_pass_budget_or_be_filled_with_zero(tmp_path):
+        result = observer(tmp_path, [observed(10.1, redis=None, error={"redis": {"code": "CONTAINER_PROBE_FAILED"}}), observed(11.2, redis=None, error={"redis": {"code": "CONTAINER_PROBE_FAILED"}})]).summary(start_perf=10.0, end_perf=11.4)
+        assert result["complete_at_requested_sampling_resolution"] is False
+        assert result["peaks"]["redis_container_process_rss_bytes"] is None
+        assert result["peaks"]["simultaneous_observed_sum_bytes"] is None
+>       assert sampling.evaluate_v2_memory_budget(result)["budget_pass"] is None
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'resource_sampler' has no attribute 'evaluate_v2_memory_budget'
+
+tests\unit\benchmark\test_t160_resource_sampling.py:58: AttributeError
+_________ test_v2_budget_checks_each_component_and_same_sample_total __________
+
+    def test_v2_budget_checks_each_component_and_same_sample_total():
+        result = {
+            "complete_at_requested_sampling_resolution": True,
+            "peaks": {
+                "app_working_set_bytes": 4_000_000_001,
+                "postgres_container_process_rss_bytes": 1_000_000_000,
+                "redis_container_process_rss_bytes": 100_000_000,
+                "simultaneous_observed_sum_bytes": 5_100_000_001,
+            },
+        }
+>       report = sampling.evaluate_v2_memory_budget(result)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'resource_sampler' has no attribute 'evaluate_v2_memory_budget'
+
+tests\unit\benchmark\test_t160_resource_sampling.py:71: AttributeError
+___ test_launcher_samples_handshaken_worker_and_waits_with_finite_deadline ____
+
+tmp_path = WindowsPath('D:/YJX/Cache/Temp/pytest-of-10169/pytest-175/test_launcher_samples_handshak0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x0000013BB821F950>
+
+    def test_launcher_samples_handshaken_worker_and_waits_with_finite_deadline(tmp_path, monkeypatch):
+        directory = tmp_path / "job"
+        waits = []
+        sampled = []
+    
+        class Process:
+            pid = 111
+            args = None
+    
+            def poll(self):
+                return 0
+    
+            def wait(self, *, timeout=None):
+                waits.append(timeout)
+                assert timeout == 360, "single import budget300s plus explicit process startup/cleanup allowance60s"
+                return 0
+    
+        def popen(args, **kwargs):
+            process = Process()
+            process.args = args
+            (directory / "actual-worker.json").write_text(json.dumps({"pid": 222, "parent_pid": 111}), encoding="utf-8")
+            return process
+    
+        class Observer:
+            def __init__(self, *, pid, **kwargs):
+                sampled.append(pid)
+    
+            def start(self):
+                return self
+    
+            def stop(self):
+                return None
+    
+            def summary(self, **kwargs):
+                return {"complete_at_requested_sampling_resolution": False, "peaks": {}}
+    
+        monkeypatch.setattr(runner.subprocess, "Popen", popen)
+        monkeypatch.setattr(runner, "verified_worker_chain", lambda worker, parent: [worker, parent])
+        monkeypatch.setattr(runner, "ResourceSampler", Observer)
+>       result = runner.launch_job({"directory": str(directory), "trials": [{"mode": "cold", "repetition": 1}]}, {}, {"pg_container": "fixture-pg", "redis_container": "fixture-redis"})
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\unit\benchmark\test_t160_resource_sampling.py:130: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+benchmark\t160\performance_runner.py:777: in launch_job
+    code = process.wait()
+           ^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_t160_resource_sampling.test_launcher_samples_handshaken_worker_and_waits_with_finite_deadline.<locals>.Process object at 0x0000013BB82723C0>
+timeout = None
+
+    def wait(self, *, timeout=None):
+        waits.append(timeout)
+>       assert timeout == 360, "single import budget300s plus explicit process startup/cleanup allowance60s"
+E       AssertionError: single import budget300s plus explicit process startup/cleanup allowance60s
+E       assert None == 360
+
+tests\unit\benchmark\test_t160_resource_sampling.py:105: AssertionError
+____ test_application_working_set_tracks_only_root_and_actual_descendants _____
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x0000013BB821FE10>
+
+    def test_application_working_set_tracks_only_root_and_actual_descendants(monkeypatch):
+        monkeypatch.setattr(sampling, "windows_process_parents", lambda: {10: 9, 11: 10, 12: 11, 9: 8, 100: 9}, raising=False)
+        calls = []
+    
+        def memory(pid):
+            calls.append(pid)
+            return {10: 100, 11: 50, 12: 25}[pid], None
+    
+        monkeypatch.setattr(sampling, "windows_working_set", memory)
+>       value, rows, error = sampling.windows_application_working_set(10)
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'resource_sampler' has no attribute 'windows_application_working_set'
+
+tests\unit\benchmark\test_t160_resource_sampling.py:145: AttributeError
+____ test_descendant_exiting_during_sample_keeps_application_total_unknown ____
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x0000013BB82A32F0>
+
+    def test_descendant_exiting_during_sample_keeps_application_total_unknown(monkeypatch):
+        monkeypatch.setattr(sampling, "windows_process_parents", lambda: {10: 9, 11: 10}, raising=False)
+        monkeypatch.setattr(sampling, "windows_working_set", lambda pid: (100, None) if pid == 10 else (None, {"code": "PROCESS_OPEN_FAILED"}))
+>       value, rows, error = sampling.windows_application_working_set(10)
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'resource_sampler' has no attribute 'windows_application_working_set'
+
+tests\unit\benchmark\test_t160_resource_sampling.py:154: AttributeError
+_ test_process_deadline_retains_timeout_receipt_without_inventing_business_terminal _
+
+tmp_path = WindowsPath('D:/YJX/Cache/Temp/pytest-of-10169/pytest-175/test_process_deadline_retains_0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x0000013BB839CC00>
+
+    def test_process_deadline_retains_timeout_receipt_without_inventing_business_terminal(tmp_path, monkeypatch):
+        directory = tmp_path / "job"
+    
+        class Process:
+            pid = 111
+            args = None
+            terminated = False
+    
+            def poll(self):
+                return 1 if self.terminated else None
+    
+            def wait(self, *, timeout=None):
+                if not self.terminated:
+                    raise runner.subprocess.TimeoutExpired(self.args, timeout)
+                return 1
+    
+            def terminate(self):
+                self.terminated = True
+    
+        def popen(args, **kwargs):
+            process = Process()
+            process.args = args
+            (directory / "actual-worker.json").write_text(json.dumps({"pid": 222, "parent_pid": 111}), encoding="utf-8")
+            return process
+    
+        class Observer:
+            def __init__(self, **kwargs):
+                pass
+    
+            def start(self):
+                return self
+    
+            def stop(self):
+                return None
+    
+            def summary(self, **kwargs):
+                return {"complete_at_requested_sampling_resolution": False, "peaks": {}}
+    
+        monkeypatch.setattr(runner.subprocess, "Popen", popen)
+        monkeypatch.setattr(runner.subprocess, "run", lambda *args, **kwargs: None)
+        monkeypatch.setattr(runner, "verified_worker_chain", lambda worker, parent: [worker, parent])
+        monkeypatch.setattr(runner, "ResourceSampler", Observer)
+>       result = runner.launch_job({"directory": str(directory), "trials": [{"mode": "cold", "repetition": 1}]}, {}, {"pg_container": "fixture-pg", "redis_container": "fixture-redis"})
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\unit\benchmark\test_t160_resource_sampling.py:201: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+benchmark\t160\performance_runner.py:777: in launch_job
+    code = process.wait()
+           ^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <test_t160_resource_sampling.test_process_deadline_retains_timeout_receipt_without_inventing_business_terminal.<locals>.Process object at 0x0000013BB8272900>
+timeout = None
+
+    def wait(self, *, timeout=None):
+        if not self.terminated:
+>           raise runner.subprocess.TimeoutExpired(self.args, timeout)
+E           subprocess.TimeoutExpired: Command '['D:\\YJX\\MyCode\\EduAgent\\.cache\\e2-t157-159-20261002\\runtime\\Scripts\\python.exe', 'D:\\YJX\\MyCode\\EduAgent\\benchmark\\t160\\performance_runner.py', '--repo-root', 'D:\\YJX\\MyCode\\EduAgent', '--source-root', 'D:\\YJX\\MyCode\\EduAgent', '--run-root', 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t160-performance', '--output-root', 'D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-replay\\import-performance', '--model-dir', 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t155-ocr-20261002\\rapid-models', '--isolation-file', 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t160-performance\\isolation.json', '--source-commit', 'unrecorded', '--worker', 'D:\\YJX\\Cache\\Temp\\pytest-of-10169\\pytest-175\\test_process_deadline_retains_0\\job\\job.json']' timed out after None seconds
+
+tests\unit\benchmark\test_t160_resource_sampling.py:172: TimeoutExpired
+=========================== short test summary info ===========================
+FAILED tests/unit/benchmark/test_t160_resource_sampling.py::test_one_observation_does_not_prove_a_full_sampling_cycle
+FAILED tests/unit/benchmark/test_t160_resource_sampling.py::test_missing_component_cannot_pass_budget_or_be_filled_with_zero
+FAILED tests/unit/benchmark/test_t160_resource_sampling.py::test_v2_budget_checks_each_component_and_same_sample_total
+FAILED tests/unit/benchmark/test_t160_resource_sampling.py::test_launcher_samples_handshaken_worker_and_waits_with_finite_deadline
+FAILED tests/unit/benchmark/test_t160_resource_sampling.py::test_application_working_set_tracks_only_root_and_actual_descendants
+FAILED tests/unit/benchmark/test_t160_resource_sampling.py::test_descendant_exiting_during_sample_keeps_application_total_unknown
+FAILED tests/unit/benchmark/test_t160_resource_sampling.py::test_process_deadline_retains_timeout_receipt_without_inventing_business_terminal
+7 failed, 2 passed in 0.38s

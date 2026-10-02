@@ -1,0 +1,25 @@
+{
+  "label": "quality",
+  "source_commit": "9c9e79f4f2376b7a6fd84f02e5800659d210f9da",
+  "started_at": "2026-10-02T18:29:52.486609+00:00",
+  "command": [
+    "D:\\YJX\\MyCode\\EduAgent\\.cache\\e2-t157-159-20261002\\runtime\\Scripts\\python.exe",
+    "D:\\YJX\\MyCode\\EduAgent\\.cache\\t160-retest-20261003\\source-final\\benchmark\\t160\\quality_runner.py",
+    "--execute-confirmed",
+    "--repo-root",
+    "D:\\YJX\\MyCode\\EduAgent",
+    "--source-root",
+    "D:\\YJX\\MyCode\\EduAgent\\.cache\\t160-retest-20261003\\source-final",
+    "--run-root",
+    "D:\\YJX\\MyCode\\EduAgent\\.cache\\t160-retest-20261003",
+    "--annotations",
+    "D:\\YJX\\MyCode\\EduAgent\\benchmark\\corpus\\t160-assisted-20261003\\annotations.draft.json",
+    "--input-root",
+    "D:\\YJX\\MyCode\\EduAgent\\benchmark\\corpus\\v2-draft-20261001",
+    "--ocr-model-dir",
+    "D:\\YJX\\MyCode\\EduAgent\\.cache\\t155-ocr-20261002\\rapid-models"
+  ],
+  "exit_code": 0,
+  "completed_at": "2026-10-02T18:31:51.446702+00:00",
+  "elapsed_seconds": 118.96009810001124
+}

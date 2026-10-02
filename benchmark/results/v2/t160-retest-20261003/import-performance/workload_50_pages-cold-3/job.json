@@ -1,0 +1,18 @@
+{
+  "case": "workload_50_pages",
+  "filename": "workload_50_pages.pdf",
+  "page_count": 50,
+  "bytes": 67151,
+  "sha256": "11fceae00e43a3ea0438bdc2efcef0ce242f7254f6012398c1aeddc08bd828f5",
+  "planned_cold": 3,
+  "planned_warmup": 1,
+  "planned_warm": 5,
+  "base_logical_requests_per_success": 25,
+  "directory": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\import-performance\\workload_50_pages-cold-3",
+  "trials": [
+    {
+      "mode": "cold",
+      "repetition": 3
+    }
+  ]
+}

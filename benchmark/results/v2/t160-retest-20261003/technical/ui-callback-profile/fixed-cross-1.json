@@ -1,0 +1,24 @@
+{
+  "phase": "fixed",
+  "callback": "show_page",
+  "callback_ms": 20.584499987307936,
+  "sql_count": 10,
+  "sql_ms": 10.836999979801476,
+  "calls": {
+    "AuthService.get_current_user": [
+      4.809100006241351
+    ],
+    "FileStorageService.download": [
+      8.334299956914037
+    ],
+    "backend.app.ui.paper_import_loaders._image_html": [
+      0.41259999852627516
+    ]
+  },
+  "html_bytes": [
+    91565
+  ],
+  "output_count": 2,
+  "error": null,
+  "scope": "server callback only; browser endpoint remains required"
+}

@@ -1,0 +1,9 @@
+{
+  "files_checked": 530,
+  "all_index_blobs_equal_raw_files": true,
+  "scope": "benchmark\\results\\v2\\t160-retest-20261003",
+  "verification": "git hash-object --no-filters equals staged blob id; per-batch -text preserves bytes; this new receipt excluded from count",
+  "packaging_notes": "Explicitly included ignored raw log files; omitted only copied mypy compiler cache (not evidence). No original run data modified.",
+  "configured_secret_matches": 0,
+  "jwt_matches": 0
+}

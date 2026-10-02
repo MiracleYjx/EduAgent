@@ -1,0 +1,6 @@
+{"case": "workload_10_pages", "mode": "warmup", "repetition": 1, "status": "Pending Review", "logical_calls": 5, "requests": 5}
+{"case": "workload_10_pages", "mode": "warm", "repetition": 1, "status": "Pending Review", "logical_calls": 5, "requests": 5}
+{"case": "workload_10_pages", "mode": "warm", "repetition": 2, "status": "Pending Review", "logical_calls": 5, "requests": 5}
+{"case": "workload_10_pages", "mode": "warm", "repetition": 3, "status": "Pending Review", "logical_calls": 5, "requests": 5}
+{"case": "workload_10_pages", "mode": "warm", "repetition": 4, "status": "Pending Review", "logical_calls": 5, "requests": 5}
+{"case": "workload_10_pages", "mode": "warm", "repetition": 5, "status": "Pending Review", "logical_calls": 5, "requests": 5}

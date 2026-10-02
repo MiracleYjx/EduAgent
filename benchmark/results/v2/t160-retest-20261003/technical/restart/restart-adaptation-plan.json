@@ -1,0 +1,22 @@
+{
+  "adapted_at": "2026-10-03",
+  "executed": false,
+  "source_scripts": {
+    "restart-server.py": "c7c5aa92dcbe907c31ccd6fff7cbc44cadec85c63e410ed903e54a28e5287a39",
+    "restart-launch.py": "e078597fea3d07ad8083e893a0fc57c2e0fb6fa85b1201da9dd9d24c217fc143",
+    "restart-acceptance.py": "272f12faec6dbe1a4e332c68d9ed4136e72e855fde6a29b75bad8c4de6051787"
+  },
+  "adapted_scripts": {
+    "restart-server.py": "9395d58653cb715785da6016a6565e92e944514b9a97e01558767f370514a371",
+    "restart-launch.py": "3b1305eee99679bbe04d7b183c0c843ff7aa5afed21b0a01f104e892b1773687",
+    "restart-acceptance.py": "ccef9666f7e8db210f5dae568682d4fe8a62f31d2061a4f5e76b11c531431863"
+  },
+  "scope": "Same 30 HTTP/file-isolation checks and four interrupted imports; actual create_app/full lifespan with minimal injected Gradio shell; zero cloud and no teacher-label claim.",
+  "adaptations": [
+    "new isolated batch/database/Redis/storage and source-final",
+    "source commit read from snapshot receipt",
+    "actual worker PID handshake + launched-subtree verification (launcher PID separately retained)",
+    "fresh-output guard and unused loopback port check",
+    "On graceful-stop timeout, terminate only the verified actual API worker instead of assuming the Windows venv launcher PID is the worker."
+  ]
+}

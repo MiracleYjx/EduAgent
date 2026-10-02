@@ -1,0 +1,12 @@
+{
+  "group": "text-cold-1",
+  "launcher_pid": 84784,
+  "service_pid": 80736,
+  "service_created_at": "2026-10-02T18:52:13.122351Z",
+  "started_at": "2026-10-02T18:52:22.127949Z",
+  "port": 7871,
+  "output": "D:\\YJX\\MyCode\\EduAgent\\.cache\\t160-retest-20261003\\ui-formal\\text-cold-1",
+  "status": "stopped",
+  "sampler_launcher_pid": 80692,
+  "stopped_at": "2026-10-02T18:54:52.3744672Z"
+}

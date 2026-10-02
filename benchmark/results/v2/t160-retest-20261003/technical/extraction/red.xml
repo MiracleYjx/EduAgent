@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="11" skipped="0" tests="14" time="2.264" timestamp="2026-10-03T01:57:09.875585+08:00" hostname="YJX"><testcase classname="tests.unit.ingestion.test_t160_extraction_constraints" name="test_unknown_evidence_keys_are_rejected_at_the_provider_schema_boundary" time="0.002"><failure message="Failed: DID NOT RAISE ValidationError">def test_unknown_evidence_keys_are_rejected_at_the_provider_schema_boundary():
+        # The prior real 50-page failures supplied knowledge_points evidence.
+&gt;       with pytest.raises(ValidationError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValidationError
+
+tests\unit\ingestion\test_t160_extraction_constraints.py:46: Failed</failure></testcase><testcase classname="tests.unit.ingestion.test_t160_extraction_constraints" name="test_published_schema_restricts_evidence_keys_to_the_accepted_contract" time="0.005"><failure message="KeyError: 'propertyNames'">def test_published_schema_restricts_evidence_keys_to_the_accepted_contract():
+        schema = ExtractionBatch.model_json_schema()["$defs"]["Candidate"]["properties"]
+&gt;       assert set(schema["evidence"]["propertyNames"]["enum"]) == {
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+            "reference_answer", "scoring_rubric", "analysis",
+        }
+E       KeyError: 'propertyNames'
+
+tests\unit\ingestion\test_t160_extraction_constraints.py:54: KeyError</failure></testcase><testcase classname="tests.unit.ingestion.test_t160_extraction_constraints" name="test_each_populated_answer_field_requires_its_own_nonempty_evidence[\u539f\u6587\u8bf4\u660e\u3002-reference_answer]" time="0.001"><failure message="Failed: DID NOT RAISE ValidationError">field = 'reference_answer', value = '原文说明。'
+
+    @pytest.mark.parametrize("field", ["reference_answer", "scoring_rubric", "analysis"])
+    @pytest.mark.parametrize("value", ["原文说明。", "   "])
+    def test_each_populated_answer_field_requires_its_own_nonempty_evidence(field, value):
+&gt;       with pytest.raises(ValidationError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValidationError
+
+tests\unit\ingestion\test_t160_extraction_constraints.py:62: Failed</failure></testcase><testcase classname="tests.unit.ingestion.test_t160_extraction_constraints" name="test_each_populated_answer_field_requires_its_own_nonempty_evidence[\u539f\u6587\u8bf4\u660e\u3002-scoring_rubric]" time="0.001"><failure message="Failed: DID NOT RAISE ValidationError">field = 'scoring_rubric', value = '原文说明。'
+
+    @pytest.mark.parametrize("field", ["reference_answer", "scoring_rubric", "analysis"])
+    @pytest.mark.parametrize("value", ["原文说明。", "   "])
+    def test_each_populated_answer_field_requires_its_own_nonempty_evidence(field, value):
+&gt;       with pytest.raises(ValidationError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValidationError
+
+tests\unit\ingestion\test_t160_extraction_constraints.py:62: Failed</failure></testcase><testcase classname="tests.unit.ingestion.test_t160_extraction_constraints" name="test_each_populated_answer_field_requires_its_own_nonempty_evidence[\u539f\u6587\u8bf4\u660e\u3002-analysis]" time="0.001"><failure message="Failed: DID NOT RAISE ValidationError">field = 'analysis', value = '原文说明。'
+
+    @pytest.mark.parametrize("field", ["reference_answer", "scoring_rubric", "analysis"])
+    @pytest.mark.parametrize("value", ["原文说明。", "   "])
+    def test_each_populated_answer_field_requires_its_own_nonempty_evidence(field, value):
+&gt;       with pytest.raises(ValidationError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValidationError
+
+tests\unit\ingestion\test_t160_extraction_constraints.py:62: Failed</failure></testcase><testcase classname="tests.unit.ingestion.test_t160_extraction_constraints" name="test_each_populated_answer_field_requires_its_own_nonempty_evidence[   -reference_answer]" time="0.001"><failure message="Failed: DID NOT RAISE ValidationError">field = 'reference_answer', value = '   '
+
+    @pytest.mark.parametrize("field", ["reference_answer", "scoring_rubric", "analysis"])
+    @pytest.mark.parametrize("value", ["原文说明。", "   "])
+    def test_each_populated_answer_field_requires_its_own_nonempty_evidence(field, value):
+&gt;       with pytest.raises(ValidationError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValidationError
+
+tests\unit\ingestion\test_t160_extraction_constraints.py:62: Failed</failure></testcase><testcase classname="tests.unit.ingestion.test_t160_extraction_constraints" name="test_each_populated_answer_field_requires_its_own_nonempty_evidence[   -scoring_rubric]" time="0.001"><failure message="Failed: DID NOT RAISE ValidationError">field = 'scoring_rubric', value = '   '
+
+    @pytest.mark.parametrize("field", ["reference_answer", "scoring_rubric", "analysis"])
+    @pytest.mark.parametrize("value", ["原文说明。", "   "])
+    def test_each_populated_answer_field_requires_its_own_nonempty_evidence(field, value):
+&gt;       with pytest.raises(ValidationError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValidationError
+
+tests\unit\ingestion\test_t160_extraction_constraints.py:62: Failed</failure></testcase><testcase classname="tests.unit.ingestion.test_t160_extraction_constraints" name="test_each_populated_answer_field_requires_its_own_nonempty_evidence[   -analysis]" time="0.001"><failure message="Failed: DID NOT RAISE ValidationError">field = 'analysis', value = '   '
+
+    @pytest.mark.parametrize("field", ["reference_answer", "scoring_rubric", "analysis"])
+    @pytest.mark.parametrize("value", ["原文说明。", "   "])
+    def test_each_populated_answer_field_requires_its_own_nonempty_evidence(field, value):
+&gt;       with pytest.raises(ValidationError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValidationError
+
+tests\unit\ingestion\test_t160_extraction_constraints.py:62: Failed</failure></testcase><testcase classname="tests.unit.ingestion.test_t160_extraction_constraints" name="test_nonliteral_answer_is_rejected_before_business_persistence" time="0.001"><failure message="Failed: DID NOT RAISE ValidationError">def test_nonliteral_answer_is_rejected_before_business_persistence():
+&gt;       with pytest.raises(ValidationError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValidationError
+
+tests\unit\ingestion\test_t160_extraction_constraints.py:67: Failed</failure></testcase><testcase classname="tests.unit.ingestion.test_t160_extraction_constraints" name="test_missing_fields_stay_unknown_and_literal_fields_keep_their_own_evidence" time="0.001" /><testcase classname="tests.unit.ingestion.test_t160_extraction_constraints" name="test_valid_schema_does_not_allow_a_fabricated_original_excerpt" time="0.005" /><testcase classname="tests.unit.ingestion.test_t160_extraction_constraints" name="test_completed_indices_are_explicit_and_do_not_reuse_original_numbers" time="0.008"><failure message="KeyError: 'allowed_update_indices'">def test_completed_indices_are_explicit_and_do_not_reuse_original_numbers():
+        pages = [TextPage(uuid4(), 1, "8. 原题", "TEXT"),
+                 TextPage(uuid4(), 2, "8. 原稿答案：甲", "TEXT")]
+        provider = Provider([
+            {"questions": [candidate()]},
+            {"updates": [{"question_index": 1, "reference_answer": "甲",
+                          "evidence": {"reference_answer": evidence("8. 原稿答案：甲", 2)}}]},
+        ])
+        batches = extract(pages, provider)
+&gt;       assert provider.inputs[0]["allowed_update_indices"] == []
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'allowed_update_indices'
+
+tests\unit\ingestion\test_t160_extraction_constraints.py:103: KeyError</failure></testcase><testcase classname="tests.unit.ingestion.test_t160_extraction_constraints" name="test_same_batch_question_cannot_be_smuggled_into_completed_updates" time="0.005" /><testcase classname="tests.unit.ingestion.test_t160_extraction_constraints" name="test_actual_provider_uses_existing_bounded_retry_for_schema_invalid_evidence" time="0.009"><failure message="AssertionError: assert 1 == 2&#10; +  where 1 = &lt;AsyncMock id='2739102216416'&gt;.await_count">def test_actual_provider_uses_existing_bounded_retry_for_schema_invalid_evidence():
+        invalid = {"questions": [candidate(evidence={"knowledge_points": evidence()})]}
+        valid = {"questions": [candidate(reference_answer="甲",
+                                        evidence={"reference_answer": evidence()})]}
+        responses = [SimpleNamespace(choices=[SimpleNamespace(message=SimpleNamespace(
+            content=json.dumps(output, ensure_ascii=False),
+        ))]) for output in (invalid, valid)]
+        create = AsyncMock(side_effect=responses)
+        provider = DeepSeekProvider(
+            build_test_settings(deepseek_api_key="test-only-placeholder"),
+            client=SimpleNamespace(chat=SimpleNamespace(completions=SimpleNamespace(create=create))),
+            retry_policy=RetryPolicy(backoff_seconds=(0,), jitter_seconds=0),
+        )
+        parsed = asyncio.run(provider.generate_structured(
+            [{"role": "user", "content": "Extract JSON"}], ExtractionBatch,
+        ))
+&gt;       assert create.await_count == 2
+E       AssertionError: assert 1 == 2
+E        +  where 1 = &lt;AsyncMock id='2739102216416'&gt;.await_count
+
+tests\unit\ingestion\test_t160_extraction_constraints.py:136: AssertionError</failure></testcase></testsuite></testsuites>

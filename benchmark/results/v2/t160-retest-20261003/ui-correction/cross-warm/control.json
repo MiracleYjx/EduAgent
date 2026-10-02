@@ -1,0 +1,12 @@
+{
+  "group": "cross-warm",
+  "launcher_pid": 87700,
+  "service_pid": 79780,
+  "service_created_at": "2026-10-02T19:04:47.858894Z",
+  "started_at": "2026-10-02T19:04:56.7377269Z",
+  "port": 7871,
+  "output": "D:\\YJX\\MyCode\\EduAgent\\.cache\\t160-retest-20261003\\ui-formal\\cross-warm",
+  "status": "stopped",
+  "sampler_launcher_pid": 79840,
+  "stopped_at": "2026-10-02T19:06:33.6631542Z"
+}

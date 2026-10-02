@@ -1,0 +1,15 @@
+{
+  "batch_id": "t160-quality-20261002T182955Z-75789e35",
+  "planned": 15,
+  "attempted": 15,
+  "completed_pending_review": 15,
+  "failed_imports": 0,
+  "runner_errors": 0,
+  "actual_http_attempts": 15,
+  "independent_teacher_labeled_cases": 0,
+  "reference_origin": "user_confirmed_ai_assisted",
+  "quality_thresholds": null,
+  "quality_acceptance": "not_claimed",
+  "completed_at": "2026-10-02T18:31:50.892773+00:00",
+  "output": "D:\\YJX\\MyCode\\EduAgent\\.cache\\t160-retest-20261003\\t160-quality-20261002T182955Z-75789e35"
+}

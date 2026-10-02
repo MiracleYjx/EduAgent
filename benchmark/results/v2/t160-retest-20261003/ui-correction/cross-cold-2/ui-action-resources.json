@@ -1,0 +1,24 @@
+{
+  "actions": [
+    {
+      "run_id": "cross-cold-2",
+      "warmup": false,
+      "service_pid": 84580,
+      "started_at": "2026-10-02T19:03:42.299Z",
+      "ended_at": "2026-10-02T19:03:42.491Z",
+      "complete_cycle_count_inside_window": 0,
+      "peaks_inside_complete_cycles": {
+        "app_working_set_bytes": null,
+        "postgres_container_process_rss_bytes": null,
+        "redis_container_process_rss_bytes": null,
+        "simultaneous_observed_sum_bytes": null
+      },
+      "resource_budget_acceptance": null,
+      "reason": "One-second sparse sampling cannot establish complete peaks for subsecond UI actions; missing observations remain null."
+    }
+  ],
+  "sample_timestamp_semantics": "sampled_at is recorded at the end of actual component reads; cycle begin is derived by subtracting the recorded monotonic duration",
+  "sampling_interval_seconds": 1.0,
+  "browser_resource_scope": "not measured",
+  "lifetime_peaks_substituted_for_actions": false
+}

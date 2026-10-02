@@ -1,0 +1,23 @@
+F                                                                        [100%]
+================================== FAILURES ===================================
+___ test_navigation_subscribes_once_to_value_changes_for_mouse_and_keyboard ___
+tests\unit\ui\test_t160_correction_loading.py:127: in test_navigation_subscribes_once_to_value_changes_for_mouse_and_keyboard
+    assert targets == ["change"]
+E   AssertionError: assert ['input'] == ['change']
+E     
+E     At index 0 diff: 'input' != 'change'
+E     Use -v to get more diff
+============================== warnings summary ===============================
+..\..\..\develop\Python\Lib\site-packages\fastapi\testclient.py:1
+  D:\develop\Python\Lib\site-packages\fastapi\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+tests/unit/ui/test_t160_correction_loading.py::test_navigation_subscribes_once_to_value_changes_for_mouse_and_keyboard
+tests/unit/ui/test_t160_correction_loading.py::test_navigation_subscribes_once_to_value_changes_for_mouse_and_keyboard
+  D:\develop\Python\Lib\site-packages\gradio\components\dataframe.py:197: UserWarning: The `column_limits` parameter is not yet implemented.
+    warnings.warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/unit/ui/test_t160_correction_loading.py::test_navigation_subscribes_once_to_value_changes_for_mouse_and_keyboard
+1 failed, 4 deselected, 3 warnings in 9.86s

@@ -1,0 +1,51 @@
+{
+  "case": "IMP-OCR-FAIL",
+  "filename": "paper_scan.pdf",
+  "bytes": 154527,
+  "sha256": "16aaa00c8b41ca1f5e5e77d6248e918953d054e725ebfb30548fec84cfe9ba5b",
+  "expected_status": "Failed",
+  "expected_error": "PAPER_OCR_FAILED",
+  "fault_injection": "OCR provider raises OCR_CALL_FAILED explicitly",
+  "started_at": "2026-10-02T18:50:44.151095+00:00",
+  "steps": [
+    {
+      "stage": "upload",
+      "status": "Uploaded"
+    },
+    {
+      "stage": "runner_terminal",
+      "status": "Failed",
+      "error_code": "PAPER_OCR_FAILED"
+    }
+  ],
+  "bytechecks": [
+    {
+      "file_id": "d_239108f034b14d6494004eb9b04c076e",
+      "bytes": 154527,
+      "sha256": "16aaa00c8b41ca1f5e5e77d6248e918953d054e725ebfb30548fec84cfe9ba5b",
+      "matches_registered_or_input_sha256": true
+    },
+    {
+      "file_id": "p_fc0bbe8db81641cd843ea5e047d2ce8c",
+      "bytes": 157944,
+      "sha256": "31cdc03d0d958c33d6d7815e330f521febe40e23eab0122f687344f8ed311199",
+      "matches_registered_or_input_sha256": true
+    }
+  ],
+  "injected_errors": [
+    {
+      "stage": "OCR",
+      "code": "OCR_CALL_FAILED",
+      "page_bytes": 157944
+    }
+  ],
+  "paper_import_id": "94e425ad-c84e-4bc4-bf58-e1dd1a2928df",
+  "status": "Failed",
+  "error_code": "PAPER_OCR_FAILED",
+  "error_message": "第 1 页 OCR失败：OCR_CALL_FAILED：Explicit T160 pipeline acceptance fault injection; not a model-quality result.",
+  "page_count": 1,
+  "saved_page_count": 1,
+  "question_count": 0,
+  "passed": true,
+  "completed_at": "2026-10-02T18:50:44.491143+00:00"
+}

@@ -1,0 +1,123 @@
+{
+  "stage": "after_image_assistance",
+  "snapshot": {
+    "id": "bc75afe9-34e7-495d-a8b3-8e20ae32573b",
+    "course_id": "26d0e53f-ba21-4fa9-8b90-14533499ab70",
+    "uploaded_by": "8e474f62-9a0b-4f20-bb1a-c18a2c2e6a23",
+    "document_id": "fb2ba2bc-a4a2-432f-9204-bb836a89f8d5",
+    "original_filename": "paper_cross_page.pdf",
+    "page_count": 2,
+    "status": "Pending Review",
+    "error_code": null,
+    "error_message": null,
+    "created_at": "2026-10-02T18:31:41.109095Z",
+    "updated_at": "2026-10-02T18:31:44.307348Z",
+    "original_file_id": "d_fb2ba2bca4a2432f9204bb836a89f8d5",
+    "parsed_page_count": 2,
+    "question_count": 1,
+    "pages": [
+      {
+        "id": "2fb3856a-c663-4145-9611-7fcb392dcdb0",
+        "paper_import_id": "bc75afe9-34e7-495d-a8b3-8e20ae32573b",
+        "page_number": 1,
+        "file_id": "p_2fb3856ac663414596117fcb392dcdb0",
+        "width": 1241,
+        "height": 1754,
+        "ocr_text": null,
+        "ocr_confidence": null
+      },
+      {
+        "id": "d7cc2b45-eb4a-470d-a46a-c8e6b1ff27c1",
+        "paper_import_id": "bc75afe9-34e7-495d-a8b3-8e20ae32573b",
+        "page_number": 2,
+        "file_id": "p_d7cc2b45eb4a470da46ac8e6b1ff27c1",
+        "width": 1241,
+        "height": 1754,
+        "ocr_text": null,
+        "ocr_confidence": null
+      }
+    ],
+    "questions": [
+      {
+        "question_type": "SHORT_ANSWER",
+        "content": "阅读下页流程图：输入 x = 3，计算输出 y。\n按下图流程完成计算。",
+        "options": null,
+        "reference_answer": null,
+        "scoring_rubric": "正确中间计算 2.00；最终输出 3.00。",
+        "score": "5.00",
+        "correction_notes": "T160 approved AI-assisted reference; not independent teacher annotation.",
+        "question_number": "4",
+        "analysis": null,
+        "knowledge_points": [],
+        "source_regions": null,
+        "assets": [
+          {
+            "id": "4a269732-b9bf-46d1-be5c-7a9cca647c34",
+            "file_id": "a_4a269732b9bf46d1be5c7a9cca647c34",
+            "asset_type": "diagram",
+            "source_page_id": "d7cc2b45-eb4a-470d-a46a-c8e6b1ff27c1",
+            "region": {
+              "bbox": [
+                412,
+                425,
+                787,
+                793
+              ]
+            },
+            "caption": null,
+            "student_visible": false
+          }
+        ],
+        "source_page_ids": [
+          "2fb3856a-c663-4145-9611-7fcb392dcdb0",
+          "d7cc2b45-eb4a-470d-a46a-c8e6b1ff27c1"
+        ],
+        "extracted_by": "LLM",
+        "extraction_confidence": null,
+        "id": "05bc28d9-f69f-4447-bc2f-d657f8d2e921",
+        "paper_import_id": "bc75afe9-34e7-495d-a8b3-8e20ae32573b",
+        "order_index": 1,
+        "order_preserved": true,
+        "status": "Pending Correction",
+        "question_id": null,
+        "image_assessment": {
+          "context_revision": 1,
+          "runs": [],
+          "manual_checks": [],
+          "imported_review": null
+        },
+        "created_at": "2026-10-02T18:31:44.300143Z",
+        "updated_at": "2026-10-02T18:48:48.011227Z"
+      }
+    ],
+    "file_diagnostics": []
+  },
+  "reference_sha256": "13095b3d62f9e0db14e92412e58923f6b2c1c83c0acf49ea356e306397e2ff9e",
+  "independent_teacher_review": false,
+  "cloud_calls": 0,
+  "image_association_comparison": [
+    {
+      "reference_identity": "239d78f4-ab44-59ec-ab7f-e11e454e26f1",
+      "extracted_question_id": "05bc28d9-f69f-4447-bc2f-d657f8d2e921",
+      "expected": [
+        {
+          "asset_type": "diagram",
+          "source_page_number": 2,
+          "order_index": 1
+        }
+      ],
+      "actual": [
+        {
+          "asset_type": "diagram",
+          "source_page_number": 2,
+          "order_index": 1
+        }
+      ],
+      "evaluable": true,
+      "correct": true,
+      "reason": "ordered type/page association only; independent teacher/pixel correctness not claimed"
+    }
+  ],
+  "image_association_numerator": 1,
+  "image_association_denominator": 1
+}

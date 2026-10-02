@@ -1,0 +1,191 @@
+{
+  "kind": "real-import-performance-plan",
+  "planned_at": "2026-10-02T18:19:28.052390+00:00",
+  "cloud_calls_in_plan_only": 0,
+  "teacher_annotation": false,
+  "source_commit": "9c9e79f4f2376b7a6fd84f02e5800659d210f9da",
+  "concurrency": 1,
+  "cases": [
+    {
+      "case": "paper_text",
+      "filename": "paper_text.pdf",
+      "page_count": 1,
+      "bytes": 72250,
+      "sha256": "74e4f9a21fd7bf778bab474f89bcede2680010e957cc435774205dbaa648c167",
+      "planned_cold": 3,
+      "planned_warmup": 1,
+      "planned_warm": 5,
+      "base_logical_requests_per_success": 1
+    },
+    {
+      "case": "workload_10_pages",
+      "filename": "workload_10_pages.pdf",
+      "page_count": 10,
+      "bytes": 38362,
+      "sha256": "bdca8f730b989d0213f0efc7d31cdb2f252705c0d3a3da2c9c0736dffb14bee6",
+      "planned_cold": 3,
+      "planned_warmup": 1,
+      "planned_warm": 5,
+      "base_logical_requests_per_success": 5
+    },
+    {
+      "case": "workload_50_pages",
+      "filename": "workload_50_pages.pdf",
+      "page_count": 50,
+      "bytes": 67151,
+      "sha256": "11fceae00e43a3ea0438bdc2efcef0ce242f7254f6012398c1aeddc08bd828f5",
+      "planned_cold": 3,
+      "planned_warmup": 1,
+      "planned_warm": 5,
+      "base_logical_requests_per_success": 25
+    }
+  ],
+  "total_imports": 27,
+  "measured_imports": 24,
+  "warmup_imports": 3,
+  "cold_processes": 9,
+  "warm_processes": 3,
+  "base_logical_calls_if_all_batches_reached": 279,
+  "model": {
+    "provider": "deepseek",
+    "configured_model": "deepseek-chat",
+    "endpoint_host": "api.deepseek.com",
+    "prompt_version": "paper-extraction-v2",
+    "batch_size": 2,
+    "retry_policy": {
+      "max_retries": 2,
+      "backoff_seconds": [
+        1.0,
+        2.0
+      ],
+      "max_retry_after": 30.0,
+      "jitter_seconds": 0.1
+    },
+    "sdk_max_retries": 0,
+    "timeout_seconds": 30,
+    "fallback": null
+  },
+  "ocr": {
+    "provider": "rapidocr",
+    "model": "PP-OCRv5-mobile",
+    "model_files": [
+      {
+        "filename": "ch_PP-OCRv5_det_mobile.onnx",
+        "bytes": 4819576,
+        "sha256": "4d97c44a20d30a81aad087d6a396b08f786c4635742afc391f6621f5c6ae78ae"
+      },
+      {
+        "filename": "ch_PP-OCRv5_rec_mobile.onnx",
+        "bytes": 16631306,
+        "sha256": "5825fc7ebf84ae7a412be049820b4d86d77620f204a041697b0494669b1742c5"
+      },
+      {
+        "filename": "ch_ppocr_mobile_v2.0_cls_mobile.onnx",
+        "bytes": 585532,
+        "sha256": "e47acedf663230f8863ff1ab0e64dd2d82b838fceb5957146dab185a89d6215c"
+      }
+    ],
+    "production_default_ocr_argument": null,
+    "cross_import_ocr_instance_reused": false,
+    "versions": {
+      "rapidocr": "3.9.2",
+      "onnxruntime": "1.30.0",
+      "pypdf": "6.18.1",
+      "pypdfium2": "5.13.0",
+      "openai": "2.54.0"
+    }
+  },
+  "process_protocol": "Each cold trial starts a new actual create_app/full-lifespan process. Each warm group uses one process, same-scale warmup then five new imports. Production Runner OCR/provider factories, initialization and retries remain unchanged. OS/disk model caches are not cleared.",
+  "timing_boundary": {
+    "start": "Immediately before PaperImportService.upload receives an already-received in-memory file. Includes format validation, original file/receipt writes, database registration and all subsequent import stages.",
+    "upload_stage": "upload entry through its returned Uploaded view; separately observe store_document start/end. store_document return precedes resource registration commit; upload return includes commit/receipt.",
+    "end": "Pure after_commit observer records actual durable Pending Review or Failed transition. Owned provider cleanup and final DTO read are recorded separately, outside terminal elapsed.",
+    "excluded": "Application startup, benchmark local input-file read before upload, client network transfer, teacher reading/correction/confirmation, and model resource downloads.",
+    "failure": "Every planned run retained. No rerun, deleted failed slot or inferred success. Upload failures without a persisted import record are explicit operation failures."
+  },
+  "resources": {
+    "interval_seconds": 1,
+    "windows": "application child working set; experiment controller excluded",
+    "postgres": "shared container all postgres process RSS sum; includes other database workloads and may count shared pages repeatedly",
+    "redis": "dedicated container all redis-server process RSS sum",
+    "missing": "null and incomplete, never zero",
+    "scope": "API backend application, minimal Gradio shell; no claim of full UI/EXE acceptance"
+  },
+  "budgets": {
+    "import_terminal_seconds_strict_less_than": 300,
+    "interpretation": "Original T142 all-24 criterion and user-authorized T160 50-page at-least-6/8 criterion are reported separately. Warmups separate. Memory soft budgets use complete measured application-subtree/RSS observations, not unique physical memory or EXE proof.",
+    "memory": {
+      "protocol": "plan-v2-memory-soft-upper-budgets",
+      "unit_policy": "GB=1000000000 bytes; MB=1000000 bytes; display MiB=1048576 bytes",
+      "limits_bytes": {
+        "app_working_set_bytes": 4000000000,
+        "postgres_container_process_rss_bytes": 1500000000,
+        "redis_container_process_rss_bytes": 512000000,
+        "simultaneous_observed_sum_bytes": 6000000000
+      },
+      "limits_mib": {
+        "app_working_set_bytes": 3814.697265625,
+        "postgres_container_process_rss_bytes": 1430.511474609375,
+        "redis_container_process_rss_bytes": 488.28125,
+        "simultaneous_observed_sum_bytes": 5722.0458984375
+      },
+      "observed_peaks_bytes": {
+        "app_working_set_bytes": null,
+        "postgres_container_process_rss_bytes": null,
+        "redis_container_process_rss_bytes": null,
+        "simultaneous_observed_sum_bytes": null
+      },
+      "observed_peaks_mib": {
+        "app_working_set_bytes": null,
+        "postgres_container_process_rss_bytes": null,
+        "redis_container_process_rss_bytes": null,
+        "simultaneous_observed_sum_bytes": null
+      },
+      "observed_over_budget": {
+        "app_working_set_bytes": null,
+        "postgres_container_process_rss_bytes": null,
+        "redis_container_process_rss_bytes": null,
+        "simultaneous_observed_sum_bytes": null
+      },
+      "resource_complete": false,
+      "component_pass": {
+        "app_working_set_bytes": null,
+        "postgres_container_process_rss_bytes": null,
+        "redis_container_process_rss_bytes": null,
+        "simultaneous_observed_sum_bytes": null
+      },
+      "budget_pass": null,
+      "scope": "Observed application subtree working set plus PostgreSQL/Redis process RSS. Shared pages may be counted repeatedly; not unique physical memory or EXE acceptance."
+    },
+    "process_deadline_seconds": "300 per planned trial plus 60 total startup/cleanup allowance; handshake has independent30s limit"
+  },
+  "historical_acceptance_environment": {
+    "cpu": "AMD Ryzen 5 4600H",
+    "physical_cores": 6,
+    "logical_processors": 12,
+    "total_ram_bytes": 16505966592,
+    "disk": "SAMSUNG MZVLB512HBJQ-000L2 SSD NVMe",
+    "postgres": "16.15 Debian",
+    "pgvector": "0.8.6",
+    "evidence": "root agent actual read-only host/container checks",
+    "cpu_affinity_or_container_limits_set": false,
+    "matches_2_to_4_vcpu_budget_machine": false,
+    "sla_extrapolation_allowed": false
+  },
+  "result_dir": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\import-performance",
+  "environment_preserved": ".env and production source unchanged",
+  "observability": "Read-only wrappers call original provider and file-store methods unchanged. Count logical calls and Provider invocations separately from actual HTTP attempt hooks on the real AsyncOpenAI httpx client. Request hook entering is a transport attempt, not proof of server receipt; response hooks separately record status. Capture schema output and model/usage. No headers, complete Prompt or credentials retained.",
+  "important_source_sha256": {
+    "backend/app/services/paper_import_service.py": "b3dd30391c020e024d5d34398e1f9acdd5d380ffc8b565f95b9f4ccfc4a2c359",
+    "backend/app/ai/llm/deepseek.py": "5904a3f9b769214a562d71c985af9e04cc234b208736478eb9fceb0c8e26d301",
+    "backend/app/ai/ingestion/ocr/rapidocr.py": "13fcaad2cf5c44cb50d6b696ad902e15d080703f3c335cca97a32d9f918b37c9",
+    "backend/app/ai/paper_extraction/service.py": "bf6146d7a3de9a75d7069c95765d057a5149d1c7aab047e056ae4eb1d061a3ac"
+  },
+  "read_only_resource_probe": {
+    "app_bytes": 96358400,
+    "postgres_bytes": 166514688,
+    "redis_bytes": 8597504,
+    "errors": {},
+    "scope": "observer setup verification only, not timed workload evidence"
+  }
+}

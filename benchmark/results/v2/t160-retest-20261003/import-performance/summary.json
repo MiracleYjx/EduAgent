@@ -1,0 +1,171 @@
+{
+  "kind": "real-import-performance-summary",
+  "completed_at": "2026-10-02T18:47:32.043453+00:00",
+  "planned_total": 27,
+  "observed_total": 27,
+  "measured_count": 24,
+  "all_planned_business_success": false,
+  "all_measured_within_300_seconds": false,
+  "all_measured_resource_complete": true,
+  "all_measured_memory_budget_pass": true,
+  "user_authorized_50_page_gate": {
+    "planned_timed": 8,
+    "minimum_successes_within_300_seconds": 6,
+    "passed_count": 7,
+    "pass": true
+  },
+  "request_attempts": 277,
+  "provider_attempts": 277,
+  "logical_calls": 271,
+  "configured_model": "deepseek-chat",
+  "requested_models": [
+    "deepseek-chat"
+  ],
+  "response_models": [
+    "deepseek-flash"
+  ],
+  "model_alias_reason": "not inferred; configuration/requested/response models are independently recorded without a model-equality gate",
+  "unobserved_planned_slots": [],
+  "incomplete_records": 0,
+  "unknown_count_records": 0,
+  "groups": [
+    {
+      "case": "paper_text",
+      "mode": "cold",
+      "planned": 3,
+      "observed": 3,
+      "success": 3,
+      "failed": 0,
+      "target_passed": 3,
+      "successful_seconds": {
+        "min": 4.564801100001205,
+        "median": 4.723759699962102,
+        "max": 4.9529319000430405
+      },
+      "complete_at_resource_sampling_resolution": true
+    },
+    {
+      "case": "paper_text",
+      "mode": "warm",
+      "planned": 5,
+      "observed": 5,
+      "success": 5,
+      "failed": 0,
+      "target_passed": 5,
+      "successful_seconds": {
+        "min": 3.628360499977134,
+        "median": 3.8386079000192694,
+        "max": 3.92391700000735
+      },
+      "complete_at_resource_sampling_resolution": true
+    },
+    {
+      "case": "paper_text",
+      "mode": "warmup",
+      "planned": 1,
+      "observed": 1,
+      "success": 1,
+      "failed": 0,
+      "target_passed": 1,
+      "successful_seconds": {
+        "min": 4.955237800022587,
+        "median": 4.955237800022587,
+        "max": 4.955237800022587
+      },
+      "complete_at_resource_sampling_resolution": true
+    },
+    {
+      "case": "workload_10_pages",
+      "mode": "cold",
+      "planned": 3,
+      "observed": 3,
+      "success": 3,
+      "failed": 0,
+      "target_passed": 3,
+      "successful_seconds": {
+        "min": 14.410306000034325,
+        "median": 15.734540899982676,
+        "max": 16.81685760000255
+      },
+      "complete_at_resource_sampling_resolution": true
+    },
+    {
+      "case": "workload_10_pages",
+      "mode": "warm",
+      "planned": 5,
+      "observed": 5,
+      "success": 5,
+      "failed": 0,
+      "target_passed": 5,
+      "successful_seconds": {
+        "min": 13.367057900002692,
+        "median": 15.114604100002907,
+        "max": 16.059651800023858
+      },
+      "complete_at_resource_sampling_resolution": true
+    },
+    {
+      "case": "workload_10_pages",
+      "mode": "warmup",
+      "planned": 1,
+      "observed": 1,
+      "success": 1,
+      "failed": 0,
+      "target_passed": 1,
+      "successful_seconds": {
+        "min": 14.631126500025857,
+        "median": 14.631126500025857,
+        "max": 14.631126500025857
+      },
+      "complete_at_resource_sampling_resolution": true
+    },
+    {
+      "case": "workload_50_pages",
+      "mode": "cold",
+      "planned": 3,
+      "observed": 3,
+      "success": 2,
+      "failed": 1,
+      "target_passed": 2,
+      "successful_seconds": {
+        "min": 66.25049200002104,
+        "median": 70.07788045002962,
+        "max": 73.90526890003821
+      },
+      "complete_at_resource_sampling_resolution": true
+    },
+    {
+      "case": "workload_50_pages",
+      "mode": "warm",
+      "planned": 5,
+      "observed": 5,
+      "success": 5,
+      "failed": 0,
+      "target_passed": 5,
+      "successful_seconds": {
+        "min": 61.43127729999833,
+        "median": 65.61799619998783,
+        "max": 87.74924849998206
+      },
+      "complete_at_resource_sampling_resolution": true
+    },
+    {
+      "case": "workload_50_pages",
+      "mode": "warmup",
+      "planned": 1,
+      "observed": 1,
+      "success": 1,
+      "failed": 0,
+      "target_passed": 1,
+      "successful_seconds": {
+        "min": 75.71614899998531,
+        "median": 75.71614899998531,
+        "max": 75.71614899998531
+      },
+      "complete_at_resource_sampling_resolution": true
+    }
+  ],
+  "physical_memory_or_exe_budget_proven": false,
+  "teacher_annotation": false,
+  "input_quality_acceptance": false
+}

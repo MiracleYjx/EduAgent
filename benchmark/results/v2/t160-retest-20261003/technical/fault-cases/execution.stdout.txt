@@ -1,0 +1,3 @@
+paper_import=050d1d78-aa38-46c7-afea-a052bf4d289e phase=OCR error=OCR_PROVIDER_NOT_READY cause=OCRProviderError
+paper_import=94e425ad-c84e-4bc4-bf58-e1dd1a2928df phase=第 1 页 OCR error=PAPER_OCR_FAILED cause=OCRProviderError
+{"passed": true, "cases": 4, "provider_boundary_entries": 0, "cloud_requests": 0}

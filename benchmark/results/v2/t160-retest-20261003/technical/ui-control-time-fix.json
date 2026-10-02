@@ -1,0 +1,9 @@
+{
+  "reason": "PowerShell JSON parser materializes ISO time as DateTime; compare actual UTC ticks instead of DateTime/string formatting. Exact PID/command/creation identity checks retained.",
+  "before_sha256": "0fc780de28b446da2b99a045129b170a6d2d57c7b18f72f75c905b3938ba924b",
+  "after_sha256": "0134907822d3bbda8a20821bdc1ebb35fe1e722038ec91d904b58f01bdf3f77d",
+  "recorded_time": "2026-10-02T18:52:13.122351Z",
+  "actual_time": "2026-10-02T18:52:13.1223510Z",
+  "measured_action_unchanged": "text-cold-1",
+  "measurement_endpoint_changed": false
+}

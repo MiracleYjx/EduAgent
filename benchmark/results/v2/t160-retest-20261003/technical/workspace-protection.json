@@ -1,0 +1,29 @@
+{
+  "protected_files": 10,
+  "all_unchanged": true,
+  "baseline": {
+    "README.md": "93277070d870ff09eb524acd8cae57df80aaed2eb382c8f58c0b995b8045fa2e",
+    "README.zh-CN.md": "d621fd9a82a4e4b06751fa50562a34140bf05c22997a4331e0343c4448382b8d",
+    "backend/app/ui/gradio_app.py": "949aad37263ffaf4098d0763bdfa28c29071fd9cdbce863d2dee8565771c43a3",
+    "backend/app/ui/layout_view.py": "ae1dd687c2cd59483546e3ea9a9750f2563dee2560f0429bc8e07fde2d3747d2",
+    "backend/app/ui/question_view.py": "7262dcdeb58b49d5eb1efbb0e4190f92a0412ed5b08104ae1e6d03ebfbfeac2b",
+    "backend/app/ui/design_system.py": "5f65a505e76f201109e93b27e0685a61b57a8a4011d31f1252de76e86cab4b95",
+    "tests/unit/ui/test_gradio_app.py": "c6d53df51004beb5e45234f2c13d9ae434a7276bb0b3a28e8f18d2738e2d4e14",
+    "tests/unit/ui/test_question_bank_view.py": "8a282ea7e5e9c78060d6a98fbc5c87614581c3009e366ce8c8862950764208ad",
+    "benchmark/corpus/grading_samples.json": "9f8c56328973fb56f88564560f1166bc0415a54fb5022f98c07fc6c168f94fca",
+    ".env": "0834523cc6a2ce5742012f62b903397f1b404d678d9e066a5a4fe19875a02566"
+  },
+  "final": {
+    "README.md": "93277070d870ff09eb524acd8cae57df80aaed2eb382c8f58c0b995b8045fa2e",
+    "README.zh-CN.md": "d621fd9a82a4e4b06751fa50562a34140bf05c22997a4331e0343c4448382b8d",
+    "backend/app/ui/gradio_app.py": "949aad37263ffaf4098d0763bdfa28c29071fd9cdbce863d2dee8565771c43a3",
+    "backend/app/ui/layout_view.py": "ae1dd687c2cd59483546e3ea9a9750f2563dee2560f0429bc8e07fde2d3747d2",
+    "backend/app/ui/question_view.py": "7262dcdeb58b49d5eb1efbb0e4190f92a0412ed5b08104ae1e6d03ebfbfeac2b",
+    "backend/app/ui/design_system.py": "5f65a505e76f201109e93b27e0685a61b57a8a4011d31f1252de76e86cab4b95",
+    "tests/unit/ui/test_gradio_app.py": "c6d53df51004beb5e45234f2c13d9ae434a7276bb0b3a28e8f18d2738e2d4e14",
+    "tests/unit/ui/test_question_bank_view.py": "8a282ea7e5e9c78060d6a98fbc5c87614581c3009e366ce8c8862950764208ad",
+    "benchmark/corpus/grading_samples.json": "9f8c56328973fb56f88564560f1166bc0415a54fb5022f98c07fc6c168f94fca",
+    ".env": "0834523cc6a2ce5742012f62b903397f1b404d678d9e066a5a4fe19875a02566"
+  },
+  "extensions_present": false
+}

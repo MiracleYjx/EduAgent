@@ -1,0 +1,2027 @@
+[
+  {
+    "run_id": "cross-cold-1",
+    "workload": "cross",
+    "case_id": "IMP-CROSS",
+    "temperature": "cold",
+    "repeat_index": 1,
+    "warmup": false,
+    "action_kind": "page",
+    "directory": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\cross-cold-1",
+    "source_kind": "source_backed_replay_for_ui_timing",
+    "attempted": true,
+    "status": "success",
+    "target_ms": 500,
+    "elapsed_ms": 186.60000002384186,
+    "target_met": true,
+    "start_event": "native_target_option_pointerdown",
+    "end_event": "target_page_and_fields_loaded_queue_idle_stable_double_raf",
+    "started_at": "2026-10-02T19:02:57.824Z",
+    "ended_at": "2026-10-02T19:02:58.011Z",
+    "service_pid": 81264,
+    "measurement_ref": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\cross-cold-1\\browser-measurements.jsonl",
+    "screenshot": {
+      "status": "verified_received_file",
+      "captures": [
+        {
+          "path": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\cross-cold-1\\screenshots\\cross-cold-1.jpg",
+          "sha256": "9db83cef100c9380b843ce95e73a135a77cb2162bfb08aabe7881be7ab04a4a4",
+          "bytes": 45106,
+          "capture_source": "actual_cua_browser_screenshot"
+        }
+      ]
+    },
+    "resource": {
+      "status": "no_complete_sample_inside_action_window",
+      "sample_count": 0,
+      "correct_service_pid": 81264,
+      "planned_interval_seconds": 1.0,
+      "resource_budget_acceptance": null,
+      "reason": "Subsecond actions cannot be fully described by sparse one-second resource observations; missing samples are null.",
+      "peaks_inside_complete_sample_cycles": {
+        "app_working_set_bytes": null,
+        "postgres_container_process_rss_bytes": null,
+        "redis_container_process_rss_bytes": null,
+        "simultaneous_observed_sum_bytes": null
+      },
+      "source": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\cross-cold-1\\ui-resources.jsonl",
+      "scope": "Actual UI worker PID; all PostgreSQL processes in shared container; Redis named container. Container RSS can count shared pages repeatedly."
+    },
+    "reason": null,
+    "measurement_source": "browser_performance_now_passive_native_event_dom_image_double_raf",
+    "actual_snapshot": {
+      "fields": {
+        "number": "4",
+        "order": "1",
+        "qtype": "",
+        "content": "阅读下页流程图：输入 x = 3，计算输出 y。\n第 4 题续：按下图流程完成计算。",
+        "score": "5.00",
+        "points": "",
+        "answer": "",
+        "rubric": "正确中间计算 2.00；最终输出 3.00。",
+        "analysis": ""
+      },
+      "page_alt": "原卷第 2 页，1241×1754 像素",
+      "page_facts": "原页 1241×1754 像素 · 未执行 OCR",
+      "page_loaded": true,
+      "images_count": 1,
+      "images_loaded": true,
+      "queue_busy": false,
+      "field_interactive": true,
+      "visibility_state": "visible",
+      "document_has_focus": true,
+      "mutation_version": 390,
+      "image_load_version": 2
+    }
+  },
+  {
+    "run_id": "cross-cold-2",
+    "workload": "cross",
+    "case_id": "IMP-CROSS",
+    "temperature": "cold",
+    "repeat_index": 2,
+    "warmup": false,
+    "action_kind": "page",
+    "directory": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\cross-cold-2",
+    "source_kind": "source_backed_replay_for_ui_timing",
+    "attempted": true,
+    "status": "success",
+    "target_ms": 500,
+    "elapsed_ms": 192,
+    "target_met": true,
+    "start_event": "native_target_option_pointerdown",
+    "end_event": "target_page_and_fields_loaded_queue_idle_stable_double_raf",
+    "started_at": "2026-10-02T19:03:42.299Z",
+    "ended_at": "2026-10-02T19:03:42.491Z",
+    "service_pid": 84580,
+    "measurement_ref": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\cross-cold-2\\browser-measurements.jsonl",
+    "screenshot": {
+      "status": "verified_received_file",
+      "captures": [
+        {
+          "path": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\cross-cold-2\\screenshots\\cross-cold-2.jpg",
+          "sha256": "f8099d1eaf1f4772f8a9a4f054d11f5ac556e2d1e930565077d8a9571c6e4309",
+          "bytes": 45142,
+          "capture_source": "actual_cua_browser_screenshot"
+        }
+      ]
+    },
+    "resource": {
+      "status": "no_complete_sample_inside_action_window",
+      "sample_count": 0,
+      "correct_service_pid": 84580,
+      "planned_interval_seconds": 1.0,
+      "resource_budget_acceptance": null,
+      "reason": "Subsecond actions cannot be fully described by sparse one-second resource observations; missing samples are null.",
+      "peaks_inside_complete_sample_cycles": {
+        "app_working_set_bytes": null,
+        "postgres_container_process_rss_bytes": null,
+        "redis_container_process_rss_bytes": null,
+        "simultaneous_observed_sum_bytes": null
+      },
+      "source": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\cross-cold-2\\ui-resources.jsonl",
+      "scope": "Actual UI worker PID; all PostgreSQL processes in shared container; Redis named container. Container RSS can count shared pages repeatedly."
+    },
+    "reason": null,
+    "measurement_source": "browser_performance_now_passive_native_event_dom_image_double_raf",
+    "actual_snapshot": {
+      "fields": {
+        "number": "4",
+        "order": "1",
+        "qtype": "",
+        "content": "阅读下页流程图：输入 x = 3，计算输出 y。\n第 4 题续：按下图流程完成计算。",
+        "score": "5.00",
+        "points": "",
+        "answer": "",
+        "rubric": "正确中间计算 2.00；最终输出 3.00。",
+        "analysis": ""
+      },
+      "page_alt": "原卷第 2 页，1241×1754 像素",
+      "page_facts": "原页 1241×1754 像素 · 未执行 OCR",
+      "page_loaded": true,
+      "images_count": 1,
+      "images_loaded": true,
+      "queue_busy": false,
+      "field_interactive": true,
+      "visibility_state": "visible",
+      "document_has_focus": true,
+      "mutation_version": 435,
+      "image_load_version": 2
+    }
+  },
+  {
+    "run_id": "cross-cold-3",
+    "workload": "cross",
+    "case_id": "IMP-CROSS",
+    "temperature": "cold",
+    "repeat_index": 3,
+    "warmup": false,
+    "action_kind": "page",
+    "directory": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\cross-cold-3",
+    "source_kind": "source_backed_replay_for_ui_timing",
+    "attempted": true,
+    "status": "success",
+    "target_ms": 500,
+    "elapsed_ms": 176.69999998807907,
+    "target_met": true,
+    "start_event": "native_target_option_pointerdown",
+    "end_event": "target_page_and_fields_loaded_queue_idle_stable_double_raf",
+    "started_at": "2026-10-02T19:04:26.079Z",
+    "ended_at": "2026-10-02T19:04:26.256Z",
+    "service_pid": 82928,
+    "measurement_ref": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\cross-cold-3\\browser-measurements.jsonl",
+    "screenshot": {
+      "status": "verified_received_file",
+      "captures": [
+        {
+          "path": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\cross-cold-3\\screenshots\\cross-cold-3.jpg",
+          "sha256": "ce0a1907b74893ece8e9c756cf432c279134727325dd5e158c35c18a1a1538d5",
+          "bytes": 45155,
+          "capture_source": "actual_cua_browser_screenshot"
+        }
+      ]
+    },
+    "resource": {
+      "status": "no_complete_sample_inside_action_window",
+      "sample_count": 0,
+      "correct_service_pid": 82928,
+      "planned_interval_seconds": 1.0,
+      "resource_budget_acceptance": null,
+      "reason": "Subsecond actions cannot be fully described by sparse one-second resource observations; missing samples are null.",
+      "peaks_inside_complete_sample_cycles": {
+        "app_working_set_bytes": null,
+        "postgres_container_process_rss_bytes": null,
+        "redis_container_process_rss_bytes": null,
+        "simultaneous_observed_sum_bytes": null
+      },
+      "source": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\cross-cold-3\\ui-resources.jsonl",
+      "scope": "Actual UI worker PID; all PostgreSQL processes in shared container; Redis named container. Container RSS can count shared pages repeatedly."
+    },
+    "reason": null,
+    "measurement_source": "browser_performance_now_passive_native_event_dom_image_double_raf",
+    "actual_snapshot": {
+      "fields": {
+        "number": "4",
+        "order": "1",
+        "qtype": "",
+        "content": "阅读下页流程图：输入 x = 3，计算输出 y。\n第 4 题续：按下图流程完成计算。",
+        "score": "5.00",
+        "points": "",
+        "answer": "",
+        "rubric": "正确中间计算 2.00；最终输出 3.00。",
+        "analysis": ""
+      },
+      "page_alt": "原卷第 2 页，1241×1754 像素",
+      "page_facts": "原页 1241×1754 像素 · 未执行 OCR",
+      "page_loaded": true,
+      "images_count": 1,
+      "images_loaded": true,
+      "queue_busy": false,
+      "field_interactive": true,
+      "visibility_state": "visible",
+      "document_has_focus": true,
+      "mutation_version": 408,
+      "image_load_version": 2
+    }
+  },
+  {
+    "run_id": "cross-warmup",
+    "workload": "cross",
+    "case_id": "IMP-CROSS",
+    "temperature": "warm",
+    "repeat_index": 0,
+    "warmup": true,
+    "action_kind": "page",
+    "directory": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\cross-warm",
+    "source_kind": "source_backed_replay_for_ui_timing",
+    "attempted": true,
+    "status": "success",
+    "target_ms": 500,
+    "elapsed_ms": 214.19999998807907,
+    "target_met": true,
+    "start_event": "native_target_option_pointerdown",
+    "end_event": "target_page_and_fields_loaded_queue_idle_stable_double_raf",
+    "started_at": "2026-10-02T19:05:33.136Z",
+    "ended_at": "2026-10-02T19:05:33.351Z",
+    "service_pid": 79780,
+    "measurement_ref": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\cross-warm\\browser-measurements.jsonl",
+    "screenshot": {
+      "status": "verified_received_file",
+      "captures": [
+        {
+          "path": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\cross-warm\\screenshots\\cross-warmup.jpg",
+          "sha256": "acbcb325ca51ec49b5c3c0b1bdc3d78b737bc4c88fe2450ac3c18a04af0abb93",
+          "bytes": 45207,
+          "capture_source": "actual_cua_browser_screenshot"
+        }
+      ]
+    },
+    "resource": {
+      "status": "no_complete_sample_inside_action_window",
+      "sample_count": 0,
+      "correct_service_pid": 79780,
+      "planned_interval_seconds": 1.0,
+      "resource_budget_acceptance": null,
+      "reason": "Subsecond actions cannot be fully described by sparse one-second resource observations; missing samples are null.",
+      "peaks_inside_complete_sample_cycles": {
+        "app_working_set_bytes": null,
+        "postgres_container_process_rss_bytes": null,
+        "redis_container_process_rss_bytes": null,
+        "simultaneous_observed_sum_bytes": null
+      },
+      "source": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\cross-warm\\ui-resources.jsonl",
+      "scope": "Actual UI worker PID; all PostgreSQL processes in shared container; Redis named container. Container RSS can count shared pages repeatedly."
+    },
+    "reason": null,
+    "measurement_source": "browser_performance_now_passive_native_event_dom_image_double_raf",
+    "actual_snapshot": {
+      "fields": {
+        "number": "4",
+        "order": "1",
+        "qtype": "",
+        "content": "阅读下页流程图：输入 x = 3，计算输出 y。\n第 4 题续：按下图流程完成计算。",
+        "score": "5.00",
+        "points": "",
+        "answer": "",
+        "rubric": "正确中间计算 2.00；最终输出 3.00。",
+        "analysis": ""
+      },
+      "page_alt": "原卷第 2 页，1241×1754 像素",
+      "page_facts": "原页 1241×1754 像素 · 未执行 OCR",
+      "page_loaded": true,
+      "images_count": 1,
+      "images_loaded": true,
+      "queue_busy": false,
+      "field_interactive": true,
+      "visibility_state": "visible",
+      "document_has_focus": true,
+      "mutation_version": 390,
+      "image_load_version": 2
+    }
+  },
+  {
+    "run_id": "cross-warm-1",
+    "workload": "cross",
+    "case_id": "IMP-CROSS",
+    "temperature": "warm",
+    "repeat_index": 1,
+    "warmup": false,
+    "action_kind": "page",
+    "directory": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\cross-warm",
+    "source_kind": "source_backed_replay_for_ui_timing",
+    "attempted": true,
+    "status": "success",
+    "target_ms": 500,
+    "elapsed_ms": 192.39999997615814,
+    "target_met": true,
+    "start_event": "native_target_option_pointerdown",
+    "end_event": "target_page_and_fields_loaded_queue_idle_stable_double_raf",
+    "started_at": "2026-10-02T19:05:39.707Z",
+    "ended_at": "2026-10-02T19:05:39.899Z",
+    "service_pid": 79780,
+    "measurement_ref": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\cross-warm\\browser-measurements.jsonl",
+    "screenshot": {
+      "status": "verified_received_file",
+      "captures": [
+        {
+          "path": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\cross-warm\\screenshots\\cross-warm-1.jpg",
+          "sha256": "a0aa5b0bc41b77ae5c32088868eeea59cba312f387dd4c5fa0c3fc03ae3128d7",
+          "bytes": 45124,
+          "capture_source": "actual_cua_browser_screenshot"
+        }
+      ]
+    },
+    "resource": {
+      "status": "no_complete_sample_inside_action_window",
+      "sample_count": 0,
+      "correct_service_pid": 79780,
+      "planned_interval_seconds": 1.0,
+      "resource_budget_acceptance": null,
+      "reason": "Subsecond actions cannot be fully described by sparse one-second resource observations; missing samples are null.",
+      "peaks_inside_complete_sample_cycles": {
+        "app_working_set_bytes": null,
+        "postgres_container_process_rss_bytes": null,
+        "redis_container_process_rss_bytes": null,
+        "simultaneous_observed_sum_bytes": null
+      },
+      "source": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\cross-warm\\ui-resources.jsonl",
+      "scope": "Actual UI worker PID; all PostgreSQL processes in shared container; Redis named container. Container RSS can count shared pages repeatedly."
+    },
+    "reason": null,
+    "measurement_source": "browser_performance_now_passive_native_event_dom_image_double_raf",
+    "actual_snapshot": {
+      "fields": {
+        "number": "4",
+        "order": "1",
+        "qtype": "",
+        "content": "阅读下页流程图：输入 x = 3，计算输出 y。\n第 4 题续：按下图流程完成计算。",
+        "score": "5.00",
+        "points": "",
+        "answer": "",
+        "rubric": "正确中间计算 2.00；最终输出 3.00。",
+        "analysis": ""
+      },
+      "page_alt": "原卷第 2 页，1241×1754 像素",
+      "page_facts": "原页 1241×1754 像素 · 未执行 OCR",
+      "page_loaded": true,
+      "images_count": 1,
+      "images_loaded": true,
+      "queue_busy": false,
+      "field_interactive": true,
+      "visibility_state": "visible",
+      "document_has_focus": true,
+      "mutation_version": 773,
+      "image_load_version": 4
+    }
+  },
+  {
+    "run_id": "cross-warm-2",
+    "workload": "cross",
+    "case_id": "IMP-CROSS",
+    "temperature": "warm",
+    "repeat_index": 2,
+    "warmup": false,
+    "action_kind": "page",
+    "directory": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\cross-warm",
+    "source_kind": "source_backed_replay_for_ui_timing",
+    "attempted": true,
+    "status": "success",
+    "target_ms": 500,
+    "elapsed_ms": 222.80000001192093,
+    "target_met": true,
+    "start_event": "native_target_option_pointerdown",
+    "end_event": "target_page_and_fields_loaded_queue_idle_stable_double_raf",
+    "started_at": "2026-10-02T19:05:45.937Z",
+    "ended_at": "2026-10-02T19:05:46.160Z",
+    "service_pid": 79780,
+    "measurement_ref": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\cross-warm\\browser-measurements.jsonl",
+    "screenshot": {
+      "status": "verified_received_file",
+      "captures": [
+        {
+          "path": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\cross-warm\\screenshots\\cross-warm-2.jpg",
+          "sha256": "8795a43cab015a8e8542f2b368fa07b77f997b5391a6f2bced27685e1dbbc399",
+          "bytes": 45121,
+          "capture_source": "actual_cua_browser_screenshot"
+        }
+      ]
+    },
+    "resource": {
+      "status": "no_complete_sample_inside_action_window",
+      "sample_count": 0,
+      "correct_service_pid": 79780,
+      "planned_interval_seconds": 1.0,
+      "resource_budget_acceptance": null,
+      "reason": "Subsecond actions cannot be fully described by sparse one-second resource observations; missing samples are null.",
+      "peaks_inside_complete_sample_cycles": {
+        "app_working_set_bytes": null,
+        "postgres_container_process_rss_bytes": null,
+        "redis_container_process_rss_bytes": null,
+        "simultaneous_observed_sum_bytes": null
+      },
+      "source": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\cross-warm\\ui-resources.jsonl",
+      "scope": "Actual UI worker PID; all PostgreSQL processes in shared container; Redis named container. Container RSS can count shared pages repeatedly."
+    },
+    "reason": null,
+    "measurement_source": "browser_performance_now_passive_native_event_dom_image_double_raf",
+    "actual_snapshot": {
+      "fields": {
+        "number": "4",
+        "order": "1",
+        "qtype": "",
+        "content": "阅读下页流程图：输入 x = 3，计算输出 y。\n第 4 题续：按下图流程完成计算。",
+        "score": "5.00",
+        "points": "",
+        "answer": "",
+        "rubric": "正确中间计算 2.00；最终输出 3.00。",
+        "analysis": ""
+      },
+      "page_alt": "原卷第 2 页，1241×1754 像素",
+      "page_facts": "原页 1241×1754 像素 · 未执行 OCR",
+      "page_loaded": true,
+      "images_count": 1,
+      "images_loaded": true,
+      "queue_busy": false,
+      "field_interactive": true,
+      "visibility_state": "visible",
+      "document_has_focus": true,
+      "mutation_version": 1683,
+      "image_load_version": 6
+    }
+  },
+  {
+    "run_id": "cross-warm-3",
+    "workload": "cross",
+    "case_id": "IMP-CROSS",
+    "temperature": "warm",
+    "repeat_index": 3,
+    "warmup": false,
+    "action_kind": "page",
+    "directory": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\cross-warm",
+    "source_kind": "source_backed_replay_for_ui_timing",
+    "attempted": true,
+    "status": "success",
+    "target_ms": 500,
+    "elapsed_ms": 203,
+    "target_met": true,
+    "start_event": "native_target_option_pointerdown",
+    "end_event": "target_page_and_fields_loaded_queue_idle_stable_double_raf",
+    "started_at": "2026-10-02T19:05:54.700Z",
+    "ended_at": "2026-10-02T19:05:54.903Z",
+    "service_pid": 79780,
+    "measurement_ref": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\cross-warm\\browser-measurements.jsonl",
+    "screenshot": {
+      "status": "verified_received_file",
+      "captures": [
+        {
+          "path": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\cross-warm\\screenshots\\cross-warm-3.jpg",
+          "sha256": "1cae04010dc52c2f3539eb6ac5dcea1dd368129f7f70c4ba96bd2d5b9337ae3e",
+          "bytes": 45134,
+          "capture_source": "actual_cua_browser_screenshot"
+        }
+      ]
+    },
+    "resource": {
+      "status": "no_complete_sample_inside_action_window",
+      "sample_count": 0,
+      "correct_service_pid": 79780,
+      "planned_interval_seconds": 1.0,
+      "resource_budget_acceptance": null,
+      "reason": "Subsecond actions cannot be fully described by sparse one-second resource observations; missing samples are null.",
+      "peaks_inside_complete_sample_cycles": {
+        "app_working_set_bytes": null,
+        "postgres_container_process_rss_bytes": null,
+        "redis_container_process_rss_bytes": null,
+        "simultaneous_observed_sum_bytes": null
+      },
+      "source": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\cross-warm\\ui-resources.jsonl",
+      "scope": "Actual UI worker PID; all PostgreSQL processes in shared container; Redis named container. Container RSS can count shared pages repeatedly."
+    },
+    "reason": null,
+    "measurement_source": "browser_performance_now_passive_native_event_dom_image_double_raf",
+    "actual_snapshot": {
+      "fields": {
+        "number": "4",
+        "order": "1",
+        "qtype": "",
+        "content": "阅读下页流程图：输入 x = 3，计算输出 y。\n第 4 题续：按下图流程完成计算。",
+        "score": "5.00",
+        "points": "",
+        "answer": "",
+        "rubric": "正确中间计算 2.00；最终输出 3.00。",
+        "analysis": ""
+      },
+      "page_alt": "原卷第 2 页，1241×1754 像素",
+      "page_facts": "原页 1241×1754 像素 · 未执行 OCR",
+      "page_loaded": true,
+      "images_count": 1,
+      "images_loaded": true,
+      "queue_busy": false,
+      "field_interactive": true,
+      "visibility_state": "visible",
+      "document_has_focus": true,
+      "mutation_version": 2408,
+      "image_load_version": 8
+    }
+  },
+  {
+    "run_id": "cross-warm-4",
+    "workload": "cross",
+    "case_id": "IMP-CROSS",
+    "temperature": "warm",
+    "repeat_index": 4,
+    "warmup": false,
+    "action_kind": "page",
+    "directory": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\cross-warm",
+    "source_kind": "source_backed_replay_for_ui_timing",
+    "attempted": true,
+    "status": "success",
+    "target_ms": 500,
+    "elapsed_ms": 189.89999997615814,
+    "target_met": true,
+    "start_event": "native_target_option_pointerdown",
+    "end_event": "target_page_and_fields_loaded_queue_idle_stable_double_raf",
+    "started_at": "2026-10-02T19:06:00.754Z",
+    "ended_at": "2026-10-02T19:06:00.944Z",
+    "service_pid": 79780,
+    "measurement_ref": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\cross-warm\\browser-measurements.jsonl",
+    "screenshot": {
+      "status": "verified_received_file",
+      "captures": [
+        {
+          "path": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\cross-warm\\screenshots\\cross-warm-4.jpg",
+          "sha256": "b8440c9d50c3c2f567909a2c3a0785aff755b50a16835630fef1a1a5c5995c97",
+          "bytes": 45114,
+          "capture_source": "actual_cua_browser_screenshot"
+        }
+      ]
+    },
+    "resource": {
+      "status": "no_complete_sample_inside_action_window",
+      "sample_count": 0,
+      "correct_service_pid": 79780,
+      "planned_interval_seconds": 1.0,
+      "resource_budget_acceptance": null,
+      "reason": "Subsecond actions cannot be fully described by sparse one-second resource observations; missing samples are null.",
+      "peaks_inside_complete_sample_cycles": {
+        "app_working_set_bytes": null,
+        "postgres_container_process_rss_bytes": null,
+        "redis_container_process_rss_bytes": null,
+        "simultaneous_observed_sum_bytes": null
+      },
+      "source": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\cross-warm\\ui-resources.jsonl",
+      "scope": "Actual UI worker PID; all PostgreSQL processes in shared container; Redis named container. Container RSS can count shared pages repeatedly."
+    },
+    "reason": null,
+    "measurement_source": "browser_performance_now_passive_native_event_dom_image_double_raf",
+    "actual_snapshot": {
+      "fields": {
+        "number": "4",
+        "order": "1",
+        "qtype": "",
+        "content": "阅读下页流程图：输入 x = 3，计算输出 y。\n第 4 题续：按下图流程完成计算。",
+        "score": "5.00",
+        "points": "",
+        "answer": "",
+        "rubric": "正确中间计算 2.00；最终输出 3.00。",
+        "analysis": ""
+      },
+      "page_alt": "原卷第 2 页，1241×1754 像素",
+      "page_facts": "原页 1241×1754 像素 · 未执行 OCR",
+      "page_loaded": true,
+      "images_count": 1,
+      "images_loaded": true,
+      "queue_busy": false,
+      "field_interactive": true,
+      "visibility_state": "visible",
+      "document_has_focus": true,
+      "mutation_version": 3238,
+      "image_load_version": 10
+    }
+  },
+  {
+    "run_id": "cross-warm-5",
+    "workload": "cross",
+    "case_id": "IMP-CROSS",
+    "temperature": "warm",
+    "repeat_index": 5,
+    "warmup": false,
+    "action_kind": "page",
+    "directory": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\cross-warm",
+    "source_kind": "source_backed_replay_for_ui_timing",
+    "attempted": true,
+    "status": "success",
+    "target_ms": 500,
+    "elapsed_ms": 193.89999997615814,
+    "target_met": true,
+    "start_event": "native_target_option_pointerdown",
+    "end_event": "target_page_and_fields_loaded_queue_idle_stable_double_raf",
+    "started_at": "2026-10-02T19:06:06.023Z",
+    "ended_at": "2026-10-02T19:06:06.217Z",
+    "service_pid": 79780,
+    "measurement_ref": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\cross-warm\\browser-measurements.jsonl",
+    "screenshot": {
+      "status": "verified_received_file",
+      "captures": [
+        {
+          "path": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\cross-warm\\screenshots\\cross-warm-5.jpg",
+          "sha256": "fc08dcd1c5ebfcaf91f31fa30ac8f827e571280834ee13cb3d77244b3cf117a5",
+          "bytes": 45169,
+          "capture_source": "actual_cua_browser_screenshot"
+        }
+      ]
+    },
+    "resource": {
+      "status": "no_complete_sample_inside_action_window",
+      "sample_count": 0,
+      "correct_service_pid": 79780,
+      "planned_interval_seconds": 1.0,
+      "resource_budget_acceptance": null,
+      "reason": "Subsecond actions cannot be fully described by sparse one-second resource observations; missing samples are null.",
+      "peaks_inside_complete_sample_cycles": {
+        "app_working_set_bytes": null,
+        "postgres_container_process_rss_bytes": null,
+        "redis_container_process_rss_bytes": null,
+        "simultaneous_observed_sum_bytes": null
+      },
+      "source": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\cross-warm\\ui-resources.jsonl",
+      "scope": "Actual UI worker PID; all PostgreSQL processes in shared container; Redis named container. Container RSS can count shared pages repeatedly."
+    },
+    "reason": null,
+    "measurement_source": "browser_performance_now_passive_native_event_dom_image_double_raf",
+    "actual_snapshot": {
+      "fields": {
+        "number": "4",
+        "order": "1",
+        "qtype": "",
+        "content": "阅读下页流程图：输入 x = 3，计算输出 y。\n第 4 题续：按下图流程完成计算。",
+        "score": "5.00",
+        "points": "",
+        "answer": "",
+        "rubric": "正确中间计算 2.00；最终输出 3.00。",
+        "analysis": ""
+      },
+      "page_alt": "原卷第 2 页，1241×1754 像素",
+      "page_facts": "原页 1241×1754 像素 · 未执行 OCR",
+      "page_loaded": true,
+      "images_count": 1,
+      "images_loaded": true,
+      "queue_busy": false,
+      "field_interactive": true,
+      "visibility_state": "visible",
+      "document_has_focus": true,
+      "mutation_version": 4056,
+      "image_load_version": 12
+    }
+  },
+  {
+    "run_id": "figure-cold-1",
+    "workload": "figure",
+    "case_id": "IMP-IMAGE",
+    "temperature": "cold",
+    "repeat_index": 1,
+    "warmup": false,
+    "action_kind": "question",
+    "directory": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\figure-cold-1",
+    "source_kind": "source_backed_replay_for_ui_timing",
+    "attempted": true,
+    "status": "success",
+    "target_ms": 500,
+    "elapsed_ms": 360.89999997615814,
+    "target_met": true,
+    "start_event": "native_target_option_pointerdown",
+    "end_event": "target_page_and_fields_loaded_queue_idle_stable_double_raf",
+    "started_at": "2026-10-02T18:59:22.559Z",
+    "ended_at": "2026-10-02T18:59:22.920Z",
+    "service_pid": 85988,
+    "measurement_ref": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\figure-cold-1\\browser-measurements.jsonl",
+    "screenshot": {
+      "status": "verified_received_file",
+      "captures": [
+        {
+          "path": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\figure-cold-1\\screenshots\\figure-cold-1.jpg",
+          "sha256": "4bb98040a6351d1831555aa1934e165d5dfb74bbd84f42ae0efd07528f806e4a",
+          "bytes": 49199,
+          "capture_source": "actual_cua_browser_screenshot"
+        }
+      ]
+    },
+    "resource": {
+      "status": "no_complete_sample_inside_action_window",
+      "sample_count": 0,
+      "correct_service_pid": 85988,
+      "planned_interval_seconds": 1.0,
+      "resource_budget_acceptance": null,
+      "reason": "Subsecond actions cannot be fully described by sparse one-second resource observations; missing samples are null.",
+      "peaks_inside_complete_sample_cycles": {
+        "app_working_set_bytes": null,
+        "postgres_container_process_rss_bytes": null,
+        "redis_container_process_rss_bytes": null,
+        "simultaneous_observed_sum_bytes": null
+      },
+      "source": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\figure-cold-1\\ui-resources.jsonl",
+      "scope": "Actual UI worker PID; all PostgreSQL processes in shared container; Redis named container. Container RSS can count shared pages repeatedly."
+    },
+    "reason": null,
+    "measurement_source": "browser_performance_now_passive_native_event_dom_image_double_raf",
+    "actual_snapshot": {
+      "fields": {
+        "number": "2",
+        "order": "2",
+        "qtype": "判断题",
+        "content": "右图三角形面积为24cm²。",
+        "score": "2.00",
+        "points": "",
+        "answer": "",
+        "rubric": "",
+        "analysis": ""
+      },
+      "page_alt": "原卷第 1 页，1241×1754 像素",
+      "page_facts": "原页 1241×1754 像素 · OCR 已执行",
+      "page_loaded": true,
+      "images_count": 1,
+      "images_loaded": true,
+      "queue_busy": false,
+      "field_interactive": true,
+      "visibility_state": "visible",
+      "document_has_focus": true,
+      "mutation_version": 588,
+      "image_load_version": 1
+    }
+  },
+  {
+    "run_id": "figure-cold-2",
+    "workload": "figure",
+    "case_id": "IMP-IMAGE",
+    "temperature": "cold",
+    "repeat_index": 2,
+    "warmup": false,
+    "action_kind": "question",
+    "directory": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\figure-cold-2",
+    "source_kind": "source_backed_replay_for_ui_timing",
+    "attempted": true,
+    "status": "success",
+    "target_ms": 500,
+    "elapsed_ms": 325.4000000357628,
+    "target_met": true,
+    "start_event": "native_target_option_pointerdown",
+    "end_event": "target_page_and_fields_loaded_queue_idle_stable_double_raf",
+    "started_at": "2026-10-02T19:00:00.820Z",
+    "ended_at": "2026-10-02T19:00:01.146Z",
+    "service_pid": 82312,
+    "measurement_ref": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\figure-cold-2\\browser-measurements.jsonl",
+    "screenshot": {
+      "status": "verified_received_file",
+      "captures": [
+        {
+          "path": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\figure-cold-2\\screenshots\\figure-cold-2.jpg",
+          "sha256": "d5140b4255a846c1732bba9e9e610cd340d3ef46ff77ea09693dede2306fa840",
+          "bytes": 51123,
+          "capture_source": "actual_cua_browser_screenshot"
+        }
+      ]
+    },
+    "resource": {
+      "status": "no_complete_sample_inside_action_window",
+      "sample_count": 0,
+      "correct_service_pid": 82312,
+      "planned_interval_seconds": 1.0,
+      "resource_budget_acceptance": null,
+      "reason": "Subsecond actions cannot be fully described by sparse one-second resource observations; missing samples are null.",
+      "peaks_inside_complete_sample_cycles": {
+        "app_working_set_bytes": null,
+        "postgres_container_process_rss_bytes": null,
+        "redis_container_process_rss_bytes": null,
+        "simultaneous_observed_sum_bytes": null
+      },
+      "source": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\figure-cold-2\\ui-resources.jsonl",
+      "scope": "Actual UI worker PID; all PostgreSQL processes in shared container; Redis named container. Container RSS can count shared pages repeatedly."
+    },
+    "reason": null,
+    "measurement_source": "browser_performance_now_passive_native_event_dom_image_double_raf",
+    "actual_snapshot": {
+      "fields": {
+        "number": "2",
+        "order": "2",
+        "qtype": "判断题",
+        "content": "右图三角形面积为24cm²。",
+        "score": "2.00",
+        "points": "",
+        "answer": "",
+        "rubric": "",
+        "analysis": ""
+      },
+      "page_alt": "原卷第 1 页，1241×1754 像素",
+      "page_facts": "原页 1241×1754 像素 · OCR 已执行",
+      "page_loaded": true,
+      "images_count": 1,
+      "images_loaded": true,
+      "queue_busy": false,
+      "field_interactive": true,
+      "visibility_state": "visible",
+      "document_has_focus": true,
+      "mutation_version": 719,
+      "image_load_version": 1
+    }
+  },
+  {
+    "run_id": "figure-cold-3",
+    "workload": "figure",
+    "case_id": "IMP-IMAGE",
+    "temperature": "cold",
+    "repeat_index": 3,
+    "warmup": false,
+    "action_kind": "question",
+    "directory": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\figure-cold-3",
+    "source_kind": "source_backed_replay_for_ui_timing",
+    "attempted": true,
+    "status": "success",
+    "target_ms": 500,
+    "elapsed_ms": 319.60000002384186,
+    "target_met": true,
+    "start_event": "native_target_option_pointerdown",
+    "end_event": "target_page_and_fields_loaded_queue_idle_stable_double_raf",
+    "started_at": "2026-10-02T19:00:44.246Z",
+    "ended_at": "2026-10-02T19:00:44.565Z",
+    "service_pid": 84556,
+    "measurement_ref": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\figure-cold-3\\browser-measurements.jsonl",
+    "screenshot": {
+      "status": "verified_received_file",
+      "captures": [
+        {
+          "path": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\figure-cold-3\\screenshots\\figure-cold-3.jpg",
+          "sha256": "78de2be1a2a4a3311088a76fd4b3678bb0ffa6f5c2f3f1f4062de80ab117d666",
+          "bytes": 51145,
+          "capture_source": "actual_cua_browser_screenshot"
+        }
+      ]
+    },
+    "resource": {
+      "status": "no_complete_sample_inside_action_window",
+      "sample_count": 0,
+      "correct_service_pid": 84556,
+      "planned_interval_seconds": 1.0,
+      "resource_budget_acceptance": null,
+      "reason": "Subsecond actions cannot be fully described by sparse one-second resource observations; missing samples are null.",
+      "peaks_inside_complete_sample_cycles": {
+        "app_working_set_bytes": null,
+        "postgres_container_process_rss_bytes": null,
+        "redis_container_process_rss_bytes": null,
+        "simultaneous_observed_sum_bytes": null
+      },
+      "source": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\figure-cold-3\\ui-resources.jsonl",
+      "scope": "Actual UI worker PID; all PostgreSQL processes in shared container; Redis named container. Container RSS can count shared pages repeatedly."
+    },
+    "reason": null,
+    "measurement_source": "browser_performance_now_passive_native_event_dom_image_double_raf",
+    "actual_snapshot": {
+      "fields": {
+        "number": "2",
+        "order": "2",
+        "qtype": "判断题",
+        "content": "右图三角形面积为24cm²。",
+        "score": "2.00",
+        "points": "",
+        "answer": "",
+        "rubric": "",
+        "analysis": ""
+      },
+      "page_alt": "原卷第 1 页，1241×1754 像素",
+      "page_facts": "原页 1241×1754 像素 · OCR 已执行",
+      "page_loaded": true,
+      "images_count": 1,
+      "images_loaded": true,
+      "queue_busy": false,
+      "field_interactive": true,
+      "visibility_state": "visible",
+      "document_has_focus": true,
+      "mutation_version": 637,
+      "image_load_version": 1
+    }
+  },
+  {
+    "run_id": "figure-warmup",
+    "workload": "figure",
+    "case_id": "IMP-IMAGE",
+    "temperature": "warm",
+    "repeat_index": 0,
+    "warmup": true,
+    "action_kind": "question",
+    "directory": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\figure-warm",
+    "source_kind": "source_backed_replay_for_ui_timing",
+    "attempted": true,
+    "status": "success",
+    "target_ms": 500,
+    "elapsed_ms": 326.89999997615814,
+    "target_met": true,
+    "start_event": "native_target_option_pointerdown",
+    "end_event": "target_page_and_fields_loaded_queue_idle_stable_double_raf",
+    "started_at": "2026-10-02T19:01:30.077Z",
+    "ended_at": "2026-10-02T19:01:30.404Z",
+    "service_pid": 83716,
+    "measurement_ref": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\figure-warm\\browser-measurements.jsonl",
+    "screenshot": {
+      "status": "verified_received_file",
+      "captures": [
+        {
+          "path": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\figure-warm\\screenshots\\figure-warmup.jpg",
+          "sha256": "e16d83c6ac1d1eaf260e874b6c618477df34b0a5ceff707f9f0a30567fe26b6c",
+          "bytes": 52580,
+          "capture_source": "actual_cua_browser_screenshot"
+        }
+      ]
+    },
+    "resource": {
+      "status": "no_complete_sample_inside_action_window",
+      "sample_count": 0,
+      "correct_service_pid": 83716,
+      "planned_interval_seconds": 1.0,
+      "resource_budget_acceptance": null,
+      "reason": "Subsecond actions cannot be fully described by sparse one-second resource observations; missing samples are null.",
+      "peaks_inside_complete_sample_cycles": {
+        "app_working_set_bytes": null,
+        "postgres_container_process_rss_bytes": null,
+        "redis_container_process_rss_bytes": null,
+        "simultaneous_observed_sum_bytes": null
+      },
+      "source": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\figure-warm\\ui-resources.jsonl",
+      "scope": "Actual UI worker PID; all PostgreSQL processes in shared container; Redis named container. Container RSS can count shared pages repeatedly."
+    },
+    "reason": null,
+    "measurement_source": "browser_performance_now_passive_native_event_dom_image_double_raf",
+    "actual_snapshot": {
+      "fields": {
+        "number": "2",
+        "order": "2",
+        "qtype": "判断题",
+        "content": "右图三角形面积为24cm²。",
+        "score": "2.00",
+        "points": "",
+        "answer": "",
+        "rubric": "",
+        "analysis": ""
+      },
+      "page_alt": "原卷第 1 页，1241×1754 像素",
+      "page_facts": "原页 1241×1754 像素 · OCR 已执行",
+      "page_loaded": true,
+      "images_count": 1,
+      "images_loaded": true,
+      "queue_busy": false,
+      "field_interactive": true,
+      "visibility_state": "visible",
+      "document_has_focus": true,
+      "mutation_version": 621,
+      "image_load_version": 1
+    }
+  },
+  {
+    "run_id": "figure-warm-1",
+    "workload": "figure",
+    "case_id": "IMP-IMAGE",
+    "temperature": "warm",
+    "repeat_index": 1,
+    "warmup": false,
+    "action_kind": "question",
+    "directory": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\figure-warm",
+    "source_kind": "source_backed_replay_for_ui_timing",
+    "attempted": true,
+    "status": "success",
+    "target_ms": 500,
+    "elapsed_ms": 359.19999998807907,
+    "target_met": true,
+    "start_event": "native_target_option_pointerdown",
+    "end_event": "target_page_and_fields_loaded_queue_idle_stable_double_raf",
+    "started_at": "2026-10-02T19:01:44.924Z",
+    "ended_at": "2026-10-02T19:01:45.284Z",
+    "service_pid": 83716,
+    "measurement_ref": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\figure-warm\\browser-measurements.jsonl",
+    "screenshot": {
+      "status": "verified_received_file",
+      "captures": [
+        {
+          "path": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\figure-warm\\screenshots\\figure-warm-1.jpg",
+          "sha256": "eafeaca87b938e4974f3eab4960d7f76e39e7b8dff61577460e5c687c508289e",
+          "bytes": 52446,
+          "capture_source": "actual_cua_browser_screenshot"
+        }
+      ]
+    },
+    "resource": {
+      "status": "no_complete_sample_inside_action_window",
+      "sample_count": 0,
+      "correct_service_pid": 83716,
+      "planned_interval_seconds": 1.0,
+      "resource_budget_acceptance": null,
+      "reason": "Subsecond actions cannot be fully described by sparse one-second resource observations; missing samples are null.",
+      "peaks_inside_complete_sample_cycles": {
+        "app_working_set_bytes": null,
+        "postgres_container_process_rss_bytes": null,
+        "redis_container_process_rss_bytes": null,
+        "simultaneous_observed_sum_bytes": null
+      },
+      "source": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\figure-warm\\ui-resources.jsonl",
+      "scope": "Actual UI worker PID; all PostgreSQL processes in shared container; Redis named container. Container RSS can count shared pages repeatedly."
+    },
+    "reason": null,
+    "measurement_source": "browser_performance_now_passive_native_event_dom_image_double_raf",
+    "actual_snapshot": {
+      "fields": {
+        "number": "2",
+        "order": "2",
+        "qtype": "判断题",
+        "content": "右图三角形面积为24cm²。",
+        "score": "2.00",
+        "points": "",
+        "answer": "",
+        "rubric": "",
+        "analysis": ""
+      },
+      "page_alt": "原卷第 1 页，1241×1754 像素",
+      "page_facts": "原页 1241×1754 像素 · OCR 已执行",
+      "page_loaded": true,
+      "images_count": 1,
+      "images_loaded": true,
+      "queue_busy": false,
+      "field_interactive": true,
+      "visibility_state": "visible",
+      "document_has_focus": true,
+      "mutation_version": 1501,
+      "image_load_version": 1
+    }
+  },
+  {
+    "run_id": "figure-warm-2",
+    "workload": "figure",
+    "case_id": "IMP-IMAGE",
+    "temperature": "warm",
+    "repeat_index": 2,
+    "warmup": false,
+    "action_kind": "question",
+    "directory": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\figure-warm",
+    "source_kind": "source_backed_replay_for_ui_timing",
+    "attempted": true,
+    "status": "success",
+    "target_ms": 500,
+    "elapsed_ms": 378.69999998807907,
+    "target_met": true,
+    "start_event": "native_target_option_pointerdown",
+    "end_event": "target_page_and_fields_loaded_queue_idle_stable_double_raf",
+    "started_at": "2026-10-02T19:01:52.049Z",
+    "ended_at": "2026-10-02T19:01:52.429Z",
+    "service_pid": 83716,
+    "measurement_ref": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\figure-warm\\browser-measurements.jsonl",
+    "screenshot": {
+      "status": "verified_received_file",
+      "captures": [
+        {
+          "path": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\figure-warm\\screenshots\\figure-warm-2.jpg",
+          "sha256": "b414682a4464517629fcac9846420cd20c6d3aa394869e5d39e3d84d816a7ab0",
+          "bytes": 48649,
+          "capture_source": "actual_cua_browser_screenshot"
+        }
+      ]
+    },
+    "resource": {
+      "status": "no_complete_sample_inside_action_window",
+      "sample_count": 0,
+      "correct_service_pid": 83716,
+      "planned_interval_seconds": 1.0,
+      "resource_budget_acceptance": null,
+      "reason": "Subsecond actions cannot be fully described by sparse one-second resource observations; missing samples are null.",
+      "peaks_inside_complete_sample_cycles": {
+        "app_working_set_bytes": null,
+        "postgres_container_process_rss_bytes": null,
+        "redis_container_process_rss_bytes": null,
+        "simultaneous_observed_sum_bytes": null
+      },
+      "source": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\figure-warm\\ui-resources.jsonl",
+      "scope": "Actual UI worker PID; all PostgreSQL processes in shared container; Redis named container. Container RSS can count shared pages repeatedly."
+    },
+    "reason": null,
+    "measurement_source": "browser_performance_now_passive_native_event_dom_image_double_raf",
+    "actual_snapshot": {
+      "fields": {
+        "number": "2",
+        "order": "2",
+        "qtype": "判断题",
+        "content": "右图三角形面积为24cm²。",
+        "score": "2.00",
+        "points": "",
+        "answer": "",
+        "rubric": "",
+        "analysis": ""
+      },
+      "page_alt": "原卷第 1 页，1241×1754 像素",
+      "page_facts": "原页 1241×1754 像素 · OCR 已执行",
+      "page_loaded": true,
+      "images_count": 1,
+      "images_loaded": true,
+      "queue_busy": false,
+      "field_interactive": true,
+      "visibility_state": "visible",
+      "document_has_focus": true,
+      "mutation_version": 2493,
+      "image_load_version": 1
+    }
+  },
+  {
+    "run_id": "figure-warm-3",
+    "workload": "figure",
+    "case_id": "IMP-IMAGE",
+    "temperature": "warm",
+    "repeat_index": 3,
+    "warmup": false,
+    "action_kind": "question",
+    "directory": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\figure-warm",
+    "source_kind": "source_backed_replay_for_ui_timing",
+    "attempted": true,
+    "status": "success",
+    "target_ms": 500,
+    "elapsed_ms": 378.30000001192093,
+    "target_met": true,
+    "start_event": "native_target_option_pointerdown",
+    "end_event": "target_page_and_fields_loaded_queue_idle_stable_double_raf",
+    "started_at": "2026-10-02T19:01:58.250Z",
+    "ended_at": "2026-10-02T19:01:58.629Z",
+    "service_pid": 83716,
+    "measurement_ref": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\figure-warm\\browser-measurements.jsonl",
+    "screenshot": {
+      "status": "verified_received_file",
+      "captures": [
+        {
+          "path": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\figure-warm\\screenshots\\figure-warm-3.jpg",
+          "sha256": "75a1cd2b29c2c1c36911af89f474a7d8f74cfd90e3997f298fada4fa62a2bc16",
+          "bytes": 49667,
+          "capture_source": "actual_cua_browser_screenshot"
+        }
+      ]
+    },
+    "resource": {
+      "status": "no_complete_sample_inside_action_window",
+      "sample_count": 0,
+      "correct_service_pid": 83716,
+      "planned_interval_seconds": 1.0,
+      "resource_budget_acceptance": null,
+      "reason": "Subsecond actions cannot be fully described by sparse one-second resource observations; missing samples are null.",
+      "peaks_inside_complete_sample_cycles": {
+        "app_working_set_bytes": null,
+        "postgres_container_process_rss_bytes": null,
+        "redis_container_process_rss_bytes": null,
+        "simultaneous_observed_sum_bytes": null
+      },
+      "source": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\figure-warm\\ui-resources.jsonl",
+      "scope": "Actual UI worker PID; all PostgreSQL processes in shared container; Redis named container. Container RSS can count shared pages repeatedly."
+    },
+    "reason": null,
+    "measurement_source": "browser_performance_now_passive_native_event_dom_image_double_raf",
+    "actual_snapshot": {
+      "fields": {
+        "number": "2",
+        "order": "2",
+        "qtype": "判断题",
+        "content": "右图三角形面积为24cm²。",
+        "score": "2.00",
+        "points": "",
+        "answer": "",
+        "rubric": "",
+        "analysis": ""
+      },
+      "page_alt": "原卷第 1 页，1241×1754 像素",
+      "page_facts": "原页 1241×1754 像素 · OCR 已执行",
+      "page_loaded": true,
+      "images_count": 1,
+      "images_loaded": true,
+      "queue_busy": false,
+      "field_interactive": true,
+      "visibility_state": "visible",
+      "document_has_focus": true,
+      "mutation_version": 3447,
+      "image_load_version": 1
+    }
+  },
+  {
+    "run_id": "figure-warm-4",
+    "workload": "figure",
+    "case_id": "IMP-IMAGE",
+    "temperature": "warm",
+    "repeat_index": 4,
+    "warmup": false,
+    "action_kind": "question",
+    "directory": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\figure-warm",
+    "source_kind": "source_backed_replay_for_ui_timing",
+    "attempted": true,
+    "status": "success",
+    "target_ms": 500,
+    "elapsed_ms": 396.0999999642372,
+    "target_met": true,
+    "start_event": "native_target_option_pointerdown",
+    "end_event": "target_page_and_fields_loaded_queue_idle_stable_double_raf",
+    "started_at": "2026-10-02T19:02:04.458Z",
+    "ended_at": "2026-10-02T19:02:04.854Z",
+    "service_pid": 83716,
+    "measurement_ref": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\figure-warm\\browser-measurements.jsonl",
+    "screenshot": {
+      "status": "verified_received_file",
+      "captures": [
+        {
+          "path": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\figure-warm\\screenshots\\figure-warm-4.jpg",
+          "sha256": "c4bdb99b43cf86dcf487aba09b6f61c4c4692af1c912efbb53822fe77b935cd1",
+          "bytes": 48654,
+          "capture_source": "actual_cua_browser_screenshot"
+        }
+      ]
+    },
+    "resource": {
+      "status": "no_complete_sample_inside_action_window",
+      "sample_count": 0,
+      "correct_service_pid": 83716,
+      "planned_interval_seconds": 1.0,
+      "resource_budget_acceptance": null,
+      "reason": "Subsecond actions cannot be fully described by sparse one-second resource observations; missing samples are null.",
+      "peaks_inside_complete_sample_cycles": {
+        "app_working_set_bytes": null,
+        "postgres_container_process_rss_bytes": null,
+        "redis_container_process_rss_bytes": null,
+        "simultaneous_observed_sum_bytes": null
+      },
+      "source": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\figure-warm\\ui-resources.jsonl",
+      "scope": "Actual UI worker PID; all PostgreSQL processes in shared container; Redis named container. Container RSS can count shared pages repeatedly."
+    },
+    "reason": null,
+    "measurement_source": "browser_performance_now_passive_native_event_dom_image_double_raf",
+    "actual_snapshot": {
+      "fields": {
+        "number": "2",
+        "order": "2",
+        "qtype": "判断题",
+        "content": "右图三角形面积为24cm²。",
+        "score": "2.00",
+        "points": "",
+        "answer": "",
+        "rubric": "",
+        "analysis": ""
+      },
+      "page_alt": "原卷第 1 页，1241×1754 像素",
+      "page_facts": "原页 1241×1754 像素 · OCR 已执行",
+      "page_loaded": true,
+      "images_count": 1,
+      "images_loaded": true,
+      "queue_busy": false,
+      "field_interactive": true,
+      "visibility_state": "visible",
+      "document_has_focus": true,
+      "mutation_version": 4550,
+      "image_load_version": 1
+    }
+  },
+  {
+    "run_id": "figure-warm-5",
+    "workload": "figure",
+    "case_id": "IMP-IMAGE",
+    "temperature": "warm",
+    "repeat_index": 5,
+    "warmup": false,
+    "action_kind": "question",
+    "directory": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\figure-warm",
+    "source_kind": "source_backed_replay_for_ui_timing",
+    "attempted": true,
+    "status": "success",
+    "target_ms": 500,
+    "elapsed_ms": 377.30000001192093,
+    "target_met": true,
+    "start_event": "native_target_option_pointerdown",
+    "end_event": "target_page_and_fields_loaded_queue_idle_stable_double_raf",
+    "started_at": "2026-10-02T19:02:10.236Z",
+    "ended_at": "2026-10-02T19:02:10.613Z",
+    "service_pid": 83716,
+    "measurement_ref": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\figure-warm\\browser-measurements.jsonl",
+    "screenshot": {
+      "status": "verified_received_file",
+      "captures": [
+        {
+          "path": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\figure-warm\\screenshots\\figure-warm-5.jpg",
+          "sha256": "4518d9c93c1132cd54f11b7718ab812c3510fa7def8f01c9c60e8d5a1d310f8b",
+          "bytes": 49284,
+          "capture_source": "actual_cua_browser_screenshot"
+        }
+      ]
+    },
+    "resource": {
+      "status": "no_complete_sample_inside_action_window",
+      "sample_count": 0,
+      "correct_service_pid": 83716,
+      "planned_interval_seconds": 1.0,
+      "resource_budget_acceptance": null,
+      "reason": "Subsecond actions cannot be fully described by sparse one-second resource observations; missing samples are null.",
+      "peaks_inside_complete_sample_cycles": {
+        "app_working_set_bytes": null,
+        "postgres_container_process_rss_bytes": null,
+        "redis_container_process_rss_bytes": null,
+        "simultaneous_observed_sum_bytes": null
+      },
+      "source": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\figure-warm\\ui-resources.jsonl",
+      "scope": "Actual UI worker PID; all PostgreSQL processes in shared container; Redis named container. Container RSS can count shared pages repeatedly."
+    },
+    "reason": null,
+    "measurement_source": "browser_performance_now_passive_native_event_dom_image_double_raf",
+    "actual_snapshot": {
+      "fields": {
+        "number": "2",
+        "order": "2",
+        "qtype": "判断题",
+        "content": "右图三角形面积为24cm²。",
+        "score": "2.00",
+        "points": "",
+        "answer": "",
+        "rubric": "",
+        "analysis": ""
+      },
+      "page_alt": "原卷第 1 页，1241×1754 像素",
+      "page_facts": "原页 1241×1754 像素 · OCR 已执行",
+      "page_loaded": true,
+      "images_count": 1,
+      "images_loaded": true,
+      "queue_busy": false,
+      "field_interactive": true,
+      "visibility_state": "visible",
+      "document_has_focus": true,
+      "mutation_version": 5505,
+      "image_load_version": 1
+    }
+  },
+  {
+    "run_id": "text-cold-1",
+    "workload": "text",
+    "case_id": "IMP-TEXT",
+    "temperature": "cold",
+    "repeat_index": 1,
+    "warmup": false,
+    "action_kind": "question",
+    "directory": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\text-cold-1",
+    "source_kind": "source_backed_replay_for_ui_timing",
+    "attempted": true,
+    "status": "success",
+    "target_ms": 500,
+    "elapsed_ms": 420.30000001192093,
+    "target_met": true,
+    "start_event": "native_target_option_pointerdown",
+    "end_event": "target_page_and_fields_loaded_queue_idle_stable_double_raf",
+    "started_at": "2026-10-02T18:53:13.944Z",
+    "ended_at": "2026-10-02T18:53:14.365Z",
+    "service_pid": 80736,
+    "measurement_ref": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\text-cold-1\\browser-measurements.jsonl",
+    "screenshot": {
+      "status": "verified_received_file",
+      "captures": [
+        {
+          "path": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\text-cold-1\\screenshots\\text-cold-1.jpg",
+          "sha256": "008cc648ff23ea169a6931c2a63fb61e5a7a18864ffbdb271fbb1b8e7274edce",
+          "bytes": 52081,
+          "capture_source": "actual_cua_browser_screenshot"
+        }
+      ]
+    },
+    "resource": {
+      "status": "no_complete_sample_inside_action_window",
+      "sample_count": 0,
+      "correct_service_pid": 80736,
+      "planned_interval_seconds": 1.0,
+      "resource_budget_acceptance": null,
+      "reason": "Subsecond actions cannot be fully described by sparse one-second resource observations; missing samples are null.",
+      "peaks_inside_complete_sample_cycles": {
+        "app_working_set_bytes": null,
+        "postgres_container_process_rss_bytes": null,
+        "redis_container_process_rss_bytes": null,
+        "simultaneous_observed_sum_bytes": null
+      },
+      "source": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\text-cold-1\\ui-resources.jsonl",
+      "scope": "Actual UI worker PID; all PostgreSQL processes in shared container; Redis named container. Container RSS can count shared pages repeatedly."
+    },
+    "reason": null,
+    "measurement_source": "browser_performance_now_passive_native_event_dom_image_double_raf",
+    "actual_snapshot": {
+      "fields": {
+        "number": "1",
+        "order": "1",
+        "qtype": "单选题",
+        "content": "单选：y = 2x + 1，x = 3 时 y 为多少？",
+        "score": "2.00",
+        "points": "",
+        "answer": "C",
+        "rubric": "",
+        "analysis": "2 × 3 + 1 = 7。"
+      },
+      "page_alt": "原卷第 1 页，1241×1754 像素",
+      "page_facts": "原页 1241×1754 像素 · 未执行 OCR",
+      "page_loaded": true,
+      "images_count": 1,
+      "images_loaded": true,
+      "queue_busy": false,
+      "field_interactive": true,
+      "visibility_state": "visible",
+      "document_has_focus": true,
+      "mutation_version": 645,
+      "image_load_version": 1
+    }
+  },
+  {
+    "run_id": "text-cold-2",
+    "workload": "text",
+    "case_id": "IMP-TEXT",
+    "temperature": "cold",
+    "repeat_index": 2,
+    "warmup": false,
+    "action_kind": "question",
+    "directory": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\text-cold-2",
+    "source_kind": "source_backed_replay_for_ui_timing",
+    "attempted": true,
+    "status": "success",
+    "target_ms": 500,
+    "elapsed_ms": 354.60000002384186,
+    "target_met": true,
+    "start_event": "native_target_option_pointerdown",
+    "end_event": "target_page_and_fields_loaded_queue_idle_stable_double_raf",
+    "started_at": "2026-10-02T18:56:01.346Z",
+    "ended_at": "2026-10-02T18:56:01.701Z",
+    "service_pid": 81176,
+    "measurement_ref": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\text-cold-2\\browser-measurements.jsonl",
+    "screenshot": {
+      "status": "verified_received_file",
+      "captures": [
+        {
+          "path": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\text-cold-2\\screenshots\\text-cold-2.jpg",
+          "sha256": "6fe95af349603edb662ebd328c3ac0c72b83d9647fecbad91413ed6903c1bb9a",
+          "bytes": 50949,
+          "capture_source": "actual_cua_browser_screenshot"
+        }
+      ]
+    },
+    "resource": {
+      "status": "no_complete_sample_inside_action_window",
+      "sample_count": 0,
+      "correct_service_pid": 81176,
+      "planned_interval_seconds": 1.0,
+      "resource_budget_acceptance": null,
+      "reason": "Subsecond actions cannot be fully described by sparse one-second resource observations; missing samples are null.",
+      "peaks_inside_complete_sample_cycles": {
+        "app_working_set_bytes": null,
+        "postgres_container_process_rss_bytes": null,
+        "redis_container_process_rss_bytes": null,
+        "simultaneous_observed_sum_bytes": null
+      },
+      "source": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\text-cold-2\\ui-resources.jsonl",
+      "scope": "Actual UI worker PID; all PostgreSQL processes in shared container; Redis named container. Container RSS can count shared pages repeatedly."
+    },
+    "reason": null,
+    "measurement_source": "browser_performance_now_passive_native_event_dom_image_double_raf",
+    "actual_snapshot": {
+      "fields": {
+        "number": "1",
+        "order": "1",
+        "qtype": "单选题",
+        "content": "单选：y = 2x + 1，x = 3 时 y 为多少？",
+        "score": "2.00",
+        "points": "",
+        "answer": "C",
+        "rubric": "",
+        "analysis": "2 × 3 + 1 = 7。"
+      },
+      "page_alt": "原卷第 1 页，1241×1754 像素",
+      "page_facts": "原页 1241×1754 像素 · 未执行 OCR",
+      "page_loaded": true,
+      "images_count": 1,
+      "images_loaded": true,
+      "queue_busy": false,
+      "field_interactive": true,
+      "visibility_state": "visible",
+      "document_has_focus": true,
+      "mutation_version": 674,
+      "image_load_version": 1
+    }
+  },
+  {
+    "run_id": "text-cold-3",
+    "workload": "text",
+    "case_id": "IMP-TEXT",
+    "temperature": "cold",
+    "repeat_index": 3,
+    "warmup": false,
+    "action_kind": "question",
+    "directory": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\text-cold-3",
+    "source_kind": "source_backed_replay_for_ui_timing",
+    "attempted": true,
+    "status": "success",
+    "target_ms": 500,
+    "elapsed_ms": 357.5,
+    "target_met": true,
+    "start_event": "native_target_option_pointerdown",
+    "end_event": "target_page_and_fields_loaded_queue_idle_stable_double_raf",
+    "started_at": "2026-10-02T18:56:58.997Z",
+    "ended_at": "2026-10-02T18:56:59.355Z",
+    "service_pid": 82816,
+    "measurement_ref": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\text-cold-3\\browser-measurements.jsonl",
+    "screenshot": {
+      "status": "verified_received_file",
+      "captures": [
+        {
+          "path": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\text-cold-3\\screenshots\\text-cold-3.jpg",
+          "sha256": "8c5647045278e89182129368335f6828e90d0980f7b3816f91cb51dfa96056ba",
+          "bytes": 49259,
+          "capture_source": "actual_cua_browser_screenshot"
+        }
+      ]
+    },
+    "resource": {
+      "status": "no_complete_sample_inside_action_window",
+      "sample_count": 0,
+      "correct_service_pid": 82816,
+      "planned_interval_seconds": 1.0,
+      "resource_budget_acceptance": null,
+      "reason": "Subsecond actions cannot be fully described by sparse one-second resource observations; missing samples are null.",
+      "peaks_inside_complete_sample_cycles": {
+        "app_working_set_bytes": null,
+        "postgres_container_process_rss_bytes": null,
+        "redis_container_process_rss_bytes": null,
+        "simultaneous_observed_sum_bytes": null
+      },
+      "source": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\text-cold-3\\ui-resources.jsonl",
+      "scope": "Actual UI worker PID; all PostgreSQL processes in shared container; Redis named container. Container RSS can count shared pages repeatedly."
+    },
+    "reason": null,
+    "measurement_source": "browser_performance_now_passive_native_event_dom_image_double_raf",
+    "actual_snapshot": {
+      "fields": {
+        "number": "1",
+        "order": "1",
+        "qtype": "单选题",
+        "content": "单选：y = 2x + 1，x = 3 时 y 为多少？",
+        "score": "2.00",
+        "points": "",
+        "answer": "C",
+        "rubric": "",
+        "analysis": "2 × 3 + 1 = 7。"
+      },
+      "page_alt": "原卷第 1 页，1241×1754 像素",
+      "page_facts": "原页 1241×1754 像素 · 未执行 OCR",
+      "page_loaded": true,
+      "images_count": 1,
+      "images_loaded": true,
+      "queue_busy": false,
+      "field_interactive": true,
+      "visibility_state": "visible",
+      "document_has_focus": true,
+      "mutation_version": 669,
+      "image_load_version": 1
+    }
+  },
+  {
+    "run_id": "text-warmup",
+    "workload": "text",
+    "case_id": "IMP-TEXT",
+    "temperature": "warm",
+    "repeat_index": 0,
+    "warmup": true,
+    "action_kind": "question",
+    "directory": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\text-warm",
+    "source_kind": "source_backed_replay_for_ui_timing",
+    "attempted": true,
+    "status": "success",
+    "target_ms": 500,
+    "elapsed_ms": 338.9000000357628,
+    "target_met": true,
+    "start_event": "native_target_option_pointerdown",
+    "end_event": "target_page_and_fields_loaded_queue_idle_stable_double_raf",
+    "started_at": "2026-10-02T18:58:04.643Z",
+    "ended_at": "2026-10-02T18:58:04.982Z",
+    "service_pid": 87812,
+    "measurement_ref": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\text-warm\\browser-measurements.jsonl",
+    "screenshot": {
+      "status": "verified_received_file",
+      "captures": [
+        {
+          "path": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\text-warm\\screenshots\\text-warmup.jpg",
+          "sha256": "7b35f857c8ea36257809b6f7a460e9e97bb80ba83012f032b0cd2993c7855df8",
+          "bytes": 49572,
+          "capture_source": "actual_cua_browser_screenshot"
+        }
+      ]
+    },
+    "resource": {
+      "status": "no_complete_sample_inside_action_window",
+      "sample_count": 0,
+      "correct_service_pid": 87812,
+      "planned_interval_seconds": 1.0,
+      "resource_budget_acceptance": null,
+      "reason": "Subsecond actions cannot be fully described by sparse one-second resource observations; missing samples are null.",
+      "peaks_inside_complete_sample_cycles": {
+        "app_working_set_bytes": null,
+        "postgres_container_process_rss_bytes": null,
+        "redis_container_process_rss_bytes": null,
+        "simultaneous_observed_sum_bytes": null
+      },
+      "source": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\text-warm\\ui-resources.jsonl",
+      "scope": "Actual UI worker PID; all PostgreSQL processes in shared container; Redis named container. Container RSS can count shared pages repeatedly."
+    },
+    "reason": null,
+    "measurement_source": "browser_performance_now_passive_native_event_dom_image_double_raf",
+    "actual_snapshot": {
+      "fields": {
+        "number": "1",
+        "order": "1",
+        "qtype": "单选题",
+        "content": "单选：y = 2x + 1，x = 3 时 y 为多少？",
+        "score": "2.00",
+        "points": "",
+        "answer": "C",
+        "rubric": "",
+        "analysis": "2 × 3 + 1 = 7。"
+      },
+      "page_alt": "原卷第 1 页，1241×1754 像素",
+      "page_facts": "原页 1241×1754 像素 · 未执行 OCR",
+      "page_loaded": true,
+      "images_count": 1,
+      "images_loaded": true,
+      "queue_busy": false,
+      "field_interactive": true,
+      "visibility_state": "visible",
+      "document_has_focus": true,
+      "mutation_version": 765,
+      "image_load_version": 1
+    }
+  },
+  {
+    "run_id": "text-warm-1",
+    "workload": "text",
+    "case_id": "IMP-TEXT",
+    "temperature": "warm",
+    "repeat_index": 1,
+    "warmup": false,
+    "action_kind": "question",
+    "directory": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\text-warm",
+    "source_kind": "source_backed_replay_for_ui_timing",
+    "attempted": true,
+    "status": "success",
+    "target_ms": 500,
+    "elapsed_ms": 359.30000001192093,
+    "target_met": true,
+    "start_event": "native_target_option_pointerdown",
+    "end_event": "target_page_and_fields_loaded_queue_idle_stable_double_raf",
+    "started_at": "2026-10-02T18:58:10.978Z",
+    "ended_at": "2026-10-02T18:58:11.337Z",
+    "service_pid": 87812,
+    "measurement_ref": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\text-warm\\browser-measurements.jsonl",
+    "screenshot": {
+      "status": "verified_received_file",
+      "captures": [
+        {
+          "path": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\text-warm\\screenshots\\text-warm-1.jpg",
+          "sha256": "964593f326194c150b2abdf6699278a1513903ce0fe593a9c60edcc826fc6643",
+          "bytes": 47640,
+          "capture_source": "actual_cua_browser_screenshot"
+        }
+      ]
+    },
+    "resource": {
+      "status": "no_complete_sample_inside_action_window",
+      "sample_count": 0,
+      "correct_service_pid": 87812,
+      "planned_interval_seconds": 1.0,
+      "resource_budget_acceptance": null,
+      "reason": "Subsecond actions cannot be fully described by sparse one-second resource observations; missing samples are null.",
+      "peaks_inside_complete_sample_cycles": {
+        "app_working_set_bytes": null,
+        "postgres_container_process_rss_bytes": null,
+        "redis_container_process_rss_bytes": null,
+        "simultaneous_observed_sum_bytes": null
+      },
+      "source": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\text-warm\\ui-resources.jsonl",
+      "scope": "Actual UI worker PID; all PostgreSQL processes in shared container; Redis named container. Container RSS can count shared pages repeatedly."
+    },
+    "reason": null,
+    "measurement_source": "browser_performance_now_passive_native_event_dom_image_double_raf",
+    "actual_snapshot": {
+      "fields": {
+        "number": "1",
+        "order": "1",
+        "qtype": "单选题",
+        "content": "单选：y = 2x + 1，x = 3 时 y 为多少？",
+        "score": "2.00",
+        "points": "",
+        "answer": "C",
+        "rubric": "",
+        "analysis": "2 × 3 + 1 = 7。"
+      },
+      "page_alt": "原卷第 1 页，1241×1754 像素",
+      "page_facts": "原页 1241×1754 像素 · 未执行 OCR",
+      "page_loaded": true,
+      "images_count": 1,
+      "images_loaded": true,
+      "queue_busy": false,
+      "field_interactive": true,
+      "visibility_state": "visible",
+      "document_has_focus": true,
+      "mutation_version": 1714,
+      "image_load_version": 1
+    }
+  },
+  {
+    "run_id": "text-warm-2",
+    "workload": "text",
+    "case_id": "IMP-TEXT",
+    "temperature": "warm",
+    "repeat_index": 2,
+    "warmup": false,
+    "action_kind": "question",
+    "directory": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\text-warm",
+    "source_kind": "source_backed_replay_for_ui_timing",
+    "attempted": true,
+    "status": "success",
+    "target_ms": 500,
+    "elapsed_ms": 350.39999997615814,
+    "target_met": true,
+    "start_event": "native_target_option_pointerdown",
+    "end_event": "target_page_and_fields_loaded_queue_idle_stable_double_raf",
+    "started_at": "2026-10-02T18:58:17.173Z",
+    "ended_at": "2026-10-02T18:58:17.524Z",
+    "service_pid": 87812,
+    "measurement_ref": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\text-warm\\browser-measurements.jsonl",
+    "screenshot": {
+      "status": "verified_received_file",
+      "captures": [
+        {
+          "path": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\text-warm\\screenshots\\text-warm-2.jpg",
+          "sha256": "b1007a0bb8bc5e3360e2a3fbec7941ee40b0e032b4525960c8c015a17cccb26d",
+          "bytes": 49642,
+          "capture_source": "actual_cua_browser_screenshot"
+        }
+      ]
+    },
+    "resource": {
+      "status": "no_complete_sample_inside_action_window",
+      "sample_count": 0,
+      "correct_service_pid": 87812,
+      "planned_interval_seconds": 1.0,
+      "resource_budget_acceptance": null,
+      "reason": "Subsecond actions cannot be fully described by sparse one-second resource observations; missing samples are null.",
+      "peaks_inside_complete_sample_cycles": {
+        "app_working_set_bytes": null,
+        "postgres_container_process_rss_bytes": null,
+        "redis_container_process_rss_bytes": null,
+        "simultaneous_observed_sum_bytes": null
+      },
+      "source": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\text-warm\\ui-resources.jsonl",
+      "scope": "Actual UI worker PID; all PostgreSQL processes in shared container; Redis named container. Container RSS can count shared pages repeatedly."
+    },
+    "reason": null,
+    "measurement_source": "browser_performance_now_passive_native_event_dom_image_double_raf",
+    "actual_snapshot": {
+      "fields": {
+        "number": "1",
+        "order": "1",
+        "qtype": "单选题",
+        "content": "单选：y = 2x + 1，x = 3 时 y 为多少？",
+        "score": "2.00",
+        "points": "",
+        "answer": "C",
+        "rubric": "",
+        "analysis": "2 × 3 + 1 = 7。"
+      },
+      "page_alt": "原卷第 1 页，1241×1754 像素",
+      "page_facts": "原页 1241×1754 像素 · 未执行 OCR",
+      "page_loaded": true,
+      "images_count": 1,
+      "images_loaded": true,
+      "queue_busy": false,
+      "field_interactive": true,
+      "visibility_state": "visible",
+      "document_has_focus": true,
+      "mutation_version": 2766,
+      "image_load_version": 1
+    }
+  },
+  {
+    "run_id": "text-warm-3",
+    "workload": "text",
+    "case_id": "IMP-TEXT",
+    "temperature": "warm",
+    "repeat_index": 3,
+    "warmup": false,
+    "action_kind": "question",
+    "directory": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\text-warm",
+    "source_kind": "source_backed_replay_for_ui_timing",
+    "attempted": true,
+    "status": "success",
+    "target_ms": 500,
+    "elapsed_ms": 335,
+    "target_met": true,
+    "start_event": "native_target_option_pointerdown",
+    "end_event": "target_page_and_fields_loaded_queue_idle_stable_double_raf",
+    "started_at": "2026-10-02T18:58:23.148Z",
+    "ended_at": "2026-10-02T18:58:23.483Z",
+    "service_pid": 87812,
+    "measurement_ref": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\text-warm\\browser-measurements.jsonl",
+    "screenshot": {
+      "status": "verified_received_file",
+      "captures": [
+        {
+          "path": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\text-warm\\screenshots\\text-warm-3.jpg",
+          "sha256": "0e2d34d9e82d82d9a98662ab0c9d74358482929ce7c9bbd46bca9be020f1a28e",
+          "bytes": 51061,
+          "capture_source": "actual_cua_browser_screenshot"
+        }
+      ]
+    },
+    "resource": {
+      "status": "no_complete_sample_inside_action_window",
+      "sample_count": 0,
+      "correct_service_pid": 87812,
+      "planned_interval_seconds": 1.0,
+      "resource_budget_acceptance": null,
+      "reason": "Subsecond actions cannot be fully described by sparse one-second resource observations; missing samples are null.",
+      "peaks_inside_complete_sample_cycles": {
+        "app_working_set_bytes": null,
+        "postgres_container_process_rss_bytes": null,
+        "redis_container_process_rss_bytes": null,
+        "simultaneous_observed_sum_bytes": null
+      },
+      "source": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\text-warm\\ui-resources.jsonl",
+      "scope": "Actual UI worker PID; all PostgreSQL processes in shared container; Redis named container. Container RSS can count shared pages repeatedly."
+    },
+    "reason": null,
+    "measurement_source": "browser_performance_now_passive_native_event_dom_image_double_raf",
+    "actual_snapshot": {
+      "fields": {
+        "number": "1",
+        "order": "1",
+        "qtype": "单选题",
+        "content": "单选：y = 2x + 1，x = 3 时 y 为多少？",
+        "score": "2.00",
+        "points": "",
+        "answer": "C",
+        "rubric": "",
+        "analysis": "2 × 3 + 1 = 7。"
+      },
+      "page_alt": "原卷第 1 页，1241×1754 像素",
+      "page_facts": "原页 1241×1754 像素 · 未执行 OCR",
+      "page_loaded": true,
+      "images_count": 1,
+      "images_loaded": true,
+      "queue_busy": false,
+      "field_interactive": true,
+      "visibility_state": "visible",
+      "document_has_focus": true,
+      "mutation_version": 3982,
+      "image_load_version": 1
+    }
+  },
+  {
+    "run_id": "text-warm-4",
+    "workload": "text",
+    "case_id": "IMP-TEXT",
+    "temperature": "warm",
+    "repeat_index": 4,
+    "warmup": false,
+    "action_kind": "question",
+    "directory": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\text-warm",
+    "source_kind": "source_backed_replay_for_ui_timing",
+    "attempted": true,
+    "status": "success",
+    "target_ms": 500,
+    "elapsed_ms": 360.39999997615814,
+    "target_met": true,
+    "start_event": "native_target_option_pointerdown",
+    "end_event": "target_page_and_fields_loaded_queue_idle_stable_double_raf",
+    "started_at": "2026-10-02T18:58:29.168Z",
+    "ended_at": "2026-10-02T18:58:29.529Z",
+    "service_pid": 87812,
+    "measurement_ref": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\text-warm\\browser-measurements.jsonl",
+    "screenshot": {
+      "status": "verified_received_file",
+      "captures": [
+        {
+          "path": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\text-warm\\screenshots\\text-warm-4.jpg",
+          "sha256": "273a43a566efaeaafd2efbc1fdaca4a62830020c8b633b2db2103c827074ddaa",
+          "bytes": 48471,
+          "capture_source": "actual_cua_browser_screenshot"
+        }
+      ]
+    },
+    "resource": {
+      "status": "no_complete_sample_inside_action_window",
+      "sample_count": 0,
+      "correct_service_pid": 87812,
+      "planned_interval_seconds": 1.0,
+      "resource_budget_acceptance": null,
+      "reason": "Subsecond actions cannot be fully described by sparse one-second resource observations; missing samples are null.",
+      "peaks_inside_complete_sample_cycles": {
+        "app_working_set_bytes": null,
+        "postgres_container_process_rss_bytes": null,
+        "redis_container_process_rss_bytes": null,
+        "simultaneous_observed_sum_bytes": null
+      },
+      "source": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\text-warm\\ui-resources.jsonl",
+      "scope": "Actual UI worker PID; all PostgreSQL processes in shared container; Redis named container. Container RSS can count shared pages repeatedly."
+    },
+    "reason": null,
+    "measurement_source": "browser_performance_now_passive_native_event_dom_image_double_raf",
+    "actual_snapshot": {
+      "fields": {
+        "number": "1",
+        "order": "1",
+        "qtype": "单选题",
+        "content": "单选：y = 2x + 1，x = 3 时 y 为多少？",
+        "score": "2.00",
+        "points": "",
+        "answer": "C",
+        "rubric": "",
+        "analysis": "2 × 3 + 1 = 7。"
+      },
+      "page_alt": "原卷第 1 页，1241×1754 像素",
+      "page_facts": "原页 1241×1754 像素 · 未执行 OCR",
+      "page_loaded": true,
+      "images_count": 1,
+      "images_loaded": true,
+      "queue_busy": false,
+      "field_interactive": true,
+      "visibility_state": "visible",
+      "document_has_focus": true,
+      "mutation_version": 5109,
+      "image_load_version": 1
+    }
+  },
+  {
+    "run_id": "text-warm-5",
+    "workload": "text",
+    "case_id": "IMP-TEXT",
+    "temperature": "warm",
+    "repeat_index": 5,
+    "warmup": false,
+    "action_kind": "question",
+    "directory": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\text-warm",
+    "source_kind": "source_backed_replay_for_ui_timing",
+    "attempted": true,
+    "status": "success",
+    "target_ms": 500,
+    "elapsed_ms": 315.7000000476837,
+    "target_met": true,
+    "start_event": "native_target_option_pointerdown",
+    "end_event": "target_page_and_fields_loaded_queue_idle_stable_double_raf",
+    "started_at": "2026-10-02T18:58:35.553Z",
+    "ended_at": "2026-10-02T18:58:35.869Z",
+    "service_pid": 87812,
+    "measurement_ref": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\text-warm\\browser-measurements.jsonl",
+    "screenshot": {
+      "status": "verified_received_file",
+      "captures": [
+        {
+          "path": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\text-warm\\screenshots\\text-warm-5.jpg",
+          "sha256": "37b2278c509894fbb56864e4f8895884d76d066731cf5730e52fcdc6af5b57fb",
+          "bytes": 51052,
+          "capture_source": "actual_cua_browser_screenshot"
+        }
+      ]
+    },
+    "resource": {
+      "status": "no_complete_sample_inside_action_window",
+      "sample_count": 0,
+      "correct_service_pid": 87812,
+      "planned_interval_seconds": 1.0,
+      "resource_budget_acceptance": null,
+      "reason": "Subsecond actions cannot be fully described by sparse one-second resource observations; missing samples are null.",
+      "peaks_inside_complete_sample_cycles": {
+        "app_working_set_bytes": null,
+        "postgres_container_process_rss_bytes": null,
+        "redis_container_process_rss_bytes": null,
+        "simultaneous_observed_sum_bytes": null
+      },
+      "source": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\ui-correction\\text-warm\\ui-resources.jsonl",
+      "scope": "Actual UI worker PID; all PostgreSQL processes in shared container; Redis named container. Container RSS can count shared pages repeatedly."
+    },
+    "reason": null,
+    "measurement_source": "browser_performance_now_passive_native_event_dom_image_double_raf",
+    "actual_snapshot": {
+      "fields": {
+        "number": "1",
+        "order": "1",
+        "qtype": "单选题",
+        "content": "单选：y = 2x + 1，x = 3 时 y 为多少？",
+        "score": "2.00",
+        "points": "",
+        "answer": "C",
+        "rubric": "",
+        "analysis": "2 × 3 + 1 = 7。"
+      },
+      "page_alt": "原卷第 1 页，1241×1754 像素",
+      "page_facts": "原页 1241×1754 像素 · 未执行 OCR",
+      "page_loaded": true,
+      "images_count": 1,
+      "images_loaded": true,
+      "queue_busy": false,
+      "field_interactive": true,
+      "visibility_state": "visible",
+      "document_has_focus": true,
+      "mutation_version": 6380,
+      "image_load_version": 1
+    }
+  }
+]

@@ -1,0 +1,54 @@
+.........F                                                               [100%]
+================================== FAILURES ===================================
+_______ test_interrupted_evidence_write_preserves_last_complete_record ________
+
+tmp_path = WindowsPath('D:/YJX/Cache/Temp/pytest-of-10169/pytest-179/test_interrupted_evidence_writ0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x00000151B6BD79B0>
+
+    def test_interrupted_evidence_write_preserves_last_complete_record(tmp_path, monkeypatch):
+        target = tmp_path / "run.json"
+        previous = {"status": "Extracting", "http_requests": [{"attempt": 1}]}
+        runner.write_json(target, previous)
+        original_write = Path.write_text
+    
+        def interrupted_write(path, data, *args, **kwargs):
+            original_write(path, data[:8], *args, **kwargs)
+            raise OSError("Injected interruption during evidence write")
+    
+        monkeypatch.setattr(Path, "write_text", interrupted_write)
+        with pytest.raises(OSError, match="Injected interruption"):
+            runner.write_json(target, {"status": "Pending Review", "http_requests": [{"attempt": 1}, {"attempt": 2}]})
+>       assert json.loads(target.read_text(encoding="utf-8")) == previous
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\unit\benchmark\test_t160_resource_sampling.py:279: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+D:\develop\Python\Lib\json\__init__.py:352: in loads
+    return _default_decoder.decode(s)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\json\decoder.py:345: in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <json.decoder.JSONDecoder object at 0x00000151B3453CB0>, s = '{\n  "sta'
+idx = 0
+
+    def raw_decode(self, s, idx=0):
+        """Decode a JSON document from ``s`` (a ``str`` beginning with
+        a JSON document) and return a 2-tuple of the Python
+        representation and the index in ``s`` where the document ended.
+    
+        This can be used to decode a JSON document from a string that may
+        have extraneous data at the end.
+    
+        """
+        try:
+>           obj, end = self.scan_once(s, idx)
+                       ^^^^^^^^^^^^^^^^^^^^^^
+E           json.decoder.JSONDecodeError: Unterminated string starting at: line 2 column 3 (char 4)
+
+D:\develop\Python\Lib\json\decoder.py:361: JSONDecodeError
+=========================== short test summary info ===========================
+FAILED tests/unit/benchmark/test_t160_resource_sampling.py::test_interrupted_evidence_write_preserves_last_complete_record
+1 failed, 9 passed in 0.46s

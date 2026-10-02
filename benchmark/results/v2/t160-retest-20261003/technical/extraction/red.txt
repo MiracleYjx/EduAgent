@@ -1,0 +1,154 @@
+FFFFFFFFF..F.F                                                           [100%]
+================================== FAILURES ===================================
+___ test_unknown_evidence_keys_are_rejected_at_the_provider_schema_boundary ___
+
+    def test_unknown_evidence_keys_are_rejected_at_the_provider_schema_boundary():
+        # The prior real 50-page failures supplied knowledge_points evidence.
+>       with pytest.raises(ValidationError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValidationError
+
+tests\unit\ingestion\test_t160_extraction_constraints.py:46: Failed
+___ test_published_schema_restricts_evidence_keys_to_the_accepted_contract ____
+
+    def test_published_schema_restricts_evidence_keys_to_the_accepted_contract():
+        schema = ExtractionBatch.model_json_schema()["$defs"]["Candidate"]["properties"]
+>       assert set(schema["evidence"]["propertyNames"]["enum"]) == {
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+            "reference_answer", "scoring_rubric", "analysis",
+        }
+E       KeyError: 'propertyNames'
+
+tests\unit\ingestion\test_t160_extraction_constraints.py:54: KeyError
+_ test_each_populated_answer_field_requires_its_own_nonempty_evidence[\u539f\u6587\u8bf4\u660e\u3002-reference_answer] _
+
+field = 'reference_answer', value = '原文说明。'
+
+    @pytest.mark.parametrize("field", ["reference_answer", "scoring_rubric", "analysis"])
+    @pytest.mark.parametrize("value", ["原文说明。", "   "])
+    def test_each_populated_answer_field_requires_its_own_nonempty_evidence(field, value):
+>       with pytest.raises(ValidationError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValidationError
+
+tests\unit\ingestion\test_t160_extraction_constraints.py:62: Failed
+_ test_each_populated_answer_field_requires_its_own_nonempty_evidence[\u539f\u6587\u8bf4\u660e\u3002-scoring_rubric] _
+
+field = 'scoring_rubric', value = '原文说明。'
+
+    @pytest.mark.parametrize("field", ["reference_answer", "scoring_rubric", "analysis"])
+    @pytest.mark.parametrize("value", ["原文说明。", "   "])
+    def test_each_populated_answer_field_requires_its_own_nonempty_evidence(field, value):
+>       with pytest.raises(ValidationError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValidationError
+
+tests\unit\ingestion\test_t160_extraction_constraints.py:62: Failed
+_ test_each_populated_answer_field_requires_its_own_nonempty_evidence[\u539f\u6587\u8bf4\u660e\u3002-analysis] _
+
+field = 'analysis', value = '原文说明。'
+
+    @pytest.mark.parametrize("field", ["reference_answer", "scoring_rubric", "analysis"])
+    @pytest.mark.parametrize("value", ["原文说明。", "   "])
+    def test_each_populated_answer_field_requires_its_own_nonempty_evidence(field, value):
+>       with pytest.raises(ValidationError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValidationError
+
+tests\unit\ingestion\test_t160_extraction_constraints.py:62: Failed
+_ test_each_populated_answer_field_requires_its_own_nonempty_evidence[   -reference_answer] _
+
+field = 'reference_answer', value = '   '
+
+    @pytest.mark.parametrize("field", ["reference_answer", "scoring_rubric", "analysis"])
+    @pytest.mark.parametrize("value", ["原文说明。", "   "])
+    def test_each_populated_answer_field_requires_its_own_nonempty_evidence(field, value):
+>       with pytest.raises(ValidationError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValidationError
+
+tests\unit\ingestion\test_t160_extraction_constraints.py:62: Failed
+_ test_each_populated_answer_field_requires_its_own_nonempty_evidence[   -scoring_rubric] _
+
+field = 'scoring_rubric', value = '   '
+
+    @pytest.mark.parametrize("field", ["reference_answer", "scoring_rubric", "analysis"])
+    @pytest.mark.parametrize("value", ["原文说明。", "   "])
+    def test_each_populated_answer_field_requires_its_own_nonempty_evidence(field, value):
+>       with pytest.raises(ValidationError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValidationError
+
+tests\unit\ingestion\test_t160_extraction_constraints.py:62: Failed
+_ test_each_populated_answer_field_requires_its_own_nonempty_evidence[   -analysis] _
+
+field = 'analysis', value = '   '
+
+    @pytest.mark.parametrize("field", ["reference_answer", "scoring_rubric", "analysis"])
+    @pytest.mark.parametrize("value", ["原文说明。", "   "])
+    def test_each_populated_answer_field_requires_its_own_nonempty_evidence(field, value):
+>       with pytest.raises(ValidationError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValidationError
+
+tests\unit\ingestion\test_t160_extraction_constraints.py:62: Failed
+_______ test_nonliteral_answer_is_rejected_before_business_persistence ________
+
+    def test_nonliteral_answer_is_rejected_before_business_persistence():
+>       with pytest.raises(ValidationError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValidationError
+
+tests\unit\ingestion\test_t160_extraction_constraints.py:67: Failed
+____ test_completed_indices_are_explicit_and_do_not_reuse_original_numbers ____
+
+    def test_completed_indices_are_explicit_and_do_not_reuse_original_numbers():
+        pages = [TextPage(uuid4(), 1, "8. 原题", "TEXT"),
+                 TextPage(uuid4(), 2, "8. 原稿答案：甲", "TEXT")]
+        provider = Provider([
+            {"questions": [candidate()]},
+            {"updates": [{"question_index": 1, "reference_answer": "甲",
+                          "evidence": {"reference_answer": evidence("8. 原稿答案：甲", 2)}}]},
+        ])
+        batches = extract(pages, provider)
+>       assert provider.inputs[0]["allowed_update_indices"] == []
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'allowed_update_indices'
+
+tests\unit\ingestion\test_t160_extraction_constraints.py:103: KeyError
+_ test_actual_provider_uses_existing_bounded_retry_for_schema_invalid_evidence _
+
+    def test_actual_provider_uses_existing_bounded_retry_for_schema_invalid_evidence():
+        invalid = {"questions": [candidate(evidence={"knowledge_points": evidence()})]}
+        valid = {"questions": [candidate(reference_answer="甲",
+                                        evidence={"reference_answer": evidence()})]}
+        responses = [SimpleNamespace(choices=[SimpleNamespace(message=SimpleNamespace(
+            content=json.dumps(output, ensure_ascii=False),
+        ))]) for output in (invalid, valid)]
+        create = AsyncMock(side_effect=responses)
+        provider = DeepSeekProvider(
+            build_test_settings(deepseek_api_key="test-only-placeholder"),
+            client=SimpleNamespace(chat=SimpleNamespace(completions=SimpleNamespace(create=create))),
+            retry_policy=RetryPolicy(backoff_seconds=(0,), jitter_seconds=0),
+        )
+        parsed = asyncio.run(provider.generate_structured(
+            [{"role": "user", "content": "Extract JSON"}], ExtractionBatch,
+        ))
+>       assert create.await_count == 2
+E       AssertionError: assert 1 == 2
+E        +  where 1 = <AsyncMock id='2739102216416'>.await_count
+
+tests\unit\ingestion\test_t160_extraction_constraints.py:136: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/unit/ingestion/test_t160_extraction_constraints.py::test_unknown_evidence_keys_are_rejected_at_the_provider_schema_boundary
+FAILED tests/unit/ingestion/test_t160_extraction_constraints.py::test_published_schema_restricts_evidence_keys_to_the_accepted_contract
+FAILED tests/unit/ingestion/test_t160_extraction_constraints.py::test_each_populated_answer_field_requires_its_own_nonempty_evidence[\u539f\u6587\u8bf4\u660e\u3002-reference_answer]
+FAILED tests/unit/ingestion/test_t160_extraction_constraints.py::test_each_populated_answer_field_requires_its_own_nonempty_evidence[\u539f\u6587\u8bf4\u660e\u3002-scoring_rubric]
+FAILED tests/unit/ingestion/test_t160_extraction_constraints.py::test_each_populated_answer_field_requires_its_own_nonempty_evidence[\u539f\u6587\u8bf4\u660e\u3002-analysis]
+FAILED tests/unit/ingestion/test_t160_extraction_constraints.py::test_each_populated_answer_field_requires_its_own_nonempty_evidence[   -reference_answer]
+FAILED tests/unit/ingestion/test_t160_extraction_constraints.py::test_each_populated_answer_field_requires_its_own_nonempty_evidence[   -scoring_rubric]
+FAILED tests/unit/ingestion/test_t160_extraction_constraints.py::test_each_populated_answer_field_requires_its_own_nonempty_evidence[   -analysis]
+FAILED tests/unit/ingestion/test_t160_extraction_constraints.py::test_nonliteral_answer_is_rejected_before_business_persistence
+FAILED tests/unit/ingestion/test_t160_extraction_constraints.py::test_completed_indices_are_explicit_and_do_not_reuse_original_numbers
+FAILED tests/unit/ingestion/test_t160_extraction_constraints.py::test_actual_provider_uses_existing_bounded_retry_for_schema_invalid_evidence
+11 failed, 3 passed in 2.27s

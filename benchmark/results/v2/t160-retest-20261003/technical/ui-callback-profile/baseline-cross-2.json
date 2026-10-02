@@ -1,0 +1,35 @@
+{
+  "phase": "baseline",
+  "callback": "show_page",
+  "callback_ms": 90.65470000496134,
+  "sql_count": 47,
+  "sql_ms": 48.80070005310699,
+  "calls": {
+    "AuthService.get_current_user": [
+      4.954100004397333,
+      5.285800027195364
+    ],
+    "FileStorageService.download": [
+      6.0949999606236815,
+      9.262200037483126,
+      6.715900031849742,
+      5.790299968793988,
+      9.017699980176985,
+      6.6516000078991055,
+      12.163000006694347
+    ],
+    "PaperImportService.get": [
+      31.41459997277707,
+      31.68869996443391
+    ],
+    "backend.app.ui.paper_import_loaders._image_html": [
+      0.4078999627381563
+    ]
+  },
+  "html_bytes": [
+    91565
+  ],
+  "output_count": 2,
+  "error": null,
+  "scope": "server callback only; browser endpoint remains required"
+}

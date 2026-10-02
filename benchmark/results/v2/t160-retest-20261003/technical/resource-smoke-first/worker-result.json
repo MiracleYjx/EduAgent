@@ -1,0 +1,13 @@
+{
+  "pid": 84328,
+  "allocated_bytes": 67108864,
+  "baseline_start_perf": 269873.2088295,
+  "baseline_end_perf": 269877.2097454,
+  "allocated_start_perf": 269877.2169986,
+  "allocated_end_perf": 269883.2173179,
+  "baseline_local_working_set_bytes": 20209664,
+  "allocated_local_working_set_bytes": 87322624,
+  "errors": [],
+  "cloud_requests": 0,
+  "database_statements": 0
+}

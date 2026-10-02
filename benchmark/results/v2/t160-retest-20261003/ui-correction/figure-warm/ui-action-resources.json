@@ -1,0 +1,104 @@
+{
+  "actions": [
+    {
+      "run_id": "figure-warmup",
+      "warmup": true,
+      "service_pid": 83716,
+      "started_at": "2026-10-02T19:01:30.077Z",
+      "ended_at": "2026-10-02T19:01:30.404Z",
+      "complete_cycle_count_inside_window": 0,
+      "peaks_inside_complete_cycles": {
+        "app_working_set_bytes": null,
+        "postgres_container_process_rss_bytes": null,
+        "redis_container_process_rss_bytes": null,
+        "simultaneous_observed_sum_bytes": null
+      },
+      "resource_budget_acceptance": null,
+      "reason": "One-second sparse sampling cannot establish complete peaks for subsecond UI actions; missing observations remain null."
+    },
+    {
+      "run_id": "figure-warm-1",
+      "warmup": false,
+      "service_pid": 83716,
+      "started_at": "2026-10-02T19:01:44.924Z",
+      "ended_at": "2026-10-02T19:01:45.284Z",
+      "complete_cycle_count_inside_window": 0,
+      "peaks_inside_complete_cycles": {
+        "app_working_set_bytes": null,
+        "postgres_container_process_rss_bytes": null,
+        "redis_container_process_rss_bytes": null,
+        "simultaneous_observed_sum_bytes": null
+      },
+      "resource_budget_acceptance": null,
+      "reason": "One-second sparse sampling cannot establish complete peaks for subsecond UI actions; missing observations remain null."
+    },
+    {
+      "run_id": "figure-warm-2",
+      "warmup": false,
+      "service_pid": 83716,
+      "started_at": "2026-10-02T19:01:52.049Z",
+      "ended_at": "2026-10-02T19:01:52.429Z",
+      "complete_cycle_count_inside_window": 0,
+      "peaks_inside_complete_cycles": {
+        "app_working_set_bytes": null,
+        "postgres_container_process_rss_bytes": null,
+        "redis_container_process_rss_bytes": null,
+        "simultaneous_observed_sum_bytes": null
+      },
+      "resource_budget_acceptance": null,
+      "reason": "One-second sparse sampling cannot establish complete peaks for subsecond UI actions; missing observations remain null."
+    },
+    {
+      "run_id": "figure-warm-3",
+      "warmup": false,
+      "service_pid": 83716,
+      "started_at": "2026-10-02T19:01:58.250Z",
+      "ended_at": "2026-10-02T19:01:58.629Z",
+      "complete_cycle_count_inside_window": 0,
+      "peaks_inside_complete_cycles": {
+        "app_working_set_bytes": null,
+        "postgres_container_process_rss_bytes": null,
+        "redis_container_process_rss_bytes": null,
+        "simultaneous_observed_sum_bytes": null
+      },
+      "resource_budget_acceptance": null,
+      "reason": "One-second sparse sampling cannot establish complete peaks for subsecond UI actions; missing observations remain null."
+    },
+    {
+      "run_id": "figure-warm-4",
+      "warmup": false,
+      "service_pid": 83716,
+      "started_at": "2026-10-02T19:02:04.458Z",
+      "ended_at": "2026-10-02T19:02:04.854Z",
+      "complete_cycle_count_inside_window": 0,
+      "peaks_inside_complete_cycles": {
+        "app_working_set_bytes": null,
+        "postgres_container_process_rss_bytes": null,
+        "redis_container_process_rss_bytes": null,
+        "simultaneous_observed_sum_bytes": null
+      },
+      "resource_budget_acceptance": null,
+      "reason": "One-second sparse sampling cannot establish complete peaks for subsecond UI actions; missing observations remain null."
+    },
+    {
+      "run_id": "figure-warm-5",
+      "warmup": false,
+      "service_pid": 83716,
+      "started_at": "2026-10-02T19:02:10.236Z",
+      "ended_at": "2026-10-02T19:02:10.613Z",
+      "complete_cycle_count_inside_window": 0,
+      "peaks_inside_complete_cycles": {
+        "app_working_set_bytes": null,
+        "postgres_container_process_rss_bytes": null,
+        "redis_container_process_rss_bytes": null,
+        "simultaneous_observed_sum_bytes": null
+      },
+      "resource_budget_acceptance": null,
+      "reason": "One-second sparse sampling cannot establish complete peaks for subsecond UI actions; missing observations remain null."
+    }
+  ],
+  "sample_timestamp_semantics": "sampled_at is recorded at the end of actual component reads; cycle begin is derived by subtracting the recorded monotonic duration",
+  "sampling_interval_seconds": 1.0,
+  "browser_resource_scope": "not measured",
+  "lifetime_peaks_substituted_for_actions": false
+}

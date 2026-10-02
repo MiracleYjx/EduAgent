@@ -1,0 +1,25 @@
+{
+  "registered_at": "2026-10-02T17:54:08.462208+00:00",
+  "source_commit": "02b6406017c36bada8928e6dad0927e9f0bb6686",
+  "scope": "three T160 defects and full retest; local T157/T159 fixes explicitly confirmed",
+  "thresholds": {
+    "import_50_success_min": 6,
+    "import_50_planned": 8,
+    "ui_below_500_min": 20,
+    "ui_planned": 24
+  },
+  "reference_origin": "user_confirmed_ai_assisted",
+  "cloud_full_protocol_authorized": true,
+  "protected_files": [
+    "README.md",
+    "README.zh-CN.md",
+    "backend/app/ui/gradio_app.py",
+    "backend/app/ui/layout_view.py",
+    "backend/app/ui/question_view.py",
+    "backend/app/ui/design_system.py",
+    "tests/unit/ui/test_gradio_app.py",
+    "tests/unit/ui/test_question_bank_view.py",
+    "benchmark/corpus/grading_samples.json",
+    ".env"
+  ]
+}

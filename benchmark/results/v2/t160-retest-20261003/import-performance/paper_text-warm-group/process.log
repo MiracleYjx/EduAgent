@@ -1,0 +1,6 @@
+{"case": "paper_text", "mode": "warmup", "repetition": 1, "status": "Pending Review", "logical_calls": 1, "requests": 1}
+{"case": "paper_text", "mode": "warm", "repetition": 1, "status": "Pending Review", "logical_calls": 1, "requests": 1}
+{"case": "paper_text", "mode": "warm", "repetition": 2, "status": "Pending Review", "logical_calls": 1, "requests": 1}
+{"case": "paper_text", "mode": "warm", "repetition": 3, "status": "Pending Review", "logical_calls": 1, "requests": 1}
+{"case": "paper_text", "mode": "warm", "repetition": 4, "status": "Pending Review", "logical_calls": 1, "requests": 1}
+{"case": "paper_text", "mode": "warm", "repetition": 5, "status": "Pending Review", "logical_calls": 1, "requests": 1}

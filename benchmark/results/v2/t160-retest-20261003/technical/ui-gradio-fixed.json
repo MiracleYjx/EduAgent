@@ -1,0 +1,89 @@
+{
+  "phase": "fixed",
+  "recorded_at": "2026-10-02T18:09:54.599901+00:00",
+  "scope": "server process_api only; no browser/network/queue entry",
+  "cloud_calls": 0,
+  "reports": [
+    {
+      "workload": "text",
+      "repeat": 1,
+      "process_api_ms": 114.93720003636554,
+      "preprocess_ms": 0.3420999855734408,
+      "call_function_ms": 72.2665999783203,
+      "postprocess_ms": 42.21949999919161,
+      "json_bytes": 214786
+    },
+    {
+      "workload": "text",
+      "repeat": 2,
+      "process_api_ms": 116.50390003342181,
+      "preprocess_ms": 0.5902000120840967,
+      "call_function_ms": 73.18960002157837,
+      "postprocess_ms": 42.592299985699356,
+      "json_bytes": 214786
+    },
+    {
+      "workload": "text",
+      "repeat": 3,
+      "process_api_ms": 108.95449999952689,
+      "preprocess_ms": 0.5555999814532697,
+      "call_function_ms": 70.20919997012243,
+      "postprocess_ms": 38.07599999709055,
+      "json_bytes": 214786
+    },
+    {
+      "workload": "figure",
+      "repeat": 1,
+      "process_api_ms": 109.51459995703772,
+      "preprocess_ms": 0.4741000011563301,
+      "call_function_ms": 69.26880002720281,
+      "postprocess_ms": 39.6401000325568,
+      "json_bytes": 214749
+    },
+    {
+      "workload": "figure",
+      "repeat": 2,
+      "process_api_ms": 123.65220003994182,
+      "preprocess_ms": 0.652100017759949,
+      "call_function_ms": 77.55049999104813,
+      "postprocess_ms": 45.31650000717491,
+      "json_bytes": 214749
+    },
+    {
+      "workload": "figure",
+      "repeat": 3,
+      "process_api_ms": 109.47979998309165,
+      "preprocess_ms": 0.47229998745024204,
+      "call_function_ms": 69.79939999291673,
+      "postprocess_ms": 39.094200008548796,
+      "json_bytes": 214749
+    },
+    {
+      "workload": "cross",
+      "repeat": 1,
+      "process_api_ms": 22.146700008306652,
+      "preprocess_ms": 0.5335999885573983,
+      "call_function_ms": 20.97370004048571,
+      "postprocess_ms": 0.5374000174924731,
+      "json_bytes": 91814
+    },
+    {
+      "workload": "cross",
+      "repeat": 2,
+      "process_api_ms": 21.07870002510026,
+      "preprocess_ms": 0.20840001525357366,
+      "call_function_ms": 20.395100000314415,
+      "postprocess_ms": 0.40929997339844704,
+      "json_bytes": 91814
+    },
+    {
+      "workload": "cross",
+      "repeat": 3,
+      "process_api_ms": 22.02390000456944,
+      "preprocess_ms": 0.17880002269521356,
+      "call_function_ms": 21.315300022251904,
+      "postprocess_ms": 0.46710000606253743,
+      "json_bytes": 91816
+    }
+  ]
+}

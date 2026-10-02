@@ -1,0 +1,45 @@
+{
+  "case": "IMP-OCR-OFF",
+  "filename": "paper_scan.pdf",
+  "bytes": 154527,
+  "sha256": "16aaa00c8b41ca1f5e5e77d6248e918953d054e725ebfb30548fec84cfe9ba5b",
+  "expected_status": "Failed",
+  "expected_error": "OCR_PROVIDER_NOT_READY",
+  "fault_injection": null,
+  "started_at": "2026-10-02T18:50:43.782051+00:00",
+  "steps": [
+    {
+      "stage": "upload",
+      "status": "Uploaded"
+    },
+    {
+      "stage": "runner_terminal",
+      "status": "Failed",
+      "error_code": "OCR_PROVIDER_NOT_READY"
+    }
+  ],
+  "bytechecks": [
+    {
+      "file_id": "d_733a9407e92c4b739e320dac366737c6",
+      "bytes": 154527,
+      "sha256": "16aaa00c8b41ca1f5e5e77d6248e918953d054e725ebfb30548fec84cfe9ba5b",
+      "matches_registered_or_input_sha256": true
+    },
+    {
+      "file_id": "p_89f85585d8d84800ad9cde211d5fcacc",
+      "bytes": 157944,
+      "sha256": "31cdc03d0d958c33d6d7815e330f521febe40e23eab0122f687344f8ed311199",
+      "matches_registered_or_input_sha256": true
+    }
+  ],
+  "injected_errors": [],
+  "paper_import_id": "050d1d78-aa38-46c7-afea-a052bf4d289e",
+  "status": "Failed",
+  "error_code": "OCR_PROVIDER_NOT_READY",
+  "error_message": "OCR失败：OCR_PROVIDER_NOT_READY：OCR 未启用；扫描页需要配置 OCR_ENABLED 后重新处理。",
+  "page_count": 1,
+  "saved_page_count": 1,
+  "question_count": 0,
+  "passed": true,
+  "completed_at": "2026-10-02T18:50:44.150010+00:00"
+}

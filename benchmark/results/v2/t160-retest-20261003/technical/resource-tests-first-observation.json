@@ -1,0 +1,17 @@
+{
+  "origin": "first actual tool returned pytest output; before tool implementation",
+  "tests": 6,
+  "failed": 4,
+  "passed": 2,
+  "pytest_seconds": 0.47,
+  "run_started_at": null,
+  "failures": [
+    "short single observation marked complete",
+    "evaluate_v2_memory_budget absent (two cases)",
+    "process.wait unbounded"
+  ],
+  "first_passes": [
+    "same-sample peak preserved",
+    "actual Windows current PID/parent chain and exited PID read"
+  ]
+}

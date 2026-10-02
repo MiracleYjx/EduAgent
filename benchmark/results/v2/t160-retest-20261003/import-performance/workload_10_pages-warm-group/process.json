@@ -1,0 +1,83 @@
+{
+  "pid": 67208,
+  "controller_popen_pid": 63720,
+  "verified_worker_parent_chain": [
+    67208,
+    63720
+  ],
+  "worker_parent_pid_reported": 63720,
+  "started_at": "2026-10-02T18:34:42.548067+00:00",
+  "ended_at": "2026-10-02T18:36:24.262676+00:00",
+  "exit_code": 0,
+  "timed_out": false,
+  "timeout_limit_seconds": 1860,
+  "timeout_observed_perf": null,
+  "post_timeout_exit_code": null,
+  "resources": {
+    "sample_count": 101,
+    "observed_sampling_span_seconds": 100.52851150004426,
+    "window_duration_seconds": null,
+    "full_sampling_cycles_observed": 100,
+    "requested_interval_seconds": 1.0,
+    "max_observed_gap_seconds": 1.528830100025516,
+    "complete_at_requested_sampling_resolution": true,
+    "peaks": {
+      "app_working_set_bytes": 317128704,
+      "postgres_container_process_rss_bytes": 219664384,
+      "redis_container_process_rss_bytes": 8638464,
+      "simultaneous_observed_sum_bytes": 545361920
+    },
+    "missing_sample_count": 0,
+    "first_sample_at": "2026-10-02T18:34:43.296302+00:00",
+    "last_sample_at": "2026-10-02T18:36:23.842933+00:00",
+    "scope": {
+      "app": "verified Windows worker and actual descendant process working sets; excludes experiment controller and parent redirector",
+      "postgres": "sum of all postgres process RSS in shared eduagent-postgres-1; not isolated database attribution; shared pages can be counted repeatedly",
+      "redis": "sum of all redis-server process RSS in dedicated eduagent-e2-acceptance-redis-ac14a149cc18",
+      "sum": "observations within one sample, read sequentially; sampled peaks, not a continuous physical-memory high-water mark"
+    }
+  },
+  "memory_budget": {
+    "protocol": "plan-v2-memory-soft-upper-budgets",
+    "unit_policy": "GB=1000000000 bytes; MB=1000000 bytes; display MiB=1048576 bytes",
+    "limits_bytes": {
+      "app_working_set_bytes": 4000000000,
+      "postgres_container_process_rss_bytes": 1500000000,
+      "redis_container_process_rss_bytes": 512000000,
+      "simultaneous_observed_sum_bytes": 6000000000
+    },
+    "limits_mib": {
+      "app_working_set_bytes": 3814.697265625,
+      "postgres_container_process_rss_bytes": 1430.511474609375,
+      "redis_container_process_rss_bytes": 488.28125,
+      "simultaneous_observed_sum_bytes": 5722.0458984375
+    },
+    "observed_peaks_bytes": {
+      "app_working_set_bytes": 317128704,
+      "postgres_container_process_rss_bytes": 219664384,
+      "redis_container_process_rss_bytes": 8638464,
+      "simultaneous_observed_sum_bytes": 545361920
+    },
+    "observed_peaks_mib": {
+      "app_working_set_bytes": 302.4375,
+      "postgres_container_process_rss_bytes": 209.48828125,
+      "redis_container_process_rss_bytes": 8.23828125,
+      "simultaneous_observed_sum_bytes": 520.09765625
+    },
+    "observed_over_budget": {
+      "app_working_set_bytes": false,
+      "postgres_container_process_rss_bytes": false,
+      "redis_container_process_rss_bytes": false,
+      "simultaneous_observed_sum_bytes": false
+    },
+    "resource_complete": true,
+    "component_pass": {
+      "app_working_set_bytes": true,
+      "postgres_container_process_rss_bytes": true,
+      "redis_container_process_rss_bytes": true,
+      "simultaneous_observed_sum_bytes": true
+    },
+    "budget_pass": true,
+    "scope": "Observed application subtree working set plus PostgreSQL/Redis process RSS. Shared pages may be counted repeatedly; not unique physical memory or EXE acceptance."
+  }
+}

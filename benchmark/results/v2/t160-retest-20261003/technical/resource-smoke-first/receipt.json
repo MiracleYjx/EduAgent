@@ -1,0 +1,93 @@
+{
+  "kind": "zero_cloud_real_worker_resource_probe",
+  "started_at": "2026-10-02T18:07:51.812433+00:00",
+  "cloud_requests": 0,
+  "database_statements": 0,
+  "docker_scope": "read-only /proc process RSS probes in named existing containers",
+  "technical_probe_only": true,
+  "formal_resource_budget_proven": false,
+  "controller_popen_pid": 83904,
+  "actual_worker": {
+    "pid": 84328,
+    "parent_pid": 83904,
+    "executable": "D:\\YJX\\MyCode\\EduAgent\\.cache\\e2-t157-159-20261002\\runtime\\Scripts\\python.exe"
+  },
+  "verified_parent_chain": [
+    84328,
+    83904
+  ],
+  "phases": {
+    "pid": 84328,
+    "allocated_bytes": 67108864,
+    "baseline_start_perf": 269873.2088295,
+    "baseline_end_perf": 269877.2097454,
+    "allocated_start_perf": 269877.2169986,
+    "allocated_end_perf": 269883.2173179,
+    "baseline_local_working_set_bytes": 20209664,
+    "allocated_local_working_set_bytes": 87322624,
+    "errors": [],
+    "cloud_requests": 0,
+    "database_statements": 0
+  },
+  "baseline": {
+    "sample_count": 3,
+    "observed_sampling_span_seconds": 1.9948707000003196,
+    "window_duration_seconds": 4.000915899989195,
+    "full_sampling_cycles_observed": 1,
+    "requested_interval_seconds": 1.0,
+    "max_observed_gap_seconds": 1.0052355999941938,
+    "complete_at_requested_sampling_resolution": true,
+    "peaks": {
+      "app_working_set_bytes": 20209664,
+      "postgres_container_process_rss_bytes": 188047360,
+      "redis_container_process_rss_bytes": 8597504,
+      "simultaneous_observed_sum_bytes": 216854528
+    },
+    "missing_sample_count": 0,
+    "first_sample_at": "2026-10-02T18:07:54.102752+00:00",
+    "last_sample_at": "2026-10-02T18:07:56.034957+00:00",
+    "scope": {
+      "app": "verified Windows worker and actual descendant process working sets; excludes experiment controller and parent redirector",
+      "postgres": "sum of all postgres process RSS in shared eduagent-postgres-1; not isolated database attribution; shared pages can be counted repeatedly",
+      "redis": "sum of all redis-server process RSS in dedicated eduagent-e2-acceptance-redis-ac14a149cc18",
+      "sum": "observations within one sample, read sequentially; sampled peaks, not a continuous physical-memory high-water mark"
+    }
+  },
+  "allocated": {
+    "sample_count": 5,
+    "observed_sampling_span_seconds": 3.9998541999957524,
+    "window_duration_seconds": 6.000319299986586,
+    "full_sampling_cycles_observed": 3,
+    "requested_interval_seconds": 1.0,
+    "max_observed_gap_seconds": 1.0092115000006743,
+    "complete_at_requested_sampling_resolution": true,
+    "peaks": {
+      "app_working_set_bytes": 87322624,
+      "postgres_container_process_rss_bytes": 188047360,
+      "redis_container_process_rss_bytes": 8597504,
+      "simultaneous_observed_sum_bytes": 283967488
+    },
+    "missing_sample_count": 0,
+    "first_sample_at": "2026-10-02T18:07:58.037985+00:00",
+    "last_sample_at": "2026-10-02T18:08:02.045875+00:00",
+    "scope": {
+      "app": "verified Windows worker and actual descendant process working sets; excludes experiment controller and parent redirector",
+      "postgres": "sum of all postgres process RSS in shared eduagent-postgres-1; not isolated database attribution; shared pages can be counted repeatedly",
+      "redis": "sum of all redis-server process RSS in dedicated eduagent-e2-acceptance-redis-ac14a149cc18",
+      "sum": "observations within one sample, read sequentially; sampled peaks, not a continuous physical-memory high-water mark"
+    }
+  },
+  "observed_working_set_increase_bytes": 67112960,
+  "observed_working_set_increase_mib": 64.00390625,
+  "expected_touched_allocation_bytes": 67108864,
+  "sampled_root_pids": [
+    84328
+  ],
+  "exit_code": 0,
+  "passed": true,
+  "source_sha256": {
+    "resource_smoke.py": "47cebbcf1398b5c29eff1834063a14e7aa253a9891c8831c14b72bc9fa55ee14",
+    "resource_sampler.py": "32e864a944652443c14f776b71337035c1096418083d7d8985f4f125d9217f97"
+  },
+  "completed_at": "2026-10-02T18:08:04.133953+00:00"
+}

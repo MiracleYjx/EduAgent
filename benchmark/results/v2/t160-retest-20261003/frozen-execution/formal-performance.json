@@ -1,0 +1,27 @@
+{
+  "label": "performance",
+  "source_commit": "9c9e79f4f2376b7a6fd84f02e5800659d210f9da",
+  "started_at": "2026-10-02T18:31:51.447830+00:00",
+  "command": [
+    "D:\\YJX\\MyCode\\EduAgent\\.cache\\e2-t157-159-20261002\\runtime\\Scripts\\python.exe",
+    "D:\\YJX\\MyCode\\EduAgent\\.cache\\t160-retest-20261003\\source-final\\benchmark\\t160\\performance_runner.py",
+    "--execute",
+    "--repo-root",
+    "D:\\YJX\\MyCode\\EduAgent",
+    "--source-root",
+    "D:\\YJX\\MyCode\\EduAgent\\.cache\\t160-retest-20261003\\source-final",
+    "--run-root",
+    "D:\\YJX\\MyCode\\EduAgent\\.cache\\t160-retest-20261003",
+    "--output-root",
+    "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\import-performance",
+    "--model-dir",
+    "D:\\YJX\\MyCode\\EduAgent\\.cache\\t155-ocr-20261002\\rapid-models",
+    "--isolation-file",
+    "D:\\YJX\\MyCode\\EduAgent\\.cache\\t160-retest-20261003\\isolation.json",
+    "--source-commit",
+    "9c9e79f4f2376b7a6fd84f02e5800659d210f9da"
+  ],
+  "exit_code": 0,
+  "completed_at": "2026-10-02T18:47:32.296271+00:00",
+  "elapsed_seconds": 940.8484471000265
+}

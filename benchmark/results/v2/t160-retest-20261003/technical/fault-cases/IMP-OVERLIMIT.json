@@ -1,0 +1,28 @@
+{
+  "case": "IMP-OVERLIMIT",
+  "filename": "workload_51_pages.pdf",
+  "bytes": 67876,
+  "sha256": "e37bf3d92a7e915f72cc2b7e976203a51d3b147c60546d25bfddd7acc75be67c",
+  "expected_status": "Upload Rejected",
+  "expected_error": "PAPER_TOO_MANY_PAGES",
+  "fault_injection": null,
+  "started_at": "2026-10-02T18:50:43.758472+00:00",
+  "steps": [
+    {
+      "stage": "format_validation",
+      "status": "rejected",
+      "error_code": "PAPER_TOO_MANY_PAGES"
+    }
+  ],
+  "bytechecks": [],
+  "injected_errors": [],
+  "status": "Upload Rejected",
+  "error_code": "PAPER_TOO_MANY_PAGES",
+  "error_message": "试卷实际为 51 页，最多允许 50 页。",
+  "records_created": [
+    0,
+    0
+  ],
+  "passed": true,
+  "completed_at": "2026-10-02T18:50:43.781004+00:00"
+}

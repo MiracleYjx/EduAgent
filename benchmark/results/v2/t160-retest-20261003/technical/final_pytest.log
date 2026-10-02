@@ -1,0 +1,81 @@
+........................................................................ [  3%]
+........................................................................ [  7%]
+........................................................................ [ 10%]
+........................................................................ [ 14%]
+........................................................................ [ 17%]
+........................................................................ [ 21%]
+........................................................................ [ 25%]
+.............................s.......................................... [ 28%]
+........................................................................ [ 32%]
+........................................................................ [ 35%]
+........................................................................ [ 39%]
+........................................................................ [ 43%]
+........................................................................ [ 46%]
+........................................................................ [ 50%]
+........................................................................ [ 53%]
+........................................................................ [ 57%]
+........................................................................ [ 60%]
+........................................................................ [ 64%]
+........................................................................ [ 68%]
+........................................................................ [ 71%]
+........................................................................ [ 75%]
+..................................................................s..... [ 78%]
+........................................................................ [ 82%]
+........................................................................ [ 86%]
+........................................................................ [ 89%]
+........................................................................ [ 93%]
+........................................................................ [ 96%]
+.................................................................        [100%]
+============================== warnings summary ===============================
+..\..\..\..\..\..\develop\Python\Lib\site-packages\fastapi\testclient.py:1
+  D:\develop\Python\Lib\site-packages\fastapi\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+tests/contract/test_admin_api_contract.py: 4 warnings
+tests/contract/test_auth_api_contract.py: 6 warnings
+tests/contract/test_traces_api_contract.py: 2 warnings
+tests/unit/test_app.py: 1 warning
+tests/unit/ui/test_evaluation_dashboard.py: 1 warning
+tests/unit/ui/test_gradio_app.py: 1 warning
+tests/unit/ui/test_paper_image_review.py: 4 warnings
+tests/unit/ui/test_paper_import_view.py: 5 warnings
+tests/unit/ui/test_review_view.py: 1 warning
+tests/unit/ui/test_t160_correction_loading.py: 4 warnings
+  D:\develop\Python\Lib\site-packages\gradio\components\dataframe.py:197: UserWarning: The `column_limits` parameter is not yet implemented.
+    warnings.warn(
+
+tests/contract/test_knowledge_base_upload_contract.py::test_upload_document_rejects_unsupported_format
+  D:\YJX\MyCode\EduAgent\.cache\t160-retest-20261003\source-final\backend\app\api\knowledge_bases.py:475: StarletteDeprecationWarning: 'HTTP_422_UNPROCESSABLE_ENTITY' is deprecated. Use 'HTTP_422_UNPROCESSABLE_CONTENT' instead.
+    raise _knowledge_base_http_exception(exc) from None
+
+tests/contract/test_question_update_api_contract.py::test_revision_edit_and_reapproval_use_existing_endpoints
+  D:\YJX\MyCode\EduAgent\.cache\t160-retest-20261003\source-final\backend\app\api\questions.py:508: StarletteDeprecationWarning: 'HTTP_422_UNPROCESSABLE_ENTITY' is deprecated. Use 'HTTP_422_UNPROCESSABLE_CONTENT' instead.
+    raise _question_http_exception(exc) from None
+
+tests/integration/test_audit_migration.py: 3 warnings
+tests/integration/test_chapter_scope_migration.py: 5 warnings
+tests/integration/test_extracted_question_order_migration.py: 5 warnings
+tests/integration/test_file_storage_migration.py: 3 warnings
+tests/integration/test_options_json_migration.py: 10 warnings
+tests/integration/test_paper_import_migration.py: 4 warnings
+tests/integration/test_question_asset_visibility_migration.py: 5 warnings
+tests/integration/test_question_source_migration.py: 4 warnings
+  D:\develop\Python\Lib\site-packages\alembic\config.py:604: DeprecationWarning: No path_separator found in configuration; falling back to legacy splitting on spaces, commas, and colons for prepend_sys_path.  Consider adding path_separator=os to Alembic config.
+    util.warn_deprecated(
+
+tests/integration/test_grading_pipeline.py::test_mixed_submission_runs_full_pipeline_and_forms_final_diagnosis
+tests/integration/test_grading_pipeline.py::test_low_confidence_subjective_stays_pending_and_blocks_diagnosis
+tests/integration/test_grading_pipeline.py::test_existing_report_becomes_stale_after_regrade
+tests/integration/test_grading_pipeline.py::test_partial_write_failure_leaves_no_intermediate_result
+  D:\YJX\MyCode\EduAgent\.cache\t160-retest-20261003\source-final\tests\integration\test_grading_pipeline.py:164: SAWarning: Object of type <User> not in session, add operation along 'Role.users' won't proceed (This warning originated from the Session 'autoflush' process, which was invoked automatically in response to a user-initiated operation. Consider using ``no_autoflush`` context manager if this warning happened while initializing objects.)
+    existing = session.scalars(select(Role).where(Role.name == role)).one_or_none()
+
+tests/integration/test_teacher_setup.py::test_teacher_prepares_course_document_question_and_exam
+  D:\YJX\MyCode\EduAgent\.cache\t160-retest-20261003\source-final\backend\app\api\exams.py:260: StarletteDeprecationWarning: 'HTTP_422_UNPROCESSABLE_ENTITY' is deprecated. Use 'HTTP_422_UNPROCESSABLE_CONTENT' instead.
+    raise _exam_http_exception(exc) from None
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+SKIPPED [1] tests\integration\test_m0_smoke.py:34: M0 冒烟缺少隔离配置（COMPOSE_PROJECT_NAME, POSTGRES_PORT, REDIS_PORT, BACKEND_PORT），已拒绝使用默认 Compose 项目。
+SKIPPED [1] tests\unit\services\test_file_storage_service.py:212: Host does not permit creation of this test symlink.
+2007 passed, 2 skipped, 76 warnings in 573.87s (0:09:33)

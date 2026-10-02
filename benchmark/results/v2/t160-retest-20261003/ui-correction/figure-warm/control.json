@@ -1,0 +1,12 @@
+{
+  "group": "figure-warm",
+  "launcher_pid": 84668,
+  "service_pid": 83716,
+  "service_created_at": "2026-10-02T19:01:03.399114Z",
+  "started_at": "2026-10-02T19:01:12.3051253Z",
+  "port": 7871,
+  "output": "D:\\YJX\\MyCode\\EduAgent\\.cache\\t160-retest-20261003\\ui-formal\\figure-warm",
+  "status": "stopped",
+  "sampler_launcher_pid": 82540,
+  "stopped_at": "2026-10-02T19:02:26.1268272Z"
+}

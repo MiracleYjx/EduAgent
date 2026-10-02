@@ -1,0 +1,50 @@
+FFF.                                                                     [100%]
+================================== FAILURES ===================================
+__ test_question_reload_reads_one_current_paper_without_cross_request_cache ___
+tests\unit\ui\test_t160_correction_loading.py:49: in test_question_reload_reads_one_current_paper_without_cross_request_cache
+    assert len(calls) == 1
+E   AssertionError: assert 3 == 1
+E    +  where 3 = len([UUID('19577d70-6a35-49d6-998e-4f6ea7761862'), UUID('19577d70-6a35-49d6-998e-4f6ea7761862'), UUID('19577d70-6a35-49d6-998e-4f6ea7761862')])
+______ test_page_switch_reads_selected_page_without_loading_whole_import ______
+tests\unit\ui\test_t160_correction_loading.py:70: in test_page_switch_reads_selected_page_without_loading_whole_import
+    assert calls == []
+E   AssertionError: assert [UUID('4459c3...cf4fd6fe652')] == []
+E     
+E     Left contains 2 more items, first extra item: UUID('4459c314-effc-41a6-8131-1cf4fd6fe652')
+E     Use -v to get more diff
+_ test_selected_page_keeps_import_membership_and_current_teacher_authorization _
+tests\unit\ui\test_t160_correction_loading.py:94: in test_selected_page_keeps_import_membership_and_current_teacher_authorization
+    loaders.page_image(
+backend\app\ui\paper_import_loaders.py:117: in page_image
+    with _scope(state) as (service, actor):
+         ^^^^^^^^^^^^^
+D:\develop\Python\Lib\contextlib.py:141: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+backend\app\ui\paper_import_loaders.py:33: in _scope
+    ).get_current_user(str(state.get("access_token") or ""))
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend\app\services\auth_service.py:489: in get_current_user
+    payload = decode_access_token(token, self.secret_key)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend\app\services\auth_service.py:412: in decode_access_token
+    raise _invalid_token()
+E   backend.app.services.auth_service.InvalidTokenError: 认证凭证无效。
+============================== warnings summary ===============================
+..\..\..\develop\Python\Lib\site-packages\fastapi\testclient.py:1
+  D:\develop\Python\Lib\site-packages\fastapi\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+tests/unit/ui/test_t160_correction_loading.py::test_question_reload_reads_one_current_paper_without_cross_request_cache
+tests/unit/ui/test_t160_correction_loading.py::test_question_reload_reads_one_current_paper_without_cross_request_cache
+tests/unit/ui/test_t160_correction_loading.py::test_page_switch_reads_selected_page_without_loading_whole_import
+tests/unit/ui/test_t160_correction_loading.py::test_page_file_disappearance_is_reported_after_an_earlier_success
+  D:\develop\Python\Lib\site-packages\gradio\components\dataframe.py:197: UserWarning: The `column_limits` parameter is not yet implemented.
+    warnings.warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/unit/ui/test_t160_correction_loading.py::test_question_reload_reads_one_current_paper_without_cross_request_cache
+FAILED tests/unit/ui/test_t160_correction_loading.py::test_page_switch_reads_selected_page_without_loading_whole_import
+FAILED tests/unit/ui/test_t160_correction_loading.py::test_selected_page_keeps_import_membership_and_current_teacher_authorization
+3 failed, 1 passed, 5 warnings in 15.89s

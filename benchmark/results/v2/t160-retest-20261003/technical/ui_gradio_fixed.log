@@ -1,0 +1,53 @@
+D:\develop\Python\Lib\site-packages\gradio\components\dataframe.py:197: UserWarning: The `column_limits` parameter is not yet implemented.
+  warnings.warn(
+D:\develop\Python\Lib\site-packages\gradio\components\dataframe.py:197: UserWarning: The `column_limits` parameter is not yet implemented.
+  warnings.warn(
+Traceback (most recent call last):
+  File "D:\YJX\MyCode\EduAgent\.cache\t160-retest-20261003\profile_gradio_processing.py", line 46, in <module>
+    asyncio.run(main())
+    ~~~~~~~~~~~^^^^^^^^
+  File "D:\develop\Python\Lib\asyncio\runners.py", line 195, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "D:\develop\Python\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "D:\develop\Python\Lib\asyncio\base_events.py", line 725, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "D:\YJX\MyCode\EduAgent\.cache\t160-retest-20261003\profile_gradio_processing.py", line 36, in main
+    await demo.process_api(reload_fn,[None,row["initial_question_id"],None],state=state)
+  File "D:\develop\Python\Lib\site-packages\gradio\blocks.py", line 2324, in process_api
+    inputs = await self.preprocess_data(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        block_fn, inputs, state, explicit_call
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\YJX\MyCode\EduAgent\.cache\t160-retest-20261003\profile_gradio_processing.py", line 28, in timed
+    try:return await fn(*args,**kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\develop\Python\Lib\site-packages\gradio\blocks.py", line 1908, in preprocess_data
+    processed_value = await anyio.to_thread.run_sync(
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        block.preprocess, inputs_cached, limiter=self.limiter
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\develop\Python\Lib\site-packages\anyio\to_thread.py", line 63, in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        func, args, abandon_on_cancel=abandon_on_cancel, limiter=limiter
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\develop\Python\Lib\site-packages\anyio\_backends\_asyncio.py", line 2518, in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+  File "D:\develop\Python\Lib\site-packages\anyio\_backends\_asyncio.py", line 1002, in run
+    result = context.run(func, *args)
+  File "D:\develop\Python\Lib\site-packages\gradio\components\dropdown.py", line 211, in preprocess
+    raise Error(
+        f"Value: {payload} is not in the list of choices: {choice_values}"
+    )
+gradio.exceptions.Error: 'Value: 647356f0-a779-4dcb-b226-2a0ddeaab322 is not in the list of choices: []'

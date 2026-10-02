@@ -1,0 +1,1670 @@
+{
+  "kind": "real-import-performance-run",
+  "teacher_annotation": false,
+  "case": "workload_10_pages",
+  "mode": "warm",
+  "repetition": 1,
+  "pid": 67208,
+  "source_commit": "9c9e79f4f2376b7a6fd84f02e5800659d210f9da",
+  "input_sha256": "bdca8f730b989d0213f0efc7d31cdb2f252705c0d3a3da2c9c0736dffb14bee6",
+  "input_bytes": 38362,
+  "page_count": 10,
+  "initial_state": "new import; not an idempotent completed operation",
+  "llm_calls": [
+    {
+      "logical_call_no": 1,
+      "schema": "ExtractionBatch",
+      "prompt_version": "paper-extraction-v2",
+      "started_at": "2026-10-02T18:35:10.672463+00:00",
+      "start_perf": 271511.370757,
+      "provider_metadata": {
+        "provider": "deepseek",
+        "model": "deepseek-chat",
+        "prompt_version": "paper-extraction-v2",
+        "call_path": "__main__.worker_async.<locals>.observe_factory.<locals>.generate"
+      },
+      "attempts": [
+        {
+          "attempt_number": 1,
+          "started_at": "2026-10-02T18:35:10.672547+00:00",
+          "start_perf": 271511.3708301,
+          "configured_model": "deepseek-chat",
+          "response_model": "deepseek-flash",
+          "usage": {
+            "prompt_tokens": 1947,
+            "completion_tokens": 541,
+            "total_tokens": 2488
+          },
+          "status": "success",
+          "ended_at": "2026-10-02T18:35:12.348675+00:00",
+          "elapsed_seconds": 1.676129600033164
+        }
+      ],
+      "status": "success",
+      "validated_output_fields": {
+        "questions": [
+          {
+            "reference_answer": "3",
+            "scoring_rubric": null,
+            "analysis": "先乘后加。",
+            "evidence": {
+              "reference_answer": {
+                "page_number": 1,
+                "text": "原稿答案：3；解析：先乘后加。知识点：一次函数。"
+              },
+              "analysis": {
+                "page_number": 1,
+                "text": "原稿答案：3；解析：先乘后加。知识点：一次函数。"
+              }
+            },
+            "source_pages": [
+              1
+            ],
+            "question_number": "1",
+            "question_type": "SHORT_ANSWER",
+            "content": "计算 2 × 1 + 1。",
+            "options": null,
+            "score": "1.0",
+            "knowledge_points": [
+              "一次函数"
+            ]
+          },
+          {
+            "reference_answer": "5",
+            "scoring_rubric": null,
+            "analysis": "先乘后加。",
+            "evidence": {
+              "reference_answer": {
+                "page_number": 1,
+                "text": "原稿答案：5；解析：先乘后加。知识点：一次函数。"
+              },
+              "analysis": {
+                "page_number": 1,
+                "text": "原稿答案：5；解析：先乘后加。知识点：一次函数。"
+              }
+            },
+            "source_pages": [
+              1
+            ],
+            "question_number": "2",
+            "question_type": "SHORT_ANSWER",
+            "content": "计算 2 × 2 + 1。",
+            "options": null,
+            "score": "1.0",
+            "knowledge_points": [
+              "一次函数"
+            ]
+          },
+          {
+            "reference_answer": "7",
+            "scoring_rubric": null,
+            "analysis": "先乘后加。",
+            "evidence": {
+              "reference_answer": {
+                "page_number": 2,
+                "text": "原稿答案：7；解析：先乘后加。知识点：一次函数。"
+              },
+              "analysis": {
+                "page_number": 2,
+                "text": "原稿答案：7；解析：先乘后加。知识点：一次函数。"
+              }
+            },
+            "source_pages": [
+              2
+            ],
+            "question_number": "3",
+            "question_type": "SHORT_ANSWER",
+            "content": "计算 2 × 3 + 1。",
+            "options": null,
+            "score": "1.0",
+            "knowledge_points": [
+              "一次函数"
+            ]
+          },
+          {
+            "reference_answer": "9",
+            "scoring_rubric": null,
+            "analysis": "先乘后加。",
+            "evidence": {
+              "reference_answer": {
+                "page_number": 2,
+                "text": "原稿答案：9；解析：先乘后加。知识点：一次函数。"
+              },
+              "analysis": {
+                "page_number": 2,
+                "text": "原稿答案：9；解析：先乘后加。知识点：一次函数。"
+              }
+            },
+            "source_pages": [
+              2
+            ],
+            "question_number": "4",
+            "question_type": "SHORT_ANSWER",
+            "content": "计算 2 × 4 + 1。",
+            "options": null,
+            "score": "1.0",
+            "knowledge_points": [
+              "一次函数"
+            ]
+          }
+        ],
+        "updates": [],
+        "pending": []
+      },
+      "ended_at": "2026-10-02T18:35:12.351551+00:00",
+      "elapsed_seconds": 1.6790883999783546
+    },
+    {
+      "logical_call_no": 2,
+      "schema": "ExtractionBatch",
+      "prompt_version": "paper-extraction-v2",
+      "started_at": "2026-10-02T18:35:12.368077+00:00",
+      "start_perf": 271513.0663705,
+      "provider_metadata": {
+        "provider": "deepseek",
+        "model": "deepseek-chat",
+        "prompt_version": "paper-extraction-v2",
+        "call_path": "__main__.worker_async.<locals>.observe_factory.<locals>.generate"
+      },
+      "attempts": [
+        {
+          "attempt_number": 1,
+          "started_at": "2026-10-02T18:35:12.368156+00:00",
+          "start_perf": 271513.0664386,
+          "configured_model": "deepseek-chat",
+          "response_model": "deepseek-flash",
+          "usage": {
+            "prompt_tokens": 2114,
+            "completion_tokens": 676,
+            "total_tokens": 2790
+          },
+          "status": "success",
+          "ended_at": "2026-10-02T18:35:14.346414+00:00",
+          "elapsed_seconds": 1.9782642999780364
+        }
+      ],
+      "status": "success",
+      "validated_output_fields": {
+        "questions": [
+          {
+            "reference_answer": "11",
+            "scoring_rubric": null,
+            "analysis": "先乘后加。",
+            "evidence": {
+              "reference_answer": {
+                "page_number": 3,
+                "text": "原稿答案：11；"
+              },
+              "analysis": {
+                "page_number": 3,
+                "text": "解析：先乘后加。"
+              }
+            },
+            "source_pages": [
+              3
+            ],
+            "question_number": "5",
+            "question_type": "SHORT_ANSWER",
+            "content": "计算 2 × 5 + 1。",
+            "options": null,
+            "score": "1.00",
+            "knowledge_points": [
+              "一次函数"
+            ]
+          },
+          {
+            "reference_answer": "13",
+            "scoring_rubric": null,
+            "analysis": "先乘后加。",
+            "evidence": {
+              "reference_answer": {
+                "page_number": 3,
+                "text": "原稿答案：13；"
+              },
+              "analysis": {
+                "page_number": 3,
+                "text": "解析：先乘后加。"
+              }
+            },
+            "source_pages": [
+              3
+            ],
+            "question_number": "6",
+            "question_type": "SHORT_ANSWER",
+            "content": "计算 2 × 6 + 1。",
+            "options": null,
+            "score": "1.00",
+            "knowledge_points": [
+              "一次函数"
+            ]
+          },
+          {
+            "reference_answer": "15",
+            "scoring_rubric": null,
+            "analysis": "先乘后加。",
+            "evidence": {
+              "reference_answer": {
+                "page_number": 4,
+                "text": "原稿答案：15；"
+              },
+              "analysis": {
+                "page_number": 4,
+                "text": "解析：先乘后加。"
+              }
+            },
+            "source_pages": [
+              4
+            ],
+            "question_number": "7",
+            "question_type": "SHORT_ANSWER",
+            "content": "计算 2 × 7 + 1。",
+            "options": null,
+            "score": "1.00",
+            "knowledge_points": [
+              "一次函数"
+            ]
+          },
+          {
+            "reference_answer": "17",
+            "scoring_rubric": null,
+            "analysis": "先乘后加。",
+            "evidence": {
+              "reference_answer": {
+                "page_number": 4,
+                "text": "原稿答案：17；"
+              },
+              "analysis": {
+                "page_number": 4,
+                "text": "解析：先乘后加。"
+              }
+            },
+            "source_pages": [
+              4
+            ],
+            "question_number": "8",
+            "question_type": "SHORT_ANSWER",
+            "content": "计算 2 × 8 + 1。",
+            "options": null,
+            "score": "1.00",
+            "knowledge_points": [
+              "一次函数"
+            ]
+          }
+        ],
+        "updates": [],
+        "pending": []
+      },
+      "ended_at": "2026-10-02T18:35:14.349289+00:00",
+      "elapsed_seconds": 1.9812124999589287
+    },
+    {
+      "logical_call_no": 3,
+      "schema": "ExtractionBatch",
+      "prompt_version": "paper-extraction-v2",
+      "started_at": "2026-10-02T18:35:14.366828+00:00",
+      "start_perf": 271515.0651209,
+      "provider_metadata": {
+        "provider": "deepseek",
+        "model": "deepseek-chat",
+        "prompt_version": "paper-extraction-v2",
+        "call_path": "__main__.worker_async.<locals>.observe_factory.<locals>.generate"
+      },
+      "attempts": [
+        {
+          "attempt_number": 1,
+          "started_at": "2026-10-02T18:35:14.366904+00:00",
+          "start_perf": 271515.0651868,
+          "configured_model": "deepseek-chat",
+          "response_model": "deepseek-flash",
+          "usage": {
+            "prompt_tokens": 2282,
+            "completion_tokens": 709,
+            "total_tokens": 2991
+          },
+          "status": "success",
+          "ended_at": "2026-10-02T18:35:16.781689+00:00",
+          "elapsed_seconds": 2.414787099987734
+        }
+      ],
+      "status": "success",
+      "validated_output_fields": {
+        "questions": [
+          {
+            "reference_answer": "19",
+            "scoring_rubric": null,
+            "analysis": "先乘后加。",
+            "evidence": {
+              "reference_answer": {
+                "page_number": 5,
+                "text": "9. 计算 2 × 9 + 1。（1.00 分）\n原稿答案：19；解析：先乘后加。知识点：一次函数。"
+              },
+              "analysis": {
+                "page_number": 5,
+                "text": "9. 计算 2 × 9 + 1。（1.00 分）\n原稿答案：19；解析：先乘后加。知识点：一次函数。"
+              }
+            },
+            "source_pages": [
+              5
+            ],
+            "question_number": "9",
+            "question_type": "SHORT_ANSWER",
+            "content": "计算 2 × 9 + 1。",
+            "options": null,
+            "score": "1.0",
+            "knowledge_points": [
+              "一次函数"
+            ]
+          },
+          {
+            "reference_answer": "21",
+            "scoring_rubric": null,
+            "analysis": "先乘后加。",
+            "evidence": {
+              "reference_answer": {
+                "page_number": 5,
+                "text": "10. 计算 2 × 10 + 1。（1.00 分）\n原稿答案：21；解析：先乘后加。知识点：一次函数。"
+              },
+              "analysis": {
+                "page_number": 5,
+                "text": "10. 计算 2 × 10 + 1。（1.00 分）\n原稿答案：21；解析：先乘后加。知识点：一次函数。"
+              }
+            },
+            "source_pages": [
+              5
+            ],
+            "question_number": "10",
+            "question_type": "SHORT_ANSWER",
+            "content": "计算 2 × 10 + 1。",
+            "options": null,
+            "score": "1.0",
+            "knowledge_points": [
+              "一次函数"
+            ]
+          },
+          {
+            "reference_answer": "23",
+            "scoring_rubric": null,
+            "analysis": "先乘后加。",
+            "evidence": {
+              "reference_answer": {
+                "page_number": 6,
+                "text": "11. 计算 2 × 11 + 1。（1.00 分）\n原稿答案：23；解析：先乘后加。知识点：一次函数。"
+              },
+              "analysis": {
+                "page_number": 6,
+                "text": "11. 计算 2 × 11 + 1。（1.00 分）\n原稿答案：23；解析：先乘后加。知识点：一次函数。"
+              }
+            },
+            "source_pages": [
+              6
+            ],
+            "question_number": "11",
+            "question_type": "SHORT_ANSWER",
+            "content": "计算 2 × 11 + 1。",
+            "options": null,
+            "score": "1.0",
+            "knowledge_points": [
+              "一次函数"
+            ]
+          },
+          {
+            "reference_answer": "25",
+            "scoring_rubric": null,
+            "analysis": "先乘后加。",
+            "evidence": {
+              "reference_answer": {
+                "page_number": 6,
+                "text": "12. 计算 2 × 12 + 1。（1.00 分）\n原稿答案：25；解析：先乘后加。知识点：一次函数。"
+              },
+              "analysis": {
+                "page_number": 6,
+                "text": "12. 计算 2 × 12 + 1。（1.00 分）\n原稿答案：25；解析：先乘后加。知识点：一次函数。"
+              }
+            },
+            "source_pages": [
+              6
+            ],
+            "question_number": "12",
+            "question_type": "SHORT_ANSWER",
+            "content": "计算 2 × 12 + 1。",
+            "options": null,
+            "score": "1.0",
+            "knowledge_points": [
+              "一次函数"
+            ]
+          }
+        ],
+        "updates": [],
+        "pending": []
+      },
+      "ended_at": "2026-10-02T18:35:16.784716+00:00",
+      "elapsed_seconds": 2.417889400036074
+    },
+    {
+      "logical_call_no": 4,
+      "schema": "ExtractionBatch",
+      "prompt_version": "paper-extraction-v2",
+      "started_at": "2026-10-02T18:35:16.799780+00:00",
+      "start_perf": 271517.4980713,
+      "provider_metadata": {
+        "provider": "deepseek",
+        "model": "deepseek-chat",
+        "prompt_version": "paper-extraction-v2",
+        "call_path": "__main__.worker_async.<locals>.observe_factory.<locals>.generate"
+      },
+      "attempts": [
+        {
+          "attempt_number": 1,
+          "started_at": "2026-10-02T18:35:16.799848+00:00",
+          "start_perf": 271517.498131,
+          "configured_model": "deepseek-chat",
+          "response_model": "deepseek-flash",
+          "usage": {
+            "prompt_tokens": 2450,
+            "completion_tokens": 709,
+            "total_tokens": 3159
+          },
+          "status": "success",
+          "ended_at": "2026-10-02T18:35:18.852904+00:00",
+          "elapsed_seconds": 2.0530587000539526
+        }
+      ],
+      "status": "success",
+      "validated_output_fields": {
+        "questions": [
+          {
+            "reference_answer": "27",
+            "scoring_rubric": null,
+            "analysis": "先乘后加。",
+            "evidence": {
+              "reference_answer": {
+                "page_number": 7,
+                "text": "13. 计算 2 × 13 + 1。（1.00 分）\n原稿答案：27；解析：先乘后加。知识点：一次函数。"
+              },
+              "analysis": {
+                "page_number": 7,
+                "text": "13. 计算 2 × 13 + 1。（1.00 分）\n原稿答案：27；解析：先乘后加。知识点：一次函数。"
+              }
+            },
+            "source_pages": [
+              7
+            ],
+            "question_number": "13",
+            "question_type": "SHORT_ANSWER",
+            "content": "计算 2 × 13 + 1。",
+            "options": null,
+            "score": "1.0",
+            "knowledge_points": [
+              "一次函数"
+            ]
+          },
+          {
+            "reference_answer": "29",
+            "scoring_rubric": null,
+            "analysis": "先乘后加。",
+            "evidence": {
+              "reference_answer": {
+                "page_number": 7,
+                "text": "14. 计算 2 × 14 + 1。（1.00 分）\n原稿答案：29；解析：先乘后加。知识点：一次函数。"
+              },
+              "analysis": {
+                "page_number": 7,
+                "text": "14. 计算 2 × 14 + 1。（1.00 分）\n原稿答案：29；解析：先乘后加。知识点：一次函数。"
+              }
+            },
+            "source_pages": [
+              7
+            ],
+            "question_number": "14",
+            "question_type": "SHORT_ANSWER",
+            "content": "计算 2 × 14 + 1。",
+            "options": null,
+            "score": "1.0",
+            "knowledge_points": [
+              "一次函数"
+            ]
+          },
+          {
+            "reference_answer": "31",
+            "scoring_rubric": null,
+            "analysis": "先乘后加。",
+            "evidence": {
+              "reference_answer": {
+                "page_number": 8,
+                "text": "15. 计算 2 × 15 + 1。（1.00 分）\n原稿答案：31；解析：先乘后加。知识点：一次函数。"
+              },
+              "analysis": {
+                "page_number": 8,
+                "text": "15. 计算 2 × 15 + 1。（1.00 分）\n原稿答案：31；解析：先乘后加。知识点：一次函数。"
+              }
+            },
+            "source_pages": [
+              8
+            ],
+            "question_number": "15",
+            "question_type": "SHORT_ANSWER",
+            "content": "计算 2 × 15 + 1。",
+            "options": null,
+            "score": "1.0",
+            "knowledge_points": [
+              "一次函数"
+            ]
+          },
+          {
+            "reference_answer": "33",
+            "scoring_rubric": null,
+            "analysis": "先乘后加。",
+            "evidence": {
+              "reference_answer": {
+                "page_number": 8,
+                "text": "16. 计算 2 × 16 + 1。（1.00 分）\n原稿答案：33；解析：先乘后加。知识点：一次函数。"
+              },
+              "analysis": {
+                "page_number": 8,
+                "text": "16. 计算 2 × 16 + 1。（1.00 分）\n原稿答案：33；解析：先乘后加。知识点：一次函数。"
+              }
+            },
+            "source_pages": [
+              8
+            ],
+            "question_number": "16",
+            "question_type": "SHORT_ANSWER",
+            "content": "计算 2 × 16 + 1。",
+            "options": null,
+            "score": "1.0",
+            "knowledge_points": [
+              "一次函数"
+            ]
+          }
+        ],
+        "updates": [],
+        "pending": []
+      },
+      "ended_at": "2026-10-02T18:35:18.855960+00:00",
+      "elapsed_seconds": 2.056182800035458
+    },
+    {
+      "logical_call_no": 5,
+      "schema": "ExtractionBatch",
+      "prompt_version": "paper-extraction-v2",
+      "started_at": "2026-10-02T18:35:18.871580+00:00",
+      "start_perf": 271519.5698704,
+      "provider_metadata": {
+        "provider": "deepseek",
+        "model": "deepseek-chat",
+        "prompt_version": "paper-extraction-v2",
+        "call_path": "__main__.worker_async.<locals>.observe_factory.<locals>.generate"
+      },
+      "attempts": [
+        {
+          "attempt_number": 1,
+          "started_at": "2026-10-02T18:35:18.871648+00:00",
+          "start_perf": 271519.569931,
+          "configured_model": "deepseek-chat",
+          "response_model": "deepseek-flash",
+          "usage": {
+            "prompt_tokens": 2618,
+            "completion_tokens": 814,
+            "total_tokens": 3432
+          },
+          "status": "success",
+          "ended_at": "2026-10-02T18:35:21.274671+00:00",
+          "elapsed_seconds": 2.4030243000015616
+        }
+      ],
+      "status": "success",
+      "validated_output_fields": {
+        "questions": [
+          {
+            "reference_answer": "35",
+            "scoring_rubric": null,
+            "analysis": "先乘后加。",
+            "evidence": {
+              "reference_answer": {
+                "page_number": 9,
+                "text": "17. 计算 2 × 17 + 1。（1.00 分）\n原稿答案：35；解析：先乘后加。知识点：一次函数。"
+              },
+              "analysis": {
+                "page_number": 9,
+                "text": "17. 计算 2 × 17 + 1。（1.00 分）\n原稿答案：35；解析：先乘后加。知识点：一次函数。"
+              }
+            },
+            "source_pages": [
+              9
+            ],
+            "question_number": "17",
+            "question_type": "SHORT_ANSWER",
+            "content": "计算 2 × 17 + 1。",
+            "options": null,
+            "score": "1.0",
+            "knowledge_points": [
+              "一次函数"
+            ]
+          },
+          {
+            "reference_answer": "37",
+            "scoring_rubric": null,
+            "analysis": "先乘后加。",
+            "evidence": {
+              "reference_answer": {
+                "page_number": 9,
+                "text": "18. 计算 2 × 18 + 1。（1.00 分）\n原稿答案：37；解析：先乘后加。知识点：一次函数。"
+              },
+              "analysis": {
+                "page_number": 9,
+                "text": "18. 计算 2 × 18 + 1。（1.00 分）\n原稿答案：37；解析：先乘后加。知识点：一次函数。"
+              }
+            },
+            "source_pages": [
+              9
+            ],
+            "question_number": "18",
+            "question_type": "SHORT_ANSWER",
+            "content": "计算 2 × 18 + 1。",
+            "options": null,
+            "score": "1.0",
+            "knowledge_points": [
+              "一次函数"
+            ]
+          },
+          {
+            "reference_answer": "39",
+            "scoring_rubric": null,
+            "analysis": "先乘后加。",
+            "evidence": {
+              "reference_answer": {
+                "page_number": 10,
+                "text": "19. 计算 2 × 19 + 1。（1.00 分）\n原稿答案：39；解析：先乘后加。知识点：一次函数。"
+              },
+              "analysis": {
+                "page_number": 10,
+                "text": "19. 计算 2 × 19 + 1。（1.00 分）\n原稿答案：39；解析：先乘后加。知识点：一次函数。"
+              }
+            },
+            "source_pages": [
+              10
+            ],
+            "question_number": "19",
+            "question_type": "SHORT_ANSWER",
+            "content": "计算 2 × 19 + 1。",
+            "options": null,
+            "score": "1.0",
+            "knowledge_points": [
+              "一次函数"
+            ]
+          },
+          {
+            "reference_answer": "41",
+            "scoring_rubric": null,
+            "analysis": "先乘后加。",
+            "evidence": {
+              "reference_answer": {
+                "page_number": 10,
+                "text": "20. 计算 2 × 20 + 1。（1.00 分）\n原稿答案：41；解析：先乘后加。知识点：一次函数。"
+              },
+              "analysis": {
+                "page_number": 10,
+                "text": "20. 计算 2 × 20 + 1。（1.00 分）\n原稿答案：41；解析：先乘后加。知识点：一次函数。"
+              }
+            },
+            "source_pages": [
+              10
+            ],
+            "question_number": "20",
+            "question_type": "SHORT_ANSWER",
+            "content": "计算 2 × 20 + 1。",
+            "options": null,
+            "score": "1.0",
+            "knowledge_points": [
+              "一次函数"
+            ]
+          }
+        ],
+        "updates": [],
+        "pending": []
+      },
+      "ended_at": "2026-10-02T18:35:21.278002+00:00",
+      "elapsed_seconds": 2.406426100002136
+    }
+  ],
+  "http_requests": [
+    {
+      "http_attempt_no": 1,
+      "logical_call_no": 1,
+      "provider_attempt_no": 1,
+      "started_at": "2026-10-02T18:35:10.674532+00:00",
+      "start_perf": 271511.3728254,
+      "method": "POST",
+      "host": "api.deepseek.com",
+      "path": "/chat/completions",
+      "response_observed": true,
+      "measurement": "httpx request event hook entered before transport; not proof server received bytes",
+      "requested_model": "deepseek-chat",
+      "status_code": 200,
+      "response_headers_received_at": "2026-10-02T18:35:10.877513+00:00",
+      "response_header_elapsed_seconds": 0.20297930005472153,
+      "response_model": "deepseek-flash",
+      "response_model_evidence": "actual SDK parsed HTTP response.model; distinct from configured/request body model",
+      "sdk_call_finished_at": "2026-10-02T18:35:12.348504+00:00",
+      "sdk_elapsed_seconds": 1.673972100019455
+    },
+    {
+      "http_attempt_no": 2,
+      "logical_call_no": 2,
+      "provider_attempt_no": 1,
+      "started_at": "2026-10-02T18:35:12.369176+00:00",
+      "start_perf": 271513.0674683,
+      "method": "POST",
+      "host": "api.deepseek.com",
+      "path": "/chat/completions",
+      "response_observed": true,
+      "measurement": "httpx request event hook entered before transport; not proof server received bytes",
+      "requested_model": "deepseek-chat",
+      "status_code": 200,
+      "response_headers_received_at": "2026-10-02T18:35:12.470555+00:00",
+      "response_header_elapsed_seconds": 0.10137930000200868,
+      "response_model": "deepseek-flash",
+      "response_model_evidence": "actual SDK parsed HTTP response.model; distinct from configured/request body model",
+      "sdk_call_finished_at": "2026-10-02T18:35:14.346144+00:00",
+      "sdk_elapsed_seconds": 1.9769741999916732
+    },
+    {
+      "http_attempt_no": 3,
+      "logical_call_no": 3,
+      "provider_attempt_no": 1,
+      "started_at": "2026-10-02T18:35:14.367848+00:00",
+      "start_perf": 271515.0661355,
+      "method": "POST",
+      "host": "api.deepseek.com",
+      "path": "/chat/completions",
+      "response_observed": true,
+      "measurement": "httpx request event hook entered before transport; not proof server received bytes",
+      "requested_model": "deepseek-chat",
+      "status_code": 200,
+      "response_headers_received_at": "2026-10-02T18:35:14.460012+00:00",
+      "response_header_elapsed_seconds": 0.09216749999905005,
+      "response_model": "deepseek-flash",
+      "response_model_evidence": "actual SDK parsed HTTP response.model; distinct from configured/request body model",
+      "sdk_call_finished_at": "2026-10-02T18:35:16.781524+00:00",
+      "sdk_elapsed_seconds": 2.4136790000484325
+    },
+    {
+      "http_attempt_no": 4,
+      "logical_call_no": 4,
+      "provider_attempt_no": 1,
+      "started_at": "2026-10-02T18:35:16.800777+00:00",
+      "start_perf": 271517.4990634,
+      "method": "POST",
+      "host": "api.deepseek.com",
+      "path": "/chat/completions",
+      "response_observed": true,
+      "measurement": "httpx request event hook entered before transport; not proof server received bytes",
+      "requested_model": "deepseek-chat",
+      "status_code": 200,
+      "response_headers_received_at": "2026-10-02T18:35:16.898746+00:00",
+      "response_header_elapsed_seconds": 0.09797869995236397,
+      "response_model": "deepseek-flash",
+      "response_model_evidence": "actual SDK parsed HTTP response.model; distinct from configured/request body model",
+      "sdk_call_finished_at": "2026-10-02T18:35:18.852721+00:00",
+      "sdk_elapsed_seconds": 2.051950399996713
+    },
+    {
+      "http_attempt_no": 5,
+      "logical_call_no": 5,
+      "provider_attempt_no": 1,
+      "started_at": "2026-10-02T18:35:18.872568+00:00",
+      "start_perf": 271519.5708534,
+      "method": "POST",
+      "host": "api.deepseek.com",
+      "path": "/chat/completions",
+      "response_observed": true,
+      "measurement": "httpx request event hook entered before transport; not proof server received bytes",
+      "requested_model": "deepseek-chat",
+      "status_code": 200,
+      "response_headers_received_at": "2026-10-02T18:35:18.983882+00:00",
+      "response_header_elapsed_seconds": 0.11133089999202639,
+      "response_model": "deepseek-flash",
+      "response_model_evidence": "actual SDK parsed HTTP response.model; distinct from configured/request body model",
+      "sdk_call_finished_at": "2026-10-02T18:35:21.274503+00:00",
+      "sdk_elapsed_seconds": 2.4019394000060856
+    }
+  ],
+  "provider": "deepseek",
+  "configured_model": "deepseek-chat",
+  "prompt_version": "paper-extraction-v2",
+  "ocr": {
+    "enabled": true,
+    "provider": "rapidocr",
+    "model": "PP-OCRv5-mobile",
+    "default_ocr_argument": null,
+    "instance_reuse_across_imports": false
+  },
+  "receive_started_at": "2026-10-02T18:35:07.930868+00:00",
+  "receive_start_perf": 271508.6291605,
+  "original_file_store": {
+    "started_at": "2026-10-02T18:35:07.942749+00:00",
+    "start_perf": 271508.6410399,
+    "status": "written_candidate",
+    "bytes": 38362,
+    "ended_at": "2026-10-02T18:35:07.965700+00:00",
+    "elapsed_seconds": 0.022954999993089586
+  },
+  "paper_import_id": "60731e64-9abb-4fce-be64-d201fb657602",
+  "teacher_fixture_id": "1c2ce65c-74b4-4a5c-bc81-9e80602a3d9c",
+  "course_id": "09f52219-ac56-4060-91b1-0ccb4af67772",
+  "upload_returned_at": "2026-10-02T18:35:08.012007+00:00",
+  "upload_end_perf": 271508.7102994,
+  "upload_seconds": 0.08113889995729551,
+  "terminal_perf": 271521.9962184,
+  "terminal_at": "2026-10-02T18:35:21.297941+00:00",
+  "status": "Pending Review",
+  "error_code": null,
+  "error_message": null,
+  "runner_returned_at": "2026-10-02T18:35:21.301739+00:00",
+  "runner_end_perf": 271522.000032,
+  "persisted_output_fields": {
+    "id": "60731e64-9abb-4fce-be64-d201fb657602",
+    "course_id": "09f52219-ac56-4060-91b1-0ccb4af67772",
+    "uploaded_by": "1c2ce65c-74b4-4a5c-bc81-9e80602a3d9c",
+    "document_id": "7b88b933-46d8-487c-aae3-5c1143595f35",
+    "original_filename": "workload_10_pages.pdf",
+    "page_count": 10,
+    "status": "Pending Review",
+    "error_code": null,
+    "error_message": null,
+    "created_at": "2026-10-02T18:35:07.968067Z",
+    "updated_at": "2026-10-02T18:35:21.294196Z",
+    "original_file_id": "d_7b88b93346d8487caae35c1143595f35",
+    "parsed_page_count": 10,
+    "question_count": 20,
+    "pages": [
+      {
+        "id": "84917550-32de-4899-8a67-7e2abd41c929",
+        "paper_import_id": "60731e64-9abb-4fce-be64-d201fb657602",
+        "page_number": 1,
+        "file_id": "p_8491755032de48998a677e2abd41c929",
+        "width": 1241,
+        "height": 1754,
+        "ocr_text": null,
+        "ocr_confidence": null
+      },
+      {
+        "id": "cf0aa9e6-2f92-4e63-8b81-bb19d2e376bf",
+        "paper_import_id": "60731e64-9abb-4fce-be64-d201fb657602",
+        "page_number": 2,
+        "file_id": "p_cf0aa9e62f924e638b81bb19d2e376bf",
+        "width": 1241,
+        "height": 1754,
+        "ocr_text": null,
+        "ocr_confidence": null
+      },
+      {
+        "id": "6f719fe5-1e86-4b78-bc5b-c4fb64872191",
+        "paper_import_id": "60731e64-9abb-4fce-be64-d201fb657602",
+        "page_number": 3,
+        "file_id": "p_6f719fe51e864b78bc5bc4fb64872191",
+        "width": 1241,
+        "height": 1754,
+        "ocr_text": null,
+        "ocr_confidence": null
+      },
+      {
+        "id": "49d1cc42-e0d1-4949-bbb9-dfe24adef035",
+        "paper_import_id": "60731e64-9abb-4fce-be64-d201fb657602",
+        "page_number": 4,
+        "file_id": "p_49d1cc42e0d14949bbb9dfe24adef035",
+        "width": 1241,
+        "height": 1754,
+        "ocr_text": null,
+        "ocr_confidence": null
+      },
+      {
+        "id": "df0bd039-cd8a-4b7b-a512-5bf638814b7b",
+        "paper_import_id": "60731e64-9abb-4fce-be64-d201fb657602",
+        "page_number": 5,
+        "file_id": "p_df0bd039cd8a4b7ba5125bf638814b7b",
+        "width": 1241,
+        "height": 1754,
+        "ocr_text": null,
+        "ocr_confidence": null
+      },
+      {
+        "id": "9a39934b-bb94-4b28-9f9e-cffad3e34c25",
+        "paper_import_id": "60731e64-9abb-4fce-be64-d201fb657602",
+        "page_number": 6,
+        "file_id": "p_9a39934bbb944b289f9ecffad3e34c25",
+        "width": 1241,
+        "height": 1754,
+        "ocr_text": null,
+        "ocr_confidence": null
+      },
+      {
+        "id": "8d119a3a-3745-4f1b-83ee-bcbd31fe8a5a",
+        "paper_import_id": "60731e64-9abb-4fce-be64-d201fb657602",
+        "page_number": 7,
+        "file_id": "p_8d119a3a37454f1b83eebcbd31fe8a5a",
+        "width": 1241,
+        "height": 1754,
+        "ocr_text": null,
+        "ocr_confidence": null
+      },
+      {
+        "id": "8b8c62fe-6e2c-4b65-8dce-d05d02f5da90",
+        "paper_import_id": "60731e64-9abb-4fce-be64-d201fb657602",
+        "page_number": 8,
+        "file_id": "p_8b8c62fe6e2c4b658dced05d02f5da90",
+        "width": 1241,
+        "height": 1754,
+        "ocr_text": null,
+        "ocr_confidence": null
+      },
+      {
+        "id": "bc59f19b-9bef-4a8a-810a-f70a058e31ea",
+        "paper_import_id": "60731e64-9abb-4fce-be64-d201fb657602",
+        "page_number": 9,
+        "file_id": "p_bc59f19b9bef4a8a810af70a058e31ea",
+        "width": 1241,
+        "height": 1754,
+        "ocr_text": null,
+        "ocr_confidence": null
+      },
+      {
+        "id": "4e496e63-c1f8-4764-99cd-14802646cb43",
+        "paper_import_id": "60731e64-9abb-4fce-be64-d201fb657602",
+        "page_number": 10,
+        "file_id": "p_4e496e63c1f8476499cd14802646cb43",
+        "width": 1241,
+        "height": 1754,
+        "ocr_text": null,
+        "ocr_confidence": null
+      }
+    ],
+    "questions": [
+      {
+        "question_type": "SHORT_ANSWER",
+        "content": "计算 2 × 1 + 1。",
+        "options": null,
+        "reference_answer": "3",
+        "scoring_rubric": null,
+        "score": "1.00",
+        "correction_notes": null,
+        "question_number": "1",
+        "analysis": "先乘后加。",
+        "knowledge_points": [
+          "一次函数"
+        ],
+        "source_regions": null,
+        "assets": null,
+        "source_page_ids": [
+          "84917550-32de-4899-8a67-7e2abd41c929"
+        ],
+        "extracted_by": "LLM",
+        "extraction_confidence": null,
+        "id": "88c57059-bfe6-4001-a366-d8e548cb32b4",
+        "paper_import_id": "60731e64-9abb-4fce-be64-d201fb657602",
+        "order_index": 1,
+        "order_preserved": true,
+        "status": "Pending Correction",
+        "question_id": null,
+        "image_assessment": null,
+        "created_at": "2026-10-02T18:35:12.359312Z",
+        "updated_at": "2026-10-02T18:35:12.359316Z"
+      },
+      {
+        "question_type": "SHORT_ANSWER",
+        "content": "计算 2 × 2 + 1。",
+        "options": null,
+        "reference_answer": "5",
+        "scoring_rubric": null,
+        "score": "1.00",
+        "correction_notes": null,
+        "question_number": "2",
+        "analysis": "先乘后加。",
+        "knowledge_points": [
+          "一次函数"
+        ],
+        "source_regions": null,
+        "assets": null,
+        "source_page_ids": [
+          "84917550-32de-4899-8a67-7e2abd41c929"
+        ],
+        "extracted_by": "LLM",
+        "extraction_confidence": null,
+        "id": "e1e4a496-2595-4e5e-99cb-545292d941c6",
+        "paper_import_id": "60731e64-9abb-4fce-be64-d201fb657602",
+        "order_index": 2,
+        "order_preserved": true,
+        "status": "Pending Correction",
+        "question_id": null,
+        "image_assessment": null,
+        "created_at": "2026-10-02T18:35:12.359317Z",
+        "updated_at": "2026-10-02T18:35:12.359317Z"
+      },
+      {
+        "question_type": "SHORT_ANSWER",
+        "content": "计算 2 × 3 + 1。",
+        "options": null,
+        "reference_answer": "7",
+        "scoring_rubric": null,
+        "score": "1.00",
+        "correction_notes": null,
+        "question_number": "3",
+        "analysis": "先乘后加。",
+        "knowledge_points": [
+          "一次函数"
+        ],
+        "source_regions": null,
+        "assets": null,
+        "source_page_ids": [
+          "cf0aa9e6-2f92-4e63-8b81-bb19d2e376bf"
+        ],
+        "extracted_by": "LLM",
+        "extraction_confidence": null,
+        "id": "2c86048d-4937-4bcb-bc75-a492efd8f11e",
+        "paper_import_id": "60731e64-9abb-4fce-be64-d201fb657602",
+        "order_index": 3,
+        "order_preserved": true,
+        "status": "Pending Correction",
+        "question_id": null,
+        "image_assessment": null,
+        "created_at": "2026-10-02T18:35:12.359318Z",
+        "updated_at": "2026-10-02T18:35:12.359319Z"
+      },
+      {
+        "question_type": "SHORT_ANSWER",
+        "content": "计算 2 × 4 + 1。",
+        "options": null,
+        "reference_answer": "9",
+        "scoring_rubric": null,
+        "score": "1.00",
+        "correction_notes": null,
+        "question_number": "4",
+        "analysis": "先乘后加。",
+        "knowledge_points": [
+          "一次函数"
+        ],
+        "source_regions": null,
+        "assets": null,
+        "source_page_ids": [
+          "cf0aa9e6-2f92-4e63-8b81-bb19d2e376bf"
+        ],
+        "extracted_by": "LLM",
+        "extraction_confidence": null,
+        "id": "a8a3b6ba-f21f-4359-90c3-6300d760fedd",
+        "paper_import_id": "60731e64-9abb-4fce-be64-d201fb657602",
+        "order_index": 4,
+        "order_preserved": true,
+        "status": "Pending Correction",
+        "question_id": null,
+        "image_assessment": null,
+        "created_at": "2026-10-02T18:35:12.359319Z",
+        "updated_at": "2026-10-02T18:35:12.359320Z"
+      },
+      {
+        "question_type": "SHORT_ANSWER",
+        "content": "计算 2 × 5 + 1。",
+        "options": null,
+        "reference_answer": "11",
+        "scoring_rubric": null,
+        "score": "1.00",
+        "correction_notes": null,
+        "question_number": "5",
+        "analysis": "先乘后加。",
+        "knowledge_points": [
+          "一次函数"
+        ],
+        "source_regions": null,
+        "assets": null,
+        "source_page_ids": [
+          "6f719fe5-1e86-4b78-bc5b-c4fb64872191"
+        ],
+        "extracted_by": "LLM",
+        "extraction_confidence": null,
+        "id": "d5440dfb-9c47-42bc-8fe0-8fe9d619dbec",
+        "paper_import_id": "60731e64-9abb-4fce-be64-d201fb657602",
+        "order_index": 5,
+        "order_preserved": true,
+        "status": "Pending Correction",
+        "question_id": null,
+        "image_assessment": null,
+        "created_at": "2026-10-02T18:35:14.357273Z",
+        "updated_at": "2026-10-02T18:35:14.357278Z"
+      },
+      {
+        "question_type": "SHORT_ANSWER",
+        "content": "计算 2 × 6 + 1。",
+        "options": null,
+        "reference_answer": "13",
+        "scoring_rubric": null,
+        "score": "1.00",
+        "correction_notes": null,
+        "question_number": "6",
+        "analysis": "先乘后加。",
+        "knowledge_points": [
+          "一次函数"
+        ],
+        "source_regions": null,
+        "assets": null,
+        "source_page_ids": [
+          "6f719fe5-1e86-4b78-bc5b-c4fb64872191"
+        ],
+        "extracted_by": "LLM",
+        "extraction_confidence": null,
+        "id": "dcc56d6f-6199-44ab-ad8a-f15839293ae1",
+        "paper_import_id": "60731e64-9abb-4fce-be64-d201fb657602",
+        "order_index": 6,
+        "order_preserved": true,
+        "status": "Pending Correction",
+        "question_id": null,
+        "image_assessment": null,
+        "created_at": "2026-10-02T18:35:14.357279Z",
+        "updated_at": "2026-10-02T18:35:14.357279Z"
+      },
+      {
+        "question_type": "SHORT_ANSWER",
+        "content": "计算 2 × 7 + 1。",
+        "options": null,
+        "reference_answer": "15",
+        "scoring_rubric": null,
+        "score": "1.00",
+        "correction_notes": null,
+        "question_number": "7",
+        "analysis": "先乘后加。",
+        "knowledge_points": [
+          "一次函数"
+        ],
+        "source_regions": null,
+        "assets": null,
+        "source_page_ids": [
+          "49d1cc42-e0d1-4949-bbb9-dfe24adef035"
+        ],
+        "extracted_by": "LLM",
+        "extraction_confidence": null,
+        "id": "345e075d-7859-462a-981b-a63b4cb09028",
+        "paper_import_id": "60731e64-9abb-4fce-be64-d201fb657602",
+        "order_index": 7,
+        "order_preserved": true,
+        "status": "Pending Correction",
+        "question_id": null,
+        "image_assessment": null,
+        "created_at": "2026-10-02T18:35:14.357280Z",
+        "updated_at": "2026-10-02T18:35:14.357281Z"
+      },
+      {
+        "question_type": "SHORT_ANSWER",
+        "content": "计算 2 × 8 + 1。",
+        "options": null,
+        "reference_answer": "17",
+        "scoring_rubric": null,
+        "score": "1.00",
+        "correction_notes": null,
+        "question_number": "8",
+        "analysis": "先乘后加。",
+        "knowledge_points": [
+          "一次函数"
+        ],
+        "source_regions": null,
+        "assets": null,
+        "source_page_ids": [
+          "49d1cc42-e0d1-4949-bbb9-dfe24adef035"
+        ],
+        "extracted_by": "LLM",
+        "extraction_confidence": null,
+        "id": "2b09e49c-ecee-47ce-b397-13852ab094b9",
+        "paper_import_id": "60731e64-9abb-4fce-be64-d201fb657602",
+        "order_index": 8,
+        "order_preserved": true,
+        "status": "Pending Correction",
+        "question_id": null,
+        "image_assessment": null,
+        "created_at": "2026-10-02T18:35:14.357282Z",
+        "updated_at": "2026-10-02T18:35:14.357282Z"
+      },
+      {
+        "question_type": "SHORT_ANSWER",
+        "content": "计算 2 × 9 + 1。",
+        "options": null,
+        "reference_answer": "19",
+        "scoring_rubric": null,
+        "score": "1.00",
+        "correction_notes": null,
+        "question_number": "9",
+        "analysis": "先乘后加。",
+        "knowledge_points": [
+          "一次函数"
+        ],
+        "source_regions": null,
+        "assets": null,
+        "source_page_ids": [
+          "df0bd039-cd8a-4b7b-a512-5bf638814b7b"
+        ],
+        "extracted_by": "LLM",
+        "extraction_confidence": null,
+        "id": "8b41cc80-a557-4374-8336-4f402aebeb96",
+        "paper_import_id": "60731e64-9abb-4fce-be64-d201fb657602",
+        "order_index": 9,
+        "order_preserved": true,
+        "status": "Pending Correction",
+        "question_id": null,
+        "image_assessment": null,
+        "created_at": "2026-10-02T18:35:16.791479Z",
+        "updated_at": "2026-10-02T18:35:16.791482Z"
+      },
+      {
+        "question_type": "SHORT_ANSWER",
+        "content": "计算 2 × 10 + 1。",
+        "options": null,
+        "reference_answer": "21",
+        "scoring_rubric": null,
+        "score": "1.00",
+        "correction_notes": null,
+        "question_number": "10",
+        "analysis": "先乘后加。",
+        "knowledge_points": [
+          "一次函数"
+        ],
+        "source_regions": null,
+        "assets": null,
+        "source_page_ids": [
+          "df0bd039-cd8a-4b7b-a512-5bf638814b7b"
+        ],
+        "extracted_by": "LLM",
+        "extraction_confidence": null,
+        "id": "8f303fa1-5564-4466-9642-f0647cd5952e",
+        "paper_import_id": "60731e64-9abb-4fce-be64-d201fb657602",
+        "order_index": 10,
+        "order_preserved": true,
+        "status": "Pending Correction",
+        "question_id": null,
+        "image_assessment": null,
+        "created_at": "2026-10-02T18:35:16.791483Z",
+        "updated_at": "2026-10-02T18:35:16.791483Z"
+      },
+      {
+        "question_type": "SHORT_ANSWER",
+        "content": "计算 2 × 11 + 1。",
+        "options": null,
+        "reference_answer": "23",
+        "scoring_rubric": null,
+        "score": "1.00",
+        "correction_notes": null,
+        "question_number": "11",
+        "analysis": "先乘后加。",
+        "knowledge_points": [
+          "一次函数"
+        ],
+        "source_regions": null,
+        "assets": null,
+        "source_page_ids": [
+          "9a39934b-bb94-4b28-9f9e-cffad3e34c25"
+        ],
+        "extracted_by": "LLM",
+        "extraction_confidence": null,
+        "id": "d267b1ba-8088-4b99-8d2c-af4514b13c2e",
+        "paper_import_id": "60731e64-9abb-4fce-be64-d201fb657602",
+        "order_index": 11,
+        "order_preserved": true,
+        "status": "Pending Correction",
+        "question_id": null,
+        "image_assessment": null,
+        "created_at": "2026-10-02T18:35:16.791484Z",
+        "updated_at": "2026-10-02T18:35:16.791485Z"
+      },
+      {
+        "question_type": "SHORT_ANSWER",
+        "content": "计算 2 × 12 + 1。",
+        "options": null,
+        "reference_answer": "25",
+        "scoring_rubric": null,
+        "score": "1.00",
+        "correction_notes": null,
+        "question_number": "12",
+        "analysis": "先乘后加。",
+        "knowledge_points": [
+          "一次函数"
+        ],
+        "source_regions": null,
+        "assets": null,
+        "source_page_ids": [
+          "9a39934b-bb94-4b28-9f9e-cffad3e34c25"
+        ],
+        "extracted_by": "LLM",
+        "extraction_confidence": null,
+        "id": "04258446-f5be-4aa6-8456-35505c984b3f",
+        "paper_import_id": "60731e64-9abb-4fce-be64-d201fb657602",
+        "order_index": 12,
+        "order_preserved": true,
+        "status": "Pending Correction",
+        "question_id": null,
+        "image_assessment": null,
+        "created_at": "2026-10-02T18:35:16.791485Z",
+        "updated_at": "2026-10-02T18:35:16.791486Z"
+      },
+      {
+        "question_type": "SHORT_ANSWER",
+        "content": "计算 2 × 13 + 1。",
+        "options": null,
+        "reference_answer": "27",
+        "scoring_rubric": null,
+        "score": "1.00",
+        "correction_notes": null,
+        "question_number": "13",
+        "analysis": "先乘后加。",
+        "knowledge_points": [
+          "一次函数"
+        ],
+        "source_regions": null,
+        "assets": null,
+        "source_page_ids": [
+          "8d119a3a-3745-4f1b-83ee-bcbd31fe8a5a"
+        ],
+        "extracted_by": "LLM",
+        "extraction_confidence": null,
+        "id": "efbeeb9f-a3e3-4be6-aba6-b0ad922a0288",
+        "paper_import_id": "60731e64-9abb-4fce-be64-d201fb657602",
+        "order_index": 13,
+        "order_preserved": true,
+        "status": "Pending Correction",
+        "question_id": null,
+        "image_assessment": null,
+        "created_at": "2026-10-02T18:35:18.863671Z",
+        "updated_at": "2026-10-02T18:35:18.863674Z"
+      },
+      {
+        "question_type": "SHORT_ANSWER",
+        "content": "计算 2 × 14 + 1。",
+        "options": null,
+        "reference_answer": "29",
+        "scoring_rubric": null,
+        "score": "1.00",
+        "correction_notes": null,
+        "question_number": "14",
+        "analysis": "先乘后加。",
+        "knowledge_points": [
+          "一次函数"
+        ],
+        "source_regions": null,
+        "assets": null,
+        "source_page_ids": [
+          "8d119a3a-3745-4f1b-83ee-bcbd31fe8a5a"
+        ],
+        "extracted_by": "LLM",
+        "extraction_confidence": null,
+        "id": "3efcc3ea-3bdd-4dc8-9184-3b361f494573",
+        "paper_import_id": "60731e64-9abb-4fce-be64-d201fb657602",
+        "order_index": 14,
+        "order_preserved": true,
+        "status": "Pending Correction",
+        "question_id": null,
+        "image_assessment": null,
+        "created_at": "2026-10-02T18:35:18.863675Z",
+        "updated_at": "2026-10-02T18:35:18.863675Z"
+      },
+      {
+        "question_type": "SHORT_ANSWER",
+        "content": "计算 2 × 15 + 1。",
+        "options": null,
+        "reference_answer": "31",
+        "scoring_rubric": null,
+        "score": "1.00",
+        "correction_notes": null,
+        "question_number": "15",
+        "analysis": "先乘后加。",
+        "knowledge_points": [
+          "一次函数"
+        ],
+        "source_regions": null,
+        "assets": null,
+        "source_page_ids": [
+          "8b8c62fe-6e2c-4b65-8dce-d05d02f5da90"
+        ],
+        "extracted_by": "LLM",
+        "extraction_confidence": null,
+        "id": "b17298fb-a2f0-49c7-b153-e9f3f9a59832",
+        "paper_import_id": "60731e64-9abb-4fce-be64-d201fb657602",
+        "order_index": 15,
+        "order_preserved": true,
+        "status": "Pending Correction",
+        "question_id": null,
+        "image_assessment": null,
+        "created_at": "2026-10-02T18:35:18.863676Z",
+        "updated_at": "2026-10-02T18:35:18.863677Z"
+      },
+      {
+        "question_type": "SHORT_ANSWER",
+        "content": "计算 2 × 16 + 1。",
+        "options": null,
+        "reference_answer": "33",
+        "scoring_rubric": null,
+        "score": "1.00",
+        "correction_notes": null,
+        "question_number": "16",
+        "analysis": "先乘后加。",
+        "knowledge_points": [
+          "一次函数"
+        ],
+        "source_regions": null,
+        "assets": null,
+        "source_page_ids": [
+          "8b8c62fe-6e2c-4b65-8dce-d05d02f5da90"
+        ],
+        "extracted_by": "LLM",
+        "extraction_confidence": null,
+        "id": "e448f5f5-e934-4f3a-8ce1-39700bb221b6",
+        "paper_import_id": "60731e64-9abb-4fce-be64-d201fb657602",
+        "order_index": 16,
+        "order_preserved": true,
+        "status": "Pending Correction",
+        "question_id": null,
+        "image_assessment": null,
+        "created_at": "2026-10-02T18:35:18.863677Z",
+        "updated_at": "2026-10-02T18:35:18.863678Z"
+      },
+      {
+        "question_type": "SHORT_ANSWER",
+        "content": "计算 2 × 17 + 1。",
+        "options": null,
+        "reference_answer": "35",
+        "scoring_rubric": null,
+        "score": "1.00",
+        "correction_notes": null,
+        "question_number": "17",
+        "analysis": "先乘后加。",
+        "knowledge_points": [
+          "一次函数"
+        ],
+        "source_regions": null,
+        "assets": null,
+        "source_page_ids": [
+          "bc59f19b-9bef-4a8a-810a-f70a058e31ea"
+        ],
+        "extracted_by": "LLM",
+        "extraction_confidence": null,
+        "id": "741f61b2-915f-4bac-9ab4-e6e157348d8b",
+        "paper_import_id": "60731e64-9abb-4fce-be64-d201fb657602",
+        "order_index": 17,
+        "order_preserved": true,
+        "status": "Pending Correction",
+        "question_id": null,
+        "image_assessment": null,
+        "created_at": "2026-10-02T18:35:21.285902Z",
+        "updated_at": "2026-10-02T18:35:21.285905Z"
+      },
+      {
+        "question_type": "SHORT_ANSWER",
+        "content": "计算 2 × 18 + 1。",
+        "options": null,
+        "reference_answer": "37",
+        "scoring_rubric": null,
+        "score": "1.00",
+        "correction_notes": null,
+        "question_number": "18",
+        "analysis": "先乘后加。",
+        "knowledge_points": [
+          "一次函数"
+        ],
+        "source_regions": null,
+        "assets": null,
+        "source_page_ids": [
+          "bc59f19b-9bef-4a8a-810a-f70a058e31ea"
+        ],
+        "extracted_by": "LLM",
+        "extraction_confidence": null,
+        "id": "3d425935-9841-46af-be5b-b39c46c8d496",
+        "paper_import_id": "60731e64-9abb-4fce-be64-d201fb657602",
+        "order_index": 18,
+        "order_preserved": true,
+        "status": "Pending Correction",
+        "question_id": null,
+        "image_assessment": null,
+        "created_at": "2026-10-02T18:35:21.285907Z",
+        "updated_at": "2026-10-02T18:35:21.285907Z"
+      },
+      {
+        "question_type": "SHORT_ANSWER",
+        "content": "计算 2 × 19 + 1。",
+        "options": null,
+        "reference_answer": "39",
+        "scoring_rubric": null,
+        "score": "1.00",
+        "correction_notes": null,
+        "question_number": "19",
+        "analysis": "先乘后加。",
+        "knowledge_points": [
+          "一次函数"
+        ],
+        "source_regions": null,
+        "assets": null,
+        "source_page_ids": [
+          "4e496e63-c1f8-4764-99cd-14802646cb43"
+        ],
+        "extracted_by": "LLM",
+        "extraction_confidence": null,
+        "id": "dd322321-2341-4dca-850e-50e7507da5a5",
+        "paper_import_id": "60731e64-9abb-4fce-be64-d201fb657602",
+        "order_index": 19,
+        "order_preserved": true,
+        "status": "Pending Correction",
+        "question_id": null,
+        "image_assessment": null,
+        "created_at": "2026-10-02T18:35:21.285908Z",
+        "updated_at": "2026-10-02T18:35:21.285908Z"
+      },
+      {
+        "question_type": "SHORT_ANSWER",
+        "content": "计算 2 × 20 + 1。",
+        "options": null,
+        "reference_answer": "41",
+        "scoring_rubric": null,
+        "score": "1.00",
+        "correction_notes": null,
+        "question_number": "20",
+        "analysis": "先乘后加。",
+        "knowledge_points": [
+          "一次函数"
+        ],
+        "source_regions": null,
+        "assets": null,
+        "source_page_ids": [
+          "4e496e63-c1f8-4764-99cd-14802646cb43"
+        ],
+        "extracted_by": "LLM",
+        "extraction_confidence": null,
+        "id": "1418e2e8-e946-45cd-a23e-b2876614433b",
+        "paper_import_id": "60731e64-9abb-4fce-be64-d201fb657602",
+        "order_index": 20,
+        "order_preserved": true,
+        "status": "Pending Correction",
+        "question_id": null,
+        "image_assessment": null,
+        "created_at": "2026-10-02T18:35:21.285909Z",
+        "updated_at": "2026-10-02T18:35:21.285910Z"
+      }
+    ],
+    "file_diagnostics": []
+  },
+  "terminal_observed_by_after_commit": true,
+  "terminal_elapsed_seconds": 13.367057900002692,
+  "runner_elapsed_seconds": 13.370871499995701,
+  "post_terminal_cleanup_seconds": 0.0038135999930091202,
+  "completed_at": "2026-10-02T18:35:21.490159+00:00",
+  "completed_perf": 271522.1884505,
+  "logical_call_count": 5,
+  "provider_attempt_count": 5,
+  "actual_request_attempt_count": 5,
+  "requested_models": [
+    "deepseek-chat"
+  ],
+  "response_models": [
+    "deepseek-flash"
+  ],
+  "business_success": true,
+  "within_import_target": true,
+  "resources": {
+    "sample_count": 13,
+    "observed_sampling_span_seconds": 11.997442000021692,
+    "window_duration_seconds": 13.367057900002692,
+    "full_sampling_cycles_observed": 11,
+    "requested_interval_seconds": 1.0,
+    "max_observed_gap_seconds": 1.014023699972313,
+    "complete_at_requested_sampling_resolution": true,
+    "peaks": {
+      "app_working_set_bytes": 308404224,
+      "postgres_container_process_rss_bytes": 219082752,
+      "redis_container_process_rss_bytes": 8638464,
+      "simultaneous_observed_sum_bytes": 536031232
+    },
+    "missing_sample_count": 0,
+    "first_sample_at": "2026-10-02T18:35:08.860470+00:00",
+    "last_sample_at": "2026-10-02T18:35:20.828568+00:00",
+    "scope": {
+      "app": "verified Windows worker and actual descendant process working sets; excludes experiment controller and parent redirector",
+      "postgres": "sum of all postgres process RSS in shared eduagent-postgres-1; not isolated database attribution; shared pages can be counted repeatedly",
+      "redis": "sum of all redis-server process RSS in dedicated eduagent-e2-acceptance-redis-ac14a149cc18",
+      "sum": "observations within one sample, read sequentially; sampled peaks, not a continuous physical-memory high-water mark"
+    }
+  },
+  "memory_budget": {
+    "protocol": "plan-v2-memory-soft-upper-budgets",
+    "unit_policy": "GB=1000000000 bytes; MB=1000000 bytes; display MiB=1048576 bytes",
+    "limits_bytes": {
+      "app_working_set_bytes": 4000000000,
+      "postgres_container_process_rss_bytes": 1500000000,
+      "redis_container_process_rss_bytes": 512000000,
+      "simultaneous_observed_sum_bytes": 6000000000
+    },
+    "limits_mib": {
+      "app_working_set_bytes": 3814.697265625,
+      "postgres_container_process_rss_bytes": 1430.511474609375,
+      "redis_container_process_rss_bytes": 488.28125,
+      "simultaneous_observed_sum_bytes": 5722.0458984375
+    },
+    "observed_peaks_bytes": {
+      "app_working_set_bytes": 308404224,
+      "postgres_container_process_rss_bytes": 219082752,
+      "redis_container_process_rss_bytes": 8638464,
+      "simultaneous_observed_sum_bytes": 536031232
+    },
+    "observed_peaks_mib": {
+      "app_working_set_bytes": 294.1171875,
+      "postgres_container_process_rss_bytes": 208.93359375,
+      "redis_container_process_rss_bytes": 8.23828125,
+      "simultaneous_observed_sum_bytes": 511.19921875
+    },
+    "observed_over_budget": {
+      "app_working_set_bytes": false,
+      "postgres_container_process_rss_bytes": false,
+      "redis_container_process_rss_bytes": false,
+      "simultaneous_observed_sum_bytes": false
+    },
+    "resource_complete": true,
+    "component_pass": {
+      "app_working_set_bytes": true,
+      "postgres_container_process_rss_bytes": true,
+      "redis_container_process_rss_bytes": true,
+      "simultaneous_observed_sum_bytes": true
+    },
+    "budget_pass": true,
+    "scope": "Observed application subtree working set plus PostgreSQL/Redis process RSS. Shared pages may be counted repeatedly; not unique physical memory or EXE acceptance."
+  }
+}

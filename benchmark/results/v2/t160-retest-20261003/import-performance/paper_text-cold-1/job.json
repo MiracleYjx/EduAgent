@@ -1,0 +1,18 @@
+{
+  "case": "paper_text",
+  "filename": "paper_text.pdf",
+  "page_count": 1,
+  "bytes": 72250,
+  "sha256": "74e4f9a21fd7bf778bab474f89bcede2680010e957cc435774205dbaa648c167",
+  "planned_cold": 3,
+  "planned_warmup": 1,
+  "planned_warm": 5,
+  "base_logical_requests_per_success": 1,
+  "directory": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t160-retest-20261003\\import-performance\\paper_text-cold-1",
+  "trials": [
+    {
+      "mode": "cold",
+      "repetition": 1
+    }
+  ]
+}

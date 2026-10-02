@@ -1,0 +1,12 @@
+{
+  "group": "text-warm",
+  "launcher_pid": 88884,
+  "service_pid": 87812,
+  "service_created_at": "2026-10-02T18:57:29.260743Z",
+  "started_at": "2026-10-02T18:57:38.1356449Z",
+  "port": 7871,
+  "output": "D:\\YJX\\MyCode\\EduAgent\\.cache\\t160-retest-20261003\\ui-formal\\text-warm",
+  "status": "stopped",
+  "sampler_launcher_pid": 84616,
+  "stopped_at": "2026-10-02T18:58:50.0306451Z"
+}

@@ -1,0 +1,104 @@
+{
+  "schema_version": 1,
+  "source_commit": "9c9e79f4f2376b7a6fd84f02e5800659d210f9da",
+  "source_directory": ".cache/t160-retest-20261003",
+  "destination_directory": "benchmark/results/v2/t160-retest-20261003/technical",
+  "copied_at_utc": "2026-10-02T18:30:51.762745+00:00",
+  "files": [
+    {
+      "file": "final_pytest.log",
+      "bytes": 6783,
+      "sha256": "f7ba3ee82331a570d817963969eccd31b477b7c9649652ae10ef5582e75da0c1",
+      "copied": true
+    },
+    {
+      "file": "final_pytest.json",
+      "bytes": 126,
+      "sha256": "63646ddaaaa0bbc86f26ee70a7593e73aee1b47cc863fc2a4c17f6b5bf3a1872",
+      "copied": true
+    },
+    {
+      "file": "final_mypy.log",
+      "bytes": 46,
+      "sha256": "870cdf697fc2e99f85335c1683182eb1c953262947a71e1c6d0c85d63931f4e6",
+      "copied": true
+    },
+    {
+      "file": "final_mypy.json",
+      "bytes": 124,
+      "sha256": "62419f74d8473544087b278cd63167034044ea00595408921224adac4f78c897",
+      "copied": true
+    },
+    {
+      "file": "final_ruff.log",
+      "bytes": 19,
+      "sha256": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18",
+      "copied": true
+    },
+    {
+      "file": "final_ruff.json",
+      "bytes": 122,
+      "sha256": "a94485bf6905ea2e87e92ec587afccd3e2d0c46a82b0ada236da11ea2064670f",
+      "copied": true
+    },
+    {
+      "file": "final_ruff_tools.log",
+      "bytes": 19,
+      "sha256": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18",
+      "copied": true
+    },
+    {
+      "file": "final_ruff_tools.json",
+      "bytes": 128,
+      "sha256": "b3344c35a418dc6ef27db350c029305d4bcba7290f89a5e67a66af2e1c815094",
+      "copied": true
+    },
+    {
+      "file": "final_current.log",
+      "bytes": 162,
+      "sha256": "4564fe8e419ff6ead8146c4cc69bda18adee6e5c2dbc319c4b3f08c9b7d1e38f",
+      "copied": true
+    },
+    {
+      "file": "final_current.json",
+      "bytes": 125,
+      "sha256": "f1f5eda42c9b5730a9852446fa335a2087b31a56be746f6877a2a73f9427e5e0",
+      "copied": true
+    },
+    {
+      "file": "final_alembic_check.log",
+      "bytes": 728,
+      "sha256": "54371131047361e3f1cc9688d8de2235fefd852c7ef4503977b8f9f878fc4f92",
+      "copied": true
+    },
+    {
+      "file": "final_alembic_check.json",
+      "bytes": 131,
+      "sha256": "857da9759390330d88593fcd6b73d3ee2da1882b426389c85b6a68037da6c2d8",
+      "copied": true
+    },
+    {
+      "file": "final-pytest.xml",
+      "bytes": 295218,
+      "sha256": "47a4d3825324a14118dea14ac4c78678aa41b7e39daeff83f9081b7056aec47c",
+      "copied": true
+    }
+  ],
+  "pytest": {
+    "collected": 2009,
+    "passed": 2007,
+    "skipped": 2,
+    "failed": 0,
+    "errors": 0,
+    "warnings": 76,
+    "pytest_seconds": 573.87,
+    "wrapper_seconds": 585.716
+  },
+  "skips": [
+    "Original M0 smoke requires explicit isolated Compose variables; none added for this batch",
+    "Host does not permit creation of test symlink"
+  ],
+  "all_exit_codes_zero": true,
+  "source_changes": false,
+  "cloud_calls_started_by_verification": false
+}

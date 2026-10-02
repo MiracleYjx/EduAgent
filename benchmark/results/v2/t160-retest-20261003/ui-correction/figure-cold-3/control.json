@@ -1,0 +1,12 @@
+{
+  "group": "figure-cold-3",
+  "launcher_pid": 79916,
+  "service_pid": 84556,
+  "service_created_at": "2026-10-02T19:00:19.717091Z",
+  "started_at": "2026-10-02T19:00:28.6568426Z",
+  "port": 7871,
+  "output": "D:\\YJX\\MyCode\\EduAgent\\.cache\\t160-retest-20261003\\ui-formal\\figure-cold-3",
+  "status": "stopped",
+  "sampler_launcher_pid": 83388,
+  "stopped_at": "2026-10-02T19:01:00.6602954Z"
+}

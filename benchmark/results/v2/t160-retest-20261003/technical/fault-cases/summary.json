@@ -1,0 +1,175 @@
+{
+  "kind": "pipeline_business_acceptance",
+  "not_quality_truth": true,
+  "teacher_annotation": false,
+  "source_commit": "9c9e79f4f2376b7a6fd84f02e5800659d210f9da",
+  "started_at": "2026-10-02T18:50:43.632952+00:00",
+  "cases": [
+    {
+      "case": "IMP-DAMAGED",
+      "filename": "damaged.pdf",
+      "bytes": 50,
+      "sha256": "8928a9081f6cca2462be8412f4a520f471dbe79020e0576f1a3ce61bdfb5a3a5",
+      "expected_status": "Upload Rejected",
+      "expected_error": "PAPER_PARSE_FAILED",
+      "fault_injection": null,
+      "started_at": "2026-10-02T18:50:43.733873+00:00",
+      "steps": [
+        {
+          "stage": "format_validation",
+          "status": "rejected",
+          "error_code": "PAPER_PARSE_FAILED"
+        }
+      ],
+      "bytechecks": [],
+      "injected_errors": [],
+      "status": "Upload Rejected",
+      "error_code": "PAPER_PARSE_FAILED",
+      "error_message": "原卷无法解析为有效 PDF 或单页 PNG/JPEG。",
+      "records_created": [
+        0,
+        0
+      ],
+      "passed": true,
+      "completed_at": "2026-10-02T18:50:43.757360+00:00"
+    },
+    {
+      "case": "IMP-OVERLIMIT",
+      "filename": "workload_51_pages.pdf",
+      "bytes": 67876,
+      "sha256": "e37bf3d92a7e915f72cc2b7e976203a51d3b147c60546d25bfddd7acc75be67c",
+      "expected_status": "Upload Rejected",
+      "expected_error": "PAPER_TOO_MANY_PAGES",
+      "fault_injection": null,
+      "started_at": "2026-10-02T18:50:43.758472+00:00",
+      "steps": [
+        {
+          "stage": "format_validation",
+          "status": "rejected",
+          "error_code": "PAPER_TOO_MANY_PAGES"
+        }
+      ],
+      "bytechecks": [],
+      "injected_errors": [],
+      "status": "Upload Rejected",
+      "error_code": "PAPER_TOO_MANY_PAGES",
+      "error_message": "试卷实际为 51 页，最多允许 50 页。",
+      "records_created": [
+        0,
+        0
+      ],
+      "passed": true,
+      "completed_at": "2026-10-02T18:50:43.781004+00:00"
+    },
+    {
+      "case": "IMP-OCR-OFF",
+      "filename": "paper_scan.pdf",
+      "bytes": 154527,
+      "sha256": "16aaa00c8b41ca1f5e5e77d6248e918953d054e725ebfb30548fec84cfe9ba5b",
+      "expected_status": "Failed",
+      "expected_error": "OCR_PROVIDER_NOT_READY",
+      "fault_injection": null,
+      "started_at": "2026-10-02T18:50:43.782051+00:00",
+      "steps": [
+        {
+          "stage": "upload",
+          "status": "Uploaded"
+        },
+        {
+          "stage": "runner_terminal",
+          "status": "Failed",
+          "error_code": "OCR_PROVIDER_NOT_READY"
+        }
+      ],
+      "bytechecks": [
+        {
+          "file_id": "d_733a9407e92c4b739e320dac366737c6",
+          "bytes": 154527,
+          "sha256": "16aaa00c8b41ca1f5e5e77d6248e918953d054e725ebfb30548fec84cfe9ba5b",
+          "matches_registered_or_input_sha256": true
+        },
+        {
+          "file_id": "p_89f85585d8d84800ad9cde211d5fcacc",
+          "bytes": 157944,
+          "sha256": "31cdc03d0d958c33d6d7815e330f521febe40e23eab0122f687344f8ed311199",
+          "matches_registered_or_input_sha256": true
+        }
+      ],
+      "injected_errors": [],
+      "paper_import_id": "050d1d78-aa38-46c7-afea-a052bf4d289e",
+      "status": "Failed",
+      "error_code": "OCR_PROVIDER_NOT_READY",
+      "error_message": "OCR失败：OCR_PROVIDER_NOT_READY：OCR 未启用；扫描页需要配置 OCR_ENABLED 后重新处理。",
+      "page_count": 1,
+      "saved_page_count": 1,
+      "question_count": 0,
+      "passed": true,
+      "completed_at": "2026-10-02T18:50:44.150010+00:00"
+    },
+    {
+      "case": "IMP-OCR-FAIL",
+      "filename": "paper_scan.pdf",
+      "bytes": 154527,
+      "sha256": "16aaa00c8b41ca1f5e5e77d6248e918953d054e725ebfb30548fec84cfe9ba5b",
+      "expected_status": "Failed",
+      "expected_error": "PAPER_OCR_FAILED",
+      "fault_injection": "OCR provider raises OCR_CALL_FAILED explicitly",
+      "started_at": "2026-10-02T18:50:44.151095+00:00",
+      "steps": [
+        {
+          "stage": "upload",
+          "status": "Uploaded"
+        },
+        {
+          "stage": "runner_terminal",
+          "status": "Failed",
+          "error_code": "PAPER_OCR_FAILED"
+        }
+      ],
+      "bytechecks": [
+        {
+          "file_id": "d_239108f034b14d6494004eb9b04c076e",
+          "bytes": 154527,
+          "sha256": "16aaa00c8b41ca1f5e5e77d6248e918953d054e725ebfb30548fec84cfe9ba5b",
+          "matches_registered_or_input_sha256": true
+        },
+        {
+          "file_id": "p_fc0bbe8db81641cd843ea5e047d2ce8c",
+          "bytes": 157944,
+          "sha256": "31cdc03d0d958c33d6d7815e330f521febe40e23eab0122f687344f8ed311199",
+          "matches_registered_or_input_sha256": true
+        }
+      ],
+      "injected_errors": [
+        {
+          "stage": "OCR",
+          "code": "OCR_CALL_FAILED",
+          "page_bytes": 157944
+        }
+      ],
+      "paper_import_id": "94e425ad-c84e-4bc4-bf58-e1dd1a2928df",
+      "status": "Failed",
+      "error_code": "PAPER_OCR_FAILED",
+      "error_message": "第 1 页 OCR失败：OCR_CALL_FAILED：Explicit T160 pipeline acceptance fault injection; not a model-quality result.",
+      "page_count": 1,
+      "saved_page_count": 1,
+      "question_count": 0,
+      "passed": true,
+      "completed_at": "2026-10-02T18:50:44.491143+00:00"
+    }
+  ],
+  "provider_boundary_entries": 0,
+  "http_requests": 0,
+  "cloud_guard": "Runner LLM factory guarded: unexpected entry is recorded and raises before any SDK/client creation",
+  "passed": true,
+  "actor_fixture": {
+    "id": "a932fcd2-a7ad-4401-b264-3c3aea8bb628",
+    "roles": [
+      "Teacher"
+    ],
+    "is_active": true,
+    "course_id": "27c975c9-d27d-4d09-8b55-29ae21742366",
+    "human_teacher_annotation": false
+  },
+  "completed_at": "2026-10-02T18:50:44.492678+00:00"
+}

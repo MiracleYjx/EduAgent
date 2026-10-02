@@ -1,0 +1,389 @@
+{
+  "kind": "real-import-performance-run",
+  "teacher_annotation": false,
+  "case": "paper_text",
+  "mode": "warm",
+  "repetition": 5,
+  "pid": 88172,
+  "source_commit": "9c9e79f4f2376b7a6fd84f02e5800659d210f9da",
+  "input_sha256": "74e4f9a21fd7bf778bab474f89bcede2680010e957cc435774205dbaa648c167",
+  "input_bytes": 72250,
+  "page_count": 1,
+  "initial_state": "new import; not an idempotent completed operation",
+  "llm_calls": [
+    {
+      "logical_call_no": 1,
+      "schema": "ExtractionBatch",
+      "prompt_version": "paper-extraction-v2",
+      "started_at": "2026-10-02T18:33:17.120621+00:00",
+      "start_perf": 271397.8189167,
+      "provider_metadata": {
+        "provider": "deepseek",
+        "model": "deepseek-chat",
+        "prompt_version": "paper-extraction-v2",
+        "call_path": "__main__.worker_async.<locals>.observe_factory.<locals>.generate"
+      },
+      "attempts": [
+        {
+          "attempt_number": 1,
+          "started_at": "2026-10-02T18:33:17.120703+00:00",
+          "start_perf": 271397.8189859,
+          "configured_model": "deepseek-chat",
+          "response_model": "deepseek-flash",
+          "usage": {
+            "prompt_tokens": 1926,
+            "completion_tokens": 536,
+            "total_tokens": 2462
+          },
+          "status": "success",
+          "ended_at": "2026-10-02T18:33:18.871489+00:00",
+          "elapsed_seconds": 1.7507927999831736
+        }
+      ],
+      "status": "success",
+      "validated_output_fields": {
+        "questions": [
+          {
+            "reference_answer": "C",
+            "scoring_rubric": null,
+            "analysis": "2 × 3 + 1 = 7。",
+            "evidence": {
+              "reference_answer": {
+                "page_number": 1,
+                "text": "原稿答案：C；原稿解析：2 × 3 + 1 = 7。"
+              },
+              "analysis": {
+                "page_number": 1,
+                "text": "原稿答案：C；原稿解析：2 × 3 + 1 = 7。"
+              }
+            },
+            "source_pages": [
+              1
+            ],
+            "question_number": "1",
+            "question_type": "SINGLE_CHOICE",
+            "content": "y = 2x + 1，x = 3 时 y 为多少？",
+            "options": {
+              "C": "7",
+              "A": "5",
+              "B": "6",
+              "D": "8"
+            },
+            "score": "2.0",
+            "knowledge_points": null
+          },
+          {
+            "reference_answer": null,
+            "scoring_rubric": null,
+            "analysis": null,
+            "evidence": {},
+            "source_pages": [
+              1
+            ],
+            "question_number": "2",
+            "question_type": "TRUE_FALSE",
+            "content": "右图三角形面积为 24 cm²。",
+            "options": [
+              "正确",
+              "错误"
+            ],
+            "score": "2.0",
+            "knowledge_points": null
+          },
+          {
+            "reference_answer": null,
+            "scoring_rubric": "正确关系式 1.00；说明代入过程 2.00。",
+            "analysis": null,
+            "evidence": {
+              "scoring_rubric": {
+                "page_number": 1,
+                "text": "评分要点：正确关系式 1.00；说明代入过程 2.00。"
+              }
+            },
+            "source_pages": [
+              1
+            ],
+            "question_number": "3",
+            "question_type": "SHORT_ANSWER",
+            "content": "根据下表写出 y 关于 x 的关系式。",
+            "options": null,
+            "score": "3.0",
+            "knowledge_points": [
+              "一次函数",
+              "表达与计算"
+            ]
+          }
+        ],
+        "updates": [],
+        "pending": []
+      },
+      "ended_at": "2026-10-02T18:33:18.874572+00:00",
+      "elapsed_seconds": 1.7539514999953099
+    }
+  ],
+  "http_requests": [
+    {
+      "http_attempt_no": 1,
+      "logical_call_no": 1,
+      "provider_attempt_no": 1,
+      "started_at": "2026-10-02T18:33:17.121892+00:00",
+      "start_perf": 271397.8201816,
+      "method": "POST",
+      "host": "api.deepseek.com",
+      "path": "/chat/completions",
+      "response_observed": true,
+      "measurement": "httpx request event hook entered before transport; not proof server received bytes",
+      "requested_model": "deepseek-chat",
+      "status_code": 200,
+      "response_headers_received_at": "2026-10-02T18:33:17.252717+00:00",
+      "response_header_elapsed_seconds": 0.1308255000039935,
+      "response_model": "deepseek-flash",
+      "response_model_evidence": "actual SDK parsed HTTP response.model; distinct from configured/request body model",
+      "sdk_call_finished_at": "2026-10-02T18:33:18.871227+00:00",
+      "sdk_elapsed_seconds": 1.7493404999841005
+    }
+  ],
+  "provider": "deepseek",
+  "configured_model": "deepseek-chat",
+  "prompt_version": "paper-extraction-v2",
+  "ocr": {
+    "enabled": true,
+    "provider": "rapidocr",
+    "model": "PP-OCRv5-mobile",
+    "default_ocr_argument": null,
+    "instance_reuse_across_imports": false
+  },
+  "receive_started_at": "2026-10-02T18:33:15.085461+00:00",
+  "receive_start_perf": 271395.7837524,
+  "original_file_store": {
+    "started_at": "2026-10-02T18:33:15.097123+00:00",
+    "start_perf": 271395.7954173,
+    "status": "written_candidate",
+    "bytes": 72250,
+    "ended_at": "2026-10-02T18:33:15.124603+00:00",
+    "elapsed_seconds": 0.027481299999635667
+  },
+  "paper_import_id": "7df752e3-87e0-4cb7-839e-712ac84f4927",
+  "teacher_fixture_id": "b1e08618-e4ff-49df-9d64-090f2d3b6249",
+  "course_id": "0f0ebda9-ecef-4f15-9231-0cc1a5229c4b",
+  "upload_returned_at": "2026-10-02T18:33:15.172660+00:00",
+  "upload_end_perf": 271395.8709529,
+  "upload_seconds": 0.08720049995463341,
+  "terminal_perf": 271399.5920906,
+  "terminal_at": "2026-10-02T18:33:18.893813+00:00",
+  "status": "Pending Review",
+  "error_code": null,
+  "error_message": null,
+  "runner_returned_at": "2026-10-02T18:33:18.897087+00:00",
+  "runner_end_perf": 271399.5953802,
+  "persisted_output_fields": {
+    "id": "7df752e3-87e0-4cb7-839e-712ac84f4927",
+    "course_id": "0f0ebda9-ecef-4f15-9231-0cc1a5229c4b",
+    "uploaded_by": "b1e08618-e4ff-49df-9d64-090f2d3b6249",
+    "document_id": "ee1964dd-6235-41be-a156-00196d7ae33e",
+    "original_filename": "paper_text.pdf",
+    "page_count": 1,
+    "status": "Pending Review",
+    "error_code": null,
+    "error_message": null,
+    "created_at": "2026-10-02T18:33:15.127237Z",
+    "updated_at": "2026-10-02T18:33:18.890345Z",
+    "original_file_id": "d_ee1964dd623541bea15600196d7ae33e",
+    "parsed_page_count": 1,
+    "question_count": 3,
+    "pages": [
+      {
+        "id": "d706c36c-766f-46aa-9a57-6220e8599a01",
+        "paper_import_id": "7df752e3-87e0-4cb7-839e-712ac84f4927",
+        "page_number": 1,
+        "file_id": "p_d706c36c766f46aa9a576220e8599a01",
+        "width": 1241,
+        "height": 1754,
+        "ocr_text": null,
+        "ocr_confidence": null
+      }
+    ],
+    "questions": [
+      {
+        "question_type": "SINGLE_CHOICE",
+        "content": "y = 2x + 1，x = 3 时 y 为多少？",
+        "options": {
+          "C": "7",
+          "A": "5",
+          "B": "6",
+          "D": "8"
+        },
+        "reference_answer": "C",
+        "scoring_rubric": null,
+        "score": "2.00",
+        "correction_notes": null,
+        "question_number": "1",
+        "analysis": "2 × 3 + 1 = 7。",
+        "knowledge_points": null,
+        "source_regions": null,
+        "assets": null,
+        "source_page_ids": [
+          "d706c36c-766f-46aa-9a57-6220e8599a01"
+        ],
+        "extracted_by": "LLM",
+        "extraction_confidence": null,
+        "id": "2ff2e745-3a22-4f63-880f-617a277f5a30",
+        "paper_import_id": "7df752e3-87e0-4cb7-839e-712ac84f4927",
+        "order_index": 1,
+        "order_preserved": true,
+        "status": "Pending Correction",
+        "question_id": null,
+        "image_assessment": null,
+        "created_at": "2026-10-02T18:33:18.881725Z",
+        "updated_at": "2026-10-02T18:33:18.881729Z"
+      },
+      {
+        "question_type": "TRUE_FALSE",
+        "content": "右图三角形面积为 24 cm²。",
+        "options": [
+          "正确",
+          "错误"
+        ],
+        "reference_answer": null,
+        "scoring_rubric": null,
+        "score": "2.00",
+        "correction_notes": null,
+        "question_number": "2",
+        "analysis": null,
+        "knowledge_points": null,
+        "source_regions": null,
+        "assets": null,
+        "source_page_ids": [
+          "d706c36c-766f-46aa-9a57-6220e8599a01"
+        ],
+        "extracted_by": "LLM",
+        "extraction_confidence": null,
+        "id": "10fd4985-352d-44a9-93cc-e598b6845cb5",
+        "paper_import_id": "7df752e3-87e0-4cb7-839e-712ac84f4927",
+        "order_index": 2,
+        "order_preserved": true,
+        "status": "Pending Correction",
+        "question_id": null,
+        "image_assessment": null,
+        "created_at": "2026-10-02T18:33:18.881730Z",
+        "updated_at": "2026-10-02T18:33:18.881731Z"
+      },
+      {
+        "question_type": "SHORT_ANSWER",
+        "content": "根据下表写出 y 关于 x 的关系式。",
+        "options": null,
+        "reference_answer": null,
+        "scoring_rubric": "正确关系式 1.00；说明代入过程 2.00。",
+        "score": "3.00",
+        "correction_notes": null,
+        "question_number": "3",
+        "analysis": null,
+        "knowledge_points": [
+          "一次函数",
+          "表达与计算"
+        ],
+        "source_regions": null,
+        "assets": null,
+        "source_page_ids": [
+          "d706c36c-766f-46aa-9a57-6220e8599a01"
+        ],
+        "extracted_by": "LLM",
+        "extraction_confidence": null,
+        "id": "ab829f77-b2fe-48f3-9c7f-070e61c357f5",
+        "paper_import_id": "7df752e3-87e0-4cb7-839e-712ac84f4927",
+        "order_index": 3,
+        "order_preserved": true,
+        "status": "Pending Correction",
+        "question_id": null,
+        "image_assessment": null,
+        "created_at": "2026-10-02T18:33:18.881731Z",
+        "updated_at": "2026-10-02T18:33:18.881732Z"
+      }
+    ],
+    "file_diagnostics": []
+  },
+  "terminal_observed_by_after_commit": true,
+  "terminal_elapsed_seconds": 3.808338199974969,
+  "runner_elapsed_seconds": 3.8116277999943122,
+  "post_terminal_cleanup_seconds": 0.0032896000193431973,
+  "completed_at": "2026-10-02T18:33:18.951769+00:00",
+  "completed_perf": 271399.6500617,
+  "logical_call_count": 1,
+  "provider_attempt_count": 1,
+  "actual_request_attempt_count": 1,
+  "requested_models": [
+    "deepseek-chat"
+  ],
+  "response_models": [
+    "deepseek-flash"
+  ],
+  "business_success": true,
+  "within_import_target": true,
+  "resources": {
+    "sample_count": 3,
+    "observed_sampling_span_seconds": 2.0046444999752566,
+    "window_duration_seconds": 3.808338199974969,
+    "full_sampling_cycles_observed": 2,
+    "requested_interval_seconds": 1.0,
+    "max_observed_gap_seconds": 1.005915299989283,
+    "complete_at_requested_sampling_resolution": true,
+    "peaks": {
+      "app_working_set_bytes": 297988096,
+      "postgres_container_process_rss_bytes": 218787840,
+      "redis_container_process_rss_bytes": 8634368,
+      "simultaneous_observed_sum_bytes": 525410304
+    },
+    "missing_sample_count": 0,
+    "first_sample_at": "2026-10-02T18:33:16.344695+00:00",
+    "last_sample_at": "2026-10-02T18:33:18.346806+00:00",
+    "scope": {
+      "app": "verified Windows worker and actual descendant process working sets; excludes experiment controller and parent redirector",
+      "postgres": "sum of all postgres process RSS in shared eduagent-postgres-1; not isolated database attribution; shared pages can be counted repeatedly",
+      "redis": "sum of all redis-server process RSS in dedicated eduagent-e2-acceptance-redis-ac14a149cc18",
+      "sum": "observations within one sample, read sequentially; sampled peaks, not a continuous physical-memory high-water mark"
+    }
+  },
+  "memory_budget": {
+    "protocol": "plan-v2-memory-soft-upper-budgets",
+    "unit_policy": "GB=1000000000 bytes; MB=1000000 bytes; display MiB=1048576 bytes",
+    "limits_bytes": {
+      "app_working_set_bytes": 4000000000,
+      "postgres_container_process_rss_bytes": 1500000000,
+      "redis_container_process_rss_bytes": 512000000,
+      "simultaneous_observed_sum_bytes": 6000000000
+    },
+    "limits_mib": {
+      "app_working_set_bytes": 3814.697265625,
+      "postgres_container_process_rss_bytes": 1430.511474609375,
+      "redis_container_process_rss_bytes": 488.28125,
+      "simultaneous_observed_sum_bytes": 5722.0458984375
+    },
+    "observed_peaks_bytes": {
+      "app_working_set_bytes": 297988096,
+      "postgres_container_process_rss_bytes": 218787840,
+      "redis_container_process_rss_bytes": 8634368,
+      "simultaneous_observed_sum_bytes": 525410304
+    },
+    "observed_peaks_mib": {
+      "app_working_set_bytes": 284.18359375,
+      "postgres_container_process_rss_bytes": 208.65234375,
+      "redis_container_process_rss_bytes": 8.234375,
+      "simultaneous_observed_sum_bytes": 501.0703125
+    },
+    "observed_over_budget": {
+      "app_working_set_bytes": false,
+      "postgres_container_process_rss_bytes": false,
+      "redis_container_process_rss_bytes": false,
+      "simultaneous_observed_sum_bytes": false
+    },
+    "resource_complete": true,
+    "component_pass": {
+      "app_working_set_bytes": true,
+      "postgres_container_process_rss_bytes": true,
+      "redis_container_process_rss_bytes": true,
+      "simultaneous_observed_sum_bytes": true
+    },
+    "budget_pass": true,
+    "scope": "Observed application subtree working set plus PostgreSQL/Redis process RSS. Shared pages may be counted repeatedly; not unique physical memory or EXE acceptance."
+  }
+}

@@ -1,0 +1,5 @@
+D:\develop\Python\Lib\site-packages\gradio\components\dataframe.py:197: UserWarning: The `column_limits` parameter is not yet implemented.
+  warnings.warn(
+D:\develop\Python\Lib\site-packages\gradio\components\dataframe.py:197: UserWarning: The `column_limits` parameter is not yet implemented.
+  warnings.warn(
+{"phase": "baseline", "callbacks": 9, "cloud_calls": 0, "output": "D:\\YJX\\MyCode\\EduAgent\\.cache\\t160-retest-20261003\\ui-callback-profile"}
