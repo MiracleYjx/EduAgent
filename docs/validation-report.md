@@ -459,3 +459,65 @@ T152 的 E1 阶段通过：上传持久化/重启/同名不覆盖、资源越权
 - tests/unit/ingestion/test_rapidocr_provider.py
 - docs/test-change-record-v2.md
 - docs/validation-report.md
+
+## T157：试卷上传、按页解析与分批拆题（2026-10-02）
+
+基线 deepcode / e1d943a；按 speckit-implement 执行，TCR §13 先于测试。用户确认 pypdfium2 + pypdf、nullable order_index 列、现有 Provider 分批拆题及进程内后台运行。此提交完成 T157；T158/T159 保留工作区实施与验证材料，尚待暂存对象选项顺序的 JSON/JSONB 持久化决定，不勾选。
+
+### 交付边界
+
+- pypdfium2 5.13.0 渲染真实 PNG 页图（150 DPI），复用 pypdf 文字提取；文字不可靠/大面积扫描区域走 T156 OCR，按页选择。实际格式、最多 50 页、损坏/加密/无页文件明确拒绝，不按扩展名伪装支持。
+- 原卷先可靠存储和登记 Document(paper_source)/PaperImport，再返回 Uploaded；原卷不建立 Chunk/Embedding。真实后台逐页持久保存，已存页/题数为进度。页/题数据与 UTC 时间通过教师授权的列表、详情、暂存题 API 提供；文件缺失单列诊断。
+- BaseLLMProvider 默认每两页调用一次；携带未完原文及已完成题定位，结构化校验原始来源。答案、Rubric、解析只接收可核对的原文摘录；后续答案页可补缺失字段，冲突/零题/非法结构失败，之前已保存的页和批次保留。
+- 新题明确 order_index；0017 新增可空正整数和导入内唯一约束，历史未知保留 NULL，原题号独立。降级有非空题序时拒绝丢失。不向业务数据库应用迁移。
+- 同导入只从 Uploaded 领取一次；启动时将遗留活动任务记 PAPER_INTERRUPTED，保留阶段/材料，显式重新导入。未引入持久 Worker 或自动恢复队列。每次任务关闭自己创建的 LLM HTTP 客户端，不关闭注入客户端。
+
+### 实际验证
+
+工作区最终全量 pytest tests/ -q：1767 passed / 0 failed / 2 skipped / 50 warnings；UTC 2026-10-02T09:10:56.681445+00:00 开始，pytest 473.24 s，外层 481.972 s。该次验证包含未提交 T158/T159 和用户既有 UI 成果，不能当作独立 T157 提交的全量回归。最终 mypy backend/app 为 176 source files 通过，Ruff backend/tests/0017 通过，专用数据库 Alembic check 无差异。
+
+T157 先行缺模块/入口用例确实失败；实现后真实渲染/拆题 13 passed、上传/API 及前述用例 16 passed，迁移及原迁移图 17 passed。真实 PostgreSQL 混合页仅调用扫描页 OCR、零题失败、第二批失败保留前批与原页均通过。模拟 Provider/OCR 仅证明确定性边界，不构成模型精度证据。
+
+配置中的真实 DeepSeek Provider 在隔离课程处理无个人信息的合成 paper_text.pdf：保存 1 页、实际返回 3 题、Pending Review、error=null；UTC 08:58:07 开始，外层 7.865 s。记录模型 deepseek-chat，保留真实原题选项数组及缺答案/解析的 NULL，不自动求解。首次外部调用被自动审核拒绝后，检查样本为公开式合成数学题并说明具体目的地 api.deepseek.com，获准后才执行；没有绕过审核或传输用户业务材料。
+
+首轮全量唯一失败为新增教师导航未加入旧固定列表，已先补 TCR 再只增加新入口期望，学生/管理员断言保持；该改动属待完成 T159，不纳入本次 T157 提交。最终两项 skip 为 M0 缺隔离四变量和 Windows 无符号链接权限。保留既有 M0 未验收与 T146 教师标签待办；不宣称 T160/T168 的准确率、整卷性能、系统闭环或 EXE 交付。
+
+### 环境与证据
+
+依赖安装仅限 .cache/e2-t157-159-20261002/runtime（系统 site-packages 可读），未改主机全局依赖或 .env。专用 PostgreSQL 数据库、Redis 和存储根与业务环境隔离；日志、JSON 时间/退出码、JUnit、真实调用结果和用户改动初始快照均在忽略缓存，不提交凭据、模型、数据库内容或临时页图。用户 README、设计系统、题库成果保持；本次 T157 不暂存用户 UI 文件。.specify/extensions.yml 不存在，后置 hook 按技能规则跳过。
+
+### 独立 T157 提交快照与收尾
+
+另从暂存区导出独立快照，排除全部 T158/T159 与用户未提交 UI，使用同一隔离运行时验证：36 passed / 6 warnings（UTC 2026-10-02T09:22:17.353947+00:00，pytest 19.76 s、外层 23.753 s）；Ruff 通过；Success: no issues found in 171 source files（外层 112.918 s）。该聚焦验证证明提交独立可用，不冒充独立快照的全量测试。
+
+2026-10-02T09:23:53.045025+00:00 核对零连接及任务标签后清理本批数据库 eduagent_e2_import_flow_32ba904f48a5 和 Redis eduagent-e2-import-flow-redis-32ba904f48a5；原业务库仍 0012_audit_logs。已关闭测试浏览器与本批预览进程，保留缓存证据。
+
+九项保护文件中 .env、两份 README、设计系统、题库与其测试六项字节相同；gradio_app.py/layout_view.py/test_gradio_app.py 与初始快照的差异仅为已记录的 T159 新增接线/导航期望，原内容未删改，三项均未暂存。任务清单只勾选 T157。T158/T159 实现、校正界面和独立测试留在工作区，等待对象 options 保序存储方案确认；本次提交不暴露 PATCH/commit 或新 UI。
+
+### 本次提交文件
+
+- .specify/contracts/paper-import.md
+- .specify/data-model.md
+- .specify/tasks.md
+- backend/app/ai/ingestion/paper_pipeline.py
+- backend/app/ai/llm/base.py
+- backend/app/ai/llm/deepseek.py
+- backend/app/ai/paper_extraction/__init__.py
+- backend/app/ai/paper_extraction/schemas.py
+- backend/app/ai/paper_extraction/service.py
+- backend/app/api/paper_import.py
+- backend/app/core/app.py
+- backend/app/models/extracted_question.py
+- backend/app/schemas/paper_import.py
+- backend/app/services/paper_import_service.py
+- docs/test-change-record-v2.md
+- docs/validation-report.md
+- migrations/versions/0017_extracted_order.py
+- pyproject.toml
+- tests/contract/test_paper_import_api.py
+- tests/integration/test_extracted_question_order_migration.py
+- tests/integration/test_paper_import_flow.py
+- tests/unit/ingestion/test_paper_extraction.py
+- tests/unit/ingestion/test_paper_pipeline.py
+- tests/unit/ingestion/test_paper_provider_lifecycle.py
+- tests/unit/models/test_m3_migrations.py

@@ -40,6 +40,7 @@ class DeepSeekProvider(BaseLLMProvider):
         sleep: AsyncSleep = asyncio.sleep,
         timeout: float = 30.0,
     ) -> None:
+        self._owns_client = client is None
         self._settings = settings
         self._model = settings.deepseek_model
         self._retry_policy = retry_policy or RetryPolicy()
@@ -51,6 +52,10 @@ class DeepSeekProvider(BaseLLMProvider):
             timeout=timeout,
             max_retries=0,
         )
+
+    async def aclose(self) -> None:
+        if self._owns_client:
+            await self._client.close()
 
     def describe(self, *, prompt_version: str | None = None) -> LLMProviderMetadata:
         """默认模型来自构造后的实例，不再读取配置或猜测 fallback 最终去向。

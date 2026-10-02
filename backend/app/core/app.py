@@ -23,6 +23,8 @@ from backend.app.api.grading import (
     router as grading_router,
 )
 from backend.app.api.knowledge_bases import router as knowledge_bases_router
+from backend.app.api.paper_import import recover_interrupted_paper_imports
+from backend.app.api.paper_import import router as paper_import_router
 from backend.app.api.question_assets import router as question_assets_router
 from backend.app.api.question_generation import router as question_generation_router
 from backend.app.api.questions import router as questions_router
@@ -77,6 +79,7 @@ async def _application_lifespan(_app: FastAPI) -> AsyncIterator[None]:
 
     recover_interrupted_grading_tasks()
     recover_diagnosis_pending_runs()
+    recover_interrupted_paper_imports()
     yield
 
 
@@ -109,6 +112,7 @@ def create_app(
     app.include_router(question_generation_router)
     app.include_router(questions_router)
     app.include_router(question_assets_router)
+    app.include_router(paper_import_router)
     app.include_router(exams_router)
     app.include_router(grading_router)
     app.include_router(results_router)

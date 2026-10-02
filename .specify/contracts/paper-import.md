@@ -154,3 +154,12 @@ error_message 保留真实步骤和中文可处理原因；不得回传凭据或
 ## T154：学生展示许可
 
 暂存校正数组持久保留 student_visible，教师显式 true 表示已核对资产只含允许学生展示的信息；省略/历史缺省为 false。整页原图及已登记源卷/原页别名不能开放，需先建立真实允许区域题图。源卷/原页本身始终仅教师读取；暂存图没有正式 QuestionAsset 和学生题目授权之前，即使 true 也不开放字节。T158 正式映射承接该字段，终态原数组保持不变；正式题后续许可保存于 QuestionAsset.student_visible。T159 提供教师校正开关。本字段不替代 G05 核对及审核，不构造模型成功/教师意见。
+
+
+## T157 实施接线补充
+
+- 页图采用 pypdfium2 5.13.0，以 150 DPI 渲染为持久 PNG；文字提取复用 pypdf，扫描/不可靠页调用已配置 OCR。校正坐标对应保存的真实页图像素。原文件可靠落盘并登记后返回 Uploaded，进程内后台处理；启动时将遗留 Uploaded/Parsing/Extracting 收敛为 Failed / PAPER_INTERRUPTED，保留原阶段与材料，教师显式新建导入重试。
+- 拆题通过当前 BaseLLMProvider 按两页分批传入真实文字，携带未完题的原文片段；答案/评分标准/解析必须附可校验原文摘录。后续答案页可补此前暂存题的真实来源与缺失字段；冲突明确失败。零题失败，已完成批次与页图保留；不会生成知识库片段。
+- GET /api/paper-imports?course_id=... 返回当前教师所管理课程的真实导入记录，用于重新打开；GET 对原文件/页图缺失附加 file_diagnostics，不改写旧终态或假定成功。created_at/updated_at 用 UTC；parsed_page_count/question_count 为已保存数量。
+
+ExtractedQuestionView 返回 nullable order_index；新提取题明确排序，历史未知为 NULL。校正/确认与 UI 由 T158/T159 接续。本段不代表 T160/T168 质量或性能验收。

@@ -69,6 +69,9 @@ class BaseLLMProvider(ABC):
             self, provider_name=self.provider_name, prompt_version=prompt_version,
         )
 
+    async def aclose(self) -> None:
+        """Release provider-owned resources; stateless adapters need no cleanup."""
+
     @abstractmethod
     async def generate_structured(
         self,

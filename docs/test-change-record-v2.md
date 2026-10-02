@@ -319,3 +319,31 @@ T153 达成并勾选。T154 只完成教师端基础，学生展示持久核对�
 最终全量 1740 collected，1738 passed / 0 failed / 0 errors / 2 skipped / 27 warnings（2026-10-02T07:40:39.506290+00:00，pytest 460.28 s，外层 470.170 s）。两项既有 skip 为 M0 缺四项隔离变量和 Windows 无测试符号链接权限，不记作门禁通过。最终 mypy 166 source files 通过（5.259 s）、Ruff 通过（0.154 s）；仅新增 OCR 两份测试，没有修改旧测试及其断言。
 
 2026-10-02T07:49:07.989876+00:00，精确核对零连接/任务标签后清理本批数据库 eduagent_e2_ocr_3614071ec128 与 Redis eduagent-e2-ocr-redis-3614071ec128；原业务库仍 0012_audit_logs。9 项保护文件摘要一致，全部源日志、JUnit、实际 OCR 输出和清理回执保留于忽略缓存。T156 达成并勾选；其他任务状态、标注待办、模型质量/完整导入/打包边界保持。完整交付回执见 validation-report.md 的 T156 节。
+
+## 13. T157 → T158 → T159 具体 TCR（2026-10-02，基线 e1d943a）
+
+登记 UTC：2026-10-02T08:07:16.440823+00:00
+
+用户已确认：pypdfium2 渲染、pypdf 文字提取；ExtractedQuestion 增加可空 order_index 独立列、导入内唯一，新题明确排序，历史未知 null；复用 BaseLLMProvider 分批结构化拆题，携带未完题，答案/解析只摘录原文；沿用进程内后台执行，中断记失败、保留材料后显式重新导入，不新增 Worker/自动恢复。按顺序完成三项，不提前勾选 T160 或教师质量验收。
+
+必要性：当前仅有原文件/页图/暂存/题图基础，没有上传编排、跨页拆题、校正/幂等 commit 或真实校正 UI。新增 tests/unit/ingestion/test_paper_pipeline.py、tests/unit/ingestion/test_paper_extraction.py、tests/contract/test_paper_import_api.py、tests/integration/test_paper_import_flow.py、tests/integration/test_extracted_question_order_migration.py、tests/unit/ui/test_paper_import_view.py。按阶段先行暴露入口缺失再实施，实际源文件、模型输出 DTO、真实 JWT/关系、事务与 UI 持久重读分别验证，不能用模拟调用代替真实模型/渲染验证。
+
+T157：真实文字/扫描/混合/跨页 PDF 和 PNG/JPEG，格式错误、50/51 页、可靠页图/像素和 OCR 默认禁用、每页选择；Provider 替身仅用于可重复错误分支/模型输出，结构化缺陷、来源越界、未完题、零题、后续批次失败保留页与暂存题；原卷 Uploaded 响应、真实后台执行与启动中断标记、实际进度、401/403/异课程/学生原卷拒绝、知识库 Chunk/Embedding 隔离。不硬编码样本题目、教师答案或标注。
+
+T158：PATCH 省略/null/空数组、来源/区域/资产整组校验、题序持久且原题号独立；拒绝理由与终态，单导入锁内批次校验、同事务 Question(Draft)/QuestionAsset/来源/Corrected；非法批次整体回滚、重复 commit 返回原题且不覆盖其后续修订；部分确认与全部拒绝/Ready，缺答案/Rubric/图像条件保持待补全；原文件丢失真实报错。有效图像核对转入只复用当前真实事件，不伪造模型/教师记录。迁移测试覆盖历史 null、正整数/唯一约束、无损升降级边界；旧迁移图只追加新 head，其余断言保持。
+
+T159：原页/结构化字段并排、跨页与顺序、来源框、最多五图及 student_visible 默认 false/显式开关、真实失败说明、明确拒绝和所选批次确认。UI 回调使用真实服务/登录身份与持久重读，页图通过授权读取为内嵌图，禁止公开 Gradio 原文件静态路径；学生不可见入口；导航/登出清理及旧页面保持。修改已有 gradio_app.py/layout_view.py 只追加本批接线，保留用户现有设计系统与题库改动，提交时排除用户原有 diff。
+
+每阶段聚焦；最后既有 pytest tests/ -q、mypy backend/app/、Ruff backend/tests 与隔离 PostgreSQL Alembic check。需要新增/修改已有测试夹具时先追加原因，不删旧断言。日志、baseline、独立数据库/Redis/文件根归属存 .cache/e2-t157-159-20261002；不升级业务库/改 .env，不用 M0 跳过或无教师标注声明完整验收。真实渲染样本和一次真实配置 Provider 调用单独记载，质量评测仍属后续任务。
+
+T158/T159 实际文件补充：HTTP 校正边界独立放入 tests/contract/test_question_correction_api.py；tests/integration/test_paper_import_flow.py 使用独立 PostgreSQL Schema/不同 Session 验证并发确认和锁内重新读取，复核 T157 混合 OCR/零题/分批失败保留记录。新 UI 导航测试使用项目真实 Teacher/Student 枚举值，修正首版夹具的小写值；不改变导航权限规则或旧断言。
+
+真实 PostgreSQL 流程夹具首轮 1 passed / 2 setup errors：metadata.create_all 默认 checkfirst 沿 search_path 发现隔离数据库 public 同名表，未在临时 Schema 建表，导致夹具角色重复；修正为显式在本测试 Schema 建立所有表（checkfirst=False）。这只修正新增夹具隔离，不改变业务逻辑或原断言；不会触及业务数据库。
+
+资源生命周期补充（先记录再测试）：T157 每次导入创建独立异步 Provider，结束后须释放自有 HTTP 客户端。新增 tests/unit/ingestion/test_paper_provider_lifecycle.py，验证关闭自身客户端且不关闭外部注入客户端；BaseLLMProvider 只增加默认无操作 aclose，原 generate_structured 签名与既有适配器兼容。
+
+首轮全量为 1766 passed / 1 failed / 2 skipped：唯一失败是 tests/unit/ui/test_gradio_app.py 的教师导航固定列表尚未包含新增试卷导入入口。按 T159 目标只在教师预期列表相应位置增加 teacher.paper_import，保留学生/管理员完整列表和所有既有断言；该文件原有用户修改先行快照保留，提交时仍按本批差量隔离。浏览器检查同时修正切页尺寸说明、小裁图不强制放大，以及取消“无图”核对恢复未知状态。
+
+本轮最终工作区全量为 1767 passed / 2 skipped / 50 warnings（2026-10-02T09:10:56.681445+00:00，pytest 473.24 s，外层 481.972 s）；mypy 176 source files 和 Ruff/隔离 Alembic check 通过。两项 skip 沿既有 M0 隔离配置/Windows 符号链接限制，不计通过。T158 的暂存 options 为 JSONB，对象键序在 PostgreSQL 中不能保留；已提交 JSON 列方案等待用户确认，未擅自调整。故先独立提交 T157；T158/T159 工作及先行证据保留但不勾选，相关测试与 UI 不进入本次 T157 提交。
+
+独立 T157 暂存快照补验 36 passed / 6 warnings，包含真实 PostgreSQL 失败保留与 0017 升降级；mypy 171 source files 和 Ruff 通过。只在暂存快照移除待决 T158 的接口/DTO/并发测试部分，工作区完整保留，未放宽所提交 T157 测试断言。2026-10-02T09:23:53.045025+00:00 已精确清理本批 DB/Redis，原业务库 0012_audit_logs；只有 T157 标记完成。

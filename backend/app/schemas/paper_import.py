@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import math
+from datetime import UTC, datetime
 from decimal import Decimal
 from typing import Annotated, Any, Literal, Self
 from uuid import UUID
@@ -16,7 +17,12 @@ from pydantic import (
     model_validator,
 )
 
-from backend.app.domain.enums import ExtractedBy, QuestionType
+from backend.app.domain.enums import (
+    ExtractedBy,
+    ExtractedQuestionStatus,
+    PaperImportStatus,
+    QuestionType,
+)
 
 Pixel = StrictFloat | StrictInt
 Amount = Annotated[Decimal, Field(gt=0, max_digits=8, decimal_places=2, allow_inf_nan=False)]
@@ -126,3 +132,63 @@ class CorrectionPayload(CorrectionFields):
         if self.action == "reject" and not self.correction_notes:
             raise ValueError("拒绝须填写真实理由。")
         return self
+
+class SourcePageView(BaseModel):
+    id: UUID
+    paper_import_id: UUID
+    page_number: int
+    file_id: str
+    width: int
+    height: int
+    ocr_text: str | None
+    ocr_confidence: Decimal | None
+
+
+class ExtractedQuestionView(ExtractedQuestionData):
+    @field_validator("created_at", "updated_at")
+    @classmethod
+    def utc_time(cls, value: datetime) -> datetime:
+        return value.replace(tzinfo=UTC) if value.tzinfo is None else value.astimezone(UTC)
+
+    id: UUID
+    paper_import_id: UUID
+    order_index: int | None
+    status: ExtractedQuestionStatus
+    question_id: UUID | None
+    image_assessment: dict[str, Any] | None
+    created_at: datetime
+    updated_at: datetime
+
+
+    @field_validator("image_assessment")
+    @classmethod
+    def validate_assessment(cls, value: dict[str, Any] | None) -> dict[str, Any] | None:
+        if value is None:
+            return None
+        from backend.app.schemas.image_assessment import ImageAssessment
+        return ImageAssessment.model_validate(value).model_dump(mode="json")
+
+
+class PaperImportView(BaseModel):
+    @field_validator("created_at", "updated_at")
+    @classmethod
+    def utc_time(cls, value: datetime) -> datetime:
+        return value.replace(tzinfo=UTC) if value.tzinfo is None else value.astimezone(UTC)
+
+    id: UUID
+    course_id: UUID
+    uploaded_by: UUID
+    document_id: UUID
+    original_filename: str
+    page_count: int | None
+    status: PaperImportStatus
+    error_code: str | None
+    error_message: str | None
+    created_at: datetime
+    updated_at: datetime
+    original_file_id: str
+    parsed_page_count: int
+    question_count: int
+    pages: list[SourcePageView]
+    questions: list[ExtractedQuestionView]
+    file_diagnostics: list[dict[str, str]] = Field(default_factory=list)

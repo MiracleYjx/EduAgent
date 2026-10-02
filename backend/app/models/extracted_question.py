@@ -5,7 +5,16 @@ from decimal import Decimal
 from typing import TYPE_CHECKING, Any
 from uuid import UUID
 
-from sqlalchemy import JSON, CheckConstraint, ForeignKey, Index, Numeric, Text
+from sqlalchemy import (
+    JSON,
+    CheckConstraint,
+    ForeignKey,
+    Index,
+    Integer,
+    Numeric,
+    Text,
+    UniqueConstraint,
+)
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
@@ -24,6 +33,8 @@ def nullable_json():
 class ExtractedQuestion(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     __tablename__ = "extracted_questions"
     __table_args__ = (
+        UniqueConstraint("paper_import_id", "order_index", name="uq_extracted_import_order"),
+        CheckConstraint("order_index IS NULL OR order_index >= 1", name="ck_extracted_order"),
         Index("ix_extracted_questions_import_status", "paper_import_id", "status"),
         Index("ix_extracted_questions_assets", "assets", postgresql_using="gin").ddl_if(dialect="postgresql"),
         CheckConstraint("score IS NULL OR score > 0", name="ck_extracted_question_score"),
@@ -47,6 +58,7 @@ class ExtractedQuestion(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     extracted_by: Mapped[ExtractedBy] = mapped_column(enum_type(ExtractedBy, "extracted_by", length=16), nullable=False)
     extraction_confidence: Mapped[Decimal | None] = mapped_column(Numeric(5, 4))
     question_id: Mapped[UUID | None] = mapped_column(ForeignKey("questions.id", ondelete="RESTRICT"), unique=True)
+    order_index: Mapped[int | None] = mapped_column(Integer)
     question_number: Mapped[str | None] = mapped_column(Text)
     analysis: Mapped[str | None] = mapped_column(Text)
     knowledge_points: Mapped[list[str] | None] = mapped_column(nullable_json())
