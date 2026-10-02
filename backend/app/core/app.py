@@ -23,6 +23,7 @@ from backend.app.api.grading import (
     router as grading_router,
 )
 from backend.app.api.knowledge_bases import router as knowledge_bases_router
+from backend.app.api.question_assets import router as question_assets_router
 from backend.app.api.question_generation import router as question_generation_router
 from backend.app.api.questions import router as questions_router
 from backend.app.api.results import router as results_router
@@ -107,6 +108,7 @@ def create_app(
     app.include_router(file_storage_router)
     app.include_router(question_generation_router)
     app.include_router(questions_router)
+    app.include_router(question_assets_router)
     app.include_router(exams_router)
     app.include_router(grading_router)
     app.include_router(results_router)

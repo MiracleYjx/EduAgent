@@ -83,7 +83,7 @@ class ManagedFileView(BaseModel):
 class OperationReceipt(BaseModel):
     model_config = ConfigDict(extra="forbid")
     operation_id: UUID
-    resource_type: Literal["document", "export"]
+    resource_type: Literal["document", "source_page", "staged_asset", "question_asset", "export"]
     resource_id: UUID
     owner: dict[str, str]
     actor_id: UUID

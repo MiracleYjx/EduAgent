@@ -20,7 +20,17 @@ from backend.app.core.maintenance import (
     durable_json,
     require_admin_user,
 )
-from backend.app.models import Course, Exam, KnowledgeBase, Submission, User
+from backend.app.models import (
+    Course,
+    Exam,
+    ExtractedQuestion,
+    KnowledgeBase,
+    PaperImport,
+    Question,
+    SourcePage,
+    Submission,
+    User,
+)
 from backend.app.schemas.file_storage import OperationReceipt
 from backend.app.schemas.storage_maintenance import (
     BackupFile,
@@ -31,6 +41,7 @@ from backend.app.schemas.storage_maintenance import (
     DatabaseDump,
     RestoreReport,
 )
+from backend.app.services.file_resources import resource_kind
 from backend.app.services.file_storage_service import (
     FileStorageError,
     FileStorageService,
@@ -88,7 +99,7 @@ class BackupRestoreService:
         owned: set[str] = set()
         issues = []
         actual_references = storage_references(session)
-        resources = {("document" if ref.file_id.startswith("d_") else "export", ref.resource.id): ref for ref in actual_references}
+        resources = {(resource_kind(ref.resource), ref.resource.id): ref for ref in actual_references}
         for ref in actual_references:
             relative = None
             availability: Literal["available", "missing", "history_unknown"] = "history_unknown"
@@ -119,7 +130,7 @@ class BackupRestoreService:
                 migration_status = "history_unknown"
                 issues.append(BackupIssue(code="FILE_METADATA_INVALID", file_id=ref.file_id, stage="references", message="登记文件元数据无效。"))
             references.append(BackupReference(file_id=ref.file_id,
-                resource_type="document" if ref.file_id.startswith("d_") else "export",
+                resource_type=resource_kind(ref.resource),
                 resource_id=ref.resource.id, owner=ref.owner, relative_path=relative,
                 availability=availability, migration_status=migration_status))
         for bucket in BUCKETS:
@@ -151,7 +162,7 @@ class BackupRestoreService:
 
     @staticmethod
     def _receipt_owner_exists(session: Session, receipt: OperationReceipt) -> bool:
-        models = {"course_id": Course, "knowledge_base_id": KnowledgeBase, "exam_id": Exam, "submission_id": Submission}
+        models = {"course_id": Course, "knowledge_base_id": KnowledgeBase, "exam_id": Exam, "submission_id": Submission, "paper_import_id": PaperImport, "extracted_question_id": ExtractedQuestion, "source_page_id": SourcePage, "question_id": Question}
         if "course_id" not in receipt.owner or set(receipt.owner) - set(models):
             return False
         try:
@@ -172,7 +183,20 @@ class BackupRestoreService:
             actual_exam = session.get(Exam, submission.exam_id)
             if actual_exam is None or actual_exam.course_id != course_id:
                 return False
-        return True
+        imported = loaded.get("paper_import_id")
+        extracted = loaded.get("extracted_question_id")
+        page = loaded.get("source_page_id")
+        question = loaded.get("question_id")
+        if isinstance(imported, PaperImport) and imported.course_id != course_id:
+            return False
+        if isinstance(extracted, ExtractedQuestion) and (extracted.paper_import.course_id != course_id or isinstance(imported, PaperImport) and extracted.paper_import_id != imported.id):
+            return False
+        if isinstance(page, SourcePage):
+            if page.paper_import.course_id != course_id or isinstance(imported, PaperImport) and page.paper_import_id != imported.id:
+                return False
+            if isinstance(extracted, ExtractedQuestion) and str(page.id) not in extracted.source_page_ids:
+                return False
+        return not (isinstance(question, Question) and question.course_id != course_id)
 
     def backup(self, *, backup_root: Path, actor_id: UUID, writers_stopped: bool,
                timeout: float = 10) -> tuple[Path, BackupManifest]:

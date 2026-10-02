@@ -13,7 +13,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 from backend.app.core.database import Base
 
 
-def enum_type(enum_class: type[StrEnum], name: str) -> SAEnum:
+def enum_type(enum_class: type[StrEnum], name: str, *, length: int | None = None) -> SAEnum:
     """创建按枚举值存储、且兼容 SQLite 测试库的状态字段类型。"""
 
     return SAEnum(
@@ -23,6 +23,7 @@ def enum_type(enum_class: type[StrEnum], name: str) -> SAEnum:
         native_enum=False,
         create_constraint=True,
         validate_strings=True,
+        **({"length": length} if length is not None else {}),
     )
 
 

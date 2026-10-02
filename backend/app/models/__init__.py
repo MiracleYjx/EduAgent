@@ -13,14 +13,18 @@ from backend.app.models.exam import Exam
 from backend.app.models.exam_participant import ExamParticipant
 from backend.app.models.exam_result import ExamResult
 from backend.app.models.export_file import ExportFile
+from backend.app.models.extracted_question import ExtractedQuestion
 from backend.app.models.grading_result import GradingResult
 from backend.app.models.knowledge_base import KnowledgeBase
+from backend.app.models.paper_import import PaperImport
 from backend.app.models.question import Question
+from backend.app.models.question_asset import QuestionAsset
 from backend.app.models.question_generation_metadata import QuestionGenerationMetadata
 from backend.app.models.question_revision_comment import QuestionRevisionComment
 from backend.app.models.question_source_chunk import QuestionSourceChunk
 from backend.app.models.review_record import ReviewRecord
 from backend.app.models.role import Role
+from backend.app.models.source_page import SourcePage
 from backend.app.models.submission import Submission
 from backend.app.models.user import User
 from backend.app.models.workflow_run import WorkflowRun
@@ -43,14 +47,18 @@ __all__ = [
     "ExamParticipant",
     "ExamResult",
     "ExportFile",
+    "ExtractedQuestion",
     "GradingResult",
     "KnowledgeBase",
+    "PaperImport",
     "Question",
+    "QuestionAsset",
     "QuestionGenerationMetadata",
     "QuestionRevisionComment",
     "QuestionSourceChunk",
     "ReviewRecord",
     "Role",
+    "SourcePage",
     "Submission",
     "User",
     "WorkflowRun",

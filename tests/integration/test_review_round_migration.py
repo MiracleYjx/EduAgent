@@ -12,7 +12,9 @@ from sqlalchemy.schema import CreateSchema, DropSchema
 
 from backend.app.core.database import create_database_engine
 from backend.app.domain.enums import ReviewStatus
-from tests.unit.models.sqlite_support import seed_submission
+from backend.app.models import Answer, Course, Exam, Role, Submission, User
+from tests.integration.legacy_question_fixture import insert_legacy_question
+from tests.unit.models.sqlite_support import SubmissionFixture
 from tests.unit.models.test_grading_result import _grading_result
 
 
@@ -60,7 +62,26 @@ def test_review_round_migration_upgrade_downgrade_preserves_legacy_rows() -> Non
             )
         alembic("upgrade", "0009_agent_runs")
         with Session(engine) as session:
-            fixture = seed_submission(session)
+            teacher = User(username="teacher", email="teacher@example.com", password_hash="hashed-password", roles=[Role(name="Teacher")])
+            student = User(username="student", email="student@example.com", password_hash="hashed-password", roles=[Role(name="Student")])
+            course = Course(name="Python 基础", creator=teacher)
+            session.add_all([student, course])
+            session.flush()
+            objective = insert_legacy_question(session.connection(), course_id=course.id, created_by=teacher.id, type="SINGLE_CHOICE", content="下列哪个是不可变类型？", options=["list", "tuple"], reference_answer="tuple", score=10)
+            subjective = insert_legacy_question(session.connection(), course_id=course.id, created_by=teacher.id, type="SHORT_ANSWER", content="解释变量的作用。", reference_answer="变量用于保存数据。", scoring_rubric="说明保存和引用数据即可。", score=10)
+            old_questions = Table("questions", MetaData(), autoload_with=session.connection())
+            session.execute(old_questions.update().values(status="Approved", knowledge_points=["数据类型"]).where(old_questions.c.id == objective))
+            session.execute(old_questions.update().values(status="Approved", knowledge_points=["变量"]).where(old_questions.c.id == subjective))
+            exam = Exam(course=course, creator=teacher, title="第一章测验", status="Published")
+            submission = Submission(exam=exam, student=student, status="Submitted")
+            objective_answer = Answer(submission=submission, question_id=objective, content="tuple", status="Graded")
+            subjective_answer = Answer(submission=submission, question_id=subjective, content="变量用于保存数据。", status="Graded")
+            session.add(submission)
+            session.flush()
+            associations = Table("exam_questions", MetaData(), autoload_with=session.connection())
+            session.execute(associations.insert(), [{"exam_id": exam.id, "question_id": identity} for identity in (objective, subjective)])
+            session.commit()
+            fixture = SubmissionFixture(teacher.id, student.id, course.id, objective, subjective, exam.id, submission.id, objective_answer.id, subjective_answer.id)
         metadata = MetaData()
         grading = Table("grading_results", metadata, autoload_with=engine)
         reviews = Table("review_records", metadata, autoload_with=engine)

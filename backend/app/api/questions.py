@@ -85,6 +85,7 @@ class QuestionCreateRequest(BaseModel):
         max_length=65535,
         description="评分标准。",
     )
+    analysis: str | None = Field(default=None, max_length=65535)
     difficulty: str | None = Field(default=None, max_length=160, description="难度。")
     knowledge_points: list[str] = Field(
         default_factory=list,
@@ -104,7 +105,7 @@ class QuestionCreateRequest(BaseModel):
             raise ValueError("题目内容不能为空。")
         return value.strip()
 
-    @field_validator("reference_answer", "scoring_rubric", "difficulty", mode="before")
+    @field_validator("reference_answer", "scoring_rubric", "analysis", "difficulty", mode="before")
     @classmethod
     def normalize_optional_text(cls, value: Any) -> str | None:
         """清理题目可选文本字段。"""
@@ -144,6 +145,7 @@ class QuestionUpdateRequest(BaseModel):
     options: dict[str, Any] | list[Any] | None = None
     reference_answer: str | None = Field(default=None, max_length=65535)
     scoring_rubric: str | None = Field(default=None, max_length=65535)
+    analysis: str | None = Field(default=None, max_length=65535)
     difficulty: str | None = Field(default=None, max_length=160)
     knowledge_points: list[str] | None = Field(default=None, max_length=64)
     score: Decimal | None = Field(
@@ -164,7 +166,7 @@ class QuestionUpdateRequest(BaseModel):
             raise ValueError("题目内容不能为空。")
         return value.strip()
 
-    @field_validator("reference_answer", "scoring_rubric", "difficulty", mode="before")
+    @field_validator("reference_answer", "scoring_rubric", "analysis", "difficulty", mode="before")
     @classmethod
     def normalize_optional_text(cls, value: Any) -> str | None:
         """清理可选题目文本字段。"""
@@ -271,6 +273,7 @@ def _question_update_kwargs(payload: QuestionUpdateRequest) -> dict[str, Any]:
             "options",
             "reference_answer",
             "scoring_rubric",
+            "analysis",
             "difficulty",
             "knowledge_points",
             "score",
@@ -318,6 +321,7 @@ def create_question(
             options=payload.options,
             reference_answer=payload.reference_answer,
             scoring_rubric=payload.scoring_rubric,
+            analysis=payload.analysis,
             difficulty=payload.difficulty,
             knowledge_points=payload.knowledge_points,
             score=payload.score,

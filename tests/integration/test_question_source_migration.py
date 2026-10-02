@@ -18,6 +18,7 @@ from sqlalchemy.schema import CreateSchema, DropSchema
 from backend.app.core import database
 from backend.app.domain.enums import QuestionType
 from backend.app.models import Course, Question, User
+from tests.integration.legacy_question_fixture import insert_legacy_question
 
 ROOT = Path(__file__).resolve().parents[2]
 REVISION = "0011_question_source_persistence"
@@ -122,16 +123,14 @@ def test_alembic_upgrade_head_downgrade_and_reupgrade_in_isolated_schema(
                 password_hash="hash",
             )
             course = Course(name="历史课程", creator=teacher)
-            question = Question(
-                course=course,
-                creator=teacher,
-                type=QuestionType.SHORT_ANSWER,
-                content="历史题",
-                score=Decimal("10.00"),
+            session.add(course)
+            session.flush()
+            question_id = insert_legacy_question(
+                session.connection(), course_id=course.id, created_by=teacher.id,
+                type=QuestionType.SHORT_ANSWER.value, content="历史题", score=Decimal("10.00"),
             )
-            session.add(question)
             session.commit()
-            question_id = question.id
+
 
         command.upgrade(config, REVISION)
         assert _revision(engine, schema) == REVISION

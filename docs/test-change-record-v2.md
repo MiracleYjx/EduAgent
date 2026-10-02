@@ -220,3 +220,48 @@ T152 全量首轮：1645 passed / 1 failed / 2 skipped / 20 warnings，pytest 43
 T152 收尾复查：Doc/Export 可共享同一物理原稿；迁移按首个 Doc 选 uploads 会违反已确认的导出独立 exports 目录。追加跨资源共享迁移用例，预期一份字节/完整事务/稳定身份，同时落 exports；只调整已有目标目录选择，不修改原业务格式或权限。追加在测试前，先保留行为红灯，再聚焦全部迁移与 PG 锁验证。全量 1646 passed / 2 skipped / 19 warnings 是本次收尾目录修正前源码，不能标为收尾后的再次全量结果。
 
 T152 实际收尾：UTF-8 help 合同 8 passed；修正后全量 1646 passed / 2 skipped / 19 warnings（392.41 s），mypy 150 source files 和 Ruff 通过。跨 Doc/Export 目录先行实际失败（落 uploads），仅目录分流修正后迁移/真实 PG 10 passed（3.69 s），mypy/Ruff 再次通过；全量结果明确为该收尾目录修正前，不将聚焦计数加成一轮全量。原始错误覆盖红灯已复现并修复，原 OSError/FILE_WRITE_FAILED 保留。只清理本批临时库/Redis，保留缓存、原库 0012 与原服务。
+
+
+## 10. T153–T154 具体 TCR（2026-10-02，基线 baf0803）
+
+### T153 必要性、边界及先行覆盖
+
+现有模型缺少原卷/原页/暂存题，且 Question 尚无解析与真实来源字段。按已确认 G03/G06 实施，不建暂存资产表、不回填历史未知来源或批准时间，不实现 T157/T158 的解析和整批确认。
+
+拟新增 tests/unit/models/test_paper_import_models.py、tests/contract/test_paper_import_schemas.py、tests/unit/services/test_paper_import_foundation.py、tests/integration/test_paper_import_migration.py。验证原路径关系投影、JSONB 校正记录重读、独立状态与唯一/FK/CHECK、页集合及像素坐标/金额/空值、知识资料条件非空及 paper_source 不能列表/摄取/检索、人工/AI 新题真实分类、解析省略/清空/Approved 拒改、真实批准/退修时间。迁移只在独立 schema/数据库测试，历史 Question 的三列保持 NULL，原考试/分值/来源快照不变；降级遇导入数据拒绝而非丢失原材料。
+
+先写目标用例并记录实际失败，再实施和聚焦验证。T154 的学生展示承载待用户决策；其具体测试边界在决策后追加，再写测试。全批完成后执行既有 pytest、backend mypy、Ruff 与 Alembic 元数据一致检查，保持 v1.0 断言及已有 8 项工作区改动。源码/迁移测试不代表 OCR/真实教师质量/完整导入 UI 验收。
+
+
+### T154 独立于展示决策的具体边界（写测试前）
+
+拟新增 tests/unit/services/test_question_asset_service.py、tests/contract/test_question_assets_api.py、tests/integration/test_question_asset_persistence.py。覆盖真实 PNG/JPEG、原页像素坐标及裁切输出、同导入/真实来源页、稳定暂存 id/file_id 与无正式行事实、完整数组及最多五图、教师/课程授权、Approved/历史保护、原图关联重读、终态来源保留、G05 受校验记录保留及 A→B→A 修订失效。原页与源卷对学生拒绝；题图对学生的成功展示用例在展示持久决策确认后补充，不假定批准。
+
+新模型改变文件枚举，必须同时补原页/暂存/正式资产在 GET、迁移、备份及删除中的实际引用。隔离 PostgreSQL 验证 JSONB、FK/唯一/形状约束，复用已建立的维护窗口/真实 dump 恢复；空 E2 表不得破坏既有 E1 行为。补共享文件的多个业务身份、暂存到正式定位投影、迁移仅更新内部定位、原校正/核对事件不反写、备份 manifest 真实归属及恢复读取。保留原 E1 断言，不清理业务材料或切换配置。G05 完整调用、人工语义处置、整批入库及 UI 仍分别属于 T163、T158/T159。
+
+
+迁移图兼容用例调整（修改前）：tests/unit/models/test_m3_migrations.py 的链条和当前 head 随实际新增的 0014/0015 向后追加；保留所有旧 revision 对象、枚举、升降级边界断言，新对象真实行为由本批 PostgreSQL 用例覆盖。新增普通教师图像上传、图序重排、G05 JSONB 原错误重读和实际内容往返修改失效用例，均属于本节已锁定原图/校正/冻结范围。展示成功断言仍待持久承载决策，不放宽拒绝源卷/完整原页的要求。
+
+
+补充同一生命周期覆盖（新增前）：即使教师解除当前题图关联，G05 的旧轮次/核对仍可引用原资产，清理前必须核对这些持久引用；新增删除关联后历史证据仍阻止字节清理及备份保留原材料的断言。解除关系不删除文件，技术失败/未知事实不被改写。
+
+
+### 首轮全量发现的旧迁移夹具边界（修改前）
+
+full_pytest 首轮：1677 collected，1673 passed、2 failed、2 skipped（432.471 s pytest，外层 441.892 s）。两项失败为 test_question_source_migration 与 test_review_round_migration；根因是在 0010/0009 的旧 schema 中用当前 Question ORM 插入，INSERT 带上不存在的 analysis/source_type/frozen_at/image_assessment。不能修改旧迁移补新列或让业务 ORM 猜旧库。
+
+本次仅把这两个用例的历史题目生产者改为按当时实际反射表写入；保留用户、课程、客观/主观题、考试、答卷、答案和所有旧枚举/值、升级/降级/重升、索引/FK/来源未知/评分不变断言。新增 tests/integration/legacy_question_fixture.py 仅服务真实旧迁移夹具，不改通用 seed_submission 或业务代码。先聚焦重验两项失败，再运行最终全量。
+
+### 实际验证与任务边界
+
+T153 首轮缺模块/枚举产生三项 collection error；实现后聚焦覆盖真实字段、原路径关系投影、知识库隔离、解析审核保护及真实 PostgreSQL 0013→0014→0013。修复 UTC 导入遗漏和重复 enum CHECK 的迁移 DDL 后，通过目标检查，不改历史未知来源或时间。
+
+T154 独立部分的先行用例暴露资产服务入口缺失，后续实际 PNG 裁切、同导入定位、最多五图、教师权限、稳定身份、终态保护及重读通过。0015 与 ORM 一致；原页、暂存资产和正式资产真实进入文件 GET/迁移/备份枚举。实际 dump/隔离恢复用例包含源卷、原页、暂存图、正式图、共享原页字节、导入正式资产定位投影和持久核对历史；解除关联后历史轮次仍阻止字节清理。所有物理删除只针对测试材料。
+
+旧迁移夹具按当时反射表写入后，原两项失败用例 2 passed / 4 warnings（8.13 s pytest），原断言保留。基于收尾全部源码和测试再次全量：2026-10-02T04:27:27.412048+00:00 开始，1679 collected，1677 passed、0 failed、0 errors、2 skipped、23 warnings；pytest 431.89 s，外层 441.115 s。两项 skip 为 M0 缺隔离四变量及 Windows 符号链接权限，不将跳过记作验收成功。
+
+最终 mypy backend/app：160 source files 通过（16.236 s）；Ruff backend/tests/本批两迁移通过（0.191 s）；独立库 Alembic check 通过（1.530 s）。所有命令、首轮失败和最终 JUnit 保存在 .cache/e2-t153-154-20261002。验证对象包含用户已有 UI/README 成果，9 项保护文件（含 .env）SHA-256 均与实施前一致。
+
+本批数据库 eduagent_e2_import_3d186fa5073b 与独立 Redis 已经核对零连接/任务标签后清理，原业务库仍 0012_audit_logs，原 PostgreSQL/Redis 仍 healthy；没有应用业务迁移、切换配置或删除业务材料。Pillow 已由既有 Gradio 环境提供，仅显式登记本批直接依赖，没有安装/升级依赖或调用 OCR/Vision。
+
+T153 达成并勾选。T154 只完成教师端基础，学生展示持久核对方案仍待用户确认；所有新题图默认仅教师可读，源卷/完整原页始终拒绝学生，本批不实现未批准的展示核对字段，也不勾选 T154。完整校正入库、OCR、Vision/人工处置调用、业务 UI 和发布生命周期分别仍属后续任务；不把这些基础用例冒充 T160、T163 或系统验收。

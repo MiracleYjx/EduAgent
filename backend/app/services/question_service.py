@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from collections.abc import Sequence
 from copy import deepcopy
-from datetime import datetime
+from datetime import UTC, datetime
 from decimal import Decimal, InvalidOperation
 from typing import Any
 from uuid import UUID
@@ -15,7 +15,7 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session, selectinload
 
-from backend.app.domain.enums import QuestionStatus, QuestionType
+from backend.app.domain.enums import QuestionSourceType, QuestionStatus, QuestionType
 from backend.app.models import Course, Question, User
 from backend.app.services.audit_service import audit_after_commit
 from backend.app.services.course_service import (
@@ -82,6 +82,9 @@ class QuestionSummary(BaseModel):
     options: dict[str, Any] | list[Any] | None = None
     reference_answer: str | None = None
     scoring_rubric: str | None = None
+    analysis: str | None = None
+    source_type: QuestionSourceType | None = None
+    frozen_at: datetime | None = None
     difficulty: str | None = None
     knowledge_points: list[str]
     score: Decimal
@@ -301,6 +304,7 @@ class QuestionService:
         *,
         teacher_id: UUID | str | None = None,
         type: QuestionType | str | None = None,
+        analysis: str | None = None,
     ) -> QuestionSummary:
         """创建人工题目，初始状态固定为 Draft。"""
 
@@ -333,6 +337,8 @@ class QuestionService:
             ),
             knowledge_points=_normalize_knowledge_points(knowledge_points),
             score=_normalize_score(score),
+            analysis=_normalize_optional_text(analysis, "解析", max_length=65535),
+            source_type=QuestionSourceType.MANUAL,
             status=QuestionStatus.DRAFT,
             created_by=creator_id,
         )
@@ -404,6 +410,7 @@ class QuestionService:
         type: QuestionType | str | None = None,
         teacher_id: UUID | str | None = None,
         created_by: UUID | str | None = None,
+        analysis: str | None | object = _UNSET,
     ) -> QuestionSummary:
         """更新题目元数据，审核状态由独立状态接口管理。"""
 
@@ -414,6 +421,7 @@ class QuestionService:
                 options is not _UNSET,
                 reference_answer is not _UNSET,
                 scoring_rubric is not _UNSET,
+                analysis is not _UNSET,
                 score is not _UNSET,
                 has_type,
             ),
@@ -431,6 +439,8 @@ class QuestionService:
             self._load_course(question.course_id),
             _resolve_actor_id(created_by, teacher_id),
         )
+        image_input_fields = ("type", "content", "options", "reference_answer", "scoring_rubric", "analysis", "score")
+        previous_image_input = {field: deepcopy(getattr(question, field)) for field in image_input_fields}
         if question.status is QuestionStatus.APPROVED and has_content_update:
             raise QuestionApprovedImmutableError(question.status)
         if has_type:
@@ -455,6 +465,8 @@ class QuestionService:
                 "评分标准",
                 max_length=65535,
             )
+        if analysis is not _UNSET:
+            question.analysis = _normalize_optional_text(analysis, "解析", max_length=65535)  # type: ignore[arg-type]
         if difficulty is not _UNSET:
             question.difficulty = _normalize_optional_text(
                 difficulty,  # type: ignore[arg-type]
@@ -467,6 +479,9 @@ class QuestionService:
             )
         if score is not _UNSET:
             question.score = _normalize_score(score)  # type: ignore[arg-type]
+        if question.image_assessment is not None and previous_image_input != {field: getattr(question, field) for field in image_input_fields}:
+            from backend.app.schemas.image_assessment import advance_image_context
+            question.image_assessment = advance_image_context(question.image_assessment)
         return self._commit_question(question, "更新题目失败。")
 
     def delete_question(
@@ -517,6 +532,10 @@ class QuestionService:
                 f"题目状态不能从“{current_status.value}”变更为“{next_status.value}”。"
             )
         question.status = next_status
+        if next_status is QuestionStatus.APPROVED:
+            question.frozen_at = datetime.now(UTC)
+        elif next_status is QuestionStatus.NEEDS_REVISION:
+            question.frozen_at = None
         summary = self._commit_question(question, "更新题目审核状态失败。")
         if next_status is QuestionStatus.APPROVED:
             audit_after_commit(
@@ -555,6 +574,7 @@ class QuestionService:
                 select(Question)
                 .options(selectinload(Question.course))
                 .where(Question.id == normalized_id)
+                .with_for_update()
             )
         except SQLAlchemyError as exc:
             raise QuestionServiceError("无法读取题目信息。") from exc
@@ -611,6 +631,9 @@ class QuestionService:
             options=deepcopy(question.options),
             reference_answer=question.reference_answer,
             scoring_rubric=question.scoring_rubric,
+            analysis=question.analysis,
+            source_type=question.source_type,
+            frozen_at=question.frozen_at,
             difficulty=question.difficulty,
             knowledge_points=list(raw_knowledge_points),
             score=question.score,

@@ -149,10 +149,15 @@ __all__ = [
     "OBJECTIVE_QUESTION_TYPES",
     "SUBJECTIVE_QUESTION_TYPES",
     "AnswerStatus",
+    "DocumentPurpose",
     "DocumentStatus",
     "ExamStatus",
+    "ExtractedBy",
+    "ExtractedQuestionStatus",
     "GradingMode",
     "GradingStatus",
+    "PaperImportStatus",
+    "QuestionSourceType",
     "QuestionStatus",
     "QuestionType",
     "ReviewStatus",
@@ -161,3 +166,38 @@ __all__ = [
     "ValidationStatus",
     "WorkflowStatus",
 ]
+
+
+class DocumentPurpose(StrEnum):
+    KNOWLEDGE_BASE = "knowledge_base"
+    PAPER_SOURCE = "paper_source"
+
+
+class QuestionSourceType(StrEnum):
+    MANUAL = "manual"
+    AI_GENERATED = "ai_generated"
+    PAPER_IMPORTED = "paper_imported"
+    ADAPTED = "adapted"
+
+
+class PaperImportStatus(StrEnum):
+    UPLOADED = "Uploaded"
+    PARSING = "Parsing"
+    EXTRACTING = "Extracting"
+    PENDING_REVIEW = "Pending Review"
+    READY = "Ready"
+    FAILED = "Failed"
+    REJECTED = "Rejected"
+
+
+class ExtractedQuestionStatus(StrEnum):
+    EXTRACTED = "Extracted"
+    PENDING_CORRECTION = "Pending Correction"
+    CORRECTED = "Corrected"
+    REJECTED = "Rejected"
+
+
+class ExtractedBy(StrEnum):
+    OCR = "OCR"
+    LLM = "LLM"
+    TEXT = "TEXT"

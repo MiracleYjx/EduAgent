@@ -19,7 +19,11 @@ from backend.app.models import (
     Document,
     Exam,
     ExportFile,
+    ExtractedQuestion,
     KnowledgeBase,
+    PaperImport,
+    QuestionAsset,
+    SourcePage,
     Submission,
 )
 from backend.app.schemas.file_storage import (
@@ -62,9 +66,19 @@ def copy_verified(source: Path, target: Path) -> tuple[int, str]:
     return actual
 
 
+from backend.app.domain.enums import DocumentPurpose
+from backend.app.services.file_resources import (
+    FileResource,
+    StagedAssetResource,
+    asset_origin,
+    image_owner,
+    resource_kind,
+)
+
+
 @dataclass(frozen=True)
 class StorageReference:
-    resource: Document | ExportFile
+    resource: FileResource
     file_id: str
     owner: dict[str, str]
 
@@ -90,16 +104,22 @@ def storage_references(session: Session) -> list[StorageReference]:
     tables = set(inspector.get_table_names(schema=schema))
     if "export_files" not in tables or "file_metadata" not in {c["name"] for c in inspector.get_columns("documents", schema=schema)}:
         raise FileStorageError("MAINTENANCE_SCHEMA_NOT_READY", "请先按既有迁移流程升级数据库；工具不会自动修改 schema。")
-    if {"source_pages", "extracted_questions", "question_assets"} & tables:
-        raise FileStorageError("MAINTENANCE_UNMAPPED_RESOURCES", "原页/题图表已存在，须先接入真实文件映射，不能漏备份或迁移。")
+    if not {"source_pages", "extracted_questions", "question_assets"}.issubset(tables):
+        raise FileStorageError("MAINTENANCE_SCHEMA_NOT_READY", "请先升级完整的导入/题图模型，维护工具不会自动修改 schema。")
     result = []
     for document in session.scalars(select(Document).order_by(Document.id)):
-        kb = session.get(KnowledgeBase, document.knowledge_base_id)
         course = session.get(Course, document.course_id)
-        if kb is None or course is None or kb.course_id != course.id:
-            raise FileStorageError("FILE_REFERENCE_CONFLICT", "资料与课程/知识库归属不一致。")
-        result.append(StorageReference(document, "d_" + document.id.hex,
-                      {"course_id": str(course.id), "knowledge_base_id": str(kb.id)}))
+        if course is None:
+            raise FileStorageError("FILE_REFERENCE_CONFLICT", "文件课程不存在。")
+        owner = {"course_id": str(course.id)}
+        if document.purpose == DocumentPurpose.KNOWLEDGE_BASE:
+            kb = session.get(KnowledgeBase, document.knowledge_base_id)
+            if kb is None or kb.course_id != course.id:
+                raise FileStorageError("FILE_REFERENCE_CONFLICT", "资料与知识库课程不一致。")
+            owner["knowledge_base_id"] = str(kb.id)
+        elif document.knowledge_base_id is not None:
+            raise FileStorageError("FILE_REFERENCE_CONFLICT", "原试卷不能登记到知识库。")
+        result.append(StorageReference(document, "d_" + document.id.hex, owner))
     for export in session.scalars(select(ExportFile).order_by(ExportFile.id)):
         owner = {}
         if export.submission_id is not None:
@@ -117,6 +137,27 @@ def storage_references(session: Session) -> list[StorageReference]:
             raise FileStorageError("FILE_REFERENCE_CONFLICT", "导出与课程/考试/答卷归属不一致。")
         owner["course_id"] = str(course.id)
         result.append(StorageReference(export, "e_" + export.id.hex, owner))
+    try:
+        for page in session.scalars(select(SourcePage).order_by(SourcePage.id)):
+            result.append(StorageReference(page, "p_" + page.id.hex, image_owner(session, page)))
+        staged_ids: set[UUID] = set()
+        for extracted in session.scalars(select(ExtractedQuestion).order_by(ExtractedQuestion.id)):
+            for entry in extracted.assets or []:
+                identity = UUID(entry["id"])
+                if identity in staged_ids:
+                    raise ValueError("暂存资产身份重复。")
+                staged_ids.add(identity)
+                staged = StagedAssetResource(extracted, identity)
+                formal = session.get(QuestionAsset, identity)
+                resource = formal if formal is not None else staged
+                owner = image_owner(session, resource)
+                result.append(StorageReference(resource, "a_" + identity.hex, owner))
+        for asset in session.scalars(select(QuestionAsset).order_by(QuestionAsset.id)):
+            if asset.id not in staged_ids:
+                asset_origin(session, asset)
+                result.append(StorageReference(asset, "a_" + asset.id.hex, image_owner(session, asset)))
+    except (ValueError, KeyError, TypeError) as exc:
+        raise FileStorageError("FILE_REFERENCE_CONFLICT", "原页或题图持久关联不一致。") from exc
     return result
 
 
@@ -195,7 +236,23 @@ class StorageMigrationService:
                 group.append(ref)
         if not group:
             raise FileStorageError("FILE_REFERENCE_CONFLICT", "原定位已变化，请重新盘点。")
-        for model in (Document, ExportFile):
+        imported_ids: set[UUID] = set()
+        extracted_ids: set[UUID] = set()
+        for ref in group:
+            if isinstance(ref.resource, StagedAssetResource):
+                extracted_ids.add(ref.resource.extracted.id)
+                imported_ids.add(ref.resource.extracted.paper_import_id)
+            elif isinstance(ref.resource, QuestionAsset):
+                origin = asset_origin(self.session, ref.resource)
+                if origin is not None:
+                    extracted_ids.add(origin.extracted.id)
+                    imported_ids.add(origin.extracted.paper_import_id)
+            elif isinstance(ref.resource, SourcePage):
+                imported_ids.add(ref.resource.paper_import_id)
+        for owner_model, owner_ids in ((PaperImport, imported_ids), (ExtractedQuestion, extracted_ids)):
+            if owner_ids:
+                list(self.session.scalars(select(owner_model).where(owner_model.id.in_(owner_ids)).order_by(owner_model.id).with_for_update()))
+        for model in (Document, ExportFile, SourcePage, QuestionAsset):
             ids = [ref.resource.id for ref in group if isinstance(ref.resource, model)]
             if ids:
                 list(self.session.scalars(select(model).where(model.id.in_(ids)).order_by(model.id).with_for_update()))
@@ -222,7 +279,7 @@ class StorageMigrationService:
         suffix = source.suffix.lower()
         if not suffix or len(suffix) > 16 or not suffix[1:].isalnum():
             suffix = ".bin"
-        bucket = "exports" if any(isinstance(ref.resource, ExportFile) for ref in group) else "uploads"
+        bucket = "exports" if any(isinstance(ref.resource, ExportFile) for ref in group) else "assets" if any(isinstance(ref.resource, (QuestionAsset, StagedAssetResource)) for ref in group) else "papers" if any(isinstance(ref.resource, SourcePage) or isinstance(ref.resource, Document) and ref.resource.purpose == DocumentPurpose.PAPER_SOURCE for ref in group) else "uploads"
         locator = f"{bucket}/{group[0].resource.id.hex}/{operation_id.hex}{suffix}"
         target = self.files.resolve_path(locator)
         self.files.lock_path(target)
@@ -235,7 +292,7 @@ class StorageMigrationService:
         try:
             target.parent.mkdir(parents=True, exist_ok=True)
             for ref in group:
-                receipt = OperationReceipt(operation_id=operation_id, resource_type="document" if isinstance(ref.resource, Document) else "export",
+                receipt = OperationReceipt(operation_id=operation_id, resource_type=resource_kind(ref.resource),
                     resource_id=ref.resource.id, owner=ref.owner, actor_id=actor_id, candidate_locator=locator,
                     stage="prepared", started_at=started, updated_at=started)
                 receipt_path = target.with_name(f"{operation_id.hex}_{ref.resource.id.hex}.receipt.json")

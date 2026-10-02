@@ -11,20 +11,24 @@ from typing import Literal, NoReturn, cast
 from uuid import UUID, uuid4
 
 from pydantic import ValidationError
-from sqlalchemy import inspect, select, text
+from sqlalchemy import select, text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from backend.app.core.config import get_settings
 from backend.app.core.maintenance import ensure_storage_writable
 from backend.app.core.security import get_user_roles
-from backend.app.domain.enums import UserRole
+from backend.app.domain.enums import DocumentPurpose, UserRole
 from backend.app.models import (
     Course,
     Document,
     Exam,
     ExportFile,
+    ExtractedQuestion,
+    Question,
+    QuestionAsset,
     QuestionSourceChunk,
+    SourcePage,
     Submission,
     User,
 )
@@ -34,6 +38,15 @@ from backend.app.schemas.file_storage import (
     ManagedFileView,
     MigrationRecord,
     OperationReceipt,
+)
+from backend.app.services.file_resources import (
+    FileResource,
+    FileResourceType,
+    StagedAssetResource,
+    asset_origin,
+    image_owner,
+    resource_kind,
+    staged_matches,
 )
 
 
@@ -137,9 +150,16 @@ class FileStorageService:
     def _manages(actor: User, course: Course) -> bool:
         return UserRole.TEACHER in get_user_roles(actor) and actor.id == course.created_by
 
-    def _authorize(self, resource: Document | ExportFile, actor_id: UUID) -> Course:
+    def _authorize(self, resource: FileResource, actor_id: UUID) -> Course:
         actor = self._actor(actor_id)
-        if isinstance(resource, Document):
+        if isinstance(resource, (SourcePage, StagedAssetResource, QuestionAsset)):
+            try:
+                owner = image_owner(self.session, resource)
+            except ValueError as exc:
+                raise FileStorageError("FILE_REFERENCE_CONFLICT", str(exc)) from exc
+            course = self._course(UUID(owner["course_id"]))
+            allowed = self._manages(actor, course)
+        elif isinstance(resource, Document):
             course = self._course(resource.course_id)
             # Current knowledge-base permission is teacher management; no student
             # material-opening relation exists yet. E5 must supply the real grant.
@@ -164,7 +184,7 @@ class FileStorageService:
             raise FileStorageError("FILE_FORBIDDEN", "无权访问该资源的文件。", http_status=403)
         return course
 
-    def _resource(self, file_id: str) -> Document | ExportFile:
+    def _resource(self, file_id: str) -> FileResource:
         prefix, _, raw_id = file_id.partition("_")
         try:
             resource_id = UUID(hex=raw_id)
@@ -172,13 +192,33 @@ class FileStorageService:
             raise FileStorageError("FILE_NOT_FOUND", "文件资源不存在。", http_status=404) from None
         if raw_id != resource_id.hex:
             raise FileStorageError("FILE_NOT_FOUND", "文件资源不存在。", http_status=404)
-        models: dict[str, type[Document | ExportFile]] = {"d": Document, "e": ExportFile}
-        model = models.get(prefix)
-        # SourcePage/staged/QuestionAsset are attached in E2 when actual models exist.
-        resource = self.session.get(model, resource_id) if model is not None else None
+        resource: FileResource | None
+        if prefix == "a":
+            formal = self.session.get(QuestionAsset, resource_id)
+            try:
+                matches = staged_matches(self.session, resource_id)
+                if len(matches) > 1:
+                    raise ValueError("资产身份映射多个暂存来源。")
+                if formal is not None:
+                    asset_origin(self.session, formal)
+                    resource = formal
+                else:
+                    resource = matches[0] if matches else None
+                    if isinstance(resource, StagedAssetResource):
+                        _validated = resource.data
+            except ValueError as exc:
+                raise FileStorageError("FILE_REFERENCE_CONFLICT", str(exc)) from exc
+        elif prefix == "p":
+            resource = self.session.get(SourcePage, resource_id)
+        elif prefix == "d":
+            resource = self.session.get(Document, resource_id)
+        elif prefix == "e":
+            resource = self.session.get(ExportFile, resource_id)
+        else:
+            resource = None
         if resource is None:
             raise FileStorageError("FILE_NOT_FOUND", "文件资源不存在。", http_status=404)
-        return cast(Document | ExportFile, resource)
+        return resource
 
     def get_view(self, file_id: str, *, actor_id: UUID) -> ManagedFileView:
         resource = self._resource(file_id)
@@ -202,7 +242,7 @@ class FileStorageService:
             "history_unknown" if availability == "history_unknown" else "missing" if availability == "missing" else "not_migrated"
         )
         return ManagedFileView(
-            file_id=file_id, resource_type="document" if isinstance(resource, Document) else "export",
+            file_id=file_id, resource_type=resource_kind(resource),
             resource_id=resource.id, course_id=course.id,
             original_filename=resource.original_filename,
             media_type=metadata.media_type if metadata else None,
@@ -218,7 +258,7 @@ class FileStorageService:
         view = self.get_view(file_id, actor_id=actor_id)
         path = self._existing_path(resource.storage_path, legacy=self._legacy_metadata(resource.file_metadata))
         if not path.is_file():
-            state = resource.status.value if isinstance(resource, Document) else resource.status
+            state = resource.status.value if isinstance(resource, Document) else resource.status if isinstance(resource, ExportFile) else None
             raise FileStorageError("FILE_MISSING", "已登记文件缺失，请核对原材料。", http_status=404, current_status=state)
         return path, view
 
@@ -331,7 +371,7 @@ class FileStorageService:
             os.replace(candidate, path)
 
     def _store_bytes(
-        self, *, resource_type: Literal["document", "export"], resource_id: UUID, owner: dict[str, str],
+        self, *, resource_type: FileResourceType, resource_id: UUID, owner: dict[str, str],
         actor_id: UUID, filename: str, content: bytes, bucket: str,
     ) -> StoredFile:
         ensure_storage_writable(self.root)
@@ -384,8 +424,8 @@ class FileStorageService:
             raise FileStorageError("FILE_REFERENCE_CONFLICT", "文件需要真实拟建身份和上传者。")
         return self._store_bytes(
             resource_type="document", resource_id=document.id,
-            owner={"course_id": str(course.id), "knowledge_base_id": str(document.knowledge_base_id)},
-            actor_id=actor_id, filename=document.original_filename, content=content, bucket="uploads",
+            owner={"course_id": str(course.id)} | ({"knowledge_base_id": str(document.knowledge_base_id)} if document.purpose != DocumentPurpose.PAPER_SOURCE else {}),
+            actor_id=actor_id, filename=document.original_filename, content=content, bucket="papers" if document.purpose == DocumentPurpose.PAPER_SOURCE else "uploads",
         )
 
     def create_export(
@@ -493,19 +533,19 @@ class FileStorageService:
         path = self.resolve_path(locator)
         self.lock_locator(locator)
         ensure_storage_writable(self.root)
-        known: tuple[type[Document | ExportFile], ...] = (Document, ExportFile)
-        for model in known:
-            for record in self.session.scalars(select(model)):
-                resource = cast(Document | ExportFile, record)
-                if resource.storage_path is not None and self._existing_path(resource.storage_path, legacy=self._legacy_metadata(resource.file_metadata)).resolve() == path:
-                    raise FileStorageError("FILE_IN_USE", "文件仍有有效业务引用。")
-        # Refuse to ignore future E2 tables until their real resource mapping is attached.
-        connection = self.session.connection()
-        if connection.dialect.name == "postgresql":
-            schema = self.session.scalar(text("SELECT current_schema()"))
-            tables = inspect(connection).get_table_names(schema=schema)
-            if {"source_pages", "extracted_questions", "question_assets"}.intersection(tables):
-                raise FileStorageError("FILE_IN_USE", "原页/题图引用需完整接入后才能核对清理。")
+        from backend.app.services.storage_migration_service import storage_references
+
+        for reference in storage_references(self.session):
+            resource = reference.resource
+            if resource.storage_path is not None and self._existing_path(resource.storage_path, legacy=self._legacy_metadata(resource.file_metadata)).resolve() == path:
+                raise FileStorageError("FILE_IN_USE", "文件仍有有效业务引用。")
+        def retains_asset(value: object, identity: str) -> bool:
+            if isinstance(value, dict):
+                return value.get("asset_id") == identity or any(retains_asset(item, identity) for item in value.values())
+            if isinstance(value, list):
+                return any(retains_asset(item, identity) for item in value)
+            return False
+
         matched_receipt = False
         for bucket in ("uploads", "papers", "assets", "exports"):
             for receipt_path in (self.root / bucket).rglob("*.receipt.json"):
@@ -518,6 +558,11 @@ class FileStorageService:
                 matched_receipt = True
                 if receipt.stage != "committed":
                     raise FileStorageError("FILE_IN_USE", "文件仍关联未完成操作材料。")
+                if receipt.resource_type in {"staged_asset", "question_asset"}:
+                    for evidence_model in (ExtractedQuestion, Question):
+                        for assessment in self.session.scalars(select(evidence_model.image_assessment).where(evidence_model.image_assessment.is_not(None))):
+                            if retains_asset(assessment, str(receipt.resource_id)):
+                                raise FileStorageError("FILE_IN_USE", "原图仍被历史理解/教师核对证据引用。")
                 if receipt.resource_type == "document" and self.session.scalar(
                     select(QuestionSourceChunk.id).where(QuestionSourceChunk.document_id == receipt.resource_id).limit(1)
                 ):

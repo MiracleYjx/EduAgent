@@ -71,7 +71,7 @@ from backend.app.ai.agents.state import (
 from backend.app.core.config import AppSettings
 from backend.app.core.database import get_session_factory
 from backend.app.core.security import require_permission
-from backend.app.domain.enums import QuestionStatus, QuestionType
+from backend.app.domain.enums import QuestionSourceType, QuestionStatus, QuestionType
 from backend.app.domain.permissions import Permission
 from backend.app.models import (
     Course,
@@ -753,6 +753,7 @@ class QuestionGenerationService:
                 for candidate, result in zip(candidates, batch.results, strict=True):
                     target = self._validated_candidate_status(result)
                     question = Question(
+                        source_type=QuestionSourceType.AI_GENERATED,
                         course_id=course_id,
                         type=candidate.question_type,
                         content=candidate.content,

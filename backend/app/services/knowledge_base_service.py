@@ -26,7 +26,7 @@ from backend.app.ai.ingestion.service import (
     StatusListener,
     resolve_error_message,
 )
-from backend.app.domain.enums import DocumentStatus
+from backend.app.domain.enums import DocumentPurpose, DocumentStatus
 from backend.app.models import Course, Document, DocumentChunk, KnowledgeBase, User
 from backend.app.models.document_chunk import EMBEDDING_VECTOR_DIMENSION
 from backend.app.services.audit_service import audit_after_commit
@@ -486,7 +486,7 @@ class KnowledgeBaseService:
                 actor_id,
             )
 
-        statement = select(Document)
+        statement = select(Document).where(Document.purpose == DocumentPurpose.KNOWLEDGE_BASE)
         if normalized_knowledge_base_id is not None:
             statement = statement.where(
                 Document.knowledge_base_id == normalized_knowledge_base_id
@@ -569,6 +569,7 @@ class KnowledgeBaseService:
             id=uuid4(),
             course_id=course.id,
             knowledge_base_id=knowledge_base.id,
+            purpose=DocumentPurpose.KNOWLEDGE_BASE,
             uploaded_by=normalized_uploader_id,
             original_filename=normalized_filename,
             file_format=normalized_format,
@@ -1053,7 +1054,7 @@ class KnowledgeBaseService:
         normalized_id = _normalize_uuid(document_id, "文档标识")
         try:
             document = self.session.scalar(
-                select(Document).where(Document.id == normalized_id)
+                select(Document).where(Document.id == normalized_id, Document.purpose == DocumentPurpose.KNOWLEDGE_BASE)
             )
         except SQLAlchemyError as exc:
             raise KnowledgeBaseServiceError("无法读取文档信息。") from exc

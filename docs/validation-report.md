@@ -266,3 +266,86 @@ T152 的 E1 阶段通过：上传持久化/重启/同名不覆盖、资源越权
 临时全量库 eduagent_e1_maintenance_fd4ffaeed672、任务标签 T150-T152 的独立 Redis 已核对零数据库连接/标签后删除；所有测试新建的备份/恢复数据库由自身夹具清理。原 PostgreSQL/Redis 仍 healthy，原业务库仍 0012_audit_logs，原 .env/文件/来源及评分未迁移、恢复或清理。
 
 本机证据：.cache/e1-t150-152-20261002，包含 baseline/scope-audit/cleanup、checks-confirmed.json、pytest-full-final.xml/log、首轮失败、迁移聚焦及隔离 manifest/dump/files/restore-report。缓存受忽略且不提交。验证对象包含保持原样的 8 个用户 UI/README/测试文件；不声称移除这些成果后的干净 checkout 已独立验证。
+
+## T153 完成及 T154 教师题图基础（2026-10-02）
+
+基线 deepcode / baf080346c539b00b4a6dd6be4c14017704d25cd，执行 speckit-implement，遵循 T153→T154 依赖顺序。具体测试变更必要性及先行/后续证据见 [test-change-record-v2.md](test-change-record-v2.md) §10。T153 完成；T154 的学生展示持久核对承载尚待架构确认，保持未完成，不以教师端或拒绝全部学生证明学生展示已实现。
+
+### 实现及唯一事实源
+
+- 0014 新增 PaperImport、SourcePage、ExtractedQuestion；原卷路径只投影 Document.storage_path，不存第二份路径。Document.purpose 区分 knowledge_base/paper_source，知识库资料的 knowledge_base_id 条件非空；旧资料仍默认知识库，旧 Question 的 source_type/frozen_at/analysis 保持 NULL，没有伪造历史分类或批准时间。
+- 暂存独立题号/解析、真实来源页集合、可空边界/知识点/资产及受校验 G05 JSONB；没有暂存资产表。知识库列表、摄取和检索排除 paper_source。人工/AI 创建显式记录真实来源；省略解析保持原值、显式 NULL 清空；Approved 拒绝修改解析等内容，真实批准/退修记录或清空 frozen_at。
+- 0015 新增 QuestionAsset 及 Question.image_assessment。真实 PNG/JPEG 解码，原页尺寸及同导入/来源页核对，像素边界验证和实物 PNG 裁切；裁切建立新身份，复用已有图不得伪改定位。教师端可增删暂存图、改类型/说明及排序；普通正式图可上传/关联/排序/解除，单题最多五图并锁住父记录。已审核、发布或历史引用保护期间拒绝修改题图，解除关系保留原字节。
+- 暂存资产 id/file_id 稳定；导入正式资产沿用原身份，file_path/file_metadata 仅投影原 assets[].file_meta，物理列保持 NULL，迁移只更新原内部定位。普通正式图在自身记录持久登记。新资源在文件 GET、历史迁移、manifest、实际 dump/隔离恢复、共享及历史证据拒删检查中共用真实资源映射。
+- G05 JSONB 校验真实轮次、错误、UTC 教师核对和转入引用结构；本批保存历史、变化递增图像上下文修订。真实内容 A→B→A 不能复用旧核对。没有伪造模型调用或教师意见；完整理解/人工语义处置调用留 T163。
+- 原页和源卷始终仅教师可读；题图目前也默认拒绝学生。拟议“教师 student_display 持久核对＋现有考试/本人结果权限”尚未获确认，未新增该字段或开放学生读取。不能把裁切等同于去答案证明。
+
+### 实际验证
+
+| 检查 | 真实结果 |
+| --- | --- |
+| 最终全量 pytest | 1679 collected；1677 passed / 0 failed / 0 errors / 2 skipped / 23 warnings；2026-10-02T04:27:27.412048+00:00，pytest 431.89 s，外层 441.115 s |
+| 最终 mypy backend/app | 160 source files，无问题；2026-10-02T04:34:01.421689+00:00，16.236 s |
+| 最终 Ruff backend/tests/两新增迁移 | All checks passed；2026-10-02T04:34:00.822337+00:00，0.191 s |
+| 最终隔离库 Alembic check | No new upgrade operations detected；2026-10-02T04:34:02.865034+00:00，1.530 s |
+| 真实 PostgreSQL 迁移/重读 | 0014/0015 升级、历史 NULL 保留、条件非空及 FK/CHECK/唯一/JSONB、0014 安全降级、资产投影与 manifest 唯一身份均通过 |
+| 真实像素、JWT 和生命周期 | 裁图实物像素/尺寸、真实坏图拒绝、同导入/最多五图、教师/异课程/学生权限、审核拒改、重读、A→B→A 失效和历史证据拒删通过 |
+| 实际题图同集备份/隔离恢复 | 标准容器 pg_dump/pg_restore；源卷、原页、暂存图/正式图、共享字节、唯一定位及核对历史验证后真实读取通过；未切换业务环境 |
+
+首轮全量 1673 passed / 2 failed / 2 skipped，原因是两个旧迁移用例在旧表上以当前 Question ORM 插入不存在的新列。按 TCR 新增只用于这些夹具的历史反射表生产者，保留所有原迁移/来源/审核/评分断言；聚焦 2 passed，随后最终全量通过。先行缺模块、UTC 导入和重复 enum CHECK 的真实失败日志保留，没有放宽断言或修改旧迁移补新字段。
+
+两项 skip 为缺四项 M0 隔离变量及本机符号链接权限。T143 原 M0 构建/配置未通过结论保持，T146 仍需真实教师标注。本批不是 OCR 选型、完整导入/确认入库、Vision 调用、学生显示、UI、EXE、发布全生命周期或模型质量验收；相应后续任务没有勾选。
+
+### 环境与保留
+
+使用现有 D:/develop/Python/python.exe 3.13.13；Pillow 已在 Gradio 环境中，仅显式登记直接依赖，没有安装或升级依赖、外发材料或调用模型。测试使用专用数据库、Redis、临时 schema 及 .cache 内业务根；9 项保护文件（含 .env）与实施前字节 hash 一致，未覆盖用户 8 个既有改动。
+
+2026-10-02T04:35:47.960872+00:00，精确核对零连接和任务标签后，仅删除本批 eduagent_e2_import_3d186fa5073b 与 eduagent-e2-import-redis-3d186fa5073b。原 PostgreSQL/Redis 仍 healthy，原业务库仍 0012_audit_logs；没有升级、迁移、恢复或清理业务数据，也没有切换 .env。
+
+本机证据保留于 .cache/e2-t153-154-20261002，包括 protected-baseline、隔离元数据、升级/check、先行与首轮失败、最终 JUnit/各检查日志、真实恢复材料及 cleanup.json。该目录受 Git 忽略，不提交密钥、dump、manifest 或业务材料。验证对象是当前工作区，包含原样保留的用户成果，不宣称干净 checkout 已独立验证。.specify/extensions.yml 不存在，后置扩展钩子按技能规则跳过。
+
+### 本批提交文件清单
+
+- `backend/app/ai/retrieval/_filters.py`
+- `backend/app/api/question_generation.py`
+- `backend/app/api/questions.py`
+- `backend/app/core/app.py`
+- `backend/app/domain/enums.py`
+- `backend/app/models/__init__.py`
+- `backend/app/models/base.py`
+- `backend/app/models/document.py`
+- `backend/app/models/question.py`
+- `backend/app/schemas/file_storage.py`
+- `backend/app/schemas/storage_maintenance.py`
+- `backend/app/services/backup_restore_service.py`
+- `backend/app/services/file_storage_service.py`
+- `backend/app/services/knowledge_base_service.py`
+- `backend/app/services/question_service.py`
+- `backend/app/services/storage_migration_service.py`
+- `backend/app/api/question_assets.py`
+- `backend/app/models/extracted_question.py`
+- `backend/app/models/paper_import.py`
+- `backend/app/models/question_asset.py`
+- `backend/app/models/source_page.py`
+- `backend/app/schemas/image_assessment.py`
+- `backend/app/schemas/paper_import.py`
+- `backend/app/schemas/question_assets.py`
+- `backend/app/services/file_resources.py`
+- `backend/app/services/question_asset_service.py`
+- `migrations/versions/0014_paper_import.py`
+- `migrations/versions/0015_question_assets.py`
+- `tests/contract/test_paper_import_schemas.py`
+- `tests/integration/test_paper_import_migration.py`
+- `tests/unit/models/test_paper_import_models.py`
+- `tests/unit/services/test_paper_import_foundation.py`
+- `tests/unit/services/test_question_asset_service.py`
+- `tests/contract/test_question_assets_api.py`
+- `tests/integration/test_question_asset_persistence.py`
+- `tests/unit/models/test_m3_migrations.py`
+- `docs/test-change-record-v2.md`
+- `pyproject.toml`
+- `tests/integration/legacy_question_fixture.py`
+- `tests/integration/test_question_source_migration.py`
+- `tests/integration/test_review_round_migration.py`
+- `.specify/tasks.md`
+- `docs/validation-report.md`

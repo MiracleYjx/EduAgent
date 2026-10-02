@@ -5,7 +5,7 @@ from typing import Any
 from sqlalchemy import Select
 
 from backend.app.ai.retrieval.base import RetrievalFilters
-from backend.app.domain.enums import DocumentStatus
+from backend.app.domain.enums import DocumentPurpose, DocumentStatus
 from backend.app.models import Document, DocumentChunk
 
 
@@ -17,7 +17,7 @@ def apply_retrieval_filters(
 
     statement = statement.join(
         Document, Document.id == DocumentChunk.document_id,
-    ).where(Document.status == DocumentStatus.READY)
+    ).where(Document.status == DocumentStatus.READY, Document.purpose == DocumentPurpose.KNOWLEDGE_BASE)
     if scope.course_ids:
         statement = statement.where(DocumentChunk.course_id.in_(scope.course_ids))
     if scope.knowledge_base_ids:

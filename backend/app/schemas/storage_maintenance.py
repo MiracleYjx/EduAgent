@@ -76,7 +76,7 @@ class DatabaseDump(BackupFile):
 class BackupReference(BaseModel):
     model_config = ConfigDict(extra="forbid")
     file_id: str
-    resource_type: Literal["document", "export"]
+    resource_type: Literal["document", "source_page", "staged_asset", "question_asset", "export"]
     resource_id: UUID
     owner: dict[str, str] = Field(min_length=1)
     relative_path: RelativePath | None
@@ -85,7 +85,7 @@ class BackupReference(BaseModel):
 
     @model_validator(mode="after")
     def identity_matches(self):
-        prefix = "d_" if self.resource_type == "document" else "e_"
+        prefix = {"document": "d_", "export": "e_", "source_page": "p_", "staged_asset": "a_", "question_asset": "a_"}[self.resource_type]
         if self.file_id != prefix + self.resource_id.hex:
             raise ValueError("file identity does not match resource")
         if self.relative_path is not None and self.relative_path.split("/")[0] not in {"uploads", "papers", "assets", "exports"}:
