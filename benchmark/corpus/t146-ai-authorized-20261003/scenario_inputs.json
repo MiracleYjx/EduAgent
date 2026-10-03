@@ -1,0 +1,70 @@
+{
+  "origin": "new_ai_authored_fixed_scenarios_not_business_DTO",
+  "provenance": {
+    "author_kind": "ai_assistant",
+    "author_name": "Codex",
+    "annotated_at": "2026-10-03T04:36:10.561683+00:00",
+    "delegated_by": "current_chat_user",
+    "authorization_source": "current_chat_user_message",
+    "authorization_statement": "我授权你，以我的名义去做教师标注，执行 T146。",
+    "teacher_id": null,
+    "teacher_verified": false,
+    "human_reviewed": false,
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "is_independent_teacher_truth": false
+  },
+  "entries": [
+    {
+      "case_id": "IMG-UNSUPPORTED",
+      "asset_ids": [
+        "31d1b223-0422-5f9f-b323-7ecac2ad4367"
+      ],
+      "provider_contract": {
+        "supports_vision": false,
+        "vision_model": null
+      },
+      "expected": "unsupported_then_explicit_manual_handoff",
+      "actual_outcome": null
+    },
+    {
+      "case_id": "IMG-FAILURE",
+      "asset_ids": [
+        "31d1b223-0422-5f9f-b323-7ecac2ad4367"
+      ],
+      "provider_contract": {
+        "supports_vision": true
+      },
+      "fault_injection": {
+        "boundary": "generate_vision_structured",
+        "exception": "controlled_timeout",
+        "origin": "synthetic_fault_not_real_cloud_failure"
+      },
+      "expected": "failed_then_explicit_manual_handoff",
+      "actual_outcome": null
+    },
+    {
+      "case_id": "IMG-STALE",
+      "asset_ids": [
+        "31d1b223-0422-5f9f-b323-7ecac2ad4367"
+      ],
+      "previous": {
+        "image_context_revision": 1,
+        "assessment_round": 1,
+        "understanding_text": "y=2*x+1",
+        "manual_check": {
+          "origin": "synthetic_state_fixture",
+          "not_real_teacher_review": true,
+          "reviewed_revision": 1
+        }
+      },
+      "current": {
+        "image_context_revision": 2,
+        "understanding_text": "y=3*x+1"
+      },
+      "change_reason": "实际理解文字不同，按合同旧核对不得通过；这些是固定故障输入，不是图中真实文字的新标签",
+      "expected": "old_manual_check_invalid",
+      "actual_outcome": null
+    }
+  ]
+}

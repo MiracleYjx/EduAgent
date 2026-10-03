@@ -1,0 +1,52 @@
+{
+  "captured_at_utc": "2026-10-03T04:40:13.812587+00:00",
+  "purpose": "T146 local input preparation, not model/performance runtime",
+  "os": "Windows-11-10.0.26200-SP0",
+  "python": "3.13.13 (tags/v3.13.13:01104ce, Apr  7 2026, 19:25:48) [MSC v.1944 64 bit (AMD64)]",
+  "python_executable": "D:\\YJX\\MyCode\\EduAgent\\.cache\\e2-t157-159-20261002\\runtime\\Scripts\\python.exe",
+  "packages": {
+    "pypdf": "6.18.1",
+    "pypdfium2": "5.13.0",
+    "rapidocr": "3.9.2",
+    "onnxruntime": "1.30.0",
+    "Pillow": "12.3.0",
+    "ruff": "0.16.6"
+  },
+  "cpu": {
+    "name": "AMD Ryzen 5 4600H with Radeon Graphics",
+    "physical_cores": 6,
+    "logical_processors": 12
+  },
+  "physical_memory_bytes": 16505966592,
+  "storage": {
+    "media_type": "SSD",
+    "capacity_bytes": 512110190592
+  },
+  "hardware_measurement": "read-only Win32_Processor/Win32_ComputerSystem/Get-PhysicalDisk",
+  "ocr_enabled_for_this_task": false,
+  "cloud_model_calls": 0,
+  "provider": null,
+  "model": null,
+  "prompt": null,
+  "database": null,
+  "redis": null,
+  "missing_runtime_fields_reason": "本任务只准备和核对输入；实际数据库/Redis/Provider/OCR生效配置、重试、并行度、资源与耗时由各执行批次另存，不拿安装版本冒充运行配置。",
+  "runtime_targets": {
+    "import_pages": [
+      1,
+      10,
+      50
+    ],
+    "assembly_question_counts": [
+      1,
+      25,
+      100
+    ],
+    "candidate_count": 300,
+    "concurrency": 1,
+    "quality_repeats": 3,
+    "cold_repeats": 3,
+    "warm_repeats": 5,
+    "warmup": 1
+  }
+}

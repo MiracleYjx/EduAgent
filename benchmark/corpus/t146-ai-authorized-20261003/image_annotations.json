@@ -1,0 +1,733 @@
+{
+  "annotation_version": "t146-ai-authorized-image-1",
+  "rule_version": "v2-evaluation-1",
+  "status": "ai_annotated_not_human_reviewed",
+  "source_package": "benchmark/corpus/v2-draft-20261001",
+  "contract_refs": [
+    ".specify/contracts/vision-capability.md",
+    ".specify/data-model.md#15"
+  ],
+  "provenance": {
+    "author_name": "Codex",
+    "author_kind": "ai_assistant",
+    "annotation_method": "AI visual reading of original local PNG pixels via view_image; no business Provider call",
+    "annotated_at": "2026-10-03T04:31:45.079921Z",
+    "delegated_by": "current_chat_user",
+    "authorization_source": "current_chat_user_message",
+    "authorization_scope": "User authorized AI annotation on their behalf for T146; this does not establish human review",
+    "human_reviewed": false,
+    "teacher_id": null,
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "is_independent_teacher_truth": false,
+    "is_evaluation_truth": false
+  },
+  "evidence_scope": "All four original PNG files visually inspected via view_image at original resolution. Figure/table/diagram labels describe visible content; low-resolution key text remains unknown. Fault labels are unexecuted contract expectations, not Provider run results or persisted business manual checks.",
+  "ambiguities": [
+    {
+      "case_id": "IMG-UNCLEAR",
+      "description": "64×40 图中有流程结构，但文字不足以可靠读取；本次标注不采用其高分辨率同源图补足。"
+    },
+    {
+      "case_ids": [
+        "IMG-UNSUPPORTED",
+        "IMG-FAILURE",
+        "IMG-STALE"
+      ],
+      "description": "现有案例仅描述待执行条件；缺少具体 Provider 故障/状态转换输入，不能作为运行通过证据。"
+    },
+    {
+      "case_ids": [
+        "IMG-FIGURE",
+        "IMG-TABLE",
+        "IMG-DIAGRAM"
+      ],
+      "description": "稳定资产身份来自 assets.json；业务 file_id、真实 SourcePage 身份和裁剪坐标未持久存在，保持 null。"
+    }
+  ],
+  "entries": [
+    {
+      "case_id": "IMG-FIGURE",
+      "family": "image",
+      "source_refs": [
+        "benchmark/corpus/v2-draft-20261001/assets/figure.png",
+        "benchmark/corpus/v2-draft-20261001/teaching_basis.md"
+      ],
+      "image_inputs": [
+        {
+          "asset_id": "839f8584-dff3-526a-8cbe-85ac6784a3e2",
+          "identity_scope": "stable fixture UUID, not a persisted service file_id",
+          "source_file": "benchmark/corpus/v2-draft-20261001/assets/figure.png",
+          "source_sha256": "b5c34d74a385a5dca9bec9c56c0d5a2eb2ca5e0dc64338829aab50b90d488336",
+          "mime_type": "image/png",
+          "actual_size_pixels": [
+            640,
+            400
+          ],
+          "source_page_ref": null,
+          "source_region": null,
+          "file_id": null,
+          "source_bindings_from_manifest": [
+            {
+              "source_file": "inputs/paper_text.pdf",
+              "page": 1,
+              "question_number": "2"
+            },
+            {
+              "source_file": "inputs/paper_scan.pdf",
+              "page": 1,
+              "question_number": "2"
+            },
+            {
+              "source_file": "inputs/paper_mixed.pdf",
+              "page": 2,
+              "question_number": "5"
+            }
+          ],
+          "source_binding_evidence": "assets.json metadata only; no SourcePage UUID or crop mapping fabricated"
+        }
+      ],
+      "labels": {
+        "image_index": 1,
+        "kind": "figure",
+        "readability": "readable",
+        "observation": "底 6 cm、高 4 cm 的三角形示意图。",
+        "key_conditions": [
+          {
+            "annotation_condition_key": "figure-shape",
+            "text": "三角形",
+            "evidence_region": null,
+            "evidence_region_reason": "No measured pixel rectangle; literal location recorded below, never fabricated SourcePage coordinates",
+            "visible_evidence": "图上方标题为“三角形”，轮廓有三条边；左边竖直、底边水平、右上至右下为斜边。"
+          },
+          {
+            "annotation_condition_key": "figure-base",
+            "text": "底 6 cm",
+            "evidence_region": null,
+            "evidence_region_reason": "No measured pixel rectangle; literal location recorded below, never fabricated SourcePage coordinates",
+            "visible_evidence": "图底部水平边下方清楚标出“底 6 cm”。",
+            "value": "6",
+            "unit": "cm"
+          },
+          {
+            "annotation_condition_key": "figure-height",
+            "text": "高 4 cm",
+            "evidence_region": null,
+            "evidence_region_reason": "No measured pixel rectangle; literal location recorded below, never fabricated SourcePage coordinates",
+            "visible_evidence": "左侧竖边内侧清楚标出“高 4 cm”。",
+            "value": "4",
+            "unit": "cm"
+          }
+        ],
+        "unresolved_issues": [],
+        "requires_manual_review_due_to_readability": false,
+        "human_review_required_for_original_teacher_truth": true,
+        "limits": [
+          "图片未给其他边长、角度或比例，不按画面比例补写。"
+        ],
+        "derived_reasoning": {
+          "result": "area=12 cm²",
+          "basis": "由已见底、高和三角形面积公式计算；12不直接出现在图片中。",
+          "is_visible_condition": false
+        }
+      },
+      "provider_runtime": {
+        "called": false,
+        "provider": null,
+        "model": null,
+        "outcome": null,
+        "error": null
+      },
+      "provenance": {
+        "author_name": "Codex",
+        "author_kind": "ai_assistant",
+        "annotation_method": "AI visual reading of original local PNG pixels via view_image; no business Provider call",
+        "annotated_at": "2026-10-03T04:31:45.079921Z",
+        "delegated_by": "current_chat_user",
+        "authorization_source": "current_chat_user_message",
+        "authorization_scope": "User authorized AI annotation on their behalf for T146; this does not establish human review",
+        "human_reviewed": false,
+        "teacher_id": null,
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "is_independent_teacher_truth": false,
+        "is_evaluation_truth": false
+      }
+    },
+    {
+      "case_id": "IMG-TABLE",
+      "family": "image",
+      "source_refs": [
+        "benchmark/corpus/v2-draft-20261001/assets/table.png",
+        "benchmark/corpus/v2-draft-20261001/teaching_basis.md"
+      ],
+      "image_inputs": [
+        {
+          "asset_id": "34fa6905-e80a-5a0f-a7fa-2abac6ba9850",
+          "identity_scope": "stable fixture UUID, not a persisted service file_id",
+          "source_file": "benchmark/corpus/v2-draft-20261001/assets/table.png",
+          "source_sha256": "6eb1e116bbe9df9a4071a355c3b77d26e3b1e596e5c3437042dfe21918ff9dd6",
+          "mime_type": "image/png",
+          "actual_size_pixels": [
+            640,
+            400
+          ],
+          "source_page_ref": null,
+          "source_region": null,
+          "file_id": null,
+          "source_bindings_from_manifest": [
+            {
+              "source_file": "inputs/paper_text.pdf",
+              "page": 1,
+              "question_number": "3"
+            },
+            {
+              "source_file": "inputs/paper_scan.pdf",
+              "page": 1,
+              "question_number": "3"
+            },
+            {
+              "source_file": "inputs/paper_mixed.pdf",
+              "page": 2,
+              "question_number": "6"
+            }
+          ],
+          "source_binding_evidence": "assets.json metadata only; no SourcePage UUID or crop mapping fabricated"
+        }
+      ],
+      "labels": {
+        "image_index": 1,
+        "kind": "table",
+        "readability": "readable",
+        "observation": "三列、三条数据行的表格。",
+        "key_conditions": [
+          {
+            "annotation_condition_key": "table-columns",
+            "text": "列标题依次为 x、y、说明",
+            "evidence_region": null,
+            "evidence_region_reason": "No measured pixel rectangle; literal location recorded below, never fabricated SourcePage coordinates",
+            "visible_evidence": "表格顶行从左到右为 x、y、说明。"
+          },
+          {
+            "annotation_condition_key": "table-row-1",
+            "text": "第一行 x=1，y=3",
+            "evidence_region": null,
+            "evidence_region_reason": "No measured pixel rectangle; literal location recorded below, never fabricated SourcePage coordinates",
+            "visible_evidence": "第一数据行左格 1、中格 3、右格“第一行”。",
+            "x": "1",
+            "y": "3"
+          },
+          {
+            "annotation_condition_key": "table-row-2",
+            "text": "第二行 x=2，y=5",
+            "evidence_region": null,
+            "evidence_region_reason": "No measured pixel rectangle; literal location recorded below, never fabricated SourcePage coordinates",
+            "visible_evidence": "第二数据行左格 2、中格 5、右格“第二行”。",
+            "x": "2",
+            "y": "5"
+          },
+          {
+            "annotation_condition_key": "table-row-3",
+            "text": "第三行 x=3，y=7",
+            "evidence_region": null,
+            "evidence_region_reason": "No measured pixel rectangle; literal location recorded below, never fabricated SourcePage coordinates",
+            "visible_evidence": "第三数据行左格 3、中格 7、右格“第三行”。",
+            "x": "3",
+            "y": "7"
+          }
+        ],
+        "unresolved_issues": [],
+        "requires_manual_review_due_to_readability": false,
+        "human_review_required_for_original_teacher_truth": true,
+        "limits": [
+          "图中未写全局函数表达式；三组数据不能单独证明任意 x 均满足 y=2x+1。"
+        ],
+        "derived_reasoning": {
+          "result": "三组数据均符合 y=2x+1",
+          "basis": "逐行代入检算，与教学依据同式相符；这是计算推论，不是图片显式条件。",
+          "is_visible_condition": false
+        }
+      },
+      "provider_runtime": {
+        "called": false,
+        "provider": null,
+        "model": null,
+        "outcome": null,
+        "error": null
+      },
+      "provenance": {
+        "author_name": "Codex",
+        "author_kind": "ai_assistant",
+        "annotation_method": "AI visual reading of original local PNG pixels via view_image; no business Provider call",
+        "annotated_at": "2026-10-03T04:31:45.079921Z",
+        "delegated_by": "current_chat_user",
+        "authorization_source": "current_chat_user_message",
+        "authorization_scope": "User authorized AI annotation on their behalf for T146; this does not establish human review",
+        "human_reviewed": false,
+        "teacher_id": null,
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "is_independent_teacher_truth": false,
+        "is_evaluation_truth": false
+      }
+    },
+    {
+      "case_id": "IMG-DIAGRAM",
+      "family": "image",
+      "source_refs": [
+        "benchmark/corpus/v2-draft-20261001/assets/diagram.png",
+        "benchmark/corpus/v2-draft-20261001/teaching_basis.md",
+        "benchmark/corpus/v2-draft-20261001/inputs/paper_cross_page.pdf"
+      ],
+      "image_inputs": [
+        {
+          "asset_id": "31d1b223-0422-5f9f-b323-7ecac2ad4367",
+          "identity_scope": "stable fixture UUID, not a persisted service file_id",
+          "source_file": "benchmark/corpus/v2-draft-20261001/assets/diagram.png",
+          "source_sha256": "44bbbce885cdf7f8965364579d2007b375c069a904d79f487ac64518ae602b97",
+          "mime_type": "image/png",
+          "actual_size_pixels": [
+            640,
+            400
+          ],
+          "source_page_ref": null,
+          "source_region": null,
+          "file_id": null,
+          "source_bindings_from_manifest": [
+            {
+              "source_file": "inputs/paper_cross_page.pdf",
+              "page": 2,
+              "question_number": "4"
+            }
+          ],
+          "source_binding_evidence": "assets.json metadata only; no SourcePage UUID or crop mapping fabricated"
+        }
+      ],
+      "labels": {
+        "image_index": 1,
+        "kind": "diagram",
+        "readability": "readable",
+        "observation": "输入 x、按 y=2*x+1 运算、输出 y 的纵向流程图。",
+        "key_conditions": [
+          {
+            "annotation_condition_key": "diagram-input",
+            "text": "输入 x",
+            "evidence_region": null,
+            "evidence_region_reason": "No measured pixel rectangle; literal location recorded below, never fabricated SourcePage coordinates",
+            "visible_evidence": "上方框中文字为“输入 x”。"
+          },
+          {
+            "annotation_condition_key": "diagram-operation",
+            "text": "y = 2 * x + 1",
+            "evidence_region": null,
+            "evidence_region_reason": "No measured pixel rectangle; literal location recorded below, never fabricated SourcePage coordinates",
+            "visible_evidence": "中间框中文字为“y = 2 * x + 1”，星号为乘法符号。"
+          },
+          {
+            "annotation_condition_key": "diagram-output",
+            "text": "输出 y",
+            "evidence_region": null,
+            "evidence_region_reason": "No measured pixel rectangle; literal location recorded below, never fabricated SourcePage coordinates",
+            "visible_evidence": "下方框中文字为“输出 y”。"
+          },
+          {
+            "annotation_condition_key": "diagram-flow",
+            "text": "执行顺序为输入 x → 计算 y=2*x+1 → 输出 y",
+            "evidence_region": null,
+            "evidence_region_reason": "No measured pixel rectangle; literal location recorded below, never fabricated SourcePage coordinates",
+            "visible_evidence": "上框到中框、中框到下框分别有向下箭头。"
+          }
+        ],
+        "unresolved_issues": [],
+        "requires_manual_review_due_to_readability": false,
+        "human_review_required_for_original_teacher_truth": true,
+        "limits": [
+          "图上没有给具体输入数值，例如 x=3；不从相邻资料自动写成图中条件。"
+        ],
+        "derived_reasoning": {
+          "result": "若另有题干给 x=3，则 y=7",
+          "basis": "外部具体输入不可伪装成图片可见条件。",
+          "is_visible_condition": false
+        }
+      },
+      "provider_runtime": {
+        "called": false,
+        "provider": null,
+        "model": null,
+        "outcome": null,
+        "error": null
+      },
+      "provenance": {
+        "author_name": "Codex",
+        "author_kind": "ai_assistant",
+        "annotation_method": "AI visual reading of original local PNG pixels via view_image; no business Provider call",
+        "annotated_at": "2026-10-03T04:31:45.079921Z",
+        "delegated_by": "current_chat_user",
+        "authorization_source": "current_chat_user_message",
+        "authorization_scope": "User authorized AI annotation on their behalf for T146; this does not establish human review",
+        "human_reviewed": false,
+        "teacher_id": null,
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "is_independent_teacher_truth": false,
+        "is_evaluation_truth": false
+      }
+    },
+    {
+      "case_id": "IMG-UNCLEAR",
+      "family": "image_fault",
+      "source_refs": [
+        "benchmark/corpus/v2-draft-20261001/assets/diagram_low_resolution.png"
+      ],
+      "image_inputs": [
+        {
+          "asset_id": "f19b591c-48f9-5569-a539-e4dd526be833",
+          "identity_scope": "stable fixture UUID, not a persisted service file_id",
+          "source_file": "benchmark/corpus/v2-draft-20261001/assets/diagram_low_resolution.png",
+          "source_sha256": "3763e327edc61924f8558605b115898fa586a097e6cc97aaad1d560d90f1eeb3",
+          "mime_type": "image/png",
+          "actual_size_pixels": [
+            64,
+            40
+          ],
+          "source_page_ref": null,
+          "source_region": null,
+          "file_id": null,
+          "source_bindings_from_manifest": [],
+          "source_binding_evidence": "assets.json metadata only; no SourcePage UUID or crop mapping fabricated"
+        }
+      ],
+      "labels": {
+        "image_index": 1,
+        "kind": "diagram",
+        "readability": "unreadable_key_text",
+        "observation": "64×40 原图能辨认纵向三个矩形框及连线/向下箭头，不能可靠逐字读出各框关键文字和算式。",
+        "key_conditions": null,
+        "conditions_null_reason": "关键输入变量、具体运算式和输出变量无法在本图原始像素中可靠辨认；不利用另一高清资产的内容反填。",
+        "unresolved_issues": [
+          {
+            "asset_id": "f19b591c-48f9-5569-a539-e4dd526be833",
+            "message": "框内关键文字/数字/运算符不可可靠辨认，需要人工获取清晰原图或明确核对补充。",
+            "evidence_region": null
+          }
+        ],
+        "requires_manual_review_due_to_readability": true,
+        "human_review_required_for_original_teacher_truth": true,
+        "limits": [
+          "结构可见不代表题目必要条件已知。",
+          "高清图与低清图是不同资产 ID；不能以高清图识别结果替代本资产读取结果。"
+        ]
+      },
+      "provider_runtime": {
+        "called": false,
+        "provider": null,
+        "model": null,
+        "outcome": null,
+        "error": null
+      },
+      "provenance": {
+        "author_name": "Codex",
+        "author_kind": "ai_assistant",
+        "annotation_method": "AI visual reading of original local PNG pixels via view_image; no business Provider call",
+        "annotated_at": "2026-10-03T04:31:45.079921Z",
+        "delegated_by": "current_chat_user",
+        "authorization_source": "current_chat_user_message",
+        "authorization_scope": "User authorized AI annotation on their behalf for T146; this does not establish human review",
+        "human_reviewed": false,
+        "teacher_id": null,
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "is_independent_teacher_truth": false,
+        "is_evaluation_truth": false
+      }
+    },
+    {
+      "case_id": "IMG-UNSUPPORTED",
+      "family": "image_fault",
+      "source_refs": [
+        "benchmark/corpus/v2-draft-20261001/assets/diagram.png"
+      ],
+      "image_inputs": [
+        {
+          "asset_id": "31d1b223-0422-5f9f-b323-7ecac2ad4367",
+          "identity_scope": "stable fixture UUID, not a persisted service file_id",
+          "source_file": "benchmark/corpus/v2-draft-20261001/assets/diagram.png",
+          "source_sha256": "44bbbce885cdf7f8965364579d2007b375c069a904d79f487ac64518ae602b97",
+          "mime_type": "image/png",
+          "actual_size_pixels": [
+            640,
+            400
+          ],
+          "source_page_ref": null,
+          "source_region": null,
+          "file_id": null,
+          "source_bindings_from_manifest": [
+            {
+              "source_file": "inputs/paper_cross_page.pdf",
+              "page": 2,
+              "question_number": "4"
+            }
+          ],
+          "source_binding_evidence": "assets.json metadata only; no SourcePage UUID or crop mapping fabricated"
+        }
+      ],
+      "labels": {
+        "annotation_kind": "contract_expected_behavior_only",
+        "image_index": 1,
+        "readability": "readable",
+        "observation": "实际资产仍为输入 x → y=2*x+1 → 输出 y 的清晰流程图。故障条件不是图像内容。",
+        "key_conditions": [
+          {
+            "annotation_condition_key": "diagram-input",
+            "text": "输入 x",
+            "evidence_region": null,
+            "evidence_region_reason": "No measured pixel rectangle; literal location recorded below, never fabricated SourcePage coordinates",
+            "visible_evidence": "上方框中文字为“输入 x”。"
+          },
+          {
+            "annotation_condition_key": "diagram-operation",
+            "text": "y = 2 * x + 1",
+            "evidence_region": null,
+            "evidence_region_reason": "No measured pixel rectangle; literal location recorded below, never fabricated SourcePage coordinates",
+            "visible_evidence": "中间框中文字为“y = 2 * x + 1”，星号为乘法符号。"
+          },
+          {
+            "annotation_condition_key": "diagram-output",
+            "text": "输出 y",
+            "evidence_region": null,
+            "evidence_region_reason": "No measured pixel rectangle; literal location recorded below, never fabricated SourcePage coordinates",
+            "visible_evidence": "下方框中文字为“输出 y”。"
+          },
+          {
+            "annotation_condition_key": "diagram-flow",
+            "text": "执行顺序为输入 x → 计算 y=2*x+1 → 输出 y",
+            "evidence_region": null,
+            "evidence_region_reason": "No measured pixel rectangle; literal location recorded below, never fabricated SourcePage coordinates",
+            "visible_evidence": "上框到中框、中框到下框分别有向下箭头。"
+          }
+        ],
+        "expected_error_code": "VISION_NOT_SUPPORTED",
+        "expected_behavior": "在实际配置/适配器 supports_vision() 为 false 的前置条件下返回不支持，保留原图和核对入口，不能自动改发纯文字。",
+        "actual_failure_observed": null,
+        "actual_context_transition": null,
+        "missing_runtime_evidence": "没有本次实际 Provider 配置、能力声明运行或请求回执。",
+        "requires_runtime_execution": true,
+        "human_review_required_for_original_teacher_truth": true
+      },
+      "provider_runtime": {
+        "called": false,
+        "provider": null,
+        "model": null,
+        "outcome": null,
+        "error": null
+      },
+      "provenance": {
+        "author_name": "Codex",
+        "author_kind": "ai_assistant",
+        "annotation_method": "AI visual reading of original local PNG pixels via view_image; no business Provider call",
+        "annotated_at": "2026-10-03T04:31:45.079921Z",
+        "delegated_by": "current_chat_user",
+        "authorization_source": "current_chat_user_message",
+        "authorization_scope": "User authorized AI annotation on their behalf for T146; this does not establish human review",
+        "human_reviewed": false,
+        "teacher_id": null,
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "is_independent_teacher_truth": false,
+        "is_evaluation_truth": false
+      }
+    },
+    {
+      "case_id": "IMG-FAILURE",
+      "family": "image_fault",
+      "source_refs": [
+        "benchmark/corpus/v2-draft-20261001/assets/diagram.png"
+      ],
+      "image_inputs": [
+        {
+          "asset_id": "31d1b223-0422-5f9f-b323-7ecac2ad4367",
+          "identity_scope": "stable fixture UUID, not a persisted service file_id",
+          "source_file": "benchmark/corpus/v2-draft-20261001/assets/diagram.png",
+          "source_sha256": "44bbbce885cdf7f8965364579d2007b375c069a904d79f487ac64518ae602b97",
+          "mime_type": "image/png",
+          "actual_size_pixels": [
+            640,
+            400
+          ],
+          "source_page_ref": null,
+          "source_region": null,
+          "file_id": null,
+          "source_bindings_from_manifest": [
+            {
+              "source_file": "inputs/paper_cross_page.pdf",
+              "page": 2,
+              "question_number": "4"
+            }
+          ],
+          "source_binding_evidence": "assets.json metadata only; no SourcePage UUID or crop mapping fabricated"
+        }
+      ],
+      "labels": {
+        "annotation_kind": "contract_expected_behavior_only",
+        "image_index": 1,
+        "readability": "readable",
+        "observation": "实际资产仍为输入 x → y=2*x+1 → 输出 y 的清晰流程图。故障条件不是图像内容。",
+        "key_conditions": [
+          {
+            "annotation_condition_key": "diagram-input",
+            "text": "输入 x",
+            "evidence_region": null,
+            "evidence_region_reason": "No measured pixel rectangle; literal location recorded below, never fabricated SourcePage coordinates",
+            "visible_evidence": "上方框中文字为“输入 x”。"
+          },
+          {
+            "annotation_condition_key": "diagram-operation",
+            "text": "y = 2 * x + 1",
+            "evidence_region": null,
+            "evidence_region_reason": "No measured pixel rectangle; literal location recorded below, never fabricated SourcePage coordinates",
+            "visible_evidence": "中间框中文字为“y = 2 * x + 1”，星号为乘法符号。"
+          },
+          {
+            "annotation_condition_key": "diagram-output",
+            "text": "输出 y",
+            "evidence_region": null,
+            "evidence_region_reason": "No measured pixel rectangle; literal location recorded below, never fabricated SourcePage coordinates",
+            "visible_evidence": "下方框中文字为“输出 y”。"
+          },
+          {
+            "annotation_condition_key": "diagram-flow",
+            "text": "执行顺序为输入 x → 计算 y=2*x+1 → 输出 y",
+            "evidence_region": null,
+            "evidence_region_reason": "No measured pixel rectangle; literal location recorded below, never fabricated SourcePage coordinates",
+            "visible_evidence": "上框到中框、中框到下框分别有向下箭头。"
+          }
+        ],
+        "expected_error_code": "VISION_CALL_FAILED",
+        "expected_behavior": "实际图像调用失败/超时/取消时保留原错误及阶段，登记 technical_error；不能填空成功条件或复用旧已通过核对。",
+        "actual_failure_observed": null,
+        "actual_context_transition": null,
+        "missing_runtime_evidence": "没有故障注入实现、请求开始/结束、真实错误回执或轮次记录。",
+        "requires_runtime_execution": true,
+        "human_review_required_for_original_teacher_truth": true
+      },
+      "provider_runtime": {
+        "called": false,
+        "provider": null,
+        "model": null,
+        "outcome": null,
+        "error": null
+      },
+      "provenance": {
+        "author_name": "Codex",
+        "author_kind": "ai_assistant",
+        "annotation_method": "AI visual reading of original local PNG pixels via view_image; no business Provider call",
+        "annotated_at": "2026-10-03T04:31:45.079921Z",
+        "delegated_by": "current_chat_user",
+        "authorization_source": "current_chat_user_message",
+        "authorization_scope": "User authorized AI annotation on their behalf for T146; this does not establish human review",
+        "human_reviewed": false,
+        "teacher_id": null,
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "is_independent_teacher_truth": false,
+        "is_evaluation_truth": false
+      }
+    },
+    {
+      "case_id": "IMG-STALE",
+      "family": "image_fault",
+      "source_refs": [
+        "benchmark/corpus/v2-draft-20261001/assets/diagram.png"
+      ],
+      "image_inputs": [
+        {
+          "asset_id": "31d1b223-0422-5f9f-b323-7ecac2ad4367",
+          "identity_scope": "stable fixture UUID, not a persisted service file_id",
+          "source_file": "benchmark/corpus/v2-draft-20261001/assets/diagram.png",
+          "source_sha256": "44bbbce885cdf7f8965364579d2007b375c069a904d79f487ac64518ae602b97",
+          "mime_type": "image/png",
+          "actual_size_pixels": [
+            640,
+            400
+          ],
+          "source_page_ref": null,
+          "source_region": null,
+          "file_id": null,
+          "source_bindings_from_manifest": [
+            {
+              "source_file": "inputs/paper_cross_page.pdf",
+              "page": 2,
+              "question_number": "4"
+            }
+          ],
+          "source_binding_evidence": "assets.json metadata only; no SourcePage UUID or crop mapping fabricated"
+        }
+      ],
+      "labels": {
+        "annotation_kind": "contract_expected_behavior_only",
+        "image_index": 1,
+        "readability": "readable",
+        "observation": "实际资产仍为输入 x → y=2*x+1 → 输出 y 的清晰流程图。故障条件不是图像内容。",
+        "key_conditions": [
+          {
+            "annotation_condition_key": "diagram-input",
+            "text": "输入 x",
+            "evidence_region": null,
+            "evidence_region_reason": "No measured pixel rectangle; literal location recorded below, never fabricated SourcePage coordinates",
+            "visible_evidence": "上方框中文字为“输入 x”。"
+          },
+          {
+            "annotation_condition_key": "diagram-operation",
+            "text": "y = 2 * x + 1",
+            "evidence_region": null,
+            "evidence_region_reason": "No measured pixel rectangle; literal location recorded below, never fabricated SourcePage coordinates",
+            "visible_evidence": "中间框中文字为“y = 2 * x + 1”，星号为乘法符号。"
+          },
+          {
+            "annotation_condition_key": "diagram-output",
+            "text": "输出 y",
+            "evidence_region": null,
+            "evidence_region_reason": "No measured pixel rectangle; literal location recorded below, never fabricated SourcePage coordinates",
+            "visible_evidence": "下方框中文字为“输出 y”。"
+          },
+          {
+            "annotation_condition_key": "diagram-flow",
+            "text": "执行顺序为输入 x → 计算 y=2*x+1 → 输出 y",
+            "evidence_region": null,
+            "evidence_region_reason": "No measured pixel rectangle; literal location recorded below, never fabricated SourcePage coordinates",
+            "visible_evidence": "上框到中框、中框到下框分别有向下箭头。"
+          }
+        ],
+        "expected_error_code": "IMAGE_ASSESSMENT_STALE",
+        "expected_behavior": "题目图像/顺序/定位/实际文字上下文发生变化则增加 context_revision；旧核对失效；改变后恢复原值也不可恢复旧核对。过时人工命令应返回409。",
+        "actual_failure_observed": null,
+        "actual_context_transition": null,
+        "missing_runtime_evidence": "仅给出同一 diagram.png；缺少可执行前后输入、修订号、调用轮次、旧核对事件和实际409回执。",
+        "requires_runtime_execution": true,
+        "human_review_required_for_original_teacher_truth": true
+      },
+      "provider_runtime": {
+        "called": false,
+        "provider": null,
+        "model": null,
+        "outcome": null,
+        "error": null
+      },
+      "provenance": {
+        "author_name": "Codex",
+        "author_kind": "ai_assistant",
+        "annotation_method": "AI visual reading of original local PNG pixels via view_image; no business Provider call",
+        "annotated_at": "2026-10-03T04:31:45.079921Z",
+        "delegated_by": "current_chat_user",
+        "authorization_source": "current_chat_user_message",
+        "authorization_scope": "User authorized AI annotation on their behalf for T146; this does not establish human review",
+        "human_reviewed": false,
+        "teacher_id": null,
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "is_independent_teacher_truth": false,
+        "is_evaluation_truth": false
+      }
+    }
+  ]
+}

@@ -540,6 +540,7 @@ M0 工程骨架 + Benchmark
 - [X] T145 [HIGH] [E0] **建立 v2.0 TCR 与分批验证映射**：先在 `docs/test-change-record-v2.md` 按现有 TCR 形式逐批写明必要性、覆盖行为、受影响 pytest unit/contract/integration/benchmark 模块与保留断言；将 FR/SC/Gate 映射至各批聚焦验证。每批新增/修改测试前按已确认设计补齐该批 TCR，先写能暴露目标缺口的行为用例再实现；不一次性堆建未确认设计的测试，不重写 v1.0 测试标准。 依赖：T143。per plan 兼容性目标、tasks 测试说明、Constitution V、CHK011/012（F012） (missing)
 
 - [ ] T146 [MEDIUM] [E0] **准备标注样本与评测证据入口**：按 T142 协议在 `benchmark/` 与 `docs/evaluation.md` 准备文字/扫描/图片/混合页/跨页/无答案/错序样本，语义四类错误及无问题/旧答案失效样本、图片条件样本、可满足/不可满足组卷和教师独立统计基准；记录真实标注/来源、版本、运行环境与 JSON/CSV 结构。此任务只准备输入，准确性/性能运行分别由 T160/T168/T179/T189/T190 承接。 依赖：T142、T145。per SC-010–014、plan 可评测目标、Constitution V（F013） (missing)
+  本批标注准备（用户授权，2026-10-03）：已制作61例 AI 参考包及独立于业务代码的核算，保留AI作者/委托来源；独立教师数量0。本轮是否以AI参考口径替代原完成要求尚待用户选择，保持未勾选。见 docs/evaluation.md 的 T146 AI 节。
 
 ### E1：文件持久化
 

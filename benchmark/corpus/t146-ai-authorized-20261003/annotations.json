@@ -1,0 +1,388 @@
+{
+  "schema_version": "t146-reference-index-1",
+  "annotation_version": "t146-ai-authorized-20261003-1",
+  "author_kind": "ai_assistant",
+  "author_name": "Codex",
+  "delegated_by": "current_chat_user",
+  "authorization_source": "current_chat_user_message",
+  "authorization_received_on": "2026-10-03",
+  "is_independent_teacher_truth": false,
+  "human_reviewed_this_batch": false,
+  "acceptance_decision": "awaiting_user_choice",
+  "component_versions": {
+    "import_annotations.json": "t146-ai-authorized-20261003-1",
+    "scenario_annotations.json": "t146-ai-authorized-20261003-1",
+    "semantic_annotations.json": "t146-ai-authorized-semantic-1",
+    "image_annotations.json": "t146-ai-authorized-image-1",
+    "assembly_annotations.json": "t146-user-authorized-ai-reference-20261003-1",
+    "statistics_annotations.json": "t146-user-authorized-ai-reference-20261003-1"
+  },
+  "entries": [
+    {
+      "case_id": "IMP-TEXT",
+      "family": "import",
+      "annotation_ref": "import_annotations.json#/entries/0",
+      "evidence_kind": "ai_content_reference"
+    },
+    {
+      "case_id": "IMP-SCAN",
+      "family": "import",
+      "annotation_ref": "import_annotations.json#/entries/1",
+      "evidence_kind": "ai_content_reference"
+    },
+    {
+      "case_id": "IMP-IMAGE",
+      "family": "import",
+      "annotation_ref": "import_annotations.json#/entries/2",
+      "evidence_kind": "ai_content_reference"
+    },
+    {
+      "case_id": "IMP-MIXED",
+      "family": "import",
+      "annotation_ref": "import_annotations.json#/entries/3",
+      "evidence_kind": "ai_content_reference"
+    },
+    {
+      "case_id": "IMP-CROSS",
+      "family": "import",
+      "annotation_ref": "import_annotations.json#/entries/4",
+      "evidence_kind": "ai_content_reference"
+    },
+    {
+      "case_id": "IMP-DAMAGED",
+      "family": "import_fault",
+      "annotation_ref": "scenario_annotations.json#/entries/0",
+      "evidence_kind": "contract_expectation_not_actual_outcome"
+    },
+    {
+      "case_id": "IMP-OVERLIMIT",
+      "family": "import_fault",
+      "annotation_ref": "scenario_annotations.json#/entries/1",
+      "evidence_kind": "contract_expectation_not_actual_outcome"
+    },
+    {
+      "case_id": "IMP-OCR-OFF",
+      "family": "import_fault",
+      "annotation_ref": "scenario_annotations.json#/entries/2",
+      "evidence_kind": "contract_expectation_not_actual_outcome"
+    },
+    {
+      "case_id": "IMP-OCR-FAIL",
+      "family": "import_fault",
+      "annotation_ref": "scenario_annotations.json#/entries/3",
+      "evidence_kind": "contract_expectation_not_actual_outcome"
+    },
+    {
+      "case_id": "SEM-GOOD",
+      "family": "semantic",
+      "annotation_ref": "semantic_annotations.json#/entries/0",
+      "evidence_kind": "ai_content_reference"
+    },
+    {
+      "case_id": "SEM-ANSWER",
+      "family": "semantic",
+      "annotation_ref": "semantic_annotations.json#/entries/1",
+      "evidence_kind": "ai_content_reference"
+    },
+    {
+      "case_id": "SEM-CONDITION",
+      "family": "semantic",
+      "annotation_ref": "semantic_annotations.json#/entries/2",
+      "evidence_kind": "ai_content_reference"
+    },
+    {
+      "case_id": "SEM-OPTIONS",
+      "family": "semantic",
+      "annotation_ref": "semantic_annotations.json#/entries/3",
+      "evidence_kind": "ai_content_reference"
+    },
+    {
+      "case_id": "SEM-RUBRIC",
+      "family": "semantic",
+      "annotation_ref": "semantic_annotations.json#/entries/4",
+      "evidence_kind": "ai_content_reference"
+    },
+    {
+      "case_id": "SEM-ADAPT-GOOD",
+      "family": "semantic",
+      "annotation_ref": "semantic_annotations.json#/entries/5",
+      "evidence_kind": "ai_content_reference"
+    },
+    {
+      "case_id": "SEM-STALE",
+      "family": "semantic",
+      "annotation_ref": "semantic_annotations.json#/entries/6",
+      "evidence_kind": "ai_content_reference"
+    },
+    {
+      "case_id": "SEM-NO-BASIS",
+      "family": "semantic",
+      "annotation_ref": "semantic_annotations.json#/entries/7",
+      "evidence_kind": "ai_content_reference"
+    },
+    {
+      "case_id": "IMG-FIGURE",
+      "family": "image",
+      "annotation_ref": "image_annotations.json#/entries/0",
+      "evidence_kind": "ai_content_reference"
+    },
+    {
+      "case_id": "IMG-TABLE",
+      "family": "image",
+      "annotation_ref": "image_annotations.json#/entries/1",
+      "evidence_kind": "ai_content_reference"
+    },
+    {
+      "case_id": "IMG-DIAGRAM",
+      "family": "image",
+      "annotation_ref": "image_annotations.json#/entries/2",
+      "evidence_kind": "ai_content_reference"
+    },
+    {
+      "case_id": "IMG-UNCLEAR",
+      "family": "image_fault",
+      "annotation_ref": "image_annotations.json#/entries/3",
+      "evidence_kind": "contract_expectation_not_actual_outcome"
+    },
+    {
+      "case_id": "IMG-UNSUPPORTED",
+      "family": "image_fault",
+      "annotation_ref": "image_annotations.json#/entries/4",
+      "evidence_kind": "contract_expectation_not_actual_outcome"
+    },
+    {
+      "case_id": "IMG-FAILURE",
+      "family": "image_fault",
+      "annotation_ref": "image_annotations.json#/entries/5",
+      "evidence_kind": "contract_expectation_not_actual_outcome"
+    },
+    {
+      "case_id": "IMG-STALE",
+      "family": "image_fault",
+      "annotation_ref": "image_annotations.json#/entries/6",
+      "evidence_kind": "contract_expectation_not_actual_outcome"
+    },
+    {
+      "case_id": "ASM-1-SAT",
+      "family": "assembly",
+      "annotation_ref": "assembly_annotations.json#/assembly_annotations/0",
+      "evidence_kind": "ai_content_reference"
+    },
+    {
+      "case_id": "ASM-1-UNSAT",
+      "family": "assembly",
+      "annotation_ref": "assembly_annotations.json#/assembly_annotations/1",
+      "evidence_kind": "ai_content_reference"
+    },
+    {
+      "case_id": "ASM-25-SAT",
+      "family": "assembly",
+      "annotation_ref": "assembly_annotations.json#/assembly_annotations/2",
+      "evidence_kind": "ai_content_reference"
+    },
+    {
+      "case_id": "ASM-25-UNSAT",
+      "family": "assembly",
+      "annotation_ref": "assembly_annotations.json#/assembly_annotations/3",
+      "evidence_kind": "ai_content_reference"
+    },
+    {
+      "case_id": "ASM-100-SAT",
+      "family": "assembly",
+      "annotation_ref": "assembly_annotations.json#/assembly_annotations/4",
+      "evidence_kind": "ai_content_reference"
+    },
+    {
+      "case_id": "ASM-100-UNSAT",
+      "family": "assembly",
+      "annotation_ref": "assembly_annotations.json#/assembly_annotations/5",
+      "evidence_kind": "ai_content_reference"
+    },
+    {
+      "case_id": "ASM-200-SAT",
+      "family": "assembly",
+      "annotation_ref": "assembly_annotations.json#/assembly_annotations/6",
+      "evidence_kind": "ai_content_reference"
+    },
+    {
+      "case_id": "ASM-200-UNSAT",
+      "family": "assembly",
+      "annotation_ref": "assembly_annotations.json#/assembly_annotations/7",
+      "evidence_kind": "ai_content_reference"
+    },
+    {
+      "case_id": "ASM-OVERRIDE",
+      "family": "assembly",
+      "annotation_ref": "assembly_annotations.json#/assembly_annotations/8",
+      "evidence_kind": "ai_content_reference"
+    },
+    {
+      "case_id": "ASM-EDIT",
+      "family": "assembly",
+      "annotation_ref": "assembly_annotations.json#/assembly_annotations/9",
+      "evidence_kind": "ai_content_reference"
+    },
+    {
+      "case_id": "ASM-LEGACY",
+      "family": "assembly",
+      "annotation_ref": "assembly_annotations.json#/assembly_annotations/10",
+      "evidence_kind": "ai_content_reference"
+    },
+    {
+      "case_id": "ASM-FAIL-RESTART",
+      "family": "assembly",
+      "annotation_ref": "assembly_annotations.json#/assembly_annotations/11",
+      "evidence_kind": "ai_content_reference"
+    },
+    {
+      "case_id": "SCORE-POSITIVE",
+      "family": "scoring",
+      "annotation_ref": "assembly_annotations.json#/scoring_annotations/0",
+      "evidence_kind": "ai_content_reference"
+    },
+    {
+      "case_id": "SCORE-NEGATIVE",
+      "family": "scoring",
+      "annotation_ref": "assembly_annotations.json#/scoring_annotations/1",
+      "evidence_kind": "ai_content_reference"
+    },
+    {
+      "case_id": "SCORE-HALF",
+      "family": "scoring",
+      "annotation_ref": "assembly_annotations.json#/scoring_annotations/2",
+      "evidence_kind": "ai_content_reference"
+    },
+    {
+      "case_id": "SCORE-DEFAULT",
+      "family": "scoring",
+      "annotation_ref": "assembly_annotations.json#/scoring_annotations/3",
+      "evidence_kind": "ai_content_reference"
+    },
+    {
+      "case_id": "STATS-MIXED",
+      "family": "statistics",
+      "annotation_ref": "statistics_annotations.json#/statistics_annotations/0",
+      "evidence_kind": "ai_content_reference"
+    },
+    {
+      "case_id": "STATS-EMPTY",
+      "family": "statistics",
+      "annotation_ref": "statistics_annotations.json#/statistics_annotations/1",
+      "evidence_kind": "ai_content_reference"
+    },
+    {
+      "case_id": "FEEDBACK-SOURCES",
+      "family": "feedback",
+      "annotation_ref": "statistics_annotations.json#/feedback_annotations/0",
+      "evidence_kind": "ai_content_reference"
+    },
+    {
+      "case_id": "UI-1",
+      "family": "ui",
+      "annotation_ref": "scenario_annotations.json#/entries/4",
+      "evidence_kind": "contract_expectation_not_actual_outcome"
+    },
+    {
+      "case_id": "UI-2",
+      "family": "ui",
+      "annotation_ref": "scenario_annotations.json#/entries/5",
+      "evidence_kind": "contract_expectation_not_actual_outcome"
+    },
+    {
+      "case_id": "UI-3",
+      "family": "ui",
+      "annotation_ref": "scenario_annotations.json#/entries/6",
+      "evidence_kind": "contract_expectation_not_actual_outcome"
+    },
+    {
+      "case_id": "UI-4",
+      "family": "ui",
+      "annotation_ref": "scenario_annotations.json#/entries/7",
+      "evidence_kind": "contract_expectation_not_actual_outcome"
+    },
+    {
+      "case_id": "UI-5",
+      "family": "ui",
+      "annotation_ref": "scenario_annotations.json#/entries/8",
+      "evidence_kind": "contract_expectation_not_actual_outcome"
+    },
+    {
+      "case_id": "UI-6",
+      "family": "ui",
+      "annotation_ref": "scenario_annotations.json#/entries/9",
+      "evidence_kind": "contract_expectation_not_actual_outcome"
+    },
+    {
+      "case_id": "UI-7",
+      "family": "ui",
+      "annotation_ref": "scenario_annotations.json#/entries/10",
+      "evidence_kind": "contract_expectation_not_actual_outcome"
+    },
+    {
+      "case_id": "DELIVERY-NORMAL",
+      "family": "delivery",
+      "annotation_ref": "scenario_annotations.json#/entries/11",
+      "evidence_kind": "contract_expectation_not_actual_outcome"
+    },
+    {
+      "case_id": "DELIVERY-FAULTS",
+      "family": "delivery",
+      "annotation_ref": "scenario_annotations.json#/entries/12",
+      "evidence_kind": "contract_expectation_not_actual_outcome"
+    },
+    {
+      "case_id": "RESTORE-COMPLETE",
+      "family": "delivery",
+      "annotation_ref": "scenario_annotations.json#/entries/13",
+      "evidence_kind": "contract_expectation_not_actual_outcome"
+    },
+    {
+      "case_id": "RESTORE-MISSING",
+      "family": "delivery",
+      "annotation_ref": "scenario_annotations.json#/entries/14",
+      "evidence_kind": "contract_expectation_not_actual_outcome"
+    },
+    {
+      "case_id": "PERF-IMPORT-1",
+      "family": "import_performance",
+      "annotation_ref": "import_annotations.json#/entries/5",
+      "evidence_kind": "ai_content_reference"
+    },
+    {
+      "case_id": "PERF-IMPORT-10",
+      "family": "import_performance",
+      "annotation_ref": "import_annotations.json#/entries/6",
+      "evidence_kind": "ai_content_reference"
+    },
+    {
+      "case_id": "PERF-IMPORT-50",
+      "family": "import_performance",
+      "annotation_ref": "import_annotations.json#/entries/7",
+      "evidence_kind": "ai_content_reference"
+    },
+    {
+      "case_id": "SEM-CLEAR-GOOD",
+      "family": "semantic",
+      "annotation_ref": "semantic_annotations.json#/entries/8",
+      "evidence_kind": "ai_content_reference"
+    },
+    {
+      "case_id": "SEM-CLEAR-ADAPT-GOOD",
+      "family": "semantic",
+      "annotation_ref": "semantic_annotations.json#/entries/9",
+      "evidence_kind": "ai_content_reference"
+    },
+    {
+      "case_id": "SEM-CLEAR-OPTIONS",
+      "family": "semantic",
+      "annotation_ref": "semantic_annotations.json#/entries/10",
+      "evidence_kind": "ai_content_reference"
+    },
+    {
+      "case_id": "STATS-STARTED",
+      "family": "statistics",
+      "annotation_ref": "statistics_annotations.json#/statistics_annotations/2",
+      "evidence_kind": "ai_content_reference"
+    }
+  ]
+}

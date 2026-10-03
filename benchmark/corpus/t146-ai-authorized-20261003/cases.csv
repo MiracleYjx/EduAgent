@@ -1,0 +1,62 @@
+case_id,family,tags_json,source_refs_json,annotation_ref,evidence_kind
+IMP-TEXT,import,"[""text_pdf"", ""options_out_of_order"", ""missing_answer""]","[""../v2-draft-20261001/inputs/paper_text.pdf"", ""../v2-draft-20261001/assets/figure.png"", ""../v2-draft-20261001/assets/table.png""]",import_annotations.json#/entries/0,ai_content_reference
+IMP-SCAN,import,"[""raster_pdf"", ""figure"", ""table""]","[""../v2-draft-20261001/inputs/paper_scan.pdf""]",import_annotations.json#/entries/1,ai_content_reference
+IMP-IMAGE,import,"[""paper_image""]","[""../v2-draft-20261001/inputs/paper_image.png""]",import_annotations.json#/entries/2,ai_content_reference
+IMP-MIXED,import,"[""mixed_text_scan""]","[""../v2-draft-20261001/inputs/paper_mixed.pdf""]",import_annotations.json#/entries/3,ai_content_reference
+IMP-CROSS,import,"[""cross_page"", ""diagram"", ""missing_answer""]","[""../v2-draft-20261001/inputs/paper_cross_page.pdf"", ""../v2-draft-20261001/assets/diagram.png""]",import_annotations.json#/entries/4,ai_content_reference
+IMP-DAMAGED,import_fault,"[""damaged""]","[""../v2-draft-20261001/inputs/damaged.pdf""]",scenario_annotations.json#/entries/0,contract_expectation_not_actual_outcome
+IMP-OVERLIMIT,import_fault,"[""over_50_pages""]","[""../v2-draft-20261001/inputs/workload_51_pages.pdf""]",scenario_annotations.json#/entries/1,contract_expectation_not_actual_outcome
+IMP-OCR-OFF,import_fault,"[""ocr_disabled""]","[""../v2-draft-20261001/inputs/paper_scan.pdf""]",scenario_annotations.json#/entries/2,contract_expectation_not_actual_outcome
+IMP-OCR-FAIL,import_fault,"[""provider_failure""]","[""../v2-draft-20261001/inputs/paper_scan.pdf""]",scenario_annotations.json#/entries/3,contract_expectation_not_actual_outcome
+SEM-GOOD,semantic,"[""knowledge_base_new""]","[""../v2-draft-20261001/semantic_cases.json"", ""../v2-draft-20261001/teaching_basis.md""]",semantic_annotations.json#/entries/0,ai_content_reference
+SEM-ANSWER,semantic,"[""knowledge_base_new"", ""answer_correctness""]","[""../v2-draft-20261001/semantic_cases.json"", ""../v2-draft-20261001/teaching_basis.md""]",semantic_annotations.json#/entries/1,ai_content_reference
+SEM-CONDITION,semantic,"[""knowledge_base_new"", ""condition_sufficiency""]","[""../v2-draft-20261001/semantic_cases.json"", ""../v2-draft-20261001/teaching_basis.md""]",semantic_annotations.json#/entries/2,ai_content_reference
+SEM-OPTIONS,semantic,"[""knowledge_base_new"", ""option_ambiguity""]","[""../v2-draft-20261001/semantic_cases.json"", ""../v2-draft-20261001/teaching_basis.md""]",semantic_annotations.json#/entries/3,ai_content_reference
+SEM-RUBRIC,semantic,"[""knowledge_base_new"", ""rubric_clarity""]","[""../v2-draft-20261001/semantic_cases.json"", ""../v2-draft-20261001/teaching_basis.md""]",semantic_annotations.json#/entries/4,ai_content_reference
+SEM-ADAPT-GOOD,semantic,"[""parent_adaptation""]","[""../v2-draft-20261001/semantic_cases.json"", ""../v2-draft-20261001/teaching_basis.md"", ""../v2-draft-20261001/parent_questions.json""]",semantic_annotations.json#/entries/5,ai_content_reference
+SEM-STALE,semantic,"[""parent_adaptation"", ""answer_correctness""]","[""../v2-draft-20261001/semantic_cases.json"", ""../v2-draft-20261001/teaching_basis.md"", ""../v2-draft-20261001/parent_questions.json""]",semantic_annotations.json#/entries/6,ai_content_reference
+SEM-NO-BASIS,semantic,"[""knowledge_base_new""]","[""../v2-draft-20261001/semantic_cases.json"", ""../v2-draft-20261001/teaching_basis.md""]",semantic_annotations.json#/entries/7,ai_content_reference
+IMG-FIGURE,image,"[""figure"", ""clear""]","[""../v2-draft-20261001/assets/figure.png"", ""../v2-draft-20261001/teaching_basis.md""]",image_annotations.json#/entries/0,ai_content_reference
+IMG-TABLE,image,"[""table"", ""clear""]","[""../v2-draft-20261001/assets/table.png"", ""../v2-draft-20261001/teaching_basis.md""]",image_annotations.json#/entries/1,ai_content_reference
+IMG-DIAGRAM,image,"[""diagram"", ""clear""]","[""../v2-draft-20261001/assets/diagram.png"", ""../v2-draft-20261001/teaching_basis.md"", ""../v2-draft-20261001/inputs/paper_cross_page.pdf""]",image_annotations.json#/entries/2,ai_content_reference
+IMG-UNCLEAR,image_fault,"[""unclear"", ""manual_review""]","[""../v2-draft-20261001/assets/diagram_low_resolution.png""]",image_annotations.json#/entries/3,contract_expectation_not_actual_outcome
+IMG-UNSUPPORTED,image_fault,"[""capability_unsupported""]","[""../v2-draft-20261001/assets/diagram.png""]",image_annotations.json#/entries/4,contract_expectation_not_actual_outcome
+IMG-FAILURE,image_fault,"[""provider_failure""]","[""../v2-draft-20261001/assets/diagram.png""]",image_annotations.json#/entries/5,contract_expectation_not_actual_outcome
+IMG-STALE,image_fault,"[""context_changed""]","[""../v2-draft-20261001/assets/diagram.png""]",image_annotations.json#/entries/6,contract_expectation_not_actual_outcome
+ASM-1-SAT,assembly,"[""satisfiable"", ""performance_workload""]","[""../v2-draft-20261001/question_pool.json"", ""../v2-draft-20261001/assembly_cases.json""]",assembly_annotations.json#/assembly_annotations/0,ai_content_reference
+ASM-1-UNSAT,assembly,"[""provably_unsatisfiable"", ""performance_workload""]","[""../v2-draft-20261001/question_pool.json"", ""../v2-draft-20261001/assembly_cases.json""]",assembly_annotations.json#/assembly_annotations/1,ai_content_reference
+ASM-25-SAT,assembly,"[""satisfiable"", ""performance_workload""]","[""../v2-draft-20261001/question_pool.json"", ""../v2-draft-20261001/assembly_cases.json""]",assembly_annotations.json#/assembly_annotations/2,ai_content_reference
+ASM-25-UNSAT,assembly,"[""provably_unsatisfiable"", ""performance_workload""]","[""../v2-draft-20261001/question_pool.json"", ""../v2-draft-20261001/assembly_cases.json""]",assembly_annotations.json#/assembly_annotations/3,ai_content_reference
+ASM-100-SAT,assembly,"[""satisfiable"", ""performance_workload""]","[""../v2-draft-20261001/question_pool.json"", ""../v2-draft-20261001/assembly_cases.json""]",assembly_annotations.json#/assembly_annotations/4,ai_content_reference
+ASM-100-UNSAT,assembly,"[""provably_unsatisfiable"", ""performance_workload""]","[""../v2-draft-20261001/question_pool.json"", ""../v2-draft-20261001/assembly_cases.json""]",assembly_annotations.json#/assembly_annotations/5,ai_content_reference
+ASM-200-SAT,assembly,"[""satisfiable"", ""legacy_request_boundary""]","[""../v2-draft-20261001/question_pool.json"", ""../v2-draft-20261001/assembly_cases.json""]",assembly_annotations.json#/assembly_annotations/6,ai_content_reference
+ASM-200-UNSAT,assembly,"[""provably_unsatisfiable"", ""legacy_request_boundary""]","[""../v2-draft-20261001/question_pool.json"", ""../v2-draft-20261001/assembly_cases.json""]",assembly_annotations.json#/assembly_annotations/7,ai_content_reference
+ASM-OVERRIDE,assembly,"[""explicit_score"", ""shared_knowledge"", ""figure""]","[""../v2-draft-20261001/question_pool.json"", ""../v2-draft-20261001/assembly_cases.json""]",assembly_annotations.json#/assembly_annotations/8,ai_content_reference
+ASM-EDIT,assembly,"[""replace"", ""reorder""]","[""../v2-draft-20261001/question_pool.json"", ""../v2-draft-20261001/assembly_cases.json""]",assembly_annotations.json#/assembly_annotations/9,ai_content_reference
+ASM-LEGACY,assembly,"[""no_constraints""]","[""../v2-draft-20261001/question_pool.json"", ""../v2-draft-20261001/assembly_cases.json""]",assembly_annotations.json#/assembly_annotations/10,ai_content_reference
+ASM-FAIL-RESTART,assembly,"[""preserve_draft"", ""restart""]","[""../v2-draft-20261001/question_pool.json"", ""../v2-draft-20261001/assembly_cases.json""]",assembly_annotations.json#/assembly_annotations/11,ai_content_reference
+SCORE-POSITIVE,scoring,"[""rounding""]","[""../v2-draft-20261001/scoring_cases.json""]",assembly_annotations.json#/scoring_annotations/0,ai_content_reference
+SCORE-NEGATIVE,scoring,"[""rounding""]","[""../v2-draft-20261001/scoring_cases.json""]",assembly_annotations.json#/scoring_annotations/1,ai_content_reference
+SCORE-HALF,scoring,"[""boundary""]","[""../v2-draft-20261001/scoring_cases.json""]",assembly_annotations.json#/scoring_annotations/2,ai_content_reference
+SCORE-DEFAULT,scoring,"[""boundary""]","[""../v2-draft-20261001/scoring_cases.json""]",assembly_annotations.json#/scoring_annotations/3,ai_content_reference
+STATS-MIXED,statistics,"[""final"", ""pending_review"", ""failed"", ""insufficient_evidence"", ""zero_score"", ""no_submission"", ""different_exam_scores"", ""multiple_knowledge_points""]","[""../v2-draft-20261001/statistics_cases.json""]",statistics_annotations.json#/statistics_annotations/0,ai_content_reference
+STATS-EMPTY,statistics,"[""no_valid_final""]","[""../v2-draft-20261001/statistics_cases.json""]",statistics_annotations.json#/statistics_annotations/1,ai_content_reference
+FEEDBACK-SOURCES,feedback,"[""source_trace"", ""unauthorized"", ""missing_material"", ""unapproved_practice""]","[""../v2-draft-20261001/teaching_basis.md"", ""../v2-draft-20261001/question_pool.json"", ""../v2-draft-20261001/statistics_cases.json""]",statistics_annotations.json#/feedback_annotations/0,ai_content_reference
+UI-1,ui,"[""representative""]","[""../v2-draft-20261001/ui_delivery_cases.json""]",scenario_annotations.json#/entries/4,contract_expectation_not_actual_outcome
+UI-2,ui,"[""remaining_page""]","[""../v2-draft-20261001/ui_delivery_cases.json""]",scenario_annotations.json#/entries/5,contract_expectation_not_actual_outcome
+UI-3,ui,"[""remaining_page""]","[""../v2-draft-20261001/ui_delivery_cases.json""]",scenario_annotations.json#/entries/6,contract_expectation_not_actual_outcome
+UI-4,ui,"[""representative""]","[""../v2-draft-20261001/ui_delivery_cases.json""]",scenario_annotations.json#/entries/7,contract_expectation_not_actual_outcome
+UI-5,ui,"[""remaining_page""]","[""../v2-draft-20261001/ui_delivery_cases.json""]",scenario_annotations.json#/entries/8,contract_expectation_not_actual_outcome
+UI-6,ui,"[""remaining_page""]","[""../v2-draft-20261001/ui_delivery_cases.json""]",scenario_annotations.json#/entries/9,contract_expectation_not_actual_outcome
+UI-7,ui,"[""representative""]","[""../v2-draft-20261001/ui_delivery_cases.json""]",scenario_annotations.json#/entries/10,contract_expectation_not_actual_outcome
+DELIVERY-NORMAL,delivery,"[""windows_package"", ""restart""]","[""../v2-draft-20261001/ui_delivery_cases.json""]",scenario_annotations.json#/entries/11,contract_expectation_not_actual_outcome
+DELIVERY-FAULTS,delivery,"[""missing_dependency"", ""configuration"", ""network"", ""migration""]","[""../v2-draft-20261001/ui_delivery_cases.json""]",scenario_annotations.json#/entries/12,contract_expectation_not_actual_outcome
+RESTORE-COMPLETE,delivery,"[""backup"", ""consistent_set"", ""isolated_restore""]","[""../v2-draft-20261001/ui_delivery_cases.json""]",scenario_annotations.json#/entries/13,contract_expectation_not_actual_outcome
+RESTORE-MISSING,delivery,"[""missing_file"", ""preserve_original""]","[""../v2-draft-20261001/ui_delivery_cases.json""]",scenario_annotations.json#/entries/14,contract_expectation_not_actual_outcome
+PERF-IMPORT-1,import_performance,"[""1_pages""]","[""../v2-draft-20261001/inputs/paper_text.pdf""]",import_annotations.json#/entries/5,ai_content_reference
+PERF-IMPORT-10,import_performance,"[""10_pages""]","[""../v2-draft-20261001/inputs/workload_10_pages.pdf""]",import_annotations.json#/entries/6,ai_content_reference
+PERF-IMPORT-50,import_performance,"[""50_pages""]","[""../v2-draft-20261001/inputs/workload_50_pages.pdf""]",import_annotations.json#/entries/7,ai_content_reference
+SEM-CLEAR-GOOD,semantic,"[""knowledge_base_new"", ""explicit_positive_control"", ""short_answer""]","[""semantic_controls.json#SEM-CLEAR-GOOD""]",semantic_annotations.json#/entries/8,ai_content_reference
+SEM-CLEAR-ADAPT-GOOD,semantic,"[""parent_adaptation"", ""explicit_positive_control"", ""short_answer""]","[""semantic_controls.json#SEM-CLEAR-ADAPT-GOOD""]",semantic_annotations.json#/entries/9,ai_content_reference
+SEM-CLEAR-OPTIONS,semantic,"[""knowledge_base_new"", ""explicit_positive_control"", ""unique_options""]","[""semantic_controls.json#SEM-CLEAR-OPTIONS""]",semantic_annotations.json#/entries/10,ai_content_reference
+STATS-STARTED,statistics,"[""explicit_started"", ""different_exam_scores"", ""multiple_knowledge_points""]","[""statistics_controls.json""]",statistics_annotations.json#/statistics_annotations/2,ai_content_reference

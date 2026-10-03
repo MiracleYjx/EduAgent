@@ -1,0 +1,1012 @@
+{
+  "protocol_version": "v2-evaluation-1",
+  "dataset_version": "v2-ai-reference-20261003-1",
+  "annotation_version": "t146-ai-authorized-20261003-1",
+  "created_at": "2026-10-03T04:45:46.403754+00:00",
+  "source_commit": "585a66f9f5bf9db3e618391fd1f37f82b3177f8a",
+  "status": "ai_annotations_prepared_acceptance_pending",
+  "ready_for_ai_reference_evaluation": false,
+  "ready_for_independent_teacher_baseline": false,
+  "acceptance_decision": "awaiting_user_choice",
+  "annotation_author": {
+    "kind": "ai_assistant",
+    "name": "Codex",
+    "delegated_by": "current_chat_user",
+    "authorization_source": "current_chat_user_message"
+  },
+  "independent_teacher_labeled_cases": 0,
+  "human_reviewed_this_batch": 0,
+  "prior_T160_human_reviewed_cases": 5,
+  "original_case_ids": [
+    "IMP-TEXT",
+    "IMP-SCAN",
+    "IMP-IMAGE",
+    "IMP-MIXED",
+    "IMP-CROSS",
+    "IMP-DAMAGED",
+    "IMP-OVERLIMIT",
+    "IMP-OCR-OFF",
+    "IMP-OCR-FAIL",
+    "SEM-GOOD",
+    "SEM-ANSWER",
+    "SEM-CONDITION",
+    "SEM-OPTIONS",
+    "SEM-RUBRIC",
+    "SEM-ADAPT-GOOD",
+    "SEM-STALE",
+    "SEM-NO-BASIS",
+    "IMG-FIGURE",
+    "IMG-TABLE",
+    "IMG-DIAGRAM",
+    "IMG-UNCLEAR",
+    "IMG-UNSUPPORTED",
+    "IMG-FAILURE",
+    "IMG-STALE",
+    "ASM-1-SAT",
+    "ASM-1-UNSAT",
+    "ASM-25-SAT",
+    "ASM-25-UNSAT",
+    "ASM-100-SAT",
+    "ASM-100-UNSAT",
+    "ASM-200-SAT",
+    "ASM-200-UNSAT",
+    "ASM-OVERRIDE",
+    "ASM-EDIT",
+    "ASM-LEGACY",
+    "ASM-FAIL-RESTART",
+    "SCORE-POSITIVE",
+    "SCORE-NEGATIVE",
+    "SCORE-HALF",
+    "SCORE-DEFAULT",
+    "STATS-MIXED",
+    "STATS-EMPTY",
+    "FEEDBACK-SOURCES",
+    "UI-1",
+    "UI-2",
+    "UI-3",
+    "UI-4",
+    "UI-5",
+    "UI-6",
+    "UI-7",
+    "DELIVERY-NORMAL",
+    "DELIVERY-FAULTS",
+    "RESTORE-COMPLETE",
+    "RESTORE-MISSING",
+    "PERF-IMPORT-1",
+    "PERF-IMPORT-10",
+    "PERF-IMPORT-50"
+  ],
+  "added_case_ids": [
+    "SEM-CLEAR-GOOD",
+    "SEM-CLEAR-ADAPT-GOOD",
+    "SEM-CLEAR-OPTIONS",
+    "STATS-STARTED"
+  ],
+  "case_ids": [
+    "IMP-TEXT",
+    "IMP-SCAN",
+    "IMP-IMAGE",
+    "IMP-MIXED",
+    "IMP-CROSS",
+    "IMP-DAMAGED",
+    "IMP-OVERLIMIT",
+    "IMP-OCR-OFF",
+    "IMP-OCR-FAIL",
+    "SEM-GOOD",
+    "SEM-ANSWER",
+    "SEM-CONDITION",
+    "SEM-OPTIONS",
+    "SEM-RUBRIC",
+    "SEM-ADAPT-GOOD",
+    "SEM-STALE",
+    "SEM-NO-BASIS",
+    "IMG-FIGURE",
+    "IMG-TABLE",
+    "IMG-DIAGRAM",
+    "IMG-UNCLEAR",
+    "IMG-UNSUPPORTED",
+    "IMG-FAILURE",
+    "IMG-STALE",
+    "ASM-1-SAT",
+    "ASM-1-UNSAT",
+    "ASM-25-SAT",
+    "ASM-25-UNSAT",
+    "ASM-100-SAT",
+    "ASM-100-UNSAT",
+    "ASM-200-SAT",
+    "ASM-200-UNSAT",
+    "ASM-OVERRIDE",
+    "ASM-EDIT",
+    "ASM-LEGACY",
+    "ASM-FAIL-RESTART",
+    "SCORE-POSITIVE",
+    "SCORE-NEGATIVE",
+    "SCORE-HALF",
+    "SCORE-DEFAULT",
+    "STATS-MIXED",
+    "STATS-EMPTY",
+    "FEEDBACK-SOURCES",
+    "UI-1",
+    "UI-2",
+    "UI-3",
+    "UI-4",
+    "UI-5",
+    "UI-6",
+    "UI-7",
+    "DELIVERY-NORMAL",
+    "DELIVERY-FAULTS",
+    "RESTORE-COMPLETE",
+    "RESTORE-MISSING",
+    "PERF-IMPORT-1",
+    "PERF-IMPORT-10",
+    "PERF-IMPORT-50",
+    "SEM-CLEAR-GOOD",
+    "SEM-CLEAR-ADAPT-GOOD",
+    "SEM-CLEAR-OPTIONS",
+    "STATS-STARTED"
+  ],
+  "case_count": 61,
+  "family_counts": {
+    "import": 5,
+    "import_fault": 4,
+    "semantic": 11,
+    "image": 3,
+    "image_fault": 4,
+    "assembly": 12,
+    "scoring": 4,
+    "statistics": 3,
+    "feedback": 1,
+    "ui": 7,
+    "delivery": 4,
+    "import_performance": 3
+  },
+  "semantic_eligible_class_counts": {
+    "answer_correctness": {
+      "problem": 2,
+      "no_problem": 6,
+      "unknown": 3,
+      "not_applicable": 0
+    },
+    "condition_sufficiency": {
+      "problem": 3,
+      "no_problem": 8,
+      "unknown": 0,
+      "not_applicable": 0
+    },
+    "option_ambiguity": {
+      "problem": 1,
+      "no_problem": 1,
+      "unknown": 0,
+      "not_applicable": 9
+    },
+    "rubric_clarity": {
+      "problem": 2,
+      "no_problem": 4,
+      "unknown": 5,
+      "not_applicable": 0
+    }
+  },
+  "input_changes": "原57例源及所有旧标签保持；4新明确控制另存，未删除歧义例。",
+  "quality_thresholds": null,
+  "quality_status": "not_run_pending_T168",
+  "planned_quality": [
+    {
+      "case_id": "IMP-TEXT",
+      "family": "import",
+      "repeats": 3
+    },
+    {
+      "case_id": "IMP-SCAN",
+      "family": "import",
+      "repeats": 3
+    },
+    {
+      "case_id": "IMP-IMAGE",
+      "family": "import",
+      "repeats": 3
+    },
+    {
+      "case_id": "IMP-MIXED",
+      "family": "import",
+      "repeats": 3
+    },
+    {
+      "case_id": "IMP-CROSS",
+      "family": "import",
+      "repeats": 3
+    },
+    {
+      "case_id": "SEM-GOOD",
+      "family": "semantic",
+      "repeats": 3
+    },
+    {
+      "case_id": "SEM-ANSWER",
+      "family": "semantic",
+      "repeats": 3
+    },
+    {
+      "case_id": "SEM-CONDITION",
+      "family": "semantic",
+      "repeats": 3
+    },
+    {
+      "case_id": "SEM-OPTIONS",
+      "family": "semantic",
+      "repeats": 3
+    },
+    {
+      "case_id": "SEM-RUBRIC",
+      "family": "semantic",
+      "repeats": 3
+    },
+    {
+      "case_id": "SEM-ADAPT-GOOD",
+      "family": "semantic",
+      "repeats": 3
+    },
+    {
+      "case_id": "SEM-STALE",
+      "family": "semantic",
+      "repeats": 3
+    },
+    {
+      "case_id": "SEM-NO-BASIS",
+      "family": "semantic",
+      "repeats": 3
+    },
+    {
+      "case_id": "IMG-FIGURE",
+      "family": "image",
+      "repeats": 3
+    },
+    {
+      "case_id": "IMG-TABLE",
+      "family": "image",
+      "repeats": 3
+    },
+    {
+      "case_id": "IMG-DIAGRAM",
+      "family": "image",
+      "repeats": 3
+    },
+    {
+      "case_id": "SEM-CLEAR-GOOD",
+      "family": "semantic",
+      "repeats": 3
+    },
+    {
+      "case_id": "SEM-CLEAR-ADAPT-GOOD",
+      "family": "semantic",
+      "repeats": 3
+    },
+    {
+      "case_id": "SEM-CLEAR-OPTIONS",
+      "family": "semantic",
+      "repeats": 3
+    }
+  ],
+  "planned_runs": {
+    "business": [
+      {
+        "case_id": "IMP-TEXT",
+        "repeat_index": 1
+      },
+      {
+        "case_id": "IMP-SCAN",
+        "repeat_index": 1
+      },
+      {
+        "case_id": "IMP-IMAGE",
+        "repeat_index": 1
+      },
+      {
+        "case_id": "IMP-MIXED",
+        "repeat_index": 1
+      },
+      {
+        "case_id": "IMP-CROSS",
+        "repeat_index": 1
+      },
+      {
+        "case_id": "IMP-DAMAGED",
+        "repeat_index": 1
+      },
+      {
+        "case_id": "IMP-OVERLIMIT",
+        "repeat_index": 1
+      },
+      {
+        "case_id": "IMP-OCR-OFF",
+        "repeat_index": 1
+      },
+      {
+        "case_id": "IMP-OCR-FAIL",
+        "repeat_index": 1
+      },
+      {
+        "case_id": "SEM-GOOD",
+        "repeat_index": 1
+      },
+      {
+        "case_id": "SEM-ANSWER",
+        "repeat_index": 1
+      },
+      {
+        "case_id": "SEM-CONDITION",
+        "repeat_index": 1
+      },
+      {
+        "case_id": "SEM-OPTIONS",
+        "repeat_index": 1
+      },
+      {
+        "case_id": "SEM-RUBRIC",
+        "repeat_index": 1
+      },
+      {
+        "case_id": "SEM-ADAPT-GOOD",
+        "repeat_index": 1
+      },
+      {
+        "case_id": "SEM-STALE",
+        "repeat_index": 1
+      },
+      {
+        "case_id": "SEM-NO-BASIS",
+        "repeat_index": 1
+      },
+      {
+        "case_id": "IMG-FIGURE",
+        "repeat_index": 1
+      },
+      {
+        "case_id": "IMG-TABLE",
+        "repeat_index": 1
+      },
+      {
+        "case_id": "IMG-DIAGRAM",
+        "repeat_index": 1
+      },
+      {
+        "case_id": "IMG-UNCLEAR",
+        "repeat_index": 1
+      },
+      {
+        "case_id": "IMG-UNSUPPORTED",
+        "repeat_index": 1
+      },
+      {
+        "case_id": "IMG-FAILURE",
+        "repeat_index": 1
+      },
+      {
+        "case_id": "IMG-STALE",
+        "repeat_index": 1
+      },
+      {
+        "case_id": "ASM-1-SAT",
+        "repeat_index": 1
+      },
+      {
+        "case_id": "ASM-1-UNSAT",
+        "repeat_index": 1
+      },
+      {
+        "case_id": "ASM-25-SAT",
+        "repeat_index": 1
+      },
+      {
+        "case_id": "ASM-25-UNSAT",
+        "repeat_index": 1
+      },
+      {
+        "case_id": "ASM-100-SAT",
+        "repeat_index": 1
+      },
+      {
+        "case_id": "ASM-100-UNSAT",
+        "repeat_index": 1
+      },
+      {
+        "case_id": "ASM-200-SAT",
+        "repeat_index": 1
+      },
+      {
+        "case_id": "ASM-200-UNSAT",
+        "repeat_index": 1
+      },
+      {
+        "case_id": "ASM-OVERRIDE",
+        "repeat_index": 1
+      },
+      {
+        "case_id": "ASM-EDIT",
+        "repeat_index": 1
+      },
+      {
+        "case_id": "ASM-LEGACY",
+        "repeat_index": 1
+      },
+      {
+        "case_id": "ASM-FAIL-RESTART",
+        "repeat_index": 1
+      },
+      {
+        "case_id": "SCORE-POSITIVE",
+        "repeat_index": 1
+      },
+      {
+        "case_id": "SCORE-NEGATIVE",
+        "repeat_index": 1
+      },
+      {
+        "case_id": "SCORE-HALF",
+        "repeat_index": 1
+      },
+      {
+        "case_id": "SCORE-DEFAULT",
+        "repeat_index": 1
+      },
+      {
+        "case_id": "STATS-MIXED",
+        "repeat_index": 1
+      },
+      {
+        "case_id": "STATS-EMPTY",
+        "repeat_index": 1
+      },
+      {
+        "case_id": "FEEDBACK-SOURCES",
+        "repeat_index": 1
+      },
+      {
+        "case_id": "UI-1",
+        "repeat_index": 1
+      },
+      {
+        "case_id": "UI-2",
+        "repeat_index": 1
+      },
+      {
+        "case_id": "UI-3",
+        "repeat_index": 1
+      },
+      {
+        "case_id": "UI-4",
+        "repeat_index": 1
+      },
+      {
+        "case_id": "UI-5",
+        "repeat_index": 1
+      },
+      {
+        "case_id": "UI-6",
+        "repeat_index": 1
+      },
+      {
+        "case_id": "UI-7",
+        "repeat_index": 1
+      },
+      {
+        "case_id": "DELIVERY-NORMAL",
+        "repeat_index": 1
+      },
+      {
+        "case_id": "DELIVERY-FAULTS",
+        "repeat_index": 1
+      },
+      {
+        "case_id": "RESTORE-COMPLETE",
+        "repeat_index": 1
+      },
+      {
+        "case_id": "RESTORE-MISSING",
+        "repeat_index": 1
+      },
+      {
+        "case_id": "SEM-CLEAR-GOOD",
+        "repeat_index": 1
+      },
+      {
+        "case_id": "SEM-CLEAR-ADAPT-GOOD",
+        "repeat_index": 1
+      },
+      {
+        "case_id": "SEM-CLEAR-OPTIONS",
+        "repeat_index": 1
+      },
+      {
+        "case_id": "STATS-STARTED",
+        "repeat_index": 1
+      }
+    ],
+    "quality": [
+      {
+        "family": "import",
+        "repeat_indices": [
+          1,
+          2,
+          3
+        ]
+      },
+      {
+        "family": "semantic",
+        "repeat_indices": [
+          1,
+          2,
+          3
+        ]
+      },
+      {
+        "family": "image",
+        "repeat_indices": [
+          1,
+          2,
+          3
+        ]
+      }
+    ],
+    "performance": [
+      {
+        "kind": "import",
+        "case_id": "PERF-IMPORT-1",
+        "cold_repeats": 3,
+        "warm_repeats": 5
+      },
+      {
+        "kind": "import",
+        "case_id": "PERF-IMPORT-10",
+        "cold_repeats": 3,
+        "warm_repeats": 5
+      },
+      {
+        "kind": "import",
+        "case_id": "PERF-IMPORT-50",
+        "cold_repeats": 3,
+        "warm_repeats": 5
+      },
+      {
+        "kind": "assembly",
+        "case_id": "ASM-1-SAT",
+        "cold_repeats": 3,
+        "warm_repeats": 5
+      },
+      {
+        "kind": "assembly",
+        "case_id": "ASM-1-UNSAT",
+        "cold_repeats": 3,
+        "warm_repeats": 5
+      },
+      {
+        "kind": "assembly",
+        "case_id": "ASM-25-SAT",
+        "cold_repeats": 3,
+        "warm_repeats": 5
+      },
+      {
+        "kind": "assembly",
+        "case_id": "ASM-25-UNSAT",
+        "cold_repeats": 3,
+        "warm_repeats": 5
+      },
+      {
+        "kind": "assembly",
+        "case_id": "ASM-100-SAT",
+        "cold_repeats": 3,
+        "warm_repeats": 5
+      },
+      {
+        "kind": "assembly",
+        "case_id": "ASM-100-UNSAT",
+        "cold_repeats": 3,
+        "warm_repeats": 5
+      }
+    ],
+    "exe": {
+      "normal_case": "DELIVERY-NORMAL",
+      "first": 3,
+      "subsequent": 5
+    },
+    "correction": [
+      {
+        "case_id": "IMP-TEXT",
+        "cold_repeats": 3,
+        "warm_repeats": 5
+      },
+      {
+        "case_id": "IMP-SCAN",
+        "cold_repeats": 3,
+        "warm_repeats": 5
+      },
+      {
+        "case_id": "IMP-CROSS",
+        "cold_repeats": 3,
+        "warm_repeats": 5
+      }
+    ],
+    "warmup": {
+      "repeats_per_warm_workload": 1,
+      "included_in_timed_repeats": false,
+      "status": "planned_not_run"
+    }
+  },
+  "workloads": {
+    "import_pages": [
+      1,
+      10,
+      50
+    ],
+    "import_question_counts": [
+      3,
+      20,
+      100
+    ],
+    "assembly_question_counts": [
+      1,
+      25,
+      100
+    ],
+    "assembly_candidate_count": 300,
+    "legacy_request_count": 200,
+    "quality_repeats": 3,
+    "performance": {
+      "cold": 3,
+      "warm": 5
+    },
+    "exe": {
+      "first": 3,
+      "subsequent": 5
+    },
+    "concurrency": 1,
+    "parallelism_status": "prepared single-request workload; runtime config not yet locked"
+  },
+  "frozen_files": [
+    {
+      "path": "benchmark/corpus/v2-draft-20261001/.gitattributes",
+      "bytes": 138,
+      "sha256": "461ca8fc287b14283899b4e600b36591807ca2cfa77b1cc0af23874a8a67a855",
+      "origin": "unchanged_original_dataset"
+    },
+    {
+      "path": "benchmark/corpus/v2-draft-20261001/annotation_suggestions.json",
+      "bytes": 33117,
+      "sha256": "0d81fc7eff829b0a8b732a9420a4ca9ff5e478fd1e52c94fe2454c2a47d793a4",
+      "origin": "unchanged_original_dataset"
+    },
+    {
+      "path": "benchmark/corpus/v2-draft-20261001/annotations.json",
+      "bytes": 18812,
+      "sha256": "2568a079b93a3648fcf541384a9cf788e713bb2f988e1ee88d4acbcd1cd5207d",
+      "origin": "unchanged_original_dataset"
+    },
+    {
+      "path": "benchmark/corpus/v2-draft-20261001/assembly_cases.json",
+      "bytes": 24292,
+      "sha256": "cd0ad9a0f7d4f4b3e27409b9ed4b1ab04c61b8fc7fc90f6945b5b75909c2ef2f",
+      "origin": "unchanged_original_dataset"
+    },
+    {
+      "path": "benchmark/corpus/v2-draft-20261001/assets/diagram.png",
+      "bytes": 9665,
+      "sha256": "44bbbce885cdf7f8965364579d2007b375c069a904d79f487ac64518ae602b97",
+      "origin": "unchanged_original_dataset"
+    },
+    {
+      "path": "benchmark/corpus/v2-draft-20261001/assets/diagram_low_resolution.png",
+      "bytes": 654,
+      "sha256": "3763e327edc61924f8558605b115898fa586a097e6cc97aaad1d560d90f1eeb3",
+      "origin": "unchanged_original_dataset"
+    },
+    {
+      "path": "benchmark/corpus/v2-draft-20261001/assets/figure.png",
+      "bytes": 16435,
+      "sha256": "b5c34d74a385a5dca9bec9c56c0d5a2eb2ca5e0dc64338829aab50b90d488336",
+      "origin": "unchanged_original_dataset"
+    },
+    {
+      "path": "benchmark/corpus/v2-draft-20261001/assets/table.png",
+      "bytes": 12983,
+      "sha256": "6eb1e116bbe9df9a4071a355c3b77d26e3b1e596e5c3437042dfe21918ff9dd6",
+      "origin": "unchanged_original_dataset"
+    },
+    {
+      "path": "benchmark/corpus/v2-draft-20261001/assets.json",
+      "bytes": 2457,
+      "sha256": "9adf66c2c6a9b62741f46c1f982ff5e87418e881a1c8d965e3160dacc6723c12",
+      "origin": "unchanged_original_dataset"
+    },
+    {
+      "path": "benchmark/corpus/v2-draft-20261001/cases.json",
+      "bytes": 24203,
+      "sha256": "9999b1a31e4c2a1a79dbd586adb970b8e05a73131e45418f4c843f74df5ec072",
+      "origin": "unchanged_original_dataset"
+    },
+    {
+      "path": "benchmark/corpus/v2-draft-20261001/feedback_cases.json",
+      "bytes": 443,
+      "sha256": "36d0f36e7f0dc022a2e2751dfb598d492a776b1556d649aceadc79df50f3b3c5",
+      "origin": "unchanged_original_dataset"
+    },
+    {
+      "path": "benchmark/corpus/v2-draft-20261001/inputs/damaged.pdf",
+      "bytes": 50,
+      "sha256": "8928a9081f6cca2462be8412f4a520f471dbe79020e0576f1a3ce61bdfb5a3a5",
+      "origin": "unchanged_original_dataset"
+    },
+    {
+      "path": "benchmark/corpus/v2-draft-20261001/inputs/paper_cross_page.pdf",
+      "bytes": 47669,
+      "sha256": "8c6a18f125a37ff9107a563efb52f5e61ec8ce1debdb516059a1d5b7d58d1a23",
+      "origin": "unchanged_original_dataset"
+    },
+    {
+      "path": "benchmark/corpus/v2-draft-20261001/inputs/paper_image.png",
+      "bytes": 157944,
+      "sha256": "31cdc03d0d958c33d6d7815e330f521febe40e23eab0122f687344f8ed311199",
+      "origin": "unchanged_original_dataset"
+    },
+    {
+      "path": "benchmark/corpus/v2-draft-20261001/inputs/paper_mixed.pdf",
+      "bytes": 226277,
+      "sha256": "5c0affa1fb5ec3f3267972bce7cfbf67cf3abe067b59c9cdac0b45edd025f4ba",
+      "origin": "unchanged_original_dataset"
+    },
+    {
+      "path": "benchmark/corpus/v2-draft-20261001/inputs/paper_scan.pdf",
+      "bytes": 154527,
+      "sha256": "16aaa00c8b41ca1f5e5e77d6248e918953d054e725ebfb30548fec84cfe9ba5b",
+      "origin": "unchanged_original_dataset"
+    },
+    {
+      "path": "benchmark/corpus/v2-draft-20261001/inputs/paper_text.pdf",
+      "bytes": 72250,
+      "sha256": "74e4f9a21fd7bf778bab474f89bcede2680010e957cc435774205dbaa648c167",
+      "origin": "unchanged_original_dataset"
+    },
+    {
+      "path": "benchmark/corpus/v2-draft-20261001/inputs/workload_10_pages.pdf",
+      "bytes": 38362,
+      "sha256": "bdca8f730b989d0213f0efc7d31cdb2f252705c0d3a3da2c9c0736dffb14bee6",
+      "origin": "unchanged_original_dataset"
+    },
+    {
+      "path": "benchmark/corpus/v2-draft-20261001/inputs/workload_50_pages.pdf",
+      "bytes": 67151,
+      "sha256": "11fceae00e43a3ea0438bdc2efcef0ce242f7254f6012398c1aeddc08bd828f5",
+      "origin": "unchanged_original_dataset"
+    },
+    {
+      "path": "benchmark/corpus/v2-draft-20261001/inputs/workload_51_pages.pdf",
+      "bytes": 67876,
+      "sha256": "e37bf3d92a7e915f72cc2b7e976203a51d3b147c60546d25bfddd7acc75be67c",
+      "origin": "unchanged_original_dataset"
+    },
+    {
+      "path": "benchmark/corpus/v2-draft-20261001/parent_questions.json",
+      "bytes": 501,
+      "sha256": "e31bf7d8d67308d7959d15cb7079a2b6bae69f780ecb411d384b3d23321be19b",
+      "origin": "unchanged_original_dataset"
+    },
+    {
+      "path": "benchmark/corpus/v2-draft-20261001/question_pool.json",
+      "bytes": 193526,
+      "sha256": "c3b494b56cb2f34a88107568e0329ccfdf8f73ebb4b144f2ed95286b1bf99087",
+      "origin": "unchanged_original_dataset"
+    },
+    {
+      "path": "benchmark/corpus/v2-draft-20261001/README.md",
+      "bytes": 8968,
+      "sha256": "bf154240d44af403303331d7c2ee6e0575b48c16ee83729048ef7ae8fe4601d7",
+      "origin": "unchanged_original_dataset"
+    },
+    {
+      "path": "benchmark/corpus/v2-draft-20261001/scoring_cases.json",
+      "bytes": 1929,
+      "sha256": "005d8e5dfd0c3b3ff9cd89c03a42ad1bb68cfb7d92eb1e6c35f356d616ceec70",
+      "origin": "unchanged_original_dataset"
+    },
+    {
+      "path": "benchmark/corpus/v2-draft-20261001/semantic_cases.json",
+      "bytes": 2488,
+      "sha256": "12e943720431a42acc180c40903dbdafa548eefb0267983eb92c0964dfaf07e0",
+      "origin": "unchanged_original_dataset"
+    },
+    {
+      "path": "benchmark/corpus/v2-draft-20261001/source_images.json",
+      "bytes": 979,
+      "sha256": "3f45c01b8eef2c8c036457357adb53e0831916c60a75e77ccda1be9866832fbf",
+      "origin": "unchanged_original_dataset"
+    },
+    {
+      "path": "benchmark/corpus/v2-draft-20261001/statistics_cases.json",
+      "bytes": 4667,
+      "sha256": "42cf192cec650d71c263bcd0625320679598738d6844222fb60891e684fb55b8",
+      "origin": "unchanged_original_dataset"
+    },
+    {
+      "path": "benchmark/corpus/v2-draft-20261001/teacher_statistics.csv",
+      "bytes": 2284,
+      "sha256": "0d823700c3a1cf9d326e0dfc569901ebdb18264137bb8268d789b90b5b053a00",
+      "origin": "unchanged_original_dataset"
+    },
+    {
+      "path": "benchmark/corpus/v2-draft-20261001/teaching_basis.md",
+      "bytes": 301,
+      "sha256": "f2d176cda52aff08d811f6c0c70dc10b2799f4b3b20174dd5860b5353ba623c7",
+      "origin": "unchanged_original_dataset"
+    },
+    {
+      "path": "benchmark/corpus/v2-draft-20261001/templates/cases.csv",
+      "bytes": 96,
+      "sha256": "f36a9a1326b99e5e59b79d21b1243aefcc1667647d30da3f4661f54b6932c1a6",
+      "origin": "unchanged_original_dataset"
+    },
+    {
+      "path": "benchmark/corpus/v2-draft-20261001/templates/environment.json",
+      "bytes": 589,
+      "sha256": "bdad6515e834389b89fc2b600849d8a08926f83900dd3bdb23c372f97cf0265a",
+      "origin": "unchanged_original_dataset"
+    },
+    {
+      "path": "benchmark/corpus/v2-draft-20261001/templates/failures.jsonl",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "origin": "unchanged_original_dataset"
+    },
+    {
+      "path": "benchmark/corpus/v2-draft-20261001/templates/metrics.csv",
+      "bytes": 97,
+      "sha256": "c15904f119a9924ae68620189e99ffdf799084ad92268e94b88329f6b9b8aadb",
+      "origin": "unchanged_original_dataset"
+    },
+    {
+      "path": "benchmark/corpus/v2-draft-20261001/templates/run.json",
+      "bytes": 670,
+      "sha256": "2e01e2de29992a75a9310350e7cd35611867fe3b5138677e96527d2f23489119",
+      "origin": "unchanged_original_dataset"
+    },
+    {
+      "path": "benchmark/corpus/v2-draft-20261001/templates/timings.csv",
+      "bytes": 204,
+      "sha256": "8f49b8bf39b22c21155f9431ce840c91bdaaa5be225f2591699d9a5a3593ec37",
+      "origin": "unchanged_original_dataset"
+    },
+    {
+      "path": "benchmark/corpus/v2-draft-20261001/ui_delivery_cases.json",
+      "bytes": 2806,
+      "sha256": "3267c1fa4903545f5ed05e4b11b5a43d627804e168c1e9603191067a0c4f78b6",
+      "origin": "unchanged_original_dataset"
+    },
+    {
+      "path": "benchmark/corpus/v2-draft-20261001/manifest.json",
+      "bytes": 15068,
+      "sha256": "6a6e2791813bf2fe5345915f49b22414b1e4118326ef24dc735acebdfd085bd2",
+      "origin": "unchanged_original_dataset"
+    },
+    {
+      "path": "benchmark/corpus/t160-assisted-20261003/annotations.draft.json",
+      "bytes": 47888,
+      "sha256": "13095b3d62f9e0db14e92412e58923f6b2c1c83c0acf49ea356e306397e2ff9e",
+      "origin": "unchanged_original_dataset"
+    },
+    {
+      "path": "benchmark/corpus/t146-ai-authorized-20261003/.gitattributes",
+      "bytes": 79,
+      "sha256": "7231391c6b77fbb36c030b4c4aaa1c96717bab89eafc07a4393a912a90ee9d9f",
+      "origin": "new_ai_reference_package"
+    },
+    {
+      "path": "benchmark/corpus/t146-ai-authorized-20261003/annotations.json",
+      "bytes": 12666,
+      "sha256": "35c7809fad9d13ee5125862c00561cd8a12364890e36342557d1e7638d25bd2b",
+      "origin": "new_ai_reference_package"
+    },
+    {
+      "path": "benchmark/corpus/t146-ai-authorized-20261003/assembly_annotations.json",
+      "bytes": 292338,
+      "sha256": "daee1d203a9e669b69484799e081212cbb1783a63d93302082def3430130fa8b",
+      "origin": "new_ai_reference_package"
+    },
+    {
+      "path": "benchmark/corpus/t146-ai-authorized-20261003/cases.csv",
+      "bytes": 12400,
+      "sha256": "4aaba28b416f9f8d1cefec7dde662aa1164cbe4103895e15129d2937f708d716",
+      "origin": "new_ai_reference_package"
+    },
+    {
+      "path": "benchmark/corpus/t146-ai-authorized-20261003/cases.json",
+      "bytes": 34426,
+      "sha256": "76fd434821a22d830eb7b664ddada7d353dd0412ee24a03e14eee11635935790",
+      "origin": "new_ai_reference_package"
+    },
+    {
+      "path": "benchmark/corpus/t146-ai-authorized-20261003/environment.json",
+      "bytes": 1565,
+      "sha256": "18240143a7e45341da48764323eaf33143b6b502c310c34fe229acab305004f5",
+      "origin": "new_ai_reference_package"
+    },
+    {
+      "path": "benchmark/corpus/t146-ai-authorized-20261003/image_annotations.json",
+      "bytes": 31720,
+      "sha256": "de3bf5b2a78dad55abb9e43b3a119ebe7b49328858fba57298a3eb422194faa8",
+      "origin": "new_ai_reference_package"
+    },
+    {
+      "path": "benchmark/corpus/t146-ai-authorized-20261003/import_annotations.json",
+      "bytes": 278759,
+      "sha256": "c6965254e670225224ef28d4abc9efd54fef7d2b7a1841134c3fa11bfcc99350",
+      "origin": "new_ai_reference_package"
+    },
+    {
+      "path": "benchmark/corpus/t146-ai-authorized-20261003/README.md",
+      "bytes": 4640,
+      "sha256": "e591a433b9774d21cdc65aa7efdcc29c2720df16817f5cd3402e483c98fba2e5",
+      "origin": "new_ai_reference_package"
+    },
+    {
+      "path": "benchmark/corpus/t146-ai-authorized-20261003/review.md",
+      "bytes": 5584,
+      "sha256": "e405348847182da594e572fbb7f24202c8c1c71dbb553cd7988bcc6623674b85",
+      "origin": "new_ai_reference_package"
+    },
+    {
+      "path": "benchmark/corpus/t146-ai-authorized-20261003/scenario_annotations.json",
+      "bytes": 20010,
+      "sha256": "1e842f3aa152f12d0068f024f88d89372927b09f13fa7ae62ba25fad014b49ad",
+      "origin": "new_ai_reference_package"
+    },
+    {
+      "path": "benchmark/corpus/t146-ai-authorized-20261003/scenario_inputs.json",
+      "bytes": 2136,
+      "sha256": "c7965cb82683a08b51f56bd6e1064b931dbedc17e5761762ad973633016f9194",
+      "origin": "new_ai_reference_package"
+    },
+    {
+      "path": "benchmark/corpus/t146-ai-authorized-20261003/semantic_annotations.json",
+      "bytes": 62693,
+      "sha256": "34bcf9055dde31a014e3548635f227c3fa7d75115c7ef2526de8f369aad01bdd",
+      "origin": "new_ai_reference_package"
+    },
+    {
+      "path": "benchmark/corpus/t146-ai-authorized-20261003/semantic_controls.json",
+      "bytes": 2120,
+      "sha256": "d4a89489e572dc11a8452b959d435ef1f919cf78fab62904118aba71aebb4a89",
+      "origin": "new_ai_reference_package"
+    },
+    {
+      "path": "benchmark/corpus/t146-ai-authorized-20261003/semantic_labels.csv",
+      "bytes": 8064,
+      "sha256": "5d13d354d39c4b3b4bfb2155f441a40b6f24b70c2212cdb3431325115f1d717b",
+      "origin": "new_ai_reference_package"
+    },
+    {
+      "path": "benchmark/corpus/t146-ai-authorized-20261003/statistics_annotations.json",
+      "bytes": 54635,
+      "sha256": "2771f31d0a87a813a7436b64864eb0bc2bc35f4b85eb9fb46bb44660b59b4c53",
+      "origin": "new_ai_reference_package"
+    },
+    {
+      "path": "benchmark/corpus/t146-ai-authorized-20261003/statistics_controls.json",
+      "bytes": 5164,
+      "sha256": "ec59ca7acc3a6d0c497af6380dbcdd29263a6e762dd50aeea45a55a1c56e166c",
+      "origin": "new_ai_reference_package"
+    },
+    {
+      "path": "benchmark/corpus/t146-ai-authorized-20261003/statistics_reference.csv",
+      "bytes": 42811,
+      "sha256": "ab2d18410e3b085f7854646017dba69ebe111ed043c35018930ae99bcc931df9",
+      "origin": "new_ai_reference_package"
+    }
+  ],
+  "known_missing": [
+    "本批验收口径的用户选择",
+    "独立教师真值/真实人工复核",
+    "实际业务Approved候选/冻结考试/授权Chunk",
+    "本次实际OCR/Provider输出、延迟及资源",
+    "T188包与T191备份集"
+  ],
+  "business_gate_changes": false,
+  "annotation_rules_version": "v2-ai-reference-1",
+  "quality_population_rule": "applicable=true AND label != null; AI reference denominator separate from independent_teacher=0"
+}

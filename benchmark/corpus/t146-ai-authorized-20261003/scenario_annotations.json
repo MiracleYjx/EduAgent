@@ -1,0 +1,542 @@
+{
+  "annotation_version": "t146-ai-authorized-20261003-1",
+  "provenance": {
+    "author_kind": "ai_assistant",
+    "author_name": "Codex",
+    "annotated_at": "2026-10-03T04:36:10.561683+00:00",
+    "delegated_by": "current_chat_user",
+    "authorization_source": "current_chat_user_message",
+    "authorization_statement": "我授权你，以我的名义去做教师标注，执行 T146。",
+    "teacher_id": null,
+    "teacher_verified": false,
+    "human_reviewed": false,
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "is_independent_teacher_truth": false
+  },
+  "entries": [
+    {
+      "case_id": "IMP-DAMAGED",
+      "family": "import_fault",
+      "source_refs": [
+        "../v2-draft-20261001/inputs/damaged.pdf"
+      ],
+      "labels": {
+        "expected_action": "拒绝损坏输入并保留真实失败",
+        "execution_state": "not_run_in_T146",
+        "actual_outcome": null,
+        "expected": "reject_damaged_pdf",
+        "input_bytes": 50,
+        "exclude_from_content_quality": true
+      },
+      "provenance": {
+        "author_kind": "ai_assistant",
+        "author_name": "Codex",
+        "annotated_at": "2026-10-03T04:36:10.561683+00:00",
+        "delegated_by": "current_chat_user",
+        "authorization_source": "current_chat_user_message",
+        "authorization_statement": "我授权你，以我的名义去做教师标注，执行 T146。",
+        "teacher_id": null,
+        "teacher_verified": false,
+        "human_reviewed": false,
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "is_independent_teacher_truth": false
+      },
+      "annotation_kind": "declared_business_expectation_not_observed_runtime_truth"
+    },
+    {
+      "case_id": "IMP-OVERLIMIT",
+      "family": "import_fault",
+      "source_refs": [
+        "../v2-draft-20261001/inputs/workload_51_pages.pdf"
+      ],
+      "labels": {
+        "expected_action": "实际 51 页，按 50 页准入拒绝，不截断",
+        "execution_state": "not_run_in_T146",
+        "actual_outcome": null,
+        "expected": "reject_over_50_pages",
+        "actual_pages": 51,
+        "exclude_from_content_quality": true
+      },
+      "provenance": {
+        "author_kind": "ai_assistant",
+        "author_name": "Codex",
+        "annotated_at": "2026-10-03T04:36:10.561683+00:00",
+        "delegated_by": "current_chat_user",
+        "authorization_source": "current_chat_user_message",
+        "authorization_statement": "我授权你，以我的名义去做教师标注，执行 T146。",
+        "teacher_id": null,
+        "teacher_verified": false,
+        "human_reviewed": false,
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "is_independent_teacher_truth": false
+      },
+      "annotation_kind": "declared_business_expectation_not_observed_runtime_truth"
+    },
+    {
+      "case_id": "IMP-OCR-OFF",
+      "family": "import_fault",
+      "source_refs": [
+        "../v2-draft-20261001/inputs/paper_scan.pdf"
+      ],
+      "labels": {
+        "expected_action": "关闭 OCR，扫描页明确失败，不回退文字假成功",
+        "execution_state": "not_run_in_T146",
+        "actual_outcome": null,
+        "expected": "retain_failed_import_and_reason",
+        "ocr_enabled": false,
+        "requires_scan_page": true,
+        "exclude_from_content_quality": true
+      },
+      "provenance": {
+        "author_kind": "ai_assistant",
+        "author_name": "Codex",
+        "annotated_at": "2026-10-03T04:36:10.561683+00:00",
+        "delegated_by": "current_chat_user",
+        "authorization_source": "current_chat_user_message",
+        "authorization_statement": "我授权你，以我的名义去做教师标注，执行 T146。",
+        "teacher_id": null,
+        "teacher_verified": false,
+        "human_reviewed": false,
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "is_independent_teacher_truth": false
+      },
+      "annotation_kind": "declared_business_expectation_not_observed_runtime_truth"
+    },
+    {
+      "case_id": "IMP-OCR-FAIL",
+      "family": "import_fault",
+      "source_refs": [
+        "../v2-draft-20261001/inputs/paper_scan.pdf"
+      ],
+      "labels": {
+        "expected_action": "在可控 Provider 边界模拟真实错误；正式质量另需真实调用失败证据",
+        "execution_state": "not_run_in_T146",
+        "actual_outcome": null,
+        "expected": "retain_provider_failure_without_substitute",
+        "fault_injection": "controlled_ocr_provider_exception",
+        "is_real_provider_failure": false,
+        "exclude_from_content_quality": true
+      },
+      "provenance": {
+        "author_kind": "ai_assistant",
+        "author_name": "Codex",
+        "annotated_at": "2026-10-03T04:36:10.561683+00:00",
+        "delegated_by": "current_chat_user",
+        "authorization_source": "current_chat_user_message",
+        "authorization_statement": "我授权你，以我的名义去做教师标注，执行 T146。",
+        "teacher_id": null,
+        "teacher_verified": false,
+        "human_reviewed": false,
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "is_independent_teacher_truth": false
+      },
+      "annotation_kind": "declared_business_expectation_not_observed_runtime_truth"
+    },
+    {
+      "case_id": "UI-1",
+      "family": "ui",
+      "source_refs": [
+        "../v2-draft-20261001/ui_delivery_cases.json"
+      ],
+      "labels": {
+        "expected_action": "实际页面逐项列表/详情/编辑或对应查看、保存/取消、角色、失败状态；截图后补",
+        "execution_state": "not_run_in_T146",
+        "actual_outcome": null,
+        "page": "试卷导入与校正",
+        "required_actions": [
+          "按授权角色进入",
+          "加载列表/空态",
+          "选择详情",
+          "显式编辑或查看",
+          "保存/取消",
+          "刷新/重启后读取",
+          "缺文件/失败真实提示"
+        ],
+        "screenshots": [],
+        "browser_evidence": null
+      },
+      "provenance": {
+        "author_kind": "ai_assistant",
+        "author_name": "Codex",
+        "annotated_at": "2026-10-03T04:36:10.561683+00:00",
+        "delegated_by": "current_chat_user",
+        "authorization_source": "current_chat_user_message",
+        "authorization_statement": "我授权你，以我的名义去做教师标注，执行 T146。",
+        "teacher_id": null,
+        "teacher_verified": false,
+        "human_reviewed": false,
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "is_independent_teacher_truth": false
+      },
+      "annotation_kind": "declared_business_expectation_not_observed_runtime_truth"
+    },
+    {
+      "case_id": "UI-2",
+      "family": "ui",
+      "source_refs": [
+        "../v2-draft-20261001/ui_delivery_cases.json"
+      ],
+      "labels": {
+        "expected_action": "实际页面逐项列表/详情/编辑或对应查看、保存/取消、角色、失败状态；截图后补",
+        "execution_state": "not_run_in_T146",
+        "actual_outcome": null,
+        "page": "知识库",
+        "required_actions": [
+          "按授权角色进入",
+          "加载列表/空态",
+          "选择详情",
+          "显式编辑或查看",
+          "保存/取消",
+          "刷新/重启后读取",
+          "缺文件/失败真实提示"
+        ],
+        "screenshots": [],
+        "browser_evidence": null
+      },
+      "provenance": {
+        "author_kind": "ai_assistant",
+        "author_name": "Codex",
+        "annotated_at": "2026-10-03T04:36:10.561683+00:00",
+        "delegated_by": "current_chat_user",
+        "authorization_source": "current_chat_user_message",
+        "authorization_statement": "我授权你，以我的名义去做教师标注，执行 T146。",
+        "teacher_id": null,
+        "teacher_verified": false,
+        "human_reviewed": false,
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "is_independent_teacher_truth": false
+      },
+      "annotation_kind": "declared_business_expectation_not_observed_runtime_truth"
+    },
+    {
+      "case_id": "UI-3",
+      "family": "ui",
+      "source_refs": [
+        "../v2-draft-20261001/ui_delivery_cases.json"
+      ],
+      "labels": {
+        "expected_action": "实际页面逐项列表/详情/编辑或对应查看、保存/取消、角色、失败状态；截图后补",
+        "execution_state": "not_run_in_T146",
+        "actual_outcome": null,
+        "page": "AI 出题与审核",
+        "required_actions": [
+          "按授权角色进入",
+          "加载列表/空态",
+          "选择详情",
+          "显式编辑或查看",
+          "保存/取消",
+          "刷新/重启后读取",
+          "缺文件/失败真实提示"
+        ],
+        "screenshots": [],
+        "browser_evidence": null
+      },
+      "provenance": {
+        "author_kind": "ai_assistant",
+        "author_name": "Codex",
+        "annotated_at": "2026-10-03T04:36:10.561683+00:00",
+        "delegated_by": "current_chat_user",
+        "authorization_source": "current_chat_user_message",
+        "authorization_statement": "我授权你，以我的名义去做教师标注，执行 T146。",
+        "teacher_id": null,
+        "teacher_verified": false,
+        "human_reviewed": false,
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "is_independent_teacher_truth": false
+      },
+      "annotation_kind": "declared_business_expectation_not_observed_runtime_truth"
+    },
+    {
+      "case_id": "UI-4",
+      "family": "ui",
+      "source_refs": [
+        "../v2-draft-20261001/ui_delivery_cases.json"
+      ],
+      "labels": {
+        "expected_action": "实际页面逐项列表/详情/编辑或对应查看、保存/取消、角色、失败状态；截图后补",
+        "execution_state": "not_run_in_T146",
+        "actual_outcome": null,
+        "page": "组卷与考试",
+        "required_actions": [
+          "按授权角色进入",
+          "加载列表/空态",
+          "选择详情",
+          "显式编辑或查看",
+          "保存/取消",
+          "刷新/重启后读取",
+          "缺文件/失败真实提示"
+        ],
+        "screenshots": [],
+        "browser_evidence": null
+      },
+      "provenance": {
+        "author_kind": "ai_assistant",
+        "author_name": "Codex",
+        "annotated_at": "2026-10-03T04:36:10.561683+00:00",
+        "delegated_by": "current_chat_user",
+        "authorization_source": "current_chat_user_message",
+        "authorization_statement": "我授权你，以我的名义去做教师标注，执行 T146。",
+        "teacher_id": null,
+        "teacher_verified": false,
+        "human_reviewed": false,
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "is_independent_teacher_truth": false
+      },
+      "annotation_kind": "declared_business_expectation_not_observed_runtime_truth"
+    },
+    {
+      "case_id": "UI-5",
+      "family": "ui",
+      "source_refs": [
+        "../v2-draft-20261001/ui_delivery_cases.json"
+      ],
+      "labels": {
+        "expected_action": "实际页面逐项列表/详情/编辑或对应查看、保存/取消、角色、失败状态；截图后补",
+        "execution_state": "not_run_in_T146",
+        "actual_outcome": null,
+        "page": "阅卷",
+        "required_actions": [
+          "按授权角色进入",
+          "加载列表/空态",
+          "选择详情",
+          "显式编辑或查看",
+          "保存/取消",
+          "刷新/重启后读取",
+          "缺文件/失败真实提示"
+        ],
+        "screenshots": [],
+        "browser_evidence": null
+      },
+      "provenance": {
+        "author_kind": "ai_assistant",
+        "author_name": "Codex",
+        "annotated_at": "2026-10-03T04:36:10.561683+00:00",
+        "delegated_by": "current_chat_user",
+        "authorization_source": "current_chat_user_message",
+        "authorization_statement": "我授权你，以我的名义去做教师标注，执行 T146。",
+        "teacher_id": null,
+        "teacher_verified": false,
+        "human_reviewed": false,
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "is_independent_teacher_truth": false
+      },
+      "annotation_kind": "declared_business_expectation_not_observed_runtime_truth"
+    },
+    {
+      "case_id": "UI-6",
+      "family": "ui",
+      "source_refs": [
+        "../v2-draft-20261001/ui_delivery_cases.json"
+      ],
+      "labels": {
+        "expected_action": "实际页面逐项列表/详情/编辑或对应查看、保存/取消、角色、失败状态；截图后补",
+        "execution_state": "not_run_in_T146",
+        "actual_outcome": null,
+        "page": "教师分析",
+        "required_actions": [
+          "按授权角色进入",
+          "加载列表/空态",
+          "选择详情",
+          "显式编辑或查看",
+          "保存/取消",
+          "刷新/重启后读取",
+          "缺文件/失败真实提示"
+        ],
+        "screenshots": [],
+        "browser_evidence": null
+      },
+      "provenance": {
+        "author_kind": "ai_assistant",
+        "author_name": "Codex",
+        "annotated_at": "2026-10-03T04:36:10.561683+00:00",
+        "delegated_by": "current_chat_user",
+        "authorization_source": "current_chat_user_message",
+        "authorization_statement": "我授权你，以我的名义去做教师标注，执行 T146。",
+        "teacher_id": null,
+        "teacher_verified": false,
+        "human_reviewed": false,
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "is_independent_teacher_truth": false
+      },
+      "annotation_kind": "declared_business_expectation_not_observed_runtime_truth"
+    },
+    {
+      "case_id": "UI-7",
+      "family": "ui",
+      "source_refs": [
+        "../v2-draft-20261001/ui_delivery_cases.json"
+      ],
+      "labels": {
+        "expected_action": "实际页面逐项列表/详情/编辑或对应查看、保存/取消、角色、失败状态；截图后补",
+        "execution_state": "not_run_in_T146",
+        "actual_outcome": null,
+        "page": "学生首页与诊断",
+        "required_actions": [
+          "按授权角色进入",
+          "加载列表/空态",
+          "选择详情",
+          "显式编辑或查看",
+          "保存/取消",
+          "刷新/重启后读取",
+          "缺文件/失败真实提示"
+        ],
+        "screenshots": [],
+        "browser_evidence": null
+      },
+      "provenance": {
+        "author_kind": "ai_assistant",
+        "author_name": "Codex",
+        "annotated_at": "2026-10-03T04:36:10.561683+00:00",
+        "delegated_by": "current_chat_user",
+        "authorization_source": "current_chat_user_message",
+        "authorization_statement": "我授权你，以我的名义去做教师标注，执行 T146。",
+        "teacher_id": null,
+        "teacher_verified": false,
+        "human_reviewed": false,
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "is_independent_teacher_truth": false
+      },
+      "annotation_kind": "declared_business_expectation_not_observed_runtime_truth"
+    },
+    {
+      "case_id": "DELIVERY-NORMAL",
+      "family": "delivery",
+      "source_refs": [
+        "../v2-draft-20261001/ui_delivery_cases.json"
+      ],
+      "labels": {
+        "expected_action": "真实 T188 包首次3次/后续5次，不能用源码启动代替",
+        "execution_state": "not_run_in_T146",
+        "actual_outcome": null,
+        "package_ref": null,
+        "backup_manifest_ref": null,
+        "performance_measured": false,
+        "follow_up": "T189/T191",
+        "resource_peak_bytes": null
+      },
+      "provenance": {
+        "author_kind": "ai_assistant",
+        "author_name": "Codex",
+        "annotated_at": "2026-10-03T04:36:10.561683+00:00",
+        "delegated_by": "current_chat_user",
+        "authorization_source": "current_chat_user_message",
+        "authorization_statement": "我授权你，以我的名义去做教师标注，执行 T146。",
+        "teacher_id": null,
+        "teacher_verified": false,
+        "human_reviewed": false,
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "is_independent_teacher_truth": false
+      },
+      "annotation_kind": "declared_business_expectation_not_observed_runtime_truth"
+    },
+    {
+      "case_id": "DELIVERY-FAULTS",
+      "family": "delivery",
+      "source_refs": [
+        "../v2-draft-20261001/ui_delivery_cases.json"
+      ],
+      "labels": {
+        "expected_action": "分别注入前置故障，记录原失败、不打开正常业务入口",
+        "execution_state": "not_run_in_T146",
+        "actual_outcome": null,
+        "package_ref": null,
+        "backup_manifest_ref": null,
+        "performance_measured": false,
+        "follow_up": "T189/T191",
+        "resource_peak_bytes": null
+      },
+      "provenance": {
+        "author_kind": "ai_assistant",
+        "author_name": "Codex",
+        "annotated_at": "2026-10-03T04:36:10.561683+00:00",
+        "delegated_by": "current_chat_user",
+        "authorization_source": "current_chat_user_message",
+        "authorization_statement": "我授权你，以我的名义去做教师标注，执行 T146。",
+        "teacher_id": null,
+        "teacher_verified": false,
+        "human_reviewed": false,
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "is_independent_teacher_truth": false
+      },
+      "annotation_kind": "declared_business_expectation_not_observed_runtime_truth"
+    },
+    {
+      "case_id": "RESTORE-COMPLETE",
+      "family": "delivery",
+      "source_refs": [
+        "../v2-draft-20261001/ui_delivery_cases.json"
+      ],
+      "labels": {
+        "expected_action": "未来含原卷/页图/题图/资料/评分同一备份集，隔离核对后切换",
+        "execution_state": "not_run_in_T146",
+        "actual_outcome": null,
+        "package_ref": null,
+        "backup_manifest_ref": null,
+        "performance_measured": false,
+        "follow_up": "T189/T191",
+        "resource_peak_bytes": null
+      },
+      "provenance": {
+        "author_kind": "ai_assistant",
+        "author_name": "Codex",
+        "annotated_at": "2026-10-03T04:36:10.561683+00:00",
+        "delegated_by": "current_chat_user",
+        "authorization_source": "current_chat_user_message",
+        "authorization_statement": "我授权你，以我的名义去做教师标注，执行 T146。",
+        "teacher_id": null,
+        "teacher_verified": false,
+        "human_reviewed": false,
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "is_independent_teacher_truth": false
+      },
+      "annotation_kind": "declared_business_expectation_not_observed_runtime_truth"
+    },
+    {
+      "case_id": "RESTORE-MISSING",
+      "family": "delivery",
+      "source_refs": [
+        "../v2-draft-20261001/ui_delivery_cases.json"
+      ],
+      "labels": {
+        "expected_action": "从验收副本移除一份受引用文件，恢复失败保留原环境；不删除用户数据",
+        "execution_state": "not_run_in_T146",
+        "actual_outcome": null,
+        "package_ref": null,
+        "backup_manifest_ref": null,
+        "performance_measured": false,
+        "follow_up": "T189/T191",
+        "resource_peak_bytes": null
+      },
+      "provenance": {
+        "author_kind": "ai_assistant",
+        "author_name": "Codex",
+        "annotated_at": "2026-10-03T04:36:10.561683+00:00",
+        "delegated_by": "current_chat_user",
+        "authorization_source": "current_chat_user_message",
+        "authorization_statement": "我授权你，以我的名义去做教师标注，执行 T146。",
+        "teacher_id": null,
+        "teacher_verified": false,
+        "human_reviewed": false,
+        "reviewed_by": null,
+        "reviewed_at": null,
+        "is_independent_teacher_truth": false
+      },
+      "annotation_kind": "declared_business_expectation_not_observed_runtime_truth"
+    }
+  ]
+}

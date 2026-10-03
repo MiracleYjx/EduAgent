@@ -1,0 +1,1502 @@
+{
+  "annotation_version": "t146-ai-authorized-semantic-1",
+  "protocol_version": "v2-evaluation-1",
+  "task_id": "T146",
+  "evidence_kind": "ai_authored_reference_input",
+  "author_kind": "ai_assistant",
+  "author_name": "Codex",
+  "created_at_utc": "2026-10-03T04:33:33Z",
+  "authorization": {
+    "source": "current_chat_user_message",
+    "user_message_date": "2026-10-03",
+    "scope": "用户授权AI代做T146标注；保留AI真实作者",
+    "delegated_by": "current_chat_user",
+    "human_review_inferred": false
+  },
+  "human_reviewed": false,
+  "human_reviewer_id": null,
+  "human_reviewed_at_utc": null,
+  "is_independent_teacher_truth": false,
+  "teacher_identity": null,
+  "model_run_performed": false,
+  "quality_thresholds": null,
+  "formal_teacher_truth_requirement_replaced": false,
+  "label_semantics": {
+    "positive_class": "存在该类问题；true不是检查通过",
+    "false": "在已提供内容及明示适用范围内未发现该类问题；applicable=false是非选择题不适用，必须排除TN及可评正/负分母。",
+    "null": "当前依据无法判定或明示评分边界待核对，不能视为无问题或TN",
+    "issue_dimensions": [
+      "answer_correctness",
+      "condition_sufficiency",
+      "option_ambiguity",
+      "rubric_clarity"
+    ],
+    "missing_requirement": "能直接观察到关键条件/评分标准缺失时标true；答案缺失本身不证明答案错误",
+    "not_applicable_excluded_from_confusion_matrix": true
+  },
+  "source_files": [
+    {
+      "path": "benchmark/corpus/v2-draft-20261001/semantic_cases.json",
+      "sha256": "12e943720431a42acc180c40903dbdafa548eefb0267983eb92c0964dfaf07e0"
+    },
+    {
+      "path": "benchmark/corpus/v2-draft-20261001/teaching_basis.md",
+      "sha256": "f2d176cda52aff08d811f6c0c70dc10b2799f4b3b20174dd5860b5353ba623c7"
+    },
+    {
+      "path": "benchmark/corpus/v2-draft-20261001/parent_questions.json",
+      "sha256": "e31bf7d8d67308d7959d15cb7079a2b6bae69f780ecb411d384b3d23321be19b"
+    },
+    {
+      "path": ".specify/contracts/agent-workflow.md",
+      "sha256": "757dcb983ad598a4e87417c5c67172acdcde52ee005fa6a4f87db7f2f77cd63b"
+    },
+    {
+      "path": "benchmark/corpus/t146-ai-authorized-20261003/semantic_controls.json",
+      "sha256": "d4a89489e572dc11a8452b959d435ef1f919cf78fab62904118aba71aebb4a89"
+    }
+  ],
+  "entries": [
+    {
+      "case_id": "SEM-GOOD",
+      "input_origin": "original_unchanged_synthetic_fixture",
+      "input_snapshot": {
+        "case_id": "SEM-GOOD",
+        "generation_path": "knowledge_base_new",
+        "question": "y=2x+1，x=3，求y。",
+        "reference_answer": "7",
+        "scoring_rubric": "代入计算，5.00 分。",
+        "parent_fixture_id": null,
+        "teaching_basis_ref": "teaching_basis.md"
+      },
+      "author_kind": "ai_assistant",
+      "author_name": "Codex",
+      "annotated_at_utc": "2026-10-03T04:33:33Z",
+      "human_reviewed": false,
+      "human_reviewer_id": null,
+      "human_reviewed_at_utc": null,
+      "is_independent_teacher_truth": false,
+      "source_refs": [
+        "benchmark/corpus/v2-draft-20261001/semantic_cases.json#SEM-GOOD",
+        "benchmark/corpus/v2-draft-20261001/teaching_basis.md"
+      ],
+      "problem_labels": {
+        "answer_correctness": false,
+        "condition_sufficiency": false,
+        "option_ambiguity": false,
+        "rubric_clarity": null
+      },
+      "checks": {
+        "answer_correctness": {
+          "problem_present": false,
+          "verdict": "pass",
+          "applicable": true,
+          "reason": "代入 x=3 得 y=7；当前参考答案7与结果一致。",
+          "evidence": [
+            {
+              "source_ref": "benchmark/corpus/v2-draft-20261001/semantic_cases.json#SEM-GOOD/question",
+              "kind": "source_excerpt",
+              "quote": "y=2x+1，x=3，求y。"
+            },
+            {
+              "source_ref": "benchmark/corpus/v2-draft-20261001/semantic_cases.json#SEM-GOOD/reference_answer",
+              "kind": "source_excerpt",
+              "quote": "7"
+            },
+            {
+              "source_ref": "benchmark/corpus/v2-draft-20261001/teaching_basis.md",
+              "kind": "source_excerpt",
+              "quote": "一次函数：y=2x+1。代入x=3得y=7。"
+            }
+          ],
+          "derivation": [
+            "2×3+1=6+1=7。"
+          ],
+          "uncertainty_kind": null
+        },
+        "condition_sufficiency": {
+          "problem_present": false,
+          "verdict": "pass",
+          "applicable": true,
+          "reason": "函数式和自变量均明确，唯一确定 y。",
+          "evidence": [
+            {
+              "source_ref": "benchmark/corpus/v2-draft-20261001/semantic_cases.json#SEM-GOOD/question",
+              "kind": "source_excerpt",
+              "quote": "y=2x+1，x=3，求y。"
+            },
+            {
+              "source_ref": "benchmark/corpus/v2-draft-20261001/teaching_basis.md",
+              "kind": "source_excerpt",
+              "quote": "一次函数：y=2x+1。代入x=3得y=7。"
+            }
+          ],
+          "derivation": [
+            "函数是单值映射；已给 x=3，没有待确定的其他自变量。"
+          ],
+          "uncertainty_kind": null
+        },
+        "option_ambiguity": {
+          "problem_present": false,
+          "verdict": "pass",
+          "applicable": false,
+          "reason": "本题未提供选择题选项；按非选择题内容核对，选项歧义不适用。不是对缺失选择题选项的放行。",
+          "evidence": [
+            {
+              "source_ref": "benchmark/corpus/v2-draft-20261001/semantic_cases.json#SEM-GOOD",
+              "kind": "source_excerpt",
+              "quote": "y=2x+1，x=3，求y。"
+            }
+          ],
+          "derivation": [
+            "来源题干没有选项或选择题作答要求；本标注不伪造题型字段或选项。"
+          ],
+          "uncertainty_kind": null
+        },
+        "rubric_clarity": {
+          "problem_present": null,
+          "verdict": "needs_review",
+          "applicable": true,
+          "reason": "已明确代入/计算这一得分任务及5.00分，但没有说明仅式正确、仅结果正确等情况如何分配；不足以为所有评分边界确认明确。保留待核对，不直接断言这段简短标准错误。",
+          "evidence": [
+            {
+              "source_ref": "benchmark/corpus/v2-draft-20261001/semantic_cases.json#SEM-GOOD/scoring_rubric",
+              "kind": "source_excerpt",
+              "quote": "代入计算，5.00 分。"
+            }
+          ],
+          "derivation": [
+            "不从父题评分标准自动继承子题未写明的2+3分。",
+            "未补写“全对得5分、其余0分”等原文没有的规则。"
+          ],
+          "uncertainty_kind": "rubric_scoring_boundary"
+        }
+      }
+    },
+    {
+      "case_id": "SEM-ANSWER",
+      "input_origin": "original_unchanged_synthetic_fixture",
+      "input_snapshot": {
+        "case_id": "SEM-ANSWER",
+        "generation_path": "knowledge_base_new",
+        "question": "y=2x+1，x=3，求y。",
+        "reference_answer": "6",
+        "scoring_rubric": "代入计算，5.00 分。",
+        "parent_fixture_id": null,
+        "teaching_basis_ref": "teaching_basis.md"
+      },
+      "author_kind": "ai_assistant",
+      "author_name": "Codex",
+      "annotated_at_utc": "2026-10-03T04:33:33Z",
+      "human_reviewed": false,
+      "human_reviewer_id": null,
+      "human_reviewed_at_utc": null,
+      "is_independent_teacher_truth": false,
+      "source_refs": [
+        "benchmark/corpus/v2-draft-20261001/semantic_cases.json#SEM-ANSWER",
+        "benchmark/corpus/v2-draft-20261001/teaching_basis.md"
+      ],
+      "problem_labels": {
+        "answer_correctness": true,
+        "condition_sufficiency": false,
+        "option_ambiguity": false,
+        "rubric_clarity": null
+      },
+      "checks": {
+        "answer_correctness": {
+          "problem_present": true,
+          "verdict": "fail",
+          "applicable": true,
+          "reason": "代入 x=3 得 y=7；当前参考答案6与结果不等。",
+          "evidence": [
+            {
+              "source_ref": "benchmark/corpus/v2-draft-20261001/semantic_cases.json#SEM-ANSWER/question",
+              "kind": "source_excerpt",
+              "quote": "y=2x+1，x=3，求y。"
+            },
+            {
+              "source_ref": "benchmark/corpus/v2-draft-20261001/semantic_cases.json#SEM-ANSWER/reference_answer",
+              "kind": "source_excerpt",
+              "quote": "6"
+            },
+            {
+              "source_ref": "benchmark/corpus/v2-draft-20261001/teaching_basis.md",
+              "kind": "source_excerpt",
+              "quote": "一次函数：y=2x+1。代入x=3得y=7。"
+            }
+          ],
+          "derivation": [
+            "2×3+1=6+1=7。"
+          ],
+          "uncertainty_kind": null
+        },
+        "condition_sufficiency": {
+          "problem_present": false,
+          "verdict": "pass",
+          "applicable": true,
+          "reason": "函数式和自变量均明确，唯一确定 y。",
+          "evidence": [
+            {
+              "source_ref": "benchmark/corpus/v2-draft-20261001/semantic_cases.json#SEM-ANSWER/question",
+              "kind": "source_excerpt",
+              "quote": "y=2x+1，x=3，求y。"
+            },
+            {
+              "source_ref": "benchmark/corpus/v2-draft-20261001/teaching_basis.md",
+              "kind": "source_excerpt",
+              "quote": "一次函数：y=2x+1。代入x=3得y=7。"
+            }
+          ],
+          "derivation": [
+            "函数是单值映射；已给 x=3，没有待确定的其他自变量。"
+          ],
+          "uncertainty_kind": null
+        },
+        "option_ambiguity": {
+          "problem_present": false,
+          "verdict": "pass",
+          "applicable": false,
+          "reason": "本题未提供选择题选项；按非选择题内容核对，选项歧义不适用。不是对缺失选择题选项的放行。",
+          "evidence": [
+            {
+              "source_ref": "benchmark/corpus/v2-draft-20261001/semantic_cases.json#SEM-ANSWER",
+              "kind": "source_excerpt",
+              "quote": "y=2x+1，x=3，求y。"
+            }
+          ],
+          "derivation": [
+            "来源题干没有选项或选择题作答要求；本标注不伪造题型字段或选项。"
+          ],
+          "uncertainty_kind": null
+        },
+        "rubric_clarity": {
+          "problem_present": null,
+          "verdict": "needs_review",
+          "applicable": true,
+          "reason": "已明确代入/计算这一得分任务及5.00分，但没有说明仅式正确、仅结果正确等情况如何分配；不足以为所有评分边界确认明确。保留待核对，不直接断言这段简短标准错误。",
+          "evidence": [
+            {
+              "source_ref": "benchmark/corpus/v2-draft-20261001/semantic_cases.json#SEM-ANSWER/scoring_rubric",
+              "kind": "source_excerpt",
+              "quote": "代入计算，5.00 分。"
+            }
+          ],
+          "derivation": [
+            "不从父题评分标准自动继承子题未写明的2+3分。",
+            "未补写“全对得5分、其余0分”等原文没有的规则。"
+          ],
+          "uncertainty_kind": "rubric_scoring_boundary"
+        }
+      }
+    },
+    {
+      "case_id": "SEM-CONDITION",
+      "input_origin": "original_unchanged_synthetic_fixture",
+      "input_snapshot": {
+        "case_id": "SEM-CONDITION",
+        "generation_path": "knowledge_base_new",
+        "question": "矩形长3，求面积。",
+        "reference_answer": "6",
+        "scoring_rubric": "写出面积，5.00 分。",
+        "parent_fixture_id": null,
+        "teaching_basis_ref": "teaching_basis.md"
+      },
+      "author_kind": "ai_assistant",
+      "author_name": "Codex",
+      "annotated_at_utc": "2026-10-03T04:33:33Z",
+      "human_reviewed": false,
+      "human_reviewer_id": null,
+      "human_reviewed_at_utc": null,
+      "is_independent_teacher_truth": false,
+      "source_refs": [
+        "benchmark/corpus/v2-draft-20261001/semantic_cases.json#SEM-CONDITION",
+        "benchmark/corpus/v2-draft-20261001/teaching_basis.md"
+      ],
+      "problem_labels": {
+        "answer_correctness": null,
+        "condition_sufficiency": true,
+        "option_ambiguity": false,
+        "rubric_clarity": null
+      },
+      "checks": {
+        "answer_correctness": {
+          "problem_present": null,
+          "verdict": "insufficient_evidence",
+          "applicable": true,
+          "reason": "只给矩形长度3，不能确认答案6正确或错误；不能把未明示的宽度2从答案反推为题目条件。",
+          "evidence": [
+            {
+              "source_ref": "benchmark/corpus/v2-draft-20261001/semantic_cases.json#SEM-CONDITION/question",
+              "kind": "source_excerpt",
+              "quote": "矩形长3，求面积。"
+            },
+            {
+              "source_ref": "benchmark/corpus/v2-draft-20261001/semantic_cases.json#SEM-CONDITION/reference_answer",
+              "kind": "source_excerpt",
+              "quote": "6"
+            },
+            {
+              "source_ref": "benchmark/corpus/v2-draft-20261001/teaching_basis.md",
+              "kind": "source_excerpt",
+              "quote": "矩形面积需要长和宽，只有长度不能唯一确定面积。"
+            }
+          ],
+          "derivation": [
+            "若宽为1，面积为3；若宽为2，面积为6。两个不同结果都符合“长3”。",
+            "故参考答案6在某种缺失条件下可以成立，但当前题干无法证明。"
+          ],
+          "uncertainty_kind": null
+        },
+        "condition_sufficiency": {
+          "problem_present": true,
+          "verdict": "fail",
+          "applicable": true,
+          "reason": "矩形面积需要宽度，题干只给长度，存在多个符合条件的面积。",
+          "evidence": [
+            {
+              "source_ref": "benchmark/corpus/v2-draft-20261001/semantic_cases.json#SEM-CONDITION/question",
+              "kind": "source_excerpt",
+              "quote": "矩形长3，求面积。"
+            },
+            {
+              "source_ref": "benchmark/corpus/v2-draft-20261001/teaching_basis.md",
+              "kind": "source_excerpt",
+              "quote": "矩形面积需要长和宽，只有长度不能唯一确定面积。"
+            }
+          ],
+          "derivation": [
+            "面积=3×宽；宽未给定。",
+            "6并不是由“长3”唯一推出的值。"
+          ],
+          "uncertainty_kind": null
+        },
+        "option_ambiguity": {
+          "problem_present": false,
+          "verdict": "pass",
+          "applicable": false,
+          "reason": "本题未提供选择题选项；按非选择题内容核对，选项歧义不适用。不是对缺失选择题选项的放行。",
+          "evidence": [
+            {
+              "source_ref": "benchmark/corpus/v2-draft-20261001/semantic_cases.json#SEM-CONDITION",
+              "kind": "source_excerpt",
+              "quote": "矩形长3，求面积。"
+            }
+          ],
+          "derivation": [
+            "来源题干没有选项或选择题作答要求；本标注不伪造题型字段或选项。"
+          ],
+          "uncertainty_kind": null
+        },
+        "rubric_clarity": {
+          "problem_present": null,
+          "verdict": "needs_review",
+          "applicable": true,
+          "reason": "“写出面积，5.00分”没有说明结果判据/部分分边界；因面积本身不唯一，也不能从参考答案6自动构造可执行标准。",
+          "evidence": [
+            {
+              "source_ref": "benchmark/corpus/v2-draft-20261001/semantic_cases.json#SEM-CONDITION/scoring_rubric",
+              "kind": "source_excerpt",
+              "quote": "写出面积，5.00 分。"
+            },
+            {
+              "source_ref": "benchmark/corpus/v2-draft-20261001/semantic_cases.json#SEM-CONDITION/question",
+              "kind": "source_excerpt",
+              "quote": "矩形长3，求面积。"
+            }
+          ],
+          "derivation": [
+            "不将条件不足自动重复标为评分标准必错；当前只能确认需补充分值规则和可核对结果。"
+          ],
+          "uncertainty_kind": "rubric_scoring_boundary"
+        }
+      }
+    },
+    {
+      "case_id": "SEM-OPTIONS",
+      "input_origin": "original_unchanged_synthetic_fixture",
+      "input_snapshot": {
+        "case_id": "SEM-OPTIONS",
+        "generation_path": "knowledge_base_new",
+        "question": "2+2等于多少？选项A:4，B:4，C:5。",
+        "reference_answer": "A",
+        "scoring_rubric": "选A得2.00。",
+        "parent_fixture_id": null,
+        "teaching_basis_ref": "teaching_basis.md"
+      },
+      "author_kind": "ai_assistant",
+      "author_name": "Codex",
+      "annotated_at_utc": "2026-10-03T04:33:33Z",
+      "human_reviewed": false,
+      "human_reviewer_id": null,
+      "human_reviewed_at_utc": null,
+      "is_independent_teacher_truth": false,
+      "source_refs": [
+        "benchmark/corpus/v2-draft-20261001/semantic_cases.json#SEM-OPTIONS",
+        "benchmark/corpus/v2-draft-20261001/teaching_basis.md"
+      ],
+      "problem_labels": {
+        "answer_correctness": false,
+        "condition_sufficiency": false,
+        "option_ambiguity": true,
+        "rubric_clarity": false
+      },
+      "checks": {
+        "answer_correctness": {
+          "problem_present": false,
+          "verdict": "pass",
+          "applicable": true,
+          "reason": "2+2=4；A的内容为4，故所指值正确。A不唯一由选项歧义项单独标记，不能称A的算术值错误。",
+          "evidence": [
+            {
+              "source_ref": "benchmark/corpus/v2-draft-20261001/semantic_cases.json#SEM-OPTIONS/question",
+              "kind": "source_excerpt",
+              "quote": "2+2等于多少？选项A:4，B:4，C:5。"
+            },
+            {
+              "source_ref": "benchmark/corpus/v2-draft-20261001/semantic_cases.json#SEM-OPTIONS/reference_answer",
+              "kind": "source_excerpt",
+              "quote": "A"
+            }
+          ],
+          "derivation": [
+            "2+2=4。",
+            "选项A=4。"
+          ],
+          "uncertainty_kind": null
+        },
+        "condition_sufficiency": {
+          "problem_present": false,
+          "verdict": "pass",
+          "applicable": true,
+          "reason": "加法表达式足以唯一算出数值4；选项有两个等值答案属于选项歧义。",
+          "evidence": [
+            {
+              "source_ref": "benchmark/corpus/v2-draft-20261001/semantic_cases.json#SEM-OPTIONS/question",
+              "kind": "source_excerpt",
+              "quote": "2+2等于多少？选项A:4，B:4，C:5。"
+            }
+          ],
+          "derivation": [
+            "两操作数和加法运算明确。"
+          ],
+          "uncertainty_kind": null
+        },
+        "option_ambiguity": {
+          "problem_present": true,
+          "verdict": "fail",
+          "applicable": true,
+          "reason": "A和B均为4，题目只给单一参考键A；选择键缺乏唯一性。",
+          "evidence": [
+            {
+              "source_ref": "benchmark/corpus/v2-draft-20261001/semantic_cases.json#SEM-OPTIONS/question",
+              "kind": "source_excerpt",
+              "quote": "2+2等于多少？选项A:4，B:4，C:5。"
+            },
+            {
+              "source_ref": "benchmark/corpus/v2-draft-20261001/semantic_cases.json#SEM-OPTIONS/reference_answer",
+              "kind": "source_excerpt",
+              "quote": "A"
+            }
+          ],
+          "derivation": [
+            "A=4且B=4。",
+            "两键均等于2+2；不能无依据删除B或修改为其他值。"
+          ],
+          "uncertainty_kind": null
+        },
+        "rubric_clarity": {
+          "problem_present": false,
+          "verdict": "pass",
+          "applicable": true,
+          "reason": "“选A得2.00”明确了键及其得分；本项只判规则表达是否明确。它排除同值B的问题已作为选项歧义保留，不能因此宣称整体可批准。",
+          "evidence": [
+            {
+              "source_ref": "benchmark/corpus/v2-draft-20261001/semantic_cases.json#SEM-OPTIONS/scoring_rubric",
+              "kind": "source_excerpt",
+              "quote": "选A得2.00。"
+            },
+            {
+              "source_ref": "benchmark/corpus/v2-draft-20261001/semantic_cases.json#SEM-OPTIONS/question",
+              "kind": "source_excerpt",
+              "quote": "2+2等于多少？选项A:4，B:4，C:5。"
+            }
+          ],
+          "derivation": [
+            "标准明确指定A和2.00；未伪造其他键的分数。",
+            "内容公平性/正确性不以本项false消除。"
+          ],
+          "uncertainty_kind": null
+        }
+      }
+    },
+    {
+      "case_id": "SEM-RUBRIC",
+      "input_origin": "original_unchanged_synthetic_fixture",
+      "input_snapshot": {
+        "case_id": "SEM-RUBRIC",
+        "generation_path": "knowledge_base_new",
+        "question": "解释变量作用。",
+        "reference_answer": "保存并引用数据。",
+        "scoring_rubric": "看情况给分。",
+        "parent_fixture_id": null,
+        "teaching_basis_ref": "teaching_basis.md"
+      },
+      "author_kind": "ai_assistant",
+      "author_name": "Codex",
+      "annotated_at_utc": "2026-10-03T04:33:33Z",
+      "human_reviewed": false,
+      "human_reviewer_id": null,
+      "human_reviewed_at_utc": null,
+      "is_independent_teacher_truth": false,
+      "source_refs": [
+        "benchmark/corpus/v2-draft-20261001/semantic_cases.json#SEM-RUBRIC",
+        "benchmark/corpus/v2-draft-20261001/teaching_basis.md"
+      ],
+      "problem_labels": {
+        "answer_correctness": null,
+        "condition_sufficiency": true,
+        "option_ambiguity": false,
+        "rubric_clarity": true
+      },
+      "checks": {
+        "answer_correctness": {
+          "problem_present": null,
+          "verdict": "insufficient_evidence",
+          "applicable": true,
+          "reason": "“保存并引用数据”可对应程序变量，但当前题干未限定语境，实际教学依据只有一次函数与面积，不能确认该解释符合本题教学定义。",
+          "evidence": [
+            {
+              "source_ref": "benchmark/corpus/v2-draft-20261001/semantic_cases.json#SEM-RUBRIC/question",
+              "kind": "source_excerpt",
+              "quote": "解释变量作用。"
+            },
+            {
+              "source_ref": "benchmark/corpus/v2-draft-20261001/semantic_cases.json#SEM-RUBRIC/reference_answer",
+              "kind": "source_excerpt",
+              "quote": "保存并引用数据。"
+            },
+            {
+              "source_ref": "benchmark/corpus/v2-draft-20261001/teaching_basis.md",
+              "kind": "source_excerpt",
+              "quote": "# 合成教学依据（待教师核对）\n\n由 Codex 编写固定输入，非真实教师标注，也不是模型运行结果。\n\n一次函数：y=2x+1。代入x=3得y=7。\n\n三角形面积=底×高÷2，底6高4的面积为12。\n\n矩形面积需要长和宽，只有长度不能唯一确定面积。\n"
+            }
+          ],
+          "derivation": [
+            "来源教学依据没有关于编程变量或“保存并引用数据”的说明。",
+            "不以参考答案自身证明参考答案，不追加未提供的程序设计教学内容。"
+          ],
+          "uncertainty_kind": null
+        },
+        "condition_sufficiency": {
+          "problem_present": true,
+          "verdict": "fail",
+          "applicable": true,
+          "reason": "“变量”未限定数学或程序语境，且当前数学教学依据无法给出所要求的具体作用定义，缺少明确作答范围。",
+          "evidence": [
+            {
+              "source_ref": "benchmark/corpus/v2-draft-20261001/semantic_cases.json#SEM-RUBRIC/question",
+              "kind": "source_excerpt",
+              "quote": "解释变量作用。"
+            },
+            {
+              "source_ref": "benchmark/corpus/v2-draft-20261001/teaching_basis.md",
+              "kind": "source_excerpt",
+              "quote": "# 合成教学依据（待教师核对）\n\n由 Codex 编写固定输入，非真实教师标注，也不是模型运行结果。\n\n一次函数：y=2x+1。代入x=3得y=7。\n\n三角形面积=底×高÷2，底6高4的面积为12。\n\n矩形面积需要长和宽，只有长度不能唯一确定面积。\n"
+            }
+          ],
+          "derivation": [
+            "数学变量用于表示可变的量；程序变量的具体存储/绑定角色依语言而异。",
+            "本标注仅用这两种可能解释说明语境未确定，不把任一外部定义作为已提供教学证据。"
+          ],
+          "uncertainty_kind": null
+        },
+        "option_ambiguity": {
+          "problem_present": false,
+          "verdict": "pass",
+          "applicable": false,
+          "reason": "本题未提供选择题选项；按非选择题内容核对，选项歧义不适用。不是对缺失选择题选项的放行。",
+          "evidence": [
+            {
+              "source_ref": "benchmark/corpus/v2-draft-20261001/semantic_cases.json#SEM-RUBRIC",
+              "kind": "source_excerpt",
+              "quote": "解释变量作用。"
+            }
+          ],
+          "derivation": [
+            "来源题干没有选项或选择题作答要求；本标注不伪造题型字段或选项。"
+          ],
+          "uncertainty_kind": null
+        },
+        "rubric_clarity": {
+          "problem_present": true,
+          "verdict": "fail",
+          "applicable": true,
+          "reason": "“看情况给分”没有给出分值、评分要点或可执行判据，评分者无法据此复核一致性。",
+          "evidence": [
+            {
+              "source_ref": "benchmark/corpus/v2-draft-20261001/semantic_cases.json#SEM-RUBRIC/scoring_rubric",
+              "kind": "source_excerpt",
+              "quote": "看情况给分。"
+            }
+          ],
+          "derivation": [
+            "未说明哪种情况、哪些要点及各点多少分；明显占位标准。"
+          ],
+          "uncertainty_kind": null
+        }
+      }
+    },
+    {
+      "case_id": "SEM-ADAPT-GOOD",
+      "input_origin": "original_unchanged_synthetic_fixture",
+      "input_snapshot": {
+        "case_id": "SEM-ADAPT-GOOD",
+        "generation_path": "parent_adaptation",
+        "question": "父题x=3，答案7；改编x=4，求y。",
+        "reference_answer": "9",
+        "scoring_rubric": "代入2x+1，5.00 分。",
+        "parent_fixture_id": "parent-linear-x3",
+        "teaching_basis_ref": "teaching_basis.md",
+        "parent_source_ref": "parent_questions.json#parent-linear-x3"
+      },
+      "author_kind": "ai_assistant",
+      "author_name": "Codex",
+      "annotated_at_utc": "2026-10-03T04:33:33Z",
+      "human_reviewed": false,
+      "human_reviewer_id": null,
+      "human_reviewed_at_utc": null,
+      "is_independent_teacher_truth": false,
+      "source_refs": [
+        "benchmark/corpus/v2-draft-20261001/semantic_cases.json#SEM-ADAPT-GOOD",
+        "benchmark/corpus/v2-draft-20261001/teaching_basis.md",
+        "benchmark/corpus/v2-draft-20261001/parent_questions.json#parent-linear-x3"
+      ],
+      "problem_labels": {
+        "answer_correctness": false,
+        "condition_sufficiency": false,
+        "option_ambiguity": false,
+        "rubric_clarity": null
+      },
+      "checks": {
+        "answer_correctness": {
+          "problem_present": false,
+          "verdict": "pass",
+          "applicable": true,
+          "reason": "父题函数式 y=2x+1 沿用，但自变量改为4；计算结果9，当前答案9正确。",
+          "evidence": [
+            {
+              "source_ref": "benchmark/corpus/v2-draft-20261001/semantic_cases.json#SEM-ADAPT-GOOD/question",
+              "kind": "source_excerpt",
+              "quote": "父题x=3，答案7；改编x=4，求y。"
+            },
+            {
+              "source_ref": "benchmark/corpus/v2-draft-20261001/semantic_cases.json#SEM-ADAPT-GOOD/reference_answer",
+              "kind": "source_excerpt",
+              "quote": "9"
+            },
+            {
+              "source_ref": "benchmark/corpus/v2-draft-20261001/parent_questions.json#parent-linear-x3/content",
+              "kind": "source_excerpt",
+              "quote": "y=2x+1，x=3，求y。"
+            },
+            {
+              "source_ref": "benchmark/corpus/v2-draft-20261001/parent_questions.json#parent-linear-x3/reference_answer",
+              "kind": "source_excerpt",
+              "quote": "7"
+            },
+            {
+              "source_ref": "benchmark/corpus/v2-draft-20261001/teaching_basis.md",
+              "kind": "source_excerpt",
+              "quote": "一次函数：y=2x+1。代入x=3得y=7。"
+            }
+          ],
+          "derivation": [
+            "父题：2×3+1=7。",
+            "当前题：2×4+1=9。",
+            "自变量改变后需要按当前x重新计算，不沿用父题通过/答案。"
+          ],
+          "uncertainty_kind": null
+        },
+        "condition_sufficiency": {
+          "problem_present": false,
+          "verdict": "pass",
+          "applicable": true,
+          "reason": "本例明确提供真实父题夹具引用和同一函数教学依据；联同当前 x=4 可唯一确定 y。",
+          "evidence": [
+            {
+              "source_ref": "benchmark/corpus/v2-draft-20261001/semantic_cases.json#SEM-ADAPT-GOOD/question",
+              "kind": "source_excerpt",
+              "quote": "父题x=3，答案7；改编x=4，求y。"
+            },
+            {
+              "source_ref": "benchmark/corpus/v2-draft-20261001/parent_questions.json#parent-linear-x3/content",
+              "kind": "source_excerpt",
+              "quote": "y=2x+1，x=3，求y。"
+            },
+            {
+              "source_ref": "benchmark/corpus/v2-draft-20261001/teaching_basis.md",
+              "kind": "source_excerpt",
+              "quote": "一次函数：y=2x+1。代入x=3得y=7。"
+            }
+          ],
+          "derivation": [
+            "核对使用的输入包括 parent_questions.json#parent-linear-x3，不是凭父题名猜公式。",
+            "本结论只适用于携带该父题引用的夹具，若实际调用未传父题/公式应另判。"
+          ],
+          "uncertainty_kind": null
+        },
+        "option_ambiguity": {
+          "problem_present": false,
+          "verdict": "pass",
+          "applicable": false,
+          "reason": "本题未提供选择题选项；按非选择题内容核对，选项歧义不适用。不是对缺失选择题选项的放行。",
+          "evidence": [
+            {
+              "source_ref": "benchmark/corpus/v2-draft-20261001/semantic_cases.json#SEM-ADAPT-GOOD",
+              "kind": "source_excerpt",
+              "quote": "父题x=3，答案7；改编x=4，求y。"
+            }
+          ],
+          "derivation": [
+            "来源题干没有选项或选择题作答要求；本标注不伪造题型字段或选项。"
+          ],
+          "uncertainty_kind": null
+        },
+        "rubric_clarity": {
+          "problem_present": null,
+          "verdict": "needs_review",
+          "applicable": true,
+          "reason": "已明确代入/计算这一得分任务及5.00分，但没有说明仅式正确、仅结果正确等情况如何分配；不足以为所有评分边界确认明确。保留待核对，不直接断言这段简短标准错误。",
+          "evidence": [
+            {
+              "source_ref": "benchmark/corpus/v2-draft-20261001/semantic_cases.json#SEM-ADAPT-GOOD/scoring_rubric",
+              "kind": "source_excerpt",
+              "quote": "代入2x+1，5.00 分。"
+            }
+          ],
+          "derivation": [
+            "不从父题评分标准自动继承子题未写明的2+3分。",
+            "未补写“全对得5分、其余0分”等原文没有的规则。"
+          ],
+          "uncertainty_kind": "rubric_scoring_boundary"
+        }
+      }
+    },
+    {
+      "case_id": "SEM-STALE",
+      "input_origin": "original_unchanged_synthetic_fixture",
+      "input_snapshot": {
+        "case_id": "SEM-STALE",
+        "generation_path": "parent_adaptation",
+        "question": "父题x=3，答案7；改编x=4，仍沿用旧答案。",
+        "reference_answer": "7",
+        "scoring_rubric": "代入2x+1，5.00 分。",
+        "parent_fixture_id": "parent-linear-x3",
+        "teaching_basis_ref": "teaching_basis.md",
+        "parent_source_ref": "parent_questions.json#parent-linear-x3"
+      },
+      "author_kind": "ai_assistant",
+      "author_name": "Codex",
+      "annotated_at_utc": "2026-10-03T04:33:33Z",
+      "human_reviewed": false,
+      "human_reviewer_id": null,
+      "human_reviewed_at_utc": null,
+      "is_independent_teacher_truth": false,
+      "source_refs": [
+        "benchmark/corpus/v2-draft-20261001/semantic_cases.json#SEM-STALE",
+        "benchmark/corpus/v2-draft-20261001/teaching_basis.md",
+        "benchmark/corpus/v2-draft-20261001/parent_questions.json#parent-linear-x3"
+      ],
+      "problem_labels": {
+        "answer_correctness": true,
+        "condition_sufficiency": false,
+        "option_ambiguity": false,
+        "rubric_clarity": null
+      },
+      "checks": {
+        "answer_correctness": {
+          "problem_present": true,
+          "verdict": "fail",
+          "applicable": true,
+          "reason": "父题函数式 y=2x+1 沿用，但自变量改为4；计算结果9，旧答案7已失效。",
+          "evidence": [
+            {
+              "source_ref": "benchmark/corpus/v2-draft-20261001/semantic_cases.json#SEM-STALE/question",
+              "kind": "source_excerpt",
+              "quote": "父题x=3，答案7；改编x=4，仍沿用旧答案。"
+            },
+            {
+              "source_ref": "benchmark/corpus/v2-draft-20261001/semantic_cases.json#SEM-STALE/reference_answer",
+              "kind": "source_excerpt",
+              "quote": "7"
+            },
+            {
+              "source_ref": "benchmark/corpus/v2-draft-20261001/parent_questions.json#parent-linear-x3/content",
+              "kind": "source_excerpt",
+              "quote": "y=2x+1，x=3，求y。"
+            },
+            {
+              "source_ref": "benchmark/corpus/v2-draft-20261001/parent_questions.json#parent-linear-x3/reference_answer",
+              "kind": "source_excerpt",
+              "quote": "7"
+            },
+            {
+              "source_ref": "benchmark/corpus/v2-draft-20261001/teaching_basis.md",
+              "kind": "source_excerpt",
+              "quote": "一次函数：y=2x+1。代入x=3得y=7。"
+            }
+          ],
+          "derivation": [
+            "父题：2×3+1=7。",
+            "当前题：2×4+1=9。",
+            "自变量改变后需要按当前x重新计算，不沿用父题通过/答案。"
+          ],
+          "uncertainty_kind": null
+        },
+        "condition_sufficiency": {
+          "problem_present": false,
+          "verdict": "pass",
+          "applicable": true,
+          "reason": "本例明确提供真实父题夹具引用和同一函数教学依据；联同当前 x=4 可唯一确定 y。",
+          "evidence": [
+            {
+              "source_ref": "benchmark/corpus/v2-draft-20261001/semantic_cases.json#SEM-STALE/question",
+              "kind": "source_excerpt",
+              "quote": "父题x=3，答案7；改编x=4，仍沿用旧答案。"
+            },
+            {
+              "source_ref": "benchmark/corpus/v2-draft-20261001/parent_questions.json#parent-linear-x3/content",
+              "kind": "source_excerpt",
+              "quote": "y=2x+1，x=3，求y。"
+            },
+            {
+              "source_ref": "benchmark/corpus/v2-draft-20261001/teaching_basis.md",
+              "kind": "source_excerpt",
+              "quote": "一次函数：y=2x+1。代入x=3得y=7。"
+            }
+          ],
+          "derivation": [
+            "核对使用的输入包括 parent_questions.json#parent-linear-x3，不是凭父题名猜公式。",
+            "本结论只适用于携带该父题引用的夹具，若实际调用未传父题/公式应另判。"
+          ],
+          "uncertainty_kind": null
+        },
+        "option_ambiguity": {
+          "problem_present": false,
+          "verdict": "pass",
+          "applicable": false,
+          "reason": "本题未提供选择题选项；按非选择题内容核对，选项歧义不适用。不是对缺失选择题选项的放行。",
+          "evidence": [
+            {
+              "source_ref": "benchmark/corpus/v2-draft-20261001/semantic_cases.json#SEM-STALE",
+              "kind": "source_excerpt",
+              "quote": "父题x=3，答案7；改编x=4，仍沿用旧答案。"
+            }
+          ],
+          "derivation": [
+            "来源题干没有选项或选择题作答要求；本标注不伪造题型字段或选项。"
+          ],
+          "uncertainty_kind": null
+        },
+        "rubric_clarity": {
+          "problem_present": null,
+          "verdict": "needs_review",
+          "applicable": true,
+          "reason": "已明确代入/计算这一得分任务及5.00分，但没有说明仅式正确、仅结果正确等情况如何分配；不足以为所有评分边界确认明确。保留待核对，不直接断言这段简短标准错误。",
+          "evidence": [
+            {
+              "source_ref": "benchmark/corpus/v2-draft-20261001/semantic_cases.json#SEM-STALE/scoring_rubric",
+              "kind": "source_excerpt",
+              "quote": "代入2x+1，5.00 分。"
+            }
+          ],
+          "derivation": [
+            "不从父题评分标准自动继承子题未写明的2+3分。",
+            "未补写“全对得5分、其余0分”等原文没有的规则。"
+          ],
+          "uncertainty_kind": "rubric_scoring_boundary"
+        }
+      }
+    },
+    {
+      "case_id": "SEM-NO-BASIS",
+      "input_origin": "original_unchanged_synthetic_fixture",
+      "input_snapshot": {
+        "case_id": "SEM-NO-BASIS",
+        "generation_path": "knowledge_base_new",
+        "question": "根据未提供的教材图，求参数。",
+        "reference_answer": null,
+        "scoring_rubric": null,
+        "parent_fixture_id": null,
+        "teaching_basis_ref": null
+      },
+      "author_kind": "ai_assistant",
+      "author_name": "Codex",
+      "annotated_at_utc": "2026-10-03T04:33:33Z",
+      "human_reviewed": false,
+      "human_reviewer_id": null,
+      "human_reviewed_at_utc": null,
+      "is_independent_teacher_truth": false,
+      "source_refs": [
+        "benchmark/corpus/v2-draft-20261001/semantic_cases.json#SEM-NO-BASIS"
+      ],
+      "problem_labels": {
+        "answer_correctness": null,
+        "condition_sufficiency": true,
+        "option_ambiguity": false,
+        "rubric_clarity": true
+      },
+      "checks": {
+        "answer_correctness": {
+          "problem_present": null,
+          "verdict": "insufficient_evidence",
+          "applicable": true,
+          "reason": "参考答案为null且所指教材图未提供，没有可用于比较的答案或真实图像条件。",
+          "evidence": [
+            {
+              "source_ref": "benchmark/corpus/v2-draft-20261001/semantic_cases.json#SEM-NO-BASIS/question",
+              "kind": "source_excerpt",
+              "quote": "根据未提供的教材图，求参数。"
+            },
+            {
+              "source_ref": "benchmark/corpus/v2-draft-20261001/semantic_cases.json#SEM-NO-BASIS/reference_answer",
+              "kind": "observed_null",
+              "value": null
+            }
+          ],
+          "derivation": [
+            "已知缺失不同于已证明答案错误；不编造参数值或教材图。"
+          ],
+          "uncertainty_kind": null
+        },
+        "condition_sufficiency": {
+          "problem_present": true,
+          "verdict": "fail",
+          "applicable": true,
+          "reason": "题干显式依赖未提供的教材图，参数、关系和数据均缺失；关键条件确实不足。",
+          "evidence": [
+            {
+              "source_ref": "benchmark/corpus/v2-draft-20261001/semantic_cases.json#SEM-NO-BASIS/question",
+              "kind": "source_excerpt",
+              "quote": "根据未提供的教材图，求参数。"
+            },
+            {
+              "source_ref": "benchmark/corpus/v2-draft-20261001/semantic_cases.json#SEM-NO-BASIS/teaching_basis_ref",
+              "kind": "observed_null",
+              "value": null
+            }
+          ],
+          "derivation": [
+            "“根据未提供的教材图”本身提供了缺失事实，足以判定条件不足；不能因为缺图把这项也当成未知。"
+          ],
+          "uncertainty_kind": null
+        },
+        "option_ambiguity": {
+          "problem_present": false,
+          "verdict": "pass",
+          "applicable": false,
+          "reason": "本题未提供选择题选项；按非选择题内容核对，选项歧义不适用。不是对缺失选择题选项的放行。",
+          "evidence": [
+            {
+              "source_ref": "benchmark/corpus/v2-draft-20261001/semantic_cases.json#SEM-NO-BASIS",
+              "kind": "source_excerpt",
+              "quote": "根据未提供的教材图，求参数。"
+            }
+          ],
+          "derivation": [
+            "来源题干没有选项或选择题作答要求；本标注不伪造题型字段或选项。"
+          ],
+          "uncertainty_kind": null
+        },
+        "rubric_clarity": {
+          "problem_present": true,
+          "verdict": "fail",
+          "applicable": true,
+          "reason": "评分标准为null，是已知缺失；没有任何评分要点或分值规则。",
+          "evidence": [
+            {
+              "source_ref": "benchmark/corpus/v2-draft-20261001/semantic_cases.json#SEM-NO-BASIS/scoring_rubric",
+              "kind": "observed_null",
+              "value": null
+            }
+          ],
+          "derivation": [
+            "无评分标准时不能核对评分明确性；明确缺失记问题，而非把空值当清晰规则。"
+          ],
+          "uncertainty_kind": null
+        }
+      }
+    },
+    {
+      "case_id": "SEM-CLEAR-GOOD",
+      "input_origin": "new_explicit_control_synthetic_fixture",
+      "input_snapshot_source_ref": "benchmark/corpus/t146-ai-authorized-20261003/semantic_controls.json#SEM-CLEAR-GOOD",
+      "author_kind": "ai_assistant",
+      "author_name": "Codex",
+      "annotated_at_utc": "2026-10-03T04:33:33Z",
+      "human_reviewed": false,
+      "human_reviewer_id": null,
+      "human_reviewed_at_utc": null,
+      "is_independent_teacher_truth": false,
+      "source_refs": [
+        "benchmark/corpus/t146-ai-authorized-20261003/semantic_controls.json#SEM-CLEAR-GOOD",
+        "benchmark/corpus/v2-draft-20261001/teaching_basis.md"
+      ],
+      "problem_labels": {
+        "answer_correctness": false,
+        "condition_sufficiency": false,
+        "option_ambiguity": false,
+        "rubric_clarity": false
+      },
+      "checks": {
+        "answer_correctness": {
+          "problem_present": false,
+          "verdict": "pass",
+          "applicable": true,
+          "reason": "按明确公式代入x=3得y=7，参考答案一致。",
+          "evidence": [
+            {
+              "source_ref": "benchmark/corpus/t146-ai-authorized-20261003/semantic_controls.json#SEM-CLEAR-GOOD/reference_answer",
+              "kind": "source_excerpt",
+              "quote": "7"
+            },
+            {
+              "source_ref": "benchmark/corpus/t146-ai-authorized-20261003/semantic_controls.json#SEM-CLEAR-GOOD/content",
+              "kind": "source_excerpt",
+              "quote": "已知一次函数 y=2x+1。当 x=3 时，求 y。"
+            },
+            {
+              "source_ref": "benchmark/corpus/v2-draft-20261001/teaching_basis.md",
+              "kind": "source_excerpt",
+              "quote": "一次函数：y=2x+1。代入x=3得y=7。"
+            }
+          ],
+          "derivation": [
+            "2×3+1=7。"
+          ],
+          "uncertainty_kind": null
+        },
+        "condition_sufficiency": {
+          "problem_present": false,
+          "verdict": "pass",
+          "applicable": true,
+          "reason": "题干直接给出函数式、自变量及求解目标，唯一确定 y；不要求从父题省略内容猜测。",
+          "evidence": [
+            {
+              "source_ref": "benchmark/corpus/t146-ai-authorized-20261003/semantic_controls.json#SEM-CLEAR-GOOD/content",
+              "kind": "source_excerpt",
+              "quote": "已知一次函数 y=2x+1。当 x=3 时，求 y。"
+            }
+          ],
+          "derivation": [
+            "公式、自变量、目标齐全，无需未提供图片或其他参数。"
+          ],
+          "uncertainty_kind": null
+        },
+        "option_ambiguity": {
+          "problem_present": false,
+          "verdict": "pass",
+          "applicable": false,
+          "reason": "SHORT_ANSWER且options=null，本项不适用。",
+          "evidence": [
+            {
+              "source_ref": "benchmark/corpus/t146-ai-authorized-20261003/semantic_controls.json#SEM-CLEAR-GOOD/question_type",
+              "kind": "source_value",
+              "value": "SHORT_ANSWER"
+            },
+            {
+              "source_ref": "benchmark/corpus/t146-ai-authorized-20261003/semantic_controls.json#SEM-CLEAR-GOOD/options",
+              "kind": "observed_null",
+              "value": null
+            }
+          ],
+          "derivation": [
+            "没有选择题选项，不存在候选键重复。"
+          ],
+          "uncertainty_kind": null
+        },
+        "rubric_clarity": {
+          "problem_present": false,
+          "verdict": "pass",
+          "applicable": true,
+          "reason": "两个评分点及各自正确/错误/缺失处理均明确，2.00+3.00=5.00，与题目score一致。",
+          "evidence": [
+            {
+              "source_ref": "benchmark/corpus/t146-ai-authorized-20261003/semantic_controls.json#SEM-CLEAR-GOOD/scoring_rubric",
+              "kind": "source_excerpt",
+              "quote": "正确写出代入式 2.00 分；正确算出 y 的值 3.00 分；每个要点正确得该要点全部分数，错误或缺失得 0 分；合计 5.00 分。"
+            },
+            {
+              "source_ref": "benchmark/corpus/t146-ai-authorized-20261003/semantic_controls.json#SEM-CLEAR-GOOD/score",
+              "kind": "source_value",
+              "value": "5.00"
+            }
+          ],
+          "derivation": [
+            "正确代入式可得2.00，否则该点0；正确结果可得3.00，否则该点0。",
+            "总分上限5.00；不引入未写明部分分规则。"
+          ],
+          "uncertainty_kind": null
+        }
+      },
+      "input_snapshot": {
+        "case_id": "SEM-CLEAR-GOOD",
+        "generation_path": "knowledge_base_new",
+        "question_type": "SHORT_ANSWER",
+        "content": "已知一次函数 y=2x+1。当 x=3 时，求 y。",
+        "reference_answer": "7",
+        "analysis": "2×3+1=7。",
+        "score": "5.00",
+        "options": null,
+        "scoring_rubric": "正确写出代入式 2.00 分；正确算出 y 的值 3.00 分；每个要点正确得该要点全部分数，错误或缺失得 0 分；合计 5.00 分。",
+        "teaching_basis_ref": "../v2-draft-20261001/teaching_basis.md",
+        "parent_fixture_id": null,
+        "parent_source_ref": null,
+        "input_origin": "new_ai_authored_synthetic_positive_control"
+      }
+    },
+    {
+      "case_id": "SEM-CLEAR-ADAPT-GOOD",
+      "input_origin": "new_explicit_control_synthetic_fixture",
+      "input_snapshot_source_ref": "benchmark/corpus/t146-ai-authorized-20261003/semantic_controls.json#SEM-CLEAR-ADAPT-GOOD",
+      "author_kind": "ai_assistant",
+      "author_name": "Codex",
+      "annotated_at_utc": "2026-10-03T04:33:33Z",
+      "human_reviewed": false,
+      "human_reviewer_id": null,
+      "human_reviewed_at_utc": null,
+      "is_independent_teacher_truth": false,
+      "source_refs": [
+        "benchmark/corpus/t146-ai-authorized-20261003/semantic_controls.json#SEM-CLEAR-ADAPT-GOOD",
+        "benchmark/corpus/v2-draft-20261001/teaching_basis.md",
+        "benchmark/corpus/v2-draft-20261001/parent_questions.json#parent-linear-x3"
+      ],
+      "problem_labels": {
+        "answer_correctness": false,
+        "condition_sufficiency": false,
+        "option_ambiguity": false,
+        "rubric_clarity": false
+      },
+      "checks": {
+        "answer_correctness": {
+          "problem_present": false,
+          "verdict": "pass",
+          "applicable": true,
+          "reason": "按明确公式代入x=4得y=9，参考答案一致。",
+          "evidence": [
+            {
+              "source_ref": "benchmark/corpus/t146-ai-authorized-20261003/semantic_controls.json#SEM-CLEAR-ADAPT-GOOD/reference_answer",
+              "kind": "source_excerpt",
+              "quote": "9"
+            },
+            {
+              "source_ref": "benchmark/corpus/t146-ai-authorized-20261003/semantic_controls.json#SEM-CLEAR-ADAPT-GOOD/content",
+              "kind": "source_excerpt",
+              "quote": "已知一次函数 y=2x+1。当 x=4 时，求 y。"
+            },
+            {
+              "source_ref": "benchmark/corpus/v2-draft-20261001/teaching_basis.md",
+              "kind": "source_excerpt",
+              "quote": "一次函数：y=2x+1。代入x=3得y=7。"
+            },
+            {
+              "source_ref": "benchmark/corpus/v2-draft-20261001/parent_questions.json#parent-linear-x3/content",
+              "kind": "source_excerpt",
+              "quote": "y=2x+1，x=3，求y。"
+            }
+          ],
+          "derivation": [
+            "2×4+1=9。"
+          ],
+          "uncertainty_kind": null
+        },
+        "condition_sufficiency": {
+          "problem_present": false,
+          "verdict": "pass",
+          "applicable": true,
+          "reason": "题干直接给出函数式、自变量及求解目标，唯一确定 y；不要求从父题省略内容猜测。",
+          "evidence": [
+            {
+              "source_ref": "benchmark/corpus/t146-ai-authorized-20261003/semantic_controls.json#SEM-CLEAR-ADAPT-GOOD/content",
+              "kind": "source_excerpt",
+              "quote": "已知一次函数 y=2x+1。当 x=4 时，求 y。"
+            }
+          ],
+          "derivation": [
+            "公式、自变量、目标齐全，无需未提供图片或其他参数。"
+          ],
+          "uncertainty_kind": null
+        },
+        "option_ambiguity": {
+          "problem_present": false,
+          "verdict": "pass",
+          "applicable": false,
+          "reason": "SHORT_ANSWER且options=null，本项不适用。",
+          "evidence": [
+            {
+              "source_ref": "benchmark/corpus/t146-ai-authorized-20261003/semantic_controls.json#SEM-CLEAR-ADAPT-GOOD/question_type",
+              "kind": "source_value",
+              "value": "SHORT_ANSWER"
+            },
+            {
+              "source_ref": "benchmark/corpus/t146-ai-authorized-20261003/semantic_controls.json#SEM-CLEAR-ADAPT-GOOD/options",
+              "kind": "observed_null",
+              "value": null
+            }
+          ],
+          "derivation": [
+            "没有选择题选项，不存在候选键重复。"
+          ],
+          "uncertainty_kind": null
+        },
+        "rubric_clarity": {
+          "problem_present": false,
+          "verdict": "pass",
+          "applicable": true,
+          "reason": "两个评分点及各自正确/错误/缺失处理均明确，2.00+3.00=5.00，与题目score一致。",
+          "evidence": [
+            {
+              "source_ref": "benchmark/corpus/t146-ai-authorized-20261003/semantic_controls.json#SEM-CLEAR-ADAPT-GOOD/scoring_rubric",
+              "kind": "source_excerpt",
+              "quote": "正确写出代入式 2.00 分；正确算出 y 的值 3.00 分；每个要点正确得该要点全部分数，错误或缺失得 0 分；合计 5.00 分。"
+            },
+            {
+              "source_ref": "benchmark/corpus/t146-ai-authorized-20261003/semantic_controls.json#SEM-CLEAR-ADAPT-GOOD/score",
+              "kind": "source_value",
+              "value": "5.00"
+            }
+          ],
+          "derivation": [
+            "正确代入式可得2.00，否则该点0；正确结果可得3.00，否则该点0。",
+            "总分上限5.00；不引入未写明部分分规则。"
+          ],
+          "uncertainty_kind": null
+        }
+      },
+      "input_snapshot": {
+        "case_id": "SEM-CLEAR-ADAPT-GOOD",
+        "generation_path": "parent_adaptation",
+        "question_type": "SHORT_ANSWER",
+        "content": "已知一次函数 y=2x+1。当 x=4 时，求 y。",
+        "reference_answer": "9",
+        "analysis": "2×4+1=9。",
+        "score": "5.00",
+        "options": null,
+        "scoring_rubric": "正确写出代入式 2.00 分；正确算出 y 的值 3.00 分；每个要点正确得该要点全部分数，错误或缺失得 0 分；合计 5.00 分。",
+        "teaching_basis_ref": "../v2-draft-20261001/teaching_basis.md",
+        "parent_fixture_id": "parent-linear-x3",
+        "parent_source_ref": "../v2-draft-20261001/parent_questions.json#parent-linear-x3",
+        "input_origin": "new_ai_authored_synthetic_positive_control"
+      }
+    },
+    {
+      "case_id": "SEM-CLEAR-OPTIONS",
+      "input_origin": "new_explicit_control_synthetic_fixture",
+      "input_snapshot": {
+        "case_id": "SEM-CLEAR-OPTIONS",
+        "generation_path": "knowledge_base_new",
+        "question_type": "SINGLE_CHOICE",
+        "content": "已知一次函数 y=2x+1。当 x=3 时，y 等于多少？",
+        "options": {
+          "A": "7",
+          "B": "5",
+          "C": "6",
+          "D": "8"
+        },
+        "reference_answer": "A",
+        "analysis": "2×3+1=7，只有选项A等于7。",
+        "score": "2.00",
+        "scoring_rubric": "选择 A 得 2.00 分；选择 B、C、D 或未答得 0 分。",
+        "teaching_basis_ref": "../v2-draft-20261001/teaching_basis.md",
+        "parent_fixture_id": null,
+        "parent_source_ref": null,
+        "input_origin": "new_ai_authored_synthetic_negative_option_ambiguity_control"
+      },
+      "input_snapshot_source_ref": "benchmark/corpus/t146-ai-authorized-20261003/semantic_controls.json#SEM-CLEAR-OPTIONS",
+      "author_kind": "ai_assistant",
+      "author_name": "Codex",
+      "annotated_at_utc": "2026-10-03T04:42:36Z",
+      "human_reviewed": false,
+      "human_reviewer_id": null,
+      "human_reviewed_at_utc": null,
+      "is_independent_teacher_truth": false,
+      "source_refs": [
+        "benchmark/corpus/t146-ai-authorized-20261003/semantic_controls.json#SEM-CLEAR-OPTIONS",
+        "benchmark/corpus/v2-draft-20261001/teaching_basis.md"
+      ],
+      "problem_labels": {
+        "answer_correctness": false,
+        "condition_sufficiency": false,
+        "option_ambiguity": false,
+        "rubric_clarity": false
+      },
+      "checks": {
+        "answer_correctness": {
+          "problem_present": false,
+          "verdict": "pass",
+          "applicable": true,
+          "reason": "参考键A真实对应数值7，与已提供公式代入x=3所得一致。",
+          "evidence": [
+            {
+              "source_ref": "benchmark/corpus/t146-ai-authorized-20261003/semantic_controls.json#SEM-CLEAR-OPTIONS/reference_answer",
+              "kind": "source_value",
+              "value": "A"
+            },
+            {
+              "source_ref": "benchmark/corpus/t146-ai-authorized-20261003/semantic_controls.json#SEM-CLEAR-OPTIONS/options",
+              "kind": "source_value",
+              "value": {
+                "A": "7",
+                "B": "5",
+                "C": "6",
+                "D": "8"
+              }
+            },
+            {
+              "source_ref": "benchmark/corpus/t146-ai-authorized-20261003/semantic_controls.json#SEM-CLEAR-OPTIONS/content",
+              "kind": "source_value",
+              "value": "已知一次函数 y=2x+1。当 x=3 时，y 等于多少？"
+            },
+            {
+              "source_ref": "benchmark/corpus/v2-draft-20261001/teaching_basis.md",
+              "kind": "source_excerpt",
+              "quote": "一次函数：y=2x+1。代入x=3得y=7。"
+            }
+          ],
+          "derivation": [
+            "2×3+1=7。",
+            "A=7，因此参考答案A正确。"
+          ],
+          "uncertainty_kind": null
+        },
+        "condition_sufficiency": {
+          "problem_present": false,
+          "verdict": "pass",
+          "applicable": true,
+          "reason": "公式、自变量、目标及所有候选选项均明确，唯一求得y=7。",
+          "evidence": [
+            {
+              "source_ref": "benchmark/corpus/t146-ai-authorized-20261003/semantic_controls.json#SEM-CLEAR-OPTIONS/content",
+              "kind": "source_value",
+              "value": "已知一次函数 y=2x+1。当 x=3 时，y 等于多少？"
+            },
+            {
+              "source_ref": "benchmark/corpus/t146-ai-authorized-20261003/semantic_controls.json#SEM-CLEAR-OPTIONS/options",
+              "kind": "source_value",
+              "value": {
+                "A": "7",
+                "B": "5",
+                "C": "6",
+                "D": "8"
+              }
+            }
+          ],
+          "derivation": [
+            "已给y=2x+1与x=3，没有其他待确定参数或未提供图像。"
+          ],
+          "uncertainty_kind": null
+        },
+        "option_ambiguity": {
+          "problem_present": false,
+          "verdict": "pass",
+          "applicable": true,
+          "reason": "这是实际SINGLE_CHOICE负例：四个选项值互异，只有A等于7，不以非选择题的不适用记录冒充TN。",
+          "evidence": [
+            {
+              "source_ref": "benchmark/corpus/t146-ai-authorized-20261003/semantic_controls.json#SEM-CLEAR-OPTIONS/question_type",
+              "kind": "source_value",
+              "value": "SINGLE_CHOICE"
+            },
+            {
+              "source_ref": "benchmark/corpus/t146-ai-authorized-20261003/semantic_controls.json#SEM-CLEAR-OPTIONS/content",
+              "kind": "source_value",
+              "value": "已知一次函数 y=2x+1。当 x=3 时，y 等于多少？"
+            },
+            {
+              "source_ref": "benchmark/corpus/t146-ai-authorized-20261003/semantic_controls.json#SEM-CLEAR-OPTIONS/options",
+              "kind": "source_value",
+              "value": {
+                "A": "7",
+                "B": "5",
+                "C": "6",
+                "D": "8"
+              }
+            },
+            {
+              "source_ref": "benchmark/corpus/t146-ai-authorized-20261003/semantic_controls.json#SEM-CLEAR-OPTIONS/reference_answer",
+              "kind": "source_value",
+              "value": "A"
+            }
+          ],
+          "derivation": [
+            "A=7，B=5，C=6，D=8。",
+            "正确数值7在四个选项中仅出现一次，唯一正确键A。"
+          ],
+          "uncertainty_kind": null
+        },
+        "rubric_clarity": {
+          "problem_present": false,
+          "verdict": "pass",
+          "applicable": true,
+          "reason": "正确键得2.00，全部其他键及未答得0，边界和总分与score一致。",
+          "evidence": [
+            {
+              "source_ref": "benchmark/corpus/t146-ai-authorized-20261003/semantic_controls.json#SEM-CLEAR-OPTIONS/scoring_rubric",
+              "kind": "source_value",
+              "value": "选择 A 得 2.00 分；选择 B、C、D 或未答得 0 分。"
+            },
+            {
+              "source_ref": "benchmark/corpus/t146-ai-authorized-20261003/semantic_controls.json#SEM-CLEAR-OPTIONS/score",
+              "kind": "source_value",
+              "value": "2.00"
+            }
+          ],
+          "derivation": [
+            "选择A得2.00；B/C/D/未答各得0；不存在未规定选择情况或隐含部分分。"
+          ],
+          "uncertainty_kind": null
+        }
+      }
+    }
+  ],
+  "limitations": [
+    "原8例没有独立question_type/score/options字段，标注依据原题文本与提供的真实夹具；本文件不伪造可直接送生产API的完整请求。",
+    "原“GOOD”例的评分标准简短且未定义部分分边界，rubric_clarity保留null；另增两条明示规则的无问题对照，不改写历史原题。",
+    "SEM-RUBRIC答案语境与当前数学教学依据不对应，答案正确性保留null。",
+    "所引父题仅合成夹具，intended_status不是实际教师批准。",
+    "没有执行语义模型、OCR或性能测量；这些标签不是模型运行结果或质量证明。"
+  ],
+  "source_locator_convention": "path#case_id/field 使用本包唯一 case_id/parent_fixture_id 定位条目，再定位字段；不是生产 Chunk ID 或真实数据库身份。",
+  "source_inputs_checked_at_utc": "2026-10-03T04:42:36Z",
+  "annotation_counts": {
+    "case_count": 11,
+    "check_count": 44,
+    "by_dimension": {
+      "answer_correctness": {
+        "positive": 2,
+        "negative_applicable": 6,
+        "unknown": 3,
+        "not_applicable": 0
+      },
+      "condition_sufficiency": {
+        "positive": 3,
+        "negative_applicable": 8,
+        "unknown": 0,
+        "not_applicable": 0
+      },
+      "option_ambiguity": {
+        "positive": 1,
+        "negative_applicable": 1,
+        "unknown": 0,
+        "not_applicable": 9
+      },
+      "rubric_clarity": {
+        "positive": 2,
+        "negative_applicable": 4,
+        "unknown": 5,
+        "not_applicable": 0
+      }
+    },
+    "these_are_input_label_counts_not_model_confusion_counts": true
+  }
+}

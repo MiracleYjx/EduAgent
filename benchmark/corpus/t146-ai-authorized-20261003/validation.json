@@ -1,0 +1,31 @@
+{
+  "status": "passed",
+  "validated_at_utc": "2026-10-03T04:51:02.406414+00:00",
+  "case_count": 61,
+  "frozen_file_count": 56,
+  "semantic_case_count": 11,
+  "semantic_eligible_class_counts": {
+    "answer_correctness": {
+      "no_problem": 6,
+      "problem": 2
+    },
+    "condition_sufficiency": {
+      "no_problem": 8,
+      "problem": 3
+    },
+    "option_ambiguity": {
+      "problem": 1,
+      "no_problem": 1
+    },
+    "rubric_clarity": {
+      "no_problem": 4,
+      "problem": 2
+    }
+  },
+  "import_question_instances": 139,
+  "candidate_count": 300,
+  "statistics_csv_rows": 156,
+  "independent_teacher_labeled_cases": 0,
+  "model_calls": 0,
+  "business_acceptance_performed": false
+}

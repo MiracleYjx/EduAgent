@@ -1,0 +1,52 @@
+[
+  {
+    "case_id": "SEM-CLEAR-GOOD",
+    "generation_path": "knowledge_base_new",
+    "question_type": "SHORT_ANSWER",
+    "content": "已知一次函数 y=2x+1。当 x=3 时，求 y。",
+    "reference_answer": "7",
+    "analysis": "2×3+1=7。",
+    "score": "5.00",
+    "options": null,
+    "scoring_rubric": "正确写出代入式 2.00 分；正确算出 y 的值 3.00 分；每个要点正确得该要点全部分数，错误或缺失得 0 分；合计 5.00 分。",
+    "teaching_basis_ref": "../v2-draft-20261001/teaching_basis.md",
+    "parent_fixture_id": null,
+    "parent_source_ref": null,
+    "input_origin": "new_ai_authored_synthetic_positive_control"
+  },
+  {
+    "case_id": "SEM-CLEAR-ADAPT-GOOD",
+    "generation_path": "parent_adaptation",
+    "question_type": "SHORT_ANSWER",
+    "content": "已知一次函数 y=2x+1。当 x=4 时，求 y。",
+    "reference_answer": "9",
+    "analysis": "2×4+1=9。",
+    "score": "5.00",
+    "options": null,
+    "scoring_rubric": "正确写出代入式 2.00 分；正确算出 y 的值 3.00 分；每个要点正确得该要点全部分数，错误或缺失得 0 分；合计 5.00 分。",
+    "teaching_basis_ref": "../v2-draft-20261001/teaching_basis.md",
+    "parent_fixture_id": "parent-linear-x3",
+    "parent_source_ref": "../v2-draft-20261001/parent_questions.json#parent-linear-x3",
+    "input_origin": "new_ai_authored_synthetic_positive_control"
+  },
+  {
+    "case_id": "SEM-CLEAR-OPTIONS",
+    "generation_path": "knowledge_base_new",
+    "question_type": "SINGLE_CHOICE",
+    "content": "已知一次函数 y=2x+1。当 x=3 时，y 等于多少？",
+    "options": {
+      "A": "7",
+      "B": "5",
+      "C": "6",
+      "D": "8"
+    },
+    "reference_answer": "A",
+    "analysis": "2×3+1=7，只有选项A等于7。",
+    "score": "2.00",
+    "scoring_rubric": "选择 A 得 2.00 分；选择 B、C、D 或未答得 0 分。",
+    "teaching_basis_ref": "../v2-draft-20261001/teaching_basis.md",
+    "parent_fixture_id": null,
+    "parent_source_ref": null,
+    "input_origin": "new_ai_authored_synthetic_negative_option_ambiguity_control"
+  }
+]

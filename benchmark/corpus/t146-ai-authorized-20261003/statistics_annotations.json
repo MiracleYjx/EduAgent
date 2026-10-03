@@ -1,0 +1,1489 @@
+{
+  "schema_version": "t146-ai-reference-1",
+  "annotation_version": "t146-user-authorized-ai-reference-20261003-1",
+  "provenance": {
+    "author": {
+      "name": "Codex",
+      "kind": "ai_assistant"
+    },
+    "authorization_source": "current_chat_user_message",
+    "delegated_by": "current_chat_user",
+    "annotated_at": "2026-10-03T04:36:41.864641+00:00",
+    "is_independent_teacher_truth": false,
+    "human_review_status": "not_observed",
+    "human_reviewed_at": null,
+    "calculation_origin": "独立读取原始输入，使用Decimal/Fraction核算；未导入或调用业务统计代码。"
+  },
+  "source_files": {
+    "../v2-draft-20261001/statistics_cases.json": "42cf192cec650d71c263bcd0625320679598738d6844222fb60891e684fb55b8",
+    "statistics_controls.json": "ec59ca7acc3a6d0c497af6380dbcdd29263a6e762dd50aeea45a55a1c56e166c",
+    "../v2-draft-20261001/cases.json": "9999b1a31e4c2a1a79dbd586adb970b8e05a73131e45418f4c843f74df5ec072",
+    "../v2-draft-20261001/feedback_cases.json": "36d0f36e7f0dc022a2e2751dfb598d492a776b1556d649aceadc79df50f3b3c5",
+    "../v2-draft-20261001/teaching_basis.md": "f2d176cda52aff08d811f6c0c70dc10b2799f4b3b20174dd5860b5353ba623c7"
+  },
+  "distribution_definition": [
+    {
+      "bin_id": "0_to_below_60_percent",
+      "lower": "0",
+      "upper": "0.60",
+      "lower_inclusive": true,
+      "upper_inclusive": false
+    },
+    {
+      "bin_id": "60_to_below_80_percent",
+      "lower": "0.60",
+      "upper": "0.80",
+      "lower_inclusive": true,
+      "upper_inclusive": false
+    },
+    {
+      "bin_id": "80_to_100_percent",
+      "lower": "0.80",
+      "upper": "1.00",
+      "lower_inclusive": true,
+      "upper_inclusive": true
+    }
+  ],
+  "distribution_scope": "本批先固定报表分箱，非及格/质量阈值；同时保存原始精确成绩频数以复算。",
+  "population_rules": "Final才入成绩与得分率分母；非Final单列，未提交/未知开始不可伪造成0分或已参加。STATS-EMPTY使用原case指定selector state!=Final，仅标选定记录的零有效分母。",
+  "control_source_difference": {
+    "started": "STATS-STARTED显式S1..S5 true、S6 false，非从提交反推。",
+    "question_knowledge_points": "原STATS-MIXED与新STATS-STARTED的shared-short均为一次函数+表达与计算；新输入只增加显式started和case来源，未改原题标签或伪称历史事实。"
+  },
+  "statistics_annotations": [
+    {
+      "case_id": "STATS-MIXED",
+      "source_ref": "../v2-draft-20261001/statistics_cases.json",
+      "business_execution_status": "not_run",
+      "exams": [
+        {
+          "exam_fixture_id": "A",
+          "source_ref": "../v2-draft-20261001/statistics_cases.json",
+          "selected_student_ids": [
+            "S1",
+            "S2",
+            "S3",
+            "S4",
+            "S5"
+          ],
+          "excluded_final_student_ids": [],
+          "selector": "all declared submissions",
+          "input_origin": "受控合成夹具事实，不是实际学生业务记录",
+          "counts": {
+            "eligible": 6,
+            "submitted": 5,
+            "valid_final": 2,
+            "pending_review": 1,
+            "failed": 1,
+            "insufficient_evidence": 1,
+            "participated": null,
+            "no_submission": 1
+          },
+          "participation_evidence": {
+            "value": null,
+            "label_state": "unknown",
+            "reason": "原输入没有started/访问行为字段；提交5人只提供已参加下界5，S6是否已开始未知。",
+            "lower_bound": 5,
+            "upper_bound": 6
+          },
+          "exam_full_score": "5.00",
+          "final_student_ids": [
+            "S1",
+            "S2"
+          ],
+          "mean": {
+            "numerator": "4.00",
+            "denominator": 2,
+            "value": "2.00",
+            "reason": "只纳入完成全部评分和必要复核的Final记录；待复核/失败/缺依据不能作为0分。"
+          },
+          "whole_exam_rate": {
+            "numerator": "4.00",
+            "denominator": "10.00",
+            "exact_fraction": "2/5",
+            "decimal_value": "0.4",
+            "display": "0.4"
+          },
+          "distribution": {
+            "raw_exact_score_counts": {
+              "0.00": 1,
+              "4.00": 1
+            },
+            "normalised_bins": [
+              {
+                "bin_id": "0_to_below_60_percent",
+                "count": 1,
+                "denominator": 2,
+                "proportion": "0.5"
+              },
+              {
+                "bin_id": "60_to_below_80_percent",
+                "count": 0,
+                "denominator": 2,
+                "proportion": "0"
+              },
+              {
+                "bin_id": "80_to_100_percent",
+                "count": 1,
+                "denominator": 2,
+                "proportion": "0.5"
+              }
+            ],
+            "valid_final_denominator": 2,
+            "no_data": false,
+            "definition": "先以最终成绩/本场满分归一化，再按预定义半开区间统计；0.80进入末区间，1.00包含。分箱不是及格或质量验收阈值。"
+          },
+          "questions": [
+            {
+              "question_fixture_id": "shared-choice",
+              "published_knowledge_points_from_input": [
+                "一次函数"
+              ],
+              "valid_final_count": 2,
+              "max_score": "2.00",
+              "earned_sum": "2.00",
+              "lost_sum": "2.00",
+              "rate": {
+                "numerator": "2.00",
+                "denominator": "4.00",
+                "exact_fraction": "1/2",
+                "decimal_value": "0.5",
+                "display": "0.5"
+              }
+            },
+            {
+              "question_fixture_id": "shared-short",
+              "published_knowledge_points_from_input": [
+                "一次函数",
+                "表达与计算"
+              ],
+              "valid_final_count": 2,
+              "max_score": "3.00",
+              "earned_sum": "2.00",
+              "lost_sum": "4.00",
+              "rate": {
+                "numerator": "2.00",
+                "denominator": "6.00",
+                "exact_fraction": "1/3",
+                "decimal_value": "0.3333333333333333333333333333",
+                "display": "0.3333333333333333333333333333"
+              }
+            }
+          ],
+          "knowledge_points": [
+            {
+              "knowledge_point": "一次函数",
+              "question_fixture_ids": [
+                "shared-choice",
+                "shared-short"
+              ],
+              "valid_final_count": 2,
+              "earned_sum": "4.00",
+              "lost_sum": "6.00",
+              "rate": {
+                "numerator": "4.00",
+                "denominator": "10.00",
+                "exact_fraction": "2/5",
+                "decimal_value": "0.4",
+                "display": "0.4"
+              },
+              "membership_rule": "题目可归属多个知识点；每个知识点独立计算，不能将知识点lost_sum再求和当整卷失分。"
+            },
+            {
+              "knowledge_point": "表达与计算",
+              "question_fixture_ids": [
+                "shared-short"
+              ],
+              "valid_final_count": 2,
+              "earned_sum": "2.00",
+              "lost_sum": "4.00",
+              "rate": {
+                "numerator": "2.00",
+                "denominator": "6.00",
+                "exact_fraction": "1/3",
+                "decimal_value": "0.3333333333333333333333333333",
+                "display": "0.3333333333333333333333333333"
+              },
+              "membership_rule": "题目可归属多个知识点；每个知识点独立计算，不能将知识点lost_sum再求和当整卷失分。"
+            }
+          ],
+          "overlap_control": {
+            "whole_exam_lost_sum": "6.00",
+            "knowledge_lost_sum_if_wrongly_added": "10.00",
+            "duplicate_overlap_loss": "4.00",
+            "reason": "shared-short属于两个知识点；整卷损失按题目一次求和，知识点明细不得重复累计。"
+          },
+          "final_student_details": [
+            {
+              "student_fixture_id": "S1",
+              "final_total": "4.00",
+              "question_losses": {
+                "shared-choice": "0.00",
+                "shared-short": "1.00"
+              },
+              "knowledge_losses": {
+                "一次函数": "1.00",
+                "表达与计算": "1.00"
+              },
+              "whole_exam_loss": "1.00"
+            },
+            {
+              "student_fixture_id": "S2",
+              "final_total": "0.00",
+              "question_losses": {
+                "shared-choice": "2.00",
+                "shared-short": "3.00"
+              },
+              "knowledge_losses": {
+                "一次函数": "5.00",
+                "表达与计算": "3.00"
+              },
+              "whole_exam_loss": "5.00"
+            }
+          ],
+          "attention_reasons": [
+            {
+              "student_fixture_id": "S1",
+              "state": "Final",
+              "reason": "存在实际最终失分，逐题解释还需真实学生答案及Rubric。",
+              "treat_as_zero_score": null,
+              "deterministic_knowledge_gap": null
+            },
+            {
+              "student_fixture_id": "S2",
+              "state": "Final",
+              "reason": "真实最终得分0，按本场满分及逐题失分展示；不能据此补造具体答题原因。",
+              "treat_as_zero_score": null,
+              "deterministic_knowledge_gap": null
+            },
+            {
+              "student_fixture_id": "S3",
+              "state": "Pending Review",
+              "reason": "受控未完成状态，不作零分",
+              "treat_as_zero_score": false,
+              "deterministic_knowledge_gap": null
+            },
+            {
+              "student_fixture_id": "S4",
+              "state": "Failed",
+              "reason": "受控未完成状态，不作零分",
+              "treat_as_zero_score": false,
+              "deterministic_knowledge_gap": null
+            },
+            {
+              "student_fixture_id": "S5",
+              "state": "Insufficient Evidence",
+              "reason": "受控未完成状态，不作零分",
+              "treat_as_zero_score": false,
+              "deterministic_knowledge_gap": null
+            }
+          ]
+        },
+        {
+          "exam_fixture_id": "B",
+          "source_ref": "../v2-draft-20261001/statistics_cases.json",
+          "selected_student_ids": [
+            "S1",
+            "S2",
+            "S3",
+            "S4",
+            "S5"
+          ],
+          "excluded_final_student_ids": [],
+          "selector": "all declared submissions",
+          "input_origin": "受控合成夹具事实，不是实际学生业务记录",
+          "counts": {
+            "eligible": 6,
+            "submitted": 5,
+            "valid_final": 2,
+            "pending_review": 1,
+            "failed": 1,
+            "insufficient_evidence": 1,
+            "participated": null,
+            "no_submission": 1
+          },
+          "participation_evidence": {
+            "value": null,
+            "label_state": "unknown",
+            "reason": "原输入没有started/访问行为字段；提交5人只提供已参加下界5，S6是否已开始未知。",
+            "lower_bound": 5,
+            "upper_bound": 6
+          },
+          "exam_full_score": "10.00",
+          "final_student_ids": [
+            "S1",
+            "S2"
+          ],
+          "mean": {
+            "numerator": "8.00",
+            "denominator": 2,
+            "value": "4.00",
+            "reason": "只纳入完成全部评分和必要复核的Final记录；待复核/失败/缺依据不能作为0分。"
+          },
+          "whole_exam_rate": {
+            "numerator": "8.00",
+            "denominator": "20.00",
+            "exact_fraction": "2/5",
+            "decimal_value": "0.4",
+            "display": "0.4"
+          },
+          "distribution": {
+            "raw_exact_score_counts": {
+              "0.00": 1,
+              "8.00": 1
+            },
+            "normalised_bins": [
+              {
+                "bin_id": "0_to_below_60_percent",
+                "count": 1,
+                "denominator": 2,
+                "proportion": "0.5"
+              },
+              {
+                "bin_id": "60_to_below_80_percent",
+                "count": 0,
+                "denominator": 2,
+                "proportion": "0"
+              },
+              {
+                "bin_id": "80_to_100_percent",
+                "count": 1,
+                "denominator": 2,
+                "proportion": "0.5"
+              }
+            ],
+            "valid_final_denominator": 2,
+            "no_data": false,
+            "definition": "先以最终成绩/本场满分归一化，再按预定义半开区间统计；0.80进入末区间，1.00包含。分箱不是及格或质量验收阈值。"
+          },
+          "questions": [
+            {
+              "question_fixture_id": "shared-choice",
+              "published_knowledge_points_from_input": [
+                "一次函数"
+              ],
+              "valid_final_count": 2,
+              "max_score": "4.00",
+              "earned_sum": "4.00",
+              "lost_sum": "4.00",
+              "rate": {
+                "numerator": "4.00",
+                "denominator": "8.00",
+                "exact_fraction": "1/2",
+                "decimal_value": "0.5",
+                "display": "0.5"
+              }
+            },
+            {
+              "question_fixture_id": "shared-short",
+              "published_knowledge_points_from_input": [
+                "一次函数",
+                "表达与计算"
+              ],
+              "valid_final_count": 2,
+              "max_score": "6.00",
+              "earned_sum": "4.00",
+              "lost_sum": "8.00",
+              "rate": {
+                "numerator": "4.00",
+                "denominator": "12.00",
+                "exact_fraction": "1/3",
+                "decimal_value": "0.3333333333333333333333333333",
+                "display": "0.3333333333333333333333333333"
+              }
+            }
+          ],
+          "knowledge_points": [
+            {
+              "knowledge_point": "一次函数",
+              "question_fixture_ids": [
+                "shared-choice",
+                "shared-short"
+              ],
+              "valid_final_count": 2,
+              "earned_sum": "8.00",
+              "lost_sum": "12.00",
+              "rate": {
+                "numerator": "8.00",
+                "denominator": "20.00",
+                "exact_fraction": "2/5",
+                "decimal_value": "0.4",
+                "display": "0.4"
+              },
+              "membership_rule": "题目可归属多个知识点；每个知识点独立计算，不能将知识点lost_sum再求和当整卷失分。"
+            },
+            {
+              "knowledge_point": "表达与计算",
+              "question_fixture_ids": [
+                "shared-short"
+              ],
+              "valid_final_count": 2,
+              "earned_sum": "4.00",
+              "lost_sum": "8.00",
+              "rate": {
+                "numerator": "4.00",
+                "denominator": "12.00",
+                "exact_fraction": "1/3",
+                "decimal_value": "0.3333333333333333333333333333",
+                "display": "0.3333333333333333333333333333"
+              },
+              "membership_rule": "题目可归属多个知识点；每个知识点独立计算，不能将知识点lost_sum再求和当整卷失分。"
+            }
+          ],
+          "overlap_control": {
+            "whole_exam_lost_sum": "12.00",
+            "knowledge_lost_sum_if_wrongly_added": "20.00",
+            "duplicate_overlap_loss": "8.00",
+            "reason": "shared-short属于两个知识点；整卷损失按题目一次求和，知识点明细不得重复累计。"
+          },
+          "final_student_details": [
+            {
+              "student_fixture_id": "S1",
+              "final_total": "8.00",
+              "question_losses": {
+                "shared-choice": "0.00",
+                "shared-short": "2.00"
+              },
+              "knowledge_losses": {
+                "一次函数": "2.00",
+                "表达与计算": "2.00"
+              },
+              "whole_exam_loss": "2.00"
+            },
+            {
+              "student_fixture_id": "S2",
+              "final_total": "0.00",
+              "question_losses": {
+                "shared-choice": "4.00",
+                "shared-short": "6.00"
+              },
+              "knowledge_losses": {
+                "一次函数": "10.00",
+                "表达与计算": "6.00"
+              },
+              "whole_exam_loss": "10.00"
+            }
+          ],
+          "attention_reasons": [
+            {
+              "student_fixture_id": "S1",
+              "state": "Final",
+              "reason": "存在实际最终失分，逐题解释还需真实学生答案及Rubric。",
+              "treat_as_zero_score": null,
+              "deterministic_knowledge_gap": null
+            },
+            {
+              "student_fixture_id": "S2",
+              "state": "Final",
+              "reason": "真实最终得分0，按本场满分及逐题失分展示；不能据此补造具体答题原因。",
+              "treat_as_zero_score": null,
+              "deterministic_knowledge_gap": null
+            },
+            {
+              "student_fixture_id": "S3",
+              "state": "Pending Review",
+              "reason": "受控未完成状态，不作零分",
+              "treat_as_zero_score": false,
+              "deterministic_knowledge_gap": null
+            },
+            {
+              "student_fixture_id": "S4",
+              "state": "Failed",
+              "reason": "受控未完成状态，不作零分",
+              "treat_as_zero_score": false,
+              "deterministic_knowledge_gap": null
+            },
+            {
+              "student_fixture_id": "S5",
+              "state": "Insufficient Evidence",
+              "reason": "受控未完成状态，不作零分",
+              "treat_as_zero_score": false,
+              "deterministic_knowledge_gap": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "STATS-EMPTY",
+      "source_ref": "../v2-draft-20261001/statistics_cases.json",
+      "business_execution_status": "not_run",
+      "exams": [
+        {
+          "exam_fixture_id": "A",
+          "source_ref": "../v2-draft-20261001/statistics_cases.json",
+          "selected_student_ids": [
+            "S3",
+            "S4",
+            "S5"
+          ],
+          "excluded_final_student_ids": [
+            "S1",
+            "S2"
+          ],
+          "selector": "state != Final",
+          "input_origin": "受控合成夹具事实，不是实际学生业务记录",
+          "counts": {
+            "eligible": 6,
+            "submitted": "filtered_selection_only; use selected_observed_submissions",
+            "valid_final": 0,
+            "pending_review": 1,
+            "failed": 1,
+            "insufficient_evidence": 1,
+            "participated": null,
+            "selected_observed_submissions": 3,
+            "original_submitted_population": 5
+          },
+          "participation_evidence": {
+            "value": null,
+            "label_state": "unknown",
+            "reason": "原输入没有started/访问行为字段；提交5人只提供已参加下界5，S6是否已开始未知。",
+            "lower_bound": 5,
+            "upper_bound": 6
+          },
+          "exam_full_score": "5.00",
+          "final_student_ids": [],
+          "mean": {
+            "numerator": "0.00",
+            "denominator": 0,
+            "value": null,
+            "reason": "只纳入完成全部评分和必要复核的Final记录；待复核/失败/缺依据不能作为0分。"
+          },
+          "whole_exam_rate": {
+            "numerator": "0.00",
+            "denominator": "0.00",
+            "exact_fraction": null,
+            "decimal_value": null,
+            "display": "暂无数据"
+          },
+          "distribution": {
+            "raw_exact_score_counts": {},
+            "normalised_bins": [
+              {
+                "bin_id": "0_to_below_60_percent",
+                "count": 0,
+                "denominator": 0,
+                "proportion": null
+              },
+              {
+                "bin_id": "60_to_below_80_percent",
+                "count": 0,
+                "denominator": 0,
+                "proportion": null
+              },
+              {
+                "bin_id": "80_to_100_percent",
+                "count": 0,
+                "denominator": 0,
+                "proportion": null
+              }
+            ],
+            "valid_final_denominator": 0,
+            "no_data": true,
+            "definition": "先以最终成绩/本场满分归一化，再按预定义半开区间统计；0.80进入末区间，1.00包含。分箱不是及格或质量验收阈值。"
+          },
+          "questions": [
+            {
+              "question_fixture_id": "shared-choice",
+              "published_knowledge_points_from_input": [
+                "一次函数"
+              ],
+              "valid_final_count": 0,
+              "max_score": "2.00",
+              "earned_sum": null,
+              "lost_sum": null,
+              "rate": {
+                "numerator": "0.00",
+                "denominator": "0.00",
+                "exact_fraction": null,
+                "decimal_value": null,
+                "display": "暂无数据"
+              },
+              "label_state": "no_data",
+              "empty_set_arithmetic": {
+                "earned_sum": "0.00",
+                "max_score_sum": "0.00",
+                "reason": "空有效集合算术和，仅说明分母为0，不是观察到0分/0失分。"
+              }
+            },
+            {
+              "question_fixture_id": "shared-short",
+              "published_knowledge_points_from_input": [
+                "一次函数",
+                "表达与计算"
+              ],
+              "valid_final_count": 0,
+              "max_score": "3.00",
+              "earned_sum": null,
+              "lost_sum": null,
+              "rate": {
+                "numerator": "0.00",
+                "denominator": "0.00",
+                "exact_fraction": null,
+                "decimal_value": null,
+                "display": "暂无数据"
+              },
+              "label_state": "no_data",
+              "empty_set_arithmetic": {
+                "earned_sum": "0.00",
+                "max_score_sum": "0.00",
+                "reason": "空有效集合算术和，仅说明分母为0，不是观察到0分/0失分。"
+              }
+            }
+          ],
+          "knowledge_points": [
+            {
+              "knowledge_point": "一次函数",
+              "question_fixture_ids": [
+                "shared-choice",
+                "shared-short"
+              ],
+              "valid_final_count": 0,
+              "earned_sum": null,
+              "lost_sum": null,
+              "rate": {
+                "numerator": "0.00",
+                "denominator": "0.00",
+                "exact_fraction": null,
+                "decimal_value": null,
+                "display": "暂无数据"
+              },
+              "membership_rule": "题目可归属多个知识点；每个知识点独立计算，不能将知识点lost_sum再求和当整卷失分。",
+              "label_state": "no_data",
+              "empty_set_arithmetic": {
+                "earned_sum": "0.00",
+                "max_score_sum": "0.00",
+                "reason": "没有Final样本，失分展示暂无数据。"
+              }
+            },
+            {
+              "knowledge_point": "表达与计算",
+              "question_fixture_ids": [
+                "shared-short"
+              ],
+              "valid_final_count": 0,
+              "earned_sum": null,
+              "lost_sum": null,
+              "rate": {
+                "numerator": "0.00",
+                "denominator": "0.00",
+                "exact_fraction": null,
+                "decimal_value": null,
+                "display": "暂无数据"
+              },
+              "membership_rule": "题目可归属多个知识点；每个知识点独立计算，不能将知识点lost_sum再求和当整卷失分。",
+              "label_state": "no_data",
+              "empty_set_arithmetic": {
+                "earned_sum": "0.00",
+                "max_score_sum": "0.00",
+                "reason": "没有Final样本，失分展示暂无数据。"
+              }
+            }
+          ],
+          "overlap_control": {
+            "whole_exam_lost_sum": null,
+            "knowledge_lost_sum_if_wrongly_added": null,
+            "duplicate_overlap_loss": null,
+            "label_state": "no_data",
+            "reason": "空有效集合的算术和为0，但没有实际最终失分观测；展示暂无数据，不报0失分。"
+          },
+          "final_student_details": [],
+          "attention_reasons": [
+            {
+              "student_fixture_id": "S3",
+              "state": "Pending Review",
+              "reason": "受控未完成状态，不作零分",
+              "treat_as_zero_score": false,
+              "deterministic_knowledge_gap": null
+            },
+            {
+              "student_fixture_id": "S4",
+              "state": "Failed",
+              "reason": "受控未完成状态，不作零分",
+              "treat_as_zero_score": false,
+              "deterministic_knowledge_gap": null
+            },
+            {
+              "student_fixture_id": "S5",
+              "state": "Insufficient Evidence",
+              "reason": "受控未完成状态，不作零分",
+              "treat_as_zero_score": false,
+              "deterministic_knowledge_gap": null
+            }
+          ]
+        },
+        {
+          "exam_fixture_id": "B",
+          "source_ref": "../v2-draft-20261001/statistics_cases.json",
+          "selected_student_ids": [
+            "S3",
+            "S4",
+            "S5"
+          ],
+          "excluded_final_student_ids": [
+            "S1",
+            "S2"
+          ],
+          "selector": "state != Final",
+          "input_origin": "受控合成夹具事实，不是实际学生业务记录",
+          "counts": {
+            "eligible": 6,
+            "submitted": "filtered_selection_only; use selected_observed_submissions",
+            "valid_final": 0,
+            "pending_review": 1,
+            "failed": 1,
+            "insufficient_evidence": 1,
+            "participated": null,
+            "selected_observed_submissions": 3,
+            "original_submitted_population": 5
+          },
+          "participation_evidence": {
+            "value": null,
+            "label_state": "unknown",
+            "reason": "原输入没有started/访问行为字段；提交5人只提供已参加下界5，S6是否已开始未知。",
+            "lower_bound": 5,
+            "upper_bound": 6
+          },
+          "exam_full_score": "10.00",
+          "final_student_ids": [],
+          "mean": {
+            "numerator": "0.00",
+            "denominator": 0,
+            "value": null,
+            "reason": "只纳入完成全部评分和必要复核的Final记录；待复核/失败/缺依据不能作为0分。"
+          },
+          "whole_exam_rate": {
+            "numerator": "0.00",
+            "denominator": "0.00",
+            "exact_fraction": null,
+            "decimal_value": null,
+            "display": "暂无数据"
+          },
+          "distribution": {
+            "raw_exact_score_counts": {},
+            "normalised_bins": [
+              {
+                "bin_id": "0_to_below_60_percent",
+                "count": 0,
+                "denominator": 0,
+                "proportion": null
+              },
+              {
+                "bin_id": "60_to_below_80_percent",
+                "count": 0,
+                "denominator": 0,
+                "proportion": null
+              },
+              {
+                "bin_id": "80_to_100_percent",
+                "count": 0,
+                "denominator": 0,
+                "proportion": null
+              }
+            ],
+            "valid_final_denominator": 0,
+            "no_data": true,
+            "definition": "先以最终成绩/本场满分归一化，再按预定义半开区间统计；0.80进入末区间，1.00包含。分箱不是及格或质量验收阈值。"
+          },
+          "questions": [
+            {
+              "question_fixture_id": "shared-choice",
+              "published_knowledge_points_from_input": [
+                "一次函数"
+              ],
+              "valid_final_count": 0,
+              "max_score": "4.00",
+              "earned_sum": null,
+              "lost_sum": null,
+              "rate": {
+                "numerator": "0.00",
+                "denominator": "0.00",
+                "exact_fraction": null,
+                "decimal_value": null,
+                "display": "暂无数据"
+              },
+              "label_state": "no_data",
+              "empty_set_arithmetic": {
+                "earned_sum": "0.00",
+                "max_score_sum": "0.00",
+                "reason": "空有效集合算术和，仅说明分母为0，不是观察到0分/0失分。"
+              }
+            },
+            {
+              "question_fixture_id": "shared-short",
+              "published_knowledge_points_from_input": [
+                "一次函数",
+                "表达与计算"
+              ],
+              "valid_final_count": 0,
+              "max_score": "6.00",
+              "earned_sum": null,
+              "lost_sum": null,
+              "rate": {
+                "numerator": "0.00",
+                "denominator": "0.00",
+                "exact_fraction": null,
+                "decimal_value": null,
+                "display": "暂无数据"
+              },
+              "label_state": "no_data",
+              "empty_set_arithmetic": {
+                "earned_sum": "0.00",
+                "max_score_sum": "0.00",
+                "reason": "空有效集合算术和，仅说明分母为0，不是观察到0分/0失分。"
+              }
+            }
+          ],
+          "knowledge_points": [
+            {
+              "knowledge_point": "一次函数",
+              "question_fixture_ids": [
+                "shared-choice",
+                "shared-short"
+              ],
+              "valid_final_count": 0,
+              "earned_sum": null,
+              "lost_sum": null,
+              "rate": {
+                "numerator": "0.00",
+                "denominator": "0.00",
+                "exact_fraction": null,
+                "decimal_value": null,
+                "display": "暂无数据"
+              },
+              "membership_rule": "题目可归属多个知识点；每个知识点独立计算，不能将知识点lost_sum再求和当整卷失分。",
+              "label_state": "no_data",
+              "empty_set_arithmetic": {
+                "earned_sum": "0.00",
+                "max_score_sum": "0.00",
+                "reason": "没有Final样本，失分展示暂无数据。"
+              }
+            },
+            {
+              "knowledge_point": "表达与计算",
+              "question_fixture_ids": [
+                "shared-short"
+              ],
+              "valid_final_count": 0,
+              "earned_sum": null,
+              "lost_sum": null,
+              "rate": {
+                "numerator": "0.00",
+                "denominator": "0.00",
+                "exact_fraction": null,
+                "decimal_value": null,
+                "display": "暂无数据"
+              },
+              "membership_rule": "题目可归属多个知识点；每个知识点独立计算，不能将知识点lost_sum再求和当整卷失分。",
+              "label_state": "no_data",
+              "empty_set_arithmetic": {
+                "earned_sum": "0.00",
+                "max_score_sum": "0.00",
+                "reason": "没有Final样本，失分展示暂无数据。"
+              }
+            }
+          ],
+          "overlap_control": {
+            "whole_exam_lost_sum": null,
+            "knowledge_lost_sum_if_wrongly_added": null,
+            "duplicate_overlap_loss": null,
+            "label_state": "no_data",
+            "reason": "空有效集合的算术和为0，但没有实际最终失分观测；展示暂无数据，不报0失分。"
+          },
+          "final_student_details": [],
+          "attention_reasons": [
+            {
+              "student_fixture_id": "S3",
+              "state": "Pending Review",
+              "reason": "受控未完成状态，不作零分",
+              "treat_as_zero_score": false,
+              "deterministic_knowledge_gap": null
+            },
+            {
+              "student_fixture_id": "S4",
+              "state": "Failed",
+              "reason": "受控未完成状态，不作零分",
+              "treat_as_zero_score": false,
+              "deterministic_knowledge_gap": null
+            },
+            {
+              "student_fixture_id": "S5",
+              "state": "Insufficient Evidence",
+              "reason": "受控未完成状态，不作零分",
+              "treat_as_zero_score": false,
+              "deterministic_knowledge_gap": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "STATS-STARTED",
+      "source_ref": "statistics_controls.json",
+      "business_execution_status": "not_run",
+      "exams": [
+        {
+          "exam_fixture_id": "A",
+          "source_ref": "statistics_controls.json",
+          "selected_student_ids": [
+            "S1",
+            "S2",
+            "S3",
+            "S4",
+            "S5"
+          ],
+          "excluded_final_student_ids": [],
+          "selector": "all declared submissions",
+          "input_origin": "受控合成夹具事实，不是实际学生业务记录",
+          "counts": {
+            "eligible": 6,
+            "submitted": 5,
+            "valid_final": 2,
+            "pending_review": 1,
+            "failed": 1,
+            "insufficient_evidence": 1,
+            "participated": 5,
+            "no_submission": 1
+          },
+          "participation_evidence": {
+            "value": 5,
+            "label_state": "known",
+            "reason": "新合成输入明确started=true为S1..S5，S6=false。",
+            "lower_bound": 5,
+            "upper_bound": 5
+          },
+          "exam_full_score": "5.00",
+          "final_student_ids": [
+            "S1",
+            "S2"
+          ],
+          "mean": {
+            "numerator": "4.00",
+            "denominator": 2,
+            "value": "2.00",
+            "reason": "只纳入完成全部评分和必要复核的Final记录；待复核/失败/缺依据不能作为0分。"
+          },
+          "whole_exam_rate": {
+            "numerator": "4.00",
+            "denominator": "10.00",
+            "exact_fraction": "2/5",
+            "decimal_value": "0.4",
+            "display": "0.4"
+          },
+          "distribution": {
+            "raw_exact_score_counts": {
+              "0.00": 1,
+              "4.00": 1
+            },
+            "normalised_bins": [
+              {
+                "bin_id": "0_to_below_60_percent",
+                "count": 1,
+                "denominator": 2,
+                "proportion": "0.5"
+              },
+              {
+                "bin_id": "60_to_below_80_percent",
+                "count": 0,
+                "denominator": 2,
+                "proportion": "0"
+              },
+              {
+                "bin_id": "80_to_100_percent",
+                "count": 1,
+                "denominator": 2,
+                "proportion": "0.5"
+              }
+            ],
+            "valid_final_denominator": 2,
+            "no_data": false,
+            "definition": "先以最终成绩/本场满分归一化，再按预定义半开区间统计；0.80进入末区间，1.00包含。分箱不是及格或质量验收阈值。"
+          },
+          "questions": [
+            {
+              "question_fixture_id": "shared-choice",
+              "published_knowledge_points_from_input": [
+                "一次函数"
+              ],
+              "valid_final_count": 2,
+              "max_score": "2.00",
+              "earned_sum": "2.00",
+              "lost_sum": "2.00",
+              "rate": {
+                "numerator": "2.00",
+                "denominator": "4.00",
+                "exact_fraction": "1/2",
+                "decimal_value": "0.5",
+                "display": "0.5"
+              }
+            },
+            {
+              "question_fixture_id": "shared-short",
+              "published_knowledge_points_from_input": [
+                "一次函数",
+                "表达与计算"
+              ],
+              "valid_final_count": 2,
+              "max_score": "3.00",
+              "earned_sum": "2.00",
+              "lost_sum": "4.00",
+              "rate": {
+                "numerator": "2.00",
+                "denominator": "6.00",
+                "exact_fraction": "1/3",
+                "decimal_value": "0.3333333333333333333333333333",
+                "display": "0.3333333333333333333333333333"
+              }
+            }
+          ],
+          "knowledge_points": [
+            {
+              "knowledge_point": "一次函数",
+              "question_fixture_ids": [
+                "shared-choice",
+                "shared-short"
+              ],
+              "valid_final_count": 2,
+              "earned_sum": "4.00",
+              "lost_sum": "6.00",
+              "rate": {
+                "numerator": "4.00",
+                "denominator": "10.00",
+                "exact_fraction": "2/5",
+                "decimal_value": "0.4",
+                "display": "0.4"
+              },
+              "membership_rule": "题目可归属多个知识点；每个知识点独立计算，不能将知识点lost_sum再求和当整卷失分。"
+            },
+            {
+              "knowledge_point": "表达与计算",
+              "question_fixture_ids": [
+                "shared-short"
+              ],
+              "valid_final_count": 2,
+              "earned_sum": "2.00",
+              "lost_sum": "4.00",
+              "rate": {
+                "numerator": "2.00",
+                "denominator": "6.00",
+                "exact_fraction": "1/3",
+                "decimal_value": "0.3333333333333333333333333333",
+                "display": "0.3333333333333333333333333333"
+              },
+              "membership_rule": "题目可归属多个知识点；每个知识点独立计算，不能将知识点lost_sum再求和当整卷失分。"
+            }
+          ],
+          "overlap_control": {
+            "whole_exam_lost_sum": "6.00",
+            "knowledge_lost_sum_if_wrongly_added": "10.00",
+            "duplicate_overlap_loss": "4.00",
+            "reason": "shared-short属于两个知识点；整卷损失按题目一次求和，知识点明细不得重复累计。"
+          },
+          "final_student_details": [
+            {
+              "student_fixture_id": "S1",
+              "final_total": "4.00",
+              "question_losses": {
+                "shared-choice": "0.00",
+                "shared-short": "1.00"
+              },
+              "knowledge_losses": {
+                "一次函数": "1.00",
+                "表达与计算": "1.00"
+              },
+              "whole_exam_loss": "1.00"
+            },
+            {
+              "student_fixture_id": "S2",
+              "final_total": "0.00",
+              "question_losses": {
+                "shared-choice": "2.00",
+                "shared-short": "3.00"
+              },
+              "knowledge_losses": {
+                "一次函数": "5.00",
+                "表达与计算": "3.00"
+              },
+              "whole_exam_loss": "5.00"
+            }
+          ],
+          "attention_reasons": [
+            {
+              "student_fixture_id": "S1",
+              "state": "Final",
+              "reason": "存在实际最终失分，逐题解释还需真实学生答案及Rubric。",
+              "treat_as_zero_score": null,
+              "deterministic_knowledge_gap": null
+            },
+            {
+              "student_fixture_id": "S2",
+              "state": "Final",
+              "reason": "真实最终得分0，按本场满分及逐题失分展示；不能据此补造具体答题原因。",
+              "treat_as_zero_score": null,
+              "deterministic_knowledge_gap": null
+            },
+            {
+              "student_fixture_id": "S3",
+              "state": "Pending Review",
+              "reason": "受控未完成状态，不作零分",
+              "treat_as_zero_score": false,
+              "deterministic_knowledge_gap": null
+            },
+            {
+              "student_fixture_id": "S4",
+              "state": "Failed",
+              "reason": "受控未完成状态，不作零分",
+              "treat_as_zero_score": false,
+              "deterministic_knowledge_gap": null
+            },
+            {
+              "student_fixture_id": "S5",
+              "state": "Insufficient Evidence",
+              "reason": "受控未完成状态，不作零分",
+              "treat_as_zero_score": false,
+              "deterministic_knowledge_gap": null
+            }
+          ]
+        },
+        {
+          "exam_fixture_id": "B",
+          "source_ref": "statistics_controls.json",
+          "selected_student_ids": [
+            "S1",
+            "S2",
+            "S3",
+            "S4",
+            "S5"
+          ],
+          "excluded_final_student_ids": [],
+          "selector": "all declared submissions",
+          "input_origin": "受控合成夹具事实，不是实际学生业务记录",
+          "counts": {
+            "eligible": 6,
+            "submitted": 5,
+            "valid_final": 2,
+            "pending_review": 1,
+            "failed": 1,
+            "insufficient_evidence": 1,
+            "participated": 5,
+            "no_submission": 1
+          },
+          "participation_evidence": {
+            "value": 5,
+            "label_state": "known",
+            "reason": "新合成输入明确started=true为S1..S5，S6=false。",
+            "lower_bound": 5,
+            "upper_bound": 5
+          },
+          "exam_full_score": "10.00",
+          "final_student_ids": [
+            "S1",
+            "S2"
+          ],
+          "mean": {
+            "numerator": "8.00",
+            "denominator": 2,
+            "value": "4.00",
+            "reason": "只纳入完成全部评分和必要复核的Final记录；待复核/失败/缺依据不能作为0分。"
+          },
+          "whole_exam_rate": {
+            "numerator": "8.00",
+            "denominator": "20.00",
+            "exact_fraction": "2/5",
+            "decimal_value": "0.4",
+            "display": "0.4"
+          },
+          "distribution": {
+            "raw_exact_score_counts": {
+              "0.00": 1,
+              "8.00": 1
+            },
+            "normalised_bins": [
+              {
+                "bin_id": "0_to_below_60_percent",
+                "count": 1,
+                "denominator": 2,
+                "proportion": "0.5"
+              },
+              {
+                "bin_id": "60_to_below_80_percent",
+                "count": 0,
+                "denominator": 2,
+                "proportion": "0"
+              },
+              {
+                "bin_id": "80_to_100_percent",
+                "count": 1,
+                "denominator": 2,
+                "proportion": "0.5"
+              }
+            ],
+            "valid_final_denominator": 2,
+            "no_data": false,
+            "definition": "先以最终成绩/本场满分归一化，再按预定义半开区间统计；0.80进入末区间，1.00包含。分箱不是及格或质量验收阈值。"
+          },
+          "questions": [
+            {
+              "question_fixture_id": "shared-choice",
+              "published_knowledge_points_from_input": [
+                "一次函数"
+              ],
+              "valid_final_count": 2,
+              "max_score": "4.00",
+              "earned_sum": "4.00",
+              "lost_sum": "4.00",
+              "rate": {
+                "numerator": "4.00",
+                "denominator": "8.00",
+                "exact_fraction": "1/2",
+                "decimal_value": "0.5",
+                "display": "0.5"
+              }
+            },
+            {
+              "question_fixture_id": "shared-short",
+              "published_knowledge_points_from_input": [
+                "一次函数",
+                "表达与计算"
+              ],
+              "valid_final_count": 2,
+              "max_score": "6.00",
+              "earned_sum": "4.00",
+              "lost_sum": "8.00",
+              "rate": {
+                "numerator": "4.00",
+                "denominator": "12.00",
+                "exact_fraction": "1/3",
+                "decimal_value": "0.3333333333333333333333333333",
+                "display": "0.3333333333333333333333333333"
+              }
+            }
+          ],
+          "knowledge_points": [
+            {
+              "knowledge_point": "一次函数",
+              "question_fixture_ids": [
+                "shared-choice",
+                "shared-short"
+              ],
+              "valid_final_count": 2,
+              "earned_sum": "8.00",
+              "lost_sum": "12.00",
+              "rate": {
+                "numerator": "8.00",
+                "denominator": "20.00",
+                "exact_fraction": "2/5",
+                "decimal_value": "0.4",
+                "display": "0.4"
+              },
+              "membership_rule": "题目可归属多个知识点；每个知识点独立计算，不能将知识点lost_sum再求和当整卷失分。"
+            },
+            {
+              "knowledge_point": "表达与计算",
+              "question_fixture_ids": [
+                "shared-short"
+              ],
+              "valid_final_count": 2,
+              "earned_sum": "4.00",
+              "lost_sum": "8.00",
+              "rate": {
+                "numerator": "4.00",
+                "denominator": "12.00",
+                "exact_fraction": "1/3",
+                "decimal_value": "0.3333333333333333333333333333",
+                "display": "0.3333333333333333333333333333"
+              },
+              "membership_rule": "题目可归属多个知识点；每个知识点独立计算，不能将知识点lost_sum再求和当整卷失分。"
+            }
+          ],
+          "overlap_control": {
+            "whole_exam_lost_sum": "12.00",
+            "knowledge_lost_sum_if_wrongly_added": "20.00",
+            "duplicate_overlap_loss": "8.00",
+            "reason": "shared-short属于两个知识点；整卷损失按题目一次求和，知识点明细不得重复累计。"
+          },
+          "final_student_details": [
+            {
+              "student_fixture_id": "S1",
+              "final_total": "8.00",
+              "question_losses": {
+                "shared-choice": "0.00",
+                "shared-short": "2.00"
+              },
+              "knowledge_losses": {
+                "一次函数": "2.00",
+                "表达与计算": "2.00"
+              },
+              "whole_exam_loss": "2.00"
+            },
+            {
+              "student_fixture_id": "S2",
+              "final_total": "0.00",
+              "question_losses": {
+                "shared-choice": "4.00",
+                "shared-short": "6.00"
+              },
+              "knowledge_losses": {
+                "一次函数": "10.00",
+                "表达与计算": "6.00"
+              },
+              "whole_exam_loss": "10.00"
+            }
+          ],
+          "attention_reasons": [
+            {
+              "student_fixture_id": "S1",
+              "state": "Final",
+              "reason": "存在实际最终失分，逐题解释还需真实学生答案及Rubric。",
+              "treat_as_zero_score": null,
+              "deterministic_knowledge_gap": null
+            },
+            {
+              "student_fixture_id": "S2",
+              "state": "Final",
+              "reason": "真实最终得分0，按本场满分及逐题失分展示；不能据此补造具体答题原因。",
+              "treat_as_zero_score": null,
+              "deterministic_knowledge_gap": null
+            },
+            {
+              "student_fixture_id": "S3",
+              "state": "Pending Review",
+              "reason": "受控未完成状态，不作零分",
+              "treat_as_zero_score": false,
+              "deterministic_knowledge_gap": null
+            },
+            {
+              "student_fixture_id": "S4",
+              "state": "Failed",
+              "reason": "受控未完成状态，不作零分",
+              "treat_as_zero_score": false,
+              "deterministic_knowledge_gap": null
+            },
+            {
+              "student_fixture_id": "S5",
+              "state": "Insufficient Evidence",
+              "reason": "受控未完成状态，不作零分",
+              "treat_as_zero_score": false,
+              "deterministic_knowledge_gap": null
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "feedback_annotations": [
+    {
+      "case_id": "FEEDBACK-SOURCES",
+      "source_ref": "../v2-draft-20261001/feedback_cases.json",
+      "input_origin": "声明合成来源与身份；当前没有真实学生作答文本、授权资料Chunk或Approved题目业务记录。",
+      "business_execution_status": "not_run",
+      "allowed_data_scope": "仅当前学生、当前场真实Final结果和已授权同课程来源；老师/其他学生结果不进入学生反馈。",
+      "final_numeric_losses": {
+        "A": [
+          {
+            "student_fixture_id": "S1",
+            "final_total": "4.00",
+            "question_losses": {
+              "shared-choice": "0.00",
+              "shared-short": "1.00"
+            },
+            "knowledge_losses": {
+              "一次函数": "1.00",
+              "表达与计算": "1.00"
+            },
+            "whole_exam_loss": "1.00"
+          },
+          {
+            "student_fixture_id": "S2",
+            "final_total": "0.00",
+            "question_losses": {
+              "shared-choice": "2.00",
+              "shared-short": "3.00"
+            },
+            "knowledge_losses": {
+              "一次函数": "5.00",
+              "表达与计算": "3.00"
+            },
+            "whole_exam_loss": "5.00"
+          }
+        ],
+        "B": [
+          {
+            "student_fixture_id": "S1",
+            "final_total": "8.00",
+            "question_losses": {
+              "shared-choice": "0.00",
+              "shared-short": "2.00"
+            },
+            "knowledge_losses": {
+              "一次函数": "2.00",
+              "表达与计算": "2.00"
+            },
+            "whole_exam_loss": "2.00"
+          },
+          {
+            "student_fixture_id": "S2",
+            "final_total": "0.00",
+            "question_losses": {
+              "shared-choice": "4.00",
+              "shared-short": "6.00"
+            },
+            "knowledge_losses": {
+              "一次函数": "10.00",
+              "表达与计算": "6.00"
+            },
+            "whole_exam_loss": "10.00"
+          }
+        ]
+      },
+      "basis_observation": {
+        "source_ref": "../v2-draft-20261001/teaching_basis.md",
+        "course_id": "cf99a4d9-dfa1-5bb3-9d6d-2ea11d1d6820",
+        "verified_content": "文本提供y=2x+1、三角形底×高÷2及矩形需长宽的合成教学事实；不是已经Ready的真实资料Chunk。",
+        "actual_registered_chunk_ids": null
+      },
+      "same_course_practice_candidates": [
+        {
+          "question_id": "170002c8-1870-54cb-b8ad-494ee15697ad",
+          "exists_in_source_pool": true,
+          "intended_status": "Approved",
+          "actual_teacher_approval_observed": false,
+          "currently_confirmed_recommendable": false,
+          "reason": "第1题在同课程合成池中，但Approved只是未来夹具目标，不能当已经批准的可用练习；缺真实资格时明确缺题。"
+        }
+      ],
+      "inaccessible_course": {
+        "course_id": "51dd3b43-0b37-560a-ba3d-80f3f4104208",
+        "include_in_recommendations": false,
+        "expected": "越权拒绝或过滤，不能读取/引用它的资料。",
+        "actual_authorization_execution": "not_run"
+      },
+      "missing_material": {
+        "knowledge_point": "未收录知识点",
+        "source_material_matches": 0,
+        "expected": "明确缺少同课程依据，推荐列表为空，不生成不存在来源。"
+      },
+      "unapproved_or_missing_practice": {
+        "question_id": "508f6cc4-92ba-5ca5-8de3-49c57b7afa79",
+        "exists_in_question_pool": false,
+        "actual_status": null,
+        "include_in_recommendations": false,
+        "reason": "原输入仅给“未审核”夹具ID，但在实际候选池中不存在；保留missing/unknown，不能伪造PendingReview记录或批准事实。"
+      },
+      "nonfinal_feedback": {
+        "S3": "Pending Review：保持待复核，不给确定知识盲点或0分。",
+        "S4": "Failed：展示真实失败状态与受控输入原因，不当0分。",
+        "S5": "Insufficient Evidence：展示依据不足，不当0分。",
+        "S6": "没有提交记录；没有作答/成绩，不生成失分诊断。"
+      },
+      "answer_explanations": "逐题完整解释需要学生原始答案、冻结本场标准与真实来源；当前仅有分数，不编造答题过程或原因。",
+      "teacher_verification_observed": false
+    }
+  ],
+  "calculation_verification": {
+    "method": "先用Decimal/Fraction制作，再独立以整数分(cents)和Fraction交叉核算，不调用业务代码。",
+    "checked_items": 72,
+    "checks_passed": true,
+    "teacher_independent_calculation_observed": false
+  }
+}
