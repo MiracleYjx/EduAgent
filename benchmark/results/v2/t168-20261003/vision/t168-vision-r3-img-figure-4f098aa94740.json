@@ -1,0 +1,222 @@
+{
+  "case_id": "IMG-FIGURE",
+  "round": 3,
+  "run_id": "t168-vision-r3-img-figure-4f098aa94740",
+  "started_at": "2026-10-03T14:43:23.650687Z",
+  "images": [
+    {
+      "image_index": 1,
+      "fixture_asset_id": "839f8584-dff3-526a-8cbe-85ac6784a3e2",
+      "identity_scope": "stable fixture only; no database asset/file identity",
+      "path": "benchmark/corpus/v2-draft-20261001/assets/figure.png",
+      "sha256": "b5c34d74a385a5dca9bec9c56c0d5a2eb2ca5e0dc64338829aab50b90d488336",
+      "size_bytes": 16435,
+      "width": 640,
+      "height": 400,
+      "mime_type": "image/png"
+    }
+  ],
+  "context": {
+    "content": "请读取所附题图中可见的条件，未知或不可靠的关键文字保留问题说明。",
+    "options": null,
+    "answer": null,
+    "analysis": null,
+    "caption": [
+      null
+    ]
+  },
+  "task": "识别本题全部图片中的图示、表格与必要条件；不识别或补写答案。",
+  "output": {
+    "observations": [
+      {
+        "image_index": 1,
+        "kind": "diagram",
+        "description": "三角形示意图：左侧为竖直边，下方为水平底边，斜边连接左上顶点与右下顶点。",
+        "bbox": [
+          65,
+          65,
+          565,
+          335
+        ]
+      },
+      {
+        "image_index": 1,
+        "kind": "label",
+        "description": "图形上方文字为“三角形”。",
+        "bbox": [
+          190,
+          25,
+          280,
+          60
+        ]
+      },
+      {
+        "image_index": 1,
+        "kind": "dimension",
+        "description": "左侧竖直边旁标注“高 4 cm”。",
+        "bbox": [
+          95,
+          165,
+          185,
+          210
+        ]
+      },
+      {
+        "image_index": 1,
+        "kind": "dimension",
+        "description": "下方水平边下方标注“底 6 cm”。",
+        "bbox": [
+          255,
+          350,
+          370,
+          392
+        ]
+      },
+      {
+        "image_index": 1,
+        "kind": "table",
+        "description": "图中未发现表格。",
+        "bbox": null
+      }
+    ],
+    "conditions": [
+      {
+        "image_index": 1,
+        "text": "三角形",
+        "evidence_region": {
+          "bbox": [
+            190,
+            25,
+            280,
+            60
+          ]
+        }
+      },
+      {
+        "image_index": 1,
+        "text": "高 4 cm",
+        "evidence_region": {
+          "bbox": [
+            95,
+            165,
+            185,
+            210
+          ]
+        }
+      },
+      {
+        "image_index": 1,
+        "text": "底 6 cm",
+        "evidence_region": {
+          "bbox": [
+            255,
+            350,
+            370,
+            392
+          ]
+        }
+      }
+    ],
+    "unresolved_issues": [],
+    "requires_manual_review": false,
+    "provenance": {
+      "provider_name": "deepseek",
+      "model": "deepseek-flash",
+      "model_version": null,
+      "prompt_version": "vision-conditions-v1"
+    }
+  },
+  "error": null,
+  "provenance": {
+    "provider_name": "deepseek",
+    "model": "deepseek-flash",
+    "model_version": null,
+    "prompt_version": "vision-conditions-v1"
+  },
+  "assessment_status": "pending_semantic_review",
+  "reference_condition_count": 3,
+  "is_independent_teacher_truth": false,
+  "baseline_reference": {
+    "reference_standard": "AI 辅助 + 开发者审查",
+    "baseline_annotation_version": "t146-developer-reviewed-ai-assisted-20261003-2",
+    "annotation_authors": [
+      {
+        "kind": "ai_assistant",
+        "name": "Codex",
+        "role": "会话委托的源材料阅读、标注和技术复核"
+      },
+      {
+        "kind": "developer",
+        "name": "current_chat_user",
+        "identity_source": "current_chat_user_message",
+        "role": "开发者确认审查口径及将本批参考包用于学习项目质量基线"
+      }
+    ],
+    "decision_source": "current_chat_user_message",
+    "decision_recorded_at_utc": "2026-10-03T14:28:23.228504+00:00",
+    "is_independent_teacher_truth": false,
+    "source_sha256": {
+      "annotations.json": "e3df8cc30f27c96060c46bd46f60eab26fcb5ef0ec925fd2c1cccb579f161e2e",
+      "developer_review.json": "de098c686f725814c4716abddd0cfa889e14ef5efe5a29ad02adb9328f373380",
+      "manifest.json": "eedef2ff79e74eae3a7fe0d2ae29b2d29070c3b70f5e9a530577f53c4a27dca7"
+    }
+  },
+  "outcome": "completed",
+  "completed_at": "2026-10-03T14:43:39.850545Z",
+  "elapsed_ms": 16199.845,
+  "provider_trace_events": [
+    {
+      "recorded_at": "2026-10-03T14:43:39.850376Z",
+      "request_id": "t168-vision-r3-img-figure-4f098aa94740",
+      "agent_type": "llm",
+      "status": "success",
+      "latency_ms": 16195,
+      "model": "deepseek-flash",
+      "prompt_version": "vision-conditions-v1",
+      "input_tokens": 1484,
+      "output_tokens": 3421,
+      "total_tokens": 4905,
+      "input_summary": null,
+      "output_summary": null,
+      "error_code": null,
+      "error_retryable": null
+    }
+  ],
+  "observed_provider_attempts": 1,
+  "actual_raw_responses": [
+    {
+      "received_at_utc": "2026-10-03T14:43:23.910234Z",
+      "status_code": 200,
+      "capture_scope": "response identity, usage, actual choices only; no headers/URL/credentials",
+      "id": "54b2442a-a03f-431b-8d1d-305350883fca",
+      "model": "deepseek-flash",
+      "system_fingerprint": "aeb56401ca74e127821c4f9126dcb669",
+      "usage": {
+        "prompt_tokens": 1484,
+        "completion_tokens": 3421,
+        "total_tokens": 4905,
+        "prompt_tokens_details": {
+          "cached_tokens": 1280
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 3140
+        },
+        "prompt_cache_hit_tokens": 1280,
+        "prompt_cache_miss_tokens": 204
+      },
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\"observations\":[{\"image_index\":1,\"kind\":\"diagram\",\"description\":\"三角形示意图：左侧为竖直边，下方为水平底边，斜边连接左上顶点与右下顶点。\",\"bbox\":[65,65,565,335]},{\"image_index\":1,\"kind\":\"label\",\"description\":\"图形上方文字为“三角形”。\",\"bbox\":[190,25,280,60]},{\"image_index\":1,\"kind\":\"dimension\",\"description\":\"左侧竖直边旁标注“高 4 cm”。\",\"bbox\":[95,165,185,210]},{\"image_index\":1,\"kind\":\"dimension\",\"description\":\"下方水平边下方标注“底 6 cm”。\",\"bbox\":[255,350,370,392]},{\"image_index\":1,\"kind\":\"table\",\"description\":\"图中未发现表格。\",\"bbox\":null}],\"conditions\":[{\"image_index\":1,\"text\":\"三角形\",\"evidence_region\":{\"bbox\":[190,25,280,60]}},{\"image_index\":1,\"text\":\"高 4 cm\",\"evidence_region\":{\"bbox\":[95,165,185,210]}},{\"image_index\":1,\"text\":\"底 6 cm\",\"evidence_region\":{\"bbox\":[255,350,370,392]}}],\"unresolved_issues\":[],\"requires_manual_review\":false,\"provenance\":null}",
+            "reasoning_content": "We need answer JSON only. Need inspect image. We have one image 640x400. Need identify visual conditions, diagrams, tables, necessary conditions. Not solve. Need output schema. Need likely observations: triangle diagram labeled \"三角形\", height 4 cm, base 6 cm. Conditions maybe image 1: triangle with height 4 cm and base 6 cm. Need bbox maybe coordinates. We can estimate from image. Need not include answer.\n\nNeed carefully adhere schema: JSON object with observations array, conditions array, unresolved_issues, requires_manual_review, provenance null. Need include observations with image_index, kind, description, bbox optional. Conditions with image_index, text, evidence_region. Since one image, image_index=1. Need bbox for regions. We need exact? \"bbox 为该资产原图左上/右下像素\". We can approximate pixel coordinates based on 640x400. Need maybe identify triangle outline bbox. Let's inspect described image. It's a right triangle with vertical left leg height, horizontal base bottom, hypotenuse from top left to bottom right. Text \"三角形\" near top center. \"高 4 cm\" near left vertical side. \"底 6 cm\" near bottom base. Need bboxes maybe:\n- \"三角形\" label around x=190-270? y=20-50? Let's estimate. Image 640x400. Top text \"三角形\" centered maybe x 200-280 y 25-55. Could set [195, 25, 275, 60].\n- Triangle entire outline maybe left edge x=70, top y=70, right bottom x=560, bottom y=330. bbox [65,65,565,335].\n- \"高 4 cm\" around x=100-175 y=170-210. bbox [95,170,180,210].\n- \"底 6 cm\" around x=270-350 y=350-385? Actually base text under base around x 260-360 y 360-390. bbox [255,355,365,390].\nNeed maybe conditions text: \"三角形\" ; \"高 4 cm\" ; \"底 6 cm\". Maybe condition: \"图中三角形的高为4 cm\" and \"底为6 cm\"。 Could include exact visible text. But \"conditions\" is for necessary conditions visible. Need maybe include \"三角形\" label, \"高 4 cm\" label, \"底 6 cm\" label. Also maybe shape right triangle implied? The drawing shows a right triangle? We can say diagram: triangle with one vertical side labeled 高4cm and one horizontal side labeled 底6cm; hypotenuse connects endpoints. Need no answer.\n\nNeed unresolved issues? Maybe image is fully legible. But could mention no table. Unknown? \"不识别或补写答案.\" So no answer. Does \"未知或不可靠的关键文字保留问题说明.\" Text seems legible. Might still require manual review? The instruction: \"有问题 requires_manual_review=true。没有问题的 false 也不代替真实教师核对。\" If no issues false. But likely there is no issue. Need maybe because pixel bbox approximate? That's not unresolved issue? Could set no issues, requires_manual_review false. But \"没有问题的 false 也不代替真实教师核对\" means if false still not replace teacher. OK.\n\nNeed provenance null. But schema requires provenance? The overall has property provenance optional with default null; not required. But instruction: provenance 必须为 null. Include \"provenance\": null.\n\nNeed observations. Let's craft. But ensure no markdown, only JSON object. Need valid JSON. Use double quotes.\n\nNeed maybe \"kind\" values: \"diagram\", \"label\", \"dimension\". Description text. Include bbox if possible. Could include three observations:\n1. image index 1, kind \"diagram\", description \"图中为一个三角形示意图，左侧为竖直边，下方为水平边，斜边连接左上端点和右下端点。\" bbox [65,70,565,335].\n2. kind \"label\", description \"三角形上方有文字“三角形”。\" bbox [190,25,280,60].\n3. kind \"dimension\", description \"三角形左侧竖直边旁标注“高 4 cm”。\" bbox [95,165,185,210].\n4. kind \"dimension\", description \"三角形下方水平边标注“底 6 cm”。\" bbox [255,350,370,392].\n\nConditions:\n1. image_index 1, text \"三角形\", evidence_region maybe bbox [195,25,275,60].\n2. image_index 1, text \"高 4 cm\", evidence_region [95,170,180,210].\n3. image_index 1, text \"底 6 cm\", evidence_region [255,355,365,390].\n4. maybe condition: \"图示为一个三角形，底为6 cm，高为4 cm。\" This combines; evidence_region null? Could include but not necessary? \"conditions\" should include necessary conditions. Maybe better include text from diagram exact. We can include combined condition with evidence bbox of entire diagram? But schema allows PixelRegion. However if we state \"图示三角形底 6 cm，高 4 cm\" is condition, evidence_region null? They said bbox unable reliable null. But we can reliably locate. But if combined not a single region, maybe no? Could use bbox [65,65,565,392]? But condition text not visible as exact text, only implied. Should avoid? But necessary conditions from diagram can be interpreted. We can include one condition \"图中三角形的高标注为 4 cm，底标注为 6 cm。\" with evidence_region perhaps entire diagram bbox. But then condition text not exact? The schema doesn't prohibit interpretation. But task says only recognize diagrams, tables, necessary conditions from images. We can state condition.\n\nBut \"不识别或补写答案、数值或关系。\" We can include visible numerical labels as conditions, but not compute answer. Fine.\n\nNeed maybe \"表格\" none. Could include observation \"图中没有表格\" maybe not necessary. But the task says identify diagrams, tables, and necessary conditions. Could include an observation for no table? Probably not.\n\nPotential issue: The diagram might be a right triangle? Left side vertical, bottom horizontal, so it appears right triangle with right angle at bottom-left. But no right angle symbol. We can mention left side vertical and bottom horizontal, but not assume right angle if symbol absent. The text labels \"高\" and \"底\" imply height/base. Need not say right triangle? Maybe \"底边水平，高边竖直\" enough.\n\nLet's produce JSON. Need ensure bboxes as arrays of numbers. Since original 640x400, coordinates within range. Good.\n\nNeed maybe \"unresolved_issues\": [] and \"requires_manual_review\": false. But perhaps because no explicit right angle marker, but not an issue. The question likely elementary area of triangle, labels enough. Could there be an issue: \"高 4 cm\" and \"底 6 cm\" only, no question text. The original prompt asks read conditions; no question. Is missing question an unresolved issue? The context says \"请读取所附题图中可见的条件，未知或不可靠的关键文字保留问题说明。 options null answer null analysis null caption null\". The task is to identify conditions. No question in image? Actually image only shows triangle and labels, no problem statement. That might be issue: 题面/问题缺失? The JSON should include unresolved_issues if cannot identify? Hmm The image contains just a triangle diagram, no explicit question. But task: \"识别本题全部图片中的图示、表格与必要条件\" not answer. So missing question maybe not issue? The image includes necessary conditions. No table. We can note \"题图未显示完整问题或作答要求\" as unresolved issue? Since the context has no options/answer/analysis, but the image likely part of a question. The prompt says \"仅依据本次全部题图和真实文字上下文识别图示、表格及必要条件.\" If no question text, we can state no explicit question? It might be relevant unresolved. But schema unresolved_issues for issues. Hmm Should include if there is ambiguity. There is no question text, but our task isn't to solve. But \"未知或不可靠的关键文字保留问题说明.\" There is no unknown text. Maybe no issue.\n\nBut \"没有问题的 false 也不代替真实教师核对.\" I'd set requires_manual_review=false. But if there's missing question, maybe true? Let's think.\n\nThe image title: \"三角形\" and labels. It likely is an example. The input context: content \"请读取所附题图中可见的条件，未知或不可靠的关键文字保留问题说明。\", options null, answer null, analysis null, caption [null]. That seems they expect output conditions. I can include an unresolved issue \"题图只显示三角形及其底和高标注，未显示明确的问题陈述或作答要求。\" Then requires_manual_review=true? This might be prudent. But instruction \"有问题 requires_manual_review=true.\" Is lack of question a problem? For recognizing conditions, no. But \"本题\" maybe problem is not fully shown; true maybe. However \"不补写题图未给出的答案、数值或关系.\" If no problem, can't identify answer. But task only identify conditions. The unresolved_issues can include \"未显示明确问题\" but maybe not a vision issue. Does this overcomplicate? The dataset likely expects observations and conditions.\n\nNeed consider \"image_indices\" in unresolved_issues can be [1] or null. If we include, requires_manual_review true. But perhaps final answer should be true if any issue. I think better include no unresolved issue and false, since image is clear. But missing problem statement is not necessarily issue for condition recognition. Hmm.\n\nLet's see the instruction: \"仅依据本次全部题图和真实文字上下文识别图示、表格及必要条件。输出符合所给 JSON Schema 的 JSON 对象，不输出 Markdown，不补写题图未给出的答案、数值或关系。 ... 无法辨认/矛盾/缺失条件写入 unresolved_issues，未知图片归属 image_indices=null；有问题 requires_manual_review=true。没有问题的 false 也不代替真实教师核对。\" Missing conditions? The question statement is missing, but conditions are visible. \"缺失条件\" maybe no. I can set unresolved_issues empty and false. But if a grader expects \"未显示问题\" maybe not.\n\nNeed maybe mention \"图中无表格\" as observation? The schema allows. We can include an observation \"table\": \"未发现表格。\" with image_index 1. But \"识别图示、表格\" maybe if none, we can note. Do it? We can include kind \"table\", description \"图中未出现表格。\" bbox null. But maybe not necessary. It won't hurt? It might be considered补写? No.\n\nMaybe output:\n{\n \"observations\": [\n   {\"image_index\":1,\"kind\":\"diagram\",\"description\":\"三角形示意图：左侧为竖直边，下方为水平底边，斜边连接左上顶点与右下顶点。\",\"bbox\":[65,65,565,335]},\n   {\"image_index\":1,\"kind\":\"label\",\"description\":\"图形上方文字为“三角形”。\",\"bbox\":[190,25,280,60]},\n   {\"image_index\":1,\"kind\":\"dimension\",\"description\":\"左侧竖直边旁标注“高 4 cm”。\",\"bbox\":[95,165,185,210]},\n   {\"image_index\":1,\"kind\":\"dimension\",\"description\":\"下方水平边下方标注“底 6 cm”。\",\"bbox\":[255,350,370,392]},\n   {\"image_index\":1,\"kind\":\"table\",\"description\":\"图中未发现表格。\",\"bbox\":null}\n ],\n \"conditions\": [\n   {\"image_index\":1,\"text\":\"图示为一个三角形。\",\"evidence_region\":{\"bbox\":[65,65,565,335]}},\n   {\"image_index\":1,\"text\":\"三角形的高为 4 cm。\",\"evidence_region\":{\"bbox\":[95,165,185,210]}},\n   {\"image_index\":1,\"text\":\"三角形的底为 6 cm。\",\"evidence_region\":{\"bbox\":[255,350,370,392]}}\n ],\n \"unresolved_issues\": [],\n \"requires_manual_review\": false,\n \"provenance\": null\n}\nNeed maybe condition text exact visible? \"三角形\" label; \"高 4 cm\"; \"底 6 cm\". The condition \"三角形的高为4 cm\" is an interpretation, but likely necessary condition. Could use exact visible text to be safe:\nconditions [\n {\"text\":\"三角形\",\"evidence_region\":...},\n {\"text\":\"高 4 cm\",\"evidence_region\":...},\n {\"text\":\"底 6 cm\",\"evidence_region\":...}\n]\nBut condition should be necessary condition. Exact visible labels are enough. However \"高 4 cm\" label itself indicates height. We can include exact. Then no need interpret. Observations already describe. Conditions can be exact labels. Maybe better.\n\nBut the instruction \"识别必要条件\" not necessarily labels; for triangle area problem, necessary conditions are base=6 cm, height=4 cm. I'd include text \"底 6 cm\" and \"高 4 cm\" maybe combine with diagram. But \"高 4 cm\" is visible. Maybe include all.\n\nNeed maybe \"evidence_region\" for condition \"底 6 cm\" could be bbox under base. Good.\n\nPotential issue: The word \"高\" appears before \"4 cm\"; exact \"高 4 cm\". Good.\n\nLet's ensure JSON valid: no comments. Use \"image_index\":1 integer. Evidence_region objects with bbox arrays. Good.\n\nNeed maybe include bbox for \"三角形\" label? Let's verify coordinates. The image 640x400. Let's approximate from visual: The text \"三角形\" at top, maybe centered around x=220? The triangle top left at x~68 y~72. Top text starts x~195 ends x~275; y 25-55. Good. \"高 4 cm\" appears around x=105-178; y=170-205. \"底 6 cm\" appears around x=265-355; y=355-385. Triangle bbox: left x~67, top y~72, right x~558, bottom y~330. Good.\n\nNeed maybe if bbox values as integers. Fine.\n\nShould we include unresolved issue about no question? Hmm. Let's decide. The user explicitly: \"仅依据本次全部题图和真实文字上下文识别图示、表格及必要条件。\" The image only has a triangle with labels. The \"conditions\" are sufficient. So no unresolved. requires_manual_review false. If there is hidden issue, maybe not.\n\nBut \"没有问题的 false 也不代替真实教师核对。\" Good.\n\nLet's final with JSON only."
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      ]
+    }
+  ],
+  "raw_capture_status": "read_only_http_response_hook"
+}

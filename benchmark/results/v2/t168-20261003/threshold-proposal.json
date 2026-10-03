@@ -1,0 +1,117 @@
+{
+  "schema_version": "t168-learning-quality-threshold-proposal-1",
+  "proposed_at_utc": "2026-10-03T14:56:28.234232+00:00",
+  "status": "pending_user_confirmation",
+  "reference_standard": "AI 辅助 + 开发者审查",
+  "applies_to": {
+    "protocol": "v2-evaluation-1",
+    "dataset": "v2-ai-reference-20261003-1",
+    "annotation": "t146-developer-reviewed-ai-assisted-20261003-2",
+    "runtime": "t168-semantic-runtime-20261003-1",
+    "models": "text request deepseek-chat; vision request deepseek-flash; remote model revision unknown",
+    "prompt": [
+      "paper-extraction-v2",
+      "question-semantics-v1",
+      "vision-conditions-v1"
+    ]
+  },
+  "baseline_batch": "t168-20261003",
+  "thresholds": [
+    {
+      "family": "import",
+      "stage": "automatic",
+      "metric": "identity_recall",
+      "operator": ">=",
+      "value": 0.95,
+      "denominator": "all 48 labeled original question instances; failed imports retained"
+    },
+    {
+      "family": "import",
+      "stage": "automatic",
+      "metric": "each_evaluable_field_accuracy",
+      "operator": ">=",
+      "value": 0.95,
+      "denominator": "planned known field labels; unknown excluded, known absence retained; per-field not average"
+    },
+    {
+      "family": "import",
+      "stage": "automatic",
+      "metric": "all_evaluable_fields_match",
+      "operator": ">=",
+      "value": 0.9,
+      "denominator": "all 48 question instances"
+    },
+    {
+      "family": "import",
+      "stage": "after_image_assistance",
+      "metric": "each_evaluable_field_accuracy",
+      "operator": ">=",
+      "value": 1.0,
+      "denominator": "planned known field labels; does not prove automatic extraction or pixel boundaries"
+    },
+    {
+      "family": "semantic",
+      "stage": "automatic",
+      "metric": "each_check_recall_on_assessed",
+      "operator": ">=",
+      "value": 0.9,
+      "denominator": "TP+FN for each of four problem classes; must accompany coverage"
+    },
+    {
+      "family": "semantic",
+      "stage": "automatic",
+      "metric": "each_check_false_positive_rate_on_assessed",
+      "operator": "<=",
+      "value": 0.1,
+      "denominator": "FP+TN in each class"
+    },
+    {
+      "family": "semantic",
+      "stage": "automatic",
+      "metric": "each_check_coverage",
+      "operator": ">=",
+      "value": 0.9,
+      "denominator": "planned known applicable checks; abstentions, input blocks and failures not covered"
+    },
+    {
+      "family": "vision",
+      "stage": "automatic",
+      "metric": "one_to_one_condition_precision",
+      "operator": ">=",
+      "value": 0.95,
+      "denominator": "all assessable output conditions on clear images"
+    },
+    {
+      "family": "vision",
+      "stage": "automatic",
+      "metric": "one_to_one_condition_completeness",
+      "operator": ">=",
+      "value": 0.95,
+      "denominator": "all 33 clear-image reference conditions; failed groups retained"
+    },
+    {
+      "family": "vision",
+      "stage": "manual_handoff",
+      "metric": "unclear_handoff_correct",
+      "operator": ">=",
+      "value": 1.0,
+      "denominator": "all 3 unclear-image runs; cannot claim correct extraction"
+    },
+    {
+      "family": "semantic_and_vision",
+      "stage": "execution",
+      "metric": "technical_failure_rate",
+      "operator": "<=",
+      "value": 0.05,
+      "denominator": "attempted application calls; input blocks separately reported"
+    }
+  ],
+  "rationale": [
+    "学习项目的下一版回归目标，不将当前低分反向定义为合格；字段不能用不同重要性均值掩盖题干或题图关联失败。",
+    "核验检出与误报、覆盖三项并用，防止仅输出少量肯定答案制造100%召回；技术成功与质量不同。",
+    "画像条件95%门槛与严格一对一匹配保持；低清必须诚实人工移交；辅助校正逐已知字段100%是可核对目标，不是自动质量。",
+    "固定合成样本量小且三轮重复，阈值仅适用于当前学习基准；独立教师/未见真实资料和整页OCR字符误差后续增强，CER/WER/未知边界当前不可评。"
+  ],
+  "current_result_note": "自动导入与部分语义指标未达建议目标；图像32/33两项及3/3移交通通过建议值。T168任务可在完成测量/记录并确认阈值后完成，不宣称平台质量达标。",
+  "confirmation": null
+}

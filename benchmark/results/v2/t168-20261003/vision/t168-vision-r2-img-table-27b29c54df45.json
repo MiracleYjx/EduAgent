@@ -1,0 +1,169 @@
+{
+  "case_id": "IMG-TABLE",
+  "round": 2,
+  "run_id": "t168-vision-r2-img-table-27b29c54df45",
+  "started_at": "2026-10-03T14:42:39.938578Z",
+  "images": [
+    {
+      "image_index": 1,
+      "fixture_asset_id": "34fa6905-e80a-5a0f-a7fa-2abac6ba9850",
+      "identity_scope": "stable fixture only; no database asset/file identity",
+      "path": "benchmark/corpus/v2-draft-20261001/assets/table.png",
+      "sha256": "6eb1e116bbe9df9a4071a355c3b77d26e3b1e596e5c3437042dfe21918ff9dd6",
+      "size_bytes": 12983,
+      "width": 640,
+      "height": 400,
+      "mime_type": "image/png"
+    }
+  ],
+  "context": {
+    "content": "请读取所附题图中可见的条件，未知或不可靠的关键文字保留问题说明。",
+    "options": null,
+    "answer": null,
+    "analysis": null,
+    "caption": [
+      null
+    ]
+  },
+  "task": "识别本题全部图片中的图示、表格与必要条件；不识别或补写答案。",
+  "output": {
+    "observations": [
+      {
+        "image_index": 1,
+        "kind": "表格",
+        "description": "题图可见一个三列四行（含表头）的表格，列标题依次为“x”“y”“说明”；表头下三行分别为：x=1、y=3、说明为“第一行”；x=2、y=5、说明为“第二行”；x=3、y=7、说明为“第三行”。题图中未见其他图示、题面文字或公式。",
+        "bbox": null
+      }
+    ],
+    "conditions": [
+      {
+        "image_index": 1,
+        "text": "表格列标题为：x、y、说明。",
+        "evidence_region": null
+      },
+      {
+        "image_index": 1,
+        "text": "表格第一行数据：x 为 1，y 为 3，说明为“第一行”。",
+        "evidence_region": null
+      },
+      {
+        "image_index": 1,
+        "text": "表格第二行数据：x 为 2，y 为 5，说明为“第二行”。",
+        "evidence_region": null
+      },
+      {
+        "image_index": 1,
+        "text": "表格第三行数据：x 为 3，y 为 7，说明为“第三行”。",
+        "evidence_region": null
+      }
+    ],
+    "unresolved_issues": [
+      {
+        "image_indices": [
+          1
+        ],
+        "message": "题图仅包含表格，未显示题干、选项或具体求解要求，无法判断该表格对应的问题。"
+      }
+    ],
+    "requires_manual_review": true,
+    "provenance": {
+      "provider_name": "deepseek",
+      "model": "deepseek-flash",
+      "model_version": null,
+      "prompt_version": "vision-conditions-v1"
+    }
+  },
+  "error": null,
+  "provenance": {
+    "provider_name": "deepseek",
+    "model": "deepseek-flash",
+    "model_version": null,
+    "prompt_version": "vision-conditions-v1"
+  },
+  "assessment_status": "pending_semantic_review",
+  "reference_condition_count": 4,
+  "is_independent_teacher_truth": false,
+  "baseline_reference": {
+    "reference_standard": "AI 辅助 + 开发者审查",
+    "baseline_annotation_version": "t146-developer-reviewed-ai-assisted-20261003-2",
+    "annotation_authors": [
+      {
+        "kind": "ai_assistant",
+        "name": "Codex",
+        "role": "会话委托的源材料阅读、标注和技术复核"
+      },
+      {
+        "kind": "developer",
+        "name": "current_chat_user",
+        "identity_source": "current_chat_user_message",
+        "role": "开发者确认审查口径及将本批参考包用于学习项目质量基线"
+      }
+    ],
+    "decision_source": "current_chat_user_message",
+    "decision_recorded_at_utc": "2026-10-03T14:28:23.228504+00:00",
+    "is_independent_teacher_truth": false,
+    "source_sha256": {
+      "annotations.json": "e3df8cc30f27c96060c46bd46f60eab26fcb5ef0ec925fd2c1cccb579f161e2e",
+      "developer_review.json": "de098c686f725814c4716abddd0cfa889e14ef5efe5a29ad02adb9328f373380",
+      "manifest.json": "eedef2ff79e74eae3a7fe0d2ae29b2d29070c3b70f5e9a530577f53c4a27dca7"
+    }
+  },
+  "outcome": "completed",
+  "completed_at": "2026-10-03T14:42:54.290287Z",
+  "elapsed_ms": 14351.69,
+  "provider_trace_events": [
+    {
+      "recorded_at": "2026-10-03T14:42:54.290105Z",
+      "request_id": "t168-vision-r2-img-table-27b29c54df45",
+      "agent_type": "llm",
+      "status": "success",
+      "latency_ms": 14347,
+      "model": "deepseek-flash",
+      "prompt_version": "vision-conditions-v1",
+      "input_tokens": 1484,
+      "output_tokens": 3117,
+      "total_tokens": 4601,
+      "input_summary": null,
+      "output_summary": null,
+      "error_code": null,
+      "error_retryable": null
+    }
+  ],
+  "observed_provider_attempts": 1,
+  "actual_raw_responses": [
+    {
+      "received_at_utc": "2026-10-03T14:42:40.089968Z",
+      "status_code": 200,
+      "capture_scope": "response identity, usage, actual choices only; no headers/URL/credentials",
+      "id": "2b94955d-927b-4779-a66c-4a2874f24b90",
+      "model": "deepseek-flash",
+      "system_fingerprint": "aeb56401ca74e127821c4f9126dcb669",
+      "usage": {
+        "prompt_tokens": 1484,
+        "completion_tokens": 3117,
+        "total_tokens": 4601,
+        "prompt_tokens_details": {
+          "cached_tokens": 1280
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 2812
+        },
+        "prompt_cache_hit_tokens": 1280,
+        "prompt_cache_miss_tokens": 204
+      },
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\"observations\":[{\"image_index\":1,\"kind\":\"表格\",\"description\":\"题图可见一个三列四行（含表头）的表格，列标题依次为“x”“y”“说明”；表头下三行分别为：x=1、y=3、说明为“第一行”；x=2、y=5、说明为“第二行”；x=3、y=7、说明为“第三行”。题图中未见其他图示、题面文字或公式。\",\"bbox\":null}],\"conditions\":[{\"image_index\":1,\"text\":\"表格列标题为：x、y、说明。\",\"evidence_region\":null},{\"image_index\":1,\"text\":\"表格第一行数据：x 为 1，y 为 3，说明为“第一行”。\",\"evidence_region\":null},{\"image_index\":1,\"text\":\"表格第二行数据：x 为 2，y 为 5，说明为“第二行”。\",\"evidence_region\":null},{\"image_index\":1,\"text\":\"表格第三行数据：x 为 3，y 为 7，说明为“第三行”。\",\"evidence_region\":null}],\"unresolved_issues\":[{\"image_indices\":[1],\"message\":\"题图仅包含表格，未显示题干、选项或具体求解要求，无法判断该表格对应的问题。\"}],\"requires_manual_review\":true,\"provenance\":null}",
+            "reasoning_content": "我们需要回答 JSON，依据题图识别表格和条件。仅有第1张图片，尺寸640x400。需要输出 observations, conditions, unresolved_issues, requires_manual_review, provenance null。必须不补写答案。需要识别图示表格内容：表格有三列：x, y, 说明。行：1,3,第一行；2,5,第二行；3,7,第三行。可以给 bbox 区域。需要可靠定位? 原图 640x400，表格大致边界？图片中表格从左上约 (56,58)? 到 (548,344)? 我们可以估计。但不确定。如果需要 bbox 可给整个表格区域？ 指令：bbox/evidence_region.bbox 为该资产原图左上/右下像素，无法可靠定位保持 null。我们可以给近似? 可能不需要。但 observations 可以有 bbox，但可以 null。conditions 每个条件 image_index=1, text 条件，evidence_region 可给表格区域。我们可估计表格 bbox：图像640x400，表格在中央，外框大概 x0=56, y0=57, x1=548, y1=344。可给 null 因为无法精确？ 但“无法可靠定位保持 null”近似也可以？最好给 null 以避免错误。我们可以观测记录表格为 kind=\"table\", description 详细。conditions 每个行条件? 题图可见条件就是表格各行数据，以及说明。可能 options null answer null。需要 unresolved issues：关键文字都清晰，没有矛盾。未知？ 可能没有。requires_manual_review? 如果没有问题 false? 但用户说没有问题的 false 也不代替真实教师核对。所以可以 false。但任务要求识别图示、表格及必要条件。我们应该列出观察和条件。JSON 必须符合 schema。observations 数组。每个 observation: image_index=1, kind, description, bbox optional/null。conditions 数组：每个条件 image_index=1, text, evidence_region 或 null。可以写表格所有行合并成一条? 但条件应该逐条：表格列头 x, y, 说明；第一行 x=1,y=3,说明第一行；第二行 x=2,y=5,说明第二行；第三行 x=3,y=7,说明第三行。注意“条件”是必要文字上下文，不是 answer。不要补写答案。也许需要声明表格标题？ 图片仅表格无标题。\n\n我们要确保不生成额外答案，如关系 y=2x+1? 不要写。只识别可见内容。说明列“第一行”“第二行”“第三行”是表格文字，不是答案。可以原样识别。observations 可包括 table结构、内容。conditions 可包括条件：表格第一行 x=1 y=3；表格第二行 x=2 y=5；表格第三行 x=3 y=7；以及列名。如果每行条件合并：“题图表格第一行：x 为 1，y 为 3，说明为“第一行”。” 可以。evidence_region 可给整个表格 bbox 或 null。由于无法可靠定位可以 null。但可以估计 bbox 给大概。需要遵循原图坐标；如果能定位表格边界，我们可给 [56,58,548,344]。但精确边界可能约 (55,57) to (549,344)。给近似可能会被评判？ 这里没有自动评分，但要求真实。我们可以给 null 表示无法可靠定位像素边界。但 observations 的 bbox 可 null。conditions 的 evidence_region 可 null。这样可以。\n\nunresolved_issues：如“题图除表格外没有题干文字，未给出具体问题或选项，无法判断要求解什么。” 这算缺失条件吗？ 上下文说 options null answer null analysis null caption null。题图只含表格。条件不足? 任务仅识别图示、表格及必要条件，不识别或补写答案。因此 unresolved_issues 可以指出题干缺失：未显示题面、选项或要求。requires_manual_review 应为 true？ 因为有缺失条件/无法判断问题？ 用户要求有问题 requires_manual_review=true。如果有 unresolved issues，应该 true。是否认为有问题？ 是的，题图仅表格，没有题干。unresolved_issues 包括“题图未显示题干、选项或求解要求；表格（x,y,说明）可见，但其在教学题目中的具体问题不明确。” 因此 requires_manual_review true。同时没有矛盾。这样合理。\n\nprovenance 必须为 null。JSON 中 provenance: null。\n\n需要确保 JSON schema 允许 observations bbox null。conditions evidence_region 可为 null。unresolved_issues 中 image_indices 可 [1]。message 非空。kind 非空。description 非空。\n\n我们可以输出：\n\n{\n  \"observations\": [\n    {\n      \"image_index\": 1,\n      \"kind\": \"table\",\n      \"description\": \"题图中为一个三列四行的表格（含表头）：第一列为 x，第二列为 y，第三列为“说明”；表头下三行分别为：1、3、第一行；2、5、第二行；3、7、第三行。未识别到其他图示或文字。\",\n      \"bbox\": null\n    }\n  ],\n  \"conditions\": [\n    {\n      \"image_index\": 1,\n      \"text\": \"表格列名：x、y、说明。\",\n      \"evidence_region\": null\n    },\n    {\n      \"image_index\": 1,\n      \"text\": \"表头下第一行：x 为 1，y 为 3，说明为“第一行”。\",\n      \"evidence_region\": null\n    },\n    {\n      \"image_index\": 1,\n      \"text\": \"表头下第二行：x 为 2，y 为 5，说明为“第二行”。\",\n      \"evidence_region\": null\n    },\n    {\n      \"image_index\": 1,\n      \"text\": \"表头下第三行：x 为 3，y 为 7，说明为“第三行”。\",\n      \"evidence_region\": null\n    }\n  ],\n  \"unresolved_issues\": [\n    {\n      \"image_indices\": [1],\n      \"message\": \"题图仅显示表格，未显示题干、选项或具体求解要求，无法仅凭该图确定题目要问什么。\"\n    }\n  ],\n  \"requires_manual_review\": true,\n  \"provenance\": null\n}\n\n但用户说要“不补写题图未给出的答案、数值或关系”。我们没有。好的。\n\n但“仅依据本次全部题图和真实文字上下文识别图示、表格及必要条件。输出符合所给 JSON Schema 的 JSON 对象，不输出 Markdown，不补写题图未给出的答案、数值或关系。” 因此上面的描述可以。可能需要注意“必要条件”也许条件应该给“表格显示...”而不只是行。可以。\n\n我们是否应该给 bbox 像素？如果无法可靠定位保持 null。我选择 null。可以。\n\n但 schema 要求 observations kind 和 description；conditions text minLength 1。OK。\n\n需要确保 JSON 对象最外层没有别的东西。直接输出 JSON。\n\n可能 unresolved_issues 可能不必要？ 但我们需要显示发现问题。题图确实只有表格，题干缺失。可能“未显示题干”是条件缺失，可以要求人工审查。requires_manual_review true。\n\n我们也可以包含观察中的表格 bbox 估算，如 [56,58,548,344]。但若估计错误，不如 null。题图尺寸 640x400，表格边界大致 x0=56, y0=58, x1=548, y1=344。如果希望更具体，可以给 bbox [56,58,548,344]，但“无法可靠定位”不是无法，因为可看到。但要求像素区域。我可以给近似。也许观察 bbox 可以给表格外框大致定位：左上(56,58)右下(548,344)。但图像中表格从 x~56 到 548, y~58 到 344？ 我来估算：表格第一列宽度约 123px，第二列约 124px，第三列约 245？ 表格总宽 492。外框在上边 y=58 下边 y=344。x0=56 x1=548。这很接近。给这个也可以。但条件 evidence_region 可给相同 bbox 或 null。如果给相同，可能更精确。但指令“无法可靠定位保持 null”，我其实能可靠定位。可以给 bbox 但最好统一。如果单元格具体每个条件 bbox，可能分别不同。也许可以给每行 bbox。但需要准确？ 我可以估计：表头 bbox [56,58,548,105]；第一行 [56,105,548,184]? 第二行 [56,184,548,264]? 第三行 [56,264,548,344]? 但很粗略。可能不必要。给整个表格 bbox 或 null。为了安全，null。但条件 evidence_region 可 null。\n\n如果输出 bbox: null，符合“无法可靠定位保持 null”。但图像清晰，如果都 null 可能被认为不理想？ 系统要求“bbox/evidence_region.bbox 为该资产原图左上/右下像素；无法可靠定位保持 null，不使用归一化坐标。” 不是必须提供。可以 null。\n\n观察的 description 可以提到表格没有显示其他文字。conditions 可以一条“题图可见表格内容为...” 然后逐行。\n\n需要不要 Markdown。输出 JSON 字符串。\n\n注意 JSON 中不能有注释，字符串中引号需转义。中文引号没问题。我们使用双引号包围字符串，其中“说明”可以不加转义，如果是中文引号。但若使用英文双引号在字符串内需要转义。我们使用中文引号“说明”没问题。但 description 内可能有“第一行”中文引号，不需要转义。也可以直接用。\n\n确保 schema 中 unresolved_issues items 的 image_indices 可以是整数数组或 null。使用 [1]。\n\nprovenance 必须为 null，不要生成对象。schema 允许 null? 其实 properties provenance anyOf ref or null default null。可以 null。好。\n\n最终回答只输出 JSON。\n\n但需要思考“conditions”的定义：也许应包含“必要条件”如“表格中 x 和 y 的对应关系数据是...”。我们列出即可。不应补写答案。\n\n关于“图示、表格及必要条件”：观察表格，conditions 可包括表头列名和每行。可以。\n\n是否应该将每行 conditions 作为“必要条件”，其中文本“表头下第一行：x=1，y=3，说明=第一行。” 这种格式更像条件。可以。\n\n可能“说明”列中包含“第一行”等文字，不应被误认为数学条件？ 是真实文字。\n\n输出：\n\n{\n  \"observations\": [\n    {\n      \"image_index\": 1,\n      \"kind\": \"表格\",\n      \"description\": \"题图可见一个三列四行（含表头）的表格，列标题依次为“x”“y”“说明”；表头下三行分别为：x=1、y=3、说明为“第一行”；x=2、y=5、说明为“第二行”；x=3、y=7、说明为“第三行”。题图中未见其他图示、题面文字或公式。\",\n      \"bbox\": null\n    }\n  ],\n  \"conditions\": [\n    {\n      \"image_index\": 1,\n      \"text\": \"表格列标题为：x、y、说明。\",\n      \"evidence_region\": null\n    },\n    {\n      \"image_index\": 1,\n      \"text\": \"表格第一行数据：x 为 1，y 为 3，说明为“第一行”。\",\n      \"evidence_region\": null\n    },\n    {\n      \"image_index\": 1,\n      \"text\": \"表格第二行数据：x 为 2，y 为 5，说明为“第二行”。\",\n      \"evidence_region\": null\n    },\n    {\n      \"image_index\": 1,\n      \"text\": \"表格第三行数据：x 为 3，y 为 7，说明为“第三行”。\",\n      \"evidence_region\": null\n    }\n  ],\n  \"unresolved_issues\": [\n    {\n      \"image_indices\": [1],\n      \"message\": \"题图仅包含表格，未显示题干、选项或具体求解要求，无法判断该表格对应的问题。\"\n    }\n  ],\n  \"requires_manual_review\": true,\n  \"provenance\": null\n}\n\n这样很好。\n\n但用户要求“未知图片归属 image_indices=null”。我们不需要。\n\n“有问题 requires_manual_review=true。没有问题的 false 也不代替真实教师核对。” 我们有 unresolved issue，所以 true。 OK。\n\n最终输出 JSON，无 Markdown。"
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      ]
+    }
+  ],
+  "raw_capture_status": "read_only_http_response_hook"
+}

@@ -1,0 +1,462 @@
+{
+  "schema_version": "t168-reviewed-condition-matches-1",
+  "reviewed_at_utc": "2026-10-03T14:51:34.867137+00:00",
+  "reference_standard": "AI 辅助 + 开发者审查",
+  "review_author": {
+    "kind": "ai_assistant",
+    "name": "Codex",
+    "developer_review_scope": "已批准学习项目基准；本次语义等价匹配由AI执行，不声称开发者逐项人工重标"
+  },
+  "independent_teacher_count": 0,
+  "one_to_one": true,
+  "index_base": 1,
+  "original_pixels_visually_rechecked": true,
+  "baseline_annotation_version": "t146-developer-reviewed-ai-assisted-20261003-2",
+  "raw_runs_sha256": "a899ad40e803c8192f694e8e16ea3dd25277514e8fa72ac26e56cf383d3af16e",
+  "entries": [
+    {
+      "run_id": "t168-vision-r1-img-figure-128cd5fa19cd",
+      "case_id": "IMG-FIGURE",
+      "round": 1,
+      "reference_conditions": 3,
+      "matches": [
+        {
+          "reference_key": "figure-shape",
+          "reference_text": "三角形",
+          "output_index": 1,
+          "output_text": "图中三角形为直角三角形，竖直边（高）与水平边（底）相互垂直。",
+          "matched": true,
+          "reason": "输出明确指出三角形，原图标题和轮廓一致；首轮竖直/水平边描述可见。"
+        },
+        {
+          "reference_key": "figure-base",
+          "reference_text": "底 6 cm",
+          "output_index": 3,
+          "output_text": "底 6 cm（水平直角边标注为 6 cm）。",
+          "matched": true,
+          "reason": "输出底6 cm，与原图底部标注相同，单位和数值一致。"
+        },
+        {
+          "reference_key": "figure-height",
+          "reference_text": "高 4 cm",
+          "output_index": 2,
+          "output_text": "高 4 cm（竖直直角边标注为 4 cm）。",
+          "matched": true,
+          "reason": "输出高4 cm，与原图内侧标注相同，单位和数值一致。"
+        }
+      ],
+      "unmatched_outputs": [],
+      "manual_handoff_correct": null,
+      "manual_handoff_reason": null,
+      "clear_image_manual_reason": null
+    },
+    {
+      "run_id": "t168-vision-r1-img-table-9ac0a83bec54",
+      "case_id": "IMG-TABLE",
+      "round": 1,
+      "reference_conditions": 4,
+      "matches": [
+        {
+          "reference_key": "table-columns",
+          "reference_text": "列标题依次为 x、y、说明",
+          "output_index": 1,
+          "output_text": "表格列标题为 x、y、说明。",
+          "matched": true,
+          "reason": "表头按x、y、说明排列，或本行x/y及行序按原表对应；第三轮通过已识别表头将第一/第二列对应x/y，语义等价。"
+        },
+        {
+          "reference_key": "table-row-1",
+          "reference_text": "第一行 x=1，y=3",
+          "output_index": 2,
+          "output_text": "表格第一行数据：x=1，y=3，说明=第一行。",
+          "matched": true,
+          "reason": "表头按x、y、说明排列，或本行x/y及行序按原表对应；第三轮通过已识别表头将第一/第二列对应x/y，语义等价。"
+        },
+        {
+          "reference_key": "table-row-2",
+          "reference_text": "第二行 x=2，y=5",
+          "output_index": 3,
+          "output_text": "表格第二行数据：x=2，y=5，说明=第二行。",
+          "matched": true,
+          "reason": "表头按x、y、说明排列，或本行x/y及行序按原表对应；第三轮通过已识别表头将第一/第二列对应x/y，语义等价。"
+        },
+        {
+          "reference_key": "table-row-3",
+          "reference_text": "第三行 x=3，y=7",
+          "output_index": 4,
+          "output_text": "表格第三行数据：x=3，y=7，说明=第三行。",
+          "matched": true,
+          "reason": "表头按x、y、说明排列，或本行x/y及行序按原表对应；第三轮通过已识别表头将第一/第二列对应x/y，语义等价。"
+        }
+      ],
+      "unmatched_outputs": [],
+      "manual_handoff_correct": null,
+      "manual_handoff_reason": null,
+      "clear_image_manual_reason": "表格三轮人工标志来自当前中性上下文未提供完整题干/求解目标；保留原问题，不能直接用清晰度标签判误报。"
+    },
+    {
+      "run_id": "t168-vision-r1-img-diagram-b354795d5918",
+      "case_id": "IMG-DIAGRAM",
+      "round": 1,
+      "reference_conditions": 4,
+      "matches": [
+        {
+          "reference_key": "diagram-input",
+          "reference_text": "输入 x",
+          "output_index": 1,
+          "output_text": "输入 x",
+          "matched": true,
+          "reason": "输入变量x、算式y=2*x+1、输出变量y或向下执行顺序逐项与原图相同；单条输出仅匹配一条参考条件。"
+        },
+        {
+          "reference_key": "diagram-operation",
+          "reference_text": "y = 2 * x + 1",
+          "output_index": 2,
+          "output_text": "y = 2 * x + 1",
+          "matched": true,
+          "reason": "输入变量x、算式y=2*x+1、输出变量y或向下执行顺序逐项与原图相同；单条输出仅匹配一条参考条件。"
+        },
+        {
+          "reference_key": "diagram-output",
+          "reference_text": "输出 y",
+          "output_index": 3,
+          "output_text": "输出 y",
+          "matched": true,
+          "reason": "输入变量x、算式y=2*x+1、输出变量y或向下执行顺序逐项与原图相同；单条输出仅匹配一条参考条件。"
+        },
+        {
+          "reference_key": "diagram-flow",
+          "reference_text": "执行顺序为输入 x → 计算 y=2*x+1 → 输出 y",
+          "output_index": null,
+          "output_text": null,
+          "matched": false,
+          "reason": "首轮流程箭头顺序仅见 observations；conditions 缺此项，按冻结规则不能重建条件命中。"
+        }
+      ],
+      "unmatched_outputs": [],
+      "manual_handoff_correct": null,
+      "manual_handoff_reason": null,
+      "clear_image_manual_reason": null
+    },
+    {
+      "run_id": "t168-vision-r1-img-unclear-8027caea887c",
+      "case_id": "IMG-UNCLEAR",
+      "round": 1,
+      "reference_conditions": null,
+      "matches": [],
+      "unmatched_outputs": [],
+      "manual_handoff_correct": true,
+      "manual_handoff_reason": "各轮明确指出框内文字无法辨认，并要求人工核对；不记录关键条件识别成功。",
+      "clear_image_manual_reason": null
+    },
+    {
+      "run_id": "t168-vision-r2-img-figure-9c66e5ed5dab",
+      "case_id": "IMG-FIGURE",
+      "round": 2,
+      "reference_conditions": 3,
+      "matches": [
+        {
+          "reference_key": "figure-shape",
+          "reference_text": "三角形",
+          "output_index": 1,
+          "output_text": "图示为一个三角形，上方标注有“三角形”。",
+          "matched": true,
+          "reason": "输出明确指出三角形，原图标题和轮廓一致；首轮竖直/水平边描述可见。"
+        },
+        {
+          "reference_key": "figure-base",
+          "reference_text": "底 6 cm",
+          "output_index": 3,
+          "output_text": "三角形的底为 6 cm，题图中标注为“底 6 cm”。",
+          "matched": true,
+          "reason": "输出底6 cm，与原图底部标注相同，单位和数值一致。"
+        },
+        {
+          "reference_key": "figure-height",
+          "reference_text": "高 4 cm",
+          "output_index": 2,
+          "output_text": "三角形的高为 4 cm，题图中标注为“高 4 cm”。",
+          "matched": true,
+          "reason": "输出高4 cm，与原图内侧标注相同，单位和数值一致。"
+        }
+      ],
+      "unmatched_outputs": [
+        {
+          "output_index": 4,
+          "text": "按图示，三角形左侧边竖直，底边水平，斜边连接左上顶点与右下端点；高对应左侧竖直边，底对应下方水平边。",
+          "classification": "visible_supplement_without_unused_reference_key",
+          "reason": "第二轮三角形额外几何描述与可见竖直/水平轮廓相符，未匹配剩余参考条件；不称幻觉，不重复计算命中。"
+        }
+      ],
+      "manual_handoff_correct": null,
+      "manual_handoff_reason": null,
+      "clear_image_manual_reason": null
+    },
+    {
+      "run_id": "t168-vision-r2-img-table-27b29c54df45",
+      "case_id": "IMG-TABLE",
+      "round": 2,
+      "reference_conditions": 4,
+      "matches": [
+        {
+          "reference_key": "table-columns",
+          "reference_text": "列标题依次为 x、y、说明",
+          "output_index": 1,
+          "output_text": "表格列标题为：x、y、说明。",
+          "matched": true,
+          "reason": "表头按x、y、说明排列，或本行x/y及行序按原表对应；第三轮通过已识别表头将第一/第二列对应x/y，语义等价。"
+        },
+        {
+          "reference_key": "table-row-1",
+          "reference_text": "第一行 x=1，y=3",
+          "output_index": 2,
+          "output_text": "表格第一行数据：x 为 1，y 为 3，说明为“第一行”。",
+          "matched": true,
+          "reason": "表头按x、y、说明排列，或本行x/y及行序按原表对应；第三轮通过已识别表头将第一/第二列对应x/y，语义等价。"
+        },
+        {
+          "reference_key": "table-row-2",
+          "reference_text": "第二行 x=2，y=5",
+          "output_index": 3,
+          "output_text": "表格第二行数据：x 为 2，y 为 5，说明为“第二行”。",
+          "matched": true,
+          "reason": "表头按x、y、说明排列，或本行x/y及行序按原表对应；第三轮通过已识别表头将第一/第二列对应x/y，语义等价。"
+        },
+        {
+          "reference_key": "table-row-3",
+          "reference_text": "第三行 x=3，y=7",
+          "output_index": 4,
+          "output_text": "表格第三行数据：x 为 3，y 为 7，说明为“第三行”。",
+          "matched": true,
+          "reason": "表头按x、y、说明排列，或本行x/y及行序按原表对应；第三轮通过已识别表头将第一/第二列对应x/y，语义等价。"
+        }
+      ],
+      "unmatched_outputs": [],
+      "manual_handoff_correct": null,
+      "manual_handoff_reason": null,
+      "clear_image_manual_reason": "表格三轮人工标志来自当前中性上下文未提供完整题干/求解目标；保留原问题，不能直接用清晰度标签判误报。"
+    },
+    {
+      "run_id": "t168-vision-r2-img-diagram-c3d41699038a",
+      "case_id": "IMG-DIAGRAM",
+      "round": 2,
+      "reference_conditions": 4,
+      "matches": [
+        {
+          "reference_key": "diagram-input",
+          "reference_text": "输入 x",
+          "output_index": 1,
+          "output_text": "输入 x",
+          "matched": true,
+          "reason": "输入变量x、算式y=2*x+1、输出变量y或向下执行顺序逐项与原图相同；单条输出仅匹配一条参考条件。"
+        },
+        {
+          "reference_key": "diagram-operation",
+          "reference_text": "y = 2 * x + 1",
+          "output_index": 2,
+          "output_text": "y = 2 * x + 1",
+          "matched": true,
+          "reason": "输入变量x、算式y=2*x+1、输出变量y或向下执行顺序逐项与原图相同；单条输出仅匹配一条参考条件。"
+        },
+        {
+          "reference_key": "diagram-output",
+          "reference_text": "输出 y",
+          "output_index": 3,
+          "output_text": "输出 y",
+          "matched": true,
+          "reason": "输入变量x、算式y=2*x+1、输出变量y或向下执行顺序逐项与原图相同；单条输出仅匹配一条参考条件。"
+        },
+        {
+          "reference_key": "diagram-flow",
+          "reference_text": "执行顺序为输入 x → 计算 y=2*x+1 → 输出 y",
+          "output_index": 4,
+          "output_text": "流程图箭头方向表示执行顺序：输入 x → y = 2 * x + 1 → 输出 y",
+          "matched": true,
+          "reason": "输入变量x、算式y=2*x+1、输出变量y或向下执行顺序逐项与原图相同；单条输出仅匹配一条参考条件。"
+        }
+      ],
+      "unmatched_outputs": [],
+      "manual_handoff_correct": null,
+      "manual_handoff_reason": null,
+      "clear_image_manual_reason": null
+    },
+    {
+      "run_id": "t168-vision-r2-img-unclear-1904a805815d",
+      "case_id": "IMG-UNCLEAR",
+      "round": 2,
+      "reference_conditions": null,
+      "matches": [],
+      "unmatched_outputs": [
+        {
+          "output_index": 1,
+          "text": "图示为自上而下排列的三个矩形框。",
+          "classification": "unassessable_without_key_condition_labels",
+          "reason": "低清原图仅64×40，关键文字标签保持未知；可见结构描述单列，不借同源高清图补全真值。"
+        },
+        {
+          "output_index": 2,
+          "text": "上方矩形框与中间矩形框之间、中间矩形框与下方矩形框之间均可见短竖线连接。",
+          "classification": "unassessable_without_key_condition_labels",
+          "reason": "低清原图仅64×40，关键文字标签保持未知；可见结构描述单列，不借同源高清图补全真值。"
+        }
+      ],
+      "manual_handoff_correct": true,
+      "manual_handoff_reason": "各轮明确指出框内文字无法辨认，并要求人工核对；不记录关键条件识别成功。",
+      "clear_image_manual_reason": null
+    },
+    {
+      "run_id": "t168-vision-r3-img-figure-4f098aa94740",
+      "case_id": "IMG-FIGURE",
+      "round": 3,
+      "reference_conditions": 3,
+      "matches": [
+        {
+          "reference_key": "figure-shape",
+          "reference_text": "三角形",
+          "output_index": 1,
+          "output_text": "三角形",
+          "matched": true,
+          "reason": "输出明确指出三角形，原图标题和轮廓一致；首轮竖直/水平边描述可见。"
+        },
+        {
+          "reference_key": "figure-base",
+          "reference_text": "底 6 cm",
+          "output_index": 3,
+          "output_text": "底 6 cm",
+          "matched": true,
+          "reason": "输出底6 cm，与原图底部标注相同，单位和数值一致。"
+        },
+        {
+          "reference_key": "figure-height",
+          "reference_text": "高 4 cm",
+          "output_index": 2,
+          "output_text": "高 4 cm",
+          "matched": true,
+          "reason": "输出高4 cm，与原图内侧标注相同，单位和数值一致。"
+        }
+      ],
+      "unmatched_outputs": [],
+      "manual_handoff_correct": null,
+      "manual_handoff_reason": null,
+      "clear_image_manual_reason": null
+    },
+    {
+      "run_id": "t168-vision-r3-img-table-9e430399a9dd",
+      "case_id": "IMG-TABLE",
+      "round": 3,
+      "reference_conditions": 4,
+      "matches": [
+        {
+          "reference_key": "table-columns",
+          "reference_text": "列标题依次为 x、y、说明",
+          "output_index": 1,
+          "output_text": "表格表头：第一列标题为 x，第二列标题为 y，第三列标题为 说明。",
+          "matched": true,
+          "reason": "表头按x、y、说明排列，或本行x/y及行序按原表对应；第三轮通过已识别表头将第一/第二列对应x/y，语义等价。"
+        },
+        {
+          "reference_key": "table-row-1",
+          "reference_text": "第一行 x=1，y=3",
+          "output_index": 2,
+          "output_text": "表格第一行数据：第一列为 1，第二列为 3，第三列为 第一行。",
+          "matched": true,
+          "reason": "表头按x、y、说明排列，或本行x/y及行序按原表对应；第三轮通过已识别表头将第一/第二列对应x/y，语义等价。"
+        },
+        {
+          "reference_key": "table-row-2",
+          "reference_text": "第二行 x=2，y=5",
+          "output_index": 3,
+          "output_text": "表格第二行数据：第一列为 2，第二列为 5，第三列为 第二行。",
+          "matched": true,
+          "reason": "表头按x、y、说明排列，或本行x/y及行序按原表对应；第三轮通过已识别表头将第一/第二列对应x/y，语义等价。"
+        },
+        {
+          "reference_key": "table-row-3",
+          "reference_text": "第三行 x=3，y=7",
+          "output_index": 4,
+          "output_text": "表格第三行数据：第一列为 3，第二列为 7，第三列为 第三行。",
+          "matched": true,
+          "reason": "表头按x、y、说明排列，或本行x/y及行序按原表对应；第三轮通过已识别表头将第一/第二列对应x/y，语义等价。"
+        }
+      ],
+      "unmatched_outputs": [],
+      "manual_handoff_correct": null,
+      "manual_handoff_reason": null,
+      "clear_image_manual_reason": "表格三轮人工标志来自当前中性上下文未提供完整题干/求解目标；保留原问题，不能直接用清晰度标签判误报。"
+    },
+    {
+      "run_id": "t168-vision-r3-img-diagram-d769e4d74e2c",
+      "case_id": "IMG-DIAGRAM",
+      "round": 3,
+      "reference_conditions": 4,
+      "matches": [
+        {
+          "reference_key": "diagram-input",
+          "reference_text": "输入 x",
+          "output_index": 2,
+          "output_text": "输入变量为 x。",
+          "matched": true,
+          "reason": "输入变量x、算式y=2*x+1、输出变量y或向下执行顺序逐项与原图相同；单条输出仅匹配一条参考条件。"
+        },
+        {
+          "reference_key": "diagram-operation",
+          "reference_text": "y = 2 * x + 1",
+          "output_index": 3,
+          "output_text": "计算关系式为 y = 2 * x + 1。",
+          "matched": true,
+          "reason": "输入变量x、算式y=2*x+1、输出变量y或向下执行顺序逐项与原图相同；单条输出仅匹配一条参考条件。"
+        },
+        {
+          "reference_key": "diagram-output",
+          "reference_text": "输出 y",
+          "output_index": 4,
+          "output_text": "输出变量为 y。",
+          "matched": true,
+          "reason": "输入变量x、算式y=2*x+1、输出变量y或向下执行顺序逐项与原图相同；单条输出仅匹配一条参考条件。"
+        },
+        {
+          "reference_key": "diagram-flow",
+          "reference_text": "执行顺序为输入 x → 计算 y=2*x+1 → 输出 y",
+          "output_index": 1,
+          "output_text": "流程顺序为：输入 x → y = 2 * x + 1 → 输出 y。",
+          "matched": true,
+          "reason": "输入变量x、算式y=2*x+1、输出变量y或向下执行顺序逐项与原图相同；单条输出仅匹配一条参考条件。"
+        }
+      ],
+      "unmatched_outputs": [],
+      "manual_handoff_correct": null,
+      "manual_handoff_reason": null,
+      "clear_image_manual_reason": null
+    },
+    {
+      "run_id": "t168-vision-r3-img-unclear-ec702d0253df",
+      "case_id": "IMG-UNCLEAR",
+      "round": 3,
+      "reference_conditions": null,
+      "matches": [],
+      "unmatched_outputs": [
+        {
+          "output_index": 1,
+          "text": "题图包含三个水平矩形框，自上而下排列。",
+          "classification": "unassessable_without_key_condition_labels",
+          "reason": "低清原图仅64×40，关键文字标签保持未知；可见结构描述单列，不借同源高清图补全真值。"
+        },
+        {
+          "output_index": 2,
+          "text": "三个矩形框之间由短竖线连接。",
+          "classification": "unassessable_without_key_condition_labels",
+          "reason": "低清原图仅64×40，关键文字标签保持未知；可见结构描述单列，不借同源高清图补全真值。"
+        },
+        {
+          "output_index": 3,
+          "text": "每个矩形框内均有文字，疑为流程/结构中的必要说明，但当前图像无法辨认。",
+          "classification": "unassessable_without_key_condition_labels",
+          "reason": "低清原图仅64×40，关键文字标签保持未知；可见结构描述单列，不借同源高清图补全真值。"
+        }
+      ],
+      "manual_handoff_correct": true,
+      "manual_handoff_reason": "各轮明确指出框内文字无法辨认，并要求人工核对；不记录关键条件识别成功。",
+      "clear_image_manual_reason": null
+    }
+  ]
+}

@@ -1,0 +1,299 @@
+[
+  {
+    "run_id": "t160-quality-20261002T182955Z-75789e35-01-IMP-TEXT-r1",
+    "case_id": "IMP-TEXT",
+    "reference_identity": "8e0aecaf-072d-5ed7-9b43-5d33ad202cc1",
+    "status": "persisted",
+    "teacher_review_created": false,
+    "crop_sha256": "3587ef23e69e96a22e033e54c1919570dfa7651a16f65637bcd2b40be702d0f6",
+    "crop_evidence_ref": "benchmark/results/v2/t160-retest-20261003/quality/image-assistance/crop-001-figure.png"
+  },
+  {
+    "run_id": "t160-quality-20261002T182955Z-75789e35-01-IMP-TEXT-r1",
+    "case_id": "IMP-TEXT",
+    "reference_identity": "fdef73bd-f984-58d1-8a53-3eea668a9f83",
+    "status": "persisted",
+    "teacher_review_created": false,
+    "crop_sha256": "896dfad1841b196bdf7501cd01d477c6b44f73509434536fd33ad12343a9281c",
+    "crop_evidence_ref": "benchmark/results/v2/t160-retest-20261003/quality/image-assistance/crop-002-table.png"
+  },
+  {
+    "run_id": "t160-quality-20261002T182955Z-75789e35-02-IMP-TEXT-r2",
+    "case_id": "IMP-TEXT",
+    "reference_identity": "8e0aecaf-072d-5ed7-9b43-5d33ad202cc1",
+    "status": "persisted",
+    "teacher_review_created": false,
+    "crop_sha256": "3587ef23e69e96a22e033e54c1919570dfa7651a16f65637bcd2b40be702d0f6",
+    "crop_evidence_ref": "benchmark/results/v2/t160-retest-20261003/quality/image-assistance/crop-003-figure.png"
+  },
+  {
+    "run_id": "t160-quality-20261002T182955Z-75789e35-02-IMP-TEXT-r2",
+    "case_id": "IMP-TEXT",
+    "reference_identity": "fdef73bd-f984-58d1-8a53-3eea668a9f83",
+    "status": "persisted",
+    "teacher_review_created": false,
+    "crop_sha256": "896dfad1841b196bdf7501cd01d477c6b44f73509434536fd33ad12343a9281c",
+    "crop_evidence_ref": "benchmark/results/v2/t160-retest-20261003/quality/image-assistance/crop-004-table.png"
+  },
+  {
+    "run_id": "t160-quality-20261002T182955Z-75789e35-03-IMP-TEXT-r3",
+    "case_id": "IMP-TEXT",
+    "reference_identity": "8e0aecaf-072d-5ed7-9b43-5d33ad202cc1",
+    "status": "persisted",
+    "teacher_review_created": false,
+    "crop_sha256": "3587ef23e69e96a22e033e54c1919570dfa7651a16f65637bcd2b40be702d0f6",
+    "crop_evidence_ref": "benchmark/results/v2/t160-retest-20261003/quality/image-assistance/crop-005-figure.png"
+  },
+  {
+    "run_id": "t160-quality-20261002T182955Z-75789e35-03-IMP-TEXT-r3",
+    "case_id": "IMP-TEXT",
+    "reference_identity": "fdef73bd-f984-58d1-8a53-3eea668a9f83",
+    "status": "persisted",
+    "teacher_review_created": false,
+    "crop_sha256": "896dfad1841b196bdf7501cd01d477c6b44f73509434536fd33ad12343a9281c",
+    "crop_evidence_ref": "benchmark/results/v2/t160-retest-20261003/quality/image-assistance/crop-006-table.png"
+  },
+  {
+    "run_id": "t160-quality-20261002T182955Z-75789e35-04-IMP-SCAN-r1",
+    "case_id": "IMP-SCAN",
+    "reference_identity": "5f47ee64-edec-5327-9172-bb8454c7640d",
+    "status": "persisted",
+    "teacher_review_created": false,
+    "crop_sha256": "3587ef23e69e96a22e033e54c1919570dfa7651a16f65637bcd2b40be702d0f6",
+    "crop_evidence_ref": "benchmark/results/v2/t160-retest-20261003/quality/image-assistance/crop-007-figure.png"
+  },
+  {
+    "run_id": "t160-quality-20261002T182955Z-75789e35-04-IMP-SCAN-r1",
+    "case_id": "IMP-SCAN",
+    "reference_identity": "d6acd365-a6d5-5eb8-9b54-66f26a915094",
+    "status": "persisted",
+    "teacher_review_created": false,
+    "crop_sha256": "896dfad1841b196bdf7501cd01d477c6b44f73509434536fd33ad12343a9281c",
+    "crop_evidence_ref": "benchmark/results/v2/t160-retest-20261003/quality/image-assistance/crop-008-table.png"
+  },
+  {
+    "run_id": "t160-quality-20261002T182955Z-75789e35-05-IMP-SCAN-r2",
+    "case_id": "IMP-SCAN",
+    "reference_identity": "5f47ee64-edec-5327-9172-bb8454c7640d",
+    "status": "persisted",
+    "teacher_review_created": false,
+    "crop_sha256": "3587ef23e69e96a22e033e54c1919570dfa7651a16f65637bcd2b40be702d0f6",
+    "crop_evidence_ref": "benchmark/results/v2/t160-retest-20261003/quality/image-assistance/crop-009-figure.png"
+  },
+  {
+    "run_id": "t160-quality-20261002T182955Z-75789e35-05-IMP-SCAN-r2",
+    "case_id": "IMP-SCAN",
+    "reference_identity": "d6acd365-a6d5-5eb8-9b54-66f26a915094",
+    "status": "persisted",
+    "teacher_review_created": false,
+    "crop_sha256": "896dfad1841b196bdf7501cd01d477c6b44f73509434536fd33ad12343a9281c",
+    "crop_evidence_ref": "benchmark/results/v2/t160-retest-20261003/quality/image-assistance/crop-010-table.png"
+  },
+  {
+    "run_id": "t160-quality-20261002T182955Z-75789e35-06-IMP-SCAN-r3",
+    "case_id": "IMP-SCAN",
+    "reference_identity": "5f47ee64-edec-5327-9172-bb8454c7640d",
+    "status": "persisted",
+    "teacher_review_created": false,
+    "crop_sha256": "3587ef23e69e96a22e033e54c1919570dfa7651a16f65637bcd2b40be702d0f6",
+    "crop_evidence_ref": "benchmark/results/v2/t160-retest-20261003/quality/image-assistance/crop-011-figure.png"
+  },
+  {
+    "run_id": "t160-quality-20261002T182955Z-75789e35-06-IMP-SCAN-r3",
+    "case_id": "IMP-SCAN",
+    "reference_identity": "d6acd365-a6d5-5eb8-9b54-66f26a915094",
+    "status": "persisted",
+    "teacher_review_created": false,
+    "crop_sha256": "896dfad1841b196bdf7501cd01d477c6b44f73509434536fd33ad12343a9281c",
+    "crop_evidence_ref": "benchmark/results/v2/t160-retest-20261003/quality/image-assistance/crop-012-table.png"
+  },
+  {
+    "run_id": "t160-quality-20261002T182955Z-75789e35-07-IMP-IMAGE-r1",
+    "case_id": "IMP-IMAGE",
+    "reference_identity": "e418791a-1462-52b7-98fe-396ce71b8d48",
+    "status": "persisted",
+    "teacher_review_created": false,
+    "crop_sha256": "3587ef23e69e96a22e033e54c1919570dfa7651a16f65637bcd2b40be702d0f6",
+    "crop_evidence_ref": "benchmark/results/v2/t160-retest-20261003/quality/image-assistance/crop-013-figure.png"
+  },
+  {
+    "run_id": "t160-quality-20261002T182955Z-75789e35-07-IMP-IMAGE-r1",
+    "case_id": "IMP-IMAGE",
+    "reference_identity": "e5c1555f-e927-575c-b68c-85eb341a3202",
+    "status": "persisted",
+    "teacher_review_created": false,
+    "crop_sha256": "896dfad1841b196bdf7501cd01d477c6b44f73509434536fd33ad12343a9281c",
+    "crop_evidence_ref": "benchmark/results/v2/t160-retest-20261003/quality/image-assistance/crop-014-table.png"
+  },
+  {
+    "run_id": "t160-quality-20261002T182955Z-75789e35-08-IMP-IMAGE-r2",
+    "case_id": "IMP-IMAGE",
+    "reference_identity": "e418791a-1462-52b7-98fe-396ce71b8d48",
+    "status": "persisted",
+    "teacher_review_created": false,
+    "crop_sha256": "3587ef23e69e96a22e033e54c1919570dfa7651a16f65637bcd2b40be702d0f6",
+    "crop_evidence_ref": "benchmark/results/v2/t160-retest-20261003/quality/image-assistance/crop-015-figure.png"
+  },
+  {
+    "run_id": "t160-quality-20261002T182955Z-75789e35-08-IMP-IMAGE-r2",
+    "case_id": "IMP-IMAGE",
+    "reference_identity": "e5c1555f-e927-575c-b68c-85eb341a3202",
+    "status": "persisted",
+    "teacher_review_created": false,
+    "crop_sha256": "896dfad1841b196bdf7501cd01d477c6b44f73509434536fd33ad12343a9281c",
+    "crop_evidence_ref": "benchmark/results/v2/t160-retest-20261003/quality/image-assistance/crop-016-table.png"
+  },
+  {
+    "run_id": "t160-quality-20261002T182955Z-75789e35-09-IMP-IMAGE-r3",
+    "case_id": "IMP-IMAGE",
+    "reference_identity": "e418791a-1462-52b7-98fe-396ce71b8d48",
+    "status": "persisted",
+    "teacher_review_created": false,
+    "crop_sha256": "3587ef23e69e96a22e033e54c1919570dfa7651a16f65637bcd2b40be702d0f6",
+    "crop_evidence_ref": "benchmark/results/v2/t160-retest-20261003/quality/image-assistance/crop-017-figure.png"
+  },
+  {
+    "run_id": "t160-quality-20261002T182955Z-75789e35-09-IMP-IMAGE-r3",
+    "case_id": "IMP-IMAGE",
+    "reference_identity": "e5c1555f-e927-575c-b68c-85eb341a3202",
+    "status": "persisted",
+    "teacher_review_created": false,
+    "crop_sha256": "896dfad1841b196bdf7501cd01d477c6b44f73509434536fd33ad12343a9281c",
+    "crop_evidence_ref": "benchmark/results/v2/t160-retest-20261003/quality/image-assistance/crop-018-table.png"
+  },
+  {
+    "run_id": "t160-quality-20261002T182955Z-75789e35-10-IMP-MIXED-r1",
+    "case_id": "IMP-MIXED",
+    "reference_identity": "545de13f-3fe9-524b-a917-7ab04807806f",
+    "status": "persisted",
+    "teacher_review_created": false,
+    "crop_sha256": "3587ef23e69e96a22e033e54c1919570dfa7651a16f65637bcd2b40be702d0f6",
+    "crop_evidence_ref": "benchmark/results/v2/t160-retest-20261003/quality/image-assistance/crop-019-figure.png"
+  },
+  {
+    "run_id": "t160-quality-20261002T182955Z-75789e35-10-IMP-MIXED-r1",
+    "case_id": "IMP-MIXED",
+    "reference_identity": "85533f46-eb86-5893-8742-33939e77750f",
+    "status": "persisted",
+    "teacher_review_created": false,
+    "crop_sha256": "896dfad1841b196bdf7501cd01d477c6b44f73509434536fd33ad12343a9281c",
+    "crop_evidence_ref": "benchmark/results/v2/t160-retest-20261003/quality/image-assistance/crop-020-table.png"
+  },
+  {
+    "run_id": "t160-quality-20261002T182955Z-75789e35-10-IMP-MIXED-r1",
+    "case_id": "IMP-MIXED",
+    "reference_identity": "455720b9-9061-5bce-83af-d6d53c6c84e1",
+    "status": "persisted",
+    "teacher_review_created": false,
+    "crop_sha256": "3587ef23e69e96a22e033e54c1919570dfa7651a16f65637bcd2b40be702d0f6",
+    "crop_evidence_ref": "benchmark/results/v2/t160-retest-20261003/quality/image-assistance/crop-021-figure.png"
+  },
+  {
+    "run_id": "t160-quality-20261002T182955Z-75789e35-10-IMP-MIXED-r1",
+    "case_id": "IMP-MIXED",
+    "reference_identity": "bf862f8d-df39-5559-bab5-d942fccb2432",
+    "status": "persisted",
+    "teacher_review_created": false,
+    "crop_sha256": "896dfad1841b196bdf7501cd01d477c6b44f73509434536fd33ad12343a9281c",
+    "crop_evidence_ref": "benchmark/results/v2/t160-retest-20261003/quality/image-assistance/crop-022-table.png"
+  },
+  {
+    "run_id": "t160-quality-20261002T182955Z-75789e35-11-IMP-MIXED-r2",
+    "case_id": "IMP-MIXED",
+    "reference_identity": "545de13f-3fe9-524b-a917-7ab04807806f",
+    "status": "persisted",
+    "teacher_review_created": false,
+    "crop_sha256": "3587ef23e69e96a22e033e54c1919570dfa7651a16f65637bcd2b40be702d0f6",
+    "crop_evidence_ref": "benchmark/results/v2/t160-retest-20261003/quality/image-assistance/crop-023-figure.png"
+  },
+  {
+    "run_id": "t160-quality-20261002T182955Z-75789e35-11-IMP-MIXED-r2",
+    "case_id": "IMP-MIXED",
+    "reference_identity": "85533f46-eb86-5893-8742-33939e77750f",
+    "status": "persisted",
+    "teacher_review_created": false,
+    "crop_sha256": "896dfad1841b196bdf7501cd01d477c6b44f73509434536fd33ad12343a9281c",
+    "crop_evidence_ref": "benchmark/results/v2/t160-retest-20261003/quality/image-assistance/crop-024-table.png"
+  },
+  {
+    "run_id": "t160-quality-20261002T182955Z-75789e35-11-IMP-MIXED-r2",
+    "case_id": "IMP-MIXED",
+    "reference_identity": "455720b9-9061-5bce-83af-d6d53c6c84e1",
+    "status": "persisted",
+    "teacher_review_created": false,
+    "crop_sha256": "3587ef23e69e96a22e033e54c1919570dfa7651a16f65637bcd2b40be702d0f6",
+    "crop_evidence_ref": "benchmark/results/v2/t160-retest-20261003/quality/image-assistance/crop-025-figure.png"
+  },
+  {
+    "run_id": "t160-quality-20261002T182955Z-75789e35-11-IMP-MIXED-r2",
+    "case_id": "IMP-MIXED",
+    "reference_identity": "bf862f8d-df39-5559-bab5-d942fccb2432",
+    "status": "persisted",
+    "teacher_review_created": false,
+    "crop_sha256": "896dfad1841b196bdf7501cd01d477c6b44f73509434536fd33ad12343a9281c",
+    "crop_evidence_ref": "benchmark/results/v2/t160-retest-20261003/quality/image-assistance/crop-026-table.png"
+  },
+  {
+    "run_id": "t160-quality-20261002T182955Z-75789e35-12-IMP-MIXED-r3",
+    "case_id": "IMP-MIXED",
+    "reference_identity": "545de13f-3fe9-524b-a917-7ab04807806f",
+    "status": "persisted",
+    "teacher_review_created": false,
+    "crop_sha256": "3587ef23e69e96a22e033e54c1919570dfa7651a16f65637bcd2b40be702d0f6",
+    "crop_evidence_ref": "benchmark/results/v2/t160-retest-20261003/quality/image-assistance/crop-027-figure.png"
+  },
+  {
+    "run_id": "t160-quality-20261002T182955Z-75789e35-12-IMP-MIXED-r3",
+    "case_id": "IMP-MIXED",
+    "reference_identity": "85533f46-eb86-5893-8742-33939e77750f",
+    "status": "persisted",
+    "teacher_review_created": false,
+    "crop_sha256": "896dfad1841b196bdf7501cd01d477c6b44f73509434536fd33ad12343a9281c",
+    "crop_evidence_ref": "benchmark/results/v2/t160-retest-20261003/quality/image-assistance/crop-028-table.png"
+  },
+  {
+    "run_id": "t160-quality-20261002T182955Z-75789e35-12-IMP-MIXED-r3",
+    "case_id": "IMP-MIXED",
+    "reference_identity": "455720b9-9061-5bce-83af-d6d53c6c84e1",
+    "status": "persisted",
+    "teacher_review_created": false,
+    "crop_sha256": "3587ef23e69e96a22e033e54c1919570dfa7651a16f65637bcd2b40be702d0f6",
+    "crop_evidence_ref": "benchmark/results/v2/t160-retest-20261003/quality/image-assistance/crop-029-figure.png"
+  },
+  {
+    "run_id": "t160-quality-20261002T182955Z-75789e35-12-IMP-MIXED-r3",
+    "case_id": "IMP-MIXED",
+    "reference_identity": "bf862f8d-df39-5559-bab5-d942fccb2432",
+    "status": "persisted",
+    "teacher_review_created": false,
+    "crop_sha256": "896dfad1841b196bdf7501cd01d477c6b44f73509434536fd33ad12343a9281c",
+    "crop_evidence_ref": "benchmark/results/v2/t160-retest-20261003/quality/image-assistance/crop-030-table.png"
+  },
+  {
+    "run_id": "t160-quality-20261002T182955Z-75789e35-13-IMP-CROSS-r1",
+    "case_id": "IMP-CROSS",
+    "reference_identity": "239d78f4-ab44-59ec-ab7f-e11e454e26f1",
+    "status": "persisted",
+    "teacher_review_created": false,
+    "crop_sha256": "0a0dacf4621b52b784e4a10a1a598364ad2527a4e9e0f6ad6dedf633061c9336",
+    "crop_evidence_ref": "benchmark/results/v2/t160-retest-20261003/quality/image-assistance/crop-031-diagram.png"
+  },
+  {
+    "run_id": "t160-quality-20261002T182955Z-75789e35-14-IMP-CROSS-r2",
+    "case_id": "IMP-CROSS",
+    "reference_identity": "239d78f4-ab44-59ec-ab7f-e11e454e26f1",
+    "status": "persisted",
+    "teacher_review_created": false,
+    "crop_sha256": "0a0dacf4621b52b784e4a10a1a598364ad2527a4e9e0f6ad6dedf633061c9336",
+    "crop_evidence_ref": "benchmark/results/v2/t160-retest-20261003/quality/image-assistance/crop-032-diagram.png"
+  },
+  {
+    "run_id": "t160-quality-20261002T182955Z-75789e35-15-IMP-CROSS-r3",
+    "case_id": "IMP-CROSS",
+    "reference_identity": "239d78f4-ab44-59ec-ab7f-e11e454e26f1",
+    "status": "persisted",
+    "teacher_review_created": false,
+    "crop_sha256": "0a0dacf4621b52b784e4a10a1a598364ad2527a4e9e0f6ad6dedf633061c9336",
+    "crop_evidence_ref": "benchmark/results/v2/t160-retest-20261003/quality/image-assistance/crop-033-diagram.png"
+  }
+]

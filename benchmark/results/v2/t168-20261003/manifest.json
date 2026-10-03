@@ -1,0 +1,513 @@
+{
+  "protocol_version": "v2-evaluation-1",
+  "batch_id": "t168-20261003",
+  "dataset_version": "v2-ai-reference-20261003-1",
+  "annotation_version": "t146-developer-reviewed-ai-assisted-20261003-2",
+  "reference_standard": "AI 辅助 + 开发者审查",
+  "quality_thresholds": [
+    {
+      "family": "import",
+      "stage": "automatic",
+      "metric": "identity_recall",
+      "operator": ">=",
+      "value": 0.95,
+      "denominator": "all 48 labeled original question instances; failed imports retained"
+    },
+    {
+      "family": "import",
+      "stage": "automatic",
+      "metric": "each_evaluable_field_accuracy",
+      "operator": ">=",
+      "value": 0.95,
+      "denominator": "planned known field labels; unknown excluded, known absence retained; per-field not average"
+    },
+    {
+      "family": "import",
+      "stage": "automatic",
+      "metric": "all_evaluable_fields_match",
+      "operator": ">=",
+      "value": 0.9,
+      "denominator": "all 48 question instances"
+    },
+    {
+      "family": "import",
+      "stage": "after_image_assistance",
+      "metric": "each_evaluable_field_accuracy",
+      "operator": ">=",
+      "value": 1.0,
+      "denominator": "planned known field labels; does not prove automatic extraction or pixel boundaries"
+    },
+    {
+      "family": "semantic",
+      "stage": "automatic",
+      "metric": "each_check_recall_on_assessed",
+      "operator": ">=",
+      "value": 0.9,
+      "denominator": "TP+FN for each of four problem classes; must accompany coverage"
+    },
+    {
+      "family": "semantic",
+      "stage": "automatic",
+      "metric": "each_check_false_positive_rate_on_assessed",
+      "operator": "<=",
+      "value": 0.1,
+      "denominator": "FP+TN in each class"
+    },
+    {
+      "family": "semantic",
+      "stage": "automatic",
+      "metric": "each_check_coverage",
+      "operator": ">=",
+      "value": 0.9,
+      "denominator": "planned known applicable checks; abstentions, input blocks and failures not covered"
+    },
+    {
+      "family": "vision",
+      "stage": "automatic",
+      "metric": "one_to_one_condition_precision",
+      "operator": ">=",
+      "value": 0.95,
+      "denominator": "all assessable output conditions on clear images"
+    },
+    {
+      "family": "vision",
+      "stage": "automatic",
+      "metric": "one_to_one_condition_completeness",
+      "operator": ">=",
+      "value": 0.95,
+      "denominator": "all 33 clear-image reference conditions; failed groups retained"
+    },
+    {
+      "family": "vision",
+      "stage": "manual_handoff",
+      "metric": "unclear_handoff_correct",
+      "operator": ">=",
+      "value": 1.0,
+      "denominator": "all 3 unclear-image runs; cannot claim correct extraction"
+    },
+    {
+      "family": "semantic_and_vision",
+      "stage": "execution",
+      "metric": "technical_failure_rate",
+      "operator": "<=",
+      "value": 0.05,
+      "denominator": "attempted application calls; input blocks separately reported"
+    }
+  ],
+  "threshold_status": "confirmed_by_user",
+  "source_plan_ref": "frozen-plan.json",
+  "runner_sha256": "47679366febd3197bb303549d46e61450759df6046ce1659e512ef3d98d6e280",
+  "evidence_files": [
+    {
+      "path": ".gitattributes",
+      "sha256": "39de10de1b0e3bed2c82a6dbf6566d0cbeef64b1849a4a26cba55a085e1fd128",
+      "bytes": 82
+    },
+    {
+      "path": "cases.csv",
+      "sha256": "85a140d30fc07f0df7ca255289c33c8fd6af7635a40bf5a026715012b69fc3e2",
+      "bytes": 6116
+    },
+    {
+      "path": "failures.jsonl",
+      "sha256": "82f8d4a2f7cb075268d6f6cdbe52bc9edb36c97986dc6df2a33c15605577a986",
+      "bytes": 13749
+    },
+    {
+      "path": "frozen-plan.json",
+      "sha256": "1be181ac4ee7956841889a17b2cd553fc2201d730e18d15fa99c53a580f4b1b9",
+      "bytes": 2919
+    },
+    {
+      "path": "import/crop-actions.json",
+      "sha256": "c0e225cd47c1115a2460ed64622b8d308524257ab2d805b0fcb446e9d25fad1c",
+      "bytes": 14786
+    },
+    {
+      "path": "import/failures.jsonl",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "import/fields.csv",
+      "sha256": "92120e252257f271a0c43d24220ddbd011409ef3287ab43a0e11a21aa54eff38",
+      "bytes": 688871
+    },
+    {
+      "path": "import/identities.csv",
+      "sha256": "2384b20f53c7b2f071bdd82c8f83b25a34a7b5b3384c6adac0302884db0898dd",
+      "bytes": 10320
+    },
+    {
+      "path": "import/metrics.csv",
+      "sha256": "64efbb02addec67987a94210764f1d30e894de662afbc2c12489d180b1596b30",
+      "bytes": 36698
+    },
+    {
+      "path": "import/mismatches.jsonl",
+      "sha256": "daa8f1d0bb09ee98a4c2967bacec151a5af31588f818ac95007bdff67e406f11",
+      "bytes": 116414
+    },
+    {
+      "path": "import/reuse-proof.json",
+      "sha256": "d301edf1c63949bef1b33cde6d39d98bf058931293a3e55098e1212c3fdbbc58",
+      "bytes": 29515
+    },
+    {
+      "path": "import/summary.json",
+      "sha256": "9ed7161db5ebe64a4eb5d3b2cfe5da75f580d34c98b5abd2ce342834adc2d3ef",
+      "bytes": 18635
+    },
+    {
+      "path": "metrics.csv",
+      "sha256": "7f28a67d10797c6bcc5d097931ab07f7a33900fcfceec928f0b858bdec1027f8",
+      "bytes": 12918
+    },
+    {
+      "path": "README.md",
+      "sha256": "d254486f605ba08c1e2f09ee7272b6e288f72959812d3d602e7a1d26cb32483c",
+      "bytes": 3597
+    },
+    {
+      "path": "semantic/runs/semantic-r1-SEM-ADAPT-GOOD.json",
+      "sha256": "1c2ab42aec09721425df094b2dadbad820d71c4bfcb70b52a571a4d4e4462d12",
+      "bytes": 15173
+    },
+    {
+      "path": "semantic/runs/semantic-r1-SEM-ANSWER.json",
+      "sha256": "e417ca1a5ba0b096258c5a5992adad189f03cd8359b7c34b4d6512e315f9122e",
+      "bytes": 14235
+    },
+    {
+      "path": "semantic/runs/semantic-r1-SEM-CLEAR-ADAPT-GOOD.json",
+      "sha256": "0c8a452c3039e5a5fadfede519bb95958c5dbbb1bf70c03e28c594b784fc32ee",
+      "bytes": 13179
+    },
+    {
+      "path": "semantic/runs/semantic-r1-SEM-CLEAR-GOOD.json",
+      "sha256": "d49715f5e4dabe376b4656e715302af9bf89d3311aae178d3e6844cc75b9e7e8",
+      "bytes": 13351
+    },
+    {
+      "path": "semantic/runs/semantic-r1-SEM-CLEAR-OPTIONS.json",
+      "sha256": "e63800533dd500d808f2f1559510498dcbce5af4d80932cb2c7aa1b73d347be7",
+      "bytes": 13332
+    },
+    {
+      "path": "semantic/runs/semantic-r1-SEM-CONDITION.json",
+      "sha256": "e89da00ea5f61c81cc212e07fd71c72f71674a30989417d12a8babad32a6c7c5",
+      "bytes": 14032
+    },
+    {
+      "path": "semantic/runs/semantic-r1-SEM-GOOD.json",
+      "sha256": "7f4e4672b3e559b0dfbb3538dc5944d308581f33218139442e55830597e0aba7",
+      "bytes": 13338
+    },
+    {
+      "path": "semantic/runs/semantic-r1-SEM-NO-BASIS.json",
+      "sha256": "1ad2c7c0ba56cb8db2360f1e7d43297cdee05445bc7aae4dd4e10e5b8b38b85c",
+      "bytes": 1965
+    },
+    {
+      "path": "semantic/runs/semantic-r1-SEM-OPTIONS.json",
+      "sha256": "b62ef66fa1a07e74024655ea3d5f8cbfa41fe2f2faff868868fb749a0821b9fb",
+      "bytes": 14405
+    },
+    {
+      "path": "semantic/runs/semantic-r1-SEM-RUBRIC.json",
+      "sha256": "523fa5de50372c18a75c684c58a5e94449c918232c9199b68c3d81eff2b081a3",
+      "bytes": 16031
+    },
+    {
+      "path": "semantic/runs/semantic-r1-SEM-STALE.json",
+      "sha256": "84ebbdb2a68d122d99d8d03e827095da0452be2005e242d3b50f9230a82e3719",
+      "bytes": 14366
+    },
+    {
+      "path": "semantic/runs/semantic-r2-SEM-ADAPT-GOOD.json",
+      "sha256": "767dd4e771959795a85cee44985ed7171b9d20166c1883ca633bf4509718bbb0",
+      "bytes": 15775
+    },
+    {
+      "path": "semantic/runs/semantic-r2-SEM-ANSWER.json",
+      "sha256": "622b3a7b2f004261ef23eb27f1e3ea6170a5c632388f39f9333b60698f71c45f",
+      "bytes": 14593
+    },
+    {
+      "path": "semantic/runs/semantic-r2-SEM-CLEAR-ADAPT-GOOD.json",
+      "sha256": "cdb3c219d2ec0cabab97461ad7b20ef5a5cc3d27fff14b66bfcd64ca32821444",
+      "bytes": 15763
+    },
+    {
+      "path": "semantic/runs/semantic-r2-SEM-CLEAR-GOOD.json",
+      "sha256": "515660b1d3083a733ea7c78f6e567635a1569ae356baba1d3598dc755daed087",
+      "bytes": 13068
+    },
+    {
+      "path": "semantic/runs/semantic-r2-SEM-CLEAR-OPTIONS.json",
+      "sha256": "193a3a0c7483e3a6c58d038cb2a479bdda8260e9e77b5e1b2be946d95cead8fa",
+      "bytes": 13036
+    },
+    {
+      "path": "semantic/runs/semantic-r2-SEM-CONDITION.json",
+      "sha256": "8538f831d094d270b2f2b2a99902764ac17d9fc638ceb6f046b3c22bc9d49400",
+      "bytes": 15378
+    },
+    {
+      "path": "semantic/runs/semantic-r2-SEM-GOOD.json",
+      "sha256": "c5c127c80caf25d091f859e5c6433516cb0357f36dbb5ab55956f721567ea00d",
+      "bytes": 13458
+    },
+    {
+      "path": "semantic/runs/semantic-r2-SEM-NO-BASIS.json",
+      "sha256": "6a6cdeb71380ffb97f2d08345e8beb43cbb80286a05c3dde17e27c30ec1f7efc",
+      "bytes": 1966
+    },
+    {
+      "path": "semantic/runs/semantic-r2-SEM-OPTIONS.json",
+      "sha256": "7345d642f305ec4c18edfd14f6f83157ef6bfee62d05c38b26c3f7a02d60adbf",
+      "bytes": 14997
+    },
+    {
+      "path": "semantic/runs/semantic-r2-SEM-RUBRIC.json",
+      "sha256": "e434b99bfa43b1dcd443d67a896b6d94cf8401f8245a886323d70a65e1039660",
+      "bytes": 15253
+    },
+    {
+      "path": "semantic/runs/semantic-r2-SEM-STALE.json",
+      "sha256": "8935b31da3e37af38e48ddf01fdacb0c230c9dab63f313a8475ecb0a6ca198c8",
+      "bytes": 13572
+    },
+    {
+      "path": "semantic/runs/semantic-r3-SEM-ADAPT-GOOD.json",
+      "sha256": "e5953d3a1379c8db49b888ad6236c9feb2f76c90a2a4fc2ca7f76a8bf60d7fe6",
+      "bytes": 15281
+    },
+    {
+      "path": "semantic/runs/semantic-r3-SEM-ANSWER.json",
+      "sha256": "96f68b29946c1b066922c69cc27f08ca8155fe5db992ed24d701be7013526004",
+      "bytes": 13948
+    },
+    {
+      "path": "semantic/runs/semantic-r3-SEM-CLEAR-ADAPT-GOOD.json",
+      "sha256": "84f0943a7965b6b81b944605786cf2983fdcbf8a6134d67da965688bccaff07d",
+      "bytes": 13777
+    },
+    {
+      "path": "semantic/runs/semantic-r3-SEM-CLEAR-GOOD.json",
+      "sha256": "56e99a50129bb871318775402d2c7e6f7f685436446af32c88e3cd74b489d77a",
+      "bytes": 13108
+    },
+    {
+      "path": "semantic/runs/semantic-r3-SEM-CLEAR-OPTIONS.json",
+      "sha256": "43207dabc3a926ae899f6c12685b5cfd2086bf56cf15166a78746faba888568a",
+      "bytes": 13220
+    },
+    {
+      "path": "semantic/runs/semantic-r3-SEM-CONDITION.json",
+      "sha256": "97d91ab9192c38264c48b38cb84954707842c7165ccfbd36636bdc35a956cfd1",
+      "bytes": 14994
+    },
+    {
+      "path": "semantic/runs/semantic-r3-SEM-GOOD.json",
+      "sha256": "77e7b2ba2ecacfdd1dbd1147343de626821c2f66405a1dbb224c68b8767f264c",
+      "bytes": 13350
+    },
+    {
+      "path": "semantic/runs/semantic-r3-SEM-NO-BASIS.json",
+      "sha256": "c06144d058351768217f411bee8bf40ad09ca33bcc5e0d5d33dc6890dfc1e6a4",
+      "bytes": 1966
+    },
+    {
+      "path": "semantic/runs/semantic-r3-SEM-OPTIONS.json",
+      "sha256": "1fdfc43d0f540dc4b37d9883e6d9add586350cbc915e55b413fce63aeba96f2b",
+      "bytes": 15634
+    },
+    {
+      "path": "semantic/runs/semantic-r3-SEM-RUBRIC.json",
+      "sha256": "7bc8ed0b907b1a56eeaaa8d83f4037aa1c1fe4f1c09af519e7a29e37418d7873",
+      "bytes": 15141
+    },
+    {
+      "path": "semantic/runs/semantic-r3-SEM-STALE.json",
+      "sha256": "f8234081134f4e624a0171506ab0a5f160a37d3f03968659912ca346bd0b80c6",
+      "bytes": 14503
+    },
+    {
+      "path": "semantic/semantic_checks.csv",
+      "sha256": "dab793edbfee614d4863701a0b348c50e3ea12391b896fd55111cca8e5b21a39",
+      "bytes": 39052
+    },
+    {
+      "path": "semantic/semantic_checks.json",
+      "sha256": "4d160826c3fb8deef14edb736b7d143f5facbb2440331ff250b1dedd93c3575c",
+      "bytes": 74136
+    },
+    {
+      "path": "semantic/semantic_manifest.json",
+      "sha256": "8585ecbc3ebc85c7694b39fac2561d764a8dac19b3c7d99d6feee56737189eae",
+      "bytes": 2270
+    },
+    {
+      "path": "semantic/semantic_metrics.json",
+      "sha256": "e3b05bec4de06793f9efd17b88513f679330c44ee40aeafba865085448347655",
+      "bytes": 6299
+    },
+    {
+      "path": "summary.json",
+      "sha256": "0d72d3e9f3cd9a41477fdea80318c7c4b12fdb8b12eab8d4d8fe857a7609fc60",
+      "bytes": 16115
+    },
+    {
+      "path": "technical-validation.json",
+      "sha256": "20a86b9bd2ce77f9aee7bc249bcdc73f5a605d20b4c7404bcac91127c3bc2ef8",
+      "bytes": 1334
+    },
+    {
+      "path": "threshold-proposal.json",
+      "sha256": "b564ab1ec0b97e133bf49a1bf6b6d4652fb52c9f7fda9bea9d2f65e5c0d13b0e",
+      "bytes": 4472
+    },
+    {
+      "path": "thresholds.json",
+      "sha256": "da0170dfd014b41b284ec13934626a78b326f4aea282291ae0d4a462a37016d3",
+      "bytes": 4951
+    },
+    {
+      "path": "timings.csv",
+      "sha256": "b270e84603da85118c09d4e05a758042338b000c50f04a479fd1a503d1e99257",
+      "bytes": 16636
+    },
+    {
+      "path": "vision/actual_provider.json",
+      "sha256": "e5023099dd1b0783b641714f39b88155a2560eea47a4488f6eb63da090b20a3f",
+      "bytes": 602
+    },
+    {
+      "path": "vision/condition_review.json",
+      "sha256": "3c22fec1177f7b66432b7f7c61b8edf005529625b8c3e233386b6d81b29e749e",
+      "bytes": 20940
+    },
+    {
+      "path": "vision/condition_review.pending.json",
+      "sha256": "1226016afc1394c72e17cb5f831280d589229bd50d59a91e2277838d563a1aba",
+      "bytes": 9431
+    },
+    {
+      "path": "vision/execution_summary.json",
+      "sha256": "5e00c331895e85c609b9008547aa8031bbbaa551739312f790020314cdfc8c58",
+      "bytes": 486
+    },
+    {
+      "path": "vision/plan.json",
+      "sha256": "8bde1f83d153d4465ef678af7a43313d4636384fc72c516ad0ac784cf866fc4c",
+      "bytes": 10785
+    },
+    {
+      "path": "vision/provider_raw_responses.json",
+      "sha256": "f31ff6799d721e39361dcba733152ee9ca462b70d0ca66f2a60c2ba90c24a462",
+      "bytes": 139963
+    },
+    {
+      "path": "vision/provider_trace_events.json",
+      "sha256": "2f00024946a008e34c2d2a8623906b860757218b37668d5b9d86e306dd4c28e1",
+      "bytes": 5679
+    },
+    {
+      "path": "vision/runs.csv",
+      "sha256": "df2a390bf84e0b53a8422dfda255fb76cf26948bedf6e31c63ebaabb71eb5b12",
+      "bytes": 971
+    },
+    {
+      "path": "vision/runs.json",
+      "sha256": "a899ad40e803c8192f694e8e16ea3dd25277514e8fa72ac26e56cf383d3af16e",
+      "bytes": 209049
+    },
+    {
+      "path": "vision/t168-vision-r1-img-diagram-b354795d5918.json",
+      "sha256": "e428663b6dc1bca1988af40256857d7275c5d757b0a5a82a025ebfda64dd759c",
+      "bytes": 15175
+    },
+    {
+      "path": "vision/t168-vision-r1-img-figure-128cd5fa19cd.json",
+      "sha256": "06f2b0fe20a9217924845db43f54623079c30a5ae525a605da1e693b8f82c531",
+      "bytes": 9405
+    },
+    {
+      "path": "vision/t168-vision-r1-img-table-9ac0a83bec54.json",
+      "sha256": "a4cd7afef76a50e0dc9b98b922f3a6b342430a75c8965b953a6d6517f13284af",
+      "bytes": 19577
+    },
+    {
+      "path": "vision/t168-vision-r1-img-unclear-8027caea887c.json",
+      "sha256": "256f0d90ec90c11b7afa64cdb852107edbc74b5d191e0df807e2b002196073fb",
+      "bytes": 11222
+    },
+    {
+      "path": "vision/t168-vision-r2-img-diagram-c3d41699038a.json",
+      "sha256": "6959299ee5c848be2dab0efd71cfcaf93586c57e5cde2ac876fe3d739c51b94e",
+      "bytes": 23437
+    },
+    {
+      "path": "vision/t168-vision-r2-img-figure-9c66e5ed5dab.json",
+      "sha256": "a107b19c9a41324e332827b977ec393f22501e614fbf0e6fbb63091e1bfba1df",
+      "bytes": 20334
+    },
+    {
+      "path": "vision/t168-vision-r2-img-table-27b29c54df45.json",
+      "sha256": "c11fd889cd99bb4d94ba321fdc105eaa3f5aaa4bbdeb93db97fee0bab467401e",
+      "bytes": 18230
+    },
+    {
+      "path": "vision/t168-vision-r2-img-unclear-1904a805815d.json",
+      "sha256": "b1e34ba4e998811401d22f95a33d3b4d70fa03ca22694c85ece347b265f8bcbe",
+      "bytes": 15677
+    },
+    {
+      "path": "vision/t168-vision-r3-img-diagram-d769e4d74e2c.json",
+      "sha256": "7120dd365e4d423aa2aa365fe50bc6c90360879421eea520a80f0424d3de1fdd",
+      "bytes": 9579
+    },
+    {
+      "path": "vision/t168-vision-r3-img-figure-4f098aa94740.json",
+      "sha256": "6cad7f3582dc3f1556f3180d667b003c16b6eb441b2cdcf86db4edf1f0e90b11",
+      "bytes": 20952
+    },
+    {
+      "path": "vision/t168-vision-r3-img-table-9e430399a9dd.json",
+      "sha256": "125cec7217609060aa040feb05a9a9bb9543a2c32c3ac5a45263bbf62a97b407",
+      "bytes": 24026
+    },
+    {
+      "path": "vision/t168-vision-r3-img-unclear-ec702d0253df.json",
+      "sha256": "3f66bcc599c4332eeeb7ba4d225e3a9e01de9de3330dd1622f1cbdb7e5394fbb",
+      "bytes": 16446
+    }
+  ],
+  "evaluation_entry_points": [
+    {
+      "path": "benchmark/t168/import_baseline.py",
+      "sha256": "9006848a40534cc3fa5d34df5107c5d62e8fa6d0c98c58284f579f817911e394",
+      "bytes": 26216
+    },
+    {
+      "path": "benchmark/t168/semantic_runner.py",
+      "sha256": "c001e17496addce31164465117619931a2ec9be78d923bc84247b024d99b533f",
+      "bytes": 22734
+    },
+    {
+      "path": "benchmark/t168/summarize_baseline.py",
+      "sha256": "47679366febd3197bb303549d46e61450759df6046ce1659e512ef3d98d6e280",
+      "bytes": 19955
+    },
+    {
+      "path": "benchmark/t168/vision_runner.py",
+      "sha256": "8b22dc8f95aa02136bd67b3f8d31cc2a57049cced1f4f8353373eadbd240584e",
+      "bytes": 16232
+    }
+  ],
+  "runtime_context": {
+    "path": "benchmark/corpus/t168-runtime-20261003/semantic_runtime_inputs.json",
+    "sha256": "2a54493f2c75251356b59e155d19c30ed5a3918d883d75dcf87fd78b457e61c6"
+  }
+}

@@ -1,0 +1,169 @@
+{
+  "case_id": "IMG-TABLE",
+  "round": 3,
+  "run_id": "t168-vision-r3-img-table-9e430399a9dd",
+  "started_at": "2026-10-03T14:43:39.855616Z",
+  "images": [
+    {
+      "image_index": 1,
+      "fixture_asset_id": "34fa6905-e80a-5a0f-a7fa-2abac6ba9850",
+      "identity_scope": "stable fixture only; no database asset/file identity",
+      "path": "benchmark/corpus/v2-draft-20261001/assets/table.png",
+      "sha256": "6eb1e116bbe9df9a4071a355c3b77d26e3b1e596e5c3437042dfe21918ff9dd6",
+      "size_bytes": 12983,
+      "width": 640,
+      "height": 400,
+      "mime_type": "image/png"
+    }
+  ],
+  "context": {
+    "content": "请读取所附题图中可见的条件，未知或不可靠的关键文字保留问题说明。",
+    "options": null,
+    "answer": null,
+    "analysis": null,
+    "caption": [
+      null
+    ]
+  },
+  "task": "识别本题全部图片中的图示、表格与必要条件；不识别或补写答案。",
+  "output": {
+    "observations": [
+      {
+        "image_index": 1,
+        "kind": "table",
+        "description": "题图中可见一个带外框的表格，共3列4行（含表头）。表头为 x、y、说明；数据行为：1、3、第一行；2、5、第二行；3、7、第三行。",
+        "bbox": null
+      }
+    ],
+    "conditions": [
+      {
+        "image_index": 1,
+        "text": "表格表头：第一列标题为 x，第二列标题为 y，第三列标题为 说明。",
+        "evidence_region": null
+      },
+      {
+        "image_index": 1,
+        "text": "表格第一行数据：第一列为 1，第二列为 3，第三列为 第一行。",
+        "evidence_region": null
+      },
+      {
+        "image_index": 1,
+        "text": "表格第二行数据：第一列为 2，第二列为 5，第三列为 第二行。",
+        "evidence_region": null
+      },
+      {
+        "image_index": 1,
+        "text": "表格第三行数据：第一列为 3，第二列为 7，第三列为 第三行。",
+        "evidence_region": null
+      }
+    ],
+    "unresolved_issues": [
+      {
+        "image_indices": [
+          1
+        ],
+        "message": "题图仅显示表格，未显示题干问题、要求、选项或待求目标，无法确定该表格在题目中的具体用途；需人工核对完整题目上下文。"
+      }
+    ],
+    "requires_manual_review": true,
+    "provenance": {
+      "provider_name": "deepseek",
+      "model": "deepseek-flash",
+      "model_version": null,
+      "prompt_version": "vision-conditions-v1"
+    }
+  },
+  "error": null,
+  "provenance": {
+    "provider_name": "deepseek",
+    "model": "deepseek-flash",
+    "model_version": null,
+    "prompt_version": "vision-conditions-v1"
+  },
+  "assessment_status": "pending_semantic_review",
+  "reference_condition_count": 4,
+  "is_independent_teacher_truth": false,
+  "baseline_reference": {
+    "reference_standard": "AI 辅助 + 开发者审查",
+    "baseline_annotation_version": "t146-developer-reviewed-ai-assisted-20261003-2",
+    "annotation_authors": [
+      {
+        "kind": "ai_assistant",
+        "name": "Codex",
+        "role": "会话委托的源材料阅读、标注和技术复核"
+      },
+      {
+        "kind": "developer",
+        "name": "current_chat_user",
+        "identity_source": "current_chat_user_message",
+        "role": "开发者确认审查口径及将本批参考包用于学习项目质量基线"
+      }
+    ],
+    "decision_source": "current_chat_user_message",
+    "decision_recorded_at_utc": "2026-10-03T14:28:23.228504+00:00",
+    "is_independent_teacher_truth": false,
+    "source_sha256": {
+      "annotations.json": "e3df8cc30f27c96060c46bd46f60eab26fcb5ef0ec925fd2c1cccb579f161e2e",
+      "developer_review.json": "de098c686f725814c4716abddd0cfa889e14ef5efe5a29ad02adb9328f373380",
+      "manifest.json": "eedef2ff79e74eae3a7fe0d2ae29b2d29070c3b70f5e9a530577f53c4a27dca7"
+    }
+  },
+  "outcome": "completed",
+  "completed_at": "2026-10-03T14:44:00.149413Z",
+  "elapsed_ms": 20293.787,
+  "provider_trace_events": [
+    {
+      "recorded_at": "2026-10-03T14:44:00.149273Z",
+      "request_id": "t168-vision-r3-img-table-9e430399a9dd",
+      "agent_type": "llm",
+      "status": "success",
+      "latency_ms": 20290,
+      "model": "deepseek-flash",
+      "prompt_version": "vision-conditions-v1",
+      "input_tokens": 1484,
+      "output_tokens": 4419,
+      "total_tokens": 5903,
+      "input_summary": null,
+      "output_summary": null,
+      "error_code": null,
+      "error_retryable": null
+    }
+  ],
+  "observed_provider_attempts": 1,
+  "actual_raw_responses": [
+    {
+      "received_at_utc": "2026-10-03T14:43:39.977399Z",
+      "status_code": 200,
+      "capture_scope": "response identity, usage, actual choices only; no headers/URL/credentials",
+      "id": "dde0b8e9-3120-4af3-a02f-c81d09c6326a",
+      "model": "deepseek-flash",
+      "system_fingerprint": "aeb56401ca74e127821c4f9126dcb669",
+      "usage": {
+        "prompt_tokens": 1484,
+        "completion_tokens": 4419,
+        "total_tokens": 5903,
+        "prompt_tokens_details": {
+          "cached_tokens": 1280
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 4130
+        },
+        "prompt_cache_hit_tokens": 1280,
+        "prompt_cache_miss_tokens": 204
+      },
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\"observations\":[{\"image_index\":1,\"kind\":\"table\",\"description\":\"题图中可见一个带外框的表格，共3列4行（含表头）。表头为 x、y、说明；数据行为：1、3、第一行；2、5、第二行；3、7、第三行。\",\"bbox\":null}],\"conditions\":[{\"image_index\":1,\"text\":\"表格表头：第一列标题为 x，第二列标题为 y，第三列标题为 说明。\",\"evidence_region\":null},{\"image_index\":1,\"text\":\"表格第一行数据：第一列为 1，第二列为 3，第三列为 第一行。\",\"evidence_region\":null},{\"image_index\":1,\"text\":\"表格第二行数据：第一列为 2，第二列为 5，第三列为 第二行。\",\"evidence_region\":null},{\"image_index\":1,\"text\":\"表格第三行数据：第一列为 3，第二列为 7，第三列为 第三行。\",\"evidence_region\":null}],\"unresolved_issues\":[{\"image_indices\":[1],\"message\":\"题图仅显示表格，未显示题干问题、要求、选项或待求目标，无法确定该表格在题目中的具体用途；需人工核对完整题目上下文。\"}],\"requires_manual_review\":true,\"provenance\":null}",
+            "reasoning_content": "We need answer JSON only. Need parse task. We have one image? User says 第1张图片，原图尺寸 640×400. But schema max image_index 5. Need identify visible diagrams, tables, necessary conditions, no answers. We need output JSON object matching schema. Need include observations, conditions, unresolved_issues, requires_manual_review, provenance null. Need maybe note table content. We need not identify/solve. Need be careful: only one image provided, index 1. Need bbox pixel coordinates? We can locate table maybe. Image is table with 4 rows? columns x, y, 说明. Rows: x=1, y=3, 第一行; x=2,y=5,第二行; x=3,y=7,第三行. Header row x y 说明. Need describe as table. It is likely a function table. Need extract conditions. \"请读取所附题图中可见的条件，未知或不可靠的关键文字保留问题说明。\" So conditions should be visible textual conditions. Could include table header and rows as conditions. But task says identify diagrams, tables, necessary conditions. We can create observation kind table for table. Conditions maybe text of cells? Need include evidence region bbox for each condition? The schema VisionCondition: image_index, text, evidence_region (PixelRegion|null). We can include multiple conditions for table entries with bbox. But bbox coordinate exact? Need approximate. Original image 640x400. Table appears maybe x=65 to 575? Let's inspect mentally: Table outer border black, margins. Header row height maybe 70? Table area roughly from x=62 to 578, y=48 to 355. Columns: x-col from 62 to 208? y-col from 208 to 370? 说明 from 370 to 578? But actual coordinates maybe: Table outer left ~62, top ~46, right ~578, bottom ~356. Let's estimate from image dimensions and typical. It's an image of table only. Need bbox maybe can leave null if cannot reliably locate? The instruction says unable to reliably locate maintain null. But maybe we can estimate. Since only one table, bbox maybe outer table. But need precise? We can perhaps set null for bbox? But schema allows null. However instructions want bbox/evidence_region.bbox as original pixel coords, unable locate null. We can use approximate if confident? Need no markdown. Let's decide.\n\nNeed maybe identify table has 4 rows and 3 columns; header row: x, y, 说明; data rows:\n1, 3, 第一行\n2, 5, 第二行\n3, 7, 第三行\n\nNo diagrams besides table. Conditions are the visible table values. Could mention \"表格第一列标题为 x，第二列标题为 y，第三列为说明\". The table text is Chinese. Need no answer. There is no explicit question. Could include unresolved issue: 题图未显示题目要求/问题或选项，仅显示表格，无法确定需解决什么。 requires_manual_review true. Also maybe no images? Wait one image. Need observations with image_index 1, kind table, description. Conditions with image_index 1, text each. Maybe observation bbox outer table. We can be reasonably approximate? But if coordinates wrong it's problematic. Maybe null for bbox to avoid false precision. However \"bbox/evidence_region.bbox 为该资产原图左上/右下像素 (x0,y0,x1,y1)，无法可靠定位保持 null\". Since I cannot measure exactly from this interface, but can approximate. The table occupies central region. Let's estimate.\n\nImage dimensions: 640 x 400. The table border appears around left 60 px, right 575 px, top 45 px, bottom 355 px. Header row bottom maybe y=105. Second row bottom 180, third 255, fourth 330? The outer border maybe top 46, bottom 356. Let's not overdo. Could set bbox for overall table [60,45,580,355] maybe. But if wrong, it's okay? The instruction says if unable to reliably locate null. I cannot reliably locate to pixel precision. But maybe evidence_region for conditions can be bbox based on row positions. We can choose null for all to avoid wrong coordinates. But schema allows bbox null. However observations with bbox optional default null. I think safe to provide null for bbox because cannot reliably locate exact pixels from text description? But user provided image. As an AI vision, perhaps can locate but not exact. Need likely expected to output bbox. But no explicit requirement to always include bbox? \"bbox/evidence_region.bbox 为该资产原图左上/右下像素 (x0,y0,x1,y1)，无法可靠定位保持 null，不使用归一化坐标。\" This implies if can locate, provide. I can approximate. Hmm.\n\nMaybe output observations: one table observation with bbox null? But \"无法可靠定位保持 null\". I can't be sure exact pixels. Maybe leave null. But conditions evidence_region bbox can be null too. Then unresolved issues mentions table content? No, if null, not an issue. But maybe need one issue: 题图缺少题干/问题/选项; only table. requires_manual_review true.\n\nNeed no markdown. JSON only.\n\nLet's draft:\n\n{\n  \"observations\": [\n    {\n      \"image_index\": 1,\n      \"kind\": \"table\",\n      \"description\": \"题图展示一个3列4行（含表头）的表格：表头为 x、y、说明；三行数据分别为 (1,3,第一行)、(2,5,第二行)、(3,7,第三行)。\",\n      \"bbox\": [60, 45, 580, 355]\n    }\n  ],\n  \"conditions\": [\n    {\"image_index\":1, \"text\":\"表格表头包含 x、y、说明 三列。\", \"evidence_region\":{\"bbox\":[60,45,580,105]}},\n    {\"image_index\":1, \"text\":\"第一行：x=1，y=3，说明为“第一行”。\", \"evidence_region\":{\"bbox\":[60,105,580,180]}},\n    {\"image_index\":1, \"text\":\"第二行：x=2，y=5，说明为“第二行”。\", \"evidence_region\":{\"bbox\":[60,180,580,255]}},\n    {\"image_index\":1, \"text\":\"第三行：x=3，y=7，说明为“第三行”。\", \"evidence_region\":{\"bbox\":[60,255,580,330]}}\n  ],\n  \"unresolved_issues\": [\n    {\"image_indices\":[1], \"message\":\"题图仅显示表格，未见题干问题、选项或所求目标，无法确定需要利用该表格完成什么任务。\"}\n  ],\n  \"requires_manual_review\": true,\n  \"provenance\": null\n}\n\nBut is this too much? \"conditions\" should be necessary conditions. This lists table data. Good. \"observations\" table description. Need maybe \"diagram\" not present. Could mention no diagram. But no issue.\n\nPotential issue: The table row counts: header + 3 data rows. Outer dimensions maybe. Bbox estimates might be wrong. We can set bbox null for observation and evidence null. But if we can approximate, maybe okay. The prompt says \"原图尺寸 640×400\". Table is central. I can estimate from actual image: It might be created in LaTeX with table width maybe \\textwidth? The table starts at x~65 and ends x~575, top y~45, bottom y~355. That seems plausible. Let's see if columns: first column width maybe 145? second maybe 162? third maybe 205. Outer width 515. x coordinates: left 64, first divider 209, second divider 371, right 577. Header height 58? Row height ~70. So bbox [64,46,577,356]. I'll maybe use [62,46,578,356]. But if accurate not critical. However if bbox must be \"原图左上/右下像素 (x0,y0,x1,y1)\" maybe table outer. We'll include.\n\nNeed ensure no answers or relations not given. We are identifying x=1, y=3 etc, not inferring function. Good.\n\nPotential issue: \"第一行\" etc. The table row labels \"第一行\" etc. We can transcribe exactly. Could condition text include \"说明列依次为 第一行、第二行、第三行，与数据行对应\" maybe.\n\nNeed maybe avoid \"x=1\" if not in table? Table has 1 in x column and 3 in y column. It's visible. \"x=1, y=3\" is interpretation of column header and cell values. That's okay.\n\nNeed maybe kind \"table\" in observations. Good.\n\nCould there be a diagram? No.\n\nNeed output in JSON object, no markdown. Let's ensure schema: additionalProperties false at top? It doesn't list additionalProperties false? In schema, additionalProperties false at root? Yes likely. Need no extra keys. Observations array items must have image_index, kind, description, bbox optional. Conditions required image_index, text, evidence_region. Unresolved issues items require image_indices, message. Requires manual review boolean. Provenance required? At root required: observations, conditions, unresolved_issues, requires_manual_review. Provenance has default null? In schema root properties includes provenance, not required? It says default null, but required array not include provenance? Actually root required: [\"observations\",\"conditions\",\"unresolved_issues\",\"requires_manual_review\"] maybe no provenance. But user says provenance must be null, so include \"provenance\": null. Good.\n\nNeed maybe \"image_indices\": [1] or null. For issue related to image 1, [1]. Good.\n\nNeed maybe \"requires_manual_review\": true. Yes.\n\nLet's consider if conditions should include \"表格中有四行三列\" or just table rows. Good.\n\nNeed maybe include \"unknown or unreliable key text unresolved\": The table text is clear. No unknown. But missing question. Issue.\n\nShould we include a condition for \"表格包含表头行和数据行\" with evidence. Already.\n\nPotential problem: \"不识别或补写答案\" - We don't write answer. But table \"x=1,y=3\" is not answer? It's input. Fine.\n\nPotential issue: \"图示、表格及必要条件\" - If table is itself a condition. We included.\n\nPotential issue: \"仅依据本次全部题图和真实文字上下文识别图示、表格及必要条件\" - The context caption null. No additional text. Good.\n\nPotential issue: \"未知图片归属 image_indices=null\" - only one image, all belong. Good.\n\nNeed final JSON. No markdown. Ensure no trailing text. Let's output.\n\nBut wait, maybe they expect \"observations\" only statement and \"conditions\" empty because table is observation? But conditions should include necessary conditions. I think okay.\n\nLet's refine bbox coordinates. Is it better to use null for bbox in observations and conditions? The instruction \"无法可靠定位保持 null\" - I cannot measure exactly, but approximate from image layout. Hmm. If I choose coordinates, they might be inaccurate. But null is safe. However if schema expects bbox perhaps not. The task says \"输出符合所给 JSON Schema 的 JSON 对象，不输出 Markdown，不补写题图未给出的答案、数值或关系。\" It doesn't demand bbox non-null. So null is acceptable. But maybe they want pixel regions as evidence. If I can identify table, maybe provide approximate. Which is better? In previous tasks, likely expected bounding boxes for table/diagram. But \"无法可靠定位保持 null\" means if no exact. I can estimate from image dimensions. Could set bbox for table maybe. But maybe will be evaluated by human? Not sure.\n\nLet's attempt more accurate from image: The table is a screenshot with white background. Outer border black rectangle. Table occupies roughly x from 64 to 578, y from 45 to 355. But maybe the table has padding left 65, right 575. The header row text \"x\" centered in first col, \"y\" centered in second, \"说明\" centered in third. Row heights: Header line y=105; second line y=180; third line y=255; bottom y=330? Wait if top 45, header bottom 105 (60), row1 bottom 180 (75), row2 bottom 255, row3 bottom 330, bottom maybe 355? There might be bottom margin after third row. Actually outer bottom maybe 355, third row bottom 330? Table border bottom y=330? Let's look: The table has 4 horizontal lines? Header bottom, row1 bottom, row2 bottom, row3 bottom, but outer bottom is row3 bottom. So total table height = top ~45, header row ~60, row1 ~75, row2 ~75, row3 ~75 => bottom 330? But image bottom white margin 70. Maybe top 45, header 65, rows 72 => bottom 45+65+72*3=326. So outer bottom ~326. Hmm. But screenshot shows table bottom maybe 355? Let's approximate [64,44,578,330]. The row heights likely equal 70. Header maybe 60. Outer bottom 330. But user image 640x400, bottom margin 70. That's plausible.\n\nIf bbox for overall table [64,44,578,330]. Evidence region per row: header 44-108; row1 108-180; row2 180-252; row3 252-330? But if bottom 330. Okay.\n\nBut maybe if wrong, not critical? Could use null.\n\nLet's see typical images in this benchmark: They likely ask to extract \"图示表格\" and \"conditions\" from image. They expect bounding boxes for each visual element? Maybe evaluation may check exact. However our output no markdown. Hmm.\n\nGiven the user specifically says \"bbox/evidence_region.bbox 为该资产原图左上/右下像素 (x0,y0,x1,y1)，无法可靠定位保持 null，不使用归一化坐标。\" They likely want bounding boxes if identifiable. As AI, I can provide approximate but not guaranteed. I can choose to include bbox for table, but if it's off, maybe considered failure? Maybe better null if uncertain. But \"无法可靠定位\" is a judgment. I think I can reliably locate table region at a coarse level: x around 60-580, y around 45-355. That's reliable enough? Maybe not exact but acceptable.\n\nMaybe use \"evidence_region\": {\"bbox\": null} for conditions? But schema allows null. Then no risk. But task says identify necessary conditions; evidence region optional. I'll use null for all bboxes to avoid false precision, but observations description enough. However maybe \"bbox/evidence_region.bbox 为该资产原图左上/右下像素\" suggests if I don't include, it's okay if cannot locate. But I can include table bbox? Let's not. The final answer should be safe. Hmm.\n\nLet's evaluate prompt: \"图片 image_index 从 1 开始，按下列输入顺序对应；bbox/evidence_region.bbox 为该资产原图左上/右下像素 (x0,y0,x1,y1)，无法可靠定位保持 null，不使用归一化坐标。\" This seems instruction for output format if we know. I can set null for all because I cannot get pixel coordinates from my perception? But technically I can estimate. The word \"无法可靠定位\" means not confident. I am not confident to exact pixel. So null is defensible.\n\nBut if all bbox null, observations still valid. Conditions with evidence_region null. The unresolved_issues mention missing question. Requires manual review true. That might be acceptable.\n\nLet's maybe include null bbox to comply with \"无法可靠定位保持 null\". But maybe schema expects bbox if available. Null is allowed. I'll do null for observation bbox? The observation bbox has anyOf [array, null] default null. So okay. Conditions evidence_region anyOf PixelRegion or null. So null.\n\nBut then \"conditions\" are texts from table. Evidence null. That's okay.\n\nLet's ensure no \"image_indices\" issue? For missing question, image_indices [1]. Good.\n\nCould there be another issue: \"题图未显示题干或问题，无法确定表格用途；表格内容可读但缺少题目情境。\" This is important. requires_manual_review true.\n\nShould we include unresolved_issues about table? Maybe \"题图仅含表格，未显示题目要求或选项；表格是否完整、是否需要补全未知。\" Good.\n\nNeed maybe \"conditions\": The table content. But if missing question, \"必要条件\" maybe table values. I'll include.\n\nLet's craft final JSON:\n\n{\n  \"observations\": [\n    {\n      \"image_index\": 1,\n      \"kind\": \"table\",\n      \"description\": \"题图中可见一个带外框的表格，共3列4行（含表头）。表头为 x、y、说明；数据行为：1、3、第一行；2、5、第二行；3、7、第三行。\",\n      \"bbox\": null\n    }\n  ],\n  \"conditions\": [\n    {\n      \"image_index\": 1,\n      \"text\": \"表格表头：第一列标题为 x，第二列标题为 y，第三列标题为 说明。\",\n      \"evidence_region\": null\n    },\n    {\n      \"image_index\": 1,\n      \"text\": \"表格第一行数据：第一列为 1，第二列为 3，第三列为 第一行。\",\n      \"evidence_region\": null\n    },\n    {\n      \"image_index\": 1,\n      \"text\": \"表格第二行数据：第一列为 2，第二列为 5，第三列为 第二行。\",\n      \"evidence_region\": null\n    },\n    {\n      \"image_index\": 1,\n      \"text\": \"表格第三行数据：第一列为 3，第二列为 7，第三列为 第三行。\",\n      \"evidence_region\": null\n    }\n  ],\n  \"unresolved_issues\": [\n    {\n      \"image_indices\": [1],\n      \"message\": \"题图仅显示表格，未显示题干问题、要求、选项或待求目标，无法确定该表格在题目中的具体用途；需人工核对完整题目上下文。\"\n    }\n  ],\n  \"requires_manual_review\": true,\n  \"provenance\": null\n}\n\nThis seems good. But \"conditions\" maybe should be \"necessary conditions\" not all cells. It's fine.\n\nNeed ensure no Markdown. Use JSON object. Good.\n\nBut wait: The table cells: \"第一行\" etc. Could be row labels. Yes.\n\nPotential issue: \"题图未显示题干问题\" maybe context content: \"请读取所附题图中可见的条件，未知或不可靠的关键文字保留问题说明。\" It's meta. Fine.\n\nNeed maybe if there is no diagram, not observation. We have table observation.\n\nLet's final."
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      ]
+    }
+  ],
+  "raw_capture_status": "read_only_http_response_hook"
+}

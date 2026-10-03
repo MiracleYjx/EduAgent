@@ -1,0 +1,216 @@
+{
+  "case_id": "IMG-DIAGRAM",
+  "round": 1,
+  "run_id": "t168-vision-r1-img-diagram-b354795d5918",
+  "started_at": "2026-10-03T14:42:05.809552Z",
+  "images": [
+    {
+      "image_index": 1,
+      "fixture_asset_id": "31d1b223-0422-5f9f-b323-7ecac2ad4367",
+      "identity_scope": "stable fixture only; no database asset/file identity",
+      "path": "benchmark/corpus/v2-draft-20261001/assets/diagram.png",
+      "sha256": "44bbbce885cdf7f8965364579d2007b375c069a904d79f487ac64518ae602b97",
+      "size_bytes": 9665,
+      "width": 640,
+      "height": 400,
+      "mime_type": "image/png"
+    }
+  ],
+  "context": {
+    "content": "请读取所附题图中可见的条件，未知或不可靠的关键文字保留问题说明。",
+    "options": null,
+    "answer": null,
+    "analysis": null,
+    "caption": [
+      null
+    ]
+  },
+  "task": "识别本题全部图片中的图示、表格与必要条件；不识别或补写答案。",
+  "output": {
+    "observations": [
+      {
+        "image_index": 1,
+        "kind": "流程图节点",
+        "description": "顶部矩形框内文字为“输入 x”。",
+        "bbox": [
+          190,
+          35,
+          440,
+          105
+        ]
+      },
+      {
+        "image_index": 1,
+        "kind": "流程图节点",
+        "description": "中间矩形框内文字为“y = 2 * x + 1”。",
+        "bbox": [
+          160,
+          170,
+          470,
+          230
+        ]
+      },
+      {
+        "image_index": 1,
+        "kind": "流程图节点",
+        "description": "底部矩形框内文字为“输出 y”。",
+        "bbox": [
+          190,
+          290,
+          440,
+          350
+        ]
+      },
+      {
+        "image_index": 1,
+        "kind": "流程图连接",
+        "description": "由“输入 x”框向下箭头指向“y = 2 * x + 1”框，再由该框向下箭头指向“输出 y”框。",
+        "bbox": [
+          160,
+          35,
+          470,
+          350
+        ]
+      }
+    ],
+    "conditions": [
+      {
+        "image_index": 1,
+        "text": "输入 x",
+        "evidence_region": {
+          "bbox": [
+            190,
+            35,
+            440,
+            105
+          ]
+        }
+      },
+      {
+        "image_index": 1,
+        "text": "y = 2 * x + 1",
+        "evidence_region": {
+          "bbox": [
+            160,
+            170,
+            470,
+            230
+          ]
+        }
+      },
+      {
+        "image_index": 1,
+        "text": "输出 y",
+        "evidence_region": {
+          "bbox": [
+            190,
+            290,
+            440,
+            350
+          ]
+        }
+      }
+    ],
+    "unresolved_issues": [],
+    "requires_manual_review": false,
+    "provenance": {
+      "provider_name": "deepseek",
+      "model": "deepseek-flash",
+      "model_version": null,
+      "prompt_version": "vision-conditions-v1"
+    }
+  },
+  "error": null,
+  "provenance": {
+    "provider_name": "deepseek",
+    "model": "deepseek-flash",
+    "model_version": null,
+    "prompt_version": "vision-conditions-v1"
+  },
+  "assessment_status": "pending_semantic_review",
+  "reference_condition_count": 4,
+  "is_independent_teacher_truth": false,
+  "baseline_reference": {
+    "reference_standard": "AI 辅助 + 开发者审查",
+    "baseline_annotation_version": "t146-developer-reviewed-ai-assisted-20261003-2",
+    "annotation_authors": [
+      {
+        "kind": "ai_assistant",
+        "name": "Codex",
+        "role": "会话委托的源材料阅读、标注和技术复核"
+      },
+      {
+        "kind": "developer",
+        "name": "current_chat_user",
+        "identity_source": "current_chat_user_message",
+        "role": "开发者确认审查口径及将本批参考包用于学习项目质量基线"
+      }
+    ],
+    "decision_source": "current_chat_user_message",
+    "decision_recorded_at_utc": "2026-10-03T14:28:23.228504+00:00",
+    "is_independent_teacher_truth": false,
+    "source_sha256": {
+      "annotations.json": "e3df8cc30f27c96060c46bd46f60eab26fcb5ef0ec925fd2c1cccb579f161e2e",
+      "developer_review.json": "de098c686f725814c4716abddd0cfa889e14ef5efe5a29ad02adb9328f373380",
+      "manifest.json": "eedef2ff79e74eae3a7fe0d2ae29b2d29070c3b70f5e9a530577f53c4a27dca7"
+    }
+  },
+  "outcome": "completed",
+  "completed_at": "2026-10-03T14:42:16.646194Z",
+  "elapsed_ms": 10836.617,
+  "provider_trace_events": [
+    {
+      "recorded_at": "2026-10-03T14:42:16.646003Z",
+      "request_id": "t168-vision-r1-img-diagram-b354795d5918",
+      "agent_type": "llm",
+      "status": "success",
+      "latency_ms": 10831,
+      "model": "deepseek-flash",
+      "prompt_version": "vision-conditions-v1",
+      "input_tokens": 1484,
+      "output_tokens": 2385,
+      "total_tokens": 3869,
+      "input_summary": null,
+      "output_summary": null,
+      "error_code": null,
+      "error_retryable": null
+    }
+  ],
+  "observed_provider_attempts": 1,
+  "actual_raw_responses": [
+    {
+      "received_at_utc": "2026-10-03T14:42:06.012948Z",
+      "status_code": 200,
+      "capture_scope": "response identity, usage, actual choices only; no headers/URL/credentials",
+      "id": "0adcc359-6df8-417b-ad1c-54a68bdd3801",
+      "model": "deepseek-flash",
+      "system_fingerprint": "aeb56401ca74e127821c4f9126dcb669",
+      "usage": {
+        "prompt_tokens": 1484,
+        "completion_tokens": 2385,
+        "total_tokens": 3869,
+        "prompt_tokens_details": {
+          "cached_tokens": 1152
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 1959
+        },
+        "prompt_cache_hit_tokens": 1152,
+        "prompt_cache_miss_tokens": 332
+      },
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\n  \"observations\": [\n    {\n      \"image_index\": 1,\n      \"kind\": \"流程图节点\",\n      \"description\": \"顶部矩形框内文字为“输入 x”。\",\n      \"bbox\": [190, 35, 440, 105]\n    },\n    {\n      \"image_index\": 1,\n      \"kind\": \"流程图节点\",\n      \"description\": \"中间矩形框内文字为“y = 2 * x + 1”。\",\n      \"bbox\": [160, 170, 470, 230]\n    },\n    {\n      \"image_index\": 1,\n      \"kind\": \"流程图节点\",\n      \"description\": \"底部矩形框内文字为“输出 y”。\",\n      \"bbox\": [190, 290, 440, 350]\n    },\n    {\n      \"image_index\": 1,\n      \"kind\": \"流程图连接\",\n      \"description\": \"由“输入 x”框向下箭头指向“y = 2 * x + 1”框，再由该框向下箭头指向“输出 y”框。\",\n      \"bbox\": [160, 35, 470, 350]\n    }\n  ],\n  \"conditions\": [\n    {\n      \"image_index\": 1,\n      \"text\": \"输入 x\",\n      \"evidence_region\": {\n        \"bbox\": [190, 35, 440, 105]\n      }\n    },\n    {\n      \"image_index\": 1,\n      \"text\": \"y = 2 * x + 1\",\n      \"evidence_region\": {\n        \"bbox\": [160, 170, 470, 230]\n      }\n    },\n    {\n      \"image_index\": 1,\n      \"text\": \"输出 y\",\n      \"evidence_region\": {\n        \"bbox\": [190, 290, 440, 350]\n      }\n    }\n  ],\n  \"unresolved_issues\": [],\n  \"requires_manual_review\": false,\n  \"provenance\": null\n}",
+            "reasoning_content": "我们需要回答 JSON，仅依据题图。图片1是流程图：输入 x -> y = 2 * x + 1 -> 输出 y。需要识别图示、表格、必要条件。输出符合 schema 的 JSON。observations, conditions, unresolved_issues, requires_manual_review, provenance null。需要 bbox 提供像素坐标？图片尺寸640x400。我们可以给出文字区域 bbox 大概。需要可靠定位？可以估计。流程图各框位置：上方框大约 x=190? y=30? 到 x=440? y=105? 中间框 x=160? y=170? 到 x=470? y=230? 下方框 x=190? y=290? 到 x=440? y=350? 箭头。可以给 observation bbox 为整体流程图？最好每个元素一个 observation，包含文本和箭头？schema observations 是 VisionObservation 数组，每个包含 image_index, kind, description, bbox 可选。conditions 是 VisionCondition 数组，每个包含 image_index, text, evidence_region。需要识别必要条件（条件）文本。可以写 conditions: 输入 x; 处理 y = 2 * x + 1; 输出 y。但条件可能整个流程图。也可以作为 observation 的描述。需要不补写答案，即不计算。provenance null。requires_manual_review false? 因为无问题。但系统要求有问题 requires_manual_review=true；没有问题的 false 也不代替真实教师核对。这里没有矛盾/缺失，可 false。unresolved_issues []。\n\n需要 bbox 像素坐标。我们根据图片估。图片 640×400。上方框：左上约 (192, 36)，右下约 (438, 104)? 看文本 \"输入 x\" 位于框内。中间框：左上 (160, 172)，右下 (468, 230)? 下方框：左上 (190, 292)，右下 (438, 350)? 箭头：从上方框底部中间到中间框顶部，从中间框底部到下方框顶部。也可以给整个图 bbox (160,36,468,350)。但 observation bbox 应为具体资产原图位置。我们不一定必须给每个 bbox，但可以给。问题要求 bbox/evidence_region.bbox 为该资产原图左上/右下像素 (x0,y0,x1,y1)，无法可靠定位保持 null。我们可给估计。为了可靠，可能 bbox 可以 null？\"无法可靠定位保持 null\" 但这里可以定位，应该给。如果给不准确可能不合适？可以给大致。需要确保坐标不超出。我估计：\n\n- 输入框： x0=190, y0=35, x1=440, y1=105。文本 \"输入 x\" 在框内。\n- 处理框： x0=160, y0=170, x1=470, y1=230。文本 \"y = 2 * x + 1\"。\n- 输出框： x0=190, y0=290, x1=440, y1=350。文本 \"输出 y\"。\n- 箭头/流向可以合并到 observation \"箭头连接输入框到处理框，处理框到输出框\" 无 bbox 或整体。\n\nconditions 应该写什么？题图可见条件：\n1. 输入 x（或者说变量 x 作为输入）\n2. 执行 y = 2 * x + 1\n3. 输出 y\n这些是必要条件。每种条件对应 evidence_region 可以是各自框区域。text 是 \"输入 x\", \"y = 2 * x + 1\", \"输出 y\"。\n\nobservations 可以 kind \"流程图节点/文本\", description 对每个节点，加箭头。可以包含 image_index 1。要求不补写题图未给出的答案、数值或关系。不要写\"当x...\"或者输出 y=... 不要计算。只识别。\n\nunresolved_issues：如果有未知或不可靠关键文字？图中文字清晰，无。null? 空数组。requires_manual_review false。provenance null。注意 schema 顶层 required 包含 observations conditions unresolved_issues requires_manual_review，provenance 可选但默认 null 如果给也可以？题目说 provenance 必须为 null。那就 \"provenance\": null。requires_manual_review 为 false，但题目说 \"没有问题的 false 也不代替真实教师核对。\" 所以 false 可以。\n\n需要确保 JSON 对象没有 Markdown，仅 JSON。schema 允许 provenance: null。observations 数组每个对象必须 image_index, kind, description；bbox 可选但可以给。conditions 每个对象必须 image_index, text, evidence_region；evidence_region 可为 null 或 PixelRegion。PixelRegion 对象必须 bbox 数组。可以给 evidence_region: {\"bbox\":[190,35,440,105]}。\n\n可能还要注意 image_index 最大5，这里只有1。好。\n\n现在构造 JSON。应该不要包含额外文本。需要小心 JSON 有效。可以这样：\n\n{\n  \"observations\": [\n    {\n      \"image_index\": 1,\n      \"kind\": \"流程图节点\",\n      \"description\": \"顶部矩形框内文字为“输入 x”。\",\n      \"bbox\": [190, 35, 440, 105]\n    },\n    {\n      \"image_index\": 1,\n      \"kind\": \"流程图节点\",\n      \"description\": \"中间矩形框内文字为“y = 2 * x + 1”。\",\n      \"bbox\": [160, 170, 470, 230]\n    },\n    {\n      \"image_index\": 1,\n      \"kind\": \"流程图节点\",\n      \"description\": \"底部矩形框内文字为“输出 y”。\",\n      \"bbox\": [190, 290, 440, 350]\n    },\n    {\n      \"image_index\": 1,\n      \"kind\": \"流程图连接\",\n      \"description\": \"由“输入 x”框向下箭头指向“y = 2 * x + 1”框，再由该框向下箭头指向“输出 y”框。\",\n      \"bbox\": [160, 35, 470, 350]\n    }\n  ],\n  \"conditions\": [\n    {\n      \"image_index\": 1,\n      \"text\": \"输入 x\",\n      \"evidence_region\": {\"bbox\": [190, 35, 440, 105]}\n    },\n    {\n      \"image_index\": 1,\n      \"text\": \"y = 2 * x + 1\",\n      \"evidence_region\": {\"bbox\": [160, 170, 470, 230]}\n    },\n    {\n      \"image_index\": 1,\n      \"text\": \"输出 y\",\n      \"evidence_region\": {\"bbox\": [190, 290, 440, 350]}\n    }\n  ],\n  \"unresolved_issues\": [],\n  \"requires_manual_review\": false,\n  \"provenance\": null\n}\n\n这样应该可以。但是否需要 unresolved_issues 包含 \"未给出答案，不需要补写\"？不。没有未知关键文字，图上清晰。题意要求 \"仅依据本次全部题图和真实文字上下文识别图示、表格及必要条件。\" 好。\n\n注意：conditions 中 \"y = 2 * x + 1\" 包含等号和乘号，文本精确。中间框里实际 \"y = 2 * x + 1\"，没有分号。乘号是 *。输入输出是中文。\n\n需要确保 bbox 是原图左上右下。我给的坐标可能顺序：左上 x0,y0，右下 x1,y1。上方框左上约190,35 右下440,105；中间框左上160,170 右下470,230；下方框左上190,290 右下440,350。连接整个框 bbox 160,35,470,350。合理。\n\n但可能 \"输入 x\" 框的 bbox 应为 [190,35,440,105] 但实际文字框在图片中略大？无所谓。如果无法可靠定位，可以 null，但我会提供估计。说明不能使用归一化。好。\n\n关于 \"provenance 必须为 null，不生成资产、文件、教师或 Provider 身份。\" 我们设 null。\n\n还有 \"有问题 requires_manual_review=true。没有问题的 false 也不代替真实教师核对。\" 这里 false 没问题。\n\n是否需要 unresolved_issues: [] 还是可能有 \"题图未给出“输入 x”的取值范围或数据类型\"？但要求不补写未给出答案、数值或关系，不能把未给条件当问题？或许可以写 \"未给出 x 的取值/定义域\" 作为 unresolved_issues？题目说未知或不可靠的关键文字保留问题说明。这里没有未知文字。但流程图本身缺少 x 的定义域，但题目可能就是只识别流程图，不要求答案。如果写 unresolved_issues 可能意味着有问题，requires_manual_review true。但题目没有问定义域。不应主动扩展。所以空。\n\n还要不要 observation 中 kind 填写 schema 要求的字段，minLength 1，可以任意。好。\n\n最终只输出 JSON。"
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      ]
+    }
+  ],
+  "raw_capture_status": "read_only_http_response_hook"
+}

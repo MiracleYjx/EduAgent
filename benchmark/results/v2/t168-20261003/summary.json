@@ -1,0 +1,604 @@
+{
+  "task": "T168",
+  "recorded_at_utc": "2026-10-03T15:08:10.809852+00:00",
+  "reference_standard": "AI 辅助 + 开发者审查",
+  "independent_teacher_count": 0,
+  "annotation_version": "t146-developer-reviewed-ai-assisted-20261003-2",
+  "dataset_version": "v2-ai-reference-20261003-1",
+  "semantic": {
+    "answer_correctness": {
+      "TP": 6,
+      "FP": 4,
+      "TN": 12,
+      "FN": 0,
+      "planned_positive": 6,
+      "planned_negative": 18,
+      "known_applicable_labels": 24,
+      "assessed": 22,
+      "unknown_label_excluded": 9,
+      "not_applicable_excluded": 0,
+      "input_not_ready": 0,
+      "technical_failed": 0,
+      "abstained": 2,
+      "coverage": 0.9166666666666666,
+      "recall_on_assessed": 1.0,
+      "false_negative_rate_on_assessed": 0.0,
+      "false_positive_rate_on_assessed": 0.25,
+      "positive_detection_over_planned": 1.0,
+      "accuracy_on_assessed": 0.8181818181818182
+    },
+    "condition_sufficiency": {
+      "TP": 6,
+      "FP": 8,
+      "TN": 14,
+      "FN": 0,
+      "planned_positive": 9,
+      "planned_negative": 24,
+      "known_applicable_labels": 33,
+      "assessed": 28,
+      "unknown_label_excluded": 0,
+      "not_applicable_excluded": 0,
+      "input_not_ready": 3,
+      "technical_failed": 0,
+      "abstained": 2,
+      "coverage": 0.8484848484848485,
+      "recall_on_assessed": 1.0,
+      "false_negative_rate_on_assessed": 0.0,
+      "false_positive_rate_on_assessed": 0.36363636363636365,
+      "positive_detection_over_planned": 0.6666666666666666,
+      "accuracy_on_assessed": 0.7142857142857143
+    },
+    "option_ambiguity": {
+      "TP": 3,
+      "FP": 0,
+      "TN": 3,
+      "FN": 0,
+      "planned_positive": 3,
+      "planned_negative": 3,
+      "known_applicable_labels": 6,
+      "assessed": 6,
+      "unknown_label_excluded": 0,
+      "not_applicable_excluded": 27,
+      "input_not_ready": 0,
+      "technical_failed": 0,
+      "abstained": 0,
+      "coverage": 1.0,
+      "recall_on_assessed": 1.0,
+      "false_negative_rate_on_assessed": 0.0,
+      "false_positive_rate_on_assessed": 0.0,
+      "positive_detection_over_planned": 1.0,
+      "accuracy_on_assessed": 1.0
+    },
+    "rubric_clarity": {
+      "TP": 3,
+      "FP": 3,
+      "TN": 9,
+      "FN": 0,
+      "planned_positive": 6,
+      "planned_negative": 12,
+      "known_applicable_labels": 18,
+      "assessed": 15,
+      "unknown_label_excluded": 15,
+      "not_applicable_excluded": 0,
+      "input_not_ready": 3,
+      "technical_failed": 0,
+      "abstained": 0,
+      "coverage": 0.8333333333333334,
+      "recall_on_assessed": 1.0,
+      "false_negative_rate_on_assessed": 0.0,
+      "false_positive_rate_on_assessed": 0.25,
+      "positive_detection_over_planned": 0.5,
+      "accuracy_on_assessed": 0.8
+    }
+  },
+  "semantic_run_statuses": {
+    "completed": 30,
+    "input_not_ready": 3
+  },
+  "vision": {
+    "rounds": [
+      {
+        "round": 1,
+        "matched": 10,
+        "assessable_outputs": 10,
+        "reference_conditions": 11,
+        "precision": 1.0,
+        "completeness": 0.9090909090909091
+      },
+      {
+        "round": 2,
+        "matched": 11,
+        "assessable_outputs": 12,
+        "reference_conditions": 11,
+        "precision": 0.9166666666666666,
+        "completeness": 1.0
+      },
+      {
+        "round": 3,
+        "matched": 11,
+        "assessable_outputs": 11,
+        "reference_conditions": 11,
+        "precision": 1.0,
+        "completeness": 1.0
+      }
+    ],
+    "matched": 32,
+    "assessable_outputs": 33,
+    "reference_conditions": 33,
+    "precision": 0.9696969696969697,
+    "completeness": 0.9696969696969697,
+    "unclear_handoffs": 3,
+    "unclear_planned": 3,
+    "unassessable_lowres_outputs": 5,
+    "run_statuses": {
+      "completed": 12
+    }
+  },
+  "new_provider_attempts": 42,
+  "new_raw_responses": 42,
+  "request_models": [
+    "deepseek-chat",
+    "deepseek-flash"
+  ],
+  "response_models": [
+    "deepseek-flash"
+  ],
+  "actual_usage": {
+    "prompt_tokens": 53265,
+    "completion_tokens": 46410,
+    "total_tokens": 99675
+  },
+  "monetary_cost": null,
+  "historical_import_requests_reused": 15,
+  "import_summary_ref": "import/summary.json",
+  "quality_thresholds": [
+    {
+      "family": "import",
+      "stage": "automatic",
+      "metric": "identity_recall",
+      "operator": ">=",
+      "value": 0.95,
+      "denominator": "all 48 labeled original question instances; failed imports retained"
+    },
+    {
+      "family": "import",
+      "stage": "automatic",
+      "metric": "each_evaluable_field_accuracy",
+      "operator": ">=",
+      "value": 0.95,
+      "denominator": "planned known field labels; unknown excluded, known absence retained; per-field not average"
+    },
+    {
+      "family": "import",
+      "stage": "automatic",
+      "metric": "all_evaluable_fields_match",
+      "operator": ">=",
+      "value": 0.9,
+      "denominator": "all 48 question instances"
+    },
+    {
+      "family": "import",
+      "stage": "after_image_assistance",
+      "metric": "each_evaluable_field_accuracy",
+      "operator": ">=",
+      "value": 1.0,
+      "denominator": "planned known field labels; does not prove automatic extraction or pixel boundaries"
+    },
+    {
+      "family": "semantic",
+      "stage": "automatic",
+      "metric": "each_check_recall_on_assessed",
+      "operator": ">=",
+      "value": 0.9,
+      "denominator": "TP+FN for each of four problem classes; must accompany coverage"
+    },
+    {
+      "family": "semantic",
+      "stage": "automatic",
+      "metric": "each_check_false_positive_rate_on_assessed",
+      "operator": "<=",
+      "value": 0.1,
+      "denominator": "FP+TN in each class"
+    },
+    {
+      "family": "semantic",
+      "stage": "automatic",
+      "metric": "each_check_coverage",
+      "operator": ">=",
+      "value": 0.9,
+      "denominator": "planned known applicable checks; abstentions, input blocks and failures not covered"
+    },
+    {
+      "family": "vision",
+      "stage": "automatic",
+      "metric": "one_to_one_condition_precision",
+      "operator": ">=",
+      "value": 0.95,
+      "denominator": "all assessable output conditions on clear images"
+    },
+    {
+      "family": "vision",
+      "stage": "automatic",
+      "metric": "one_to_one_condition_completeness",
+      "operator": ">=",
+      "value": 0.95,
+      "denominator": "all 33 clear-image reference conditions; failed groups retained"
+    },
+    {
+      "family": "vision",
+      "stage": "manual_handoff",
+      "metric": "unclear_handoff_correct",
+      "operator": ">=",
+      "value": 1.0,
+      "denominator": "all 3 unclear-image runs; cannot claim correct extraction"
+    },
+    {
+      "family": "semantic_and_vision",
+      "stage": "execution",
+      "metric": "technical_failure_rate",
+      "operator": "<=",
+      "value": 0.05,
+      "denominator": "attempted application calls; input blocks separately reported"
+    }
+  ],
+  "threshold_status": "confirmed_by_user",
+  "quality_acceptance": "not_met",
+  "new_business_gate_acceptance": "not_run; prior technical receipts remain separate",
+  "scope": "Real Provider outputs and same-source historical import reaggregation; frozen synthetic learning-project references",
+  "threshold_decision_ref": "thresholds.json",
+  "threshold_assessments": [
+    {
+      "metric": "import.automatic.identity_recall",
+      "actual": 1.0,
+      "operator": ">=",
+      "target": 0.95,
+      "met": true,
+      "status": "met"
+    },
+    {
+      "metric": "import.automatic.question_number",
+      "actual": 1.0,
+      "operator": ">=",
+      "target": 0.95,
+      "met": true,
+      "status": "met"
+    },
+    {
+      "metric": "import.automatic.order_index",
+      "actual": 0.9375,
+      "operator": ">=",
+      "target": 0.95,
+      "met": false,
+      "status": "not_met"
+    },
+    {
+      "metric": "import.automatic.source_page_numbers",
+      "actual": 1.0,
+      "operator": ">=",
+      "target": 0.95,
+      "met": true,
+      "status": "met"
+    },
+    {
+      "metric": "import.automatic.question_type",
+      "actual": 1.0,
+      "operator": ">=",
+      "target": 0.95,
+      "met": true,
+      "status": "met"
+    },
+    {
+      "metric": "import.automatic.content",
+      "actual": 0.125,
+      "operator": ">=",
+      "target": 0.95,
+      "met": false,
+      "status": "not_met"
+    },
+    {
+      "metric": "import.automatic.options",
+      "actual": 0.9375,
+      "operator": ">=",
+      "target": 0.95,
+      "met": false,
+      "status": "not_met"
+    },
+    {
+      "metric": "import.automatic.reference_answer",
+      "actual": 1.0,
+      "operator": ">=",
+      "target": 0.95,
+      "met": true,
+      "status": "met"
+    },
+    {
+      "metric": "import.automatic.analysis",
+      "actual": 0.8125,
+      "operator": ">=",
+      "target": 0.95,
+      "met": false,
+      "status": "not_met"
+    },
+    {
+      "metric": "import.automatic.score",
+      "actual": 1.0,
+      "operator": ">=",
+      "target": 0.95,
+      "met": true,
+      "status": "met"
+    },
+    {
+      "metric": "import.automatic.scoring_rubric",
+      "actual": 0.7916666666666666,
+      "operator": ">=",
+      "target": 0.95,
+      "met": false,
+      "status": "not_met"
+    },
+    {
+      "metric": "import.automatic.knowledge_points",
+      "actual": 0.3125,
+      "operator": ">=",
+      "target": 0.95,
+      "met": false,
+      "status": "not_met"
+    },
+    {
+      "metric": "import.automatic.source_regions",
+      "actual": null,
+      "operator": ">=",
+      "target": 0.95,
+      "met": null,
+      "status": "not_evaluable"
+    },
+    {
+      "metric": "import.automatic.assets",
+      "actual": 0.0,
+      "operator": ">=",
+      "target": 0.95,
+      "met": false,
+      "status": "not_met"
+    },
+    {
+      "metric": "import.automatic.all_evaluable_fields_match",
+      "actual": 0.0,
+      "operator": ">=",
+      "target": 0.9,
+      "met": false,
+      "status": "not_met"
+    },
+    {
+      "metric": "import.after_image_assistance.question_number",
+      "actual": 1.0,
+      "operator": ">=",
+      "target": 1.0,
+      "met": true,
+      "status": "met"
+    },
+    {
+      "metric": "import.after_image_assistance.order_index",
+      "actual": 1.0,
+      "operator": ">=",
+      "target": 1.0,
+      "met": true,
+      "status": "met"
+    },
+    {
+      "metric": "import.after_image_assistance.source_page_numbers",
+      "actual": 1.0,
+      "operator": ">=",
+      "target": 1.0,
+      "met": true,
+      "status": "met"
+    },
+    {
+      "metric": "import.after_image_assistance.question_type",
+      "actual": 1.0,
+      "operator": ">=",
+      "target": 1.0,
+      "met": true,
+      "status": "met"
+    },
+    {
+      "metric": "import.after_image_assistance.content",
+      "actual": 1.0,
+      "operator": ">=",
+      "target": 1.0,
+      "met": true,
+      "status": "met"
+    },
+    {
+      "metric": "import.after_image_assistance.options",
+      "actual": 1.0,
+      "operator": ">=",
+      "target": 1.0,
+      "met": true,
+      "status": "met"
+    },
+    {
+      "metric": "import.after_image_assistance.reference_answer",
+      "actual": 1.0,
+      "operator": ">=",
+      "target": 1.0,
+      "met": true,
+      "status": "met"
+    },
+    {
+      "metric": "import.after_image_assistance.analysis",
+      "actual": 1.0,
+      "operator": ">=",
+      "target": 1.0,
+      "met": true,
+      "status": "met"
+    },
+    {
+      "metric": "import.after_image_assistance.score",
+      "actual": 1.0,
+      "operator": ">=",
+      "target": 1.0,
+      "met": true,
+      "status": "met"
+    },
+    {
+      "metric": "import.after_image_assistance.scoring_rubric",
+      "actual": 1.0,
+      "operator": ">=",
+      "target": 1.0,
+      "met": true,
+      "status": "met"
+    },
+    {
+      "metric": "import.after_image_assistance.knowledge_points",
+      "actual": 1.0,
+      "operator": ">=",
+      "target": 1.0,
+      "met": true,
+      "status": "met"
+    },
+    {
+      "metric": "import.after_image_assistance.source_regions",
+      "actual": null,
+      "operator": ">=",
+      "target": 1.0,
+      "met": null,
+      "status": "not_evaluable"
+    },
+    {
+      "metric": "import.after_image_assistance.assets",
+      "actual": 1.0,
+      "operator": ">=",
+      "target": 1.0,
+      "met": true,
+      "status": "met"
+    },
+    {
+      "metric": "semantic.answer_correctness.recall_on_assessed",
+      "actual": 1.0,
+      "operator": ">=",
+      "target": 0.9,
+      "met": true,
+      "status": "met"
+    },
+    {
+      "metric": "semantic.condition_sufficiency.recall_on_assessed",
+      "actual": 1.0,
+      "operator": ">=",
+      "target": 0.9,
+      "met": true,
+      "status": "met"
+    },
+    {
+      "metric": "semantic.option_ambiguity.recall_on_assessed",
+      "actual": 1.0,
+      "operator": ">=",
+      "target": 0.9,
+      "met": true,
+      "status": "met"
+    },
+    {
+      "metric": "semantic.rubric_clarity.recall_on_assessed",
+      "actual": 1.0,
+      "operator": ">=",
+      "target": 0.9,
+      "met": true,
+      "status": "met"
+    },
+    {
+      "metric": "semantic.answer_correctness.false_positive_rate_on_assessed",
+      "actual": 0.25,
+      "operator": "<=",
+      "target": 0.1,
+      "met": false,
+      "status": "not_met"
+    },
+    {
+      "metric": "semantic.condition_sufficiency.false_positive_rate_on_assessed",
+      "actual": 0.36363636363636365,
+      "operator": "<=",
+      "target": 0.1,
+      "met": false,
+      "status": "not_met"
+    },
+    {
+      "metric": "semantic.option_ambiguity.false_positive_rate_on_assessed",
+      "actual": 0.0,
+      "operator": "<=",
+      "target": 0.1,
+      "met": true,
+      "status": "met"
+    },
+    {
+      "metric": "semantic.rubric_clarity.false_positive_rate_on_assessed",
+      "actual": 0.25,
+      "operator": "<=",
+      "target": 0.1,
+      "met": false,
+      "status": "not_met"
+    },
+    {
+      "metric": "semantic.answer_correctness.coverage",
+      "actual": 0.9166666666666666,
+      "operator": ">=",
+      "target": 0.9,
+      "met": true,
+      "status": "met"
+    },
+    {
+      "metric": "semantic.condition_sufficiency.coverage",
+      "actual": 0.8484848484848485,
+      "operator": ">=",
+      "target": 0.9,
+      "met": false,
+      "status": "not_met"
+    },
+    {
+      "metric": "semantic.option_ambiguity.coverage",
+      "actual": 1.0,
+      "operator": ">=",
+      "target": 0.9,
+      "met": true,
+      "status": "met"
+    },
+    {
+      "metric": "semantic.rubric_clarity.coverage",
+      "actual": 0.8333333333333334,
+      "operator": ">=",
+      "target": 0.9,
+      "met": false,
+      "status": "not_met"
+    },
+    {
+      "metric": "vision.one_to_one_condition_precision",
+      "actual": 0.9696969696969697,
+      "operator": ">=",
+      "target": 0.95,
+      "met": true,
+      "status": "met"
+    },
+    {
+      "metric": "vision.one_to_one_condition_completeness",
+      "actual": 0.9696969696969697,
+      "operator": ">=",
+      "target": 0.95,
+      "met": true,
+      "status": "met"
+    },
+    {
+      "metric": "vision.unclear_handoff_correct",
+      "actual": 1.0,
+      "operator": ">=",
+      "target": 1.0,
+      "met": true,
+      "status": "met"
+    },
+    {
+      "metric": "execution.technical_failure_rate",
+      "actual": 0.0,
+      "operator": "<=",
+      "target": 0.05,
+      "met": true,
+      "status": "met"
+    }
+  ],
+  "task_completion_scope": "Quality baseline measured and user-confirmed thresholds registered; task completion does not imply quality acceptance"
+}

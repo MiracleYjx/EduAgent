@@ -1,0 +1,46 @@
+{
+  "run_id": "semantic-r1-SEM-NO-BASIS",
+  "repeat_index": 1,
+  "case_id": "SEM-NO-BASIS",
+  "stage": "automatic",
+  "evidence_kind": "real_provider",
+  "baseline_origin": "AI-assisted + developer review",
+  "is_independent_teacher_truth": false,
+  "source_labels": "benchmark/corpus/t146-ai-authorized-20261003/semantic_annotations.json",
+  "labels_sha256": "34bcf9055dde31a014e3548635f227c3fa7d75115c7ef2526de8f369aad01bdd",
+  "annotation_version": "t146-developer-reviewed-ai-assisted-20261003-2",
+  "component_annotation_version": "t146-ai-authorized-semantic-1",
+  "developer_review_ref": "developer_review.json",
+  "runtime_context_provenance": {
+    "author_kind": "ai_assistant",
+    "author_name": "Codex",
+    "developer_authorization_source": "current_chat_user_confirmed_T168_runtime_context",
+    "is_independent_teacher_truth": false,
+    "no_database_object_or_teacher_approval_claim": true,
+    "source_snapshot": {
+      "case_id": "SEM-NO-BASIS",
+      "generation_path": "knowledge_base_new",
+      "question": "根据未提供的教材图，求参数。",
+      "reference_answer": null,
+      "scoring_rubric": null,
+      "parent_fixture_id": null,
+      "teaching_basis_ref": null
+    },
+    "field_sources": {
+      "reference_answer": "original null retained",
+      "scoring_rubric": "original null retained",
+      "teaching_evidence": "original unavailable retained"
+    }
+  },
+  "generation_path": "knowledge_base_new",
+  "synthetic_identities_not_persisted": true,
+  "started_at_utc": "2026-10-03T14:45:17.027186+00:00",
+  "model_output": null,
+  "technical_error": null,
+  "trace_attempts": [],
+  "actual_request_count": 0,
+  "status": "input_not_ready",
+  "input_error": "SOURCE_NOT_READY: original reference_answer/scoring_rubric/teaching_basis are missing; no fabrication or cloud call",
+  "completed_at_utc": "2026-10-03T14:45:17.027273+00:00",
+  "elapsed_ms": 0.04409998655319214
+}

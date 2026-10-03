@@ -1,0 +1,2 @@
+# Preserve frozen evaluation bytes and recorded digests across platforms.
+* -text

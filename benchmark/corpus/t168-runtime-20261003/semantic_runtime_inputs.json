@@ -1,0 +1,795 @@
+{
+  "schema_version": "t168-semantic-runtime-context-1",
+  "runtime_version": "t168-semantic-runtime-20261003-1",
+  "created_at_utc": "2026-10-03T14:40:10.929187+00:00",
+  "protocol_version": "v2-evaluation-1",
+  "root_annotation_version": "t146-developer-reviewed-ai-assisted-20261003-2",
+  "semantic_annotation_version": "t146-ai-authorized-semantic-1",
+  "reference_standard": "AI assisted + developer review (learning project)",
+  "is_independent_teacher_truth": false,
+  "context_author": "Codex AI assistant; explicit developer-approved synthetic runtime metadata",
+  "source_snapshots": [
+    {
+      "path": "benchmark/corpus/t146-ai-authorized-20261003/semantic_annotations.json",
+      "sha256": "34bcf9055dde31a014e3548635f227c3fa7d75115c7ef2526de8f369aad01bdd"
+    },
+    {
+      "path": "benchmark/corpus/t146-ai-authorized-20261003/annotations.json",
+      "sha256": "e3df8cc30f27c96060c46bd46f60eab26fcb5ef0ec925fd2c1cccb579f161e2e"
+    },
+    {
+      "path": "benchmark/corpus/v2-draft-20261001/teaching_basis.md",
+      "sha256": "f2d176cda52aff08d811f6c0c70dc10b2799f4b3b20174dd5860b5353ba623c7"
+    }
+  ],
+  "case_count": 11,
+  "ready_case_count": 10,
+  "planned_rounds": 3,
+  "planned_provider_calls_before_existing_retries": 30,
+  "planned_input_not_ready_runs": 3,
+  "original_source_and_labels_unchanged": true,
+  "cases": {
+    "SEM-GOOD": {
+      "input": {
+        "question_id": "76694c96-8ea1-5860-a800-191ddd43dca6",
+        "input_revision": 0,
+        "run_no": 1,
+        "fields": {
+          "type": "SHORT_ANSWER",
+          "content": "y=2x+1，x=3，求y。",
+          "options": null,
+          "reference_answer": "7",
+          "scoring_rubric": "代入计算，5.00 分。",
+          "analysis": null,
+          "score": "5.00"
+        },
+        "evidence": [
+          {
+            "evidence_id": "4391047c-d24c-58c7-95b7-4e7b4fe6cb63",
+            "kind": "chunk",
+            "source_id": "6260d337-2b74-51b8-b2a9-d104ceca92a8",
+            "source_data": {
+              "chunk_id": "6260d337-2b74-51b8-b2a9-d104ceca92a8",
+              "document_id": "3ec8fb2b-30c7-5064-abcd-d9a5e88697fb",
+              "course_id": "8238355b-74a6-5d0c-a394-f0f6e2b1ca36",
+              "source_file": "benchmark/corpus/v2-draft-20261001/teaching_basis.md",
+              "location": {
+                "kind": "synthetic_whole_fixture",
+                "database_record": false
+              },
+              "content_snapshot": "# 合成教学依据（待教师核对）\n\n由 Codex 编写固定输入，非真实教师标注，也不是模型运行结果。\n\n一次函数：y=2x+1。代入x=3得y=7。\n\n三角形面积=底×高÷2，底6高4的面积为12。\n\n矩形面积需要长和宽，只有长度不能唯一确定面积。\n"
+            }
+          }
+        ],
+        "manual_context": []
+      },
+      "context_provenance": {
+        "author_kind": "ai_assistant",
+        "author_name": "Codex",
+        "developer_authorization_source": "current_chat_user_confirmed_T168_runtime_context",
+        "is_independent_teacher_truth": false,
+        "no_database_object_or_teacher_approval_claim": true,
+        "source_snapshot": {
+          "case_id": "SEM-GOOD",
+          "generation_path": "knowledge_base_new",
+          "question": "y=2x+1，x=3，求y。",
+          "reference_answer": "7",
+          "scoring_rubric": "代入计算，5.00 分。",
+          "parent_fixture_id": null,
+          "teaching_basis_ref": "teaching_basis.md"
+        },
+        "field_sources": {
+          "type": "new synthetic benchmark metadata selected by benchmark author with user authorization; not provided by original fixture",
+          "score": {
+            "origin": "explicit amount excerpted from original scoring_rubric",
+            "value": "5.00",
+            "source_quote": "代入计算，5.00 分。"
+          },
+          "options": "no options provided by original non-choice fixture; null retained as runtime absence",
+          "analysis": "unknown in original simplified fixture; null, no generated analysis",
+          "content": "original source text copied exactly, without correction",
+          "reference_answer": "original source text copied exactly, without correction",
+          "scoring_rubric": "original source text copied exactly, without correction",
+          "teaching_evidence": {
+            "origin": "actual teaching_basis.md full text",
+            "source_file": "benchmark/corpus/v2-draft-20261001/teaching_basis.md",
+            "source_sha256": "f2d176cda52aff08d811f6c0c70dc10b2799f4b3b20174dd5860b5353ba623c7",
+            "fixture_identity_only": true
+          }
+        }
+      }
+    },
+    "SEM-ANSWER": {
+      "input": {
+        "question_id": "08a9a20a-d88c-5add-ac83-0dd1de1ccde4",
+        "input_revision": 0,
+        "run_no": 1,
+        "fields": {
+          "type": "SHORT_ANSWER",
+          "content": "y=2x+1，x=3，求y。",
+          "options": null,
+          "reference_answer": "6",
+          "scoring_rubric": "代入计算，5.00 分。",
+          "analysis": null,
+          "score": "5.00"
+        },
+        "evidence": [
+          {
+            "evidence_id": "20427cdf-c648-5e24-8bcd-b9ab27385dce",
+            "kind": "chunk",
+            "source_id": "6260d337-2b74-51b8-b2a9-d104ceca92a8",
+            "source_data": {
+              "chunk_id": "6260d337-2b74-51b8-b2a9-d104ceca92a8",
+              "document_id": "3ec8fb2b-30c7-5064-abcd-d9a5e88697fb",
+              "course_id": "8238355b-74a6-5d0c-a394-f0f6e2b1ca36",
+              "source_file": "benchmark/corpus/v2-draft-20261001/teaching_basis.md",
+              "location": {
+                "kind": "synthetic_whole_fixture",
+                "database_record": false
+              },
+              "content_snapshot": "# 合成教学依据（待教师核对）\n\n由 Codex 编写固定输入，非真实教师标注，也不是模型运行结果。\n\n一次函数：y=2x+1。代入x=3得y=7。\n\n三角形面积=底×高÷2，底6高4的面积为12。\n\n矩形面积需要长和宽，只有长度不能唯一确定面积。\n"
+            }
+          }
+        ],
+        "manual_context": []
+      },
+      "context_provenance": {
+        "author_kind": "ai_assistant",
+        "author_name": "Codex",
+        "developer_authorization_source": "current_chat_user_confirmed_T168_runtime_context",
+        "is_independent_teacher_truth": false,
+        "no_database_object_or_teacher_approval_claim": true,
+        "source_snapshot": {
+          "case_id": "SEM-ANSWER",
+          "generation_path": "knowledge_base_new",
+          "question": "y=2x+1，x=3，求y。",
+          "reference_answer": "6",
+          "scoring_rubric": "代入计算，5.00 分。",
+          "parent_fixture_id": null,
+          "teaching_basis_ref": "teaching_basis.md"
+        },
+        "field_sources": {
+          "type": "new synthetic benchmark metadata selected by benchmark author with user authorization; not provided by original fixture",
+          "score": {
+            "origin": "explicit amount excerpted from original scoring_rubric",
+            "value": "5.00",
+            "source_quote": "代入计算，5.00 分。"
+          },
+          "options": "no options provided by original non-choice fixture; null retained as runtime absence",
+          "analysis": "unknown in original simplified fixture; null, no generated analysis",
+          "content": "original source text copied exactly, without correction",
+          "reference_answer": "original source text copied exactly, without correction",
+          "scoring_rubric": "original source text copied exactly, without correction",
+          "teaching_evidence": {
+            "origin": "actual teaching_basis.md full text",
+            "source_file": "benchmark/corpus/v2-draft-20261001/teaching_basis.md",
+            "source_sha256": "f2d176cda52aff08d811f6c0c70dc10b2799f4b3b20174dd5860b5353ba623c7",
+            "fixture_identity_only": true
+          }
+        }
+      }
+    },
+    "SEM-CONDITION": {
+      "input": {
+        "question_id": "1cd457b0-9e73-5e3d-a958-22fb8f82fe52",
+        "input_revision": 0,
+        "run_no": 1,
+        "fields": {
+          "type": "SHORT_ANSWER",
+          "content": "矩形长3，求面积。",
+          "options": null,
+          "reference_answer": "6",
+          "scoring_rubric": "写出面积，5.00 分。",
+          "analysis": null,
+          "score": "5.00"
+        },
+        "evidence": [
+          {
+            "evidence_id": "226b1bd6-4068-55d9-b190-8b2a927b502d",
+            "kind": "chunk",
+            "source_id": "6260d337-2b74-51b8-b2a9-d104ceca92a8",
+            "source_data": {
+              "chunk_id": "6260d337-2b74-51b8-b2a9-d104ceca92a8",
+              "document_id": "3ec8fb2b-30c7-5064-abcd-d9a5e88697fb",
+              "course_id": "8238355b-74a6-5d0c-a394-f0f6e2b1ca36",
+              "source_file": "benchmark/corpus/v2-draft-20261001/teaching_basis.md",
+              "location": {
+                "kind": "synthetic_whole_fixture",
+                "database_record": false
+              },
+              "content_snapshot": "# 合成教学依据（待教师核对）\n\n由 Codex 编写固定输入，非真实教师标注，也不是模型运行结果。\n\n一次函数：y=2x+1。代入x=3得y=7。\n\n三角形面积=底×高÷2，底6高4的面积为12。\n\n矩形面积需要长和宽，只有长度不能唯一确定面积。\n"
+            }
+          }
+        ],
+        "manual_context": []
+      },
+      "context_provenance": {
+        "author_kind": "ai_assistant",
+        "author_name": "Codex",
+        "developer_authorization_source": "current_chat_user_confirmed_T168_runtime_context",
+        "is_independent_teacher_truth": false,
+        "no_database_object_or_teacher_approval_claim": true,
+        "source_snapshot": {
+          "case_id": "SEM-CONDITION",
+          "generation_path": "knowledge_base_new",
+          "question": "矩形长3，求面积。",
+          "reference_answer": "6",
+          "scoring_rubric": "写出面积，5.00 分。",
+          "parent_fixture_id": null,
+          "teaching_basis_ref": "teaching_basis.md"
+        },
+        "field_sources": {
+          "type": "new synthetic benchmark metadata selected by benchmark author with user authorization; not provided by original fixture",
+          "score": {
+            "origin": "explicit amount excerpted from original scoring_rubric",
+            "value": "5.00",
+            "source_quote": "写出面积，5.00 分。"
+          },
+          "options": "no options provided by original non-choice fixture; null retained as runtime absence",
+          "analysis": "unknown in original simplified fixture; null, no generated analysis",
+          "content": "original source text copied exactly, without correction",
+          "reference_answer": "original source text copied exactly, without correction",
+          "scoring_rubric": "original source text copied exactly, without correction",
+          "teaching_evidence": {
+            "origin": "actual teaching_basis.md full text",
+            "source_file": "benchmark/corpus/v2-draft-20261001/teaching_basis.md",
+            "source_sha256": "f2d176cda52aff08d811f6c0c70dc10b2799f4b3b20174dd5860b5353ba623c7",
+            "fixture_identity_only": true
+          }
+        }
+      }
+    },
+    "SEM-OPTIONS": {
+      "input": {
+        "question_id": "250128b7-0455-50d9-bd90-f6ef9a5235e3",
+        "input_revision": 0,
+        "run_no": 1,
+        "fields": {
+          "type": "SINGLE_CHOICE",
+          "content": "2+2等于多少？选项A:4，B:4，C:5。",
+          "options": {
+            "A": "4",
+            "B": "4",
+            "C": "5"
+          },
+          "reference_answer": "A",
+          "scoring_rubric": "选A得2.00。",
+          "analysis": null,
+          "score": "2.00"
+        },
+        "evidence": [
+          {
+            "evidence_id": "f57b5f0d-042f-5dc7-917d-5ed1b93ad422",
+            "kind": "chunk",
+            "source_id": "6260d337-2b74-51b8-b2a9-d104ceca92a8",
+            "source_data": {
+              "chunk_id": "6260d337-2b74-51b8-b2a9-d104ceca92a8",
+              "document_id": "3ec8fb2b-30c7-5064-abcd-d9a5e88697fb",
+              "course_id": "8238355b-74a6-5d0c-a394-f0f6e2b1ca36",
+              "source_file": "benchmark/corpus/v2-draft-20261001/teaching_basis.md",
+              "location": {
+                "kind": "synthetic_whole_fixture",
+                "database_record": false
+              },
+              "content_snapshot": "# 合成教学依据（待教师核对）\n\n由 Codex 编写固定输入，非真实教师标注，也不是模型运行结果。\n\n一次函数：y=2x+1。代入x=3得y=7。\n\n三角形面积=底×高÷2，底6高4的面积为12。\n\n矩形面积需要长和宽，只有长度不能唯一确定面积。\n"
+            }
+          }
+        ],
+        "manual_context": []
+      },
+      "context_provenance": {
+        "author_kind": "ai_assistant",
+        "author_name": "Codex",
+        "developer_authorization_source": "current_chat_user_confirmed_T168_runtime_context",
+        "is_independent_teacher_truth": false,
+        "no_database_object_or_teacher_approval_claim": true,
+        "source_snapshot": {
+          "case_id": "SEM-OPTIONS",
+          "generation_path": "knowledge_base_new",
+          "question": "2+2等于多少？选项A:4，B:4，C:5。",
+          "reference_answer": "A",
+          "scoring_rubric": "选A得2.00。",
+          "parent_fixture_id": null,
+          "teaching_basis_ref": "teaching_basis.md"
+        },
+        "field_sources": {
+          "type": "new synthetic benchmark metadata selected by benchmark author with user authorization; not provided by original fixture",
+          "score": {
+            "origin": "explicit amount excerpted from original scoring_rubric",
+            "value": "2.00",
+            "source_quote": "选A得2.00。"
+          },
+          "options": {
+            "origin": "verbatim values and order copied from inline original question",
+            "original_question_unchanged": true
+          },
+          "analysis": "unknown in original simplified fixture; null, no generated analysis",
+          "content": "original source text copied exactly, without correction",
+          "reference_answer": "original source text copied exactly, without correction",
+          "scoring_rubric": "original source text copied exactly, without correction",
+          "teaching_evidence": {
+            "origin": "actual teaching_basis.md full text",
+            "source_file": "benchmark/corpus/v2-draft-20261001/teaching_basis.md",
+            "source_sha256": "f2d176cda52aff08d811f6c0c70dc10b2799f4b3b20174dd5860b5353ba623c7",
+            "fixture_identity_only": true
+          }
+        }
+      }
+    },
+    "SEM-RUBRIC": {
+      "input": {
+        "question_id": "fe4eb656-e0cb-5c6f-a4f5-cf2120bc8094",
+        "input_revision": 0,
+        "run_no": 1,
+        "fields": {
+          "type": "SHORT_ANSWER",
+          "content": "解释变量作用。",
+          "options": null,
+          "reference_answer": "保存并引用数据。",
+          "scoring_rubric": "看情况给分。",
+          "analysis": null,
+          "score": "5.00"
+        },
+        "evidence": [
+          {
+            "evidence_id": "655337b0-115b-52f5-aec5-f4a7cae64ce6",
+            "kind": "chunk",
+            "source_id": "6260d337-2b74-51b8-b2a9-d104ceca92a8",
+            "source_data": {
+              "chunk_id": "6260d337-2b74-51b8-b2a9-d104ceca92a8",
+              "document_id": "3ec8fb2b-30c7-5064-abcd-d9a5e88697fb",
+              "course_id": "8238355b-74a6-5d0c-a394-f0f6e2b1ca36",
+              "source_file": "benchmark/corpus/v2-draft-20261001/teaching_basis.md",
+              "location": {
+                "kind": "synthetic_whole_fixture",
+                "database_record": false
+              },
+              "content_snapshot": "# 合成教学依据（待教师核对）\n\n由 Codex 编写固定输入，非真实教师标注，也不是模型运行结果。\n\n一次函数：y=2x+1。代入x=3得y=7。\n\n三角形面积=底×高÷2，底6高4的面积为12。\n\n矩形面积需要长和宽，只有长度不能唯一确定面积。\n"
+            }
+          }
+        ],
+        "manual_context": []
+      },
+      "context_provenance": {
+        "author_kind": "ai_assistant",
+        "author_name": "Codex",
+        "developer_authorization_source": "current_chat_user_confirmed_T168_runtime_context",
+        "is_independent_teacher_truth": false,
+        "no_database_object_or_teacher_approval_claim": true,
+        "source_snapshot": {
+          "case_id": "SEM-RUBRIC",
+          "generation_path": "knowledge_base_new",
+          "question": "解释变量作用。",
+          "reference_answer": "保存并引用数据。",
+          "scoring_rubric": "看情况给分。",
+          "parent_fixture_id": null,
+          "teaching_basis_ref": "teaching_basis.md"
+        },
+        "field_sources": {
+          "type": "new synthetic benchmark metadata selected by benchmark author with user authorization; not provided by original fixture",
+          "score": {
+            "origin": "new synthetic benchmark full-score declaration",
+            "value": "5.00",
+            "author_kind": "ai_assistant",
+            "authorization_source": "current_chat_user_confirmed_T168_runtime_context",
+            "not_original_excerpt": true,
+            "reason": "Original rubric remains verbatim; this value only supplies required formal DTO runtime context, not an added scoring rule or correction."
+          },
+          "options": "no options provided by original non-choice fixture; null retained as runtime absence",
+          "analysis": "unknown in original simplified fixture; null, no generated analysis",
+          "content": "original source text copied exactly, without correction",
+          "reference_answer": "original source text copied exactly, without correction",
+          "scoring_rubric": "original source text copied exactly, without correction",
+          "teaching_evidence": {
+            "origin": "actual teaching_basis.md full text",
+            "source_file": "benchmark/corpus/v2-draft-20261001/teaching_basis.md",
+            "source_sha256": "f2d176cda52aff08d811f6c0c70dc10b2799f4b3b20174dd5860b5353ba623c7",
+            "fixture_identity_only": true
+          }
+        }
+      }
+    },
+    "SEM-ADAPT-GOOD": {
+      "input": {
+        "question_id": "cc141a47-f1ab-51b0-8ec9-9037041cf470",
+        "input_revision": 0,
+        "run_no": 1,
+        "fields": {
+          "type": "SHORT_ANSWER",
+          "content": "父题x=3，答案7；改编x=4，求y。",
+          "options": null,
+          "reference_answer": "9",
+          "scoring_rubric": "代入2x+1，5.00 分。",
+          "analysis": null,
+          "score": "5.00"
+        },
+        "evidence": [
+          {
+            "evidence_id": "ae0215b2-d52a-503c-8257-f0e4a7d8e449",
+            "kind": "chunk",
+            "source_id": "6260d337-2b74-51b8-b2a9-d104ceca92a8",
+            "source_data": {
+              "chunk_id": "6260d337-2b74-51b8-b2a9-d104ceca92a8",
+              "document_id": "3ec8fb2b-30c7-5064-abcd-d9a5e88697fb",
+              "course_id": "8238355b-74a6-5d0c-a394-f0f6e2b1ca36",
+              "source_file": "benchmark/corpus/v2-draft-20261001/teaching_basis.md",
+              "location": {
+                "kind": "synthetic_whole_fixture",
+                "database_record": false
+              },
+              "content_snapshot": "# 合成教学依据（待教师核对）\n\n由 Codex 编写固定输入，非真实教师标注，也不是模型运行结果。\n\n一次函数：y=2x+1。代入x=3得y=7。\n\n三角形面积=底×高÷2，底6高4的面积为12。\n\n矩形面积需要长和宽，只有长度不能唯一确定面积。\n"
+            }
+          }
+        ],
+        "manual_context": []
+      },
+      "context_provenance": {
+        "author_kind": "ai_assistant",
+        "author_name": "Codex",
+        "developer_authorization_source": "current_chat_user_confirmed_T168_runtime_context",
+        "is_independent_teacher_truth": false,
+        "no_database_object_or_teacher_approval_claim": true,
+        "source_snapshot": {
+          "case_id": "SEM-ADAPT-GOOD",
+          "generation_path": "parent_adaptation",
+          "question": "父题x=3，答案7；改编x=4，求y。",
+          "reference_answer": "9",
+          "scoring_rubric": "代入2x+1，5.00 分。",
+          "parent_fixture_id": "parent-linear-x3",
+          "teaching_basis_ref": "teaching_basis.md",
+          "parent_source_ref": "parent_questions.json#parent-linear-x3"
+        },
+        "field_sources": {
+          "type": "new synthetic benchmark metadata selected by benchmark author with user authorization; not provided by original fixture",
+          "score": {
+            "origin": "explicit amount excerpted from original scoring_rubric",
+            "value": "5.00",
+            "source_quote": "代入2x+1，5.00 分。"
+          },
+          "options": "no options provided by original non-choice fixture; null retained as runtime absence",
+          "analysis": "unknown in original simplified fixture; null, no generated analysis",
+          "content": "original source text copied exactly, without correction",
+          "reference_answer": "original source text copied exactly, without correction",
+          "scoring_rubric": "original source text copied exactly, without correction",
+          "teaching_evidence": {
+            "origin": "actual teaching_basis.md full text",
+            "source_file": "benchmark/corpus/v2-draft-20261001/teaching_basis.md",
+            "source_sha256": "f2d176cda52aff08d811f6c0c70dc10b2799f4b3b20174dd5860b5353ba623c7",
+            "fixture_identity_only": true
+          }
+        }
+      }
+    },
+    "SEM-STALE": {
+      "input": {
+        "question_id": "e6e27824-2f08-500d-9631-d689e37da4bd",
+        "input_revision": 0,
+        "run_no": 1,
+        "fields": {
+          "type": "SHORT_ANSWER",
+          "content": "父题x=3，答案7；改编x=4，仍沿用旧答案。",
+          "options": null,
+          "reference_answer": "7",
+          "scoring_rubric": "代入2x+1，5.00 分。",
+          "analysis": null,
+          "score": "5.00"
+        },
+        "evidence": [
+          {
+            "evidence_id": "e91b522c-ce9c-5c48-a758-a81a27150e8d",
+            "kind": "chunk",
+            "source_id": "6260d337-2b74-51b8-b2a9-d104ceca92a8",
+            "source_data": {
+              "chunk_id": "6260d337-2b74-51b8-b2a9-d104ceca92a8",
+              "document_id": "3ec8fb2b-30c7-5064-abcd-d9a5e88697fb",
+              "course_id": "8238355b-74a6-5d0c-a394-f0f6e2b1ca36",
+              "source_file": "benchmark/corpus/v2-draft-20261001/teaching_basis.md",
+              "location": {
+                "kind": "synthetic_whole_fixture",
+                "database_record": false
+              },
+              "content_snapshot": "# 合成教学依据（待教师核对）\n\n由 Codex 编写固定输入，非真实教师标注，也不是模型运行结果。\n\n一次函数：y=2x+1。代入x=3得y=7。\n\n三角形面积=底×高÷2，底6高4的面积为12。\n\n矩形面积需要长和宽，只有长度不能唯一确定面积。\n"
+            }
+          }
+        ],
+        "manual_context": []
+      },
+      "context_provenance": {
+        "author_kind": "ai_assistant",
+        "author_name": "Codex",
+        "developer_authorization_source": "current_chat_user_confirmed_T168_runtime_context",
+        "is_independent_teacher_truth": false,
+        "no_database_object_or_teacher_approval_claim": true,
+        "source_snapshot": {
+          "case_id": "SEM-STALE",
+          "generation_path": "parent_adaptation",
+          "question": "父题x=3，答案7；改编x=4，仍沿用旧答案。",
+          "reference_answer": "7",
+          "scoring_rubric": "代入2x+1，5.00 分。",
+          "parent_fixture_id": "parent-linear-x3",
+          "teaching_basis_ref": "teaching_basis.md",
+          "parent_source_ref": "parent_questions.json#parent-linear-x3"
+        },
+        "field_sources": {
+          "type": "new synthetic benchmark metadata selected by benchmark author with user authorization; not provided by original fixture",
+          "score": {
+            "origin": "explicit amount excerpted from original scoring_rubric",
+            "value": "5.00",
+            "source_quote": "代入2x+1，5.00 分。"
+          },
+          "options": "no options provided by original non-choice fixture; null retained as runtime absence",
+          "analysis": "unknown in original simplified fixture; null, no generated analysis",
+          "content": "original source text copied exactly, without correction",
+          "reference_answer": "original source text copied exactly, without correction",
+          "scoring_rubric": "original source text copied exactly, without correction",
+          "teaching_evidence": {
+            "origin": "actual teaching_basis.md full text",
+            "source_file": "benchmark/corpus/v2-draft-20261001/teaching_basis.md",
+            "source_sha256": "f2d176cda52aff08d811f6c0c70dc10b2799f4b3b20174dd5860b5353ba623c7",
+            "fixture_identity_only": true
+          }
+        }
+      }
+    },
+    "SEM-NO-BASIS": {
+      "input": null,
+      "input_block_reason": "SOURCE_NOT_READY: original reference_answer/scoring_rubric/teaching_basis are missing; no fabrication or cloud call",
+      "context_provenance": {
+        "author_kind": "ai_assistant",
+        "author_name": "Codex",
+        "developer_authorization_source": "current_chat_user_confirmed_T168_runtime_context",
+        "is_independent_teacher_truth": false,
+        "no_database_object_or_teacher_approval_claim": true,
+        "source_snapshot": {
+          "case_id": "SEM-NO-BASIS",
+          "generation_path": "knowledge_base_new",
+          "question": "根据未提供的教材图，求参数。",
+          "reference_answer": null,
+          "scoring_rubric": null,
+          "parent_fixture_id": null,
+          "teaching_basis_ref": null
+        },
+        "field_sources": {
+          "reference_answer": "original null retained",
+          "scoring_rubric": "original null retained",
+          "teaching_evidence": "original unavailable retained"
+        }
+      }
+    },
+    "SEM-CLEAR-GOOD": {
+      "input": {
+        "question_id": "57f6854f-4f3b-587c-a925-0051d194a52a",
+        "input_revision": 0,
+        "run_no": 1,
+        "fields": {
+          "type": "SHORT_ANSWER",
+          "content": "已知一次函数 y=2x+1。当 x=3 时，求 y。",
+          "options": null,
+          "reference_answer": "7",
+          "scoring_rubric": "正确写出代入式 2.00 分；正确算出 y 的值 3.00 分；每个要点正确得该要点全部分数，错误或缺失得 0 分；合计 5.00 分。",
+          "analysis": "2×3+1=7。",
+          "score": "5.00"
+        },
+        "evidence": [
+          {
+            "evidence_id": "7ebf787d-0d34-5575-995a-49e762faac13",
+            "kind": "chunk",
+            "source_id": "6260d337-2b74-51b8-b2a9-d104ceca92a8",
+            "source_data": {
+              "chunk_id": "6260d337-2b74-51b8-b2a9-d104ceca92a8",
+              "document_id": "3ec8fb2b-30c7-5064-abcd-d9a5e88697fb",
+              "course_id": "8238355b-74a6-5d0c-a394-f0f6e2b1ca36",
+              "source_file": "benchmark/corpus/v2-draft-20261001/teaching_basis.md",
+              "location": {
+                "kind": "synthetic_whole_fixture",
+                "database_record": false
+              },
+              "content_snapshot": "# 合成教学依据（待教师核对）\n\n由 Codex 编写固定输入，非真实教师标注，也不是模型运行结果。\n\n一次函数：y=2x+1。代入x=3得y=7。\n\n三角形面积=底×高÷2，底6高4的面积为12。\n\n矩形面积需要长和宽，只有长度不能唯一确定面积。\n"
+            }
+          }
+        ],
+        "manual_context": []
+      },
+      "context_provenance": {
+        "author_kind": "ai_assistant",
+        "author_name": "Codex",
+        "developer_authorization_source": "current_chat_user_confirmed_T168_runtime_context",
+        "is_independent_teacher_truth": false,
+        "no_database_object_or_teacher_approval_claim": true,
+        "source_snapshot": {
+          "case_id": "SEM-CLEAR-GOOD",
+          "generation_path": "knowledge_base_new",
+          "question_type": "SHORT_ANSWER",
+          "content": "已知一次函数 y=2x+1。当 x=3 时，求 y。",
+          "reference_answer": "7",
+          "analysis": "2×3+1=7。",
+          "score": "5.00",
+          "options": null,
+          "scoring_rubric": "正确写出代入式 2.00 分；正确算出 y 的值 3.00 分；每个要点正确得该要点全部分数，错误或缺失得 0 分；合计 5.00 分。",
+          "teaching_basis_ref": "../v2-draft-20261001/teaching_basis.md",
+          "parent_fixture_id": null,
+          "parent_source_ref": null,
+          "input_origin": "new_ai_authored_synthetic_positive_control"
+        },
+        "field_sources": {
+          "type": "original explicit question_type copied",
+          "score": {
+            "origin": "original explicit score copied",
+            "value": "5.00"
+          },
+          "options": "original explicit options copied",
+          "analysis": "original explicit analysis copied",
+          "content": "original source text copied exactly, without correction",
+          "reference_answer": "original source text copied exactly, without correction",
+          "scoring_rubric": "original source text copied exactly, without correction",
+          "teaching_evidence": {
+            "origin": "actual teaching_basis.md full text",
+            "source_file": "benchmark/corpus/v2-draft-20261001/teaching_basis.md",
+            "source_sha256": "f2d176cda52aff08d811f6c0c70dc10b2799f4b3b20174dd5860b5353ba623c7",
+            "fixture_identity_only": true
+          }
+        }
+      }
+    },
+    "SEM-CLEAR-ADAPT-GOOD": {
+      "input": {
+        "question_id": "9f49227f-0dc3-5294-b0ef-97e4ac355d93",
+        "input_revision": 0,
+        "run_no": 1,
+        "fields": {
+          "type": "SHORT_ANSWER",
+          "content": "已知一次函数 y=2x+1。当 x=4 时，求 y。",
+          "options": null,
+          "reference_answer": "9",
+          "scoring_rubric": "正确写出代入式 2.00 分；正确算出 y 的值 3.00 分；每个要点正确得该要点全部分数，错误或缺失得 0 分；合计 5.00 分。",
+          "analysis": "2×4+1=9。",
+          "score": "5.00"
+        },
+        "evidence": [
+          {
+            "evidence_id": "981b2295-eafe-56be-b956-12681ff187ae",
+            "kind": "chunk",
+            "source_id": "6260d337-2b74-51b8-b2a9-d104ceca92a8",
+            "source_data": {
+              "chunk_id": "6260d337-2b74-51b8-b2a9-d104ceca92a8",
+              "document_id": "3ec8fb2b-30c7-5064-abcd-d9a5e88697fb",
+              "course_id": "8238355b-74a6-5d0c-a394-f0f6e2b1ca36",
+              "source_file": "benchmark/corpus/v2-draft-20261001/teaching_basis.md",
+              "location": {
+                "kind": "synthetic_whole_fixture",
+                "database_record": false
+              },
+              "content_snapshot": "# 合成教学依据（待教师核对）\n\n由 Codex 编写固定输入，非真实教师标注，也不是模型运行结果。\n\n一次函数：y=2x+1。代入x=3得y=7。\n\n三角形面积=底×高÷2，底6高4的面积为12。\n\n矩形面积需要长和宽，只有长度不能唯一确定面积。\n"
+            }
+          }
+        ],
+        "manual_context": []
+      },
+      "context_provenance": {
+        "author_kind": "ai_assistant",
+        "author_name": "Codex",
+        "developer_authorization_source": "current_chat_user_confirmed_T168_runtime_context",
+        "is_independent_teacher_truth": false,
+        "no_database_object_or_teacher_approval_claim": true,
+        "source_snapshot": {
+          "case_id": "SEM-CLEAR-ADAPT-GOOD",
+          "generation_path": "parent_adaptation",
+          "question_type": "SHORT_ANSWER",
+          "content": "已知一次函数 y=2x+1。当 x=4 时，求 y。",
+          "reference_answer": "9",
+          "analysis": "2×4+1=9。",
+          "score": "5.00",
+          "options": null,
+          "scoring_rubric": "正确写出代入式 2.00 分；正确算出 y 的值 3.00 分；每个要点正确得该要点全部分数，错误或缺失得 0 分；合计 5.00 分。",
+          "teaching_basis_ref": "../v2-draft-20261001/teaching_basis.md",
+          "parent_fixture_id": "parent-linear-x3",
+          "parent_source_ref": "../v2-draft-20261001/parent_questions.json#parent-linear-x3",
+          "input_origin": "new_ai_authored_synthetic_positive_control"
+        },
+        "field_sources": {
+          "type": "original explicit question_type copied",
+          "score": {
+            "origin": "original explicit score copied",
+            "value": "5.00"
+          },
+          "options": "original explicit options copied",
+          "analysis": "original explicit analysis copied",
+          "content": "original source text copied exactly, without correction",
+          "reference_answer": "original source text copied exactly, without correction",
+          "scoring_rubric": "original source text copied exactly, without correction",
+          "teaching_evidence": {
+            "origin": "actual teaching_basis.md full text",
+            "source_file": "benchmark/corpus/v2-draft-20261001/teaching_basis.md",
+            "source_sha256": "f2d176cda52aff08d811f6c0c70dc10b2799f4b3b20174dd5860b5353ba623c7",
+            "fixture_identity_only": true
+          }
+        }
+      }
+    },
+    "SEM-CLEAR-OPTIONS": {
+      "input": {
+        "question_id": "ed4b8a4e-7788-5119-b591-5c27b2fe677b",
+        "input_revision": 0,
+        "run_no": 1,
+        "fields": {
+          "type": "SINGLE_CHOICE",
+          "content": "已知一次函数 y=2x+1。当 x=3 时，y 等于多少？",
+          "options": {
+            "A": "7",
+            "B": "5",
+            "C": "6",
+            "D": "8"
+          },
+          "reference_answer": "A",
+          "scoring_rubric": "选择 A 得 2.00 分；选择 B、C、D 或未答得 0 分。",
+          "analysis": "2×3+1=7，只有选项A等于7。",
+          "score": "2.00"
+        },
+        "evidence": [
+          {
+            "evidence_id": "83b819e0-b5cd-5c4e-b5c5-60704586b2df",
+            "kind": "chunk",
+            "source_id": "6260d337-2b74-51b8-b2a9-d104ceca92a8",
+            "source_data": {
+              "chunk_id": "6260d337-2b74-51b8-b2a9-d104ceca92a8",
+              "document_id": "3ec8fb2b-30c7-5064-abcd-d9a5e88697fb",
+              "course_id": "8238355b-74a6-5d0c-a394-f0f6e2b1ca36",
+              "source_file": "benchmark/corpus/v2-draft-20261001/teaching_basis.md",
+              "location": {
+                "kind": "synthetic_whole_fixture",
+                "database_record": false
+              },
+              "content_snapshot": "# 合成教学依据（待教师核对）\n\n由 Codex 编写固定输入，非真实教师标注，也不是模型运行结果。\n\n一次函数：y=2x+1。代入x=3得y=7。\n\n三角形面积=底×高÷2，底6高4的面积为12。\n\n矩形面积需要长和宽，只有长度不能唯一确定面积。\n"
+            }
+          }
+        ],
+        "manual_context": []
+      },
+      "context_provenance": {
+        "author_kind": "ai_assistant",
+        "author_name": "Codex",
+        "developer_authorization_source": "current_chat_user_confirmed_T168_runtime_context",
+        "is_independent_teacher_truth": false,
+        "no_database_object_or_teacher_approval_claim": true,
+        "source_snapshot": {
+          "case_id": "SEM-CLEAR-OPTIONS",
+          "generation_path": "knowledge_base_new",
+          "question_type": "SINGLE_CHOICE",
+          "content": "已知一次函数 y=2x+1。当 x=3 时，y 等于多少？",
+          "options": {
+            "A": "7",
+            "B": "5",
+            "C": "6",
+            "D": "8"
+          },
+          "reference_answer": "A",
+          "analysis": "2×3+1=7，只有选项A等于7。",
+          "score": "2.00",
+          "scoring_rubric": "选择 A 得 2.00 分；选择 B、C、D 或未答得 0 分。",
+          "teaching_basis_ref": "../v2-draft-20261001/teaching_basis.md",
+          "parent_fixture_id": null,
+          "parent_source_ref": null,
+          "input_origin": "new_ai_authored_synthetic_negative_option_ambiguity_control"
+        },
+        "field_sources": {
+          "type": "original explicit question_type copied",
+          "score": {
+            "origin": "original explicit score copied",
+            "value": "2.00"
+          },
+          "options": "original explicit options copied",
+          "analysis": "original explicit analysis copied",
+          "content": "original source text copied exactly, without correction",
+          "reference_answer": "original source text copied exactly, without correction",
+          "scoring_rubric": "original source text copied exactly, without correction",
+          "teaching_evidence": {
+            "origin": "actual teaching_basis.md full text",
+            "source_file": "benchmark/corpus/v2-draft-20261001/teaching_basis.md",
+            "source_sha256": "f2d176cda52aff08d811f6c0c70dc10b2799f4b3b20174dd5860b5353ba623c7",
+            "fixture_identity_only": true
+          }
+        }
+      }
+    }
+  }
+}

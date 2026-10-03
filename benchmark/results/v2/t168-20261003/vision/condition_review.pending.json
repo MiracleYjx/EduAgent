@@ -1,0 +1,332 @@
+[
+  {
+    "run_id": "t168-vision-r1-img-figure-128cd5fa19cd",
+    "case_id": "IMG-FIGURE",
+    "round": 1,
+    "reference_key": "figure-shape",
+    "reference_text": "三角形",
+    "matched_output_condition_index": null,
+    "correct": null,
+    "reason": null
+  },
+  {
+    "run_id": "t168-vision-r1-img-figure-128cd5fa19cd",
+    "case_id": "IMG-FIGURE",
+    "round": 1,
+    "reference_key": "figure-base",
+    "reference_text": "底 6 cm",
+    "matched_output_condition_index": null,
+    "correct": null,
+    "reason": null
+  },
+  {
+    "run_id": "t168-vision-r1-img-figure-128cd5fa19cd",
+    "case_id": "IMG-FIGURE",
+    "round": 1,
+    "reference_key": "figure-height",
+    "reference_text": "高 4 cm",
+    "matched_output_condition_index": null,
+    "correct": null,
+    "reason": null
+  },
+  {
+    "run_id": "t168-vision-r1-img-table-9ac0a83bec54",
+    "case_id": "IMG-TABLE",
+    "round": 1,
+    "reference_key": "table-columns",
+    "reference_text": "列标题依次为 x、y、说明",
+    "matched_output_condition_index": null,
+    "correct": null,
+    "reason": null
+  },
+  {
+    "run_id": "t168-vision-r1-img-table-9ac0a83bec54",
+    "case_id": "IMG-TABLE",
+    "round": 1,
+    "reference_key": "table-row-1",
+    "reference_text": "第一行 x=1，y=3",
+    "matched_output_condition_index": null,
+    "correct": null,
+    "reason": null
+  },
+  {
+    "run_id": "t168-vision-r1-img-table-9ac0a83bec54",
+    "case_id": "IMG-TABLE",
+    "round": 1,
+    "reference_key": "table-row-2",
+    "reference_text": "第二行 x=2，y=5",
+    "matched_output_condition_index": null,
+    "correct": null,
+    "reason": null
+  },
+  {
+    "run_id": "t168-vision-r1-img-table-9ac0a83bec54",
+    "case_id": "IMG-TABLE",
+    "round": 1,
+    "reference_key": "table-row-3",
+    "reference_text": "第三行 x=3，y=7",
+    "matched_output_condition_index": null,
+    "correct": null,
+    "reason": null
+  },
+  {
+    "run_id": "t168-vision-r1-img-diagram-b354795d5918",
+    "case_id": "IMG-DIAGRAM",
+    "round": 1,
+    "reference_key": "diagram-input",
+    "reference_text": "输入 x",
+    "matched_output_condition_index": null,
+    "correct": null,
+    "reason": null
+  },
+  {
+    "run_id": "t168-vision-r1-img-diagram-b354795d5918",
+    "case_id": "IMG-DIAGRAM",
+    "round": 1,
+    "reference_key": "diagram-operation",
+    "reference_text": "y = 2 * x + 1",
+    "matched_output_condition_index": null,
+    "correct": null,
+    "reason": null
+  },
+  {
+    "run_id": "t168-vision-r1-img-diagram-b354795d5918",
+    "case_id": "IMG-DIAGRAM",
+    "round": 1,
+    "reference_key": "diagram-output",
+    "reference_text": "输出 y",
+    "matched_output_condition_index": null,
+    "correct": null,
+    "reason": null
+  },
+  {
+    "run_id": "t168-vision-r1-img-diagram-b354795d5918",
+    "case_id": "IMG-DIAGRAM",
+    "round": 1,
+    "reference_key": "diagram-flow",
+    "reference_text": "执行顺序为输入 x → 计算 y=2*x+1 → 输出 y",
+    "matched_output_condition_index": null,
+    "correct": null,
+    "reason": null
+  },
+  {
+    "run_id": "t168-vision-r2-img-figure-9c66e5ed5dab",
+    "case_id": "IMG-FIGURE",
+    "round": 2,
+    "reference_key": "figure-shape",
+    "reference_text": "三角形",
+    "matched_output_condition_index": null,
+    "correct": null,
+    "reason": null
+  },
+  {
+    "run_id": "t168-vision-r2-img-figure-9c66e5ed5dab",
+    "case_id": "IMG-FIGURE",
+    "round": 2,
+    "reference_key": "figure-base",
+    "reference_text": "底 6 cm",
+    "matched_output_condition_index": null,
+    "correct": null,
+    "reason": null
+  },
+  {
+    "run_id": "t168-vision-r2-img-figure-9c66e5ed5dab",
+    "case_id": "IMG-FIGURE",
+    "round": 2,
+    "reference_key": "figure-height",
+    "reference_text": "高 4 cm",
+    "matched_output_condition_index": null,
+    "correct": null,
+    "reason": null
+  },
+  {
+    "run_id": "t168-vision-r2-img-table-27b29c54df45",
+    "case_id": "IMG-TABLE",
+    "round": 2,
+    "reference_key": "table-columns",
+    "reference_text": "列标题依次为 x、y、说明",
+    "matched_output_condition_index": null,
+    "correct": null,
+    "reason": null
+  },
+  {
+    "run_id": "t168-vision-r2-img-table-27b29c54df45",
+    "case_id": "IMG-TABLE",
+    "round": 2,
+    "reference_key": "table-row-1",
+    "reference_text": "第一行 x=1，y=3",
+    "matched_output_condition_index": null,
+    "correct": null,
+    "reason": null
+  },
+  {
+    "run_id": "t168-vision-r2-img-table-27b29c54df45",
+    "case_id": "IMG-TABLE",
+    "round": 2,
+    "reference_key": "table-row-2",
+    "reference_text": "第二行 x=2，y=5",
+    "matched_output_condition_index": null,
+    "correct": null,
+    "reason": null
+  },
+  {
+    "run_id": "t168-vision-r2-img-table-27b29c54df45",
+    "case_id": "IMG-TABLE",
+    "round": 2,
+    "reference_key": "table-row-3",
+    "reference_text": "第三行 x=3，y=7",
+    "matched_output_condition_index": null,
+    "correct": null,
+    "reason": null
+  },
+  {
+    "run_id": "t168-vision-r2-img-diagram-c3d41699038a",
+    "case_id": "IMG-DIAGRAM",
+    "round": 2,
+    "reference_key": "diagram-input",
+    "reference_text": "输入 x",
+    "matched_output_condition_index": null,
+    "correct": null,
+    "reason": null
+  },
+  {
+    "run_id": "t168-vision-r2-img-diagram-c3d41699038a",
+    "case_id": "IMG-DIAGRAM",
+    "round": 2,
+    "reference_key": "diagram-operation",
+    "reference_text": "y = 2 * x + 1",
+    "matched_output_condition_index": null,
+    "correct": null,
+    "reason": null
+  },
+  {
+    "run_id": "t168-vision-r2-img-diagram-c3d41699038a",
+    "case_id": "IMG-DIAGRAM",
+    "round": 2,
+    "reference_key": "diagram-output",
+    "reference_text": "输出 y",
+    "matched_output_condition_index": null,
+    "correct": null,
+    "reason": null
+  },
+  {
+    "run_id": "t168-vision-r2-img-diagram-c3d41699038a",
+    "case_id": "IMG-DIAGRAM",
+    "round": 2,
+    "reference_key": "diagram-flow",
+    "reference_text": "执行顺序为输入 x → 计算 y=2*x+1 → 输出 y",
+    "matched_output_condition_index": null,
+    "correct": null,
+    "reason": null
+  },
+  {
+    "run_id": "t168-vision-r3-img-figure-4f098aa94740",
+    "case_id": "IMG-FIGURE",
+    "round": 3,
+    "reference_key": "figure-shape",
+    "reference_text": "三角形",
+    "matched_output_condition_index": null,
+    "correct": null,
+    "reason": null
+  },
+  {
+    "run_id": "t168-vision-r3-img-figure-4f098aa94740",
+    "case_id": "IMG-FIGURE",
+    "round": 3,
+    "reference_key": "figure-base",
+    "reference_text": "底 6 cm",
+    "matched_output_condition_index": null,
+    "correct": null,
+    "reason": null
+  },
+  {
+    "run_id": "t168-vision-r3-img-figure-4f098aa94740",
+    "case_id": "IMG-FIGURE",
+    "round": 3,
+    "reference_key": "figure-height",
+    "reference_text": "高 4 cm",
+    "matched_output_condition_index": null,
+    "correct": null,
+    "reason": null
+  },
+  {
+    "run_id": "t168-vision-r3-img-table-9e430399a9dd",
+    "case_id": "IMG-TABLE",
+    "round": 3,
+    "reference_key": "table-columns",
+    "reference_text": "列标题依次为 x、y、说明",
+    "matched_output_condition_index": null,
+    "correct": null,
+    "reason": null
+  },
+  {
+    "run_id": "t168-vision-r3-img-table-9e430399a9dd",
+    "case_id": "IMG-TABLE",
+    "round": 3,
+    "reference_key": "table-row-1",
+    "reference_text": "第一行 x=1，y=3",
+    "matched_output_condition_index": null,
+    "correct": null,
+    "reason": null
+  },
+  {
+    "run_id": "t168-vision-r3-img-table-9e430399a9dd",
+    "case_id": "IMG-TABLE",
+    "round": 3,
+    "reference_key": "table-row-2",
+    "reference_text": "第二行 x=2，y=5",
+    "matched_output_condition_index": null,
+    "correct": null,
+    "reason": null
+  },
+  {
+    "run_id": "t168-vision-r3-img-table-9e430399a9dd",
+    "case_id": "IMG-TABLE",
+    "round": 3,
+    "reference_key": "table-row-3",
+    "reference_text": "第三行 x=3，y=7",
+    "matched_output_condition_index": null,
+    "correct": null,
+    "reason": null
+  },
+  {
+    "run_id": "t168-vision-r3-img-diagram-d769e4d74e2c",
+    "case_id": "IMG-DIAGRAM",
+    "round": 3,
+    "reference_key": "diagram-input",
+    "reference_text": "输入 x",
+    "matched_output_condition_index": null,
+    "correct": null,
+    "reason": null
+  },
+  {
+    "run_id": "t168-vision-r3-img-diagram-d769e4d74e2c",
+    "case_id": "IMG-DIAGRAM",
+    "round": 3,
+    "reference_key": "diagram-operation",
+    "reference_text": "y = 2 * x + 1",
+    "matched_output_condition_index": null,
+    "correct": null,
+    "reason": null
+  },
+  {
+    "run_id": "t168-vision-r3-img-diagram-d769e4d74e2c",
+    "case_id": "IMG-DIAGRAM",
+    "round": 3,
+    "reference_key": "diagram-output",
+    "reference_text": "输出 y",
+    "matched_output_condition_index": null,
+    "correct": null,
+    "reason": null
+  },
+  {
+    "run_id": "t168-vision-r3-img-diagram-d769e4d74e2c",
+    "case_id": "IMG-DIAGRAM",
+    "round": 3,
+    "reference_key": "diagram-flow",
+    "reference_text": "执行顺序为输入 x → 计算 y=2*x+1 → 输出 y",
+    "matched_output_condition_index": null,
+    "correct": null,
+    "reason": null
+  }
+]

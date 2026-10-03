@@ -1,0 +1,148 @@
+{
+  "case_id": "IMG-UNCLEAR",
+  "round": 1,
+  "run_id": "t168-vision-r1-img-unclear-8027caea887c",
+  "started_at": "2026-10-03T14:42:16.649265Z",
+  "images": [
+    {
+      "image_index": 1,
+      "fixture_asset_id": "f19b591c-48f9-5569-a539-e4dd526be833",
+      "identity_scope": "stable fixture only; no database asset/file identity",
+      "path": "benchmark/corpus/v2-draft-20261001/assets/diagram_low_resolution.png",
+      "sha256": "3763e327edc61924f8558605b115898fa586a097e6cc97aaad1d560d90f1eeb3",
+      "size_bytes": 654,
+      "width": 64,
+      "height": 40,
+      "mime_type": "image/png"
+    }
+  ],
+  "context": {
+    "content": "请读取所附题图中可见的条件，未知或不可靠的关键文字保留问题说明。",
+    "options": null,
+    "answer": null,
+    "analysis": null,
+    "caption": [
+      null
+    ]
+  },
+  "task": "识别本题全部图片中的图示、表格与必要条件；不识别或补写答案。",
+  "output": {
+    "observations": [
+      {
+        "image_index": 1,
+        "kind": "diagram",
+        "description": "图示为纵向排列的三个矩形框，框间由竖直线连接，整体呈三层流程/结构关系；框内文字过小且模糊，无法辨认。",
+        "bbox": null
+      }
+    ],
+    "conditions": [],
+    "unresolved_issues": [
+      {
+        "image_indices": [
+          1
+        ],
+        "message": "第1张图片中三个矩形框内文字均无法可靠辨认，无法读取题设条件；图中连接线是否有箭头方向等细节亦无法确认。"
+      }
+    ],
+    "requires_manual_review": true,
+    "provenance": {
+      "provider_name": "deepseek",
+      "model": "deepseek-flash",
+      "model_version": null,
+      "prompt_version": "vision-conditions-v1"
+    }
+  },
+  "error": null,
+  "provenance": {
+    "provider_name": "deepseek",
+    "model": "deepseek-flash",
+    "model_version": null,
+    "prompt_version": "vision-conditions-v1"
+  },
+  "assessment_status": "pending_semantic_review",
+  "reference_condition_count": 0,
+  "is_independent_teacher_truth": false,
+  "baseline_reference": {
+    "reference_standard": "AI 辅助 + 开发者审查",
+    "baseline_annotation_version": "t146-developer-reviewed-ai-assisted-20261003-2",
+    "annotation_authors": [
+      {
+        "kind": "ai_assistant",
+        "name": "Codex",
+        "role": "会话委托的源材料阅读、标注和技术复核"
+      },
+      {
+        "kind": "developer",
+        "name": "current_chat_user",
+        "identity_source": "current_chat_user_message",
+        "role": "开发者确认审查口径及将本批参考包用于学习项目质量基线"
+      }
+    ],
+    "decision_source": "current_chat_user_message",
+    "decision_recorded_at_utc": "2026-10-03T14:28:23.228504+00:00",
+    "is_independent_teacher_truth": false,
+    "source_sha256": {
+      "annotations.json": "e3df8cc30f27c96060c46bd46f60eab26fcb5ef0ec925fd2c1cccb579f161e2e",
+      "developer_review.json": "de098c686f725814c4716abddd0cfa889e14ef5efe5a29ad02adb9328f373380",
+      "manifest.json": "eedef2ff79e74eae3a7fe0d2ae29b2d29070c3b70f5e9a530577f53c4a27dca7"
+    }
+  },
+  "outcome": "completed",
+  "completed_at": "2026-10-03T14:42:23.818568Z",
+  "elapsed_ms": 7169.287,
+  "provider_trace_events": [
+    {
+      "recorded_at": "2026-10-03T14:42:23.818476Z",
+      "request_id": "t168-vision-r1-img-unclear-8027caea887c",
+      "agent_type": "llm",
+      "status": "success",
+      "latency_ms": 7166,
+      "model": "deepseek-flash",
+      "prompt_version": "vision-conditions-v1",
+      "input_tokens": 1484,
+      "output_tokens": 1393,
+      "total_tokens": 2877,
+      "input_summary": null,
+      "output_summary": null,
+      "error_code": null,
+      "error_retryable": null
+    }
+  ],
+  "observed_provider_attempts": 1,
+  "actual_raw_responses": [
+    {
+      "received_at_utc": "2026-10-03T14:42:16.820499Z",
+      "status_code": 200,
+      "capture_scope": "response identity, usage, actual choices only; no headers/URL/credentials",
+      "id": "2e0c1c16-3dcf-4a8f-a381-2b27debee357",
+      "model": "deepseek-flash",
+      "system_fingerprint": "aeb56401ca74e127821c4f9126dcb669",
+      "usage": {
+        "prompt_tokens": 1484,
+        "completion_tokens": 1393,
+        "total_tokens": 2877,
+        "prompt_tokens_details": {
+          "cached_tokens": 1024
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 1267
+        },
+        "prompt_cache_hit_tokens": 1024,
+        "prompt_cache_miss_tokens": 460
+      },
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\"observations\":[{\"image_index\":1,\"kind\":\"diagram\",\"description\":\"图示为纵向排列的三个矩形框，框间由竖直线连接，整体呈三层流程/结构关系；框内文字过小且模糊，无法辨认。\",\"bbox\":null}],\"conditions\":[],\"unresolved_issues\":[{\"image_indices\":[1],\"message\":\"第1张图片中三个矩形框内文字均无法可靠辨认，无法读取题设条件；图中连接线是否有箭头方向等细节亦无法确认。\"}],\"requires_manual_review\":true,\"provenance\":null}",
+            "reasoning_content": "We need answer only JSON. Need obey schema. Need inspect image? We have only one image described 64x40. It shows flowchart? Three boxes connected vertically by arrows/lines maybe. Need identify visible conditions, not answer. But image tiny, text illegible. Need output observations, conditions, unresolved_issues, requires_manual_review. Since no reliable text, bboxes perhaps null due unreliable? Need maybe observe diagram: three rectangular boxes vertically connected by vertical line. But text unreadable. We can mark observation image_index 1 kind diagram description. Need conditions maybe cannot read text, so unresolved issue. requires_manual_review true. provenance null.\n\nNeed produce JSON schema exactly, no markdown. Need no fabricated text. Since image dimensions 64x40, small. Need maybe bbox for boxes? Could estimate? We can't reliably locate exact pixels? The image is 64x40, likely three boxes centered: top around x 19-45 y 4-12? middle x 14-55 y 16-24? bottom x 18-46 y 29-37? But we cannot see actual due compressed? The prompt says bbox cannot reliably locate保持 null. Since text is illegible and coordinates uncertain, maybe bbox null. But observations can have bbox null default. The schema doesn't require bbox? VisionObservation required image_index, kind, description; bbox optional default null. Conditions require image_index,text,evidence_region. If can't read text, do not create conditions with fabricated text. Maybe conditions empty? But task says identify conditions. If none legible, conditions empty and unresolved issue. That seems right.\n\nNeed perhaps note image dimensions? Could include in observation? Hmm.\n\nNeed \"仅依据本次全部题图和真实文字上下文识别图示、表格及必要条件。输出符合 ... JSON 对象，不输出 Markdown，不补写题图未给出的答案、数值或关系。图片 image_index 从 1 开始，按下列输入顺序对应；bbox/evidence_region.bbox 为该资产原图 左上/右下像素 (x0,y0,x1,y1)，无法可靠定位保持 null，不使用归一化坐标。无法辨认/矛盾/缺失条件写入 unresolved_issues，未知图片归属 image_indices=null；有问题 requires_manual_review=true。没有问题的 false 也不代替真实教师核对。provenance 必须为 null，不生成资产、文件、教师或 Provider 身份。\"\n\nNeed JSON object. We can say observations: [ {image_index:1, kind:\"diagram\", description:\"一张纵向三层流程图式示意图，三个矩形框由上至下排列，框间以竖线连接；框内文字模糊不可辨认。\", bbox:null} ]. conditions: [] maybe. unresolved_issues: [ {image_indices:[1], message:\"图中三个矩形框内文字均过小/模糊，无法可靠辨认题设条件；三个框的连接方向与箭头/竖线细节也无法确认。\"} ]. requires_manual_review true. provenance null. But schema says provenance property optional with default null? Required? The schema top-level required observations, conditions, unresolved_issues, requires_manual_review. It doesn't require provenance? Actually properties include provenance, required list doesn't include provenance. But prompt says provenance must be null. We can include \"provenance\": null. Good.\n\nNeed ensure JSON valid and no markdown. But perhaps \"conditions\" should include if any readable? There is maybe no readable text. We could mention no conditions. But unresolved issue.\n\nPotential issue: The image may show a flowchart with text in Chinese? At 64x40, likely severely downscaled. We cannot read. We must not hallucinate. Good.\n\nCould include observation kind \"flowchart\" rather than diagram. Maybe \"diagram\" enough. Description mention three rectangular boxes vertically connected. That is visible? Let's inspect the image: It is a small image with three blue-outlined rectangles, possibly text. The top box maybe around x=20 y=5 to 47 y=12, middle x=14 y=17 to 55 y=24, bottom x=18 y=30 to 47 y=38. There are vertical connectors. Good.\n\nBut bbox null for observation due unreliable? We can set bbox null. Conditions evidence_region null. unresolved image_indices [1].\n\nShould we include \"requires_manual_review\": true. Yes.\n\nNeed perhaps mention image dimensions 64×40? Not necessary.\n\nNeed no extra text. Final must be JSON object only. Ensure no trailing commas. Use double quotes. \n\nLet's craft:\n\n{\n  \"observations\": [\n    {\n      \"image_index\": 1,\n      \"kind\": \"diagram\",\n      \"description\": \"图示为纵向排列的三个矩形框，框间由竖直线连接，整体呈三层流程/结构关系；框内文字过小且模糊，无法辨认。\",\n      \"bbox\": null\n    }\n  ],\n  \"conditions\": [],\n  \"unresolved_issues\": [\n    {\n      \"image_indices\": [1],\n      \"message\": \"第1张图片中三个矩形框内文字均无法可靠辨认，无法读取题设条件；图中连接线是否有箭头方向等细节亦无法确认。\"\n    }\n  ],\n  \"requires_manual_review\": true,\n  \"provenance\": null\n}\n\nNeed check schema: VisionObservation bbox optional and default null. VisionCondition image_index min 1 max 5, text minLength 1, evidence_region. Conditions empty okay. Issue image_indices anyOf array/null, message minLength. Good. Top-level additionalProperties false only specified. We have only allowed properties. Good.\n\nPotential concern: The prompt says \"无法辨认/矛盾/缺失条件写入 unresolved_issues，未知图片归属 image_indices=null；有问题 requires_manual_review=true。没有问题的 false 也不代替真实教师核对。\" We set true.\n\nCould there be a hidden caption? caption [null]. No.\n\nNeed answer. final."
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      ]
+    }
+  ],
+  "raw_capture_status": "read_only_http_response_hook"
+}

@@ -1,0 +1,15 @@
+{
+  "planned_calls": 12,
+  "completed_calls": 12,
+  "failed_calls": 0,
+  "observed_provider_attempts": 12,
+  "semantic_comparison_status": "pending_review",
+  "correct_condition_count": null,
+  "condition_precision": null,
+  "condition_completeness": null,
+  "clear_reference_condition_denominator": 33,
+  "unclear_condition_reference": null,
+  "unclear_handoff_review_status": "pending_review",
+  "teacher_post_correction_metrics": null,
+  "fault_cases_evaluated": []
+}

@@ -1,0 +1,67 @@
+{
+  "protocol_version": "v2-evaluation-1",
+  "batch_id": "t168-20261003",
+  "frozen_at_utc": "2026-10-03T14:40:45.698680+00:00",
+  "source_commit": "4960ed0400fce1bf0498905630190737d7f69a60",
+  "reference_standard": "AI 辅助 + 开发者审查",
+  "independent_teacher_count": 0,
+  "dataset_version": "v2-ai-reference-20261003-1",
+  "annotation_version": "t146-developer-reviewed-ai-assisted-20261003-2",
+  "planned": {
+    "semantic_cases": 11,
+    "semantic_rounds": 3,
+    "semantic_calls": 30,
+    "semantic_input_blocks": 3,
+    "semantic_known_applicable_checks": 81,
+    "vision_calls": 12,
+    "vision_known_conditions": 33,
+    "historical_import_runs_reaggregated": 15,
+    "new_import_cloud_calls": 0
+  },
+  "model_configuration": {
+    "llm_provider": "deepseek",
+    "text_model": "deepseek-chat",
+    "vision_model": "deepseek-flash",
+    "vision_override_scope": "evaluation child process environment; .env unchanged",
+    "remote_alias_mapping": "unknown"
+  },
+  "execution_configuration": {
+    "timeout_seconds": 30,
+    "network_retries_max": 2,
+    "schema_retries_max": 1,
+    "pipeline_concurrency": 1,
+    "independent_semantic_vision_pipelines_can_overlap": true,
+    "performance_claim": false,
+    "sampling_parameters": "not explicitly supplied by current adapter; remote defaults unknown"
+  },
+  "environment": {
+    "python": "3.13.13",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "packages": {
+      "openai": "2.54.0",
+      "httpx": "0.28.1",
+      "pydantic": "2.13.4",
+      "rapidocr": "3.9.2",
+      "onnxruntime": "1.30.0",
+      "pypdfium2": "5.13.0"
+    }
+  },
+  "source_sha256": {
+    ".specify/contracts/agent-workflow.md": "757dcb983ad598a4e87417c5c67172acdcde52ee005fa6a4f87db7f2f77cd63b",
+    ".specify/contracts/vision-capability.md": "d540ef15223f44655edd8c0024e7c557a5623d880dcf7ea78ea39ab05bb4a403",
+    "backend/app/ai/semantic_validation.py": "9ee1404ec3ca84441131ce87715c20b16ffe8d22489a5919f2d9646cbf522ade",
+    "backend/app/ai/vision/provider.py": "f92a8c4c9b70eb9ba0b75dc861d3d1695164a913fe9743cf48a2f0404915f9d8",
+    "backend/app/ai/llm/deepseek.py": "438c1f921eddf01fb097ec63daa099037df02a41b3324f6fe3ee2815bdafef80",
+    "backend/app/core/retry_policy.py": "636b053bc6d95c9b70e916bd7aa9c77aaff8b4306c4a2c5221c0c9272b485f8e",
+    "benchmark/corpus/t146-ai-authorized-20261003/annotations.json": "e3df8cc30f27c96060c46bd46f60eab26fcb5ef0ec925fd2c1cccb579f161e2e",
+    "benchmark/corpus/t146-ai-authorized-20261003/developer_review.json": "de098c686f725814c4716abddd0cfa889e14ef5efe5a29ad02adb9328f373380"
+  },
+  "threshold_status": "pending_real_baseline_then_user_confirmation",
+  "quality_thresholds": null,
+  "boundaries": {
+    "business_code_modified": false,
+    "business_db_used": false,
+    "teacher_post_correction_claim": false,
+    "references_frozen_before_calls": true
+  }
+}

@@ -1,0 +1,13 @@
+﻿run_id,case_id,round,outcome,elapsed_ms,observed_provider_attempts
+t168-vision-r1-img-figure-128cd5fa19cd,IMG-FIGURE,1,completed,5640.828,1
+t168-vision-r1-img-table-9ac0a83bec54,IMG-TABLE,1,completed,15201.199,1
+t168-vision-r1-img-diagram-b354795d5918,IMG-DIAGRAM,1,completed,10836.617,1
+t168-vision-r1-img-unclear-8027caea887c,IMG-UNCLEAR,1,completed,7169.287,1
+t168-vision-r2-img-figure-9c66e5ed5dab,IMG-FIGURE,2,completed,16112.332,1
+t168-vision-r2-img-table-27b29c54df45,IMG-TABLE,2,completed,14351.69,1
+t168-vision-r2-img-diagram-c3d41699038a,IMG-DIAGRAM,2,completed,18311.764,1
+t168-vision-r2-img-unclear-1904a805815d,IMG-UNCLEAR,2,completed,11035.02,1
+t168-vision-r3-img-figure-4f098aa94740,IMG-FIGURE,3,completed,16199.845,1
+t168-vision-r3-img-table-9e430399a9dd,IMG-TABLE,3,completed,20293.787,1
+t168-vision-r3-img-diagram-d769e4d74e2c,IMG-DIAGRAM,3,completed,2860.645,1
+t168-vision-r3-img-unclear-ec702d0253df,IMG-UNCLEAR,3,completed,11488.38,1

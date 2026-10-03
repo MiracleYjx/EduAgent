@@ -1,0 +1,250 @@
+{
+  "case_id": "IMG-DIAGRAM",
+  "round": 2,
+  "run_id": "t168-vision-r2-img-diagram-c3d41699038a",
+  "started_at": "2026-10-03T14:42:54.294897Z",
+  "images": [
+    {
+      "image_index": 1,
+      "fixture_asset_id": "31d1b223-0422-5f9f-b323-7ecac2ad4367",
+      "identity_scope": "stable fixture only; no database asset/file identity",
+      "path": "benchmark/corpus/v2-draft-20261001/assets/diagram.png",
+      "sha256": "44bbbce885cdf7f8965364579d2007b375c069a904d79f487ac64518ae602b97",
+      "size_bytes": 9665,
+      "width": 640,
+      "height": 400,
+      "mime_type": "image/png"
+    }
+  ],
+  "context": {
+    "content": "请读取所附题图中可见的条件，未知或不可靠的关键文字保留问题说明。",
+    "options": null,
+    "answer": null,
+    "analysis": null,
+    "caption": [
+      null
+    ]
+  },
+  "task": "识别本题全部图片中的图示、表格与必要条件；不识别或补写答案。",
+  "output": {
+    "observations": [
+      {
+        "image_index": 1,
+        "kind": "flowchart",
+        "description": "题图为一张流程图：上方矩形框内写有“输入 x”，中间矩形框内写有“y = 2 * x + 1”，下方矩形框内写有“输出 y”；矩形框之间用向下箭头连接。",
+        "bbox": [
+          160,
+          35,
+          468,
+          345
+        ]
+      },
+      {
+        "image_index": 1,
+        "kind": "process_box",
+        "description": "上方矩形框，文字为“输入 x”。",
+        "bbox": [
+          186,
+          37,
+          440,
+          103
+        ]
+      },
+      {
+        "image_index": 1,
+        "kind": "process_box",
+        "description": "中间矩形框，文字为“y = 2 * x + 1”。",
+        "bbox": [
+          161,
+          159,
+          467,
+          219
+        ]
+      },
+      {
+        "image_index": 1,
+        "kind": "process_box",
+        "description": "下方矩形框，文字为“输出 y”。",
+        "bbox": [
+          186,
+          280,
+          440,
+          343
+        ]
+      },
+      {
+        "image_index": 1,
+        "kind": "arrow",
+        "description": "由“输入 x”框指向中间算式框的向下箭头。",
+        "bbox": [
+          311,
+          103,
+          316,
+          159
+        ]
+      },
+      {
+        "image_index": 1,
+        "kind": "arrow",
+        "description": "由中间算式框指向“输出 y”框的向下箭头。",
+        "bbox": [
+          311,
+          219,
+          316,
+          280
+        ]
+      }
+    ],
+    "conditions": [
+      {
+        "image_index": 1,
+        "text": "输入 x",
+        "evidence_region": {
+          "bbox": [
+            186,
+            37,
+            440,
+            103
+          ]
+        }
+      },
+      {
+        "image_index": 1,
+        "text": "y = 2 * x + 1",
+        "evidence_region": {
+          "bbox": [
+            161,
+            159,
+            467,
+            219
+          ]
+        }
+      },
+      {
+        "image_index": 1,
+        "text": "输出 y",
+        "evidence_region": {
+          "bbox": [
+            186,
+            280,
+            440,
+            343
+          ]
+        }
+      },
+      {
+        "image_index": 1,
+        "text": "流程图箭头方向表示执行顺序：输入 x → y = 2 * x + 1 → 输出 y",
+        "evidence_region": {
+          "bbox": [
+            160,
+            35,
+            468,
+            345
+          ]
+        }
+      }
+    ],
+    "unresolved_issues": [],
+    "requires_manual_review": false,
+    "provenance": {
+      "provider_name": "deepseek",
+      "model": "deepseek-flash",
+      "model_version": null,
+      "prompt_version": "vision-conditions-v1"
+    }
+  },
+  "error": null,
+  "provenance": {
+    "provider_name": "deepseek",
+    "model": "deepseek-flash",
+    "model_version": null,
+    "prompt_version": "vision-conditions-v1"
+  },
+  "assessment_status": "pending_semantic_review",
+  "reference_condition_count": 4,
+  "is_independent_teacher_truth": false,
+  "baseline_reference": {
+    "reference_standard": "AI 辅助 + 开发者审查",
+    "baseline_annotation_version": "t146-developer-reviewed-ai-assisted-20261003-2",
+    "annotation_authors": [
+      {
+        "kind": "ai_assistant",
+        "name": "Codex",
+        "role": "会话委托的源材料阅读、标注和技术复核"
+      },
+      {
+        "kind": "developer",
+        "name": "current_chat_user",
+        "identity_source": "current_chat_user_message",
+        "role": "开发者确认审查口径及将本批参考包用于学习项目质量基线"
+      }
+    ],
+    "decision_source": "current_chat_user_message",
+    "decision_recorded_at_utc": "2026-10-03T14:28:23.228504+00:00",
+    "is_independent_teacher_truth": false,
+    "source_sha256": {
+      "annotations.json": "e3df8cc30f27c96060c46bd46f60eab26fcb5ef0ec925fd2c1cccb579f161e2e",
+      "developer_review.json": "de098c686f725814c4716abddd0cfa889e14ef5efe5a29ad02adb9328f373380",
+      "manifest.json": "eedef2ff79e74eae3a7fe0d2ae29b2d29070c3b70f5e9a530577f53c4a27dca7"
+    }
+  },
+  "outcome": "completed",
+  "completed_at": "2026-10-03T14:43:12.606688Z",
+  "elapsed_ms": 18311.764,
+  "provider_trace_events": [
+    {
+      "recorded_at": "2026-10-03T14:43:12.606316Z",
+      "request_id": "t168-vision-r2-img-diagram-c3d41699038a",
+      "agent_type": "llm",
+      "status": "success",
+      "latency_ms": 18306,
+      "model": "deepseek-flash",
+      "prompt_version": "vision-conditions-v1",
+      "input_tokens": 1484,
+      "output_tokens": 4225,
+      "total_tokens": 5709,
+      "input_summary": null,
+      "output_summary": null,
+      "error_code": null,
+      "error_retryable": null
+    }
+  ],
+  "observed_provider_attempts": 1,
+  "actual_raw_responses": [
+    {
+      "received_at_utc": "2026-10-03T14:42:54.402240Z",
+      "status_code": 200,
+      "capture_scope": "response identity, usage, actual choices only; no headers/URL/credentials",
+      "id": "ba216fa7-6cd6-4e4f-9606-5f21a3efbacc",
+      "model": "deepseek-flash",
+      "system_fingerprint": "aeb56401ca74e127821c4f9126dcb669",
+      "usage": {
+        "prompt_tokens": 1484,
+        "completion_tokens": 4225,
+        "total_tokens": 5709,
+        "prompt_tokens_details": {
+          "cached_tokens": 1280
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 3805
+        },
+        "prompt_cache_hit_tokens": 1280,
+        "prompt_cache_miss_tokens": 204
+      },
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\"observations\":[{\"image_index\":1,\"kind\":\"flowchart\",\"description\":\"题图为一张流程图：上方矩形框内写有“输入 x”，中间矩形框内写有“y = 2 * x + 1”，下方矩形框内写有“输出 y”；矩形框之间用向下箭头连接。\",\"bbox\":[160,35,468,345]},{\"image_index\":1,\"kind\":\"process_box\",\"description\":\"上方矩形框，文字为“输入 x”。\",\"bbox\":[186,37,440,103]},{\"image_index\":1,\"kind\":\"process_box\",\"description\":\"中间矩形框，文字为“y = 2 * x + 1”。\",\"bbox\":[161,159,467,219]},{\"image_index\":1,\"kind\":\"process_box\",\"description\":\"下方矩形框，文字为“输出 y”。\",\"bbox\":[186,280,440,343]},{\"image_index\":1,\"kind\":\"arrow\",\"description\":\"由“输入 x”框指向中间算式框的向下箭头。\",\"bbox\":[311,103,316,159]},{\"image_index\":1,\"kind\":\"arrow\",\"description\":\"由中间算式框指向“输出 y”框的向下箭头。\",\"bbox\":[311,219,316,280]}],\"conditions\":[{\"image_index\":1,\"text\":\"输入 x\",\"evidence_region\":{\"bbox\":[186,37,440,103]}},{\"image_index\":1,\"text\":\"y = 2 * x + 1\",\"evidence_region\":{\"bbox\":[161,159,467,219]}},{\"image_index\":1,\"text\":\"输出 y\",\"evidence_region\":{\"bbox\":[186,280,440,343]}},{\"image_index\":1,\"text\":\"流程图箭头方向表示执行顺序：输入 x → y = 2 * x + 1 → 输出 y\",\"evidence_region\":{\"bbox\":[160,35,468,345]}}],\"unresolved_issues\":[],\"requires_manual_review\":false,\"provenance\":null}",
+            "reasoning_content": "We need answer only JSON. Need inspect image. Need identify diagram/table/conditions. Image shows flowchart: rectangle 输入 x, arrow down to rectangle y = 2 * x + 1, arrow down to rectangle 输出 y. Need output observations, conditions, unresolved issues, requires_manual_review, provenance null. Need likely no issues? But must be careful: \"必要条件\" maybe condition is equation. Need not answer. Need bbox coordinates approximate. Original 640x400. Flowchart centered. Need estimate bounding boxes for boxes/text? We can provide observations for each rectangle and arrows. Need bbox pixel. Let's estimate. Image dimensions 640x400. Top box maybe from x=185? to 440? y=35? to 105? Actually look. Top box: \"输入 x\" starts maybe x=195? box border maybe x=186 y=36 to x=440 y=102? Middle box y=160? to 218? x=160? to 465? Bottom box y=280? to 340? x=185? to 440? Let's approximate.\n\nNeed output schema:\n\n{\n \"observations\":[{\"image_index\":1,\"kind\":\"...\", \"description\":\"...\", \"bbox\":[x0,y0,x1,y1]}],\n \"conditions\":[{\"image_index\":1,\"text\":\"...\", \"evidence_region\": {\"bbox\":[..]} or null}],\n \"unresolved_issues\":[{\"image_indices\":null or [1], \"message\":\"...\"}],\n \"requires_manual_review\": false,\n \"provenance\": null\n}\n\nNeed conditions only based on image. \"输入 x\", \"y = 2 * x + 1\", \"输出 y\" and arrows indicate sequence. Do we treat as conditions? Task says 识别图示、表格及必要条件. The flowchart includes \"y = 2 * x + 1\". Condition maybe equation. Also input x and output y conditions. Could put conditions list each. Need not补写答案. Maybe \"输入 x\" is not condition? But necessary condition: input x, output y, relation y=2x+1. Also flow order maybe. We can include.\n\nNeed unresolved issues? Potential ambiguity: \"输入 x\" and \"输出 y\" maybe Chinese text; all visible. Flowchart arrows not labeled. No contradictions. Maybe unknown if x numeric domain? But not needed. Could state no unresolved? requires_manual_review false? But if no issues, false. Schema says requires_manual_review true if problems; false if none but not substitute teacher. So false.\n\nNeed maybe bbox for top box, middle box, bottom box, arrows. Let's make precise.\n\nLet's examine image mentally: 640x400, white background. Flowchart is vertically centered. Top box: width maybe 255, height 68. Coordinates: x=187, y=36, x=440, y=104? Middle box: x=163, y=160, x=467, y=218? Bottom box: x=187, y=278, x=440, y=344? Arrows: from top to middle: x=313, y=104 to y=160? arrow triangle. From middle to bottom: x=313, y=218 to y=278.\n\nBut actual image: top box maybe x 185-440, y 37-102. Middle longer: x 162-467, y 160-219. Bottom: x 185-440, y 280-343. Text positions maybe.\n\nCould output bbox for whole diagram? Maybe one observation for flowchart diagram. But \"observations\" can include multiple. Need not overdo. I'd include three process boxes and two arrows maybe.\n\nNeed evidence_region bbox for condition: use middle box bbox. Conditions:\n- image_index 1, text \"输入 x\", evidence_region bbox top box maybe [187,37,440,102].\n- text \"y = 2 * x + 1\", evidence_region [163,160,467,219].\n- text \"输出 y\", evidence_region [187,280,440,343].\n\nAlso maybe condition \"流程图箭头由输入框指向关系式计算框，再由关系式计算框指向输出框\" as flow order. Evidence region entire diagram maybe bbox [160,35,470,345]. Or null? We can use overall bbox. That is visual condition.\n\nNeed unresolved issues? Perhaps \"未识别到除流程图外的表格或附加文字；输入/输出的变量类型、取值范围及箭头是否表示赋值/顺序未由题图说明。\" This is an unresolved issue? It might be a missing condition. But task says unknown or unreliable key text retain problem explanation. The diagram doesn't specify x domain, but maybe not needed. Should we mark unresolved? It asks \"未知或不可靠的关键文字保留问题说明\". The image text is clear. Could say no unresolved. But maybe \"流程图未标注分支条件/循环条件/结束条件；题图文字均为清晰可读\" not unresolved? Hmm.\n\nPotential \"必要条件\" might include \"输入x\" and \"输出y\" and \"y=2*x+1\". There are no tables. I think no unresolved, but requires_manual_review false. But if there's ambiguity about whether equation uses multiplication symbol asterisk (visible) and variables. It's clear.\n\nNeed maybe include table? There is no table. Could state observation kind \"no_table\"? But schema observations should identify visible tables; none. Could include observation that no table visible? Maybe not necessary. But task: \"识别本题全部图片中的图示、表格与必要条件；不识别或补写答案.\" Could include no表格? Maybe an observation noting \"图像中未出现表格\" but that's not a visual object. But okay? Maybe avoid.\n\nNeed ensure JSON valid, no markdown. Bbox numbers maybe integer. Use original pixels.\n\nLet's refine bboxes:\n\nTop rectangle: Looking image, text 输入 x top box. Border dark blue? Outer rectangle. x from maybe 186 to 440, y 37 to 103. Text center around 313,69. I'll set [186,37,440,103]. Middle rectangle: x maybe 162 to 467, y 159 to 218. Text \"y = 2 * x + 1\" maybe center. Bottom rectangle: x maybe 186 to 440, y 280 to 344. Text 输出 y.\n\nArrows:\nArrow 1: vertical line from top box bottom center (313? y=103) to middle box top center (313? y=159), with arrowhead near y=159. Bbox line [311,103,316,159] maybe.\nArrow 2: from middle box bottom center (313? y=218) to bottom box top center (313? y=280), bbox [311,218,316,280]. Could include arrowhead. Maybe better [310,218,316,280].\n\nBut if evidence_region condition for flow order includes arrows and boxes, bbox whole [160,35,468,345] maybe.\n\nNeed maybe condition \"输入 x 经 y = 2 * x + 1 计算后输出 y\" from flowchart. But that's maybe an interpretation not directly text? It is directly arrow flow, yes. We can include condition as \"流程图顺序：输入 x → y = 2 * x + 1 → 输出 y\" with bbox entire diagram. But \"不补写\" maybe okay? The arrow visual supports. Could be considered necessary condition. But if not sure, still.\n\nNeed \"conditions\" list entries require \"text\" minLength 1 and evidence_region. Use exact visible text.\n\nLet's formulate observations:\n- kind: \"flowchart\", description: \"流程图由三个矩形处理框和两个向下箭头组成；上方矩形文字为“输入 x”，中间矩形文字为“y = 2 * x + 1”，下方矩形文字为“输出 y”。\", bbox: [160,35,468,345] maybe.\n- kind: \"process_box\", description: \"上方处理框文字：输入 x\", bbox [186,37,440,103].\n- kind: \"process_box\", description: \"中间处理框文字：y = 2 * x + 1\", bbox [162,159,467,219].\n- kind: \"process_box\", description: \"下方处理框文字：输出 y\", bbox [186,280,440,344].\n- kind: \"arrow\", description: \"从“输入 x”框指向中间关系式框的向下箭头。\", bbox [310,103,317,159].\n- kind: \"arrow\", description: \"从中间关系式框指向“输出 y”框的向下箭头。\", bbox [310,219,317,280].\nMaybe no table observation. But if required \"表格\", maybe no table. I can add observation \"未看到表格\" with bbox null? But \"识别表格\" maybe should detect absence? Could include unresolved? Hmm.\n\nNeed conditions:\n- {\"image_index\":1,\"text\":\"输入 x\",\"evidence_region\":{\"bbox\":[186,37,440,103]}}\n- {\"image_index\":1,\"text\":\"y = 2 * x + 1\",\"evidence_region\":{\"bbox\":[162,159,467,219]}}\n- {\"image_index\":1,\"text\":\"输出 y\",\"evidence_region\":{\"bbox\":[186,280,440,344]}}\n- {\"image_index\":1,\"text\":\"流程图箭头方向表示执行顺序：输入 x → y = 2 * x + 1 → 输出 y\",\"evidence_region\":{\"bbox\":[160,35,468,345]}} maybe.\n\nBut schema condition text must be minLength 1. Good.\n\nNeed unresolved_issues maybe:\n- Could note \"题图未给出 x 的取值/类型和 y 的输出格式；但图示文字清晰，无表格。\" This is a missing condition, so unresolved issue. image_indices [1]. But \"无表格\" maybe not issue. If we include this, requires_manual_review maybe true? It says \"有问题 requires_manual_review=true. 没有问题的 false 也不代替真实教师核对.\" If we mark unresolved issue, should requires_manual_review true. But maybe not necessary? However missing x domain is not necessarily \"关键文字\" unreliable? It's absent. But the instruction: \"未知或不可靠的关键文字保留问题说明.\" Not all missing info. If we include as unresolved, maybe manual review true. But there is no ambiguity. The task likely wants identify necessary conditions; if no issues, false. But to be safe, maybe no unresolved and false? Hmm.\n\nThe image is clear. There is no table; not an issue. The flowchart doesn't specify variable domain but this is not a文字 unrecognizable. So no unresolved. requires_manual_review false. But \"没有问题的 false 也不代替真实教师核对\" so okay.\n\nNeed maybe include \"conditions\" not \"answers\". The equation y = 2 * x + 1 is condition. Good.\n\nPotential issue: The equation uses \"2 * x + 1\", normal arithmetic. Should not convert to LaTeX. Use exact visible text. Good.\n\nNeed maybe \"image_index\" max 5 min1. All 1.\n\nNeed provenance null. The schema for unresolved_issues requires image_indices can be null or array. We can empty array. But maybe include no unresolved issues as [].\n\nNeed ensure bboxes inside image 640x400. Our bboxes okay.\n\nLet's consider whether to include \"options null\" no. Need JSON only. Final must be JSON object.\n\nLet's think if there is any hidden table? No, just flowchart. \"图示、表格及必要条件\" maybe \"图示\" flowchart; \"表格\" none; \"必要条件\" equation. So conditions entries good. Could include observation kind \"diagram\"? Yes.\n\nNeed maybe \"observations\" first. Each observation has image_index, kind, description, bbox optional. Should bbox not null for each. We can set bbox. The schema for VisionObservation bbox default null but not required. We'll include.\n\nPotential issue: \"evidence_region\" for condition should be region containing text. For equation, middle box bbox. For \"输入 x\", top box bbox; \"输出 y\", bottom. For flow order, whole diagram bbox. Good.\n\nLet's ensure bbox for middle box maybe text y=2*x+1. In image, middle box might be x=160 to 466, y=158 to 219. I'll use [161,159,467,219]. Top [186,37,440,103]. Bottom [186,280,440,343]. Overall [160,35,468,345].\n\nArrows center maybe x=313? The image width 640, center 320, but boxes centered maybe x=313 due to margins. Let's approximate: Top box center x maybe (186+440)/2=313. Middle center (161+467)/2=314. Bottom center 313. So arrows at x=313. Bbox [311,103,316,159] and [311,219,316,280]. Maybe arrowhead width bigger: x=305 to 321 at y around 159? But line bbox can be [309,103,318,159]. Fine.\n\nNeed maybe include \"arrow\" observation with bbox [311,103,316,159] and [311,219,316,280]. In description \"向下箭头\" no issue.\n\nNeed no Markdown. Final JSON.\n\nLet's formulate with no extra text.\n\nPotential schema: required includes observations, conditions, unresolved_issues, requires_manual_review. provenance not required? Actually top-level required includes observations, conditions, unresolved_issues, requires_manual_review. Provenance optional default null. But task says provenance must be null. Good include \"provenance\": null.\n\nLet's compose:\n\n{\n  \"observations\": [\n    {\n      \"image_index\": 1,\n      \"kind\": \"flowchart\",\n      \"description\": \"题图为一张流程图：上方矩形框内写有“输入 x”，中间矩形框内写有“y = 2 * x + 1”，下方矩形框内写有“输出 y”；矩形框之间用向下箭头连接。\",\n      \"bbox\": [160, 35, 468, 345]\n    },\n    {\n      \"image_index\": 1,\n      \"kind\": \"process_box\",\n      \"description\": \"上方矩形框，文字为“输入 x”。\",\n      \"bbox\": [186, 37, 440, 103]\n    },\n    {\n      \"image_index\": 1,\n      \"kind\": \"process_box\",\n      \"description\": \"中间矩形框，文字为“y = 2 * x + 1”。\",\n      \"bbox\": [161, 159, 467, 219]\n    },\n    {\n      \"image_index\": 1,\n      \"kind\": \"process_box\",\n      \"description\": \"下方矩形框，文字为“输出 y”。\",\n      \"bbox\": [186, 280, 440, 343]\n    },\n    {\n      \"image_index\": 1,\n      \"kind\": \"arrow\",\n      \"description\": \"由“输入 x”框指向中间算式框的向下箭头。\",\n      \"bbox\": [311, 103, 316, 159]\n    },\n    {\n      \"image_index\": 1,\n      \"kind\": \"arrow\",\n      \"description\": \"由中间算式框指向“输出 y”框的向下箭头。\",\n      \"bbox\": [311, 219, 316, 280]\n    }\n  ],\n  \"conditions\": [\n    {\n      \"image_index\": 1,\n      \"text\": \"输入 x\",\n      \"evidence_region\": {\"bbox\": [186, 37, 440, 103]}\n    },\n    {\n      \"image_index\": 1,\n      \"text\": \"y = 2 * x + 1\",\n      \"evidence_region\": {\"bbox\": [161, 159, 467, 219]}\n    },\n    {\n      \"image_index\": 1,\n      \"text\": \"输出 y\",\n      \"evidence_region\": {\"bbox\": [186, 280, 440, 343]}\n    },\n    {\n      \"image_index\": 1,\n      \"text\": \"流程图箭头方向表示执行顺序：输入 x → y = 2 * x + 1 → 输出 y\",\n      \"evidence_region\": {\"bbox\": [160, 35, 468, 345]}\n    }\n  ],\n  \"unresolved_issues\": [],\n  \"requires_manual_review\": false,\n  \"provenance\": null\n}\n\nNeed ensure no unknown. But maybe should mention no table? If no table, maybe observation \"未发现表格\" with bbox null? But \"observations\" maybe schema kind \"no_table\" and description \"图像中未出现表格。\" But not necessary. Could add to show complete recognition. However \"识别表格\" if none, not an issue. Maybe add observation kind \"table_absence\"? But that is meta. Might not be needed.\n\nCould there be \"table\" not visible? no.\n\nNeed maybe \"conditions\" first equation maybe \"y = 2 * x + 1\" but visible text has spaces: \"y = 2 * x + 1\". Good.\n\nPotential concern: The \"输入 x\" and \"输出 y\" are not conditions but actions. But task says necessary conditions. They are part of flowchart. Fine.\n\nPotential concern: The condition \"流程图箭头方向表示执行顺序\" is inferred from arrows, not text. The task says \"仅依据本次全部题图和真实文字上下文识别图示、表格及必要条件\" so visual arrows are part. Fine.\n\nPotential concern: The bbox for middle box may not include top/bottom arrow? No.\n\nPotential concern: All coordinates integer. okay.\n\nNeed final only JSON. Ensure no Markdown. Let's final."
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      ]
+    }
+  ],
+  "raw_capture_status": "read_only_http_response_hook"
+}

@@ -1,0 +1,702 @@
+{
+  "historical_source_commit": "9c9e79f4f2376b7a6fd84f02e5800659d210f9da",
+  "current_source_commit": "4960ed0400fce1bf0498905630190737d7f69a60",
+  "historical_run_manifest": {
+    "protocol_version": "v2-evaluation-1",
+    "source_commit": "9c9e79f4f2376b7a6fd84f02e5800659d210f9da",
+    "source_root": "D:\\YJX\\MyCode\\EduAgent\\.cache\\t160-retest-20261003\\source-final",
+    "runner_sha256": "5420ed2d7f302c8b7536d774cc907f11351dc2dda006ec2a44db225d3b8ba267",
+    "dataset_version": "v2-draft-20261001-1",
+    "annotation_version": "t160-user-authorized-ai-assisted-20261003-1",
+    "annotation_sha256": "13095b3d62f9e0db14e92412e58923f6b2c1c83c0acf49ea356e306397e2ff9e",
+    "annotation_status": "user_confirmed_ai_assisted",
+    "reference_origin": "user_confirmed_ai_assisted",
+    "independent_teacher_labeled_cases": 0,
+    "user_review_confirmation": {
+      "statement": "确认标注并采用 AI 辅助口径（推荐）",
+      "confirmed_at": "2026-10-02T16:14:48+00:00",
+      "reviewed_by": "current_chat_user",
+      "reviewer_kind": "human",
+      "confirmation_source": "current_chat_user_message",
+      "scope": "5 个正常导入 case 的 AI 辅助标注与原稿缺失/未知口径",
+      "is_independent_teacher_truth": false
+    },
+    "reviewed_by": "current_chat_user",
+    "reviewed_at": "2026-10-02T16:14:48+00:00",
+    "quality_thresholds": null,
+    "threshold_status": "pending_baseline",
+    "environment": {
+      "os": "Windows-11-10.0.26200-SP0",
+      "cpu": "AMD64 Family 23 Model 96 Stepping 1, AuthenticAMD",
+      "logical_cpus": 12,
+      "python": "3.13.13 (tags/v3.13.13:01104ce, Apr  7 2026, 19:25:48) [MSC v.1944 64 bit (AMD64)]",
+      "packages": {
+        "rapidocr": "3.9.2",
+        "onnxruntime": "1.30.0",
+        "pypdf": "6.18.1",
+        "pypdfium2": "5.13.0",
+        "openai": "2.54.0",
+        "httpx": "0.28.1",
+        "sqlalchemy": "2.0.50"
+      }
+    },
+    "config": {
+      "provider": "deepseek",
+      "model": "deepseek-chat",
+      "provider_host": "api.deepseek.com",
+      "prompt": "paper-extraction-v2",
+      "batch_size": 2,
+      "provider_timeout_seconds": 30,
+      "sdk_retries": 0,
+      "retry_policy": "unchanged production RetryPolicy",
+      "concurrency": 1,
+      "ocr_enabled": true,
+      "ocr_provider": "rapidocr",
+      "ocr_model": "PP-OCRv5-mobile",
+      "model_files": [
+        {
+          "file": "ch_PP-OCRv5_det_mobile.onnx",
+          "sha256": "4d97c44a20d30a81aad087d6a396b08f786c4635742afc391f6621f5c6ae78ae"
+        },
+        {
+          "file": "ch_PP-OCRv5_rec_mobile.onnx",
+          "sha256": "5825fc7ebf84ae7a412be049820b4d86d77620f204a041697b0494669b1742c5"
+        },
+        {
+          "file": "ch_ppocr_mobile_v2.0_cls_mobile.onnx",
+          "sha256": "e47acedf663230f8863ff1ab0e64dd2d82b838fceb5957146dab185a89d6215c"
+        }
+      ],
+      "render_dpi": 150,
+      "autoflush": false,
+      "database": "eduagent_e2_acceptance_ac14a149cc18",
+      "application_state": "quality repetitions; new provider/OCR per import; no cold/warm claim"
+    },
+    "planned_runs": [
+      {
+        "case_id": "IMP-TEXT",
+        "repeat_index": 1,
+        "source_ref": "inputs/paper_text.pdf",
+        "source_sha256": "74e4f9a21fd7bf778bab474f89bcede2680010e957cc435774205dbaa648c167",
+        "reference_questions": 3
+      },
+      {
+        "case_id": "IMP-TEXT",
+        "repeat_index": 2,
+        "source_ref": "inputs/paper_text.pdf",
+        "source_sha256": "74e4f9a21fd7bf778bab474f89bcede2680010e957cc435774205dbaa648c167",
+        "reference_questions": 3
+      },
+      {
+        "case_id": "IMP-TEXT",
+        "repeat_index": 3,
+        "source_ref": "inputs/paper_text.pdf",
+        "source_sha256": "74e4f9a21fd7bf778bab474f89bcede2680010e957cc435774205dbaa648c167",
+        "reference_questions": 3
+      },
+      {
+        "case_id": "IMP-SCAN",
+        "repeat_index": 1,
+        "source_ref": "inputs/paper_scan.pdf",
+        "source_sha256": "16aaa00c8b41ca1f5e5e77d6248e918953d054e725ebfb30548fec84cfe9ba5b",
+        "reference_questions": 3
+      },
+      {
+        "case_id": "IMP-SCAN",
+        "repeat_index": 2,
+        "source_ref": "inputs/paper_scan.pdf",
+        "source_sha256": "16aaa00c8b41ca1f5e5e77d6248e918953d054e725ebfb30548fec84cfe9ba5b",
+        "reference_questions": 3
+      },
+      {
+        "case_id": "IMP-SCAN",
+        "repeat_index": 3,
+        "source_ref": "inputs/paper_scan.pdf",
+        "source_sha256": "16aaa00c8b41ca1f5e5e77d6248e918953d054e725ebfb30548fec84cfe9ba5b",
+        "reference_questions": 3
+      },
+      {
+        "case_id": "IMP-IMAGE",
+        "repeat_index": 1,
+        "source_ref": "inputs/paper_image.png",
+        "source_sha256": "31cdc03d0d958c33d6d7815e330f521febe40e23eab0122f687344f8ed311199",
+        "reference_questions": 3
+      },
+      {
+        "case_id": "IMP-IMAGE",
+        "repeat_index": 2,
+        "source_ref": "inputs/paper_image.png",
+        "source_sha256": "31cdc03d0d958c33d6d7815e330f521febe40e23eab0122f687344f8ed311199",
+        "reference_questions": 3
+      },
+      {
+        "case_id": "IMP-IMAGE",
+        "repeat_index": 3,
+        "source_ref": "inputs/paper_image.png",
+        "source_sha256": "31cdc03d0d958c33d6d7815e330f521febe40e23eab0122f687344f8ed311199",
+        "reference_questions": 3
+      },
+      {
+        "case_id": "IMP-MIXED",
+        "repeat_index": 1,
+        "source_ref": "inputs/paper_mixed.pdf",
+        "source_sha256": "5c0affa1fb5ec3f3267972bce7cfbf67cf3abe067b59c9cdac0b45edd025f4ba",
+        "reference_questions": 6
+      },
+      {
+        "case_id": "IMP-MIXED",
+        "repeat_index": 2,
+        "source_ref": "inputs/paper_mixed.pdf",
+        "source_sha256": "5c0affa1fb5ec3f3267972bce7cfbf67cf3abe067b59c9cdac0b45edd025f4ba",
+        "reference_questions": 6
+      },
+      {
+        "case_id": "IMP-MIXED",
+        "repeat_index": 3,
+        "source_ref": "inputs/paper_mixed.pdf",
+        "source_sha256": "5c0affa1fb5ec3f3267972bce7cfbf67cf3abe067b59c9cdac0b45edd025f4ba",
+        "reference_questions": 6
+      },
+      {
+        "case_id": "IMP-CROSS",
+        "repeat_index": 1,
+        "source_ref": "inputs/paper_cross_page.pdf",
+        "source_sha256": "8c6a18f125a37ff9107a563efb52f5e61ec8ce1debdb516059a1d5b7d58d1a23",
+        "reference_questions": 1
+      },
+      {
+        "case_id": "IMP-CROSS",
+        "repeat_index": 2,
+        "source_ref": "inputs/paper_cross_page.pdf",
+        "source_sha256": "8c6a18f125a37ff9107a563efb52f5e61ec8ce1debdb516059a1d5b7d58d1a23",
+        "reference_questions": 1
+      },
+      {
+        "case_id": "IMP-CROSS",
+        "repeat_index": 3,
+        "source_ref": "inputs/paper_cross_page.pdf",
+        "source_sha256": "8c6a18f125a37ff9107a563efb52f5e61ec8ce1debdb516059a1d5b7d58d1a23",
+        "reference_questions": 1
+      }
+    ],
+    "planned_imports": 15,
+    "distinct_reference_questions": 16,
+    "policy": {
+      "automatic_identity": "original number + real ordered source pages, unique one-to-one",
+      "correction_identity": "explicit unique original number; no guessed content match",
+      "normalize": "only line endings/trim; preserve option keys/order; Decimal score; exact label set",
+      "unknown": "exclude and count; known missing values and known image requirements remain evaluable",
+      "images": "ordered type/source-page association; not pixel quality or independent teacher truth"
+    },
+    "planned_at": "2026-10-02T18:29:55.006458+00:00",
+    "cloud_calls_executed": 0,
+    "batch_id": "t160-quality-20261002T182955Z-75789e35",
+    "started_at": "2026-10-02T18:29:55.009822+00:00",
+    "evidence_kind": "real_provider"
+  },
+  "current_reference_provenance": {
+    "author_kind": "ai_assistant",
+    "author_name": "Codex",
+    "annotated_at": "2026-10-03T04:36:10.561683+00:00",
+    "delegated_by": "current_chat_user",
+    "authorization_source": "current_chat_user_message",
+    "authorization_statement": "我授权你，以我的名义去做教师标注，执行 T146。",
+    "teacher_id": null,
+    "teacher_verified": false,
+    "human_reviewed": false,
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "is_independent_teacher_truth": false
+  },
+  "code_scope": [
+    "backend/app/ai/paper_extraction",
+    "backend/app/ai/ingestion/paper_pipeline.py",
+    "backend/app/ai/ingestion/ocr",
+    "backend/app/services/paper_import_service.py",
+    "backend/app/services/question_correction_service.py",
+    "backend/app/schemas/paper_import.py",
+    "backend/app/models/extracted_question.py"
+  ],
+  "changed_committed_paths": [],
+  "changed_worktree_paths": [],
+  "relevant_import_code_unchanged": true,
+  "input_receipts": [
+    {
+      "case_id": "IMP-TEXT",
+      "source_ref": "inputs/paper_text.pdf",
+      "sha256": "74e4f9a21fd7bf778bab474f89bcede2680010e957cc435774205dbaa648c167"
+    },
+    {
+      "case_id": "IMP-SCAN",
+      "source_ref": "inputs/paper_scan.pdf",
+      "sha256": "16aaa00c8b41ca1f5e5e77d6248e918953d054e725ebfb30548fec84cfe9ba5b"
+    },
+    {
+      "case_id": "IMP-IMAGE",
+      "source_ref": "inputs/paper_image.png",
+      "sha256": "31cdc03d0d958c33d6d7815e330f521febe40e23eab0122f687344f8ed311199"
+    },
+    {
+      "case_id": "IMP-MIXED",
+      "source_ref": "inputs/paper_mixed.pdf",
+      "sha256": "5c0affa1fb5ec3f3267972bce7cfbf67cf3abe067b59c9cdac0b45edd025f4ba"
+    },
+    {
+      "case_id": "IMP-CROSS",
+      "source_ref": "inputs/paper_cross_page.pdf",
+      "sha256": "8c6a18f125a37ff9107a563efb52f5e61ec8ce1debdb516059a1d5b7d58d1a23"
+    }
+  ],
+  "reference_equivalence": [
+    {
+      "case_id": "IMP-TEXT",
+      "question_count": 3,
+      "compared_fields": [
+        "question_number",
+        "order_index",
+        "source_page_numbers",
+        "question_type",
+        "content",
+        "options",
+        "reference_answer",
+        "analysis",
+        "score",
+        "scoring_rubric",
+        "knowledge_points",
+        "source_regions",
+        "assets"
+      ],
+      "metric_reference_equal": true,
+      "non_metric_note": "IMP-CROSS asset source_file is added in T146; metric only compares type/page/order."
+    },
+    {
+      "case_id": "IMP-SCAN",
+      "question_count": 3,
+      "compared_fields": [
+        "question_number",
+        "order_index",
+        "source_page_numbers",
+        "question_type",
+        "content",
+        "options",
+        "reference_answer",
+        "analysis",
+        "score",
+        "scoring_rubric",
+        "knowledge_points",
+        "source_regions",
+        "assets"
+      ],
+      "metric_reference_equal": true,
+      "non_metric_note": "IMP-CROSS asset source_file is added in T146; metric only compares type/page/order."
+    },
+    {
+      "case_id": "IMP-IMAGE",
+      "question_count": 3,
+      "compared_fields": [
+        "question_number",
+        "order_index",
+        "source_page_numbers",
+        "question_type",
+        "content",
+        "options",
+        "reference_answer",
+        "analysis",
+        "score",
+        "scoring_rubric",
+        "knowledge_points",
+        "source_regions",
+        "assets"
+      ],
+      "metric_reference_equal": true,
+      "non_metric_note": "IMP-CROSS asset source_file is added in T146; metric only compares type/page/order."
+    },
+    {
+      "case_id": "IMP-MIXED",
+      "question_count": 6,
+      "compared_fields": [
+        "question_number",
+        "order_index",
+        "source_page_numbers",
+        "question_type",
+        "content",
+        "options",
+        "reference_answer",
+        "analysis",
+        "score",
+        "scoring_rubric",
+        "knowledge_points",
+        "source_regions",
+        "assets"
+      ],
+      "metric_reference_equal": true,
+      "non_metric_note": "IMP-CROSS asset source_file is added in T146; metric only compares type/page/order."
+    },
+    {
+      "case_id": "IMP-CROSS",
+      "question_count": 1,
+      "compared_fields": [
+        "question_number",
+        "order_index",
+        "source_page_numbers",
+        "question_type",
+        "content",
+        "options",
+        "reference_answer",
+        "analysis",
+        "score",
+        "scoring_rubric",
+        "knowledge_points",
+        "source_regions",
+        "assets"
+      ],
+      "metric_reference_equal": true,
+      "non_metric_note": "IMP-CROSS asset source_file is added in T146; metric only compares type/page/order."
+    }
+  ],
+  "old_raw_field_comparison_rows_recomputed": 1248,
+  "old_comparison_discrepancies": 0,
+  "input_artifacts": [
+    {
+      "path": "benchmark/results/v2/t160-retest-20261003/quality/manifest.json",
+      "sha256": "be5454ea66a451ac7f258c48e6fe4a72b5e387b0cf79253302844cf12e7d709f",
+      "bytes": 7310
+    },
+    {
+      "path": "benchmark/corpus/t146-ai-authorized-20261003/import_annotations.json",
+      "sha256": "c6965254e670225224ef28d4abc9efd54fef7d2b7a1841134c3fa11bfcc99350",
+      "bytes": 278759
+    },
+    {
+      "path": "benchmark/corpus/t160-assisted-20261003/annotations.draft.json",
+      "sha256": "13095b3d62f9e0db14e92412e58923f6b2c1c83c0acf49ea356e306397e2ff9e",
+      "bytes": 47888
+    },
+    {
+      "path": "benchmark/results/v2/t160-retest-20261003/quality/runs/t160-quality-20261002T182955Z-75789e35-01-IMP-TEXT-r1/result.json",
+      "sha256": "645751a2aacc9e58d0531b7cc4c7aa53791e98e0903d5ddf6a42cd28991b339e",
+      "bytes": 89983
+    },
+    {
+      "path": "benchmark/results/v2/t160-retest-20261003/quality/image-assistance/t160-quality-20261002T182955Z-75789e35-01-IMP-TEXT-r1.json",
+      "sha256": "d1a1ca9d8ed06afc7884cce463cfc6b84b3a668cbd930c3a0a15eec019280b5c",
+      "bytes": 7772
+    },
+    {
+      "path": "benchmark/results/v2/t160-retest-20261003/quality/runs/t160-quality-20261002T182955Z-75789e35-02-IMP-TEXT-r2/result.json",
+      "sha256": "7fc556afdbc38de445ccd7b33c1d32bf9a80cba93e229702f524746129200c44",
+      "bytes": 89898
+    },
+    {
+      "path": "benchmark/results/v2/t160-retest-20261003/quality/image-assistance/t160-quality-20261002T182955Z-75789e35-02-IMP-TEXT-r2.json",
+      "sha256": "d9ccd642b6220e87455f92c2416ced32a4e7dee17bcf6f98cbdc277211013c61",
+      "bytes": 7640
+    },
+    {
+      "path": "benchmark/results/v2/t160-retest-20261003/quality/runs/t160-quality-20261002T182955Z-75789e35-03-IMP-TEXT-r3/result.json",
+      "sha256": "721f02429999b6b715308ade1ba1627cb8a3456cdb086287edf7cb898c7435ad",
+      "bytes": 89977
+    },
+    {
+      "path": "benchmark/results/v2/t160-retest-20261003/quality/image-assistance/t160-quality-20261002T182955Z-75789e35-03-IMP-TEXT-r3.json",
+      "sha256": "6d4f33c1a5e15b61f8b65b49517134026051a1506bfe071177d0c2e3bb04dc84",
+      "bytes": 7772
+    },
+    {
+      "path": "benchmark/results/v2/t160-retest-20261003/quality/runs/t160-quality-20261002T182955Z-75789e35-04-IMP-SCAN-r1/result.json",
+      "sha256": "35af7d73d0626f8c8f273ec9752f102095b466da968448f8067e8821b166d9ee",
+      "bytes": 92139
+    },
+    {
+      "path": "benchmark/results/v2/t160-retest-20261003/quality/image-assistance/t160-quality-20261002T182955Z-75789e35-04-IMP-SCAN-r1.json",
+      "sha256": "ded94d2891f081fd7923fa9c3f927e28d787498c6abbca695f54e167117731a6",
+      "bytes": 8451
+    },
+    {
+      "path": "benchmark/results/v2/t160-retest-20261003/quality/runs/t160-quality-20261002T182955Z-75789e35-05-IMP-SCAN-r2/result.json",
+      "sha256": "f00e9997d12ec8077d1d415c75547918697668b82c4df4a375852776ddbfaf62",
+      "bytes": 91317
+    },
+    {
+      "path": "benchmark/results/v2/t160-retest-20261003/quality/image-assistance/t160-quality-20261002T182955Z-75789e35-05-IMP-SCAN-r2.json",
+      "sha256": "d0147284f1f765345ae0ca19499c7e72dee784bb89a67c364a35dcec2c269292",
+      "bytes": 8451
+    },
+    {
+      "path": "benchmark/results/v2/t160-retest-20261003/quality/runs/t160-quality-20261002T182955Z-75789e35-06-IMP-SCAN-r3/result.json",
+      "sha256": "5beee04476cb01c0050b6b998f3aa7febca4443db8d212b0bd3012819822cc2a",
+      "bytes": 91487
+    },
+    {
+      "path": "benchmark/results/v2/t160-retest-20261003/quality/image-assistance/t160-quality-20261002T182955Z-75789e35-06-IMP-SCAN-r3.json",
+      "sha256": "4d938f0e365ec74271e58743032a827e6ef1428683cc9b5ac2290c37bd418a22",
+      "bytes": 8451
+    },
+    {
+      "path": "benchmark/results/v2/t160-retest-20261003/quality/runs/t160-quality-20261002T182955Z-75789e35-07-IMP-IMAGE-r1/result.json",
+      "sha256": "e994c85451b8c8380c7c290c0368c7d9efa9ee9b0d153a2e24d1c6d31cdcfca4",
+      "bytes": 91483
+    },
+    {
+      "path": "benchmark/results/v2/t160-retest-20261003/quality/image-assistance/t160-quality-20261002T182955Z-75789e35-07-IMP-IMAGE-r1.json",
+      "sha256": "fdb7619e69da99d0a0201f9760705624b0dd28bd6c690f91d754ecf1ed93d361",
+      "bytes": 8452
+    },
+    {
+      "path": "benchmark/results/v2/t160-retest-20261003/quality/runs/t160-quality-20261002T182955Z-75789e35-08-IMP-IMAGE-r2/result.json",
+      "sha256": "ed6b03c48c65110221a3681671112a52242cb338f5d55e33dd41e7966d26c204",
+      "bytes": 91531
+    },
+    {
+      "path": "benchmark/results/v2/t160-retest-20261003/quality/image-assistance/t160-quality-20261002T182955Z-75789e35-08-IMP-IMAGE-r2.json",
+      "sha256": "7f3dc3cbf49160cc75e5f902c862f3ebf7fae9f0faed3f0910cc9812460ed86d",
+      "bytes": 8452
+    },
+    {
+      "path": "benchmark/results/v2/t160-retest-20261003/quality/runs/t160-quality-20261002T182955Z-75789e35-09-IMP-IMAGE-r3/result.json",
+      "sha256": "022fbc2a48d6879234ee860eac5864dbb2ad9804cb6b7a042087aa9ec2c42b4d",
+      "bytes": 91808
+    },
+    {
+      "path": "benchmark/results/v2/t160-retest-20261003/quality/image-assistance/t160-quality-20261002T182955Z-75789e35-09-IMP-IMAGE-r3.json",
+      "sha256": "8e935d7ce31e6d1511a546746a6ea3a0b977091d6b48b09d39aaf954a1e3a5ac",
+      "bytes": 8452
+    },
+    {
+      "path": "benchmark/results/v2/t160-retest-20261003/quality/runs/t160-quality-20261002T182955Z-75789e35-10-IMP-MIXED-r1/result.json",
+      "sha256": "9cd63e9ddacf274a6b1c7a8d84d6ec0eb80f8c4e96d59a3ff02d5e1025b00525",
+      "bytes": 154106
+    },
+    {
+      "path": "benchmark/results/v2/t160-retest-20261003/quality/image-assistance/t160-quality-20261002T182955Z-75789e35-10-IMP-MIXED-r1.json",
+      "sha256": "1b818b6305755da10b8b2dddb810bd8ef645c086f9b889dea89754b5ce8e2e01",
+      "bytes": 15210
+    },
+    {
+      "path": "benchmark/results/v2/t160-retest-20261003/quality/runs/t160-quality-20261002T182955Z-75789e35-11-IMP-MIXED-r2/result.json",
+      "sha256": "642311471a4697085ce167d152676118aa8483ebf43a1cef1940a753ad9c5c6f",
+      "bytes": 155172
+    },
+    {
+      "path": "benchmark/results/v2/t160-retest-20261003/quality/image-assistance/t160-quality-20261002T182955Z-75789e35-11-IMP-MIXED-r2.json",
+      "sha256": "3fcd4762feb23e9c293ebe40b363b5c090b92f7d18c8aad96147bcbfc56dd6c8",
+      "bytes": 15210
+    },
+    {
+      "path": "benchmark/results/v2/t160-retest-20261003/quality/runs/t160-quality-20261002T182955Z-75789e35-12-IMP-MIXED-r3/result.json",
+      "sha256": "1068be2889164a3c040c05a0dd301cbd999827440c1028557eecca3f933b153c",
+      "bytes": 153423
+    },
+    {
+      "path": "benchmark/results/v2/t160-retest-20261003/quality/image-assistance/t160-quality-20261002T182955Z-75789e35-12-IMP-MIXED-r3.json",
+      "sha256": "4f4e3a306e56905af991d1d18b8961280d2cae8c2f2b250ddbc2d274951231e2",
+      "bytes": 15078
+    },
+    {
+      "path": "benchmark/results/v2/t160-retest-20261003/quality/runs/t160-quality-20261002T182955Z-75789e35-13-IMP-CROSS-r1/result.json",
+      "sha256": "011eebe90c15078ca2073b367b650fde0c8ce8c819a6d2101c19cf6e8e0e09ed",
+      "bytes": 50547
+    },
+    {
+      "path": "benchmark/results/v2/t160-retest-20261003/quality/image-assistance/t160-quality-20261002T182955Z-75789e35-13-IMP-CROSS-r1.json",
+      "sha256": "ff8ecfc3758173935f44586556037915a1172472328431c9a592bcd8b0660af1",
+      "bytes": 4131
+    },
+    {
+      "path": "benchmark/results/v2/t160-retest-20261003/quality/runs/t160-quality-20261002T182955Z-75789e35-14-IMP-CROSS-r2/result.json",
+      "sha256": "b0057b2909630bae54b756cfc3ca6ba9286d26d7a186fdd604036b811fdacbfb",
+      "bytes": 50589
+    },
+    {
+      "path": "benchmark/results/v2/t160-retest-20261003/quality/image-assistance/t160-quality-20261002T182955Z-75789e35-14-IMP-CROSS-r2.json",
+      "sha256": "5c580dce5c3018e38d4b21328b8f070f3b9974c948961aa049609b1ee0a5dbac",
+      "bytes": 4141
+    },
+    {
+      "path": "benchmark/results/v2/t160-retest-20261003/quality/runs/t160-quality-20261002T182955Z-75789e35-15-IMP-CROSS-r3/result.json",
+      "sha256": "559adf22aa47bd156be26da40de6958bbd91b198cdbf39fbbc01e876b85d1800",
+      "bytes": 50745
+    },
+    {
+      "path": "benchmark/results/v2/t160-retest-20261003/quality/image-assistance/t160-quality-20261002T182955Z-75789e35-15-IMP-CROSS-r3.json",
+      "sha256": "a66a51809e9096ccba956b21049c9da9e8a2ec6b728efbb29431c1a99ab1c7b5",
+      "bytes": 4131
+    },
+    {
+      "path": "benchmark/results/v2/t160-retest-20261003/quality/image-assistance/actions.json",
+      "sha256": "4082f1a560a5b9cf545b4ec710eab3eec277f06da32639b409575865d95e3eff",
+      "bytes": 66754
+    },
+    {
+      "path": "benchmark/results/v2/t160-retest-20261003/quality/image-assistance/crop-001-figure.png",
+      "sha256": "3587ef23e69e96a22e033e54c1919570dfa7651a16f65637bcd2b40be702d0f6",
+      "bytes": 15984
+    },
+    {
+      "path": "benchmark/results/v2/t160-retest-20261003/quality/image-assistance/crop-002-table.png",
+      "sha256": "896dfad1841b196bdf7501cd01d477c6b44f73509434536fd33ad12343a9281c",
+      "bytes": 13943
+    },
+    {
+      "path": "benchmark/results/v2/t160-retest-20261003/quality/image-assistance/crop-003-figure.png",
+      "sha256": "3587ef23e69e96a22e033e54c1919570dfa7651a16f65637bcd2b40be702d0f6",
+      "bytes": 15984
+    },
+    {
+      "path": "benchmark/results/v2/t160-retest-20261003/quality/image-assistance/crop-004-table.png",
+      "sha256": "896dfad1841b196bdf7501cd01d477c6b44f73509434536fd33ad12343a9281c",
+      "bytes": 13943
+    },
+    {
+      "path": "benchmark/results/v2/t160-retest-20261003/quality/image-assistance/crop-005-figure.png",
+      "sha256": "3587ef23e69e96a22e033e54c1919570dfa7651a16f65637bcd2b40be702d0f6",
+      "bytes": 15984
+    },
+    {
+      "path": "benchmark/results/v2/t160-retest-20261003/quality/image-assistance/crop-006-table.png",
+      "sha256": "896dfad1841b196bdf7501cd01d477c6b44f73509434536fd33ad12343a9281c",
+      "bytes": 13943
+    },
+    {
+      "path": "benchmark/results/v2/t160-retest-20261003/quality/image-assistance/crop-007-figure.png",
+      "sha256": "3587ef23e69e96a22e033e54c1919570dfa7651a16f65637bcd2b40be702d0f6",
+      "bytes": 15984
+    },
+    {
+      "path": "benchmark/results/v2/t160-retest-20261003/quality/image-assistance/crop-008-table.png",
+      "sha256": "896dfad1841b196bdf7501cd01d477c6b44f73509434536fd33ad12343a9281c",
+      "bytes": 13943
+    },
+    {
+      "path": "benchmark/results/v2/t160-retest-20261003/quality/image-assistance/crop-009-figure.png",
+      "sha256": "3587ef23e69e96a22e033e54c1919570dfa7651a16f65637bcd2b40be702d0f6",
+      "bytes": 15984
+    },
+    {
+      "path": "benchmark/results/v2/t160-retest-20261003/quality/image-assistance/crop-010-table.png",
+      "sha256": "896dfad1841b196bdf7501cd01d477c6b44f73509434536fd33ad12343a9281c",
+      "bytes": 13943
+    },
+    {
+      "path": "benchmark/results/v2/t160-retest-20261003/quality/image-assistance/crop-011-figure.png",
+      "sha256": "3587ef23e69e96a22e033e54c1919570dfa7651a16f65637bcd2b40be702d0f6",
+      "bytes": 15984
+    },
+    {
+      "path": "benchmark/results/v2/t160-retest-20261003/quality/image-assistance/crop-012-table.png",
+      "sha256": "896dfad1841b196bdf7501cd01d477c6b44f73509434536fd33ad12343a9281c",
+      "bytes": 13943
+    },
+    {
+      "path": "benchmark/results/v2/t160-retest-20261003/quality/image-assistance/crop-013-figure.png",
+      "sha256": "3587ef23e69e96a22e033e54c1919570dfa7651a16f65637bcd2b40be702d0f6",
+      "bytes": 15984
+    },
+    {
+      "path": "benchmark/results/v2/t160-retest-20261003/quality/image-assistance/crop-014-table.png",
+      "sha256": "896dfad1841b196bdf7501cd01d477c6b44f73509434536fd33ad12343a9281c",
+      "bytes": 13943
+    },
+    {
+      "path": "benchmark/results/v2/t160-retest-20261003/quality/image-assistance/crop-015-figure.png",
+      "sha256": "3587ef23e69e96a22e033e54c1919570dfa7651a16f65637bcd2b40be702d0f6",
+      "bytes": 15984
+    },
+    {
+      "path": "benchmark/results/v2/t160-retest-20261003/quality/image-assistance/crop-016-table.png",
+      "sha256": "896dfad1841b196bdf7501cd01d477c6b44f73509434536fd33ad12343a9281c",
+      "bytes": 13943
+    },
+    {
+      "path": "benchmark/results/v2/t160-retest-20261003/quality/image-assistance/crop-017-figure.png",
+      "sha256": "3587ef23e69e96a22e033e54c1919570dfa7651a16f65637bcd2b40be702d0f6",
+      "bytes": 15984
+    },
+    {
+      "path": "benchmark/results/v2/t160-retest-20261003/quality/image-assistance/crop-018-table.png",
+      "sha256": "896dfad1841b196bdf7501cd01d477c6b44f73509434536fd33ad12343a9281c",
+      "bytes": 13943
+    },
+    {
+      "path": "benchmark/results/v2/t160-retest-20261003/quality/image-assistance/crop-019-figure.png",
+      "sha256": "3587ef23e69e96a22e033e54c1919570dfa7651a16f65637bcd2b40be702d0f6",
+      "bytes": 15984
+    },
+    {
+      "path": "benchmark/results/v2/t160-retest-20261003/quality/image-assistance/crop-020-table.png",
+      "sha256": "896dfad1841b196bdf7501cd01d477c6b44f73509434536fd33ad12343a9281c",
+      "bytes": 13943
+    },
+    {
+      "path": "benchmark/results/v2/t160-retest-20261003/quality/image-assistance/crop-021-figure.png",
+      "sha256": "3587ef23e69e96a22e033e54c1919570dfa7651a16f65637bcd2b40be702d0f6",
+      "bytes": 15984
+    },
+    {
+      "path": "benchmark/results/v2/t160-retest-20261003/quality/image-assistance/crop-022-table.png",
+      "sha256": "896dfad1841b196bdf7501cd01d477c6b44f73509434536fd33ad12343a9281c",
+      "bytes": 13943
+    },
+    {
+      "path": "benchmark/results/v2/t160-retest-20261003/quality/image-assistance/crop-023-figure.png",
+      "sha256": "3587ef23e69e96a22e033e54c1919570dfa7651a16f65637bcd2b40be702d0f6",
+      "bytes": 15984
+    },
+    {
+      "path": "benchmark/results/v2/t160-retest-20261003/quality/image-assistance/crop-024-table.png",
+      "sha256": "896dfad1841b196bdf7501cd01d477c6b44f73509434536fd33ad12343a9281c",
+      "bytes": 13943
+    },
+    {
+      "path": "benchmark/results/v2/t160-retest-20261003/quality/image-assistance/crop-025-figure.png",
+      "sha256": "3587ef23e69e96a22e033e54c1919570dfa7651a16f65637bcd2b40be702d0f6",
+      "bytes": 15984
+    },
+    {
+      "path": "benchmark/results/v2/t160-retest-20261003/quality/image-assistance/crop-026-table.png",
+      "sha256": "896dfad1841b196bdf7501cd01d477c6b44f73509434536fd33ad12343a9281c",
+      "bytes": 13943
+    },
+    {
+      "path": "benchmark/results/v2/t160-retest-20261003/quality/image-assistance/crop-027-figure.png",
+      "sha256": "3587ef23e69e96a22e033e54c1919570dfa7651a16f65637bcd2b40be702d0f6",
+      "bytes": 15984
+    },
+    {
+      "path": "benchmark/results/v2/t160-retest-20261003/quality/image-assistance/crop-028-table.png",
+      "sha256": "896dfad1841b196bdf7501cd01d477c6b44f73509434536fd33ad12343a9281c",
+      "bytes": 13943
+    },
+    {
+      "path": "benchmark/results/v2/t160-retest-20261003/quality/image-assistance/crop-029-figure.png",
+      "sha256": "3587ef23e69e96a22e033e54c1919570dfa7651a16f65637bcd2b40be702d0f6",
+      "bytes": 15984
+    },
+    {
+      "path": "benchmark/results/v2/t160-retest-20261003/quality/image-assistance/crop-030-table.png",
+      "sha256": "896dfad1841b196bdf7501cd01d477c6b44f73509434536fd33ad12343a9281c",
+      "bytes": 13943
+    },
+    {
+      "path": "benchmark/results/v2/t160-retest-20261003/quality/image-assistance/crop-031-diagram.png",
+      "sha256": "0a0dacf4621b52b784e4a10a1a598364ad2527a4e9e0f6ad6dedf633061c9336",
+      "bytes": 11862
+    },
+    {
+      "path": "benchmark/results/v2/t160-retest-20261003/quality/image-assistance/crop-032-diagram.png",
+      "sha256": "0a0dacf4621b52b784e4a10a1a598364ad2527a4e9e0f6ad6dedf633061c9336",
+      "bytes": 11862
+    },
+    {
+      "path": "benchmark/results/v2/t160-retest-20261003/quality/image-assistance/crop-033-diagram.png",
+      "sha256": "0a0dacf4621b52b784e4a10a1a598364ad2527a4e9e0f6ad6dedf633061c9336",
+      "bytes": 11862
+    }
+  ],
+  "policy": {
+    "identity": "unique original question number + ordered actual source pages",
+    "normalization": "line endings and trim only; Decimal score; exact knowledge-point set; option/asset order preserved",
+    "unknown": "excluded and separately counted; explicit source-missing fields remain evaluable",
+    "source_versions": "traceability of reused measurement; no claim of new execution"
+  }
+}

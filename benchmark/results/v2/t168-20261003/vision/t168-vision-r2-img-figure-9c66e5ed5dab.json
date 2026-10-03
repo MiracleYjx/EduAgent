@@ -1,0 +1,228 @@
+{
+  "case_id": "IMG-FIGURE",
+  "round": 2,
+  "run_id": "t168-vision-r2-img-figure-9c66e5ed5dab",
+  "started_at": "2026-10-03T14:42:23.821473Z",
+  "images": [
+    {
+      "image_index": 1,
+      "fixture_asset_id": "839f8584-dff3-526a-8cbe-85ac6784a3e2",
+      "identity_scope": "stable fixture only; no database asset/file identity",
+      "path": "benchmark/corpus/v2-draft-20261001/assets/figure.png",
+      "sha256": "b5c34d74a385a5dca9bec9c56c0d5a2eb2ca5e0dc64338829aab50b90d488336",
+      "size_bytes": 16435,
+      "width": 640,
+      "height": 400,
+      "mime_type": "image/png"
+    }
+  ],
+  "context": {
+    "content": "请读取所附题图中可见的条件，未知或不可靠的关键文字保留问题说明。",
+    "options": null,
+    "answer": null,
+    "analysis": null,
+    "caption": [
+      null
+    ]
+  },
+  "task": "识别本题全部图片中的图示、表格与必要条件；不识别或补写答案。",
+  "output": {
+    "observations": [
+      {
+        "image_index": 1,
+        "kind": "图示主体",
+        "description": "一道三角形图形题：左侧边竖直，底边水平，斜边连接左上顶点与右下端点；上方标注“三角形”。",
+        "bbox": [
+          60,
+          70,
+          580,
+          350
+        ]
+      },
+      {
+        "image_index": 1,
+        "kind": "文字标注",
+        "description": "三角形内部靠近左侧竖直边处标注“高 4 cm”。",
+        "bbox": [
+          82,
+          164,
+          180,
+          200
+        ]
+      },
+      {
+        "image_index": 1,
+        "kind": "文字标注",
+        "description": "三角形底边下方标注“底 6 cm”。",
+        "bbox": [
+          252,
+          360,
+          358,
+          398
+        ]
+      },
+      {
+        "image_index": 1,
+        "kind": "标题标签",
+        "description": "图形上方标注“三角形”。",
+        "bbox": [
+          150,
+          18,
+          246,
+          52
+        ]
+      }
+    ],
+    "conditions": [
+      {
+        "image_index": 1,
+        "text": "图示为一个三角形，上方标注有“三角形”。",
+        "evidence_region": {
+          "bbox": [
+            150,
+            18,
+            246,
+            52
+          ]
+        }
+      },
+      {
+        "image_index": 1,
+        "text": "三角形的高为 4 cm，题图中标注为“高 4 cm”。",
+        "evidence_region": {
+          "bbox": [
+            82,
+            164,
+            180,
+            200
+          ]
+        }
+      },
+      {
+        "image_index": 1,
+        "text": "三角形的底为 6 cm，题图中标注为“底 6 cm”。",
+        "evidence_region": {
+          "bbox": [
+            252,
+            360,
+            358,
+            398
+          ]
+        }
+      },
+      {
+        "image_index": 1,
+        "text": "按图示，三角形左侧边竖直，底边水平，斜边连接左上顶点与右下端点；高对应左侧竖直边，底对应下方水平边。",
+        "evidence_region": {
+          "bbox": [
+            60,
+            70,
+            580,
+            350
+          ]
+        }
+      }
+    ],
+    "unresolved_issues": [],
+    "requires_manual_review": false,
+    "provenance": {
+      "provider_name": "deepseek",
+      "model": "deepseek-flash",
+      "model_version": null,
+      "prompt_version": "vision-conditions-v1"
+    }
+  },
+  "error": null,
+  "provenance": {
+    "provider_name": "deepseek",
+    "model": "deepseek-flash",
+    "model_version": null,
+    "prompt_version": "vision-conditions-v1"
+  },
+  "assessment_status": "pending_semantic_review",
+  "reference_condition_count": 3,
+  "is_independent_teacher_truth": false,
+  "baseline_reference": {
+    "reference_standard": "AI 辅助 + 开发者审查",
+    "baseline_annotation_version": "t146-developer-reviewed-ai-assisted-20261003-2",
+    "annotation_authors": [
+      {
+        "kind": "ai_assistant",
+        "name": "Codex",
+        "role": "会话委托的源材料阅读、标注和技术复核"
+      },
+      {
+        "kind": "developer",
+        "name": "current_chat_user",
+        "identity_source": "current_chat_user_message",
+        "role": "开发者确认审查口径及将本批参考包用于学习项目质量基线"
+      }
+    ],
+    "decision_source": "current_chat_user_message",
+    "decision_recorded_at_utc": "2026-10-03T14:28:23.228504+00:00",
+    "is_independent_teacher_truth": false,
+    "source_sha256": {
+      "annotations.json": "e3df8cc30f27c96060c46bd46f60eab26fcb5ef0ec925fd2c1cccb579f161e2e",
+      "developer_review.json": "de098c686f725814c4716abddd0cfa889e14ef5efe5a29ad02adb9328f373380",
+      "manifest.json": "eedef2ff79e74eae3a7fe0d2ae29b2d29070c3b70f5e9a530577f53c4a27dca7"
+    }
+  },
+  "outcome": "completed",
+  "completed_at": "2026-10-03T14:42:39.933809Z",
+  "elapsed_ms": 16112.332,
+  "provider_trace_events": [
+    {
+      "recorded_at": "2026-10-03T14:42:39.933461Z",
+      "request_id": "t168-vision-r2-img-figure-9c66e5ed5dab",
+      "agent_type": "llm",
+      "status": "success",
+      "latency_ms": 16108,
+      "model": "deepseek-flash",
+      "prompt_version": "vision-conditions-v1",
+      "input_tokens": 1484,
+      "output_tokens": 3382,
+      "total_tokens": 4866,
+      "input_summary": null,
+      "output_summary": null,
+      "error_code": null,
+      "error_retryable": null
+    }
+  ],
+  "observed_provider_attempts": 1,
+  "actual_raw_responses": [
+    {
+      "received_at_utc": "2026-10-03T14:42:23.970594Z",
+      "status_code": 200,
+      "capture_scope": "response identity, usage, actual choices only; no headers/URL/credentials",
+      "id": "de9867b1-e044-4620-827a-769afede8d3c",
+      "model": "deepseek-flash",
+      "system_fingerprint": "aeb56401ca74e127821c4f9126dcb669",
+      "usage": {
+        "prompt_tokens": 1484,
+        "completion_tokens": 3382,
+        "total_tokens": 4866,
+        "prompt_tokens_details": {
+          "cached_tokens": 1280
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 3024
+        },
+        "prompt_cache_hit_tokens": 1280,
+        "prompt_cache_miss_tokens": 204
+      },
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\"observations\":[{\"image_index\":1,\"kind\":\"图示主体\",\"description\":\"一道三角形图形题：左侧边竖直，底边水平，斜边连接左上顶点与右下端点；上方标注“三角形”。\",\"bbox\":[60,70,580,350]},{\"image_index\":1,\"kind\":\"文字标注\",\"description\":\"三角形内部靠近左侧竖直边处标注“高 4 cm”。\",\"bbox\":[82,164,180,200]},{\"image_index\":1,\"kind\":\"文字标注\",\"description\":\"三角形底边下方标注“底 6 cm”。\",\"bbox\":[252,360,358,398]},{\"image_index\":1,\"kind\":\"标题标签\",\"description\":\"图形上方标注“三角形”。\",\"bbox\":[150,18,246,52]}],\"conditions\":[{\"image_index\":1,\"text\":\"图示为一个三角形，上方标注有“三角形”。\",\"evidence_region\":{\"bbox\":[150,18,246,52]}},{\"image_index\":1,\"text\":\"三角形的高为 4 cm，题图中标注为“高 4 cm”。\",\"evidence_region\":{\"bbox\":[82,164,180,200]}},{\"image_index\":1,\"text\":\"三角形的底为 6 cm，题图中标注为“底 6 cm”。\",\"evidence_region\":{\"bbox\":[252,360,358,398]}},{\"image_index\":1,\"text\":\"按图示，三角形左侧边竖直，底边水平，斜边连接左上顶点与右下端点；高对应左侧竖直边，底对应下方水平边。\",\"evidence_region\":{\"bbox\":[60,70,580,350]}}],\"unresolved_issues\":[],\"requires_manual_review\":false,\"provenance\":null}",
+            "reasoning_content": "We need answer JSON only. Need identify diagrams, tables, necessary conditions in all images. Only one image. Need output schema. We need observe triangle diagram labeled 三角形, height 4 cm, base 6 cm. Need no answer. Conditions should include visible text: 三角形, 高 4 cm, 底 6 cm. Maybe shape right triangle? We can observe. Need bbox regions. Image 640x400. Need estimate pixel coordinates. Need be careful. Let's inspect image mentally. 640x400. Top label \"三角形\" centered around x 150-250 y 20-50? Actually image dimensions 640x400. Diagram: right-angled triangle? Vertical left side from (70,75) to (70,340), horizontal bottom from (70,340) to (575,340), hypotenuse from (70,75) to (575,340). Text \"三角形\" at top around x=150-245 y=20-50. \"高 4 cm\" inside near left side around x=85-180 y=165-195. \"底 6 cm\" below bottom around x=255-355 y=355-385. Bboxes can be approximate. Need maybe conditions with evidence_region bbox. Observations: diagram of triangle with right angle at bottom-left; height and base labels. Need unresolved issues maybe none? But image text \"高 4 cm\" and \"底 6 cm\". The question: \"仅依据本次全部题图和真实文字上下文识别图示、表格及必要条件。输出...\" We need identify only. Conditions: 三角形图示是一个直角三角形（左侧竖直为高，底边水平，右下顶点? Actually hypotenuse slants down to right; left vertical side meets bottom horizontal at left bottom corner, so right angle at bottom-left. The text 三角形. 高 4 cm, 底 6 cm. Could also be a general triangle? The diagram has vertical left side and horizontal base, so right triangle. But \"三角形\" just label. Need not answer area. Could include \"图示为三角形，高4 cm，底6 cm\" condition. No other tables. Need observations maybe image type, diagram structure, text labels.\n\nNeed ensure JSON schema: observations, conditions, unresolved_issues, requires_manual_review, provenance null. We need include provenance? Required? Schema required observations conditions unresolved_issues requires_manual_review, provenance optional default null. They said provenance 必须为 null, so include \"provenance\": null. required doesn't require provenance but okay.\n\nNeed bbox with pixel coords. Let's determine more accurate based on image. 640x400. Text \"三角形\" top center maybe x=150 to 245? Actually Chinese characters 3 chars roughly 30px each? At y=32? Let's estimate from displayed image: Title \"三角形\" at x maybe 150, y 18, width 95, height 34. Bbox [150,18,247,52]? But maybe picture coordinates: The image has white margins. Triangle top vertex around x=68 y=78. Bottom base from x=70 to x=576 y=340. Label \"三角形\" sits above and slightly right of top vertex; likely centered around x=192? We'll use approximate.\n\n\"高 4 cm\" inside near left vertical side: text starts x=84? y=176? \"高 4 cm\" with high Chinese char, space, 4, space cm. Bbox maybe [84,168,178,198]. \"底 6 cm\" below base: centered under base? x=255-354, y=365-395? Actually baseline label maybe y=367. Bbox [254,364,356,394]. Need maybe top label bbox [150,18,245,52].\n\nObservations:\n1. image_index 1 kind \"diagram\" description \"一个三角形的示意图，左侧边竖直，底边水平，斜边连接左上与右下；内部标注“高 4 cm”，底边下方标注“底 6 cm”，上方标注“三角形”。\" bbox entire diagram? Could be [60,70,580,350] maybe. But observations can have bbox maybe diagram area. Need not? The schema has optional bbox. We can include null or bbox. Better include bbox for diagram. Also maybe observations for labels separately? But conditions will capture text with evidence region. Observations might include kind \"label\" etc. But task asks identify图示、表格及必要条件. We can list observation for diagram and labels. But avoid too many? Let's decide.\n\n\"conditions\" should contain VisionCondition items each with image_index, text, evidence_region. Text minimum length. Conditions likely visible text and their relation. Eg:\n- \"有一个三角形图形\"\n- \"三角形的高为 4 cm\"\n- \"三角形的底为 6 cm\"\n- \"图中三角形左侧边为高，底边为底\" maybe relation? This is inferred? It's visible enough. But maybe not state if not explicit? The label \"高 4 cm\" is placed next to vertical side; \"底 6 cm\" under base. This is condition.\n\nCould include text \"三角形\" and \"高 4 cm\" and \"底 6 cm\". Need evidence_region for each. For \"三角形\" bbox [150,18,246,52]. For \"高 4 cm\" bbox [82,164,180,200]. For \"底 6 cm\" bbox [253,362,357,396]. However bbox coordinate might not be exact; schema says无法可靠定位保持 null. But if approximate maybe accepted? They want bbox if reliable. We can set bbox null? \"无法可靠定位保持 null\" if not reliably locate. I can provide approximate but should be reliable. Since I can estimate. However coordinate exactness maybe not critical; but they require bbox original pixels. We can provide. Need no normalization.\n\nPotential issue: There is no explicit text \"高 4 cm\" maybe \"高 4 cm\" is visible; good. \"底 6 cm\" visible.\n\nMaybe there are no tables. Need mention no tables? unresolved_issues maybe none. But perhaps requiring manual review? The prompt says \"有问题 requires_manual_review=true。没有问题的 false 也不代替真实教师核对。\" We can set false if no issues. But \"没有问题的 false 也不代替真实教师核对\" means even if false, not substitute. There is no contradiction. We can set false. But perhaps there is a subtle issue: The diagram's right angle isn't marked; \"高 4 cm\" text placement indicates height, but the vertical side is not marked with right angle symbol; however it visually appears vertical. Is this an unresolved issue? It's a diagram, may be intended. But the problem likely area of triangle; conditions: base 6 cm, height 4 cm. No need answer. The triangle might be a right triangle? The right angle is visually indicated by vertical left side and horizontal bottom. But without square symbol, could be assumed? The text \"高\" indicates perpendicular height; the dashed? No, no right angle symbol. Since height of triangle is perpendicular to base; the left side is vertical and base horizontal, so yes. But \"高 4 cm\" is not necessarily side length? It is height. So condition. No unresolved.\n\nBut maybe image has no table. Should observations include \"table\": null? No, observations array can include only observations. \"conditions\" also. Maybe unresolved_issues can be empty. requirements \"conditions\" maybe necessary conditions visible. Good.\n\nNeed maybe include \"caption\" no.\n\nNeed output valid JSON object. Ensure no markdown. The final answer should be JSON only. We can include Chinese strings. Must adhere to schema. Need not include any extra.\n\nLet's construct:\n\n{\n  \"observations\": [\n    {\n      \"image_index\": 1,\n      \"kind\": \"图中主体\",\n      \"description\": \"一道三角形图形题：左侧边竖直、底边水平，斜边连接左上顶点与右下端点；上方有文字“三角形”。\",\n      \"bbox\": [60, 70, 580, 350]\n    },\n    {\n      \"image_index\": 1,\n      \"kind\": \"文字标注\",\n      \"description\": \"三角形内部靠近左侧竖直边处标注“高 4 cm”。\",\n      \"bbox\": [82, 164, 180, 200]\n    },\n    {\n      \"image_index\": 1,\n      \"kind\": \"文字标注\",\n      \"description\": \"三角形底边下方标注“底 6 cm”。\",\n      \"bbox\": [252, 360, 358, 398]\n    },\n    {\n      \"image_index\": 1,\n      \"kind\": \"标题/标签\",\n      \"description\": \"图形上方标注“三角形”。\",\n      \"bbox\": [150, 18, 246, 52]\n    }\n  ],\n  \"conditions\": [\n    {\n      \"image_index\": 1,\n      \"text\": \"图示为一个三角形，上方标注“三角形”。\",\n      \"evidence_region\": {\"bbox\": [150, 18, 246, 52]}\n    },\n    {\n      \"image_index\": 1,\n      \"text\": \"三角形的高为 4 cm（“高 4 cm”标注在左侧竖直边旁）。\",\n      \"evidence_region\": {\"bbox\": [82, 164, 180, 200]}\n    },\n    {\n      \"image_index\": 1,\n      \"text\": \"三角形的底为 6 cm（“底 6 cm”标注在底边下方）。\",\n      \"evidence_region\": {\"bbox\": [252, 360, 358, 398]}\n    },\n    {\n      \"image_index\": 1,\n      \"text\": \"图中三角形左侧边竖直、底边水平，斜边连接左上与右下；按图示，高对应左侧竖直边，底对应下方水平边。\",\n      \"evidence_region\": {\"bbox\": [60, 70, 580, 350]}\n    }\n  ],\n  \"unresolved_issues\": [],\n  \"requires_manual_review\": false,\n  \"provenance\": null\n}\n\nNeed check bboxes: \"高 4 cm\" bbox [82,164,180,200] maybe okay. But maybe the text \"高 4 cm\" y around 160-190. Bbox x maybe 85-182. Good.\n\"底 6 cm\" bbox [252,360,358,398] maybe okay.\n\nBut maybe the top label \"三角形\" is not at [150,18,246,52]? Let's see original image: I can estimate from provided image. 640x400, top label \"三角形\": characters centered around 198? Text \"三角形\" starts at x=151, ends 246. y=20-49. Good.\n\nPotential issue: The diagram triangle top vertex y=75, but top label y=20. The \"高 4 cm\" text is at x=92? y=168? Good.\n\nCould include \"三角形\" condition with same evidence region. Maybe \"图示为一个三角形\" with evidence region entire shape [60,70,580,350] rather than label. Good.\n\nNeed maybe \"表格\" not present. Should not include null table. Unresolved issues empty.\n\nPotential nuance: The task asks \"识别本题全部图片中的图示、表格与必要条件\" and \"仅依据本次全部题图和真实文字上下文识别图示、表格及必要条件。\" We should not \"补写题图未给出的答案、数值或关系\" so we should not derive area. We didn't.\n\nNeed maybe \"必要条件\" could require listed as conditions. Good.\n\nNeed ensure JSON valid: \"$defs\" maybe not needed in output? Schema doesn't require we include $defs. The response format says object. We should output actual object with properties. No $defs required. Good.\n\nNeed \"bbox\": [x0,y0,x1,y1] original pixels; ours fine. But \"bbox/evidence_region.bbox 为该资产原图左上/右下像素 (x0,y0,x1,y1)\" so there should be top-left and bottom-right; yes.\n\nCould include provenance null. Yes.\n\nShould \"requires_manual_review\" maybe false? There are no issues. The instruction \"有问题 requires_manual_review=true。没有问题的 false 也不代替真实教师核对。\" So false okay.\n\nNeed maybe \"unresolved_issues\": [] not missing. Good.\n\nLet's think if any hidden info: The image has title \"三角形\"; height 4 cm, base 6 cm. The prompt context: \"请读取所附题图中可见的条件，未知或不可靠的关键文字保留问题说明。\" It might be generic from dataset. Only one image. Maybe image caption null. No answer.\n\nCould there be a table? No. The diagram maybe not table. Should we add observation kind \"table\" with description \"本题图未出现表格\"? But schema doesn't forbid. But kind minLength. However if no table, no need. But \"识别图示、表格及必要条件\" maybe if no table, not include. Good.\n\nCould there be issue with option: none. No.\n\nNeed final JSON. Ensure no markdown. Done.\n\nBut before final, maybe consider bbox for \"高 4 cm\" and \"底 6 cm\" exact from image. Let's maybe refine by reasoning: Image dimensions 640x400. Top label \"三角形\" centered maybe x=197, y=33. The text \"高 4 cm\" with \"高\" at x=92, \"4\" at x=120, \"cm\" at x=156. Bbox x0=90,x1=182,y0=166,y1=196. \"底 6 cm\" x0=256,x1=360,y0=362,y1=392. Good.\n\nThe diagram bbox maybe [68,76,576,342]. Our [60,70,580,350] okay.\n\nNeed maybe \"图中三角形左侧边竖直、底边水平，斜边连接左上与右下；按图示，高对应左侧竖直边，底对应下方水平边。\" This contains relation perhaps inferred but visible. It's okay.\n\nShould we mention \"高 4 cm\" label inside near left side not necessarily \"高\" side? It's visible.\n\nNow final output."
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      ]
+    }
+  ],
+  "raw_capture_status": "read_only_http_response_hook"
+}

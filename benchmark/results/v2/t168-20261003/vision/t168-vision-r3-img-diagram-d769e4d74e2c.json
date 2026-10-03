@@ -1,0 +1,250 @@
+{
+  "case_id": "IMG-DIAGRAM",
+  "round": 3,
+  "run_id": "t168-vision-r3-img-diagram-d769e4d74e2c",
+  "started_at": "2026-10-03T14:44:00.153715Z",
+  "images": [
+    {
+      "image_index": 1,
+      "fixture_asset_id": "31d1b223-0422-5f9f-b323-7ecac2ad4367",
+      "identity_scope": "stable fixture only; no database asset/file identity",
+      "path": "benchmark/corpus/v2-draft-20261001/assets/diagram.png",
+      "sha256": "44bbbce885cdf7f8965364579d2007b375c069a904d79f487ac64518ae602b97",
+      "size_bytes": 9665,
+      "width": 640,
+      "height": 400,
+      "mime_type": "image/png"
+    }
+  ],
+  "context": {
+    "content": "请读取所附题图中可见的条件，未知或不可靠的关键文字保留问题说明。",
+    "options": null,
+    "answer": null,
+    "analysis": null,
+    "caption": [
+      null
+    ]
+  },
+  "task": "识别本题全部图片中的图示、表格与必要条件；不识别或补写答案。",
+  "output": {
+    "observations": [
+      {
+        "image_index": 1,
+        "kind": "flowchart",
+        "description": "题图为一竖向流程图，共三个矩形框，由上下箭头依次连接。",
+        "bbox": [
+          165,
+          30,
+          470,
+          355
+        ]
+      },
+      {
+        "image_index": 1,
+        "kind": "flowchart_box",
+        "description": "最上方矩形框内文字为“输入 x”，表示输入步骤。",
+        "bbox": [
+          192,
+          35,
+          445,
+          100
+        ]
+      },
+      {
+        "image_index": 1,
+        "kind": "flowchart_box",
+        "description": "中间矩形框内文字为“y = 2 * x + 1”，表示赋值/计算步骤。",
+        "bbox": [
+          165,
+          165,
+          472,
+          228
+        ]
+      },
+      {
+        "image_index": 1,
+        "kind": "flowchart_box",
+        "description": "最下方矩形框内文字为“输出 y”，表示输出步骤。",
+        "bbox": [
+          185,
+          285,
+          448,
+          350
+        ]
+      },
+      {
+        "image_index": 1,
+        "kind": "flowchart_arrow",
+        "description": "由“输入 x”框底部指向“y = 2 * x + 1”框顶部的向下箭头。",
+        "bbox": [
+          300,
+          100,
+          330,
+          165
+        ]
+      },
+      {
+        "image_index": 1,
+        "kind": "flowchart_arrow",
+        "description": "由“y = 2 * x + 1”框底部指向“输出 y”框顶部的向下箭头。",
+        "bbox": [
+          300,
+          228,
+          330,
+          285
+        ]
+      }
+    ],
+    "conditions": [
+      {
+        "image_index": 1,
+        "text": "流程顺序为：输入 x → y = 2 * x + 1 → 输出 y。",
+        "evidence_region": {
+          "bbox": [
+            165,
+            30,
+            470,
+            355
+          ]
+        }
+      },
+      {
+        "image_index": 1,
+        "text": "输入变量为 x。",
+        "evidence_region": {
+          "bbox": [
+            192,
+            35,
+            445,
+            100
+          ]
+        }
+      },
+      {
+        "image_index": 1,
+        "text": "计算关系式为 y = 2 * x + 1。",
+        "evidence_region": {
+          "bbox": [
+            165,
+            165,
+            472,
+            228
+          ]
+        }
+      },
+      {
+        "image_index": 1,
+        "text": "输出变量为 y。",
+        "evidence_region": {
+          "bbox": [
+            185,
+            285,
+            448,
+            350
+          ]
+        }
+      }
+    ],
+    "unresolved_issues": [],
+    "requires_manual_review": false,
+    "provenance": {
+      "provider_name": "deepseek",
+      "model": "deepseek-flash",
+      "model_version": null,
+      "prompt_version": "vision-conditions-v1"
+    }
+  },
+  "error": null,
+  "provenance": {
+    "provider_name": "deepseek",
+    "model": "deepseek-flash",
+    "model_version": null,
+    "prompt_version": "vision-conditions-v1"
+  },
+  "assessment_status": "pending_semantic_review",
+  "reference_condition_count": 4,
+  "is_independent_teacher_truth": false,
+  "baseline_reference": {
+    "reference_standard": "AI 辅助 + 开发者审查",
+    "baseline_annotation_version": "t146-developer-reviewed-ai-assisted-20261003-2",
+    "annotation_authors": [
+      {
+        "kind": "ai_assistant",
+        "name": "Codex",
+        "role": "会话委托的源材料阅读、标注和技术复核"
+      },
+      {
+        "kind": "developer",
+        "name": "current_chat_user",
+        "identity_source": "current_chat_user_message",
+        "role": "开发者确认审查口径及将本批参考包用于学习项目质量基线"
+      }
+    ],
+    "decision_source": "current_chat_user_message",
+    "decision_recorded_at_utc": "2026-10-03T14:28:23.228504+00:00",
+    "is_independent_teacher_truth": false,
+    "source_sha256": {
+      "annotations.json": "e3df8cc30f27c96060c46bd46f60eab26fcb5ef0ec925fd2c1cccb579f161e2e",
+      "developer_review.json": "de098c686f725814c4716abddd0cfa889e14ef5efe5a29ad02adb9328f373380",
+      "manifest.json": "eedef2ff79e74eae3a7fe0d2ae29b2d29070c3b70f5e9a530577f53c4a27dca7"
+    }
+  },
+  "outcome": "completed",
+  "completed_at": "2026-10-03T14:44:03.014374Z",
+  "elapsed_ms": 2860.645,
+  "provider_trace_events": [
+    {
+      "recorded_at": "2026-10-03T14:44:03.014111Z",
+      "request_id": "t168-vision-r3-img-diagram-d769e4d74e2c",
+      "agent_type": "llm",
+      "status": "success",
+      "latency_ms": 2856,
+      "model": "deepseek-flash",
+      "prompt_version": "vision-conditions-v1",
+      "input_tokens": 1484,
+      "output_tokens": 735,
+      "total_tokens": 2219,
+      "input_summary": null,
+      "output_summary": null,
+      "error_code": null,
+      "error_retryable": null
+    }
+  ],
+  "observed_provider_attempts": 1,
+  "actual_raw_responses": [
+    {
+      "received_at_utc": "2026-10-03T14:44:00.404797Z",
+      "status_code": 200,
+      "capture_scope": "response identity, usage, actual choices only; no headers/URL/credentials",
+      "id": "9795d07c-dfe8-4f55-acb7-df432e0a556e",
+      "model": "deepseek-flash",
+      "system_fingerprint": "aeb56401ca74e127821c4f9126dcb669",
+      "usage": {
+        "prompt_tokens": 1484,
+        "completion_tokens": 735,
+        "total_tokens": 2219,
+        "prompt_tokens_details": {
+          "cached_tokens": 1280
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 187
+        },
+        "prompt_cache_hit_tokens": 1280,
+        "prompt_cache_miss_tokens": 204
+      },
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\"observations\": [{\"image_index\": 1, \"kind\": \"flowchart\", \"description\": \"题图为一竖向流程图，共三个矩形框，由上下箭头依次连接。\", \"bbox\": [165, 30, 470, 355]}, {\"image_index\": 1, \"kind\": \"flowchart_box\", \"description\": \"最上方矩形框内文字为“输入 x”，表示输入步骤。\", \"bbox\": [192, 35, 445, 100]}, {\"image_index\": 1, \"kind\": \"flowchart_box\", \"description\": \"中间矩形框内文字为“y = 2 * x + 1”，表示赋值/计算步骤。\", \"bbox\": [165, 165, 472, 228]}, {\"image_index\": 1, \"kind\": \"flowchart_box\", \"description\": \"最下方矩形框内文字为“输出 y”，表示输出步骤。\", \"bbox\": [185, 285, 448, 350]}, {\"image_index\": 1, \"kind\": \"flowchart_arrow\", \"description\": \"由“输入 x”框底部指向“y = 2 * x + 1”框顶部的向下箭头。\", \"bbox\": [300, 100, 330, 165]}, {\"image_index\": 1, \"kind\": \"flowchart_arrow\", \"description\": \"由“y = 2 * x + 1”框底部指向“输出 y”框顶部的向下箭头。\", \"bbox\": [300, 228, 330, 285]}], \"conditions\": [{\"image_index\": 1, \"text\": \"流程顺序为：输入 x → y = 2 * x + 1 → 输出 y。\", \"evidence_region\": {\"bbox\": [165, 30, 470, 355]}}, {\"image_index\": 1, \"text\": \"输入变量为 x。\", \"evidence_region\": {\"bbox\": [192, 35, 445, 100]}}, {\"image_index\": 1, \"text\": \"计算关系式为 y = 2 * x + 1。\", \"evidence_region\": {\"bbox\": [165, 165, 472, 228]}}, {\"image_index\": 1, \"text\": \"输出变量为 y。\", \"evidence_region\": {\"bbox\": [185, 285, 448, 350]}}], \"unresolved_issues\": [], \"requires_manual_review\": false, \"provenance\": null}",
+            "reasoning_content": "The image is a flowchart with three boxes: 输入 x, y = 2 * x + 1, 输出 y, with arrows.\n\nI need to produce JSON with observations, conditions, unresolved_issues, requires_manual_review, provenance null.\n\nImage index 1, size 640×400. Let me estimate bounding boxes. The top box roughly x from 190 to 445, y from 35 to 100. Middle box roughly x 165 to 470, y 165 to 225. Bottom box roughly x 185 to 445, y 285 to 350.\n\nArrows: vertical arrows between boxes.\n\nLet me produce observations describing the flowchart.\n\nNo unresolved issues? Perhaps none. requires_manual_review false. But the instruction says \"没有问题的 false 也不代替真实教师核对\" — meaning false doesn't replace teacher verification. So set false.\n\nLet me write JSON."
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      ]
+    }
+  ],
+  "raw_capture_status": "read_only_http_response_hook"
+}

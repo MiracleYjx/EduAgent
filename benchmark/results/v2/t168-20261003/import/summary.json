@@ -1,0 +1,590 @@
+{
+  "task_id": "T168",
+  "generated_at": "2026-10-03T14:45:44.393916+00:00",
+  "baseline_source": "AI assisted + developer review (learning project)",
+  "annotation_authors": [
+    "AI (session delegation)",
+    "developer"
+  ],
+  "independent_teacher_truth": false,
+  "reference_version": "t146-ai-authorized-20261003-1",
+  "runner_sha256": "9006848a40534cc3fa5d34df5107c5d62e8fa6d0c98c58284f579f817911e394",
+  "reference_sha256": "c6965254e670225224ef28d4abc9efd54fef7d2b7a1841134c3fa11bfcc99350",
+  "evidence_kind": "historical_real_provider_runs_recomputed_against_current_reference",
+  "new_model_calls": 0,
+  "historical_model_requests": 15,
+  "planned_imports": 15,
+  "observed_imports": 15,
+  "planned_question_instances": 48,
+  "import_status_counts": {
+    "Pending Review": 15
+  },
+  "execution_failure_count": 0,
+  "field_mismatch_counts": {
+    "automatic": 148,
+    "assisted_corrected": 33,
+    "after_image_assistance": 0
+  },
+  "evidence_protocol_complete": true,
+  "quality_threshold": null,
+  "quality_acceptance": "not_claimed_pending_user_threshold_confirmation",
+  "stages": [
+    {
+      "stage": "automatic",
+      "identity_recall": {
+        "metric": "unique_original_number_and_source_page_identity_recall",
+        "numerator": 48,
+        "denominator": 48,
+        "value": 1.0
+      },
+      "actual_question_count": 48,
+      "missing_identities": 0,
+      "duplicate_actual_identities": 0,
+      "unmatched_actual_questions": 0,
+      "all_evaluable_fields_match": {
+        "metric": "all_evaluable_fields_match",
+        "numerator": 0,
+        "denominator": 48,
+        "value": 0.0
+      },
+      "unknown_fields_excluded": 51,
+      "fields": [
+        {
+          "metric": "strict_question_number_reference_match",
+          "numerator": 48,
+          "denominator": 48,
+          "value": 1.0,
+          "stage": "automatic",
+          "layer": "all",
+          "stratum": "all",
+          "field": "question_number",
+          "planned_fields": 48,
+          "unknown_excluded": 0
+        },
+        {
+          "metric": "strict_order_index_reference_match",
+          "numerator": 45,
+          "denominator": 48,
+          "value": 0.9375,
+          "stage": "automatic",
+          "layer": "all",
+          "stratum": "all",
+          "field": "order_index",
+          "planned_fields": 48,
+          "unknown_excluded": 0
+        },
+        {
+          "metric": "strict_source_page_numbers_reference_match",
+          "numerator": 48,
+          "denominator": 48,
+          "value": 1.0,
+          "stage": "automatic",
+          "layer": "all",
+          "stratum": "all",
+          "field": "source_page_numbers",
+          "planned_fields": 48,
+          "unknown_excluded": 0
+        },
+        {
+          "metric": "strict_question_type_reference_match",
+          "numerator": 45,
+          "denominator": 45,
+          "value": 1.0,
+          "stage": "automatic",
+          "layer": "all",
+          "stratum": "all",
+          "field": "question_type",
+          "planned_fields": 48,
+          "unknown_excluded": 3
+        },
+        {
+          "metric": "strict_content_reference_match",
+          "numerator": 6,
+          "denominator": 48,
+          "value": 0.125,
+          "stage": "automatic",
+          "layer": "all",
+          "stratum": "all",
+          "field": "content",
+          "planned_fields": 48,
+          "unknown_excluded": 0
+        },
+        {
+          "metric": "strict_options_reference_match",
+          "numerator": 45,
+          "denominator": 48,
+          "value": 0.9375,
+          "stage": "automatic",
+          "layer": "all",
+          "stratum": "all",
+          "field": "options",
+          "planned_fields": 48,
+          "unknown_excluded": 0
+        },
+        {
+          "metric": "strict_reference_answer_reference_match",
+          "numerator": 48,
+          "denominator": 48,
+          "value": 1.0,
+          "stage": "automatic",
+          "layer": "all",
+          "stratum": "all",
+          "field": "reference_answer",
+          "planned_fields": 48,
+          "unknown_excluded": 0
+        },
+        {
+          "metric": "strict_analysis_reference_match",
+          "numerator": 39,
+          "denominator": 48,
+          "value": 0.8125,
+          "stage": "automatic",
+          "layer": "all",
+          "stratum": "all",
+          "field": "analysis",
+          "planned_fields": 48,
+          "unknown_excluded": 0
+        },
+        {
+          "metric": "strict_score_reference_match",
+          "numerator": 48,
+          "denominator": 48,
+          "value": 1.0,
+          "stage": "automatic",
+          "layer": "all",
+          "stratum": "all",
+          "field": "score",
+          "planned_fields": 48,
+          "unknown_excluded": 0
+        },
+        {
+          "metric": "strict_scoring_rubric_reference_match",
+          "numerator": 38,
+          "denominator": 48,
+          "value": 0.7916666666666666,
+          "stage": "automatic",
+          "layer": "all",
+          "stratum": "all",
+          "field": "scoring_rubric",
+          "planned_fields": 48,
+          "unknown_excluded": 0
+        },
+        {
+          "metric": "strict_knowledge_points_reference_match",
+          "numerator": 15,
+          "denominator": 48,
+          "value": 0.3125,
+          "stage": "automatic",
+          "layer": "all",
+          "stratum": "all",
+          "field": "knowledge_points",
+          "planned_fields": 48,
+          "unknown_excluded": 0
+        },
+        {
+          "metric": "strict_source_regions_reference_match",
+          "numerator": 0,
+          "denominator": 0,
+          "value": null,
+          "stage": "automatic",
+          "layer": "all",
+          "stratum": "all",
+          "field": "source_regions",
+          "planned_fields": 48,
+          "unknown_excluded": 48
+        },
+        {
+          "metric": "strict_assets_reference_match",
+          "numerator": 0,
+          "denominator": 48,
+          "value": 0.0,
+          "stage": "automatic",
+          "layer": "all",
+          "stratum": "all",
+          "field": "assets",
+          "planned_fields": 48,
+          "unknown_excluded": 0
+        }
+      ]
+    },
+    {
+      "stage": "assisted_corrected",
+      "identity_recall": {
+        "metric": "unique_original_number_and_source_page_identity_recall",
+        "numerator": 48,
+        "denominator": 48,
+        "value": 1.0
+      },
+      "actual_question_count": 48,
+      "missing_identities": 0,
+      "duplicate_actual_identities": 0,
+      "unmatched_actual_questions": 0,
+      "all_evaluable_fields_match": {
+        "metric": "all_evaluable_fields_match",
+        "numerator": 15,
+        "denominator": 48,
+        "value": 0.3125
+      },
+      "unknown_fields_excluded": 51,
+      "fields": [
+        {
+          "metric": "strict_question_number_reference_match",
+          "numerator": 48,
+          "denominator": 48,
+          "value": 1.0,
+          "stage": "assisted_corrected",
+          "layer": "all",
+          "stratum": "all",
+          "field": "question_number",
+          "planned_fields": 48,
+          "unknown_excluded": 0
+        },
+        {
+          "metric": "strict_order_index_reference_match",
+          "numerator": 48,
+          "denominator": 48,
+          "value": 1.0,
+          "stage": "assisted_corrected",
+          "layer": "all",
+          "stratum": "all",
+          "field": "order_index",
+          "planned_fields": 48,
+          "unknown_excluded": 0
+        },
+        {
+          "metric": "strict_source_page_numbers_reference_match",
+          "numerator": 48,
+          "denominator": 48,
+          "value": 1.0,
+          "stage": "assisted_corrected",
+          "layer": "all",
+          "stratum": "all",
+          "field": "source_page_numbers",
+          "planned_fields": 48,
+          "unknown_excluded": 0
+        },
+        {
+          "metric": "strict_question_type_reference_match",
+          "numerator": 45,
+          "denominator": 45,
+          "value": 1.0,
+          "stage": "assisted_corrected",
+          "layer": "all",
+          "stratum": "all",
+          "field": "question_type",
+          "planned_fields": 48,
+          "unknown_excluded": 3
+        },
+        {
+          "metric": "strict_content_reference_match",
+          "numerator": 48,
+          "denominator": 48,
+          "value": 1.0,
+          "stage": "assisted_corrected",
+          "layer": "all",
+          "stratum": "all",
+          "field": "content",
+          "planned_fields": 48,
+          "unknown_excluded": 0
+        },
+        {
+          "metric": "strict_options_reference_match",
+          "numerator": 48,
+          "denominator": 48,
+          "value": 1.0,
+          "stage": "assisted_corrected",
+          "layer": "all",
+          "stratum": "all",
+          "field": "options",
+          "planned_fields": 48,
+          "unknown_excluded": 0
+        },
+        {
+          "metric": "strict_reference_answer_reference_match",
+          "numerator": 48,
+          "denominator": 48,
+          "value": 1.0,
+          "stage": "assisted_corrected",
+          "layer": "all",
+          "stratum": "all",
+          "field": "reference_answer",
+          "planned_fields": 48,
+          "unknown_excluded": 0
+        },
+        {
+          "metric": "strict_analysis_reference_match",
+          "numerator": 48,
+          "denominator": 48,
+          "value": 1.0,
+          "stage": "assisted_corrected",
+          "layer": "all",
+          "stratum": "all",
+          "field": "analysis",
+          "planned_fields": 48,
+          "unknown_excluded": 0
+        },
+        {
+          "metric": "strict_score_reference_match",
+          "numerator": 48,
+          "denominator": 48,
+          "value": 1.0,
+          "stage": "assisted_corrected",
+          "layer": "all",
+          "stratum": "all",
+          "field": "score",
+          "planned_fields": 48,
+          "unknown_excluded": 0
+        },
+        {
+          "metric": "strict_scoring_rubric_reference_match",
+          "numerator": 48,
+          "denominator": 48,
+          "value": 1.0,
+          "stage": "assisted_corrected",
+          "layer": "all",
+          "stratum": "all",
+          "field": "scoring_rubric",
+          "planned_fields": 48,
+          "unknown_excluded": 0
+        },
+        {
+          "metric": "strict_knowledge_points_reference_match",
+          "numerator": 48,
+          "denominator": 48,
+          "value": 1.0,
+          "stage": "assisted_corrected",
+          "layer": "all",
+          "stratum": "all",
+          "field": "knowledge_points",
+          "planned_fields": 48,
+          "unknown_excluded": 0
+        },
+        {
+          "metric": "strict_source_regions_reference_match",
+          "numerator": 0,
+          "denominator": 0,
+          "value": null,
+          "stage": "assisted_corrected",
+          "layer": "all",
+          "stratum": "all",
+          "field": "source_regions",
+          "planned_fields": 48,
+          "unknown_excluded": 48
+        },
+        {
+          "metric": "strict_assets_reference_match",
+          "numerator": 15,
+          "denominator": 48,
+          "value": 0.3125,
+          "stage": "assisted_corrected",
+          "layer": "all",
+          "stratum": "all",
+          "field": "assets",
+          "planned_fields": 48,
+          "unknown_excluded": 0
+        }
+      ]
+    },
+    {
+      "stage": "after_image_assistance",
+      "identity_recall": {
+        "metric": "unique_original_number_and_source_page_identity_recall",
+        "numerator": 48,
+        "denominator": 48,
+        "value": 1.0
+      },
+      "actual_question_count": 48,
+      "missing_identities": 0,
+      "duplicate_actual_identities": 0,
+      "unmatched_actual_questions": 0,
+      "all_evaluable_fields_match": {
+        "metric": "all_evaluable_fields_match",
+        "numerator": 48,
+        "denominator": 48,
+        "value": 1.0
+      },
+      "unknown_fields_excluded": 51,
+      "fields": [
+        {
+          "metric": "strict_question_number_reference_match",
+          "numerator": 48,
+          "denominator": 48,
+          "value": 1.0,
+          "stage": "after_image_assistance",
+          "layer": "all",
+          "stratum": "all",
+          "field": "question_number",
+          "planned_fields": 48,
+          "unknown_excluded": 0
+        },
+        {
+          "metric": "strict_order_index_reference_match",
+          "numerator": 48,
+          "denominator": 48,
+          "value": 1.0,
+          "stage": "after_image_assistance",
+          "layer": "all",
+          "stratum": "all",
+          "field": "order_index",
+          "planned_fields": 48,
+          "unknown_excluded": 0
+        },
+        {
+          "metric": "strict_source_page_numbers_reference_match",
+          "numerator": 48,
+          "denominator": 48,
+          "value": 1.0,
+          "stage": "after_image_assistance",
+          "layer": "all",
+          "stratum": "all",
+          "field": "source_page_numbers",
+          "planned_fields": 48,
+          "unknown_excluded": 0
+        },
+        {
+          "metric": "strict_question_type_reference_match",
+          "numerator": 45,
+          "denominator": 45,
+          "value": 1.0,
+          "stage": "after_image_assistance",
+          "layer": "all",
+          "stratum": "all",
+          "field": "question_type",
+          "planned_fields": 48,
+          "unknown_excluded": 3
+        },
+        {
+          "metric": "strict_content_reference_match",
+          "numerator": 48,
+          "denominator": 48,
+          "value": 1.0,
+          "stage": "after_image_assistance",
+          "layer": "all",
+          "stratum": "all",
+          "field": "content",
+          "planned_fields": 48,
+          "unknown_excluded": 0
+        },
+        {
+          "metric": "strict_options_reference_match",
+          "numerator": 48,
+          "denominator": 48,
+          "value": 1.0,
+          "stage": "after_image_assistance",
+          "layer": "all",
+          "stratum": "all",
+          "field": "options",
+          "planned_fields": 48,
+          "unknown_excluded": 0
+        },
+        {
+          "metric": "strict_reference_answer_reference_match",
+          "numerator": 48,
+          "denominator": 48,
+          "value": 1.0,
+          "stage": "after_image_assistance",
+          "layer": "all",
+          "stratum": "all",
+          "field": "reference_answer",
+          "planned_fields": 48,
+          "unknown_excluded": 0
+        },
+        {
+          "metric": "strict_analysis_reference_match",
+          "numerator": 48,
+          "denominator": 48,
+          "value": 1.0,
+          "stage": "after_image_assistance",
+          "layer": "all",
+          "stratum": "all",
+          "field": "analysis",
+          "planned_fields": 48,
+          "unknown_excluded": 0
+        },
+        {
+          "metric": "strict_score_reference_match",
+          "numerator": 48,
+          "denominator": 48,
+          "value": 1.0,
+          "stage": "after_image_assistance",
+          "layer": "all",
+          "stratum": "all",
+          "field": "score",
+          "planned_fields": 48,
+          "unknown_excluded": 0
+        },
+        {
+          "metric": "strict_scoring_rubric_reference_match",
+          "numerator": 48,
+          "denominator": 48,
+          "value": 1.0,
+          "stage": "after_image_assistance",
+          "layer": "all",
+          "stratum": "all",
+          "field": "scoring_rubric",
+          "planned_fields": 48,
+          "unknown_excluded": 0
+        },
+        {
+          "metric": "strict_knowledge_points_reference_match",
+          "numerator": 48,
+          "denominator": 48,
+          "value": 1.0,
+          "stage": "after_image_assistance",
+          "layer": "all",
+          "stratum": "all",
+          "field": "knowledge_points",
+          "planned_fields": 48,
+          "unknown_excluded": 0
+        },
+        {
+          "metric": "strict_source_regions_reference_match",
+          "numerator": 0,
+          "denominator": 0,
+          "value": null,
+          "stage": "after_image_assistance",
+          "layer": "all",
+          "stratum": "all",
+          "field": "source_regions",
+          "planned_fields": 48,
+          "unknown_excluded": 48
+        },
+        {
+          "metric": "strict_assets_reference_match",
+          "numerator": 48,
+          "denominator": 48,
+          "value": 1.0,
+          "stage": "after_image_assistance",
+          "layer": "all",
+          "stratum": "all",
+          "field": "assets",
+          "planned_fields": 48,
+          "unknown_excluded": 0
+        }
+      ]
+    }
+  ],
+  "ocr": {
+    "actual_ocr_page_instances": 9,
+    "native_page_instances": 12,
+    "cer": null,
+    "wer": null,
+    "reason": "No frozen full-page verbatim transcript/read-order/tokenization reference. Structured question fields cannot be an OCR CER/WER denominator.",
+    "ocr_confidence_is_not_accuracy": true
+  },
+  "image_assistance": {
+    "persisted_crops": 33,
+    "failed_crops": 0,
+    "recomputed_question_asset_associations": 48,
+    "pixel_crop_accuracy": null,
+    "reason": "Actual historical source crops and ordered type/page association; original pixel boundaries are unknown. Not automatic image recognition."
+  },
+  "limitations": [
+    "15/15 Pending Review is import completion, not field quality acceptance.",
+    "Strict text comparison only normalizes line endings and trim; type prefixes/internal spaces remain mismatches.",
+    "Automatic assets null is distinct from reference [] even on 15 no-image question instances; all 33 required image associations were also absent automatically.",
+    "Corrected stages apply the AI-assisted reference through a synthetic role executor; no independent teacher correction or teacher performance is claimed.",
+    "Source regions (48 instances) and cross-page question type (3 instances) remain unknown/excluded.",
+    "Five synthetic ordinary cases cannot establish accuracy on real unseen papers."
+  ]
+}
