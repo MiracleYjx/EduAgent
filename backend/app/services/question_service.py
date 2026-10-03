@@ -16,9 +16,21 @@ from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session, selectinload
 from sqlalchemy.orm.attributes import flag_modified
 
-from backend.app.domain.enums import QuestionSourceType, QuestionStatus, QuestionType
+from backend.app.domain.enums import (
+    ExamStatus,
+    QuestionSourceType,
+    QuestionStatus,
+    QuestionType,
+    UserRole,
+)
 from backend.app.domain.question_options import options_equal
-from backend.app.models import Course, Question, User
+from backend.app.models import (
+    Course,
+    Question,
+    QuestionRevisionComment,
+    Submission,
+    User,
+)
 from backend.app.services.audit_service import audit_after_commit
 from backend.app.services.course_service import (
     CourseNotFoundError,
@@ -62,6 +74,16 @@ class QuestionApprovedImmutableError(QuestionConflictError):
         super().__init__(
             "已审核题目的内容、选项、答案、评分标准、题型和分值不可直接修改，请先退回修订。"
         )
+
+
+class QuestionPublishedImmutableError(QuestionConflictError):
+    """An approved question's current publication/history must remain protected."""
+
+    code = "QUESTION_PUBLISHED_IMMUTABLE"
+
+    def __init__(self, current_status: QuestionStatus) -> None:
+        self.current_status = current_status
+        super().__init__("题目已被发布或答卷历史保护，不能原地退回修订；请新建派生候选。")
 
 
 class QuestionValidationError(QuestionServiceError):
@@ -442,8 +464,18 @@ class QuestionService:
             self._load_course(question.course_id),
             _resolve_actor_id(created_by, teacher_id),
         )
-        image_input_fields = ("type", "content", "options", "reference_answer", "scoring_rubric", "analysis", "score")
-        previous_image_input = {field: deepcopy(getattr(question, field)) for field in image_input_fields}
+        image_input_fields = (
+            "type",
+            "content",
+            "options",
+            "reference_answer",
+            "scoring_rubric",
+            "analysis",
+            "score",
+        )
+        previous_image_input = {
+            field: deepcopy(getattr(question, field)) for field in image_input_fields
+        }
         if question.status is QuestionStatus.APPROVED and has_content_update:
             raise QuestionApprovedImmutableError(question.status)
         if has_type:
@@ -482,18 +514,22 @@ class QuestionService:
             )
         if score is not _UNSET:
             question.score = _normalize_score(score)  # type: ignore[arg-type]
-        options_changed = not options_equal(previous_image_input["options"], question.options)
+        options_changed = not options_equal(
+            previous_image_input["options"], question.options
+        )
         if options_changed:
             flag_modified(question, "options")
             question.order_preserved = True
         image_input_changed = options_changed or any(
             previous_image_input[field] != getattr(question, field)
-            for field in image_input_fields if field != "options"
+            for field in image_input_fields
+            if field != "options"
         )
         if image_input_changed:
             question.validation_revision += 1
         if question.image_assessment is not None and image_input_changed:
             from backend.app.schemas.image_assessment import advance_image_context
+
             question.image_assessment = advance_image_context(question.image_assessment)
         return self._commit_question(question, "更新题目失败。")
 
@@ -539,6 +575,7 @@ class QuestionService:
         teacher_id: UUID | str | None = None,
         *,
         created_by: UUID | str | None = None,
+        revision_comment: str | None = None,
     ) -> QuestionSummary:
         """按审核状态机持久化题目状态。"""
 
@@ -555,7 +592,41 @@ class QuestionService:
             raise QuestionValidationError(
                 f"题目状态不能从“{current_status.value}”变更为“{next_status.value}”。"
             )
-        if current_status is QuestionStatus.NEEDS_REVISION and next_status is QuestionStatus.PENDING_REVIEW:
+        if next_status is QuestionStatus.NEEDS_REVISION:
+            actor = _resolve_actor_id(created_by, teacher_id)
+            teacher = self.session.get(User, actor) if actor is not None else None
+            if teacher is None or not teacher.is_active or not any(role.name == UserRole.TEACHER for role in teacher.roles):
+                raise QuestionPermissionError("退回修订必须由真实启用的课程教师执行。")
+            if not isinstance(revision_comment, str) or not revision_comment.strip() or len(revision_comment.strip()) > 2000:
+                raise QuestionValidationError("退回修订必须提供不超过 2000 字的真实教师说明。")
+            if current_status is QuestionStatus.APPROVED and any(
+                exam.status in {ExamStatus.PUBLISHED, ExamStatus.CLOSED, ExamStatus.ARCHIVED}
+                or self.session.scalar(select(Submission.id).where(Submission.exam_id == exam.id).limit(1)) is not None
+                for exam in question.exams
+            ):
+                raise QuestionPublishedImmutableError(current_status)
+            self.session.add(QuestionRevisionComment(question_id=question.id, comment=revision_comment.strip(), commented_by=actor, commented_at=datetime.now(UTC)))
+        if next_status is QuestionStatus.APPROVED:
+            from backend.app.services.content_validation_service import (
+                ContentValidationError,
+                ContentValidationService,
+            )
+
+            actor = _resolve_actor_id(created_by, teacher_id)
+            if actor is None:
+                raise QuestionPermissionError(
+                    "A real current teacher must approve the question."
+                )
+            try:
+                ContentValidationService(self.session).require_can_approve(
+                    question, actor
+                )
+            except ContentValidationError as error:
+                raise QuestionValidationError(str(error)) from error
+        if (
+            current_status is QuestionStatus.NEEDS_REVISION
+            and next_status is QuestionStatus.PENDING_REVIEW
+        ):
             question.validation_revision += 1
         question.status = next_status
         if next_status is QuestionStatus.APPROVED:
@@ -567,7 +638,9 @@ class QuestionService:
             audit_after_commit(
                 self.session,
                 actor_id=_resolve_actor_id(created_by, teacher_id),
-                actor_role="teacher" if _resolve_actor_id(created_by, teacher_id) else "system",
+                actor_role=(
+                    "teacher" if _resolve_actor_id(created_by, teacher_id) else "system"
+                ),
                 action="question.approved",
                 resource_type="question",
                 resource_id=question.id,

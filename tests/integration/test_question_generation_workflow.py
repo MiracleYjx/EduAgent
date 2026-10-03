@@ -56,6 +56,7 @@ from tests.support.question_generation_doubles import (
     make_candidate,
     make_chunk,
 )
+from tests.support.semantic_validation_doubles import StubSemanticProvider
 from tests.unit.services.test_submission_service import add_user
 from tests.unit.settings_helpers import build_test_settings
 
@@ -136,6 +137,7 @@ def _service(
         retriever=retriever,
         embedding_provider=StubEmbeddingProvider(),
         settings=build_test_settings(),
+        semantic_provider=StubSemanticProvider(),
     )
     return service, retriever, provider
 
@@ -274,7 +276,9 @@ def test_generation_validation_and_teacher_review_gate(
     assert approved.status is QuestionStatus.APPROVED
     assert returned.status is QuestionStatus.NEEDS_REVISION
     with Session(engine) as observer:
-        audit = observer.scalar(select(AuditLog).where(AuditLog.action == "question.approved"))
+        audit = observer.scalar(
+            select(AuditLog).where(AuditLog.action == "question.approved")
+        )
         assert audit is not None
         assert audit.actor_id == UUID(scenario["teacher_id"])
         assert audit.resource_id == str(rows[0].id)

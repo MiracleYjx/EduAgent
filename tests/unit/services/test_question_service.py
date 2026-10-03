@@ -30,6 +30,7 @@ from backend.app.services.question_service import (
     QuestionService,
     QuestionValidationError,
 )
+from tests.support.question_validation_fixtures import persist_current_semantic_pass
 
 
 @pytest.fixture
@@ -158,6 +159,7 @@ def test_question_service_persists_review_status_transitions(
         content="下列哪项是 Python 的内置类型？",
         options=["列表", "课程"],
         reference_answer="列表",
+        scoring_rubric="选中列表得 5 分。",
         score=5,
         created_by=teacher.id,
     )
@@ -175,6 +177,7 @@ def test_question_service_persists_review_status_transitions(
         teacher_id=teacher.id,
     )
     assert pending.status is QuestionStatus.PENDING_REVIEW
+    persist_current_semantic_pass(session, question.id, teacher.id)
     approved = service.update_question_status(
         question.id,
         QuestionStatus.APPROVED,
@@ -193,6 +196,7 @@ def test_question_service_persists_review_status_transitions(
         question.id,
         QuestionStatus.NEEDS_REVISION,
         teacher_id=teacher.id,
+        revision_comment="Teacher requests an explicit correction.",
     )
     assert returned.status is QuestionStatus.NEEDS_REVISION
     updated = service.update_question(
@@ -213,6 +217,7 @@ def test_question_service_persists_review_status_transitions(
     service.update_question_status(
         question.id, QuestionStatus.PENDING_REVIEW, teacher_id=teacher.id
     )
+    persist_current_semantic_pass(session, question.id, teacher.id)
     reapproved = service.update_question_status(
         question.id, QuestionStatus.APPROVED, teacher_id=teacher.id
     )
@@ -235,6 +240,7 @@ def test_question_service_persists_review_status_transitions(
         revised.id,
         QuestionStatus.NEEDS_REVISION,
         teacher_id=teacher.id,
+        revision_comment="Teacher requests an explicit correction.",
     )
     assert needs_revision.status is QuestionStatus.NEEDS_REVISION
     resubmitted = service.update_question_status(
@@ -332,6 +338,7 @@ def _approved_question(session: Session) -> tuple[QuestionService, User, str]:
     service.update_question_status(
         question.id, QuestionStatus.PENDING_REVIEW, teacher_id=teacher.id
     )
+    persist_current_semantic_pass(session, question.id, teacher.id)
     service.update_question_status(
         question.id, QuestionStatus.APPROVED, teacher_id=teacher.id
     )

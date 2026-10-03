@@ -40,6 +40,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from backend.app.domain.enums import QuestionStatus, QuestionType
 from backend.app.schemas.ai import QuestionCandidate
+from backend.app.schemas.content_validation import SemanticQuestionFields
 from backend.app.services.grading.objective_grader import (
     InvalidAnswerFormatError,
     normalize_text,
@@ -636,3 +637,76 @@ __all__ = [
     "ValidatorResultStatus",
     "plan_transition",
 ]
+
+def validate_semantic_fields(
+    fields: SemanticQuestionFields,
+) -> tuple[QuestionValidationIssue, ...]:
+    """Validate the actual formal answer encoding before a semantic provider call.
+
+    The persisted options may be an ordered object, unlike the legacy candidate list.
+    This establishes usable input, never semantic correctness.
+    """
+    issues: list[QuestionValidationIssue] = []
+    kind = fields.type
+    options = fields.options
+    if kind in {QuestionType.SINGLE_CHOICE, QuestionType.MULTIPLE_CHOICE}:
+        values = list(options.values()) if isinstance(options, dict) else options or []
+        if len(values) < 2 or any(
+            not isinstance(item, str) or not item.strip() for item in values
+        ):
+            return (
+                _issue(
+                    QUESTION_ANSWER_ENCODING_INCOMPATIBLE,
+                    "Choice input requires actual nonblank options.",
+                    "options",
+                ),
+            )
+        keys = list(options) if isinstance(options, dict) else list(values)
+        if len({normalize_text(str(value)) for value in values}) != len(values):
+            issues.append(
+                _issue(
+                    QUESTION_ANSWER_ENCODING_INCOMPATIBLE,
+                    "Choice options must not be duplicates.",
+                    "options",
+                )
+            )
+        if kind is QuestionType.SINGLE_CHOICE:
+            if normalize_text(fields.reference_answer) not in {
+                normalize_text(str(key)) for key in keys
+            }:
+                issues.append(
+                    _issue(
+                        QUESTION_ANSWER_ENCODING_INCOMPATIBLE,
+                        "The answer must match an actual student-submittable option.",
+                        "reference_answer",
+                    )
+                )
+        else:
+            try:
+                if not parse_multiple_choice_keys(
+                    fields.reference_answer, option_keys=keys, label="Reference answer"
+                ):
+                    raise InvalidAnswerFormatError("Empty answer")
+            except InvalidAnswerFormatError:
+                issues.append(
+                    _issue(
+                        QUESTION_ANSWER_ENCODING_INCOMPATIBLE,
+                        "The answer must use the actual multiple-choice keys.",
+                        "reference_answer",
+                    )
+                )
+    elif kind is QuestionType.TRUE_FALSE:
+        keys = (
+            list(options) if isinstance(options, dict) else options or ["True", "False"]
+        )
+        if normalize_text(fields.reference_answer) not in {
+            normalize_text(str(key)) for key in keys
+        }:
+            issues.append(
+                _issue(
+                    QUESTION_ANSWER_ENCODING_INCOMPATIBLE,
+                    "The answer must match an actual true/false value.",
+                    "reference_answer",
+                )
+            )
+    return tuple(issues)

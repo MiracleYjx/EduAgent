@@ -13,8 +13,10 @@ from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
+from backend.app.api.file_storage import file_http_exception
+from backend.app.core.config import AppSettings, get_settings
 from backend.app.core.database import get_db
-from backend.app.core.security import require_permission
+from backend.app.core.security import get_app_settings, require_permission
 from backend.app.domain.enums import QuestionStatus, QuestionType
 from backend.app.domain.permissions import Permission
 from backend.app.models import (
@@ -22,17 +24,25 @@ from backend.app.models import (
     QuestionGenerationMetadata,
     QuestionRevisionComment,
     QuestionSourceChunk,
+    QuestionValidationResult,
     User,
 )
+from backend.app.schemas.content_validation import ValidationReportView
+from backend.app.schemas.image_assessment import ImageAssessmentView
+from backend.app.schemas.question_assets import QuestionAssetView
+from backend.app.services.content_validation_service import ContentValidationService
+from backend.app.services.file_storage_service import FileStorageError
 from backend.app.services.question_adaptation_service import (
     paper_source_view,
     parent_source_views,
 )
+from backend.app.services.question_asset_service import QuestionAssetService
 from backend.app.services.question_service import (
     QuestionApprovedImmutableError,
     QuestionConflictError,
     QuestionNotFoundError,
     QuestionPermissionError,
+    QuestionPublishedImmutableError,
     QuestionService,
     QuestionServiceError,
     QuestionSummary,
@@ -68,6 +78,10 @@ class QuestionDetailDTO(QuestionSummary):
     revision_comments: list[QuestionRevisionCommentDTO]
     parent_sources: list[dict[str, Any]] = Field(default_factory=list)
     paper_source: dict[str, Any] | None = None
+    current_validation: ValidationReportView | None = None
+    can_review: bool = False
+    image_assessment: ImageAssessmentView | None = None
+    assets: list[QuestionAssetView] = Field(default_factory=list)
 
 
 class QuestionCreateRequest(BaseModel):
@@ -214,6 +228,29 @@ class QuestionStatusRequest(BaseModel):
 
     status: QuestionStatus = Field(description="目标审核状态。")
 
+    comment: str | None = Field(default=None, max_length=2000)
+
+    @field_validator("comment")
+    @classmethod
+    def normalize_comment(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        if not value.strip():
+            raise ValueError("修订意见不能为空。")
+        return value.strip()
+
+
+class QuestionRevisionRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    comment: str = Field(min_length=1, max_length=2000)
+
+    @field_validator("comment")
+    @classmethod
+    def normalize_comment(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError("修订意见不能为空。")
+        return value.strip()
+
 
 def get_question_service(
     session: Annotated[Session, Depends(get_db)],
@@ -248,7 +285,11 @@ QuestionReviewer = Annotated[
 def _question_http_exception(error: BaseException) -> HTTPException:
     """将题目服务异常转换为统一的中文 HTTP 错误。"""
 
-    if isinstance(error, QuestionApprovedImmutableError):
+    if isinstance(error, FileStorageError):
+        return file_http_exception(error)
+    if isinstance(
+        error, (QuestionApprovedImmutableError, QuestionPublishedImmutableError)
+    ):
         return HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail={
@@ -338,7 +379,7 @@ def create_question(
             score=payload.score,
             created_by=teacher.id,
         )
-    except (QuestionServiceError, ValueError) as exc:
+    except (QuestionServiceError, FileStorageError, ValueError) as exc:
         raise _question_http_exception(exc) from None
 
 
@@ -348,9 +389,11 @@ def get_question(
     teacher: QuestionViewer,
     service: QuestionServiceDependency,
     session: Annotated[Session, Depends(get_db)],
+    settings: Annotated[AppSettings | None, Depends(get_app_settings)] = None,
 ) -> QuestionDetailDTO:
     """读取当前教师有权访问的题目。"""
 
+    settings = settings or get_settings()
     try:
         summary = service.get_question(question_id, teacher_id=teacher.id)
         sources = list(
@@ -385,8 +428,38 @@ def get_question(
             if has_generation_metadata
             else "history_unknown"
         )
+        validation_service = ContentValidationService(
+            session, root=settings.storage_root
+        )
+        latest_report_id = session.scalar(
+            select(QuestionValidationResult.id)
+            .where(QuestionValidationResult.question_id == question_id)
+            .order_by(QuestionValidationResult.run_no.desc())
+            .limit(1)
+        )
+        current_validation = (
+            validation_service.get_validation(
+                question_id, latest_report_id, actor_id=teacher.id
+            )
+            if latest_report_id is not None
+            else None
+        )
+        image_assessment = validation_service.get_image_assessment(
+            "question", question_id, actor_id=teacher.id
+        )
+        assets = QuestionAssetService(
+            session, root=settings.storage_root
+        ).list_question(question_id, actor_id=teacher.id)
         return QuestionDetailDTO(
             **summary.model_dump(),
+            current_validation=current_validation,
+            can_review=bool(
+                current_validation is not None
+                and current_validation.is_current
+                and current_validation.can_review
+            ),
+            image_assessment=image_assessment,
+            assets=assets,
             parent_sources=parent_source_views(session, UUID(str(question_id))),
             paper_source=paper_source_view(
                 session.get(Question, UUID(str(question_id)))
@@ -415,7 +488,7 @@ def get_question(
                 for comment in comments
             ],
         )
-    except QuestionServiceError as exc:
+    except (QuestionServiceError, FileStorageError) as exc:
         raise _question_http_exception(exc) from None
     except SQLAlchemyError as exc:
         raise _question_http_exception(
@@ -438,7 +511,7 @@ def update_question(
             teacher_id=teacher.id,
             **_question_update_kwargs(payload),
         )
-    except (QuestionServiceError, ValueError) as exc:
+    except (QuestionServiceError, FileStorageError, ValueError) as exc:
         raise _question_http_exception(exc) from None
 
 
@@ -452,7 +525,7 @@ def delete_question(
 
     try:
         service.delete_question(question_id, teacher_id=teacher.id)
-    except (QuestionServiceError, ValueError) as exc:
+    except (QuestionServiceError, FileStorageError, ValueError) as exc:
         raise _question_http_exception(exc) from None
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
@@ -476,8 +549,9 @@ def update_question_status(
             question_id,
             payload.status,
             teacher_id=teacher.id,
+            revision_comment=payload.comment,
         )
-    except (QuestionServiceError, ValueError) as exc:
+    except (QuestionServiceError, FileStorageError, ValueError) as exc:
         raise _question_http_exception(exc) from None
 
 
@@ -498,7 +572,7 @@ def submit_question_for_review(
             QuestionStatus.PENDING_REVIEW,
             teacher_id=teacher.id,
         )
-    except (QuestionServiceError, ValueError) as exc:
+    except (QuestionServiceError, FileStorageError, ValueError) as exc:
         raise _question_http_exception(exc) from None
 
 
@@ -519,7 +593,7 @@ def approve_question(
             QuestionStatus.APPROVED,
             teacher_id=teacher.id,
         )
-    except (QuestionServiceError, ValueError) as exc:
+    except (QuestionServiceError, FileStorageError, ValueError) as exc:
         raise _question_http_exception(exc) from None
 
 
@@ -529,6 +603,7 @@ def approve_question(
 )
 def request_question_revision(
     question_id: UUID,
+    payload: QuestionRevisionRequest,
     teacher: QuestionReviewer,
     service: QuestionServiceDependency,
 ) -> QuestionSummary:
@@ -539,8 +614,9 @@ def request_question_revision(
             question_id,
             QuestionStatus.NEEDS_REVISION,
             teacher_id=teacher.id,
+            revision_comment=payload.comment,
         )
-    except (QuestionServiceError, ValueError) as exc:
+    except (QuestionServiceError, FileStorageError, ValueError) as exc:
         raise _question_http_exception(exc) from None
 
 

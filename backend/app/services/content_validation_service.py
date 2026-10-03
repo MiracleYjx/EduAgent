@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+import asyncio
 import hashlib
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from contextlib import contextmanager
+from copy import deepcopy
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
@@ -17,6 +19,7 @@ from sqlalchemy import func, select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session, selectinload
 
+from backend.app.ai.llm.base import BaseLLMProvider
 from backend.app.domain.enums import (
     DocumentPurpose,
     DocumentStatus,
@@ -26,6 +29,7 @@ from backend.app.domain.enums import (
 )
 from backend.app.models import (
     AgentRun,
+    Document,
     DocumentChunk,
     ExtractedQuestion,
     PaperImport,
@@ -36,10 +40,15 @@ from backend.app.models import (
     SourcePage,
 )
 from backend.app.schemas.content_validation import (
+    ManualContextReference,
     ManualDisposition,
     ManualDispositionRequest,
+    SemanticQuestionFields,
+    SemanticValidationInput,
+    SemanticValidationRequest,
     ValidationEvidence,
     ValidationInputRefs,
+    ValidationIssue,
     ValidationOutput,
     ValidationProvenance,
     ValidationReportView,
@@ -101,6 +110,12 @@ class ContentValidationError(FileStorageError):
 
 
 @dataclass(frozen=True)
+class PreparedValidationRun:
+    report: ValidationReportView
+    input: SemanticValidationInput
+
+
+@dataclass(frozen=True)
 class PreparedImage:
     asset_id: UUID
     file_id: str
@@ -125,9 +140,16 @@ def _utc(value: datetime) -> datetime:
 
 
 class ContentValidationService:
-    def __init__(self, session: Session, *, root: Path | None = None):
+    def __init__(
+        self,
+        session: Session,
+        *,
+        root: Path | None = None,
+        provider_factory: Callable[[], BaseLLMProvider] | None = None,
+    ):
         self.session = session
         self.files = FileStorageService(session, root=root)
+        self._semantic_provider_factory = provider_factory
 
     @contextmanager
     def _transaction(self) -> Iterator[None]:
@@ -804,32 +826,48 @@ class ContentValidationService:
                 open_issues=list(self._open_issues(assessment).values()),
             )
 
+    def _chunk_data(self, question: Question, chunk_id: UUID) -> dict[str, Any]:
+        chunk = self.session.scalars(
+            select(DocumentChunk)
+            .where(DocumentChunk.id == chunk_id)
+            .options(
+                selectinload(DocumentChunk.document).selectinload(
+                    Document.knowledge_base
+                )
+            )
+            .execution_options(populate_existing=True)
+        ).one_or_none()
+        if (
+            chunk is None
+            or chunk.course_id != question.course_id
+            or chunk.document.course_id != question.course_id
+            or chunk.document.purpose != DocumentPurpose.KNOWLEDGE_BASE
+            or chunk.document.status != DocumentStatus.READY
+            or chunk.document.knowledge_base_id != chunk.knowledge_base_id
+            or chunk.document.knowledge_base is None
+            or chunk.document.knowledge_base.course_id != question.course_id
+        ):
+            raise ContentValidationError(
+                "CONTENT_SOURCE_INVALID",
+                "Teaching chunks must belong to a Ready document and a valid knowledge base in this course.",
+                http_status=422,
+            )
+        return {
+            "chunk_id": str(chunk.id),
+            "document_id": str(chunk.document_id),
+            "course_id": str(chunk.course_id),
+            "source_file": chunk.document.original_filename,
+            "location": deepcopy((chunk.chunk_metadata or {}).get("location")),
+            "content_snapshot": chunk.content,
+        }
+
     def _evidence(
         self, question: Question, evidence: list[ValidationEvidence], actor_id: UUID
     ) -> None:
         for item in evidence:
             data = item.source_data
             if item.kind == "chunk":
-                chunk = self.session.get(DocumentChunk, item.source_id)
-                if (
-                    chunk is None
-                    or chunk.course_id != question.course_id
-                    or chunk.document.purpose != DocumentPurpose.KNOWLEDGE_BASE
-                    or chunk.document.status != DocumentStatus.READY
-                ):
-                    raise ContentValidationError(
-                        "CONTENT_SOURCE_INVALID",
-                        "教学片段不属于当前课程。",
-                        http_status=422,
-                    )
-                expected = {
-                    "chunk_id": str(chunk.id),
-                    "document_id": str(chunk.document_id),
-                    "course_id": str(chunk.course_id),
-                    "source_file": chunk.document.original_filename,
-                    "location": (chunk.chunk_metadata or {}).get("location"),
-                    "content_snapshot": chunk.content,
-                }
+                expected = self._chunk_data(question, item.source_id)
             elif item.kind == "question_source_chunk":
                 source = self.session.get(QuestionSourceChunk, item.source_id)
                 if (
@@ -904,6 +942,7 @@ class ContentValidationService:
                 )
 
     def _manual_context(self, question: Question, refs: ValidationInputRefs) -> None:
+        """Explicit authentic historical context is data, never inherited current qualification."""
         for item in refs.manual_context:
             report = self.session.get(
                 QuestionValidationResult, item.validation_result_id
@@ -911,7 +950,6 @@ class ContentValidationService:
             if (
                 report is None
                 or report.question_id != question.id
-                or report.input_revision != question.validation_revision
                 or not any(
                     value["id"] == str(item.disposition_id)
                     for value in report.manual_dispositions
@@ -959,27 +997,21 @@ class ContentValidationService:
             item.action in {"provide_evidence", "resolve_issue"}
             for item in dispositions
         )
-        image_ready = (
-            not question.assets
-            or self.get_image_assessment(
-                "question", question.id, actor_id=actor_id
-            ).status
-            == "confirmed"
-        )
         refs = ValidationInputRefs.model_validate(report.input_refs)
-        can_review = bool(
+        ready = False
+        if (
             is_current
             and report.outcome == "passed"
             and not pending
             and question.status == QuestionStatus.PENDING_REVIEW
-            and question.reference_answer
-            and question.scoring_rubric
-            and any(
-                item.kind in {"chunk", "question_source_chunk"}
-                for item in refs.evidence
-            )
-            and image_ready
-        )
+        ):
+            try:
+                self._validation_ready(question, refs, actor_id)
+                self._evidence(question, refs.evidence, actor_id)
+                ready = True
+            except ContentValidationError:
+                ready = False
+        can_review = ready
         return ValidationReportView.model_validate(
             {
                 "id": report.id,
@@ -1050,6 +1082,17 @@ class ContentValidationService:
                 "请补齐真实题目、答案、评分标准、分值、输入字段与教学依据后核验。",
                 http_status=422,
             )
+        from backend.app.services.question_validator import validate_semantic_fields
+
+        fields = SemanticQuestionFields.model_validate(
+            {name: deepcopy(getattr(question, name)) for name in FORMAL_FIELDS}
+        )
+        if validate_semantic_fields(fields):
+            raise ContentValidationError(
+                "CONTENT_INPUT_INCOMPLETE",
+                "Current answer encoding or options are not usable.",
+                http_status=422,
+            )
         if question.assets:
             view = self.get_image_assessment("question", question.id, actor_id=actor_id)
             if view.status != "confirmed" or not {
@@ -1062,6 +1105,333 @@ class ContentValidationService:
                 raise ContentValidationError(
                     "VISION_REVIEW_REQUIRED", "每张题图须有当前可靠核对与真实核验引用。"
                 )
+
+    def require_can_approve(
+        self, question: Question, actor_id: UUID
+    ) -> ValidationReportView:
+        """Shared approval gate; caller keeps the current Question lock and owns commit."""
+        locked = cast(Question, self._owner("question", question.id, actor_id))
+        report = self.session.scalars(
+            select(QuestionValidationResult)
+            .where(QuestionValidationResult.question_id == locked.id)
+            .order_by(QuestionValidationResult.run_no.desc())
+            .limit(1)
+            .with_for_update()
+            .execution_options(populate_existing=True)
+        ).first()
+        if report is None:
+            raise ContentValidationError(
+                "CONTENT_VALIDATION_REQUIRED",
+                "A current semantic validation report is required before approval.",
+            )
+        view = self._report_view(locked, report, actor_id)
+        if not view.can_review:
+            raise ContentValidationError(
+                "CONTENT_VALIDATION_NOT_READY",
+                "The latest semantic report and current content do not permit approval.",
+                current_status=locked.status.value,
+            )
+        return view
+
+    def _production_refs(
+        self, question: Question, teaching_chunk_ids: list[UUID] | None = None
+    ) -> ValidationInputRefs:
+        """Explicit live chunks or existing generation snapshots; paper lineage is not teaching evidence."""
+        if teaching_chunk_ids is not None:
+            return ValidationInputRefs(
+                fields=list(FORMAL_FIELDS),
+                evidence=[
+                    ValidationEvidence(
+                        evidence_id=uuid4(),
+                        kind="chunk",
+                        source_id=identity,
+                        source_data=self._chunk_data(question, identity),
+                    )
+                    for identity in teaching_chunk_ids
+                ],
+            )
+        evidence = [
+            ValidationEvidence(
+                evidence_id=uuid4(),
+                kind="question_source_chunk",
+                source_id=source.id,
+                source_data={
+                    "chunk_id": str(source.chunk_id),
+                    "document_id": str(source.document_id),
+                    "course_id": str(source.course_id),
+                    "source_file": source.source_file,
+                    "location": None,
+                    "content_snapshot": source.content_snapshot,
+                },
+            )
+            for source in self.session.scalars(
+                select(QuestionSourceChunk)
+                .where(QuestionSourceChunk.question_id == question.id)
+                .order_by(QuestionSourceChunk.source_order)
+            ).all()
+        ]
+        return ValidationInputRefs(fields=list(FORMAL_FIELDS), evidence=evidence)
+
+    @staticmethod
+    def _teaching_basis(refs: ValidationInputRefs) -> list[dict[str, Any]]:
+        """Compare material source identity and snapshot; fresh report evidence IDs are not input changes."""
+        return [
+            {
+                "kind": item.kind,
+                "source_id": str(item.source_id),
+                "source_data": item.source_data,
+            }
+            for item in sorted(
+                refs.evidence, key=lambda item: (item.kind, str(item.source_id))
+            )
+            if item.kind in {"chunk", "question_source_chunk"}
+        ]
+
+    async def validate_current(
+        self,
+        question_id: UUID,
+        *,
+        actor_id: UUID,
+        teaching_chunk_ids: list[UUID] | None = None,
+        manual_context: list[ManualContextReference] | None = None,
+        provider: BaseLLMProvider | None = None,
+        provider_factory: Callable[[], BaseLLMProvider] | None = None,
+    ) -> ValidationReportView:
+        """Explicit teacher command; all fields, evidence snapshots, identities and current gates are server facts."""
+        return await self.run_validation(
+            question_id,
+            actor_id=actor_id,
+            teaching_chunk_ids=teaching_chunk_ids,
+            manual_context=manual_context or [],
+            provider=provider,
+            provider_factory=provider_factory,
+        )
+
+    def prepare_validation(
+        self,
+        question_id: UUID,
+        *,
+        actor_id: UUID,
+        input_refs: ValidationInputRefs | None = None,
+        teaching_chunk_ids: list[UUID] | None = None,
+        manual_context: list[ManualContextReference] | None = None,
+        executor_name: str = "question_semantic_validator",
+    ) -> PreparedValidationRun:
+        """Project fields and actual evidence under the same lock that allocates the round."""
+        with self._transaction():
+            question = cast(
+                Question, self._owner("question", question_id, actor_id, writing=True)
+            )
+            if input_refs is not None and (
+                teaching_chunk_ids is not None or manual_context is not None
+            ):
+                raise ContentValidationError(
+                    "CONTENT_SOURCE_INVALID",
+                    "Do not combine internal snapshots and public evidence selections.",
+                    http_status=422,
+                )
+            selection = SemanticValidationRequest(
+                teaching_chunk_ids=teaching_chunk_ids,
+                manual_context=manual_context or [],
+            )
+            refs = (
+                input_refs.model_copy(deep=True)
+                if input_refs is not None
+                else self._production_refs(question, selection.teaching_chunk_ids)
+            )
+            if manual_context is not None:
+                refs.manual_context = selection.manual_context
+            if question.assets:
+                view = self.get_image_assessment(
+                    "question", question.id, actor_id=actor_id
+                )
+                if view.status != "confirmed" or view.current_check is None:
+                    raise ContentValidationError(
+                        "VISION_REVIEW_REQUIRED",
+                        "Current reliable image checks are required before semantic validation.",
+                    )
+                for asset in question.assets:
+                    if any(
+                        item.kind == "question_asset" and item.source_id == asset.id
+                        for item in refs.evidence
+                    ):
+                        continue
+                    refs.evidence.append(
+                        ValidationEvidence(
+                            evidence_id=uuid4(),
+                            kind="question_asset",
+                            source_id=asset.id,
+                            source_data={
+                                "file_id": asset.file_id,
+                                "source_page_id": (
+                                    str(asset.source_page_id)
+                                    if asset.source_page_id
+                                    else None
+                                ),
+                                "region": asset.region,
+                                "image_review_ref": {
+                                    "owner_kind": (
+                                        "extracted_question"
+                                        if view.imported_review
+                                        else "question"
+                                    ),
+                                    "owner_id": str(
+                                        view.imported_review.source_ref.owner_id
+                                        if view.imported_review
+                                        else question.id
+                                    ),
+                                    "check_id": str(view.current_check.id),
+                                    "binding_id": (
+                                        str(view.imported_review.id)
+                                        if view.imported_review
+                                        else None
+                                    ),
+                                },
+                                "confirmed_conditions": [
+                                    condition.model_dump(mode="json")
+                                    for condition in view.confirmed_conditions
+                                    if condition.asset_id == asset.id
+                                ],
+                            },
+                        )
+                    )
+                refs.fields = list(
+                    dict.fromkeys([*refs.fields, "images", "image_conditions"])
+                )
+            self._evidence(question, refs.evidence, actor_id)
+            self._manual_context(question, refs)
+            self._validation_ready(question, refs, actor_id)
+            latest = self.session.scalars(
+                select(QuestionValidationResult)
+                .where(QuestionValidationResult.question_id == question.id)
+                .order_by(QuestionValidationResult.run_no.desc())
+                .limit(1)
+            ).first()
+            if latest is not None and self._teaching_basis(
+                ValidationInputRefs.model_validate(latest.input_refs)
+            ) != self._teaching_basis(refs):
+                question.validation_revision += 1
+                # Production sessions disable autoflush; startup reload must see this same transaction's revision.
+                self.session.flush()
+            fields = SemanticQuestionFields.model_validate(
+                {name: deepcopy(getattr(question, name)) for name in FORMAL_FIELDS}
+            )
+            manual: list[dict[str, Any]] = []
+            for manual_selection in refs.manual_context:
+                previous = self.session.get(
+                    QuestionValidationResult, manual_selection.validation_result_id
+                )
+                if previous is not None:
+                    manual.extend(
+                        deepcopy(value)
+                        for value in previous.manual_dispositions
+                        if value["id"] == str(manual_selection.disposition_id)
+                    )
+            report = self.start_validation(
+                question_id,
+                actor_id=actor_id,
+                input_refs=refs,
+                executor_name=executor_name,
+                executor_kind="agent",
+            )
+            return PreparedValidationRun(
+                report=report,
+                input=SemanticValidationInput(
+                    question_id=question_id,
+                    input_revision=report.input_revision,
+                    run_no=report.run_no,
+                    fields=fields,
+                    evidence=refs.evidence,
+                    manual_context=manual,
+                ),
+            )
+
+    async def run_validation(
+        self,
+        question_id: UUID,
+        *,
+        actor_id: UUID,
+        input_refs: ValidationInputRefs | None = None,
+        teaching_chunk_ids: list[UUID] | None = None,
+        manual_context: list[ManualContextReference] | None = None,
+        provider: BaseLLMProvider | None = None,
+        provider_factory: Callable[[], BaseLLMProvider] | None = None,
+    ) -> ValidationReportView:
+        """Same one-shot command for explicit review and automatically persisted text candidates."""
+        from backend.app.ai.llm.factory import create_llm_provider
+        from backend.app.ai.semantic_validation import (
+            ProviderSemanticValidator,
+            SemanticExecutionFailure,
+        )
+        from backend.app.core.config import get_settings
+
+        prepared = self.prepare_validation(
+            question_id,
+            actor_id=actor_id,
+            input_refs=input_refs,
+            teaching_chunk_ids=teaching_chunk_ids,
+            manual_context=manual_context,
+        )
+        owned = provider is None
+        executor = None
+        try:
+            if provider is None:
+                try:
+                    provider = (
+                        provider_factory
+                        or self._semantic_provider_factory
+                        or (lambda: create_llm_provider(get_settings()))
+                    )()
+                except Exception as error:  # noqa: BLE001 -- Provider initialization.
+                    return self.finish_validation(
+                        prepared.report.id,
+                        actor_id=actor_id,
+                        error=TechnicalError(
+                            code="CONTENT_PROVIDER_NOT_READY",
+                            message="The configured semantic provider could not be initialized.",
+                            stage="configuration",
+                            cause=type(error).__name__,
+                            retryable=False,
+                        ),
+                    )
+            executor = ProviderSemanticValidator(provider)
+            machine = await executor.validate(prepared.input)
+            output = ValidationOutput(
+                checks=machine.checks,
+                issues=[
+                    ValidationIssue(issue_id=uuid4(), **item.model_dump())
+                    for item in machine.issues
+                ],
+            )
+            return self.finish_validation(
+                prepared.report.id,
+                actor_id=actor_id,
+                output=output,
+                provenance=executor.call_provenance,
+            )
+        except SemanticExecutionFailure as error:
+            return self.finish_validation(
+                prepared.report.id,
+                actor_id=actor_id,
+                error=error.error,
+                provenance=error.provenance,
+            )
+        except asyncio.CancelledError:
+            self.finish_validation(
+                prepared.report.id,
+                actor_id=actor_id,
+                error=TechnicalError(
+                    code="CONTENT_CANCELLED",
+                    message="The semantic validation call was cancelled.",
+                    stage="call",
+                    retryable=False,
+                ),
+                provenance=executor.call_provenance if executor else None,
+            )
+            raise
+        finally:
+            if owned and provider is not None:
+                await provider.aclose()
 
     def start_validation(
         self,

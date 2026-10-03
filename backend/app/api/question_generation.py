@@ -27,9 +27,9 @@ FR-024～FR-028、T067 Question Agent、T068 Question Validator。
 
 from __future__ import annotations
 
-from collections.abc import Iterator, Sequence
+from collections.abc import Callable, Iterator, Sequence
 from contextlib import contextmanager
-from datetime import datetime
+from datetime import UTC, datetime
 from decimal import Decimal
 from time import perf_counter
 from typing import Annotated, Any, Literal, cast
@@ -68,6 +68,7 @@ from backend.app.ai.agents.state import (
     QuestionGenerationRequest,
     RetrievedContextItem,
 )
+from backend.app.ai.llm.base import BaseLLMProvider
 from backend.app.ai.retrieval.base import (
     RETRIEVAL_SCOPE_INVALID,
     RETRIEVAL_SCOPE_NOT_READY,
@@ -85,11 +86,17 @@ from backend.app.models import (
     QuestionGenerationMetadata,
     QuestionRevisionComment,
     QuestionSourceChunk,
+    QuestionValidationResult,
     User,
 )
 from backend.app.schemas.ai import QuestionCandidate
+from backend.app.schemas.content_validation import ValidationReportView
 from backend.app.schemas.retrieval_scope import RetrievalScope
 from backend.app.services.audit_service import audit_after_commit
+from backend.app.services.content_validation_service import (
+    ContentValidationError,
+    ContentValidationService,
+)
 from backend.app.services.file_storage_service import (
     FileStorageError,
     FileStorageService,
@@ -388,6 +395,8 @@ class CandidateDTO(BaseModel):
     source_type: QuestionSourceType | None = None
     parent_sources: list[dict[str, Any]] = Field(default_factory=list)
     paper_source: dict[str, Any] | None = None
+    current_validation: ValidationReportView | None = None
+    can_review: bool = False
     created_at: datetime
     updated_at: datetime
 
@@ -492,10 +501,26 @@ def _validation_dto(
     ]
 
 
-def _candidate_dto(question: Question, session: Session | None = None) -> CandidateDTO:
+def _candidate_dto(
+    question: Question, session: Session | None = None, actor_id: str | None = None
+) -> CandidateDTO:
     """把题库行映射为候选题 DTO；不做任何推导或补全。"""
 
+    current_validation = None
+    if session is not None and actor_id is not None:
+        report_id = session.scalar(
+            select(QuestionValidationResult.id)
+            .where(QuestionValidationResult.question_id == question.id)
+            .order_by(QuestionValidationResult.run_no.desc())
+            .limit(1)
+        )
+        if report_id is not None:
+            current_validation = ContentValidationService(session).get_validation(
+                question.id, report_id, actor_id=_as_uuid(actor_id)
+            )
     return CandidateDTO(
+        current_validation=current_validation,
+        can_review=current_validation.can_review if current_validation else False,
         candidate_id=str(question.id),
         course_id=str(question.course_id),
         question_type=question.type,
@@ -523,11 +548,18 @@ def _generated_dto(
     result: CandidateValidationResult,
     source_context_ids: Sequence[str],
     parent_sources: list[dict[str, Any]] | None = None,
+    current_validation: ValidationReportView | None = None,
 ) -> GeneratedCandidateDTO:
     """生成响应沿用既有字段，并报告已提交的引用快照状态。"""
 
     base = _candidate_dto(question).model_copy(
-        update={"parent_sources": parent_sources or []}
+        update={
+            "parent_sources": parent_sources or [],
+            "current_validation": current_validation,
+            "can_review": current_validation.can_review
+            if current_validation
+            else False,
+        }
     )
     return GeneratedCandidateDTO(
         **base.model_dump(),
@@ -565,6 +597,8 @@ class QuestionGenerationService:
         retriever: Any | None = None,
         embedding_provider: Any | None = None,
         settings: AppSettings | None = None,
+        semantic_provider: BaseLLMProvider | None = None,
+        semantic_provider_factory: Callable[[], BaseLLMProvider] | None = None,
     ) -> None:
         if session is None and session_factory is None:
             raise ValueError("必须提供 session 或 session_factory。")
@@ -575,6 +609,12 @@ class QuestionGenerationService:
         self._retriever = retriever
         self._embedding_provider = embedding_provider
         self._settings = settings
+        if semantic_provider is not None and semantic_provider_factory is not None:
+            raise ValueError(
+                "Provide a semantic Provider instance or factory, not both."
+            )
+        self._semantic_provider = semantic_provider
+        self._semantic_provider_factory = semantic_provider_factory
 
     # ------------------------------------------------------------ 依赖解析
 
@@ -702,26 +742,36 @@ class QuestionGenerationService:
             course_id=candidate_course_id,
             chunk_ids=output.retrieved_context_ids,
         )
+        candidate_ids = [row.id for row in rows]
+        reports = await self._validate_text_candidates(candidate_ids, actor_id)
         with self._use_session() as session:
-            saved_parent_sources = (
-                {
-                    str(question.id): parent_source_views(session, question.id)
-                    for question in rows
-                }
-                if _adaptation
-                else {}
-            )
-        generated = [
-            _generated_dto(
-                question,
-                result,
-                candidates[index].source_context_ids,
-                saved_parent_sources.get(str(question.id)),
-            )
-            for index, (question, result) in enumerate(
-                zip(rows, batch.results, strict=True)
-            )
-        ]
+            generated = []
+            for index, (identity, result) in enumerate(
+                zip(candidate_ids, batch.results, strict=True)
+            ):
+                question = session.scalar(
+                    select(Question)
+                    .where(Question.id == identity)
+                    .execution_options(populate_existing=True)
+                )
+                if question is None:
+                    raise CandidateNotFoundError(
+                        "The newly generated candidate was removed."
+                    )
+                report = reports.get(identity)
+                if report is not None:
+                    report = ContentValidationService(session).get_validation(
+                        identity, report.id, actor_id=_as_uuid(actor_id)
+                    )
+                generated.append(
+                    _generated_dto(
+                        question,
+                        result,
+                        candidates[index].source_context_ids,
+                        parent_source_views(session, identity),
+                        report,
+                    )
+                )
         return CandidateGenerationResponse(
             request_id=request_id,
             course_id=str(candidate_course_id),
@@ -738,6 +788,43 @@ class QuestionGenerationService:
             model=output.model,
             prompt_version=output.prompt_version,
         )
+
+    async def _validate_text_candidates(
+        self, candidate_ids: Sequence[UUID], actor_id: str
+    ) -> dict[UUID, ValidationReportView]:
+        from backend.app.ai.llm.factory import create_llm_provider
+        from backend.app.core.config import get_settings
+
+        reports = {}
+        factory = self._semantic_provider_factory
+        if factory is None and self._semantic_provider is None:
+            factory = lambda: create_llm_provider(self._settings or get_settings())
+        for identity in candidate_ids:
+            with self._use_session() as session:
+                question = self._require_candidate(session, str(identity))
+                if (
+                    question.status is not QuestionStatus.PENDING_REVIEW
+                    or question.assets
+                ):
+                    continue
+                try:
+                    reports[identity] = await ContentValidationService(
+                        session, root=(self._settings or get_settings()).storage_root
+                    ).run_validation(
+                        identity,
+                        actor_id=_as_uuid(actor_id),
+                        provider=self._semantic_provider,
+                        provider_factory=factory,
+                    )
+                except ContentValidationError as error:
+                    failure = GenerationFailedError(
+                        str(error),
+                        error_code=error.code,
+                        source_code=error.code,
+                    )
+                    failure.http_status = error.http_status
+                    raise failure from error
+        return reports
 
     async def adapt_candidates(
         self,
@@ -1123,7 +1210,7 @@ class QuestionGenerationService:
                 total=int(total or 0),
                 limit=limit,
                 offset=offset,
-                items=[_candidate_dto(row, session) for row in rows],
+                items=[_candidate_dto(row, session, actor_id) for row in rows],
             )
 
     def get_candidate(self, *, actor_id: str, candidate_id: str) -> CandidateDTO:
@@ -1132,7 +1219,7 @@ class QuestionGenerationService:
         with self._use_session() as session:
             question = self._require_candidate(session, candidate_id)
             self._ensure_candidate_access(session, question, actor_id)
-            return _candidate_dto(question, session)
+            return _candidate_dto(question, session, actor_id)
 
     def submit_review(
         self,
@@ -1157,7 +1244,7 @@ class QuestionGenerationService:
             else QuestionStatus.NEEDS_REVISION
         )
         with self._use_session() as session:
-            question = self._require_candidate(session, candidate_id)
+            question = self._require_candidate(session, candidate_id, for_update=True)
             self._ensure_candidate_access(session, question, actor_id)
             current = question.status
             if current is not QuestionStatus.PENDING_REVIEW:
@@ -1171,13 +1258,29 @@ class QuestionGenerationService:
             # T068 状态机是唯一转换判定；自动发布与越权状态在此被显式拒绝。
             plan_transition(current, target, actor=ValidationActor.TEACHER)
             try:
+                if target is QuestionStatus.APPROVED:
+                    try:
+                        ContentValidationService(session).require_can_approve(
+                            question, _as_uuid(actor_id)
+                        )
+                    except ContentValidationError as error:
+                        failure = GenerationFailedError(
+                            str(error), error_code=error.code, source_code=error.code
+                        )
+                        failure.http_status = error.http_status
+                        raise failure from error
                 updated = cast(
                     CursorResult[Any],
                     session.execute(
                         update(Question)
                         .where(Question.id == question.id)
                         .where(Question.status == QuestionStatus.PENDING_REVIEW)
-                        .values(status=target)
+                        .values(
+                            status=target,
+                            frozen_at=datetime.now(UTC)
+                            if target is QuestionStatus.APPROVED
+                            else None,
+                        )
                     ),
                 )
                 if updated.rowcount != 1:
@@ -1241,14 +1344,25 @@ class QuestionGenerationService:
         return normalized
 
     @staticmethod
-    def _require_candidate(session: Session, candidate_id: str) -> Question:
+    def _require_candidate(
+        session: Session, candidate_id: str, *, for_update: bool = False
+    ) -> Question:
         """加载候选题；非 UUID 或不存在一律 404。"""
 
         try:
             normalized = _as_uuid(candidate_id)
         except ValueError as error:
             raise CandidateNotFoundError("候选题标识不合法。") from error
-        question = session.get(Question, normalized)
+        question = (
+            session.scalar(
+                select(Question)
+                .where(Question.id == normalized)
+                .with_for_update()
+                .execution_options(populate_existing=True)
+            )
+            if for_update
+            else session.get(Question, normalized)
+        )
         if question is None:
             raise CandidateNotFoundError("候选题不存在。")
         return question

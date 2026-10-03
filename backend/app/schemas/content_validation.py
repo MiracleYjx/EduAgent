@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from decimal import Decimal
 from typing import Any, Literal, Self
 from uuid import UUID
 
@@ -14,6 +15,7 @@ from pydantic import (
     model_validator,
 )
 
+from backend.app.domain.enums import QuestionType
 from backend.app.schemas.image_assessment import TechnicalError
 
 CheckKind = Literal[
@@ -86,6 +88,27 @@ class ValidationEvidence(ValidationModel):
 class ManualContextReference(ValidationModel):
     validation_result_id: UUID
     disposition_id: UUID
+
+
+class SemanticValidationRequest(ValidationModel):
+    """Teacher chooses real evidence identities; current facts come from persistence."""
+
+    teaching_chunk_ids: list[UUID] | None = None
+    manual_context: list[ManualContextReference] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def unique_selections(self) -> Self:
+        if self.teaching_chunk_ids is not None and len(
+            set(self.teaching_chunk_ids)
+        ) != len(self.teaching_chunk_ids):
+            raise ValueError("Teaching chunk identities must not repeat.")
+        contexts = [
+            (item.validation_result_id, item.disposition_id)
+            for item in self.manual_context
+        ]
+        if len(set(contexts)) != len(contexts):
+            raise ValueError("Manual context references must not repeat.")
+        return self
 
 
 class ValidationInputRefs(ValidationModel):
@@ -199,3 +222,47 @@ class ValidationReportView(ValidationModel):
     stale: bool
     can_review: bool
     requires_manual_review: bool
+
+
+class SemanticQuestionFields(ValidationModel):
+    """One immutable-use projection of the persisted candidate, not another answer source."""
+
+    type: QuestionType
+    content: str = Field(min_length=1)
+    options: dict[str, Any] | list[Any] | None
+    reference_answer: str = Field(min_length=1)
+    scoring_rubric: str = Field(min_length=1)
+    analysis: str | None
+    score: Decimal = Field(
+        gt=0, le=Decimal("999999.99"), max_digits=8, decimal_places=2
+    )
+
+
+class SemanticValidationInput(ValidationModel):
+    question_id: UUID
+    input_revision: int = Field(ge=0, strict=True)
+    run_no: int = Field(ge=1, strict=True)
+    fields: SemanticQuestionFields
+    evidence: list[ValidationEvidence]
+    manual_context: list[dict[str, Any]] = Field(default_factory=list)
+
+
+class SemanticMachineIssue(ValidationModel):
+    code: str = Field(min_length=1)
+    field: str | None = None
+    severity: Literal["info", "warning", "error"]
+    message: str = Field(min_length=1)
+    evidence_refs: list[UUID] = Field(default_factory=list)
+
+
+class SemanticMachineOutput(ValidationModel):
+    """Provider can report conclusions; it cannot assign persistent identities or approval."""
+
+    checks: list[ValidationCheck]
+    issues: list[SemanticMachineIssue]
+
+    @model_validator(mode="after")
+    def all_four_checks(self) -> Self:
+        if len(self.checks) != 4 or {item.kind for item in self.checks} != CHECK_KINDS:
+            raise ValueError("The provider must return each semantic check once.")
+        return self

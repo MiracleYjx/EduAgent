@@ -12,6 +12,7 @@ from backend.app.core.database import get_db
 from backend.app.core.security import CurrentUser, get_app_settings
 from backend.app.schemas.content_validation import (
     ManualDispositionRequest,
+    SemanticValidationRequest,
     ValidationReportView,
 )
 from backend.app.schemas.image_assessment import (
@@ -28,12 +29,38 @@ def get_content_validation_service(
     session: Annotated[Session, Depends(get_db)],
     settings: Annotated[AppSettings, Depends(get_app_settings)],
 ) -> ContentValidationService:
-    return ContentValidationService(session, root=settings.storage_root)
+    from backend.app.ai.llm.factory import create_llm_provider
+
+    return ContentValidationService(
+        session,
+        root=settings.storage_root,
+        provider_factory=lambda: create_llm_provider(settings),
+    )
 
 
 ValidationService = Annotated[
     ContentValidationService, Depends(get_content_validation_service)
 ]
+
+
+@router.post(
+    "/questions/{question_id}/validations", response_model=ValidationReportView
+)
+async def validate_current_question(
+    question_id: UUID,
+    payload: SemanticValidationRequest,
+    actor: CurrentUser,
+    service: ValidationService,
+):
+    try:
+        return await service.validate_current(
+            question_id,
+            actor_id=actor.id,
+            teaching_chunk_ids=payload.teaching_chunk_ids,
+            manual_context=payload.manual_context,
+        )
+    except FileStorageError as exc:
+        raise file_http_exception(exc) from None
 
 
 @router.get(

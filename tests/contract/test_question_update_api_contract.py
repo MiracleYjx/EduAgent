@@ -25,6 +25,7 @@ from backend.app.core.database import Base, get_db
 from backend.app.domain.enums import QuestionStatus, QuestionType, UserRole
 from backend.app.services.auth_service import create_access_token
 from backend.app.services.question_service import QuestionService
+from tests.support.question_validation_fixtures import persist_current_semantic_pass
 from tests.unit.services.test_question_service import add_course, add_teacher
 from tests.unit.settings_helpers import build_test_settings
 
@@ -85,6 +86,7 @@ def approved_question(session: Session) -> tuple[str, dict[str, str]]:
     service.update_question_status(
         question.id, QuestionStatus.PENDING_REVIEW, teacher_id=teacher.id
     )
+    persist_current_semantic_pass(session, question.id, teacher.id)
     service.update_question_status(
         question.id, QuestionStatus.APPROVED, teacher_id=teacher.id
     )
@@ -154,13 +156,18 @@ def test_approved_metadata_patch_is_allowed(
 
 def test_revision_edit_and_reapproval_use_existing_endpoints(
     client: TestClient,
+    session: Session,
     approved_question: tuple[str, dict[str, str]],
 ) -> None:
     """先退回、编辑、提交审核、批准；修订状态不能直接批准。"""
 
     question_id, headers = approved_question
     base = f"/api/questions/{question_id}"
-    returned = client.post(f"{base}/needs-revision", headers=headers)
+    returned = client.post(
+        f"{base}/needs-revision",
+        headers=headers,
+        json={"comment": "Teacher requests content correction."},
+    )
     assert returned.status_code == 200
     assert returned.json()["status"] == "Needs Revision"
     edited = client.patch(base, headers=headers, json={"content": "修订题干"})
@@ -171,6 +178,8 @@ def test_revision_edit_and_reapproval_use_existing_endpoints(
     submitted = client.post(f"{base}/submit-review", headers=headers)
     assert submitted.status_code == 200
     assert submitted.json()["status"] == "Pending Review"
+    teacher_id = QuestionService(session).get_question(question_id).created_by
+    persist_current_semantic_pass(session, question_id, teacher_id)
     approved = client.post(f"{base}/approve", headers=headers)
     assert approved.status_code == 200
     assert approved.json()["status"] == "Approved"

@@ -77,6 +77,7 @@ from tests.support.question_generation_doubles import (
     make_candidate,
     make_chunk,
 )
+from tests.support.semantic_validation_doubles import StubSemanticProvider
 from tests.unit.services.test_submission_service import (
     add_course,
     add_student,
@@ -171,6 +172,7 @@ def _service(
         ),
         embedding_provider=StubEmbeddingProvider(),
         settings=build_test_settings(),
+        semantic_provider=StubSemanticProvider(),
     )
 
 

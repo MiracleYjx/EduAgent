@@ -553,3 +553,9 @@ T159 修夹具后的主壳先行：2 failed，分别在 generatorfunction 与动
 - 首轮行为红测为 6 failed / 5 passed；实现后代理聚焦 62 passed，补充删除事务 1 passed。
 - 根代理在仅包含 T165 变更的独立暂存源码快照上运行既有生成、来源、审核/不可变性兼容用例：123 passed；新增删除补充 1 passed。
 - 独立快照 mypy 6 文件 / Ruff 通过，隔离数据库升级 0021 与 alembic check 通过。真实模型效果留给 T168，未将受控 Provider 结论当准确率。
+
+#### T166 验证结果
+
+- 新核验行为先 RED，最终独立 T166 源快照 173 passed；四项新增 PostgreSQL 事务用例及原十项均通过。
+- 原有生成/状态测试仅补真实教学证据、核验报告和受控 Provider 装配，保留状态/来源/数量/失败原断言；没有云调用特例。
+- 完整 mypy 195 源文件、backend/tests Ruff 通过；UI 集成由 T167 与最终回归承接。
