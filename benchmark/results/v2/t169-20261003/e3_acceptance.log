@@ -1,0 +1,43 @@
+Traceback (most recent call last):
+  File "D:\YJX\MyCode\EduAgent\benchmark\t169\e3_acceptance.py", line 986, in <module>
+    main()
+    ~~~~^^
+  File "D:\YJX\MyCode\EduAgent\benchmark\t169\e3_acceptance.py", line 972, in main
+    asyncio.run(run.run())
+    ~~~~~~~~~~~^^^^^^^^^^^
+  File "D:\develop\Python\Lib\asyncio\runners.py", line 195, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "D:\develop\Python\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "D:\develop\Python\Lib\asyncio\base_events.py", line 725, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "D:\YJX\MyCode\EduAgent\benchmark\t169\e3_acceptance.py", line 952, in run
+    good, service = await self.basic_cases()
+                    ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\YJX\MyCode\EduAgent\benchmark\t169\e3_acceptance.py", line 563, in basic_cases
+    good, service, _ = await self.generated("SEM-CLEAR-GOOD")
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\YJX\MyCode\EduAgent\benchmark\t169\e3_acceptance.py", line 448, in generated
+    service, provider = self.service(fields, semantic, citations=citations)
+                        ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\YJX\MyCode\EduAgent\benchmark\t169\e3_acceptance.py", line 410, in service
+    make_candidate(
+    ~~~~~~~~~~~~~~^
+        question_type=fields["type"],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+        source_context_ids=[str(self.chunk)] if citations else [],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\YJX\MyCode\EduAgent\tests\support\question_generation_doubles.py", line 67, in make_candidate
+    return QuestionCandidate(**payload)
+  File "D:\develop\Python\Lib\site-packages\pydantic\main.py", line 263, in __init__
+    validated_self = self.__pydantic_validator__.validate_python(data, self_instance=self)
+pydantic_core._pydantic_core.ValidationError: 1 validation error for QuestionCandidate
+knowledge_points
+  List should have at least 1 item after validation, not 0 [type=too_short, input_value=[], input_type=list]
+    For further information visit https://errors.pydantic.dev/2.13/v/too_short

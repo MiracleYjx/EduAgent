@@ -615,3 +615,19 @@ T159 修夹具后的主壳先行：2 failed，分别在 generatorfunction 与动
 - 原业务红测5 failed/8 passed，修正两个直接入口后13 passed；真实教材摄取→当前报告→教师批准→发布，原幂等/密码/学生参加/摄取重试/闭卷保护保留。
 - 当前工作区完整2144 passed/1原有用户样本冲突/2 skipped；不改该样本和断言。隔离提交快照完整2145 passed/2原条件skipped，638.11s，源码期间无变动；原冲突用例快照1 passed。
 - 全backend mypy199及Ruff通过，隔离迁移0021/check一致，用户文件原字节、业务库0012保持，owned资源清理。日志、精确tree及JUnit见docs/evidence/t167-demo-close-20261003/。
+
+## 24. T169 E3 范围/改编/图像/重核验验收 TCR（实施前，2026-10-03）
+
+- 必要性：现有覆盖主体完整，但逐项单独失败的批准门禁、A→B→A后的旧passed报告失效完整链，以及真实PostgreSQL父题自环/跨课程/环检测仍需聚焦补充；还需保存当前生产服务生成/改编/处置的可追溯运行状态。
+- 范围：最小新增tests/integration/test_t169_e3_acceptance.py或在对应现有PG测试追加wrapper；新benchmark/t169业务验收入口及docs证据，复用已有服务/DTO/Provider抽象，不新增业务功能或改写任务定义。新增测试前本TCR先登记。
+- 覆盖：四检索模式SQL在Top-K前过滤、缺省/空交集与跨课程/未知章节拒绝复用现有合同；PG复用父题图边界、自环/重复/环/跨课程及同事务；四check逐项fail/needs_review/insufficient_evidence其他pass时拒批，缺依据/不完整输入不制造成功报告；真实当前passed→内容A→B→A→旧报告stale且拒批，再当前核验可恢复。
+- 实际业务证据：新owned数据库/持久目录/必要独立Redis，实际迁移/启用合成Teacher/Ready教材Chunk，走生产QuestionGenerationService/QuestionAgent/ContentValidationService生成及父题改编、来源/资产/报告保存、两批准入口和人工处置/修订后重核验；受控Provider明确fixture身份，五类错误/无问题样本的业务门禁与模型质量分开。图像支持/不支持/调用失败和旧核对失效复用现有合同及真实服务验证，不把原图或核对继承为通过。
+- 保留断言：任何未解决问题/缺报告/失效/技术失败不得批准；教师处置保留原机器结果和真实执行者/UTC；候选生成与教师审核职责分离；原方案四模式、默认语义、权限与关联事务不降级。受控Provider结果不宣称模型正确率，真实质量引用T168的AI辅助+开发者审查、独立教师0、quality not_met。
+- 验证与停止：聚焦新增行为及既有unit/contract/真实PG模块、当前完整pytest/Ruff/mypy、隔离迁移/schema检查；保存JUnit/命令/源码/DB读回与样本分母，缺连接明确未验，不回填伪证。保护用户文件/.env，仅清理本批owned资源。实际云请求0，不扩展已完成T168质量/性能重复协议。
+
+#### T169 本批执行结果
+
+- 新真实PG补验14 passed，覆盖父图、四项各3非通过结论和A→B→A；既有+新增映射126 passed，均对应实际完整提交快照JUnit，不重复计数。
+- 可复现生产服务入口r1真实夹具违约失败保留；显式知识点metadata与原字段保持，r2实际通过。10项类型边界错误保留，最小修正后入口mypy/Ruff通过，r3实际12cases/11events/0云调用通过；原字段、失败和机器结论不改写。
+- 完整提交快照2145 passed/2原条件skipped，工作区1原用户样本冲突另存；后端mypy199/Ruff/隔离迁移通过，源码未变。原业务库/用户文件保持，owned资源清理。T168质量not_met与AI辅助口径保留；不以受控业务报告冒称模型准确率/教师质量。
+- 证据：benchmark/results/v2/t169-20261003/与docs/evidence/t167-demo-close-20261003/；T169仅勾完成状态，其余任务定义不改。

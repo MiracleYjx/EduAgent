@@ -870,3 +870,25 @@ scripts/demo_seed.py 先准备全部题目，仅将 Draft 送审；未全部 App
 全 backend mypy 199 源文件通过；backend/tests/本批 demo 脚本 Ruff 通过；专属数据库 upgrade 0021、Alembic check 无模型差异。未执行真实 Docker Demo 或新增云推理，本批不宣称模型质量/性能/EXE通过。T146 已采用 AI 辅助 + 开发者审查，独立教师标注0；T168整体质量 not_met 的结论保留。
 
 日志、XML、源码收据与原工作区失败见 [T167 收尾证据](evidence/t167-demo-close-20261003/)。2026-10-03T16:07:35Z 清理本批零连接 DB/Redis；原业务库0012_audit_logs及两README、阅卷样本、.env原字节保持。T167本批勾选，随后执行T169业务门禁验收。
+
+## T169 E3 范围、改编、图像与重核验验收（2026-10-03 UTC）
+
+**业务门禁验收完成，T169标记[X]；T168质量仍not_met。** T167演示收尾已独立提交推送9f4a631。T169未变更业务服务、公共DTO、模型依赖或其他任务定义；新增14项真实PG补验和可复现服务验收入口。基准为AI辅助 + 开发者审查，独立教师标注0。本次外部Question/语义/Vision/Embedding/固定召回均为明示受控替身，不以Schema通过代替真实语义质量测量；T168的42次真实推理及未达标结论继续有效。
+
+| T145业务边界 | 实际验证/证据 |
+| --- | --- |
+| 四模式范围与旧默认 | retrieval_scope_contract：vector/bm25/hybrid/rerank都在Top-K前按实际范围过滤；空交集不扩围、不调用rerank；缺省保留旧未知Chunk，Ready/purpose过滤；跨课程、未知章/节、foreign资料拒绝 |
+| 父题与事务 | question_adaptation unit/contract/真实PG：同课程、自环/环/重复、来源与候选/资产同事务、原题调用期间变化拒绝、受引用父题删除保护；补真实PG父图wrapper |
+| 语义与批准 | 四分项分别fail/needs_review/insufficient_evidence且其他3项pass的12项PG实例；真实持久failed、门禁拒批、无伪教师意见；Pending缺报告/失败/技术失败/无依据不可批准 |
+| 修订与人工处置 | 原合同/PG并发4项：当前/历史、调用不持锁、迟到通过仅历史、批准/修改串行；补A→B→A后新Session重读旧passed仍stale，必须新报告才能批准；人工处置不改机器结论，保留实际身份/UTC并显式重核验 |
+| 图片 | 支持/不支持/未配置/调用失败真实错误持久，资源关闭；机器理解不能代替人工确认；原像素共享但父/子asset与file身份独立，默认学生不可见，不继承父核对；当前图像人工核对后仍须当前语义核验 |
+
+映射126项行为全部通过（其中新14项为子集），用例名与时间见 [t169-coverage.json](../benchmark/results/v2/t169-20261003/t169-coverage.json)。共享当前工作区完整回归的唯一失败为原有用户阅卷样本冲突，原断言/用户修改保留；排除三项用户差异的精确提交源码快照完整2145 passed/2原条件skipped，638.11s；全backend mypy199、Ruff、独占数据库0021升级/check通过，原始全量证据见T167收尾目录。没有将skip或工作区冲突记为通过。
+
+**实际生成/改编回执**：[最终e3-acceptance-r3.json](../benchmark/results/v2/t169-20261003/e3-acceptance-r3.json)包含12个场景、11条关键事件、0云调用。QuestionGenerationService/QuestionAgent真实命令产生并持久候选、教学引用与父题，读取真实原图、资产/文件、独立报告和UTC；合成角色真实提交审核命令后才冻结。原题、答案、Rubric、选项、分值与已冻结T168运行字段相等，不转换重复选项或补答案。
+
+五类错误使用SEM-ANSWER、SEM-CONDITION、SEM-OPTIONS、SEM-STALE、SEM-RUBRIC及无问题对照：答案/条件/旧答案三个短Rubric生成先结构退修、自动语义0，原事实保留；由合成角色显式重新提交原字段并核验后保存独立受控failed报告。SEM-STALE以实际父题改编保留x=4沿用7的错误；A→B→A另测报告失效。SEM-OPTIONS重复值由正式预检CONTENT_INPUT_INCOMPLETE拒绝，SEM-NO-BASIS原答案/Rubric/依据缺失同样输入阻断，均0模型调用/0成功报告。SEM-RUBRIC原“看情况给分。”未被自动补写。无问题新生成/改编通过仍Pending Review；教师角色审核才Approved。图像父题Approved后改编，新题核对/报告为空；支持与不支持轮次均保存，子题当前人工核对后仍拒批，显式语义核验后才可审核，父题快照不变。
+
+首轮评测夹具knowledge_points=[]违约失败收据保留；修为明示合成分类metadata后r2实际通过，r2源码冻结。入口10项类型边界问题如实保留日志，最小非空断言/局部变量/同payload的model_validate修复后聚焦mypy与Ruff通过，r3真实复验再次通过；失败未覆盖，未修改原样本/业务校验。详细复现方式见benchmark/t169/README.md，证据摘要见manifest.json。
+
+本批仅独占DB/Redis/文件根运行，零连接清理后原业务库仍0012_audit_logs，两README、阅卷样本及.env原字节一致。T146/T168 AI辅助口径与未知项保留。T169完成的是范围/状态/权限/事务/来源/重核验技术验收，不代表平台语义质量、性能、Docker M0、EXE或最终系统验收通过。下一批可依次T170→T171→T172。

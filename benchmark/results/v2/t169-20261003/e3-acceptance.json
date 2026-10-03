@@ -1,0 +1,40 @@
+{
+  "schema_version": "t169-e3-business-acceptance-1",
+  "started_at_utc": "2026-10-03T15:45:30.052863+00:00",
+  "database": "eduagent_e3_acceptance_365105300a5b",
+  "storage_root": "D:/YJX/MyCode/EduAgent/.cache/t167-t169-20261003/business-files",
+  "reference_standard": "AI 辅助 + 开发者审查（学习项目口径）",
+  "synthetic_role": true,
+  "independent_teacher_annotation_count": 0,
+  "external_boundaries": [
+    "Question structured Provider",
+    "Semantic four checks Provider",
+    "Vision Provider",
+    "fixed recall of actual stored Chunk",
+    "Embedding"
+  ],
+  "cloud_calls": 0,
+  "model_quality_acceptance_claimed": false,
+  "t168_quality": "not_met; see benchmark/results/v2/t168-20261003/summary.json",
+  "source_runtime": {
+    "path": "benchmark/corpus/t168-runtime-20261003/semantic_runtime_inputs.json",
+    "sha256": "2a54493f2c75251356b59e155d19c30ed5a3918d883d75dcf87fd78b457e61c6"
+  },
+  "cases": [],
+  "events": [],
+  "status": "failed",
+  "fixture_ids": {
+    "teacher": "a099672a-d189-4e5e-9a10-239bafc4e6fc",
+    "course": "c067f62a-f9c7-4e9a-a962-7696a8ccb43c",
+    "document": "c98ebd1e-6b8e-4f3b-92ec-8b018d9f9769",
+    "chunk": "8b2c4962-952e-4e67-b93a-4bf9f4e6886c"
+  },
+  "failure": {
+    "type": "ValidationError",
+    "code": null,
+    "http_status": null,
+    "cause_type": null,
+    "cause_code": null
+  },
+  "finished_at_utc": "2026-10-03T15:45:30.299525+00:00"
+}

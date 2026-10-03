@@ -1,0 +1,763 @@
+{
+  "source": "docs/evidence/t167-demo-close-20261003/full-submission-pytest.xml",
+  "scope": "T169 mapped existing behavior and supplemental tests",
+  "count": 126,
+  "cases": [
+    {
+      "classname": "tests.contract.test_content_validation_api",
+      "name": "test_image_assessment_is_teacher_only_and_has_no_fabricated_check",
+      "seconds": 0.465,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.contract.test_content_validation_api",
+      "name": "test_human_command_records_real_teacher_time_and_rejects_replay",
+      "seconds": 0.521,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.contract.test_content_validation_api",
+      "name": "test_teacher_cannot_replace_machine_history_or_spoof_identity",
+      "seconds": 0.7,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.contract.test_content_validation_api",
+      "name": "test_validation_history_permissions_empty_and_missing_report_are_distinct",
+      "seconds": 0.914,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.contract.test_content_validation_api",
+      "name": "test_manual_check_requires_current_whole_group_and_readable_original",
+      "seconds": 0.557,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.contract.test_content_validation_api",
+      "name": "test_current_report_disposition_appends_real_comment_without_rewriting_result",
+      "seconds": 0.488,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.contract.test_image_understanding_api",
+      "name": "test_image_understanding_auth_and_request_cannot_select_fake_inputs",
+      "seconds": 0.502,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.contract.test_image_understanding_api",
+      "name": "test_unconfigured_model_failure_is_durable_and_manual_check_remains_available",
+      "seconds": 0.47,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.contract.test_image_understanding_api",
+      "name": "test_missing_original_keeps_failure_and_never_calls_provider",
+      "seconds": 0.44,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.contract.test_image_understanding_api",
+      "name": "test_supported_whole_group_output_uses_authorized_ids_and_still_needs_teacher",
+      "seconds": 0.486,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.contract.test_image_understanding_api",
+      "name": "test_invalid_model_image_index_is_recorded_as_output_error",
+      "seconds": 0.501,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.contract.test_question_adaptation_api",
+      "name": "test_adaptation_route_and_persistent_parent_detail",
+      "seconds": 0.728,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.contract.test_question_adaptation_api",
+      "name": "test_adaptation_permission_and_parent_boundaries",
+      "seconds": 0.64,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.contract.test_retrieval_scope_contract",
+      "name": "test_all_modes_filter_scope_before_top_k_and_rerank[vector_only]",
+      "seconds": 0.927,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.contract.test_retrieval_scope_contract",
+      "name": "test_all_modes_filter_scope_before_top_k_and_rerank[keyword_only]",
+      "seconds": 0.958,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.contract.test_retrieval_scope_contract",
+      "name": "test_all_modes_filter_scope_before_top_k_and_rerank[hybrid]",
+      "seconds": 0.93,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.contract.test_retrieval_scope_contract",
+      "name": "test_all_modes_filter_scope_before_top_k_and_rerank[hybrid_rerank]",
+      "seconds": 0.937,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.contract.test_retrieval_scope_contract",
+      "name": "test_empty_intersection_does_not_expand_range_or_invoke_rerank[vector_only]",
+      "seconds": 0.945,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.contract.test_retrieval_scope_contract",
+      "name": "test_empty_intersection_does_not_expand_range_or_invoke_rerank[keyword_only]",
+      "seconds": 0.882,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.contract.test_retrieval_scope_contract",
+      "name": "test_empty_intersection_does_not_expand_range_or_invoke_rerank[hybrid]",
+      "seconds": 0.901,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.contract.test_retrieval_scope_contract",
+      "name": "test_empty_intersection_does_not_expand_range_or_invoke_rerank[hybrid_rerank]",
+      "seconds": 0.902,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.contract.test_retrieval_scope_contract",
+      "name": "test_confirmed_json_labels_match_any_exact_member[vector_only]",
+      "seconds": 0.892,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.contract.test_retrieval_scope_contract",
+      "name": "test_confirmed_json_labels_match_any_exact_member[keyword_only]",
+      "seconds": 0.95,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.contract.test_retrieval_scope_contract",
+      "name": "test_confirmed_json_labels_match_any_exact_member[hybrid]",
+      "seconds": 0.95,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.contract.test_retrieval_scope_contract",
+      "name": "test_confirmed_json_labels_match_any_exact_member[hybrid_rerank]",
+      "seconds": 0.909,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.contract.test_retrieval_scope_contract",
+      "name": "test_null_empty_or_non_array_labels_do_not_match[None]",
+      "seconds": 0.904,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.contract.test_retrieval_scope_contract",
+      "name": "test_null_empty_or_non_array_labels_do_not_match[labels1]",
+      "seconds": 0.919,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.contract.test_retrieval_scope_contract",
+      "name": "test_null_empty_or_non_array_labels_do_not_match[Newton II]",
+      "seconds": 0.899,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.contract.test_retrieval_scope_contract",
+      "name": "test_null_empty_or_non_array_labels_do_not_match[labels3]",
+      "seconds": 0.899,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.contract.test_retrieval_scope_contract",
+      "name": "test_scope_requires_authorized_course_and_rejects_foreign_chapter_document",
+      "seconds": 0.968,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.contract.test_retrieval_scope_contract",
+      "name": "test_range_catalogue_errors_are_distinct_from_valid_empty_scope",
+      "seconds": 0.94,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.contract.test_retrieval_scope_contract",
+      "name": "test_no_scope_keeps_legacy_unknown_chunks_and_ready_purpose_filter[vector_only]",
+      "seconds": 0.917,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.contract.test_retrieval_scope_contract",
+      "name": "test_no_scope_keeps_legacy_unknown_chunks_and_ready_purpose_filter[keyword_only]",
+      "seconds": 0.923,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.contract.test_retrieval_scope_contract",
+      "name": "test_no_scope_keeps_legacy_unknown_chunks_and_ready_purpose_filter[hybrid]",
+      "seconds": 0.966,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.contract.test_retrieval_scope_contract",
+      "name": "test_no_scope_keeps_legacy_unknown_chunks_and_ready_purpose_filter[hybrid_rerank]",
+      "seconds": 0.914,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.contract.test_retrieval_scope_contract",
+      "name": "test_generation_context_consumes_explicit_scope_in_all_modes[vector_only]",
+      "seconds": 0.957,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.contract.test_retrieval_scope_contract",
+      "name": "test_generation_context_consumes_explicit_scope_in_all_modes[keyword_only]",
+      "seconds": 0.954,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.contract.test_retrieval_scope_contract",
+      "name": "test_generation_context_consumes_explicit_scope_in_all_modes[hybrid]",
+      "seconds": 0.951,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.contract.test_retrieval_scope_contract",
+      "name": "test_generation_context_consumes_explicit_scope_in_all_modes[hybrid_rerank]",
+      "seconds": 0.921,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.contract.test_retrieval_scope_contract",
+      "name": "test_generation_scope_failure_preserves_reason_and_prevents_provider_calls",
+      "seconds": 0.886,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.contract.test_retrieval_scope_contract",
+      "name": "test_chapter_union_and_unknown_section_preserve_real_scope",
+      "seconds": 0.916,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.contract.test_t166_generation_review",
+      "name": "test_auto_generation_persists_actual_semantic_result_and_current_detail[pass-None-passed-Pending Review]",
+      "seconds": 0.764,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.contract.test_t166_generation_review",
+      "name": "test_auto_generation_persists_actual_semantic_result_and_current_detail[fail-None-failed-Needs Revision]",
+      "seconds": 0.761,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.contract.test_t166_generation_review",
+      "name": "test_auto_generation_persists_actual_semantic_result_and_current_detail[pass-error2-technical_error-Pending Review]",
+      "seconds": 0.766,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.contract.test_t166_generation_review",
+      "name": "test_batch_is_persisted_before_any_semantic_model_request",
+      "seconds": 0.754,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.contract.test_t166_generation_review",
+      "name": "test_each_approval_route_rejects_pending_without_current_semantic_report[approve]",
+      "seconds": 0.715,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.contract.test_t166_generation_review",
+      "name": "test_each_approval_route_rejects_pending_without_current_semantic_report[patch_status]",
+      "seconds": 0.678,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.contract.test_t166_generation_review",
+      "name": "test_each_approval_route_rejects_pending_without_current_semantic_report[post_status]",
+      "seconds": 0.622,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.contract.test_t166_generation_review",
+      "name": "test_each_approval_route_rejects_pending_without_current_semantic_report[candidate_review]",
+      "seconds": 0.626,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.contract.test_t166_generation_review",
+      "name": "test_candidate_approval_records_real_freeze_and_manual_revision_records_real_comment",
+      "seconds": 0.722,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.contract.test_t166_generation_review",
+      "name": "test_pending_list_status_does_not_mask_new_running_report_or_revision",
+      "seconds": 0.794,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.contract.test_t166_generation_review",
+      "name": "test_text_adaptation_uses_its_own_report_and_never_inherits_parent_pass",
+      "seconds": 0.705,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.contract.test_t166_generation_review",
+      "name": "test_image_adaptation_keeps_original_pixels_but_requires_its_own_image_and_semantic_review",
+      "seconds": 2.23,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.contract.test_t166_validation_command",
+      "name": "test_explicit_command_persists_real_inputs_and_provider_facts",
+      "seconds": 0.429,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.contract.test_t166_validation_command",
+      "name": "test_command_cannot_spoof_current_content_or_machine_authority[forged0]",
+      "seconds": 0.401,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.contract.test_t166_validation_command",
+      "name": "test_command_cannot_spoof_current_content_or_machine_authority[forged1]",
+      "seconds": 0.392,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.contract.test_t166_validation_command",
+      "name": "test_command_cannot_spoof_current_content_or_machine_authority[forged2]",
+      "seconds": 0.405,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.contract.test_t166_validation_command",
+      "name": "test_command_cannot_spoof_current_content_or_machine_authority[forged3]",
+      "seconds": 0.411,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.contract.test_t166_validation_command",
+      "name": "test_command_cannot_spoof_current_content_or_machine_authority[forged4]",
+      "seconds": 0.412,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.contract.test_t166_validation_command",
+      "name": "test_command_requires_authenticated_course_teacher",
+      "seconds": 0.445,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.contract.test_t166_validation_command",
+      "name": "test_command_starts_only_submitted_current_candidate[Draft]",
+      "seconds": 0.43,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.contract.test_t166_validation_command",
+      "name": "test_command_starts_only_submitted_current_candidate[Approved]",
+      "seconds": 0.433,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.contract.test_t166_validation_command",
+      "name": "test_image_command_requires_current_real_whole_group_review",
+      "seconds": 0.647,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.contract.test_t166_validation_command",
+      "name": "test_public_command_preserves_basis_error_without_starting_a_report[False-CONTENT_INPUT_INCOMPLETE]",
+      "seconds": 0.446,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.contract.test_t166_validation_command",
+      "name": "test_public_command_preserves_basis_error_without_starting_a_report[True-CONTENT_SOURCE_INVALID]",
+      "seconds": 0.429,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.integration.test_content_validation_persistence",
+      "name": "test_two_preloaded_sessions_allocate_distinct_global_rounds",
+      "seconds": 0.963,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.integration.test_content_validation_persistence",
+      "name": "test_preloaded_identity_reads_current_revision_under_question_lock",
+      "seconds": 0.957,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.integration.test_content_validation_persistence",
+      "name": "test_database_rejects_bad_report_state_json_and_counters[changes0]",
+      "seconds": 0.96,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.integration.test_content_validation_persistence",
+      "name": "test_database_rejects_bad_report_state_json_and_counters[changes1]",
+      "seconds": 0.958,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.integration.test_content_validation_persistence",
+      "name": "test_database_rejects_bad_report_state_json_and_counters[changes2]",
+      "seconds": 0.954,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.integration.test_content_validation_persistence",
+      "name": "test_database_rejects_bad_report_state_json_and_counters[changes3]",
+      "seconds": 0.961,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.integration.test_content_validation_persistence",
+      "name": "test_database_rejects_bad_report_state_json_and_counters[changes4]",
+      "seconds": 0.985,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.integration.test_content_validation_persistence",
+      "name": "test_database_rejects_bad_report_state_json_and_counters[changes5]",
+      "seconds": 0.939,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.integration.test_content_validation_persistence",
+      "name": "test_database_rejects_bad_report_state_json_and_counters[changes6]",
+      "seconds": 0.969,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.integration.test_content_validation_persistence",
+      "name": "test_trace_cleanup_only_nulls_pointer_durable_provenance_survives",
+      "seconds": 1.027,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.integration.test_question_adaptation",
+      "name": "test_real_postgres_adaptation_sources",
+      "seconds": 1.107,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.integration.test_question_adaptation",
+      "name": "test_real_postgres_adaptation_rollback",
+      "seconds": 1.252,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.integration.test_question_adaptation",
+      "name": "test_real_postgres_adaptation_stale_input",
+      "seconds": 0.966,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.integration.test_question_adaptation",
+      "name": "test_real_postgres_original_image_reuse",
+      "seconds": 2.746,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.integration.test_question_adaptation",
+      "name": "test_real_postgres_image_transaction_failure",
+      "seconds": 1.174,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.integration.test_question_adaptation",
+      "name": "test_real_postgres_parent_reference_protection_and_legal_child_delete",
+      "seconds": 1.196,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.integration.test_t166_semantic_transactions",
+      "name": "test_provider_wait_releases_question_lock_and_changed_revision_keeps_late_result_historical",
+      "seconds": 1.115,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.integration.test_t166_semantic_transactions",
+      "name": "test_superseded_call_failure_cannot_replace_newest_passed_approval_basis",
+      "seconds": 1.262,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.integration.test_t166_semantic_transactions",
+      "name": "test_approval_question_lock_prevents_concurrent_editor_from_replacing_validated_content",
+      "seconds": 1.388,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.integration.test_t166_semantic_transactions",
+      "name": "test_explicit_changed_basis_is_committed_before_call_and_late_pass_cannot_revive_previous_input",
+      "seconds": 1.253,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.integration.test_t169_e3_acceptance",
+      "name": "test_postgres_parent_graph_rejects_self_cross_course_and_cycle",
+      "seconds": 0.982,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.integration.test_t169_e3_acceptance",
+      "name": "test_each_individual_check_blocks_approval_on_postgres[fail-answer_correctness]",
+      "seconds": 1.057,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.integration.test_t169_e3_acceptance",
+      "name": "test_each_individual_check_blocks_approval_on_postgres[fail-condition_sufficiency]",
+      "seconds": 1.101,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.integration.test_t169_e3_acceptance",
+      "name": "test_each_individual_check_blocks_approval_on_postgres[fail-option_ambiguity]",
+      "seconds": 1.106,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.integration.test_t169_e3_acceptance",
+      "name": "test_each_individual_check_blocks_approval_on_postgres[fail-rubric_clarity]",
+      "seconds": 1.066,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.integration.test_t169_e3_acceptance",
+      "name": "test_each_individual_check_blocks_approval_on_postgres[needs_review-answer_correctness]",
+      "seconds": 1.075,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.integration.test_t169_e3_acceptance",
+      "name": "test_each_individual_check_blocks_approval_on_postgres[needs_review-condition_sufficiency]",
+      "seconds": 1.072,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.integration.test_t169_e3_acceptance",
+      "name": "test_each_individual_check_blocks_approval_on_postgres[needs_review-option_ambiguity]",
+      "seconds": 1.104,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.integration.test_t169_e3_acceptance",
+      "name": "test_each_individual_check_blocks_approval_on_postgres[needs_review-rubric_clarity]",
+      "seconds": 1.12,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.integration.test_t169_e3_acceptance",
+      "name": "test_each_individual_check_blocks_approval_on_postgres[insufficient_evidence-answer_correctness]",
+      "seconds": 1.117,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.integration.test_t169_e3_acceptance",
+      "name": "test_each_individual_check_blocks_approval_on_postgres[insufficient_evidence-condition_sufficiency]",
+      "seconds": 1.191,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.integration.test_t169_e3_acceptance",
+      "name": "test_each_individual_check_blocks_approval_on_postgres[insufficient_evidence-option_ambiguity]",
+      "seconds": 1.152,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.integration.test_t169_e3_acceptance",
+      "name": "test_each_individual_check_blocks_approval_on_postgres[insufficient_evidence-rubric_clarity]",
+      "seconds": 1.093,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.integration.test_t169_e3_acceptance",
+      "name": "test_return_to_original_content_requires_new_report_on_postgres",
+      "seconds": 1.331,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.unit.services.test_image_understanding_service",
+      "name": "test_source_pixels_use_actual_crop_offset_and_unknown_mapping_stays_unknown",
+      "seconds": 0.001,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.unit.services.test_image_understanding_service",
+      "name": "test_model_box_outside_the_actual_input_image_is_rejected",
+      "seconds": 0.001,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.unit.services.test_image_understanding_service",
+      "name": "test_missing_configuration_is_durable_technical_error_without_provider_identity",
+      "seconds": 0.114,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.unit.services.test_image_understanding_service",
+      "name": "test_unsupported_provider_never_calls_model_and_is_closed_once",
+      "seconds": 0.114,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.unit.services.test_image_understanding_service",
+      "name": "test_fake_machine_success_binds_authorized_asset_and_keeps_teacher_pending",
+      "seconds": 0.115,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.unit.services.test_image_understanding_service",
+      "name": "test_actual_call_cancellation_is_saved_with_actual_stub_source_then_rethrown",
+      "seconds": 0.113,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.unit.services.test_image_understanding_service",
+      "name": "test_close_exception_preserves_machine_completion_and_propagates_cleanup_failure",
+      "seconds": 0.15,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.unit.services.test_image_understanding_service",
+      "name": "test_close_cancellation_preserves_already_received_result_then_rethrows_cancel",
+      "seconds": 0.12,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.unit.services.test_image_understanding_service",
+      "name": "test_finish_commit_failure_propagates_once_with_saved_running_state",
+      "seconds": 0.121,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.unit.services.test_image_understanding_service",
+      "name": "test_late_result_after_real_correction_keeps_history_without_confirming_new_context",
+      "seconds": 0.122,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.unit.services.test_image_understanding_service",
+      "name": "test_missing_authorized_file_keeps_original_code_and_never_creates_provider",
+      "seconds": 0.122,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.unit.services.test_image_understanding_service",
+      "name": "test_changed_input_before_prepare_keeps_state_error_stage_and_has_no_model_identity",
+      "seconds": 0.118,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.unit.services.test_question_adaptation_service",
+      "name": "test_target_score_rejects_unstorable_values[0]",
+      "seconds": 0.001,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.unit.services.test_question_adaptation_service",
+      "name": "test_target_score_rejects_unstorable_values[-1]",
+      "seconds": 0.001,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.unit.services.test_question_adaptation_service",
+      "name": "test_target_score_rejects_unstorable_values[2.001]",
+      "seconds": 0.001,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.unit.services.test_question_adaptation_service",
+      "name": "test_target_score_rejects_unstorable_values[1000000]",
+      "seconds": 0.001,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.unit.services.test_question_adaptation_service",
+      "name": "test_target_score_rejects_unstorable_values[NaN]",
+      "seconds": 0.001,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.unit.services.test_question_adaptation_service",
+      "name": "test_target_score_is_a_real_generation_requirement",
+      "seconds": 0.001,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.unit.services.test_question_adaptation_service",
+      "name": "test_adaptation_has_new_question_parent_and_real_teaching_sources",
+      "seconds": 0.178,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.unit.services.test_question_adaptation_service",
+      "name": "test_target_score_mismatch_is_not_silently_overwritten",
+      "seconds": 0.116,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.unit.services.test_question_adaptation_service",
+      "name": "test_adaptation_missing_teaching_citation_cannot_create_fake_parent_evidence",
+      "seconds": 0.147,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.unit.services.test_question_adaptation_service",
+      "name": "test_parent_edge_write_failure_rolls_back_all_candidate_records",
+      "seconds": 0.121,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.unit.services.test_question_adaptation_service",
+      "name": "test_parent_changed_during_call_rejects_stale_adaptation",
+      "seconds": 0.115,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.unit.services.test_question_adaptation_service",
+      "name": "test_parent_graph_rejects_self_cross_course_and_cycle",
+      "seconds": 0.123,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.unit.services.test_question_adaptation_service",
+      "name": "test_adaptation_reuses_original_bytes_with_new_identity_and_no_inherited_review",
+      "seconds": 0.213,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.unit.services.test_question_adaptation_service",
+      "name": "test_reused_asset_failure_preserves_parent_bytes_and_atomic_candidate_boundary",
+      "seconds": 0.191,
+      "result": "passed"
+    },
+    {
+      "classname": "tests.unit.services.test_question_adaptation_service",
+      "name": "test_locator_only_change_does_not_invalidate_same_parent_input",
+      "seconds": 0.232,
+      "result": "passed"
+    }
+  ]
+}

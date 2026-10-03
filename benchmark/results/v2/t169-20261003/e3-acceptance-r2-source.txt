@@ -1,0 +1,1029 @@
+"""T169 real service/DB acceptance with declared external inference doubles (TCR 24).
+
+The caller creates and owns the disposable PostgreSQL database and storage root.
+No environment, database, migration, cloud model, or cleanup is managed here.
+"""
+
+from __future__ import annotations
+
+import argparse
+import asyncio
+import hashlib
+import json
+import sys
+from copy import deepcopy
+from datetime import UTC, datetime
+from decimal import Decimal
+from pathlib import Path
+from typing import Any
+from unittest.mock import patch
+from uuid import UUID, uuid4
+
+ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT))
+
+from pydantic import BaseModel
+from sqlalchemy import select
+from sqlalchemy.engine import make_url
+from sqlalchemy.orm import Session
+
+from backend.app.ai.agents.question_agent import QuestionAgent
+from backend.app.ai.llm.base import BaseLLMProvider
+from backend.app.api.question_generation import (
+    QuestionGenerationError,
+    QuestionGenerationService,
+)
+from backend.app.core.config import get_settings
+from backend.app.core.database import create_database_engine
+from backend.app.domain.enums import (
+    DocumentStatus,
+    QuestionStatus,
+    QuestionType,
+    UserRole,
+)
+from backend.app.models import (
+    Course,
+    Document,
+    DocumentChunk,
+    KnowledgeBase,
+    Question,
+    QuestionAsset,
+    QuestionGenerationMetadata,
+    QuestionRevisionComment,
+    QuestionSourceChunk,
+    QuestionSourcePaper,
+    Role,
+    User,
+)
+from backend.app.schemas.content_validation import (
+    ManualContextReference,
+    ManualDispositionRequest,
+)
+from backend.app.schemas.image_assessment import ImageManualCheckRequest
+from backend.app.services.auth_service import hash_password
+from backend.app.services.content_validation_service import (
+    ContentValidationError,
+    ContentValidationService,
+)
+from backend.app.services.file_storage_service import FileStorageService
+from backend.app.services.image_understanding_service import (
+    ImageUnderstandingService,
+)
+from backend.app.services.question_asset_service import (
+    QuestionAssetService,
+)
+from backend.app.services.question_service import (
+    QuestionService,
+    QuestionValidationError,
+)
+from tests.support.question_generation_doubles import (
+    StubEmbeddingProvider,
+    StubQuestionProvider,
+    StubRetriever,
+    make_candidate,
+    make_chunk,
+)
+
+KINDS = (
+    "answer_correctness",
+    "condition_sufficiency",
+    "option_ambiguity",
+    "rubric_clarity",
+)
+FIELDS = (
+    "type",
+    "content",
+    "options",
+    "reference_answer",
+    "scoring_rubric",
+    "analysis",
+    "score",
+)
+RUNTIME = ROOT / "benchmark/corpus/t168-runtime-20261003/semantic_runtime_inputs.json"
+IMAGE_LABELS = (
+    ROOT / "benchmark/corpus/t146-ai-authorized-20261003/image_annotations.json"
+)
+
+
+def error_fact(exc: Exception) -> dict[str, Any]:
+    return {
+        "type": type(exc).__name__,
+        "code": getattr(exc, "code", getattr(exc, "error_code", None)),
+        "http_status": getattr(exc, "http_status", None),
+        "cause_type": type(exc.__cause__).__name__ if exc.__cause__ else None,
+        "cause_code": getattr(exc.__cause__, "code", None),
+    }
+
+
+class ChecksProvider(BaseLLMProvider):
+    provider_name = "controlled-t169-semantic"
+    model_name = "declared-four-check-fixture"
+    model_version = "t169-1"
+
+    def __init__(self, fail_kind: str | None = None) -> None:
+        self.fail_kind = fail_kind
+        self.calls: list[dict[str, Any]] = []
+
+    async def generate_structured(self, messages, schema: type[BaseModel], model=None):
+        value = json.loads(str(messages[1]["content"]))
+        refs = [item["evidence_id"] for item in value["evidence"]]
+        output = {
+            "checks": [
+                {
+                    "kind": kind,
+                    "verdict": "fail" if kind == self.fail_kind else "pass",
+                    "reason": "Declared controlled conclusion; real-model quality is reported by T168.",
+                    "evidence_refs": refs,
+                }
+                for kind in KINDS
+            ],
+            "issues": [
+                {
+                    "code": "CONTROLLED_" + self.fail_kind.upper(),
+                    "field": "reference_answer"
+                    if self.fail_kind == "answer_correctness"
+                    else None,
+                    "severity": "error",
+                    "message": "Declared problem for service-gate acceptance, not model detection evidence.",
+                    "evidence_refs": refs,
+                }
+            ]
+            if self.fail_kind
+            else [],
+        }
+        self.calls.append(
+            {"controlled_call_id": str(uuid4()), "input": value, "output": output}
+        )
+        return schema.model_validate(output)
+
+
+class FigureProvider(BaseLLMProvider):
+    provider_name = "controlled-t169-vision"
+    model_name = "declared-figure-fixture"
+    model_version = "t169-1"
+
+    def __init__(self, conditions: list[dict[str, Any]], *, supported: bool) -> None:
+        self.conditions = conditions
+        self.supported = supported
+        self.calls = 0
+        self.closed = 0
+
+    def supports_vision(self) -> bool:
+        return self.supported
+
+    async def generate_structured(self, messages, schema, model=None):
+        self.calls += 1
+        assert any(item["type"] == "image" for item in messages[-1]["content"])
+        return schema.model_validate(
+            {
+                "observations": [],
+                "conditions": [
+                    {"image_index": 1, "text": item["text"], "evidence_region": None}
+                    for item in self.conditions
+                ],
+                "unresolved_issues": [],
+                "requires_manual_review": False,
+                "provenance": None,
+            }
+        )
+
+    async def aclose(self) -> None:
+        self.closed += 1
+
+
+class Acceptance:
+    def __init__(self, output: Path, database: str) -> None:
+        self.output = output
+        self.settings = get_settings()
+        actual = make_url(str(self.settings.database_url)).database
+        if (
+            actual != database
+            or not database.startswith("eduagent_")
+            or not database.startswith("eduagent_e3_acceptance_")
+        ):
+            raise ValueError(
+                "DATABASE_URL must identify the explicitly owned T169 disposable database"
+            )
+        self.storage = self.settings.storage_root.resolve()
+        if not self.storage.is_relative_to(ROOT / ".cache"):
+            raise ValueError(
+                "STORAGE_ROOT must be an owned path under repository .cache"
+            )
+        if output.exists():
+            raise ValueError("Refusing to replace an existing acceptance receipt")
+        self.engine = create_database_engine(self.settings)
+        self.runtime = json.loads(RUNTIME.read_text(encoding="utf-8"))
+        self.image = next(
+            item
+            for item in json.loads(IMAGE_LABELS.read_text(encoding="utf-8"))["entries"]
+            if item["case_id"] == "IMG-FIGURE"
+        )
+        self.report: dict[str, Any] = {
+            "schema_version": "t169-e3-business-acceptance-1",
+            "started_at_utc": datetime.now(UTC).isoformat(),
+            "database": database,
+            "storage_root": self.storage.as_posix(),
+            "reference_standard": "AI 辅助 + 开发者审查（学习项目口径）",
+            "synthetic_role": True,
+            "independent_teacher_annotation_count": 0,
+            "external_boundaries": [
+                "Question structured Provider",
+                "Semantic four checks Provider",
+                "Vision Provider",
+                "fixed recall of actual stored Chunk",
+                "Embedding",
+            ],
+            "cloud_calls": 0,
+            "declared_generation_metadata": {
+                "knowledge_points": ["T169 synthetic service fixture"],
+                "origin": "new synthetic classification metadata required by QuestionCandidate; not excerpted from original source or evaluation label",
+            },
+            "model_quality_acceptance_claimed": False,
+            "t168_quality": "not_met; see benchmark/results/v2/t168-20261003/summary.json",
+            "source_runtime": {
+                "path": RUNTIME.relative_to(ROOT).as_posix(),
+                "sha256": hashlib.sha256(RUNTIME.read_bytes()).hexdigest(),
+            },
+            "cases": [],
+            "events": [],
+            "status": "running",
+        }
+        self.save()
+
+    def session(self) -> Session:
+        return Session(self.engine, expire_on_commit=False, autoflush=False)
+
+    def save(self) -> None:
+        self.output.parent.mkdir(parents=True, exist_ok=True)
+        self.output.write_text(
+            json.dumps(self.report, ensure_ascii=False, indent=2), encoding="utf-8"
+        )
+
+    def seed(self) -> None:
+        basis = (
+            ROOT / "benchmark/corpus/v2-draft-20261001/teaching_basis.md"
+        ).read_text(encoding="utf-8")
+        with self.session() as session:
+            role = session.scalar(select(Role).where(Role.name == UserRole.TEACHER))
+            if role is None:
+                role = Role(name=UserRole.TEACHER)
+            teacher = User(
+                username="t169_synthetic_" + uuid4().hex[:10],
+                email=uuid4().hex + "@fixture.invalid",
+                password_hash=hash_password(uuid4().hex),
+                roles=[role],
+            )
+            session.add(teacher)
+            session.flush()
+            course = Course(
+                name="T169 synthetic service acceptance", created_by=teacher.id
+            )
+            session.add(course)
+            session.flush()
+            kb = KnowledgeBase(
+                course_id=course.id, name="Actual persisted synthetic teaching source"
+            )
+            session.add(kb)
+            session.flush()
+            doc = Document(
+                id=uuid4(),
+                course_id=course.id,
+                knowledge_base_id=kb.id,
+                uploaded_by=teacher.id,
+                original_filename="teaching_basis.md",
+                file_format="txt",
+                status=DocumentStatus.READY,
+            )
+            files = FileStorageService(session, root=self.storage)
+            stored = files.store_document(
+                doc, basis.encode("utf-8"), actor_id=teacher.id
+            )
+            doc.storage_path, doc.file_metadata = (
+                stored.storage_path,
+                stored.metadata.model_dump(mode="json"),
+            )
+            session.add(doc)
+            session.flush()
+            chunk = DocumentChunk(
+                course_id=course.id,
+                document_id=doc.id,
+                knowledge_base_id=kb.id,
+                chunk_index=0,
+                content=basis,
+                chunk_metadata={"location": "whole synthetic fixture"},
+                embedding=[0.0] * 1024,
+            )
+            session.add(chunk)
+            session.commit()
+            files.commit_receipt(stored, current_status="Ready")
+            self.actor, self.course, self.chunk, self.doc = (
+                teacher.id,
+                course.id,
+                chunk.id,
+                doc.id,
+            )
+        self.basis = basis
+        self.report["fixture_ids"] = {
+            "teacher": str(self.actor),
+            "course": str(self.course),
+            "document": str(self.doc),
+            "chunk": str(self.chunk),
+        }
+        self.save()
+
+    def fields(self, case: str) -> dict[str, Any]:
+        return deepcopy(self.runtime["cases"][case]["input"]["fields"])
+
+    def snapshot(self, identity: UUID) -> dict[str, Any]:
+        with self.session() as session:
+            question = session.get(Question, identity)
+            assert question is not None
+            meta = session.get(QuestionGenerationMetadata, identity)
+            reports = ContentValidationService(
+                session, root=self.storage
+            ).list_validations(identity, actor_id=self.actor)
+            return {
+                "question_id": str(identity),
+                "status": question.status.value,
+                "source_type": question.source_type.value,
+                "validation_revision": question.validation_revision,
+                "frozen_at": question.frozen_at.isoformat()
+                if question.frozen_at
+                else None,
+                "fields": {
+                    name: (
+                        getattr(question, name).value
+                        if name == "type"
+                        else str(getattr(question, name))
+                        if name == "score"
+                        else getattr(question, name)
+                    )
+                    for name in FIELDS
+                },
+                "source_chunks": [
+                    {
+                        "id": str(row.id),
+                        "chunk_id": str(row.chunk_id),
+                        "content_snapshot": row.content_snapshot,
+                    }
+                    for row in session.scalars(
+                        select(QuestionSourceChunk).where(
+                            QuestionSourceChunk.question_id == identity
+                        )
+                    )
+                ],
+                "parent_edges": [
+                    {
+                        "id": str(row.id),
+                        "source_question_id": str(row.source_question_id),
+                    }
+                    for row in session.scalars(
+                        select(QuestionSourcePaper).where(
+                            QuestionSourcePaper.derived_question_id == identity
+                        )
+                    )
+                ],
+                "generation_request_id": str(meta.request_id) if meta else None,
+                "reports": [item.model_dump(mode="json") for item in reports],
+                "revision_comments": [
+                    {
+                        "comment": item.comment,
+                        "commented_by": str(item.commented_by),
+                        "commented_at": item.commented_at.isoformat(),
+                    }
+                    for item in session.scalars(
+                        select(QuestionRevisionComment).where(
+                            QuestionRevisionComment.question_id == identity
+                        )
+                    )
+                ],
+            }
+
+    def service(
+        self,
+        fields: dict[str, Any],
+        semantic: ChecksProvider,
+        *,
+        citations: bool = True,
+    ):
+        assert fields["options"] is None, (
+            "Ordered object options must use the formal manual path unchanged"
+        )
+        provider = StubQuestionProvider(
+            model_name="controlled-t169-source-fixture",
+            candidates=[
+                make_candidate(
+                    question_type=fields["type"],
+                    content=fields["content"],
+                    options=fields["options"],
+                    reference_answer=fields["reference_answer"],
+                    scoring_rubric=fields["scoring_rubric"],
+                    analysis=fields["analysis"],
+                    score=float(Decimal(fields["score"])),
+                    knowledge_points=["T169 synthetic service fixture"],
+                    source_context_ids=[str(self.chunk)] if citations else [],
+                )
+            ],
+        )
+        retriever = StubRetriever(
+            [
+                make_chunk(
+                    str(self.chunk),
+                    course_id=str(self.course),
+                    document_id=str(self.doc),
+                    content=self.basis,
+                )
+            ]
+        )
+        service = QuestionGenerationService(
+            session_factory=self.session,
+            agent=QuestionAgent(provider=provider),
+            retriever=retriever,
+            embedding_provider=StubEmbeddingProvider([0.0] * 1024),
+            settings=self.settings,
+            semantic_provider=semantic,
+        )
+        return service, provider
+
+    async def generated(
+        self, case: str, *, fail_kind=None, parent=None, citations=True, fields=None
+    ) -> tuple[UUID, QuestionGenerationService, ChecksProvider]:
+        fields = fields or self.fields(case)
+        semantic = ChecksProvider(fail_kind)
+        service, provider = self.service(fields, semantic, citations=citations)
+        request = {
+            "actor_id": str(self.actor),
+            "course_id": str(self.course),
+            "request_id": str(uuid4()),
+            "target_score": Decimal(fields["score"]),
+            "question_type": QuestionType(fields["type"]),
+        }
+        response = await (
+            service.generate_candidates(**request)
+            if parent is None
+            else service.adapt_candidates(
+                source_question_id=str(parent), adaptation_type="rewrite", **request
+            )
+        )
+        identity = UUID(response.candidates[0].candidate_id)
+        snap = self.snapshot(identity)
+        assert snap["fields"] == fields, (
+            "Source case fields changed at the service boundary"
+        )
+        self.report["cases"].append(
+            {
+                "source_case_id": case,
+                "path": "generate" if parent is None else "adapt",
+                "declared_citation_omission_variant": not citations,
+                "source_fields": fields,
+                "generation_response": response.model_dump(mode="json"),
+                "persisted": snap,
+                "controlled_generation_calls": [
+                    {"schema": call["schema"].__name__, "messages": call["messages"]}
+                    for call in provider.calls
+                ],
+                "semantic_calls": deepcopy(semantic.calls),
+            }
+        )
+        self.save()
+        return identity, service, semantic
+
+    def manual(self, fields: dict[str, Any]) -> UUID:
+        with self.session() as session:
+            service = QuestionService(session)
+            created = service.create_question(
+                self.course,
+                teacher_id=self.actor,
+                question_type=fields["type"],
+                content=fields["content"],
+                options=fields["options"],
+                reference_answer=fields["reference_answer"],
+                scoring_rubric=fields["scoring_rubric"],
+                analysis=fields["analysis"],
+                score=fields["score"],
+            )
+            identity = UUID(created.id)
+            service.update_question_status(
+                identity, QuestionStatus.PENDING_REVIEW, teacher_id=self.actor
+            )
+        return identity
+
+    def deny_approval(self, identity: UUID, service=None) -> list[dict[str, Any]]:
+        failures = []
+        before = self.snapshot(identity)
+        state = before["status"]
+        assert state in {"Pending Review", "Needs Revision"}
+        assert before["frozen_at"] is None
+        if service:
+            try:
+                service.submit_review(
+                    actor_id=str(self.actor),
+                    candidate_id=str(identity),
+                    action="approve",
+                )
+            except QuestionGenerationError as exc:
+                if state == "Needs Revision":
+                    assert exc.error_code == "QUESTION_CANDIDATE_NOT_PENDING_REVIEW"
+                    assert exc.__cause__ is None
+                else:
+                    assert isinstance(exc.__cause__, ContentValidationError)
+                    assert exc.error_code in {
+                        "CONTENT_VALIDATION_REQUIRED",
+                        "CONTENT_VALIDATION_NOT_READY",
+                    }
+                    assert (
+                        exc.__cause__.code == exc.error_code and exc.http_status == 409
+                    )
+                failures.append({"route": "candidate_review", **error_fact(exc)})
+            else:
+                raise AssertionError(
+                    "Blocked candidate was approved by candidate review"
+                )
+        with self.session() as session:
+            try:
+                QuestionService(session).update_question_status(
+                    identity, QuestionStatus.APPROVED, teacher_id=self.actor
+                )
+            except QuestionValidationError as exc:
+                if state == "Needs Revision":
+                    assert exc.__cause__ is None
+                else:
+                    assert isinstance(exc.__cause__, ContentValidationError)
+                    assert exc.__cause__.code in {
+                        "CONTENT_VALIDATION_REQUIRED",
+                        "CONTENT_VALIDATION_NOT_READY",
+                    }
+                failures.append({"route": "question_status", **error_fact(exc)})
+                session.rollback()
+            else:
+                raise AssertionError(
+                    "Blocked candidate was approved by direct question status"
+                )
+        after = self.snapshot(identity)
+        assert after["status"] == state and after["frozen_at"] is None
+        assert after["fields"] == before["fields"]
+        return failures
+
+    async def explicit_problem_report(
+        self, identity: UUID, case: str, provider: ChecksProvider
+    ) -> dict[str, Any]:
+        before = self.snapshot(identity)
+        if before["reports"]:
+            return before
+        assert before["status"] == "Needs Revision" and before["source_chunks"]
+        assert not provider.calls
+        # The original short rubric is structurally refused during generation.
+        # An explicit synthetic role submits the unchanged candidate for semantic
+        # checking; this separate real command never overwrites the refusal.
+        with self.session() as session:
+            QuestionService(session).update_question_status(
+                identity, QuestionStatus.PENDING_REVIEW, teacher_id=self.actor
+            )
+            view = await ContentValidationService(
+                session, root=self.storage
+            ).validate_current(identity, actor_id=self.actor, provider=provider)
+        after = self.snapshot(identity)
+        assert after["fields"] == before["fields"] and view.outcome == "failed"
+        self.report["events"].append(
+            {
+                "case_id": case,
+                "path": "explicit_resubmit_then_semantic_after_original_structural_refusal",
+                "initial_generation": before,
+                "explicit_semantic_report": view.model_dump(mode="json"),
+                "final": after,
+                "automatic_semantic_call_count": 0,
+                "explicit_semantic_calls": provider.calls,
+            }
+        )
+        self.save()
+        return after
+
+    async def basic_cases(self) -> tuple[UUID, QuestionGenerationService]:
+        good, service, _ = await self.generated("SEM-CLEAR-GOOD")
+        assert self.snapshot(good)["status"] == "Pending Review"
+        assert self.snapshot(good)["reports"][-1]["can_review"]
+        for case, kind in (
+            ("SEM-ANSWER", "answer_correctness"),
+            ("SEM-CONDITION", "condition_sufficiency"),
+        ):
+            identity, current, semantic = await self.generated(case, fail_kind=kind)
+            snap = await self.explicit_problem_report(identity, case, semantic)
+            assert (
+                snap["status"] == "Needs Revision"
+                and snap["reports"][-1]["outcome"] == "failed"
+            )
+            self.report["events"].append(
+                {
+                    "case_id": case,
+                    "approval_rejections": self.deny_approval(identity, current),
+                }
+            )
+        stale_child, stale_service, stale_semantic = await self.generated(
+            "SEM-STALE", fail_kind="answer_correctness", parent=good
+        )
+        stale_snapshot = await self.explicit_problem_report(
+            stale_child, "SEM-STALE", stale_semantic
+        )
+        assert stale_snapshot["parent_edges"][0]["source_question_id"] == str(good)
+        assert stale_snapshot["status"] == "Needs Revision"
+        assert stale_snapshot["reports"][-1]["outcome"] == "failed"
+        self.report["events"].append(
+            {
+                "case_id": "SEM-STALE",
+                "parent_snapshot": self.snapshot(good),
+                "approval_rejections": self.deny_approval(stale_child, stale_service),
+            }
+        )
+        for case, kind in (
+            ("SEM-RUBRIC", "rubric_clarity"),
+            ("SEM-OPTIONS", "option_ambiguity"),
+            ("SEM-CLEAR-OPTIONS", None),
+        ):
+            fields = self.fields(case)
+            identity = self.manual(fields)
+            provider = ChecksProvider(kind)
+            with self.session() as session:
+                try:
+                    view = await ContentValidationService(
+                        session, root=self.storage
+                    ).validate_current(
+                        identity,
+                        actor_id=self.actor,
+                        teaching_chunk_ids=[self.chunk],
+                        provider=provider,
+                    )
+                    failure = None
+                except ContentValidationError as exc:
+                    failure = error_fact(exc)
+                    session.rollback()
+                    view = None
+            snap = self.snapshot(identity)
+            assert snap["fields"] == fields
+            if case == "SEM-OPTIONS":
+                assert failure and failure["code"] == "CONTENT_INPUT_INCOMPLETE"
+                assert not provider.calls and not snap["reports"]
+            elif kind:
+                assert view and view.outcome == "failed" and not view.can_review
+            else:
+                assert view and view.can_review
+                with self.session() as session:
+                    QuestionService(session).update_question_status(
+                        identity, QuestionStatus.APPROVED, teacher_id=self.actor
+                    )
+                assert self.snapshot(identity)["frozen_at"] is not None
+            self.report["cases"].append(
+                {
+                    "source_case_id": case,
+                    "path": "manual_explicit",
+                    "source_fields": fields,
+                    "persisted": snap,
+                    "input_error": failure,
+                    "semantic_calls": provider.calls,
+                    "approval_rejections": self.deny_approval(identity) if kind else [],
+                    "final": self.snapshot(identity),
+                }
+            )
+        missing, current, provider = await self.generated(
+            "SEM-CLEAR-GOOD", citations=False
+        )
+        assert not provider.calls and not self.snapshot(missing)["reports"]
+        self.report["events"].append(
+            {
+                "case_id": "NO_TEACHING_CITATION",
+                "approval_rejections": self.deny_approval(missing, current),
+            }
+        )
+        no_basis = self.runtime["cases"]["SEM-NO-BASIS"]["context_provenance"][
+            "source_snapshot"
+        ]
+        fields = {
+            "type": "SHORT_ANSWER",
+            "content": no_basis["question"],
+            "options": None,
+            "reference_answer": no_basis["reference_answer"],
+            "scoring_rubric": no_basis["scoring_rubric"],
+            "analysis": None,
+            "score": "1.00",
+        }
+        identity, provider = self.manual(fields), ChecksProvider()
+        with self.session() as session:
+            try:
+                await ContentValidationService(
+                    session, root=self.storage
+                ).validate_current(identity, actor_id=self.actor, provider=provider)
+            except ContentValidationError as exc:
+                failure = error_fact(exc)
+                session.rollback()
+            else:
+                raise AssertionError("Missing original answer and basis was accepted")
+        assert failure["code"] == "CONTENT_INPUT_INCOMPLETE" and not provider.calls
+        self.report["cases"].append(
+            {
+                "source_case_id": "SEM-NO-BASIS",
+                "path": "manual_explicit",
+                "declared_new_metadata": {
+                    "type": "SHORT_ANSWER",
+                    "score": "1.00",
+                    "not_source_extracted": True,
+                },
+                "original_snapshot": no_basis,
+                "input_error": failure,
+                "persisted": self.snapshot(identity),
+                "approval_rejections": self.deny_approval(identity),
+            }
+        )
+        child, child_service, _ = await self.generated(
+            "SEM-CLEAR-ADAPT-GOOD", parent=good
+        )
+        snap = self.snapshot(child)
+        assert snap["parent_edges"][0]["source_question_id"] == str(good)
+        assert snap["reports"][-1]["id"] != self.snapshot(good)["reports"][-1]["id"]
+        assert snap["frozen_at"] is None
+        child_service.submit_review(
+            actor_id=str(self.actor), candidate_id=str(child), action="approve"
+        )
+        self.report["events"].append(
+            {"case_id": "TEXT_ADAPT_REVIEW", "final": self.snapshot(child)}
+        )
+        assert self.snapshot(child)["frozen_at"] is not None
+        self.save()
+        return good, service
+
+    async def dispositions_and_revision(self, identity: UUID, service) -> None:
+        before = self.snapshot(identity)
+        current = before["reports"][-1]
+        with self.session() as session:
+            content = ContentValidationService(session, root=self.storage)
+            disposed = content.dispose_validation(
+                identity,
+                UUID(current["id"]),
+                ManualDispositionRequest(
+                    check_kind="answer_correctness",
+                    action="provide_evidence",
+                    reason="Synthetic role acceptance: retain real teaching source and explicitly revalidate",
+                    evidence_refs=[
+                        UUID(current["input_refs"]["evidence"][0]["evidence_id"])
+                    ],
+                ),
+                actor_id=self.actor,
+            )
+            assert not disposed.can_review
+        rejections = self.deny_approval(identity, service)
+        provider = ChecksProvider()
+        with self.session() as session:
+            refreshed = await ContentValidationService(
+                session, root=self.storage
+            ).validate_current(
+                identity,
+                actor_id=self.actor,
+                provider=provider,
+                manual_context=[
+                    ManualContextReference(
+                        validation_result_id=disposed.id,
+                        disposition_id=disposed.manual_dispositions[0].id,
+                    )
+                ],
+            )
+        assert refreshed.can_review and provider.calls[0]["input"]["manual_context"]
+        original_content = before["fields"]["content"]
+        with self.session() as session:
+            questions = QuestionService(session)
+            questions.update_question(
+                identity,
+                content=original_content + " [synthetic revision B]",
+                teacher_id=self.actor,
+            )
+            questions.update_question(
+                identity, content=original_content, teacher_id=self.actor
+            )
+        stale = self.snapshot(identity)
+        assert stale["validation_revision"] >= before["validation_revision"] + 2
+        assert stale["reports"][-1]["stale"] and not stale["reports"][-1]["can_review"]
+        self.report["events"].append(
+            {
+                "case_id": "DISPOSITION_AND_A_B_A",
+                "before": before,
+                "disposed": disposed.model_dump(mode="json"),
+                "approval_rejections": rejections,
+                "explicit_revalidation": refreshed.model_dump(mode="json"),
+                "semantic_calls": provider.calls,
+                "after_change_back": stale,
+                "stale_rejections": self.deny_approval(identity, service),
+            }
+        )
+        with self.session() as session:
+            final = await ContentValidationService(
+                session, root=self.storage
+            ).validate_current(identity, actor_id=self.actor, provider=ChecksProvider())
+        assert final.can_review
+        service.submit_review(
+            actor_id=str(self.actor), candidate_id=str(identity), action="approve"
+        )
+        self.report["events"].append(
+            {"case_id": "EXPLICIT_FINAL_REVIEW", "final": self.snapshot(identity)}
+        )
+        assert self.snapshot(identity)["frozen_at"] is not None
+        self.save()
+
+    def manual_image(self, identity: UUID, asset_id: UUID):
+        with self.session() as session:
+            service = ContentValidationService(session, root=self.storage)
+            view = service.get_image_assessment(
+                "question", identity, actor_id=self.actor
+            )
+            return service.manual_image_check(
+                "question",
+                identity,
+                ImageManualCheckRequest(
+                    expected_context_revision=view.context_revision,
+                    expected_run_no=view.run_no,
+                    expected_check_no=view.check_no,
+                    status="confirmed",
+                    confirmed_conditions=[
+                        {
+                            "asset_id": asset_id,
+                            "text": condition["text"],
+                            "evidence_region": None,
+                        }
+                        for condition in self.image["labels"]["key_conditions"]
+                    ],
+                    image_findings=[
+                        {
+                            "asset_id": asset_id,
+                            "finding": "conditions_confirmed",
+                            "reason": "Declared synthetic role reviews fixed image reference; not independent teacher annotation",
+                        }
+                    ],
+                    explanation="Synthetic service acceptance using T146 AI-assisted/developer-reviewed reference",
+                ),
+                actor_id=self.actor,
+            )
+
+    async def image_adaptation(self) -> None:
+        original = self.image["image_inputs"][0]
+        image = (ROOT / original["source_file"]).read_bytes()
+        assert hashlib.sha256(image).hexdigest() == original["source_sha256"]
+        fields = {
+            "type": "SHORT_ANSWER",
+            "content": "根据原图的底6 cm、高4 cm，求三角形面积。",
+            "options": None,
+            "reference_answer": "12 cm²",
+            "scoring_rubric": "面积12 cm²得2.00分；错误或未答得0分。",
+            "analysis": "6×4÷2=12 cm²。",
+            "score": "2.00",
+        }
+        parent, service, _ = await self.generated(
+            "IMG-FIGURE-synthetic-business-context", fields=fields
+        )
+        with self.session() as session:
+            asset = QuestionAssetService(session, root=self.storage).upload_question(
+                parent,
+                content=image,
+                asset_type="figure",
+                caption="IMG-FIGURE original bytes",
+                actor_id=self.actor,
+                student_visible=False,
+            )
+        checked = self.manual_image(parent, asset.id)
+        with self.session() as session:
+            report = await ContentValidationService(
+                session, root=self.storage
+            ).validate_current(parent, actor_id=self.actor, provider=ChecksProvider())
+        assert report.can_review
+        service.submit_review(
+            actor_id=str(self.actor), candidate_id=str(parent), action="approve"
+        )
+        parent_before = self.snapshot(parent)
+        derived_fields = deepcopy(fields)
+        derived_fields["content"] = (
+            "根据同一原图，计算三角形面积并写出单位（底6 cm、高4 cm）。"
+        )
+        child, current, provider = await self.generated(
+            "IMG-FIGURE-synthetic-adaptation", parent=parent, fields=derived_fields
+        )
+        assert not provider.calls and not self.snapshot(child)["reports"]
+        rejections = self.deny_approval(child, current)
+        with self.session() as session:
+            row = session.get(Question, child)
+            child_asset = row.assets[0]
+            parent_asset = session.get(QuestionAsset, asset.id)
+            assert parent_asset is not None
+            assert child_asset.id != asset.id and child_asset.file_id != asset.file_id
+            assert (
+                child_asset.storage_path == parent_asset.storage_path
+                and child_asset.file_metadata == parent_asset.file_metadata
+            )
+            assert (
+                not child_asset.student_visible
+                and not row.image_assessment["manual_checks"]
+            )
+            new_id, new_file = child_asset.id, child_asset.file_id
+            path, _ = FileStorageService(session, root=self.storage).download(
+                new_file, actor_id=self.actor
+            )
+            assert path.read_bytes() == image
+        vision_events = []
+        for supported in (True, False):
+            vision = FigureProvider(
+                self.image["labels"]["key_conditions"], supported=supported
+            )
+            with (
+                self.session() as session,
+                patch(
+                    "backend.app.services.image_understanding_service.create_vision_provider",
+                    return_value=vision,
+                ),
+            ):
+                view = await ImageUnderstandingService(
+                    session, root=self.storage, settings=self.settings
+                ).understand("question", child, actor_id=self.actor)
+            assert vision.closed == 1 and vision.calls == (1 if supported else 0)
+            assert view.status == "pending" and view.current_check is None
+            assert view.current_run.outcome == (
+                "completed" if supported else "technical_error"
+            )
+            if not supported:
+                assert view.current_run.error.code == "VISION_NOT_SUPPORTED"
+            vision_events.append(
+                {
+                    "supported": supported,
+                    "controlled_calls": vision.calls,
+                    "close_count": vision.closed,
+                    "assessment": view.model_dump(mode="json"),
+                }
+            )
+        child_checked = self.manual_image(child, new_id)
+        assert child_checked.current_check.id != checked.current_check.id
+        assert not self.snapshot(child)["reports"]
+        after_manual_rejections = self.deny_approval(child, current)
+        semantic = ChecksProvider()
+        with self.session() as session:
+            validated = await ContentValidationService(
+                session, root=self.storage
+            ).validate_current(child, actor_id=self.actor, provider=semantic)
+        assert validated.can_review and any(
+            item.kind == "question_asset" for item in validated.input_refs.evidence
+        )
+        current.submit_review(
+            actor_id=str(self.actor), candidate_id=str(child), action="approve"
+        )
+        assert self.snapshot(parent) == parent_before
+        self.report["events"].append(
+            {
+                "case_id": "IMAGE_ADAPTATION",
+                "image_reference": original,
+                "declared_synthetic_context": fields,
+                "parent_before": parent_before,
+                "child_asset_id": str(new_id),
+                "child_file_id": new_file,
+                "shared_bytes_sha256": original["source_sha256"],
+                "approval_rejections_before_check": rejections,
+                "vision": vision_events,
+                "manual_check": child_checked.model_dump(mode="json"),
+                "approval_rejections_after_image_only": after_manual_rejections,
+                "semantic_calls": semantic.calls,
+                "final": self.snapshot(child),
+                "parent_after": self.snapshot(parent),
+            }
+        )
+        assert self.snapshot(child)["frozen_at"] is not None
+        self.save()
+
+    async def run(self) -> None:
+        try:
+            self.seed()
+            good, service = await self.basic_cases()
+            await self.dispositions_and_revision(good, service)
+            await self.image_adaptation()
+            self.report["status"] = "passed"
+        except Exception as exc:
+            self.report["status"] = "failed"
+            self.report["failure"] = error_fact(exc)
+            raise
+        finally:
+            self.report["finished_at_utc"] = datetime.now(UTC).isoformat()
+            self.save()
+            self.engine.dispose()
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--expected-database", required=True)
+    parser.add_argument("--output", type=Path, required=True)
+    args = parser.parse_args()
+    run = Acceptance(args.output.resolve(), args.expected_database)
+    asyncio.run(run.run())
+    print(
+        json.dumps(
+            {
+                "status": run.report["status"],
+                "cases": len(run.report["cases"]),
+                "events": len(run.report["events"]),
+                "cloud_calls": 0,
+            }
+        )
+    )
+
+
+if __name__ == "__main__":
+    main()

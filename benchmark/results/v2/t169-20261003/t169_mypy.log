@@ -1,0 +1,11 @@
+benchmark\t169\e3_acceptance.py:348: error: Item "None" of "QuestionSourceType | None" has no attribute "value"  [union-attr]
+benchmark\t169\e3_acceptance.py:637: error: Incompatible types in assignment (expression has type "None", variable has type "str")  [assignment]
+benchmark\t169\e3_acceptance.py:843: error: List comprehension has incompatible type List[dict[str, Any]]; expected List[ConditionRequest]  [misc]
+benchmark\t169\e3_acceptance.py:851: error: List item 0 has incompatible type "dict[str, object]"; expected "ImageFinding"  [list-item]
+benchmark\t169\e3_acceptance.py:908: error: Item "None" of "Question | None" has no attribute "assets"  [union-attr]
+benchmark\t169\e3_acceptance.py:918: error: Item "None" of "Question | None" has no attribute "image_assessment"  [union-attr]
+benchmark\t169\e3_acceptance.py:918: error: Value of type "dict[str, Any] | Any | None" is not indexable  [index]
+benchmark\t169\e3_acceptance.py:942: error: Item "None" of "ImageUnderstandingRun | None" has no attribute "outcome"  [union-attr]
+benchmark\t169\e3_acceptance.py:946: error: Item "None" of "ImageUnderstandingRun | None" has no attribute "error"  [union-attr]
+benchmark\t169\e3_acceptance.py:946: error: Item "None" of "TechnicalError | Any | None" has no attribute "code"  [union-attr]
+Found 10 errors in 1 file (checked 1 source file)
