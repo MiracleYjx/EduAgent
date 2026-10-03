@@ -717,13 +717,22 @@ class ExamAssemblyService:
             effective = (
                 link.score
                 if link.score is not None
-                else question.score if exam.status == ExamStatus.DRAFT else None
+                else question.score
+                if exam.status == ExamStatus.DRAFT
+                else None
             )
             views.append(
                 ExamQuestionView(
                     id=link.id,
                     exam_id=exam.id,
                     question_id=question.id,
+                    question_type=question.type,
+                    content=question.content,
+                    options=question.options,
+                    reference_answer=question.reference_answer,
+                    scoring_rubric=question.scoring_rubric,
+                    analysis=question.analysis,
+                    knowledge_points=list(question.knowledge_points or []),
                     order_index=link.order_index,
                     score=link.score,
                     effective_score=effective,

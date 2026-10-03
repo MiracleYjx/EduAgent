@@ -37,7 +37,7 @@ POST /api/exams/{id}/assemble
 | AssemblyResponse 字段 | 语义 |
 | :--- | :--- |
 | exam_id、current_status | 本场身份和真实 Draft 状态 |
-| exam_questions | ExamQuestionView 列表，按 order_index 排序；含 id、exam_id、question_id、order_index、score、effective_score、assets |
+| exam_questions | ExamQuestionView 列表，按 order_index 排序；含 id、exam_id、question_id、order_index、score、effective_score、assets；教师专用完整预览另含 question_type/content/options/reference_answer/scoring_rubric/analysis/knowledge_points，未知保持 null |
 | conditions | [{kind, target, actual, satisfied, reason}]；分别显示数量、每种题型、各知识点、总分是否满足 |
 | total_score | 当前组合有效满分 Decimal 求和结果，序列化为两位小数字符串 |
 | publication_checks | 本场评分依据、尾差确认、题图/答案等发布前尚需处理事项；组卷满足约束不等于可以直接发布 |
@@ -77,6 +77,8 @@ POST /api/exams/{id}/assemble
 ~~~
 
 ## 题序、替换与预览
+
+`GET /api/exams/{id}/assembly-preview` 返回教师专用 AssemblyResponse；学生入口不复用包含答案/解析的 DTO。
 
 ~~~text
 PATCH /api/exams/{id}/questions/{qid}

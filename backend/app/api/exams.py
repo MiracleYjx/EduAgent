@@ -15,7 +15,11 @@ from backend.app.core.security import require_permission
 from backend.app.domain.enums import ExamStatus
 from backend.app.domain.permissions import Permission
 from backend.app.models import User
-from backend.app.schemas.exam_assembly import AssemblyRequest, AssemblyResponse
+from backend.app.schemas.exam_assembly import (
+    AssemblyRequest,
+    AssemblyResponse,
+    ExamQuestionPatchRequest,
+)
 from backend.app.services.exam_assembly_service import AssemblyError
 from backend.app.services.exam_service import (
     ExamConflictError,
@@ -260,7 +264,7 @@ def create_exam(
             question_ids=payload.question_ids,
             created_by=teacher.id,
         )
-    except (ExamServiceError, ValueError) as exc:
+    except (AssemblyError, ExamServiceError, ValueError) as exc:
         raise _exam_http_exception(exc) from None
 
 
@@ -293,7 +297,7 @@ def update_exam(
             teacher_id=teacher.id,
             **_exam_update_kwargs(payload),
         )
-    except (ExamServiceError, ValueError) as exc:
+    except (AssemblyError, ExamServiceError, ValueError) as exc:
         raise _exam_http_exception(exc) from None
 
 
@@ -307,6 +311,33 @@ def assemble_exam(
     """保存教师条件并进行精确组卷；失败仍返回真实意图保存状态。"""
     try:
         return service.assemble_exam(exam_id, payload, teacher_id=teacher.id)
+    except (AssemblyError, ExamServiceError, ValueError) as exc:
+        raise _exam_http_exception(exc) from None
+
+
+@router.get("/{exam_id}/assembly-preview", response_model=AssemblyResponse)
+def preview_exam_assembly(
+    exam_id: UUID, teacher: ExamViewer, service: ExamServiceDependency
+) -> AssemblyResponse:
+    """教师完整预览；学生入口不返回此 DTO。"""
+    try:
+        return service.preview_assembly(exam_id, teacher_id=teacher.id)
+    except (AssemblyError, ExamServiceError, ValueError) as exc:
+        raise _exam_http_exception(exc) from None
+
+
+@router.patch("/{exam_id}/questions/{question_id}", response_model=AssemblyResponse)
+def patch_exam_question(
+    exam_id: UUID,
+    question_id: UUID,
+    payload: ExamQuestionPatchRequest,
+    teacher: ExamEditor,
+    service: ExamServiceDependency,
+) -> AssemblyResponse:
+    try:
+        return service.patch_exam_question(
+            exam_id, question_id, payload, teacher_id=teacher.id
+        )
     except (AssemblyError, ExamServiceError, ValueError) as exc:
         raise _exam_http_exception(exc) from None
 
@@ -326,7 +357,7 @@ def add_exam_questions(
             payload.question_ids,
             teacher_id=teacher.id,
         )
-    except (ExamServiceError, ValueError) as exc:
+    except (AssemblyError, ExamServiceError, ValueError) as exc:
         raise _exam_http_exception(exc) from None
 
 
@@ -345,7 +376,7 @@ def remove_exam_questions(
             payload.question_ids,
             teacher_id=teacher.id,
         )
-    except (ExamServiceError, ValueError) as exc:
+    except (AssemblyError, ExamServiceError, ValueError) as exc:
         raise _exam_http_exception(exc) from None
 
 
@@ -359,7 +390,7 @@ def publish_exam(
 
     try:
         return service.publish_exam(exam_id, teacher_id=teacher.id)
-    except (ExamServiceError, ValueError) as exc:
+    except (AssemblyError, ExamServiceError, ValueError) as exc:
         raise _exam_http_exception(exc) from None
 
 
@@ -378,7 +409,7 @@ def update_exam_status(
             payload.status,
             teacher_id=teacher.id,
         )
-    except (ExamServiceError, ValueError) as exc:
+    except (AssemblyError, ExamServiceError, ValueError) as exc:
         raise _exam_http_exception(exc) from None
 
 

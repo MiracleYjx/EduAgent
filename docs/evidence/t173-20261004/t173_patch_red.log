@@ -1,0 +1,16 @@
+
+=================================== ERRORS ====================================
+_______ ERROR collecting tests/integration/test_exam_question_patch.py ________
+ImportError while importing test module 'D:\YJX\MyCode\EduAgent\tests\integration\test_exam_question_patch.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+D:\develop\Python\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\integration\test_exam_question_patch.py:10: in <module>
+    from backend.app.schemas.exam_assembly import ExamQuestionPatchRequest
+E   ImportError: cannot import name 'ExamQuestionPatchRequest' from 'backend.app.schemas.exam_assembly' (D:\YJX\MyCode\EduAgent\backend\app\schemas\exam_assembly.py)
+=========================== short test summary info ===========================
+ERROR tests/integration/test_exam_question_patch.py
+!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+1 error in 0.98s

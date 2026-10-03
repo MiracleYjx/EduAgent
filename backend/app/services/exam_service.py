@@ -15,7 +15,11 @@ from sqlalchemy.orm import Session, selectinload
 
 from backend.app.domain.enums import ExamStatus, QuestionStatus
 from backend.app.models import Course, Exam, ExamQuestion, Question, User
-from backend.app.schemas.exam_assembly import AssemblyRequest, AssemblyResponse
+from backend.app.schemas.exam_assembly import (
+    AssemblyRequest,
+    AssemblyResponse,
+    ExamQuestionPatchRequest,
+)
 
 _UNSET = object()
 _ZERO_SCORE = Decimal("0.00")
@@ -541,6 +545,136 @@ class ExamService:
             created_by=created_by,
         )
 
+    def preview_assembly(
+        self, exam_id: UUID | str, *, teacher_id: UUID | str
+    ) -> AssemblyResponse:
+        """教师专用完整预览，按实际关联题序与本场事实读取。"""
+        from backend.app.services.exam_assembly_service import ExamAssemblyService
+
+        return ExamAssemblyService(self.session).preview(
+            _normalize_uuid(exam_id, "考试标识"),
+            actor_id=_normalize_uuid(teacher_id, "教师标识"),
+        )
+
+    def patch_exam_question(
+        self,
+        exam_id: UUID | str,
+        question_id: UUID | str,
+        payload: ExamQuestionPatchRequest,
+        *,
+        teacher_id: UUID | str,
+    ) -> AssemblyResponse:
+        """原子修改一个 Question.id 所属关联；组卷要求保持原始意图。"""
+        from backend.app.services.content_validation_service import (
+            ContentValidationError,
+        )
+        from backend.app.services.exam_assembly_service import (
+            AssemblyError,
+            ExamAssemblyService,
+        )
+        from backend.app.services.file_storage_service import FileStorageError
+
+        service = ExamAssemblyService(self.session)
+        actor = _normalize_uuid(teacher_id, "教师标识")
+        qid = _normalize_uuid(question_id, "题目标识")
+        commit_started = False
+        try:
+            exam = service._load_exam(_normalize_uuid(exam_id, "考试标识"), actor)
+            service.require_editable(exam)
+            links = sorted(exam.exam_question_links, key=lambda item: item.order_index)
+            current = next((link for link in links if link.question_id == qid), None)
+            if current is None:
+                raise AssemblyError(
+                    "EXAM_QUESTION_NOT_FOUND",
+                    "本场已不存在该题目，请重新加载。",
+                    http_status=404,
+                )
+            if payload.order_index is not None and payload.order_index > len(links):
+                raise AssemblyError(
+                    "EXAM_ORDER_INVALID", "题序不能超过本场实际题数。", http_status=422
+                )
+            replacement_id = payload.replacement_question_id
+            if replacement_id is not None and any(
+                link.question_id == replacement_id for link in links
+            ):
+                raise AssemblyError("EXAM_QUESTION_DUPLICATE", "替换题目已在本场出现。")
+            ids = {link.question_id for link in links}
+            if replacement_id is not None:
+                ids.add(replacement_id)
+            questions = {
+                q.id: q
+                for q in self.session.scalars(
+                    select(Question)
+                    .where(Question.id.in_(ids))
+                    .order_by(Question.id)
+                    .with_for_update()
+                    .execution_options(populate_existing=True)
+                ).all()
+            }
+            if replacement_id is not None:
+                question = questions.get(replacement_id)
+                if question is None:
+                    raise AssemblyError(
+                        "QUESTION_NOT_FOUND", "替换题目不存在。", http_status=404
+                    )
+                if question.course_id != exam.course_id:
+                    raise AssemblyError(
+                        "EXAM_QUESTION_COURSE_CONFLICT",
+                        "替换题目必须属于本场课程。",
+                        http_status=422,
+                    )
+                service.validation.require_exam_eligible(question, actor)
+                position = links.index(current)
+                old_score = current.score
+                old_order = current.order_index
+                exam.exam_question_links.remove(current)
+                self.session.flush()
+                current = ExamQuestion(
+                    question=question, order_index=old_order, score=old_score
+                )
+                exam.exam_question_links.append(current)
+                links[position] = current
+            if "score" in payload.model_fields_set and current.score != payload.score:
+                current.score = payload.score
+                current.base_score = None
+                current.scoring_basis = None
+                current.published_knowledge_points = None
+            if payload.order_index is not None:
+                links.remove(current)
+                links.insert(payload.order_index - 1, current)
+                self._reindex_links(links)
+            self.session.flush()
+            result = service._preview(exam, actor)
+            commit_started = True
+            self.session.commit()
+            return result
+        except AssemblyError as exc:
+            service._rollback(exc)
+            raise
+        except (ContentValidationError, FileStorageError) as exc:
+            error = AssemblyError(
+                exc.code,
+                str(exc),
+                http_status=exc.http_status,
+                current_status=exc.current_status,
+            )
+            service._rollback(error)
+            raise error from exc
+        except (SQLAlchemyError, ExamServiceError, ValueError, OSError) as exc:
+            error = AssemblyError(
+                "EXAM_PATCH_COMMIT_UNKNOWN" if commit_started else "EXAM_PATCH_FAILED",
+                "提交结果未知，请重新加载核对实际记录。"
+                if commit_started
+                else "修改失败，本次题目修改已回滚。",
+                http_status=503,
+                details={
+                    "committed": None if commit_started else False,
+                    "error": service._technical_error(exc, "考试题目修改失败。"),
+                },
+            )
+            service._rollback(error)
+            raise error from exc
+
     def publish_exam(
         self,
         exam_id: UUID | str,
@@ -690,10 +824,25 @@ class ExamService:
         if exam.status is not ExamStatus.DRAFT:
             raise ExamValidationError("已发布或已结束的考试不能修改。")
 
-    @staticmethod
-    def _validate_publish_requirements(exam: Exam) -> None:
+    def _validate_publish_requirements(self, exam: Exam) -> None:
         """再次核验发布考试所需的题目边界。"""
 
+        from backend.app.services.exam_assembly_service import (
+            AssemblyError,
+            ExamAssemblyService,
+        )
+
+        assembly = ExamAssemblyService(self.session)
+        conditions = assembly.conditions(exam, assembly.load_intent(exam))
+        if any(not item.satisfied for item in conditions):
+            raise AssemblyError(
+                "EXAM_ASSEMBLY_UNSATISFIED",
+                "当前试卷未满足已保存的组卷要求，不能发布。",
+                current_status=exam.status.value,
+                details={
+                    "conditions": [item.model_dump(mode="json") for item in conditions]
+                },
+            )
         if not exam.questions:
             raise ExamValidationError("考试至少需要关联一道已审核题目后才能发布。")
         for question in exam.questions:

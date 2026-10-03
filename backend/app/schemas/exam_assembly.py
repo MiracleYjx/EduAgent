@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from typing import Literal, Self
+from typing import Any, Literal, Self
 from uuid import UUID
 
 from pydantic import (
@@ -15,6 +15,7 @@ from pydantic import (
     model_validator,
 )
 
+from backend.app.domain.enums import QuestionType
 from backend.app.schemas.exam_scoring import (
     Amount,
     ScoringBasis,
@@ -94,6 +95,21 @@ class AssemblyConstraints(AssemblyModel):
         return value.astimezone(UTC)
 
 
+class ExamQuestionPatchRequest(AssemblyModel):
+    order_index: int | None = Field(default=None, strict=True, gt=0, le=200)
+    replacement_question_id: UUID | None = None
+    score: Amount | None = None
+
+    @model_validator(mode="after")
+    def meaningful_patch(self) -> Self:
+        if not self.model_fields_set:
+            raise ValueError("至少提供题序、替换题目或本场分值一项。")
+        for name in ("order_index", "replacement_question_id"):
+            if name in self.model_fields_set and getattr(self, name) is None:
+                raise ValueError(f"{name} 不允许为 null。")
+        return self
+
+
 class ExamQuestionView(AssemblyModel):
     id: UUID
     exam_id: UUID
@@ -104,6 +120,13 @@ class ExamQuestionView(AssemblyModel):
     base_score: Amount | None = None
     published_knowledge_points: list[str] | None = None
     scoring_basis: ScoringBasis | None = None
+    question_type: QuestionType
+    content: str
+    options: dict[str, Any] | list[Any] | None
+    reference_answer: str | None
+    scoring_rubric: str | None
+    analysis: str | None
+    knowledge_points: list[str]
     assets: list[QuestionAssetView] = Field(default_factory=list)
 
 
@@ -144,6 +167,7 @@ __all__ = [
     "AssemblyQuestionType",
     "AssemblyRequest",
     "AssemblyResponse",
+    "ExamQuestionPatchRequest",
     "ExamQuestionView",
     "KnowledgeCoverage",
     "PublicationCheck",
