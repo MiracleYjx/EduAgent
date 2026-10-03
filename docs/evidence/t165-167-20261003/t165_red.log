@@ -1,0 +1,115 @@
+.....FFFFFF                                                              [100%]
+================================== FAILURES ===================================
+_____________ test_target_score_is_a_real_generation_requirement ______________
+
+    def test_target_score_is_a_real_generation_requirement() -> None:
+        from backend.app.ai.agents.question_agent import build_generation_query
+>       request = QuestionGenerationRequest(course_id="course", target_score="3.50")
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       pydantic_core._pydantic_core.ValidationError: 1 validation error for QuestionGenerationRequest
+E       target_score
+E         Extra inputs are not permitted [type=extra_forbidden, input_value='3.50', input_type=str]
+E           For further information visit https://errors.pydantic.dev/2.13/v/extra_forbidden
+
+tests\unit\services\test_question_adaptation_service.py:31: ValidationError
+______ test_adaptation_has_new_question_parent_and_real_teaching_sources ______
+
+database = (Engine(sqlite:///:memory:), {'actor_id': 'db3025b5-4978-49d8-848b-8d99b5431f8d', 'course_id': '68765e33-c4d1-4a2d-b8a...070fc3', 'parent_id': 'bd44d3ee-de98-40b4-8489-f5ddccb69931', 'chunk_id': '3ced57c2-5d3b-4b53-ac85-6e7a2576fedc', ...})
+
+    def test_adaptation_has_new_question_parent_and_real_teaching_sources(database: Any) -> None:
+>       from backend.app.models import QuestionSourcePaper
+E       ImportError: cannot import name 'QuestionSourcePaper' from 'backend.app.models' (D:\YJX\MyCode\EduAgent\backend\app\models\__init__.py)
+
+tests\unit\services\test_question_adaptation_service.py:72: ImportError
+___________ test_target_score_mismatch_is_not_silently_overwritten ____________
+
+database = (Engine(sqlite:///:memory:), {'actor_id': 'e01a40e1-7f71-4bfe-a0f6-4ea7cac94768', 'course_id': '16d67c92-51ef-40c3-ac4...c42a34', 'parent_id': '9d8b84a3-5665-4f50-b188-19b87fead2d8', 'chunk_id': 'eee7d4bf-3297-45a7-a9a2-441692459bb9', ...})
+
+    def test_target_score_mismatch_is_not_silently_overwritten(database: Any) -> None:
+>       with pytest.raises(Exception, match="QUESTION_TARGET_SCORE_MISMATCH"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: Regex pattern did not match.
+E         Expected regex: 'QUESTION_TARGET_SCORE_MISMATCH'
+E         Actual message: "1 validation error for QuestionCandidate\nanalysis\n  Extra inputs are not permitted [type=extra_forbidden, input_value='New independent explanation', input_type=str]\n    For further information visit https://errors.pydantic.dev/2.13/v/extra_forbidden"
+
+tests\unit\services\test_question_adaptation_service.py:94: AssertionError
+_ test_adaptation_missing_teaching_citation_cannot_create_fake_parent_evidence _
+
+database = (Engine(sqlite:///:memory:), {'actor_id': 'c7bd1855-cb62-4ba1-9946-211e337b5b64', 'course_id': 'f5be3523-e02e-4753-808...e09049', 'parent_id': 'f9d73003-d983-47a8-85db-d17eee0fd124', 'chunk_id': 'f9443f28-d8d6-4efc-b22f-73459dae82e4', ...})
+
+    def test_adaptation_missing_teaching_citation_cannot_create_fake_parent_evidence(database: Any) -> None:
+>       response, _ = generate(database, citations=False)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\unit\services\test_question_adaptation_service.py:102: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\unit\services\test_question_adaptation_service.py:65: in generate
+    item = make_candidate(score=score, scoring_rubric="Correct gets 3 points.", source_context_ids=[info["chunk_id"]] if citations else [], analysis="New independent explanation")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+overrides = {'score': 3, 'scoring_rubric': 'Correct gets 3 points.', 'source_context_ids': [], 'analysis': 'New independent explanation'}
+
+    def make_candidate(**overrides: Any) -> QuestionCandidate:
+        """构造一道单选题候选；默认参考答案为列表选项的全文。"""
+    
+        payload: dict[str, Any] = {
+            "question_type": QuestionType.SINGLE_CHOICE,
+            "content": "下列哪项正确描述变量的作用？",
+            "options": ["变量用于保存数据。", "变量不能被任何语句引用。"],
+            "reference_answer": "变量用于保存数据。",
+            "scoring_rubric": "选择正确选项得 2 分。",
+            "difficulty": "中等",
+            "knowledge_points": ["变量"],
+            "score": 2.0,
+            "source_context_ids": ["chunk-1"],
+        }
+        payload.update(overrides)
+>       return QuestionCandidate(**payload)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       pydantic_core._pydantic_core.ValidationError: 1 validation error for QuestionCandidate
+E       analysis
+E         Extra inputs are not permitted [type=extra_forbidden, input_value='New independent explanation', input_type=str]
+E           For further information visit https://errors.pydantic.dev/2.13/v/extra_forbidden
+
+tests\support\question_generation_doubles.py:67: ValidationError
+_______ test_parent_edge_write_failure_rolls_back_all_candidate_records _______
+
+database = (Engine(sqlite:///:memory:), {'actor_id': 'd26ed085-a6bc-4be7-9cf4-59d9891b6dfa', 'course_id': '2f324f8a-32c0-4140-8ad...85c267', 'parent_id': 'd69a5d18-8ae9-4068-b4bd-7a6ee1d0059b', 'chunk_id': '5782e141-1a88-4839-afb5-0d224b49a877', ...})
+
+    def test_parent_edge_write_failure_rolls_back_all_candidate_records(database: Any) -> None:
+>       from backend.app.models import QuestionSourcePaper
+E       ImportError: cannot import name 'QuestionSourcePaper' from 'backend.app.models' (D:\YJX\MyCode\EduAgent\backend\app\models\__init__.py)
+
+tests\unit\services\test_question_adaptation_service.py:110: ImportError
+__________ test_parent_changed_during_call_rejects_stale_adaptation ___________
+
+database = (Engine(sqlite:///:memory:), {'actor_id': 'b71a61a0-c513-4013-a7e8-b76ed0c96281', 'course_id': 'fc61f20e-5b46-40e7-8cd...b23672', 'parent_id': 'b6ddeec3-80fd-4348-ae71-967d938dd58c', 'chunk_id': 'a9f31b38-bfa6-442f-a6e7-d67f7597341a', ...})
+
+    def test_parent_changed_during_call_rejects_stale_adaptation(database: Any) -> None:
+        engine, info = database
+        class ChangingProvider(StubQuestionProvider):
+            async def generate_structured(self,*args: Any,**kwargs: Any) -> Any:
+                with Session(engine) as session:
+                    parent=session.get(Question, UUID(info["parent_id"]))
+                    assert parent is not None
+                    parent.content="Changed while generating"
+                    parent.validation_revision += 1
+                    session.commit()
+                return await super().generate_structured(*args,**kwargs)
+        provider=ChangingProvider(candidates=[make_candidate(score=3,source_context_ids=[info["chunk_id"]])])
+>       with pytest.raises(Exception,match="QUESTION_ADAPTATION_STALE"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: Regex pattern did not match.
+E         Expected regex: 'QUESTION_ADAPTATION_STALE'
+E         Actual message: "1 validation error for QuestionCandidate\nanalysis\n  Extra inputs are not permitted [type=extra_forbidden, input_value='New independent explanation', input_type=str]\n    For further information visit https://errors.pydantic.dev/2.13/v/extra_forbidden"
+
+tests\unit\services\test_question_adaptation_service.py:139: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/unit/services/test_question_adaptation_service.py::test_target_score_is_a_real_generation_requirement
+FAILED tests/unit/services/test_question_adaptation_service.py::test_adaptation_has_new_question_parent_and_real_teaching_sources
+FAILED tests/unit/services/test_question_adaptation_service.py::test_target_score_mismatch_is_not_silently_overwritten
+FAILED tests/unit/services/test_question_adaptation_service.py::test_adaptation_missing_teaching_citation_cannot_create_fake_parent_evidence
+FAILED tests/unit/services/test_question_adaptation_service.py::test_parent_edge_write_failure_rolls_back_all_candidate_records
+FAILED tests/unit/services/test_question_adaptation_service.py::test_parent_changed_during_call_rejects_stale_adaptation
+6 failed, 5 passed in 3.36s

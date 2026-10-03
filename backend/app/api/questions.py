@@ -18,10 +18,15 @@ from backend.app.core.security import require_permission
 from backend.app.domain.enums import QuestionStatus, QuestionType
 from backend.app.domain.permissions import Permission
 from backend.app.models import (
+    Question,
     QuestionGenerationMetadata,
     QuestionRevisionComment,
     QuestionSourceChunk,
     User,
+)
+from backend.app.services.question_adaptation_service import (
+    paper_source_view,
+    parent_source_views,
 )
 from backend.app.services.question_service import (
     QuestionApprovedImmutableError,
@@ -61,6 +66,8 @@ class QuestionDetailDTO(QuestionSummary):
     source_status: Literal["persisted", "history_unknown", "no_sources"]
     sources: list[QuestionSourceSnapshotDTO]
     revision_comments: list[QuestionRevisionCommentDTO]
+    parent_sources: list[dict[str, Any]] = Field(default_factory=list)
+    paper_source: dict[str, Any] | None = None
 
 
 class QuestionCreateRequest(BaseModel):
@@ -105,7 +112,9 @@ class QuestionCreateRequest(BaseModel):
             raise ValueError("题目内容不能为空。")
         return value.strip()
 
-    @field_validator("reference_answer", "scoring_rubric", "analysis", "difficulty", mode="before")
+    @field_validator(
+        "reference_answer", "scoring_rubric", "analysis", "difficulty", mode="before"
+    )
     @classmethod
     def normalize_optional_text(cls, value: Any) -> str | None:
         """清理题目可选文本字段。"""
@@ -166,7 +175,9 @@ class QuestionUpdateRequest(BaseModel):
             raise ValueError("题目内容不能为空。")
         return value.strip()
 
-    @field_validator("reference_answer", "scoring_rubric", "analysis", "difficulty", mode="before")
+    @field_validator(
+        "reference_answer", "scoring_rubric", "analysis", "difficulty", mode="before"
+    )
     @classmethod
     def normalize_optional_text(cls, value: Any) -> str | None:
         """清理可选题目文本字段。"""
@@ -376,6 +387,10 @@ def get_question(
         )
         return QuestionDetailDTO(
             **summary.model_dump(),
+            parent_sources=parent_source_views(session, UUID(str(question_id))),
+            paper_source=paper_source_view(
+                session.get(Question, UUID(str(question_id)))
+            ),
             sources_persisted=bool(sources),
             source_status=source_status,
             sources=[

@@ -20,6 +20,7 @@
 
 from __future__ import annotations
 
+from decimal import Decimal
 from enum import StrEnum
 from typing import Final
 
@@ -198,6 +199,10 @@ class QuestionGenerationRequest(BaseModel):
     )
     difficulty: NonEmptyText | None = Field(default=None, description="难度要求。")
     question_type: QuestionType | None = Field(default=None, description="题型要求。")
+    target_score: Decimal | None = Field(
+        default=None, gt=0, max_digits=8, decimal_places=2, allow_inf_nan=False
+    )
+    adaptation_context: dict[str, JsonValue] | None = None
     count: int = Field(default=1, ge=1, description="候选题目数量，必须大于零。")
 
 

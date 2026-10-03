@@ -23,6 +23,7 @@ from backend.app.models.question_asset import QuestionAsset
 from backend.app.models.question_generation_metadata import QuestionGenerationMetadata
 from backend.app.models.question_revision_comment import QuestionRevisionComment
 from backend.app.models.question_source_chunk import QuestionSourceChunk
+from backend.app.models.question_source_paper import QuestionSourcePaper
 from backend.app.models.question_validation_result import QuestionValidationResult
 from backend.app.models.review_record import ReviewRecord
 from backend.app.models.role import Role
@@ -59,6 +60,7 @@ __all__ = [
     "QuestionGenerationMetadata",
     "QuestionRevisionComment",
     "QuestionSourceChunk",
+    "QuestionSourcePaper",
     "QuestionValidationResult",
     "ReviewRecord",
     "Role",

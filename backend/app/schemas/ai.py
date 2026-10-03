@@ -46,6 +46,7 @@ class QuestionCandidate(BaseModel):
     )
     reference_answer: NonEmptyText = Field(description="参考答案。")
     scoring_rubric: NonEmptyText = Field(description="评分标准。")
+    analysis: NonEmptyText | None = None
     difficulty: NonEmptyText = Field(description="题目难度。")
     knowledge_points: KnowledgePoints = Field(description="题目覆盖的知识点。")
     score: PositiveScore = Field(description="题目满分，必须大于零。")

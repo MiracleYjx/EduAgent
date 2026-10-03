@@ -260,6 +260,11 @@ class QuestionAssetService:
         return [QuestionAssetView.model_validate(asset, from_attributes=True) for asset in assets]
 
     def link_question(self, question_id: UUID | str, payload: AssetLinkRequest, *, actor_id: UUID) -> QuestionAssetView:
+        view, stored = self.prepare_question_link(question_id, payload, actor_id=actor_id)
+        self._commit(stored)
+        return view
+
+    def prepare_question_link(self, question_id: UUID | str, payload: AssetLinkRequest, *, actor_id: UUID) -> tuple[QuestionAssetView, StoredFile]:
         content, image, operation = self._source(payload, actor_id)
         question = self._question(UUID(str(question_id)), actor_id, writing=True)
         if len(question.assets) >= 5:
@@ -275,18 +280,17 @@ class QuestionAssetService:
         self._visibility_allowed(payload.student_visible, page_id=payload.source_page_id, region=payload.region.model_dump(mode="json") if payload.region else None, fingerprint=hashlib.sha256(content).hexdigest())
         identity = uuid4()
         next_assessment = advance_image_context(question.image_assessment)
-        asset = QuestionAsset(id=identity, question=question, asset_type=payload.asset_type, width=image.width, height=image.height, source_page_id=payload.source_page_id, region=payload.region.model_dump(mode="json") if payload.region else None, caption=payload.caption, order_index=len(question.assets) + 1, student_visible=payload.student_visible)
         owner = {"course_id": str(question.course_id), "question_id": str(question.id)}
         if payload.source_page_id is not None:
             assert page is not None
             owner |= {"paper_import_id": str(page.paper_import_id), "source_page_id": str(page.id)}
         stored = self._store_or_link(identity=identity, kind="question_asset", owner=owner, payload=payload, actor_id=actor_id, content=content, operation=operation)
+        asset = QuestionAsset(id=identity, question=question, asset_type=payload.asset_type, width=image.width, height=image.height, source_page_id=payload.source_page_id, region=payload.region.model_dump(mode="json") if payload.region else None, caption=payload.caption, order_index=len(question.assets) + 1, student_visible=payload.student_visible)
         asset._file_path, asset._file_metadata = stored.storage_path, stored.metadata.model_dump(mode="json")
         self.session.add(asset)
         question.image_assessment = next_assessment
         question.validation_revision += 1
-        self._commit(stored)
-        return QuestionAssetView(id=asset.id, question_id=question.id, file_id="a_" + asset.id.hex, asset_type=payload.asset_type, width=asset.width, height=asset.height, caption=asset.caption, source_page_id=asset.source_page_id, region=payload.region, order_index=asset.order_index, student_visible=asset.student_visible)
+        return QuestionAssetView(id=asset.id, question_id=question.id, file_id="a_" + asset.id.hex, asset_type=payload.asset_type, width=asset.width, height=asset.height, caption=asset.caption, source_page_id=asset.source_page_id, region=payload.region, order_index=asset.order_index, student_visible=asset.student_visible), stored
 
     def remove_question(self, question_id: UUID | str, asset_id: UUID, *, actor_id: UUID) -> None:
         question = self._question(UUID(str(question_id)), actor_id, writing=True)

@@ -585,7 +585,7 @@ M0 工程骨架 + Benchmark
 
 - [X] T164 [HIGH] [E3] **实现图片能力与结构化理解**：在 `ai/llm/base.py` 增加默认 False 的 supports_vision，保持 generate_structured 签名；经已配置且确认具备能力的适配器及新增 `ai/vision/base.py`、`ai/vision/provider.py` 处理授权图像/传输/条件 DTO，并接入 T163 的人工核对入口与导入 UI。能力按实际模型判断；若需新增关键 Provider 先提交选型供用户决定，不强迫切换旧模型。无能力/传输不可用/调用失败/不可靠分别处理，可靠人工核对可继续流程。 依赖：T148、T154、T159、T163。per FR-043、vision-capability、plan §10、Constitution III/IV（F031） (missing)
 
-- [ ] T165 [HIGH] [E3] **扩展文字生成与原题改编来源**：在 `ai/agents/question_agent.py`、`api/question_generation.py`、新增 `services/question_adaptation_service.py`、来源持久化边界及新增 QuestionSourcePaper 模型/迁移接入章节/资料/目标分值和两种生成路径；新文字题保存真实教学引用，改编候选与父题关系同事务，Course 锁下核对同课程/无环/不自引，复用原图新关联并重核验，不覆盖父题。source_type 来自真实创建路径，旧知识引用状态/快照不重定义。 依赖：T162、T163、T164。per FR-024/025/046、question-source-persistence、US1-v2/AC3（F032） (partial)
+- [X] T165 [HIGH] [E3] **扩展文字生成与原题改编来源**：在 `ai/agents/question_agent.py`、`api/question_generation.py`、新增 `services/question_adaptation_service.py`、来源持久化边界及新增 QuestionSourcePaper 模型/迁移接入章节/资料/目标分值和两种生成路径；新文字题保存真实教学引用，改编候选与父题关系同事务，Course 锁下核对同课程/无环/不自引，复用原图新关联并重核验，不覆盖父题。source_type 来自真实创建路径，旧知识引用状态/快照不重定义。 依赖：T162、T163、T164。per FR-024/025/046、question-source-persistence、US1-v2/AC3（F032） (partial)
 
 - [ ] T166 [HIGH] [E3] **接入语义核验及服务端批准约束**：扩展 `services/question_validator.py`、`content_validation_service.py`、`question_service.py` 与 Agent 编排，对生成、改编、人工/导入补全候选核对答案、条件、选项歧义与 Rubric；Agent 只返结构化报告，服务计算 can_review，报告与合法 Needs Revision 转换原子保存。批准时记录真实 frozen_at，合法退回清除当前批准时间，历史未知不伪填。修改答案相关字段/图片/依据使旧核验失效，技术失败保留原错且阻止批准；现有候选 DTO、原阅卷拓扑和历史成绩读取保持。 依赖：T163、T164、T165。per FR-025/028/047、agent-workflow、SC-011（F033） (partial)
 

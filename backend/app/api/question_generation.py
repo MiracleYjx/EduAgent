@@ -90,6 +90,19 @@ from backend.app.models import (
 from backend.app.schemas.ai import QuestionCandidate
 from backend.app.schemas.retrieval_scope import RetrievalScope
 from backend.app.services.audit_service import audit_after_commit
+from backend.app.services.file_storage_service import (
+    FileStorageError,
+    FileStorageService,
+    StoredFile,
+)
+from backend.app.services.question_adaptation_service import (
+    AdaptationSnapshot,
+    AdaptationType,
+    QuestionAdaptationError,
+    QuestionAdaptationService,
+    paper_source_view,
+    parent_source_views,
+)
 from backend.app.services.question_validator import (
     CANDIDATE_GENERATION_STATUS,
     QUESTION_ANSWER_ENCODING_INCOMPATIBLE,
@@ -144,6 +157,12 @@ QUESTION_GENERATION_INVALID_PAGE: str = "QUESTION_GENERATION_INVALID_PAGE"
 
 #: 错误码到 HTTP 状态码的映射；未列出的错误按 500 处理并保持脱敏。
 _ERROR_STATUS: dict[str, int] = {
+    "QUESTION_TARGET_SCORE_MISMATCH": 422,
+    "QUESTION_ADAPTATION_PARENT_INVALID": 422,
+    "QUESTION_ADAPTATION_TYPE_INVALID": 422,
+    "QUESTION_ADAPTATION_SELF_REFERENCE": 422,
+    "QUESTION_ADAPTATION_CYCLE": 409,
+    "QUESTION_ADAPTATION_STALE": 409,
     RETRIEVAL_SCOPE_INVALID: 422,
     RETRIEVAL_SCOPE_NOT_READY: 503,
     # 依赖未就绪：Provider、Embedding、检索存储与候选写入存储
@@ -194,6 +213,7 @@ class QuestionGenerationError(RuntimeError):
     error_code: str = QUESTION_GENERATION_FAILED
     retryable: bool = False
     source_code: str | None = None
+    http_status: int | None = None
 
     def __init__(
         self,
@@ -290,6 +310,10 @@ class CandidateGenerationRequest(BaseModel):
         description="候选题目数量。",
     )
 
+    target_score: Decimal | None = Field(
+        default=None, gt=0, max_digits=8, decimal_places=2, allow_inf_nan=False
+    )
+
     @field_validator("knowledge_points", mode="before")
     @classmethod
     def normalize_knowledge_points(cls, value: Any) -> list[str]:
@@ -320,6 +344,11 @@ class CandidateGenerationRequest(BaseModel):
         return value.strip() or None
 
 
+class CandidateAdaptationRequest(CandidateGenerationRequest):
+    source_question_id: UUID
+    adaptation_type: AdaptationType = "rewrite"
+
+
 class ValidationIssueDTO(BaseModel):
     """一条校验问题；直接透传 T068 的脱敏原因码、说明与字段名。"""
 
@@ -348,13 +377,17 @@ class CandidateDTO(BaseModel):
     course_id: str
     question_type: QuestionType
     content: str
-    options: list[str] | None = None
+    options: dict[str, Any] | list[str] | None = None
     reference_answer: str | None = None
     scoring_rubric: str | None = None
     difficulty: str | None = None
     knowledge_points: list[str] = Field(default_factory=list)
     score: Decimal
     status: QuestionStatus
+    analysis: str | None = None
+    source_type: QuestionSourceType | None = None
+    parent_sources: list[dict[str, Any]] = Field(default_factory=list)
+    paper_source: dict[str, Any] | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -459,7 +492,7 @@ def _validation_dto(
     ]
 
 
-def _candidate_dto(question: Question) -> CandidateDTO:
+def _candidate_dto(question: Question, session: Session | None = None) -> CandidateDTO:
     """把题库行映射为候选题 DTO；不做任何推导或补全。"""
 
     return CandidateDTO(
@@ -467,7 +500,13 @@ def _candidate_dto(question: Question) -> CandidateDTO:
         course_id=str(question.course_id),
         question_type=question.type,
         content=question.content,
-        options=question.options if isinstance(question.options, list) else None,
+        options=question.options,
+        analysis=question.analysis,
+        source_type=question.source_type,
+        parent_sources=parent_source_views(session, question.id)
+        if session is not None
+        else [],
+        paper_source=paper_source_view(question) if session is not None else None,
         reference_answer=question.reference_answer,
         scoring_rubric=question.scoring_rubric,
         difficulty=question.difficulty,
@@ -483,10 +522,13 @@ def _generated_dto(
     question: Question,
     result: CandidateValidationResult,
     source_context_ids: Sequence[str],
+    parent_sources: list[dict[str, Any]] | None = None,
 ) -> GeneratedCandidateDTO:
     """生成响应沿用既有字段，并报告已提交的引用快照状态。"""
 
-    base = _candidate_dto(question)
+    base = _candidate_dto(question).model_copy(
+        update={"parent_sources": parent_sources or []}
+    )
     return GeneratedCandidateDTO(
         **base.model_dump(),
         validation=CandidateValidationDTO(
@@ -563,6 +605,8 @@ class QuestionGenerationService:
         question_type: QuestionType | None = None,
         count: int = 1,
         retrieval_scope: RetrievalScope | dict[str, Any] | None = None,
+        target_score: Decimal | None = None,
+        _adaptation: AdaptationSnapshot | None = None,
     ) -> CandidateGenerationResponse:
         """按教师条件生成候选题、自动校验并整批落库。"""
 
@@ -573,6 +617,26 @@ class QuestionGenerationService:
             question_type=question_type,
             count=count,
             retrieval_scope=retrieval_scope,
+            target_score=target_score,
+            adaptation_context=(
+                {
+                    key: (
+                        [
+                            {
+                                name: value
+                                for name, value in asset.items()
+                                if name not in {"storage_path", "file_metadata"}
+                            }
+                            for asset in values
+                        ]
+                        if key == "assets"
+                        else values
+                    )
+                    for key, values in _adaptation.context.items()
+                }
+                if _adaptation
+                else None
+            ),
         )
         agent_input = AgentInput(
             agent_type=AgentType.QUESTION,
@@ -613,6 +677,13 @@ class QuestionGenerationService:
                 error_retryable=output.error.retryable if output.error else None,
             )
         candidates = self._require_generation_output(output)
+        if request.target_score is not None and any(
+            Decimal(str(item.score)) != request.target_score for item in candidates
+        ):
+            raise GenerationFailedError(
+                "候选题分值与目标分值不一致。",
+                error_code="QUESTION_TARGET_SCORE_MISMATCH",
+            )
         batch = self._validator.validate_candidates(
             candidates,
             retrieved_context_ids=output.retrieved_context_ids,
@@ -625,13 +696,28 @@ class QuestionGenerationService:
             output=output,
             candidates=candidates,
             batch=batch,
+            adaptation=_adaptation,
         )
         evidence, out_of_course, unresolved = self._load_evidence(
             course_id=candidate_course_id,
             chunk_ids=output.retrieved_context_ids,
         )
+        with self._use_session() as session:
+            saved_parent_sources = (
+                {
+                    str(question.id): parent_source_views(session, question.id)
+                    for question in rows
+                }
+                if _adaptation
+                else {}
+            )
         generated = [
-            _generated_dto(question, result, candidates[index].source_context_ids)
+            _generated_dto(
+                question,
+                result,
+                candidates[index].source_context_ids,
+                saved_parent_sources.get(str(question.id)),
+            )
             for index, (question, result) in enumerate(
                 zip(rows, batch.results, strict=True)
             )
@@ -653,6 +739,37 @@ class QuestionGenerationService:
             prompt_version=output.prompt_version,
         )
 
+    async def adapt_candidates(
+        self,
+        *,
+        course_id: str,
+        actor_id: str,
+        request_id: str,
+        source_question_id: str,
+        adaptation_type: AdaptationType = "rewrite",
+        **requirements: Any,
+    ) -> CandidateGenerationResponse:
+        self._require_owned_course(course_id, actor_id)
+        try:
+            with self._use_session() as session:
+                snapshot = QuestionAdaptationService(session).prepare(
+                    course_id=_as_uuid(course_id),
+                    actor_id=_as_uuid(actor_id),
+                    source_question_id=_as_uuid(source_question_id),
+                    adaptation_type=adaptation_type,
+                )
+            return await self.generate_candidates(
+                course_id=course_id,
+                actor_id=actor_id,
+                request_id=request_id,
+                _adaptation=snapshot,
+                **requirements,
+            )
+        except QuestionAdaptationError as error:
+            raise GenerationFailedError(
+                error.detail, error_code=error.error_code
+            ) from error
+
     def _build_request(
         self,
         *,
@@ -662,6 +779,8 @@ class QuestionGenerationService:
         question_type: QuestionType | None,
         count: int,
         retrieval_scope: RetrievalScope | dict[str, Any] | None = None,
+        target_score: Decimal | None = None,
+        adaptation_context: dict[str, Any] | None = None,
     ) -> QuestionGenerationRequest:
         """构造 T065 出题条件；非法值由 Pydantic 显式拒绝。"""
 
@@ -672,6 +791,8 @@ class QuestionGenerationService:
                 difficulty=difficulty,
                 question_type=question_type,
                 count=count,
+                target_score=target_score,
+                adaptation_context=adaptation_context,
                 retrieval_scope=RetrievalScope.model_validate(retrieval_scope)
                 if retrieval_scope is not None
                 else RetrievalScope(),
@@ -718,6 +839,7 @@ class QuestionGenerationService:
         output: AgentOutput,
         candidates: Sequence[QuestionCandidate],
         batch: CandidateBatchValidation,
+        adaptation: AdaptationSnapshot | None = None,
     ) -> list[Question]:
         """在单事务内整批写入候选题、生成元数据及实际引用的来源快照。"""
 
@@ -739,7 +861,12 @@ class QuestionGenerationService:
                         error_code=QUESTION_UNKNOWN_SOURCE_CONTEXT,
                     ) from error
         with self._use_session() as session:
+            stored_files: list[StoredFile] = []
             try:
+                if adaptation is not None:
+                    QuestionAdaptationService(session).lock_and_validate(
+                        adaptation, actor_id=creator_id
+                    )
                 live_sources = {
                     chunk.id: (chunk, filename)
                     for chunk, filename in session.execute(
@@ -771,7 +898,10 @@ class QuestionGenerationService:
                 for candidate, result in zip(candidates, batch.results, strict=True):
                     target = self._validated_candidate_status(result)
                     question = Question(
-                        source_type=QuestionSourceType.AI_GENERATED,
+                        source_type=QuestionSourceType.ADAPTED
+                        if adaptation
+                        else QuestionSourceType.AI_GENERATED,
+                        analysis=candidate.analysis,
                         course_id=course_id,
                         type=candidate.question_type,
                         content=candidate.content,
@@ -830,16 +960,49 @@ class QuestionGenerationService:
                                 score_value=score_value,
                             )
                         )
+                if adaptation is not None:
+                    for question in created:
+                        QuestionAdaptationService(session).attach(
+                            adaptation,
+                            question,
+                            actor_id=creator_id,
+                            stored_files=stored_files,
+                        )
                 session.commit()
+            except (QuestionAdaptationError, FileStorageError) as error:
+                session.rollback()
+                for stored in stored_files:
+                    FileStorageService(session).fail_receipt(
+                        stored,
+                        code="ASSET_PERSISTENCE_FAILED",
+                        message="改编事务未提交。",
+                    )
+                if isinstance(error, QuestionAdaptationError):
+                    raise GenerationFailedError(
+                        error.detail, error_code=error.error_code
+                    ) from error
+                failure = GenerationFailedError(str(error), error_code=error.code)
+                failure.http_status = error.http_status
+                raise failure from error
             except QuestionGenerationError:
                 session.rollback()
                 raise
             except (SQLAlchemyError, ValueError, ArithmeticError) as error:
                 session.rollback()
+                for stored in stored_files:
+                    FileStorageService(session).fail_receipt(
+                        stored,
+                        code="ASSET_PERSISTENCE_FAILED",
+                        message="改编事务未提交。",
+                    )
                 raise CandidateStoreNotReadyError(
                     "候选题写入失败，本批次未落库。",
                     source_code=type(error).__name__,
                 ) from error
+            for stored in stored_files:
+                FileStorageService(session).commit_receipt(
+                    stored, current_status="stored"
+                )
             for question in created:
                 session.refresh(question)
         return created
@@ -960,7 +1123,7 @@ class QuestionGenerationService:
                 total=int(total or 0),
                 limit=limit,
                 offset=offset,
-                items=[_candidate_dto(row) for row in rows],
+                items=[_candidate_dto(row, session) for row in rows],
             )
 
     def get_candidate(self, *, actor_id: str, candidate_id: str) -> CandidateDTO:
@@ -969,7 +1132,7 @@ class QuestionGenerationService:
         with self._use_session() as session:
             question = self._require_candidate(session, candidate_id)
             self._ensure_candidate_access(session, question, actor_id)
-            return _candidate_dto(question)
+            return _candidate_dto(question, session)
 
     def submit_review(
         self,
@@ -1177,7 +1340,7 @@ def _generation_http_exception(error: QuestionGenerationError) -> HTTPException:
     """把业务错误映射为脱敏的 HTTP 响应。"""
 
     return HTTPException(
-        status_code=_ERROR_STATUS.get(error.error_code, 500),
+        status_code=error.http_status or _ERROR_STATUS.get(error.error_code, 500),
         detail={
             "error_code": error.error_code,
             "message": error.detail,
@@ -1224,6 +1387,36 @@ async def generate_candidates(
             question_type=payload.question_type,
             count=payload.count,
             retrieval_scope=payload.retrieval_scope,
+            target_score=payload.target_score,
+        )
+    except QuestionGenerationError as error:
+        raise _generation_http_exception(error) from None
+
+
+@router.post(
+    "/adaptations",
+    response_model=CandidateGenerationResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+async def adapt_candidates(
+    payload: CandidateAdaptationRequest,
+    teacher: CandidateGenerator,
+    service: QuestionGenerationServiceDependency,
+    x_request_id: Annotated[str | None, Header(alias="X-Request-ID")] = None,
+) -> CandidateGenerationResponse:
+    try:
+        return await service.adapt_candidates(
+            course_id=str(payload.course_id),
+            actor_id=str(teacher.id),
+            request_id=_resolve_request_id(x_request_id),
+            source_question_id=str(payload.source_question_id),
+            adaptation_type=payload.adaptation_type,
+            knowledge_points=payload.knowledge_points,
+            difficulty=payload.difficulty,
+            question_type=payload.question_type,
+            count=payload.count,
+            retrieval_scope=payload.retrieval_scope,
+            target_score=payload.target_score,
         )
     except QuestionGenerationError as error:
         raise _generation_http_exception(error) from None

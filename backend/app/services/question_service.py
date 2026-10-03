@@ -504,19 +504,30 @@ class QuestionService:
         *,
         created_by: UUID | str | None = None,
     ) -> None:
-        """删除题目；已被考试引用的题目不能删除。"""
+        """Serialize parent-source graph deletion under Course then Question locks."""
+        from sqlalchemy import delete
 
-        question = self._load_question(question_id)
-        self._ensure_course_access(
-            self._load_course(question.course_id),
-            _resolve_actor_id(created_by, teacher_id),
-        )
+        from backend.app.models.question_source_paper import QuestionSourcePaper
+
+        identity = _normalize_uuid(question_id, "题目标识")
+        course_id = self.session.scalar(select(Question.course_id).where(Question.id == identity))
+        if course_id is None:
+            raise QuestionNotFoundError("题目不存在。")
+        course = self._load_course(course_id)
+        self._ensure_course_access(course, _resolve_actor_id(created_by, teacher_id))
+        self.session.execute(select(Course.id).where(Course.id == course_id).with_for_update())
+        question = self._load_question(identity)
+        if question.course_id != course_id:
+            raise QuestionConflictError("题目课程归属已经变化，请重新读取。")
+        if self.session.scalar(select(QuestionSourcePaper.id).where(QuestionSourcePaper.source_question_id == identity).limit(1)) is not None:
+            raise QuestionConflictError("题目仍是派生题的真实父题，不能删除来源关系。")
         try:
+            self.session.execute(delete(QuestionSourcePaper).where(QuestionSourcePaper.derived_question_id == identity))
             self.session.delete(question)
             self.session.commit()
         except IntegrityError as exc:
             self.session.rollback()
-            raise QuestionConflictError("题目已被考试引用，无法删除。") from exc
+            raise QuestionConflictError("题目已被其他数据引用，无法删除。") from exc
         except SQLAlchemyError as exc:
             self.session.rollback()
             raise QuestionServiceError("删除题目失败。") from exc

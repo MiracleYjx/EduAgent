@@ -29,6 +29,7 @@ from __future__ import annotations
 import json
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
+from decimal import Decimal
 from typing import Any, ClassVar, Final, Protocol, cast
 from uuid import UUID
 
@@ -131,7 +132,7 @@ QUESTION_RERANK_PROVIDER_NOT_READY: Final[str] = "QUESTION_RERANK_PROVIDER_NOT_R
 QUESTION_RERANK_FAILED: Final[str] = "QUESTION_RERANK_FAILED"
 
 #: 提示版本；作为系统提示首行的稳定前缀。
-QUESTION_GENERATION_PROMPT_VERSION: Final[str] = "question-generation-v1"
+QUESTION_GENERATION_PROMPT_VERSION: Final[str] = "question-generation-v2"
 
 #: 候选题目必须保持的生成状态；任何其它取值都不得由本模块产出。
 CANDIDATE_GENERATION_STATUS: Final[str] = "Candidate Generation"
@@ -238,6 +239,10 @@ class QuestionTypeMismatchError(QuestionGenerationError):
     error_code: ClassVar[str] = QUESTION_TYPE_MISMATCH
 
 
+class TargetScoreMismatchError(QuestionGenerationError):
+    error_code: ClassVar[str] = "QUESTION_TARGET_SCORE_MISMATCH"
+
+
 class NotCandidateGenerationError(QuestionGenerationError):
     """候选状态被改成可发布状态；禁止自动发布。"""
 
@@ -298,12 +303,23 @@ def build_generation_query(request: QuestionGenerationRequest) -> str:
             else _UNSPECIFIED,
         ),
         (_SECTION_COUNT, str(request.count)),
+        *(
+            [("Target score", str(request.target_score))]
+            if request.target_score is not None
+            else []
+        ),
     ]
     overhead = sum(len(label) + 1 for label, _ in sections) + (len(sections) - 1)
     remaining = MAX_GENERATION_QUERY_CHARS - overhead
     lines: list[str] = []
     for label, text in sections:
-        granted = max(0, min(QUERY_FIELD_BUDGETS.get(label, 0), remaining))
+        granted = max(
+            0,
+            min(
+                QUERY_FIELD_BUDGETS.get(label, 40 if label == "Target score" else 0),
+                remaining,
+            ),
+        )
         remaining -= granted
         lines.append(f"{label}\n{_truncate(text, granted)}")
     return "\n".join(lines)
@@ -407,6 +423,21 @@ def _build_user_message(
             f"难度：{request.difficulty or _UNSPECIFIED}",
             f"题型：{question_type}",
             f"数量：{request.count}",
+            *(
+                [
+                    f"Target score per question: {request.target_score}. Return exactly this score and matching rubric."
+                ]
+                if request.target_score is not None
+                else []
+            ),
+            *(
+                [
+                    "Adapt an existing question into a NEW candidate. Keep the original unchanged; do not inherit approval, answer validity, image verification or old teaching citations. Original keyed options below are ordered JSON and must be read in that order. Image references are retained but their conditions require new verification. Only cite THIS request's teaching chunks, never fabricate citations from the parent.",
+                    json.dumps(request.adaptation_context, ensure_ascii=False),
+                ]
+                if request.adaptation_context is not None
+                else []
+            ),
             "",
             "【检索查询（用于召回，可能被截断）】",
             context.query_text,
@@ -823,6 +854,13 @@ class QuestionAgent:
         whitelist = set(context.retrieved_context_ids)
         validated: list[QuestionCandidate] = []
         for candidate in candidates:
+            if (
+                request.target_score is not None
+                and Decimal(str(candidate.score)) != request.target_score
+            ):
+                raise TargetScoreMismatchError(
+                    "Candidate score differs from the requested target score."
+                )
             if request.question_type is not None and candidate.question_type != (
                 request.question_type
             ):
