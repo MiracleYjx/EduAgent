@@ -1,6 +1,6 @@
 {
   "schema_version": "t146-reference-index-1",
-  "annotation_version": "t146-ai-authorized-20261003-1",
+  "annotation_version": "t146-developer-reviewed-ai-assisted-20261003-2",
   "author_kind": "ai_assistant",
   "author_name": "Codex",
   "delegated_by": "current_chat_user",
@@ -8,7 +8,7 @@
   "authorization_received_on": "2026-10-03",
   "is_independent_teacher_truth": false,
   "human_reviewed_this_batch": false,
-  "acceptance_decision": "awaiting_user_choice",
+  "acceptance_decision": "accepted_developer_review_ai_assisted",
   "component_versions": {
     "import_annotations.json": "t146-ai-authorized-20261003-1",
     "scenario_annotations.json": "t146-ai-authorized-20261003-1",
@@ -383,6 +383,21 @@
       "family": "statistics",
       "annotation_ref": "statistics_annotations.json#/statistics_annotations/2",
       "evidence_kind": "ai_content_reference"
+    }
+  ],
+  "reference_standard": "AI 辅助 + 开发者审查",
+  "developer_review_ref": "developer_review.json",
+  "annotation_authors": [
+    {
+      "kind": "ai_assistant",
+      "name": "Codex",
+      "role": "会话委托的源材料阅读、标注和技术复核"
+    },
+    {
+      "kind": "developer",
+      "name": "current_chat_user",
+      "identity_source": "current_chat_user_message",
+      "role": "开发者确认审查口径及将本批参考包用于学习项目质量基线"
     }
   ]
 }

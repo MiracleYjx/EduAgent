@@ -1,13 +1,13 @@
 {
   "protocol_version": "v2-evaluation-1",
   "dataset_version": "v2-ai-reference-20261003-1",
-  "annotation_version": "t146-ai-authorized-20261003-1",
+  "annotation_version": "t146-developer-reviewed-ai-assisted-20261003-2",
   "created_at": "2026-10-03T04:45:46.403754+00:00",
   "source_commit": "585a66f9f5bf9db3e618391fd1f37f82b3177f8a",
-  "status": "ai_annotations_prepared_acceptance_pending",
-  "ready_for_ai_reference_evaluation": false,
+  "status": "completed_developer_review_ai_assisted",
+  "ready_for_ai_reference_evaluation": true,
   "ready_for_independent_teacher_baseline": false,
-  "acceptance_decision": "awaiting_user_choice",
+  "acceptance_decision": "accepted_developer_review_ai_assisted",
   "annotation_author": {
     "kind": "ai_assistant",
     "name": "Codex",
@@ -898,8 +898,8 @@
     },
     {
       "path": "benchmark/corpus/t146-ai-authorized-20261003/annotations.json",
-      "bytes": 12666,
-      "sha256": "35c7809fad9d13ee5125862c00561cd8a12364890e36342557d1e7638d25bd2b",
+      "bytes": 13197,
+      "sha256": "e3df8cc30f27c96060c46bd46f60eab26fcb5ef0ec925fd2c1cccb579f161e2e",
       "origin": "new_ai_reference_package"
     },
     {
@@ -918,6 +918,12 @@
       "path": "benchmark/corpus/t146-ai-authorized-20261003/cases.json",
       "bytes": 34426,
       "sha256": "76fd434821a22d830eb7b664ddada7d353dd0412ee24a03e14eee11635935790",
+      "origin": "new_ai_reference_package"
+    },
+    {
+      "path": "benchmark/corpus/t146-ai-authorized-20261003/developer_review.json",
+      "bytes": 1118,
+      "sha256": "de098c686f725814c4716abddd0cfa889e14ef5efe5a29ad02adb9328f373380",
       "origin": "new_ai_reference_package"
     },
     {
@@ -940,14 +946,14 @@
     },
     {
       "path": "benchmark/corpus/t146-ai-authorized-20261003/README.md",
-      "bytes": 4640,
-      "sha256": "e591a433b9774d21cdc65aa7efdcc29c2720df16817f5cd3402e483c98fba2e5",
+      "bytes": 5468,
+      "sha256": "c565712e11f7bddbc6f33a96c913894179e3ee8edb85c2e2b8063090f1eb1dbe",
       "origin": "new_ai_reference_package"
     },
     {
       "path": "benchmark/corpus/t146-ai-authorized-20261003/review.md",
-      "bytes": 5584,
-      "sha256": "e405348847182da594e572fbb7f24202c8c1c71dbb553cd7988bcc6623674b85",
+      "bytes": 5671,
+      "sha256": "bba199e874cc879df6bfd7bc3e3b99fb5959076cb1adb5f116539328c3b04baf",
       "origin": "new_ai_reference_package"
     },
     {
@@ -1000,13 +1006,28 @@
     }
   ],
   "known_missing": [
-    "本批验收口径的用户选择",
     "独立教师真值/真实人工复核",
     "实际业务Approved候选/冻结考试/授权Chunk",
     "本次实际OCR/Provider输出、延迟及资源",
-    "T188包与T191备份集"
+    "T188包与T191备份集",
+    "正式独立教师标注作为后续增强项；当前学习项目采用AI辅助+开发者审查"
   ],
   "business_gate_changes": false,
   "annotation_rules_version": "v2-ai-reference-1",
-  "quality_population_rule": "applicable=true AND label != null; AI reference denominator separate from independent_teacher=0"
+  "quality_population_rule": "applicable=true AND label != null; AI reference denominator separate from independent_teacher=0",
+  "reference_standard": "AI 辅助 + 开发者审查",
+  "developer_review_ref": "developer_review.json",
+  "annotation_authors": [
+    {
+      "kind": "ai_assistant",
+      "name": "Codex",
+      "role": "会话委托的源材料阅读、标注和技术复核"
+    },
+    {
+      "kind": "developer",
+      "name": "current_chat_user",
+      "identity_source": "current_chat_user_message",
+      "role": "开发者确认审查口径及将本批参考包用于学习项目质量基线"
+    }
+  ]
 }

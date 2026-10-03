@@ -1,0 +1,29 @@
+{
+  "recorded_at_utc": "2026-10-03T14:28:23.228504+00:00",
+  "decision_date": "2026-10-03",
+  "decision_source": "current_chat_user_message",
+  "reference_standard": "AI 辅助 + 开发者审查",
+  "project_scope": "学习项目口径",
+  "annotation_authors": [
+    {
+      "kind": "ai_assistant",
+      "name": "Codex",
+      "role": "会话委托的源材料阅读、标注和技术复核"
+    },
+    {
+      "kind": "developer",
+      "name": "current_chat_user",
+      "identity_source": "current_chat_user_message",
+      "role": "开发者确认审查口径及将本批参考包用于学习项目质量基线"
+    }
+  ],
+  "per_item_human_reannotation_claimed": false,
+  "is_independent_teacher_truth": false,
+  "independent_teacher_labeled_cases": 0,
+  "approved_for": [
+    "T146 input preparation completion",
+    "T168 learning-project quality baseline"
+  ],
+  "future_enhancement": "正式独立教师标注；新版本替换并保留本批与旧结果",
+  "statement": "T146 口径确认：采用开发者审查 + AI 辅助口径；使用当前AI辅助标注作为基准，不用教师质量表述。"
+}
