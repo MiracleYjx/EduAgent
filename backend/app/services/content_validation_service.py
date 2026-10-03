@@ -770,61 +770,66 @@ class ContentValidationService:
         self, owner_kind: OwnerKind, owner_id: UUID, *, actor_id: UUID
     ) -> ImageAssessmentView:
         with self._transaction():
-            owner = self._owner(owner_kind, owner_id, actor_id)
-            assessment = self._assessment(owner)
-            no_images = owner.assets == [] or (
-                isinstance(owner, Question) and not owner.assets
+            return self._image_assessment_view(owner_kind, owner_id, actor_id=actor_id)
+
+    def _image_assessment_view(
+        self, owner_kind: OwnerKind, owner_id: UUID, *, actor_id: UUID
+    ) -> ImageAssessmentView:
+        owner = self._owner(owner_kind, owner_id, actor_id)
+        assessment = self._assessment(owner)
+        no_images = owner.assets == [] or (
+            isinstance(owner, Question) and not owner.assets
+        )
+        refs = None
+        read_error = None
+        readable = no_images
+        try:
+            if not no_images:
+                refs, _ = self._read_images(self._image_refs(owner), actor_id)
+                readable = True
+        except (FileStorageError, ValidationError, ValueError) as exc:
+            read_error = TechnicalError(
+                code=getattr(exc, "code", "IMAGE_ASSESSMENT_INVALID"),
+                message=str(exc),
+                stage="image_read",
+                retryable=False,
+                cause=type(exc).__name__,
             )
-            refs = None
-            read_error = None
-            readable = no_images
-            try:
-                if not no_images:
-                    refs, _ = self._read_images(self._image_refs(owner), actor_id)
-                    readable = True
-            except (FileStorageError, ValidationError, ValueError) as exc:
-                read_error = TechnicalError(
-                    code=getattr(exc, "code", "IMAGE_ASSESSMENT_INVALID"),
-                    message=str(exc),
-                    stage="image_read",
-                    retryable=False,
-                    cause=type(exc).__name__,
-                )
-            check = current_image_check(assessment)
-            if check is not None and check.input_refs != refs:
-                check = None
-            binding = None
-            if isinstance(owner, Question) and refs is not None and check is None:
-                bound = self._bound_check(owner, assessment, refs)
-                if bound is not None:
-                    check, binding = bound, assessment.imported_review
-            status: Literal["pending", "confirmed", "unresolved", "not_required"] = (
-                "not_required"
-                if no_images
-                else check.status if check is not None and readable else "pending"
-            )
-            return ImageAssessmentView(
-                owner_kind=owner_kind,
-                owner_id=owner_id,
-                assessment=assessment if owner.image_assessment is not None else None,
-                context_revision=assessment.context_revision,
-                run_no=global_run_no(assessment),
-                check_no=global_check_no(assessment),
-                input_refs=refs,
-                current_run=current_image_run(assessment),
-                current_check=check,
-                imported_review=binding,
-                status=status,
-                confirmed_conditions=(
-                    check.confirmed_conditions
-                    if check is not None and status == "confirmed"
-                    else []
-                ),
-                requires_manual_review=status not in {"confirmed", "not_required"},
-                evidence_readable=readable,
-                error=read_error,
-                open_issues=list(self._open_issues(assessment).values()),
-            )
+        check = current_image_check(assessment)
+        if check is not None and check.input_refs != refs:
+            check = None
+        binding = None
+        if isinstance(owner, Question) and refs is not None and check is None:
+            bound = self._bound_check(owner, assessment, refs)
+            if bound is not None:
+                check, binding = bound, assessment.imported_review
+        status: Literal["pending", "confirmed", "unresolved", "not_required"] = (
+            "not_required"
+            if no_images
+            else check.status if check is not None and readable else "pending"
+        )
+        return ImageAssessmentView(
+            owner_kind=owner_kind,
+            owner_id=owner_id,
+            assessment=assessment if owner.image_assessment is not None else None,
+            context_revision=assessment.context_revision,
+            run_no=global_run_no(assessment),
+            check_no=global_check_no(assessment),
+            input_refs=refs,
+            current_run=current_image_run(assessment),
+            current_check=check,
+            imported_review=binding,
+            status=status,
+            confirmed_conditions=(
+                check.confirmed_conditions
+                if check is not None and status == "confirmed"
+                else []
+            ),
+            requires_manual_review=status not in {"confirmed", "not_required"},
+            evidence_readable=readable,
+            error=read_error,
+            open_issues=list(self._open_issues(assessment).values()),
+        )
 
     def _chunk_data(self, question: Question, chunk_id: UUID) -> dict[str, Any]:
         chunk = self.session.scalars(
@@ -899,7 +904,7 @@ class ContentValidationService:
                         "图片证据不属于本题。",
                         http_status=422,
                     )
-                view = self.get_image_assessment(
+                view = self._image_assessment_view(
                     "question", question.id, actor_id=actor_id
                 )
                 if view.status != "confirmed" or view.current_check is None:
@@ -1094,7 +1099,7 @@ class ContentValidationService:
                 http_status=422,
             )
         if question.assets:
-            view = self.get_image_assessment("question", question.id, actor_id=actor_id)
+            view = self._image_assessment_view("question", question.id, actor_id=actor_id)
             if view.status != "confirmed" or not {
                 asset.id for asset in question.assets
             } <= {
@@ -1105,6 +1110,83 @@ class ContentValidationService:
                 raise ContentValidationError(
                     "VISION_REVIEW_REQUIRED", "每张题图须有当前可靠核对与真实核验引用。"
                 )
+
+    def require_exam_eligible(
+        self, question: Question, actor_id: UUID
+    ) -> QuestionValidationResult:
+        """Check current Approved content without owning the caller's transaction.
+
+        Assembly holds Course/Exam/Question locks. Unlike the approval command this
+        accepts only already Approved questions, and never commits or rolls back.
+        """
+        locked = cast(Question, self._owner("question", question.id, actor_id))
+        if locked.status != QuestionStatus.APPROVED:
+            raise ContentValidationError(
+                "CONTENT_VALIDATION_NOT_READY",
+                "组卷题目必须已审核。",
+                current_status=locked.status.value,
+            )
+        report = self.session.scalars(
+            select(QuestionValidationResult)
+            .where(QuestionValidationResult.question_id == locked.id)
+            .order_by(QuestionValidationResult.run_no.desc())
+            .limit(1)
+            .with_for_update()
+            .execution_options(populate_existing=True)
+        ).first()
+        if report is None:
+            raise ContentValidationError(
+                "CONTENT_VALIDATION_REQUIRED", "组卷题目缺少当前语义核验报告。"
+            )
+        try:
+            if (
+                report.input_revision != locked.validation_revision
+                or report.outcome != "passed"
+            ):
+                raise ContentValidationError(
+                    "CONTENT_VALIDATION_NOT_READY", "最新语义核验未通过或已过期。"
+                )
+            output = ValidationOutput.model_validate(
+                {"checks": report.checks, "issues": report.issues}
+            )
+            dispositions = [
+                ManualDisposition.model_validate(item)
+                for item in report.manual_dispositions
+            ]
+            if (
+                any(check.verdict != "pass" for check in output.checks)
+                or any(
+                    issue.severity in {"warning", "error"} for issue in output.issues
+                )
+                or any(
+                    item.action
+                    in {"provide_evidence", "resolve_issue", "request_revision"}
+                    for item in dispositions
+                )
+            ):
+                raise ContentValidationError(
+                    "CONTENT_VALIDATION_NOT_READY",
+                    "语义核验仍有未解决问题或人工处置待复核。",
+                )
+            refs = ValidationInputRefs.model_validate(report.input_refs)
+            known_evidence = {item.evidence_id for item in refs.evidence}
+            if any(
+                not set(check.evidence_refs) <= known_evidence
+                for check in output.checks
+            ) or any(
+                not set(issue.evidence_refs) <= known_evidence
+                for issue in output.issues
+            ):
+                raise ValueError("核验输出引用不存在的证据。")
+            self._validation_ready(locked, refs, actor_id)
+            self._evidence(locked, refs.evidence, actor_id)
+        except (ValidationError, ValueError) as exc:
+            raise ContentValidationError(
+                "CONTENT_SOURCE_INVALID",
+                "已保存语义核验或来源证据无效。",
+                http_status=422,
+            ) from exc
+        return report
 
     def require_can_approve(
         self, question: Question, actor_id: UUID

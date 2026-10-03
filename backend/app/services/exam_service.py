@@ -15,6 +15,7 @@ from sqlalchemy.orm import Session, selectinload
 
 from backend.app.domain.enums import ExamStatus, QuestionStatus
 from backend.app.models import Course, Exam, ExamQuestion, Question, User
+from backend.app.schemas.exam_assembly import AssemblyRequest, AssemblyResponse
 
 _UNSET = object()
 _ZERO_SCORE = Decimal("0.00")
@@ -302,6 +303,22 @@ class ExamService:
         )
         self.session.add(exam)
         return self._commit_exam(exam, "创建考试失败。")
+
+    def assemble_exam(
+        self,
+        exam_id: UUID | str,
+        payload: AssemblyRequest,
+        *,
+        teacher_id: UUID | str,
+    ) -> AssemblyResponse:
+        """条件组卷的原考试服务入口；事务与诊断由组卷服务负责。"""
+        from backend.app.services.exam_assembly_service import ExamAssemblyService
+
+        return ExamAssemblyService(self.session).assemble(
+            _normalize_uuid(exam_id, "考试标识"),
+            payload,
+            actor_id=_normalize_uuid(teacher_id, "教师标识"),
+        )
 
     def list_exams(
         self,

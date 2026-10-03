@@ -15,7 +15,12 @@ from pydantic import (
     model_validator,
 )
 
-from backend.app.schemas.exam_scoring import Amount, ScoringBasis, TotalAmount
+from backend.app.schemas.exam_scoring import (
+    Amount,
+    ScoringBasis,
+    SignedAmount,
+    TotalAmount,
+)
 from backend.app.schemas.question_assets import QuestionAssetView
 
 AssemblyQuestionType = Literal["SINGLE_CHOICE", "TRUE_FALSE", "SHORT_ANSWER"]
@@ -102,12 +107,46 @@ class ExamQuestionView(AssemblyModel):
     assets: list[QuestionAssetView] = Field(default_factory=list)
 
 
+class AssemblyCondition(AssemblyModel):
+    kind: str
+    target: int | str
+    actual: int | str | None
+    satisfied: bool
+    reason: str | None = None
+
+
+class PublicationCheck(AssemblyModel):
+    code: str
+    message: str
+    question_id: UUID | None = None
+
+
+class AssemblyResponse(AssemblyModel):
+    exam_id: UUID
+    current_status: str
+    exam_questions: list[ExamQuestionView]
+    conditions: list[AssemblyCondition]
+    total_score: SignedAmount | None
+    publication_checks: list[PublicationCheck]
+    assembly_constraints: AssemblyConstraints | None
+
+    @field_validator("total_score")
+    @classmethod
+    def nonnegative_total(cls, value: SignedAmount | None) -> SignedAmount | None:
+        if value is not None and value < 0:
+            raise ValueError("预览总分不能为负数。")
+        return value
+
+
 __all__ = [
+    "AssemblyCondition",
     "AssemblyConstraints",
     "AssemblyQuestionType",
     "AssemblyRequest",
+    "AssemblyResponse",
     "ExamQuestionView",
     "KnowledgeCoverage",
+    "PublicationCheck",
     "ScoreOverride",
     "TypeDistribution",
 ]

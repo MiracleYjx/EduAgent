@@ -15,6 +15,8 @@ from backend.app.core.security import require_permission
 from backend.app.domain.enums import ExamStatus
 from backend.app.domain.permissions import Permission
 from backend.app.models import User
+from backend.app.schemas.exam_assembly import AssemblyRequest, AssemblyResponse
+from backend.app.services.exam_assembly_service import AssemblyError
 from backend.app.services.exam_service import (
     ExamConflictError,
     ExamNotFoundError,
@@ -181,6 +183,8 @@ ExamPublisher = Annotated[
 def _exam_http_exception(error: BaseException) -> HTTPException:
     """将考试服务异常转换为统一的中文 HTTP 错误。"""
 
+    if isinstance(error, AssemblyError):
+        return HTTPException(status_code=error.http_status, detail=error.as_detail())
     if isinstance(error, ExamNotFoundError):
         code = status.HTTP_404_NOT_FOUND
     elif isinstance(error, ExamPermissionError):
@@ -290,6 +294,20 @@ def update_exam(
             **_exam_update_kwargs(payload),
         )
     except (ExamServiceError, ValueError) as exc:
+        raise _exam_http_exception(exc) from None
+
+
+@router.post("/{exam_id}/assemble", response_model=AssemblyResponse)
+def assemble_exam(
+    exam_id: UUID,
+    payload: AssemblyRequest,
+    teacher: ExamEditor,
+    service: ExamServiceDependency,
+) -> AssemblyResponse:
+    """保存教师条件并进行精确组卷；失败仍返回真实意图保存状态。"""
+    try:
+        return service.assemble_exam(exam_id, payload, teacher_id=teacher.id)
+    except (AssemblyError, ExamServiceError, ValueError) as exc:
         raise _exam_http_exception(exc) from None
 
 

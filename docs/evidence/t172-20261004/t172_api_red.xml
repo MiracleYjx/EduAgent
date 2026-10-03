@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="1" failures="0" skipped="0" tests="1" time="1.078" timestamp="2026-10-04T01:25:03.818867+08:00" hostname="YJX"><testcase classname="" name="tests.contract.test_exam_assembly_api" time="0.000"><error message="collection failure">ImportError while importing test module 'D:\YJX\MyCode\EduAgent\tests\contract\test_exam_assembly_api.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+D:\develop\Python\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\contract\test_exam_assembly_api.py:11: in &lt;module&gt;
+    from backend.app.schemas.exam_assembly import AssemblyResponse
+E   ImportError: cannot import name 'AssemblyResponse' from 'backend.app.schemas.exam_assembly' (D:\YJX\MyCode\EduAgent\backend\app\schemas\exam_assembly.py)</error></testcase></testsuite></testsuites>

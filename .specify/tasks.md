@@ -602,7 +602,7 @@ M0 工程骨架 + Benchmark
 
 - [X] T171 [HIGH] [E4] **落实历史考试核对与兼容迁移**：在 `migrations/versions/`、`scripts/` 及 `docs/validation-report.md` 将 T144 盘点转为历史关联迁移/核对流程：题序依据当前确定排序或更强真实证据，分值/标准/知识点只按当时证据固定；未知显式报告，历史原始结果可读但不能未经核对重评。隔离数据库验证关联数量、历史读取及失败恢复，不以迁移执行时间伪造批准时间。 依赖：T144、T170。per FR-049、exam-scoring 历史兼容、data-model §10（F038） (missing)
 
-- [ ] T172 [HIGH] [E4] **实现条件组卷与约束持久化**：在新增 `services/exam_assembly_service.py`、`services/exam_service.py` 和 `api/exams.py` 实现 assemble：同课程已审核/补全/语义处置及图像可用候选，精确题型/数量/知识点覆盖/Decimal 总分；保存教师要求和成功组合，不自动降条件或改分。区分确有冲突与策略未找到，失败返回真实 gaps 且保持原草稿，不引入独立求解服务。 依赖：T170、T171。per FR-048、exam-assembly 输入/输出、SC-012（F039） (missing)
+- [X] T172 [HIGH] [E4] **实现条件组卷与约束持久化**：在新增 `services/exam_assembly_service.py`、`services/exam_service.py` 和 `api/exams.py` 实现 assemble：同课程已审核/补全/语义处置及图像可用候选，精确题型/数量/知识点覆盖/Decimal 总分；保存教师要求和成功组合，不自动降条件或改分。区分确有冲突与策略未找到，失败返回真实 gaps 且保持原草稿，不引入独立求解服务。 依赖：T170、T171。per FR-048、exam-assembly 输入/输出、SC-012（F039） (missing)
 
 - [ ] T173 [HIGH] [E4] **实现题序、替换、改分与完整预览**：在考试服务/API 实现 PATCH 关联题：qid 使用 Question.id，事务移位维持 1..题数，替换新关系并保留位置/显式分值；改分/替换后废弃旧评分确认，重算持久组卷条件，草稿可暂存缺口但不能发布。预览读取相同题序/本场值/授权图，保留原创建选题入口。 依赖：T172。per FR-048/049、exam-assembly 题序、替换与预览（F040） (partial)
 
