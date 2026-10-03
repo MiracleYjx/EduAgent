@@ -559,3 +559,15 @@ T159 修夹具后的主壳先行：2 failed，分别在 generatorfunction 与动
 - 新核验行为先 RED，最终独立 T166 源快照 173 passed；四项新增 PostgreSQL 事务用例及原十项均通过。
 - 原有生成/状态测试仅补真实教学证据、核验报告和受控 Provider 装配，保留状态/来源/数量/失败原断言；没有云调用特例。
 - 完整 mypy 195 源文件、backend/tests Ruff 通过；UI 集成由 T167 与最终回归承接。
+
+- T167 运行验收补充：真实浏览器登录暴露全局 outputs 未登记试卷图片核对 reset 返回的两按钮及 Accordion；新增聚焦注册/Gradio 返回值转换回归，必要性是防止登录、退出共用清理回调在序列化时失败，不改变既有清理或业务语义；先复现 1 failed，再修复登记后 test_gradio_app.py 12 passed。
+
+- T167 全量兼容夹具补充（实施前）：tests/integration/test_teacher_setup.py 及 test_paper_import_foundation.py、test_question_asset_service.py 的原批准流程仍无当前核验依据；仅补齐答案/评分标准、真实同课程教学引用与已持久的受控语义报告，带图题先经实际文件读取和当前人工图像核对，再执行语义核验。保留原课程/考试准备、批准时间、批准只读、合法退修与文件不物理删除断言；不改变业务或降低门禁，不把受控报告称作独立教师真值。
+
+- 上述 T167 旧批准夹具聚焦结果：原 3 failed / 5 passed；补齐后 8 passed（t167_legacy_fixtures_complete.log）。图像夹具在实际测试根读取裁剪像素、取得当前 revision/run/check 并经真实 manual_image_check 持久 confirmed 条件后才准备语义报告；统一批准服务按同一真实根检查，原断言保留。
+
+#### 本批全量回归收敛与待决项
+
+- 首轮完整源码回归保留 2059 passed/2 skipped/21 failed/49 errors 原始日志。新统一批准门禁使原 Approved 准备失效，必须补真实教材/当前报告；有图先读真实文件并当前核对，合法退回补真实原因，迁移测试保留旧链并明确新增0021。上述均在 §20 已预登记范围内，没有删除/放宽原业务断言。
+- 实施后的精确源码快照逐例重验全部68非演示异常为68 passed，另83/8现有消费者聚焦通过；完整 mypy 197、最终 Ruff通过。
+- scripts/demo_seed.py 两项旧成功流程的公共行为/真实调用成本待用户决定，测试与脚本原事实保留，未用批准特例掩盖，T167未勾选。

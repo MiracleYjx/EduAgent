@@ -32,6 +32,7 @@ from backend.app.services.submission_service import (
     SubmissionService,
     SubmissionValidationError,
 )
+from tests.support.question_validation_fixtures import persist_current_semantic_pass
 
 
 @pytest.fixture
@@ -129,6 +130,7 @@ def add_approved_question(
         QuestionStatus.PENDING_REVIEW,
         teacher_id=teacher.id,
     )
+    persist_current_semantic_pass(session, summary.id, teacher.id)
     approved = question_service.update_question_status(
         summary.id,
         QuestionStatus.APPROVED,

@@ -1,0 +1,89 @@
+{
+  "utc": "2026-10-03T04:15:55.012599+00:00",
+  "fixture_only": true,
+  "cloud_calls": false,
+  "teacher_quality": false,
+  "records": [
+    {
+      "id": "4573ec78-c2ca-4360-8fa3-a04a6da5df07",
+      "content": "【合成原卷父题】根据图中的直角边 3 cm、4 cm，计算三角形面积。",
+      "status": "Draft",
+      "revision": 0,
+      "frozen_at": null,
+      "assets": 1,
+      "image_manual_checks": 0,
+      "report_ids": [],
+      "parent_ids": []
+    },
+    {
+      "id": "70487bfa-558a-4cc0-a36c-29eeab006b38",
+      "content": "【人工草稿·无核验报告】两条直角边分别为 3 cm、4 cm，三角形面积是多少？",
+      "status": "Needs Revision",
+      "revision": 1,
+      "frozen_at": null,
+      "assets": 0,
+      "image_manual_checks": 0,
+      "report_ids": [
+        "d7750cd6-5be3-4721-8390-87d3c4fa9b1d"
+      ],
+      "parent_ids": []
+    },
+    {
+      "id": "8d67d20f-8e20-41ba-86f2-86f297bac6a6",
+      "content": "【受控Provider·文字候选技术验收 1】两条直角边分别为 3 cm 和 4 cm 的直角三角形，其面积是多少？",
+      "status": "Pending Review",
+      "revision": 0,
+      "frozen_at": null,
+      "assets": 0,
+      "image_manual_checks": 0,
+      "report_ids": [
+        "97b8bc0b-cf32-487b-bfb1-6c5d3739dceb"
+      ],
+      "parent_ids": []
+    },
+    {
+      "id": "74f5f263-0f8c-416f-b6ab-c27a97ef0e60",
+      "content": "【受控Provider·改编技术验收 1】两条直角边分别为 3 cm 和 4 cm 的直角三角形，其面积是多少？",
+      "status": "Approved",
+      "revision": 2,
+      "frozen_at": "2026-10-03T03:59:36.521747+00:00",
+      "assets": 1,
+      "image_manual_checks": 1,
+      "report_ids": [
+        "94f876d2-360a-4694-a248-b468b9b48101"
+      ],
+      "parent_ids": [
+        "4573ec78-c2ca-4360-8fa3-a04a6da5df07"
+      ]
+    },
+    {
+      "id": "918000a7-22e8-468c-879e-c9130aa2b8d4",
+      "content": "【受控Provider·文字候选技术验收 1】两条直角边分别为 3 cm 和 4 cm 的直角三角形，其面积是多少？",
+      "status": "Pending Review",
+      "revision": 0,
+      "frozen_at": null,
+      "assets": 0,
+      "image_manual_checks": 0,
+      "report_ids": [
+        "423c87b5-8e8b-4e32-bd13-5cd90b8c1a3d"
+      ],
+      "parent_ids": []
+    },
+    {
+      "id": "c3049988-320b-4fa8-80b2-cfb4b22666f9",
+      "content": "【受控Provider·改编技术验收 1】两条直角边分别为 3 cm 和 4 cm 的直角三角形，其面积是多少？",
+      "status": "Pending Review",
+      "revision": 1,
+      "frozen_at": null,
+      "assets": 1,
+      "image_manual_checks": 0,
+      "report_ids": [],
+      "parent_ids": [
+        "74f5f263-0f8c-416f-b6ab-c27a97ef0e60"
+      ]
+    }
+  ],
+  "new_text_id": "918000a7-22e8-468c-879e-c9130aa2b8d4",
+  "new_child_id": "c3049988-320b-4fa8-80b2-cfb4b22666f9",
+  "proved": "New text auto-validation; new derived image candidate does not inherit approved parent checks/reports/freeze."
+}

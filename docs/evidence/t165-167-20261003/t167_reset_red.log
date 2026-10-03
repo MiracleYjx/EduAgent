@@ -1,0 +1,35 @@
+F                                                                        [100%]
+================================== FAILURES ===================================
+_______ test_workspace_reset_only_returns_registered_output_components ________
+
+built_app = Gradio Blocks instance: 255 backend functions
+---------------------------------------------
+fn_index=0
+ inputs:
+ |-<gr...omponents.markdown.Markdown object at 0x00000153EC9BF890>
+ |-<gradio.components.file.File object at 0x00000153EC7B5940>
+
+    def test_workspace_reset_only_returns_registered_output_components(built_app: gr.Blocks) -> None:
+        """Login invokes this same reset; Gradio must be able to serialize every component."""
+        block_fn = next(fn for fn in built_app.fns.values()
+                        if fn.fn is not None and getattr(fn.fn, "__name__", "") == "clear_workspace")
+        result = block_fn.fn()
+        missing = [component for component in result if component not in block_fn.outputs]
+>       assert missing == [], [(type(component).__name__, getattr(component, "value", None),
+                                getattr(component, "elem_id", None)) for component in missing]
+E       AssertionError: [('Button', '理解整组题图', None), ('Button', '保存教师核对', None), ('Accordion', None, None)]
+E       assert [<gradio.comp...0153EC7AF0B0>] == []
+E         
+E         Left contains 3 more items, first extra item: <gradio.components.button.Button object at 0x00000153EC8B1E50>
+E         Use -v to get more diff
+
+tests\unit\ui\test_gradio_app.py:254: AssertionError
+============================== warnings summary ===============================
+tests/unit/ui/test_gradio_app.py::test_workspace_reset_only_returns_registered_output_components
+  D:\develop\Python\Lib\site-packages\gradio\components\dataframe.py:197: UserWarning: The `column_limits` parameter is not yet implemented.
+    warnings.warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/unit/ui/test_gradio_app.py::test_workspace_reset_only_returns_registered_output_components
+1 failed, 11 deselected, 1 warning in 10.76s

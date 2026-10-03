@@ -22,6 +22,7 @@ from backend.app.services.exam_service import (
     ExamValidationError,
 )
 from backend.app.services.question_service import QuestionService
+from tests.support.question_validation_fixtures import persist_current_semantic_pass
 
 
 @pytest.fixture
@@ -99,6 +100,7 @@ def add_question(
             QuestionStatus.PENDING_REVIEW,
             teacher_id=teacher.id,
         )
+        persist_current_semantic_pass(session, summary.id, teacher.id)
         summary = question_service.update_question_status(
             summary.id,
             QuestionStatus.APPROVED,

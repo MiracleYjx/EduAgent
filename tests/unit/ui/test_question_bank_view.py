@@ -6,13 +6,16 @@ from datetime import UTC, datetime
 from decimal import Decimal
 from typing import Any
 from unittest.mock import Mock
+from uuid import UUID
 
 import gradio as gr
 import pytest
 from sqlalchemy.exc import SQLAlchemyError
 
 import backend.app.ui.question_view as question_module
+from backend.app.api.questions import QuestionDetailDTO
 from backend.app.domain.enums import QuestionStatus, QuestionType
+from backend.app.schemas.image_assessment import ImageAssessmentView
 from backend.app.services.question_service import QuestionSummary
 
 TEACHER = {"access_token": "test-token", "user_id": "teacher-id", "roles": ["Teacher"]}
@@ -80,6 +83,34 @@ def service_fixture(monkeypatch: pytest.MonkeyPatch, question: QuestionSummary) 
     monkeypatch.setattr(
         question_module, "teacher_course_choices", lambda state: COURSES
     )
+
+    def load_detail(identity, state):
+        value = service.get_question(identity, teacher_id=state["user_id"])
+        return QuestionDetailDTO(
+            **value.model_dump(),
+            sources_persisted=False,
+            source_status="history_unknown",
+            sources=[],
+            revision_comments=[],
+            image_assessment=ImageAssessmentView(
+                owner_kind="question",
+                owner_id=UUID(int=1),
+                assessment=None,
+                context_revision=0,
+                run_no=0,
+                check_no=0,
+                input_refs=None,
+                current_run=None,
+                current_check=None,
+                imported_review=None,
+                status="not_required",
+                confirmed_conditions=[],
+                requires_manual_review=False,
+                evidence_readable=True,
+            ),
+        )
+
+    monkeypatch.setattr(question_module.question_review_loaders, "detail", load_detail)
     return service
 
 
@@ -97,7 +128,7 @@ def test_selection_opens_readonly_details_then_explicit_editor(
     assert result[component(app, "edu-question-detail")]["visible"] is True
     assert result[component(app, "edu-question-editor")]["visible"] is False
     assert question.content in result[component(app, "edu-question-preview")]["value"]
-    assert result[field(app, "审核通过")]["interactive"] is True
+    assert result[field(app, "审核通过")]["interactive"] is False
 
     result = callback(app, "edit_selected")(question.model_dump(mode="json"), TEACHER)
     assert result[component(app, "edu-question-editor")]["visible"] is True
@@ -144,6 +175,7 @@ def test_save_returns_persisted_details_and_keeps_failures_in_editor(
     service = service_fixture(monkeypatch, question)
     saved = question.model_copy(update={"reference_answer": "保存后的答案"})
     service.update_question.return_value = saved
+    service.get_question.return_value = saved
     monkeypatch.setattr(question_module, "load_question_choices", lambda *args: [saved])
     args = [
         question.model_dump(mode="json"),
@@ -156,6 +188,7 @@ def test_save_returns_persisted_details_and_keeps_failures_in_editor(
         None,
         "保存后的答案",
         question.scoring_rubric,
+        "补全解析",
         "中等",
         "事务",
         10,

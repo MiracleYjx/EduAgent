@@ -33,6 +33,7 @@ from backend.app.models import (
     User,
 )
 from backend.app.services.auth_service import hash_password
+from tests.support.question_validation_fixtures import persist_current_semantic_pass
 from tests.unit.settings_helpers import build_test_settings
 
 TEST_JWT_SECRET = token_urlsafe(48)
@@ -233,6 +234,9 @@ def test_teacher_prepares_course_document_question_and_exam(
         "提交题目审核",
     )
     assert pending_question["status"] == QuestionStatus.PENDING_REVIEW.value
+
+    with session_factory() as session:
+        persist_current_semantic_pass(session, question_id, teacher_id)
 
     approved_question = _expect_json(
         client.post(

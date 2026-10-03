@@ -1,0 +1,237 @@
+{
+  "utc": "2026-10-03T04:03:48.865361+00:00",
+  "fixture_only": true,
+  "cloud_calls": false,
+  "teacher_quality": false,
+  "records": {
+    "manual_question_id": {
+      "id": "70487bfa-558a-4cc0-a36c-29eeab006b38",
+      "status": "Needs Revision",
+      "validation_revision": 1,
+      "frozen_at": null,
+      "options_order": [
+        "B",
+        "A"
+      ],
+      "analysis": "技术验收：根据当前教材，直角三角形面积 = 3 × 4 ÷ 2 = 6 平方厘米，故选 B。",
+      "reports": [
+        {
+          "id": "d7750cd6-5be3-4721-8390-87d3c4fa9b1d",
+          "round": 1,
+          "revision": 1,
+          "status": "passed",
+          "input_refs": {
+            "fields": [
+              "type",
+              "content",
+              "options",
+              "reference_answer",
+              "scoring_rubric",
+              "analysis",
+              "score"
+            ],
+            "evidence": [
+              {
+                "kind": "chunk",
+                "source_id": "1414c9f3-10ba-417b-9478-9e0302353b69",
+                "evidence_id": "4601e43f-632a-4b0d-8a06-319e847a40fc",
+                "source_data": {
+                  "chunk_id": "1414c9f3-10ba-417b-9478-9e0302353b69",
+                  "location": {
+                    "page": 1,
+                    "section": "面积计算"
+                  },
+                  "course_id": "6b8256a2-2ed9-46be-9803-4c0dfac8a644",
+                  "document_id": "ff68c7e0-652c-404e-a4b2-f4770c36bb80",
+                  "source_file": "t167-synthetic-lesson.txt",
+                  "content_snapshot": "直角三角形面积：两条互相垂直的直角边可分别作为底和高。面积=底×高÷2。直角边为3厘米与4厘米时，面积=3×4÷2=6平方厘米。此为合成技术验收教材，不是教师质量真值。"
+                }
+              }
+            ],
+            "manual_context": []
+          }
+        }
+      ],
+      "revision_comments": [
+        {
+          "actor_id": "e3a7b730-e056-415c-911a-0728a8d70aae",
+          "reason": "合成技术验收：退回重新核对解析，验证旧报告失效和真实教师处置持久化。",
+          "created_at": "2026-10-03T03:55:13.530449+00:00"
+        }
+      ],
+      "image_assessment": null
+    },
+    "image_child_id": {
+      "id": "74f5f263-0f8c-416f-b6ab-c27a97ef0e60",
+      "status": "Approved",
+      "validation_revision": 2,
+      "frozen_at": "2026-10-03T03:59:36.521747+00:00",
+      "options_order": null,
+      "analysis": "受控技术样本：三角形面积等于底乘高除以二，3×4÷2=6。此输出不用于模型质量评价。",
+      "reports": [
+        {
+          "id": "94f876d2-360a-4694-a248-b468b9b48101",
+          "round": 1,
+          "revision": 2,
+          "status": "passed",
+          "input_refs": {
+            "fields": [
+              "type",
+              "content",
+              "options",
+              "reference_answer",
+              "scoring_rubric",
+              "analysis",
+              "score",
+              "images",
+              "image_conditions"
+            ],
+            "evidence": [
+              {
+                "kind": "question_source_chunk",
+                "source_id": "478677db-0a44-48b1-bb22-668ce7302615",
+                "evidence_id": "a1492f9f-317d-49a4-8370-c07cc1bb4a61",
+                "source_data": {
+                  "chunk_id": "1414c9f3-10ba-417b-9478-9e0302353b69",
+                  "location": null,
+                  "course_id": "6b8256a2-2ed9-46be-9803-4c0dfac8a644",
+                  "document_id": "ff68c7e0-652c-404e-a4b2-f4770c36bb80",
+                  "source_file": "t167-synthetic-lesson.txt",
+                  "content_snapshot": "直角三角形面积：两条互相垂直的直角边可分别作为底和高。面积=底×高÷2。直角边为3厘米与4厘米时，面积=3×4÷2=6平方厘米。此为合成技术验收教材，不是教师质量真值。"
+                }
+              },
+              {
+                "kind": "question_asset",
+                "source_id": "247c0f44-c09a-46ba-80e6-a7b6d08e9481",
+                "evidence_id": "c857c898-6b46-4beb-b99a-9f9406eb1f53",
+                "source_data": {
+                  "region": null,
+                  "file_id": "a_247c0f44c09a46ba80e6a7b6d08e9481",
+                  "source_page_id": "a8cf2bf4-2f83-4dc0-9972-eea6d8c163db",
+                  "image_review_ref": {
+                    "check_id": "d6b326d5-afde-46b8-9190-91e2e7613d99",
+                    "owner_id": "74f5f263-0f8c-416f-b6ab-c27a97ef0e60",
+                    "binding_id": null,
+                    "owner_kind": "question"
+                  },
+                  "confirmed_conditions": []
+                }
+              }
+            ],
+            "manual_context": []
+          }
+        }
+      ],
+      "revision_comments": [],
+      "image_assessment": {
+        "runs": [],
+        "manual_checks": [
+          {
+            "id": "d6b326d5-afde-46b8-9190-91e2e7613d99",
+            "issues": [],
+            "run_id": null,
+            "run_no": 0,
+            "status": "confirmed",
+            "check_no": 1,
+            "checked_at": "2026-10-03T03:59:06.044432Z",
+            "input_refs": {
+              "images": [
+                {
+                  "width": 640,
+                  "height": 420,
+                  "region": null,
+                  "file_id": "a_247c0f44c09a46ba80e6a7b6d08e9481",
+                  "asset_id": "247c0f44-c09a-46ba-80e6-a7b6d08e9481",
+                  "mime_type": "image/png",
+                  "asset_type": "diagram",
+                  "image_index": 1,
+                  "source_page_id": "a8cf2bf4-2f83-4dc0-9972-eea6d8c163db"
+                }
+              ],
+              "text_fields": [
+                "type",
+                "content",
+                "options",
+                "reference_answer",
+                "scoring_rubric",
+                "analysis",
+                "score",
+                "caption"
+              ]
+            },
+            "teacher_id": "e3a7b730-e056-415c-911a-0728a8d70aae",
+            "explanation": "自动化浏览器使用合成教师账号核对合成图像；图中直角及边长与文字一致。仅验证持久化和门禁，不作为独立教师标注或真实模型质量证据。",
+            "image_findings": [
+              {
+                "reason": "合成技术验收：已查看原图，直角标记及 3 cm、4 cm 与题干相同，无需额外题图条件。",
+                "finding": "no_conditions_needed",
+                "asset_id": "247c0f44-c09a-46ba-80e6-a7b6d08e9481"
+              }
+            ],
+            "context_revision": 0,
+            "issue_resolutions": [],
+            "confirmed_conditions": []
+          }
+        ],
+        "imported_review": null,
+        "context_revision": 0
+      }
+    },
+    "text_candidate_id": {
+      "id": "8d67d20f-8e20-41ba-86f2-86f297bac6a6",
+      "status": "Pending Review",
+      "validation_revision": 0,
+      "frozen_at": null,
+      "options_order": null,
+      "analysis": "受控技术样本：三角形面积等于底乘高除以二，3×4÷2=6。此输出不用于模型质量评价。",
+      "reports": [
+        {
+          "id": "97b8bc0b-cf32-487b-bfb1-6c5d3739dceb",
+          "round": 1,
+          "revision": 0,
+          "status": "passed",
+          "input_refs": {
+            "fields": [
+              "type",
+              "content",
+              "options",
+              "reference_answer",
+              "scoring_rubric",
+              "analysis",
+              "score"
+            ],
+            "evidence": [
+              {
+                "kind": "question_source_chunk",
+                "source_id": "a464cde9-ca9b-4450-a17a-bcde640f40ac",
+                "evidence_id": "9578f78c-27d6-425b-bec6-9602e92c6df3",
+                "source_data": {
+                  "chunk_id": "1414c9f3-10ba-417b-9478-9e0302353b69",
+                  "location": null,
+                  "course_id": "6b8256a2-2ed9-46be-9803-4c0dfac8a644",
+                  "document_id": "ff68c7e0-652c-404e-a4b2-f4770c36bb80",
+                  "source_file": "t167-synthetic-lesson.txt",
+                  "content_snapshot": "直角三角形面积：两条互相垂直的直角边可分别作为底和高。面积=底×高÷2。直角边为3厘米与4厘米时，面积=3×4÷2=6平方厘米。此为合成技术验收教材，不是教师质量真值。"
+                }
+              }
+            ],
+            "manual_context": []
+          }
+        }
+      ],
+      "revision_comments": [],
+      "image_assessment": null
+    },
+    "parent_question_id": {
+      "id": "4573ec78-c2ca-4360-8fa3-a04a6da5df07",
+      "status": "Draft",
+      "validation_revision": 0,
+      "frozen_at": null,
+      "options_order": null,
+      "analysis": "面积=3×4÷2=6平方厘米。",
+      "reports": [],
+      "revision_comments": [],
+      "image_assessment": null
+    }
+  }
+}

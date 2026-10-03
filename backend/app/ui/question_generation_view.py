@@ -31,14 +31,23 @@ from backend.app.api.question_generation import (
 from backend.app.api.questions import QuestionDetailDTO
 from backend.app.domain.enums import QuestionStatus, QuestionType, UserRole
 from backend.app.domain.permissions import PermissionDeniedError, normalize_role
+from backend.app.schemas.retrieval_scope import RetrievalScope
+from backend.app.services.auth_service import AuthenticationError
 from backend.app.services.course_service import CourseServiceError
+from backend.app.services.file_storage_service import FileStorageError
 from backend.app.ui import question_generation_loaders as loaders
+from backend.app.ui import question_review_loaders
 from backend.app.ui.layout_view import (
     empty_state,
     feedback,
     status_choices,
     status_label,
 )
+from backend.app.ui.question_review_view import (
+    approval_enabled,
+    create_question_review_panel,
+)
+from backend.app.ui.question_view import option_text_rows
 
 #: 出题条件表头（左栏条件摘要）。
 CONDITION_HEADERS = ("条件", "当前值")
@@ -103,6 +112,8 @@ class QuestionGenerationLoaders:
     list_candidates: Callable[..., CandidatePageDTO]
     candidate_detail: Callable[..., QuestionDetailDTO]
     review: Callable[..., CandidateReviewOutcomeDTO]
+    adapt: Callable[..., Any]
+    scope_context: Callable[..., Any]
 
 
 _DEFAULT_LOADERS = QuestionGenerationLoaders(
@@ -111,6 +122,8 @@ _DEFAULT_LOADERS = QuestionGenerationLoaders(
     list_candidates=loaders.list_candidates,
     candidate_detail=loaders.load_question_detail,
     review=loaders.submit_candidate_review,
+    adapt=loaders.adapt_candidate_batch,
+    scope_context=loaders.load_scope_context,
 )
 
 _active_loaders: QuestionGenerationLoaders = _DEFAULT_LOADERS
@@ -123,6 +136,8 @@ def configure_question_generation_loaders(
     list_candidates: Callable[..., Any] | None = None,
     candidate_detail: Callable[..., Any] | None = None,
     review: Callable[..., Any] | None = None,
+    adapt: Callable[..., Any] | None = None,
+    scope_context: Callable[..., Any] | None = None,
 ) -> None:
     """注入出题接线点（传 ``None`` 表示沿用生产默认）。
 
@@ -136,6 +151,8 @@ def configure_question_generation_loaders(
         list_candidates=list_candidates or _DEFAULT_LOADERS.list_candidates,
         candidate_detail=candidate_detail or _DEFAULT_LOADERS.candidate_detail,
         review=review or _DEFAULT_LOADERS.review,
+        adapt=adapt or _DEFAULT_LOADERS.adapt,
+        scope_context=scope_context or _DEFAULT_LOADERS.scope_context,
     )
 
 
@@ -192,7 +209,9 @@ def _error_message(error: BaseException) -> str:
                 f"{GENERATION_UNAVAILABLE_MESSAGE}（{error.error_code}）", "error"
             )
         return feedback(f"操作未完成（{error.error_code}）：{error.detail}", "error")
-    if isinstance(error, PermissionDeniedError):
+    if isinstance(
+        error, (AuthenticationError, FileStorageError, PermissionDeniedError)
+    ):
         return feedback(str(error), "error")
     if isinstance(error, CourseServiceError):
         return feedback(str(error), "error")
@@ -226,6 +245,27 @@ def _candidate_with_detail(
 
     candidate = _as_dict(item)
     detail = _active_loaders.candidate_detail(str(candidate["candidate_id"]), state)
+    actual = detail.model_dump(mode="json")
+    for field in (
+        "content",
+        "options",
+        "reference_answer",
+        "scoring_rubric",
+        "analysis",
+        "difficulty",
+        "score",
+        "knowledge_points",
+        "status",
+        "source_type",
+        "parent_sources",
+        "paper_source",
+        "can_review",
+        "current_validation",
+    ):
+        if field in actual:
+            candidate[field] = actual[field]
+    candidate["question_type"] = detail.type.value
+    candidate["can_review"] = getattr(detail, "can_review", False)
     candidate["source_status"] = detail.source_status
     return candidate, detail
 
@@ -281,12 +321,18 @@ def candidate_preview_markdown(item: Mapping[str, Any] | Any | None) -> str:
     )
     options = _value(item, "options", None)
     if options:
-        rendered = "\n".join(f"- {option}" for option in options)
+        try:
+            rendered = "\n".join(
+                f"- {key}：{value}" for key, value in option_text_rows(options)
+            )
+        except ValueError:
+            rendered = str(options)
         lines.append(f"**选项**\n{rendered}")
     reference_answer = str(_value(item, "reference_answer", "") or "").strip()
     lines.append(f"**参考答案：** {reference_answer or '未提供'}")
     rubric = str(_value(item, "scoring_rubric", "") or "").strip()
     lines.append(f"**评分标准：** {rubric or '未提供'}")
+    lines.append(f"**解析：** {_value(item, 'analysis', None) or '未提供'}")
     return "\n\n".join(lines)
 
 
@@ -403,6 +449,8 @@ def refresh_candidate_list(
         )
         items = [_candidate_with_detail(item, state)[0] for item in page.items]
     except (
+        AuthenticationError,
+        FileStorageError,
         PermissionDeniedError,
         CourseServiceError,
         QuestionGenerationError,
@@ -427,6 +475,16 @@ async def generate_candidates(
     question_type: Any,
     amount: Any,
     state: Mapping[str, Any],
+    chapter_ids: Sequence[str] | None = None,
+    document_ids: Sequence[str] | None = None,
+    scope_points: str = "",
+    section_chapter: str | None = None,
+    section_start: Any = None,
+    section_end: Any = None,
+    target_score: Any = None,
+    creation_path: str = "text",
+    parent_question: str | None = None,
+    adaptation_type: str = "rewrite",
 ) -> tuple[list[list[str]], list[dict[str, Any]], str, str, Any, Any, str, str]:
     """按条件生成候选题并刷新列表、预览、审核按钮与检索依据。"""
 
@@ -452,19 +510,53 @@ async def generate_candidates(
         count = 1
     try:
         _ensure_teacher(state)
-        response = await _active_loaders.generate(
+        raw_scope: dict[str, Any] = {
+            "chapter_ids": list(chapter_ids or []),
+            "document_ids": list(document_ids or []),
+            "knowledge_points": [
+                point.strip()
+                for point in scope_points.replace("，", ",").split(",")
+                if point.strip()
+            ],
+        }
+        if section_chapter:
+            raw_scope["section_range"] = {
+                "chapter_id": section_chapter,
+                "start_order": section_start,
+                "end_order": section_end,
+            }
+        scope = RetrievalScope.model_validate(raw_scope)
+        extra: dict[str, Any] = {}
+        if not scope.is_empty:
+            extra["retrieval_scope"] = scope
+        if target_score is not None:
+            extra["target_score"] = target_score
+        if creation_path == "adapt":
+            if not parent_question:
+                raise ValueError("原题改编必须选择当前课程真实父题。")
+            function = _active_loaders.adapt
+            extra.update(
+                source_question_id=parent_question, adaptation_type=adaptation_type
+            )
+        else:
+            function = _active_loaders.generate
+        response = await function(
             state,
             course_id=str(course_id),
             knowledge_points=points,
             difficulty=difficulty,
             question_type=_parse_question_type(question_type),
             count=max(1, count),
+            **extra,
         )
     except (
+        AuthenticationError,
+        FileStorageError,
         PermissionDeniedError,
         CourseServiceError,
         QuestionGenerationError,
         SQLAlchemyError,
+        ValueError,
     ) as error:
         message = _error_message(error)
         return (
@@ -484,6 +576,8 @@ async def generate_candidates(
             for candidate in response.candidates
         ]
     except (
+        AuthenticationError,
+        FileStorageError,
         PermissionDeniedError,
         QuestionGenerationError,
         SQLAlchemyError,
@@ -575,7 +669,9 @@ def _action_updates(
         QuestionStatus.PENDING_REVIEW.name,
     }:
         return _disabled_actions()
-    return gr.update(interactive=True), gr.update(interactive=True)
+    return gr.update(interactive=approval_enabled(items[index])), gr.update(
+        interactive=True
+    )
 
 
 def select_candidate(
@@ -616,6 +712,8 @@ def select_candidate(
     try:
         item, detail = _candidate_with_detail(items[index], state)
     except (
+        AuthenticationError,
+        FileStorageError,
         PermissionDeniedError,
         QuestionGenerationError,
         SQLAlchemyError,
@@ -640,7 +738,7 @@ def select_candidate(
     return (
         candidate_preview_markdown(item) + "\n\n" + revision_comments_markdown(detail),
         item,
-        *_action_updates(items, index),
+        *_action_updates([item], 0),
         source_snapshot_markdown(detail),
         message,
     )
@@ -678,6 +776,8 @@ def submit_candidate_review_action(
             expected_status=QuestionStatus.PENDING_REVIEW,
         )
     except (
+        AuthenticationError,
+        FileStorageError,
         PermissionDeniedError,
         CourseServiceError,
         QuestionGenerationError,
@@ -714,6 +814,8 @@ def submit_candidate_review_action(
             + revision_comments_markdown(detail)
         )
     except (
+        AuthenticationError,
+        FileStorageError,
         PermissionDeniedError,
         QuestionGenerationError,
         SQLAlchemyError,
@@ -769,6 +871,45 @@ def create_question_generation_view(
                     value=QuestionType.SHORT_ANSWER.value,
                 )
                 amount = gr.Number(label="数量", value=1, minimum=1, precision=0)
+                creation_path = gr.Radio(
+                    label="创建路径",
+                    choices=[("新文字题", "text"), ("原题改编", "adapt")],
+                    value="text",
+                )
+                parent_question = gr.Dropdown(label="当前课程父题", choices=[])
+                adaptation_type = gr.Dropdown(
+                    label="改编方式",
+                    choices=[
+                        ("改写", "rewrite"),
+                        ("扩展", "extend"),
+                        ("翻译", "translate"),
+                    ],
+                    value="rewrite",
+                )
+                target_score = gr.Number(
+                    label="目标分值（留空由原路径确定）", value=None, minimum=0.01
+                )
+                with gr.Accordion("显式教学检索范围", open=False):
+                    gr.Markdown(
+                        "留空保持原检索范围。检索知识点与题目分类独立，不从标签反推。"
+                    )
+                    chapter_ids = gr.Dropdown(
+                        label="章节范围", choices=[], multiselect=True
+                    )
+                    document_ids = gr.Dropdown(
+                        label="教学资料", choices=[], multiselect=True
+                    )
+                    scope_points = gr.Textbox(
+                        label="检索知识点", placeholder="逗号分隔"
+                    )
+                    section_chapter = gr.Dropdown(label="小节所属章", choices=[])
+                    section_start = gr.Number(
+                        label="起始小节序号", value=None, precision=0
+                    )
+                    section_end = gr.Number(
+                        label="结束小节序号", value=None, precision=0
+                    )
+                    scope_button = gr.Button("读取当前课程范围与父题")
                 refresh_button = gr.Button("刷新课程", variant="secondary")
                 generate_button = gr.Button("生成候选题", variant="primary")
                 status_filter = gr.Dropdown(
@@ -799,14 +940,177 @@ def create_question_generation_view(
                         "审核通过", variant="primary", interactive=False
                     )
                     revision_button = gr.Button("退回修订", interactive=False)
+                    validate_button = gr.Button("显式执行语义核验", interactive=False)
                 comment = gr.Textbox(
                     label="修订意见",
                     lines=3,
                     placeholder="退回修订时必填",
                 )
+                review_panel = create_question_review_panel(
+                    selected_candidate,
+                    state,
+                    prefix="edu-candidate",
+                    approval_button=approve_button,
+                    validation_button=validate_button,
+                )
+                gr.Markdown(
+                    "补全题干、答案、评分标准和解析，或修订后再次送审，请从侧栏进入题库，使用当前候选题的详情/编辑。"
+                )
         with gr.Accordion("候选题来源快照", open=False):
             evidence = gr.Markdown(empty_state("尚未选择候选题来源。"))
         message = gr.Markdown(empty_state("请选择课程后开始出题。"))
+
+        def refresh_scope(course_id, current_state):
+            try:
+                _ensure_teacher(current_state)
+                if not course_id:
+                    raise ValueError("请先选择课程。")
+                chapters, documents, questions = _active_loaders.scope_context(
+                    course_id, current_state
+                )
+                choices = [(item["title"], item["id"]) for item in chapters]
+                return {
+                    chapter_ids: gr.update(choices=choices, value=[]),
+                    section_chapter: gr.update(choices=choices, value=None),
+                    section_start: None,
+                    section_end: None,
+                    document_ids: gr.update(
+                        choices=[
+                            (item.original_filename, item.id) for item in documents
+                        ],
+                        value=[],
+                    ),
+                    parent_question: gr.update(
+                        choices=[(item.content[:80], item.id) for item in questions],
+                        value=None,
+                    ),
+                    message: "",
+                }
+            except (
+                AuthenticationError,
+                FileStorageError,
+                PermissionDeniedError,
+                CourseServiceError,
+                SQLAlchemyError,
+                ValueError,
+            ) as error:
+                return {
+                    chapter_ids: gr.update(choices=[], value=[]),
+                    section_chapter: gr.update(choices=[], value=None),
+                    document_ids: gr.update(choices=[], value=[]),
+                    parent_question: gr.update(choices=[], value=None),
+                    message: _error_message(error),
+                }
+
+        scope_outputs = [
+            chapter_ids,
+            document_ids,
+            section_chapter,
+            section_start,
+            section_end,
+            parent_question,
+            message,
+        ]
+        scope_button.click(
+            refresh_scope,
+            inputs=[course, state],
+            outputs=scope_outputs,
+            show_progress="hidden",
+        )
+        course.change(
+            refresh_scope,
+            inputs=[course, state],
+            outputs=scope_outputs,
+            show_progress="hidden",
+        )
+
+        def reload_selected(selected, current_state):
+            if not selected:
+                result = review_panel.clear()
+                result[validate_button] = gr.update(interactive=False)
+                return result
+            try:
+                actual, detail = _candidate_with_detail(selected, current_state)
+                result = review_panel.render(detail)
+                result[candidate_preview] = (
+                    candidate_preview_markdown(actual)
+                    + "\n\n"
+                    + revision_comments_markdown(detail)
+                )
+                result[validate_button] = gr.update(
+                    interactive=detail.status == QuestionStatus.PENDING_REVIEW
+                )
+                return result
+            except (
+                AuthenticationError,
+                FileStorageError,
+                PermissionDeniedError,
+                QuestionGenerationError,
+                SQLAlchemyError,
+                HTTPException,
+                ValueError,
+            ) as error:
+                result = review_panel.clear()
+                result[approve_button] = gr.update(interactive=False)
+                result[validate_button] = gr.update(interactive=False)
+                result[message] = _error_message(error)
+                return result
+
+        selected_candidate.change(
+            reload_selected,
+            inputs=[selected_candidate, state],
+            outputs=list(
+                dict.fromkeys(
+                    [
+                        *review_panel.outputs,
+                        validate_button,
+                        approve_button,
+                        candidate_preview,
+                        message,
+                    ]
+                )
+            ),
+            show_progress="hidden",
+        )
+
+        async def validate_selected(selected, current_state, teaching_chunk_ids=None):
+            try:
+                if not selected:
+                    raise ValueError("请先选择候选题。")
+                await question_review_loaders.run_validation(
+                    selected["candidate_id"], current_state, teaching_chunk_ids
+                )
+                result = reload_selected(selected, current_state)
+                if not result.get(message):
+                    result[message] = feedback("已执行本轮真实语义核验。", "info")
+                return result
+            except (
+                AuthenticationError,
+                FileStorageError,
+                PermissionDeniedError,
+                QuestionGenerationError,
+                SQLAlchemyError,
+                HTTPException,
+                ValueError,
+            ) as error:
+                return {message: _error_message(error)}
+
+        validate_button.click(
+            validate_selected,
+            inputs=[selected_candidate, state, review_panel.teaching_chunk_ids],
+            outputs=list(
+                dict.fromkeys(
+                    [
+                        *review_panel.outputs,
+                        validate_button,
+                        approve_button,
+                        candidate_preview,
+                        message,
+                    ]
+                )
+            ),
+            show_progress="minimal",
+        )
 
         refresh_button.click(
             refresh_generation_context,
@@ -832,9 +1136,26 @@ def create_question_generation_view(
             outputs=[candidates, candidate_items, message],
             show_progress="hidden",
         )
-        generate_button.click(
+        generation_event = generate_button.click(
             generate_candidates,
-            inputs=[course, knowledge_point, difficulty, question_type, amount, state],
+            inputs=[
+                course,
+                knowledge_point,
+                difficulty,
+                question_type,
+                amount,
+                state,
+                chapter_ids,
+                document_ids,
+                scope_points,
+                section_chapter,
+                section_start,
+                section_end,
+                target_score,
+                creation_path,
+                parent_question,
+                adaptation_type,
+            ],
             outputs=[
                 candidates,
                 candidate_items,
@@ -847,6 +1168,21 @@ def create_question_generation_view(
             ],
             show_progress="hidden",
         )
+
+        def select_first_generated(items, current_state):
+            if not items:
+                return None
+            _ensure_teacher(current_state)
+            actual, _ = _candidate_with_detail(items[0], current_state)
+            return actual
+
+        generation_event.then(
+            select_first_generated,
+            inputs=[candidate_items, state],
+            outputs=[selected_candidate],
+            show_progress="hidden",
+        )
+
         candidates.select(
             select_candidate,
             inputs=[candidates, candidate_items, state],

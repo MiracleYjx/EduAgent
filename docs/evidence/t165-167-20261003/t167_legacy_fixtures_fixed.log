@@ -1,0 +1,62 @@
+......F.                                                                 [100%]
+================================== FAILURES ===================================
+___________ test_formal_asset_approved_guard_and_no_physical_unlink ___________
+
+obj = <module 'backend.app.services.content_validation_service' from 'D:\\YJX\\MyCode\\EduAgent\\backend\\app\\services\\content_validation_service.py'>
+name = 'get_settings', ann = 'backend.app.services.content_validation_service'
+
+    def annotated_getattr(obj: object, name: str, ann: str) -> object:
+        try:
+>           obj = getattr(obj, name)
+                  ^^^^^^^^^^^^^^^^^^
+E           AttributeError: module 'backend.app.services.content_validation_service' has no attribute 'get_settings'
+
+D:\develop\Python\Lib\site-packages\_pytest\monkeypatch.py:95: AttributeError
+
+The above exception was the direct cause of the following exception:
+
+owned_document = (<sqlalchemy.orm.session.Session object at 0x00000179A27568B0>, <backend.app.models.document.Document object at 0x0000...00179A458D950>, WindowsPath('D:/YJX/Cache/Temp/pytest-of-10169/pytest-189/test_formal_asset_approved_gua0/persistent'))
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x00000179A425F100>
+
+    def test_formal_asset_approved_guard_and_no_physical_unlink(
+        owned_document, monkeypatch
+    ):
+        session, doc, teacher, root = owned_document
+        service, page, _extracted = staged_case(owned_document)
+        settings = build_test_settings(storage_root=root)
+>       monkeypatch.setattr(
+            "backend.app.services.content_validation_service.get_settings", lambda: settings
+        )
+
+tests\unit\services\test_question_asset_service.py:152: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+D:\develop\Python\Lib\site-packages\_pytest\monkeypatch.py:109: in derive_importpath
+    annotated_getattr(target, attr, ann=module)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+obj = <module 'backend.app.services.content_validation_service' from 'D:\\YJX\\MyCode\\EduAgent\\backend\\app\\services\\content_validation_service.py'>
+name = 'get_settings', ann = 'backend.app.services.content_validation_service'
+
+    def annotated_getattr(obj: object, name: str, ann: str) -> object:
+        try:
+            obj = getattr(obj, name)
+        except AttributeError as e:
+>           raise AttributeError(
+                f"{type(obj).__name__!r} object at {ann} has no attribute {name!r}"
+            ) from e
+E           AttributeError: 'module' object at backend.app.services.content_validation_service has no attribute 'get_settings'
+
+D:\develop\Python\Lib\site-packages\_pytest\monkeypatch.py:97: AttributeError
+============================== warnings summary ===============================
+..\..\..\develop\Python\Lib\site-packages\fastapi\testclient.py:1
+  D:\develop\Python\Lib\site-packages\fastapi\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+tests/integration/test_teacher_setup.py::test_teacher_prepares_course_document_question_and_exam
+  D:\YJX\MyCode\EduAgent\backend\app\api\exams.py:260: StarletteDeprecationWarning: 'HTTP_422_UNPROCESSABLE_ENTITY' is deprecated. Use 'HTTP_422_UNPROCESSABLE_CONTENT' instead.
+    raise _exam_http_exception(exc) from None
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/unit/services/test_question_asset_service.py::test_formal_asset_approved_guard_and_no_physical_unlink
+1 failed, 7 passed, 2 warnings in 12.73s

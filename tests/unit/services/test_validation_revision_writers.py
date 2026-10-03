@@ -35,7 +35,8 @@ def test_answer_changes_and_resubmission_advance_revision_but_classification_doe
         assert question.validation_revision == 2
         service.update_question_status(question.id, QuestionStatus.PENDING_REVIEW, teacher_id=teacher.id)
         assert question.validation_revision == 2
-        service.update_question_status(question.id, QuestionStatus.NEEDS_REVISION, teacher_id=teacher.id)
+        service.update_question_status(question.id, QuestionStatus.NEEDS_REVISION, teacher_id=teacher.id,
+            revision_comment="Teacher requests revision before resubmission.")
         assert question.validation_revision == 2
         service.update_question_status(question.id, QuestionStatus.PENDING_REVIEW, teacher_id=teacher.id)
         assert question.validation_revision == 3

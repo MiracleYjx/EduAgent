@@ -1,0 +1,518 @@
+F.F...F.                                                                 [100%]
+================================== FAILURES ===================================
+___________ test_teacher_prepares_course_document_question_and_exam ___________
+
+client = <starlette.testclient.TestClient object at 0x0000022595D1B8C0>
+session_factory = sessionmaker(class_='Session', bind=Engine(sqlite:///:memory:), autoflush=True, expire_on_commit=False)
+teacher_id = UUID('6bf2112b-8f6d-4b13-a732-51ef109fe5d8')
+
+    def test_teacher_prepares_course_document_question_and_exam(
+        client: TestClient,
+        session_factory: sessionmaker[Session],
+        teacher_id: UUID,
+    ) -> None:
+        """教师可完成课程资料登记、人工题审核和已审核题目组卷。"""
+    
+        login = _expect_json(
+            client.post(
+                "/api/auth/login",
+                json={
+                    "username": "integration-teacher",
+                    "password": TEST_PASSWORD,
+                },
+            ),
+            200,
+            "教师登录",
+        )
+        headers = {"Authorization": f"Bearer {login['access_token']}"}
+    
+        course = _expect_json(
+            client.post(
+                "/api/courses",
+                headers=headers,
+                json={
+                    "name": "Python 教师培训",
+                    "description": "用于验证教师准备考试的完整流程。",
+                },
+            ),
+            201,
+            "创建课程",
+        )
+        course_id = course["id"]
+        assert course["created_by"] == str(teacher_id)
+    
+        knowledge_base = _expect_json(
+            client.post(
+                "/api/knowledge-bases",
+                headers=headers,
+                json={
+                    "course_id": course_id,
+                    "name": "Python 课程资料",
+                    "description": "保存课程资料元数据。",
+                },
+            ),
+            201,
+            "创建知识库",
+        )
+        knowledge_base_id = knowledge_base["id"]
+        assert knowledge_base["course_id"] == course_id
+    
+        document = _expect_json(
+            client.post(
+                f"/api/knowledge-bases/{knowledge_base_id}/documents",
+                headers=headers,
+                json={
+                    "original_filename": "第一章.md",
+                },
+            ),
+            201,
+            "登记课程资料元数据",
+        )
+        document_id = document["id"]
+        assert document["course_id"] == course_id
+        assert document["knowledge_base_id"] == knowledge_base_id
+        assert document["uploaded_by"] == str(teacher_id)
+        assert document["file_format"] == "md"
+        assert document["status"] == DocumentStatus.UPLOADED.value
+        assert document["storage_path"] is None
+        missing_file = client.get("/api/files/" + document["file_id"], headers=headers)
+        assert missing_file.status_code == 404
+        assert missing_file.json()["detail"]["code"] == "FILE_HISTORY_UNKNOWN"
+    
+        question = _expect_json(
+            client.post(
+                "/api/questions",
+                headers=headers,
+                json={
+                    "course_id": course_id,
+                    "type": "SHORT_ANSWER",
+                    "content": "请说明 Python 函数的主要作用。",
+                    "reference_answer": "函数用于封装并复用一段逻辑。",
+                    "scoring_rubric": "说明封装和复用两个要点。",
+                    "difficulty": "简单",
+                    "knowledge_points": ["函数", "代码复用"],
+                    "score": 10,
+                },
+            ),
+            201,
+            "创建人工题目",
+        )
+        question_id = question["id"]
+        assert question["status"] == QuestionStatus.DRAFT.value
+    
+        rejected_exam = _expect_json(
+            client.post(
+                "/api/exams",
+                headers=headers,
+                json={
+                    "course_id": course_id,
+                    "title": "未审核题目测试考试",
+                    "question_ids": [question_id],
+                },
+            ),
+            422,
+            "验证未审核题目不能组卷",
+        )
+        assert "Approved" in str(rejected_exam["detail"])
+    
+        pending_question = _expect_json(
+            client.post(
+                f"/api/questions/{question_id}/submit-review",
+                headers=headers,
+            ),
+            200,
+            "提交题目审核",
+        )
+        assert pending_question["status"] == QuestionStatus.PENDING_REVIEW.value
+    
+>       approved_question = _expect_json(
+            client.post(
+                f"/api/questions/{question_id}/approve",
+                headers=headers,
+            ),
+            200,
+            "审核通过题目",
+        )
+
+tests\integration\test_teacher_setup.py:237: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+response = <Response [422 Unprocessable Entity]>, expected_status = 200
+operation = '审核通过题目'
+
+    def _expect_json(
+        response: Response,
+        expected_status: int,
+        operation: str,
+    ) -> dict[str, Any]:
+        """校验 API 状态码，并在失败时输出当前业务步骤。"""
+    
+>       assert response.status_code == expected_status, (
+            f"{operation}失败：HTTP {response.status_code}，响应为 {response.text}"
+        )
+E       AssertionError: 审核通过题目失败：HTTP 422，响应为 {"detail":"A current semantic validation report is required before approval."}
+E       assert 422 == 200
+E        +  where 422 = <Response [422 Unprocessable Entity]>.status_code
+
+tests\integration\test_teacher_setup.py:110: AssertionError
+__________ test_manual_source_analysis_clear_and_real_approval_time ___________
+
+self = <backend.app.services.question_service.QuestionService object at 0x0000022597B51BA0>
+question_id = '39aa3bbb-1054-4650-ba1b-d0fd8f1d6284', status = 'Approved'
+teacher_id = UUID('bf7fe66a-e384-4c95-a5d4-d0b40e047a36'), created_by = None
+revision_comment = None
+
+    def update_question_status(
+        self,
+        question_id: UUID | str,
+        status: QuestionStatus | str,
+        teacher_id: UUID | str | None = None,
+        *,
+        created_by: UUID | str | None = None,
+        revision_comment: str | None = None,
+    ) -> QuestionSummary:
+        """按审核状态机持久化题目状态。"""
+    
+        question = self._load_question(question_id)
+        self._ensure_course_access(
+            self._load_course(question.course_id),
+            _resolve_actor_id(created_by, teacher_id),
+        )
+        next_status = _normalize_question_status(status)
+        current_status = question.status
+        if next_status == current_status:
+            return self._question_summary(question)
+        if next_status not in _ALLOWED_STATUS_TRANSITIONS.get(current_status, set()):
+            raise QuestionValidationError(
+                f"题目状态不能从“{current_status.value}”变更为“{next_status.value}”。"
+            )
+        if next_status is QuestionStatus.NEEDS_REVISION:
+            actor = _resolve_actor_id(created_by, teacher_id)
+            teacher = self.session.get(User, actor) if actor is not None else None
+            if teacher is None or not teacher.is_active or not any(role.name == UserRole.TEACHER for role in teacher.roles):
+                raise QuestionPermissionError("退回修订必须由真实启用的课程教师执行。")
+            if not isinstance(revision_comment, str) or not revision_comment.strip() or len(revision_comment.strip()) > 2000:
+                raise QuestionValidationError("退回修订必须提供不超过 2000 字的真实教师说明。")
+            if current_status is QuestionStatus.APPROVED and any(
+                exam.status in {ExamStatus.PUBLISHED, ExamStatus.CLOSED, ExamStatus.ARCHIVED}
+                or self.session.scalar(select(Submission.id).where(Submission.exam_id == exam.id).limit(1)) is not None
+                for exam in question.exams
+            ):
+                raise QuestionPublishedImmutableError(current_status)
+            self.session.add(QuestionRevisionComment(question_id=question.id, comment=revision_comment.strip(), commented_by=actor, commented_at=datetime.now(UTC)))
+        if next_status is QuestionStatus.APPROVED:
+            from backend.app.services.content_validation_service import (
+                ContentValidationError,
+                ContentValidationService,
+            )
+    
+            actor = _resolve_actor_id(created_by, teacher_id)
+            if actor is None:
+                raise QuestionPermissionError(
+                    "A real current teacher must approve the question."
+                )
+            try:
+>               ContentValidationService(self.session).require_can_approve(
+                    question, actor
+                )
+
+backend\app\services\question_service.py:621: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <backend.app.services.content_validation_service.ContentValidationService object at 0x000002259605D450>
+question = <backend.app.models.question.Question object at 0x0000022597CC6E70>
+actor_id = UUID('bf7fe66a-e384-4c95-a5d4-d0b40e047a36')
+
+    def require_can_approve(
+        self, question: Question, actor_id: UUID
+    ) -> ValidationReportView:
+        """Shared approval gate; caller keeps the current Question lock and owns commit."""
+        locked = cast(Question, self._owner("question", question.id, actor_id))
+        report = self.session.scalars(
+            select(QuestionValidationResult)
+            .where(QuestionValidationResult.question_id == locked.id)
+            .order_by(QuestionValidationResult.run_no.desc())
+            .limit(1)
+            .with_for_update()
+            .execution_options(populate_existing=True)
+        ).first()
+        if report is None:
+>           raise ContentValidationError(
+                "CONTENT_VALIDATION_REQUIRED",
+                "A current semantic validation report is required before approval.",
+            )
+E           backend.app.services.content_validation_service.ContentValidationError: A current semantic validation report is required before approval.
+
+backend\app\services\content_validation_service.py:1123: ContentValidationError
+
+The above exception was the direct cause of the following exception:
+
+owned_document = (<sqlalchemy.orm.session.Session object at 0x0000022597881BD0>, <backend.app.models.document.Document object at 0x0000...0022597B6ED50>, WindowsPath('D:/YJX/Cache/Temp/pytest-of-10169/pytest-187/test_manual_source_analysis_cl0/persistent'))
+
+    def test_manual_source_analysis_clear_and_real_approval_time(owned_document):
+        session, doc, teacher, _root = owned_document
+        service = QuestionService(session)
+        created = service.create_question(doc.course_id, QuestionType.SHORT_ANSWER, "问题", score="2.00", created_by=teacher.id, analysis="真实解析")
+        question = session.get(Question, UUID(created.id))
+        assert created.source_type.value == "manual"
+        assert created.analysis == "真实解析" and created.frozen_at is None
+        service.update_question(created.id, difficulty="easy", teacher_id=teacher.id)
+        assert question.analysis == "真实解析"
+        service.update_question_status(created.id, "Pending Review", teacher_id=teacher.id)
+>       approved = service.update_question_status(created.id, "Approved", teacher_id=teacher.id)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\unit\services\test_paper_import_foundation.py:45: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <backend.app.services.question_service.QuestionService object at 0x0000022597B51BA0>
+question_id = '39aa3bbb-1054-4650-ba1b-d0fd8f1d6284', status = 'Approved'
+teacher_id = UUID('bf7fe66a-e384-4c95-a5d4-d0b40e047a36'), created_by = None
+revision_comment = None
+
+    def update_question_status(
+        self,
+        question_id: UUID | str,
+        status: QuestionStatus | str,
+        teacher_id: UUID | str | None = None,
+        *,
+        created_by: UUID | str | None = None,
+        revision_comment: str | None = None,
+    ) -> QuestionSummary:
+        """按审核状态机持久化题目状态。"""
+    
+        question = self._load_question(question_id)
+        self._ensure_course_access(
+            self._load_course(question.course_id),
+            _resolve_actor_id(created_by, teacher_id),
+        )
+        next_status = _normalize_question_status(status)
+        current_status = question.status
+        if next_status == current_status:
+            return self._question_summary(question)
+        if next_status not in _ALLOWED_STATUS_TRANSITIONS.get(current_status, set()):
+            raise QuestionValidationError(
+                f"题目状态不能从“{current_status.value}”变更为“{next_status.value}”。"
+            )
+        if next_status is QuestionStatus.NEEDS_REVISION:
+            actor = _resolve_actor_id(created_by, teacher_id)
+            teacher = self.session.get(User, actor) if actor is not None else None
+            if teacher is None or not teacher.is_active or not any(role.name == UserRole.TEACHER for role in teacher.roles):
+                raise QuestionPermissionError("退回修订必须由真实启用的课程教师执行。")
+            if not isinstance(revision_comment, str) or not revision_comment.strip() or len(revision_comment.strip()) > 2000:
+                raise QuestionValidationError("退回修订必须提供不超过 2000 字的真实教师说明。")
+            if current_status is QuestionStatus.APPROVED and any(
+                exam.status in {ExamStatus.PUBLISHED, ExamStatus.CLOSED, ExamStatus.ARCHIVED}
+                or self.session.scalar(select(Submission.id).where(Submission.exam_id == exam.id).limit(1)) is not None
+                for exam in question.exams
+            ):
+                raise QuestionPublishedImmutableError(current_status)
+            self.session.add(QuestionRevisionComment(question_id=question.id, comment=revision_comment.strip(), commented_by=actor, commented_at=datetime.now(UTC)))
+        if next_status is QuestionStatus.APPROVED:
+            from backend.app.services.content_validation_service import (
+                ContentValidationError,
+                ContentValidationService,
+            )
+    
+            actor = _resolve_actor_id(created_by, teacher_id)
+            if actor is None:
+                raise QuestionPermissionError(
+                    "A real current teacher must approve the question."
+                )
+            try:
+                ContentValidationService(self.session).require_can_approve(
+                    question, actor
+                )
+            except ContentValidationError as error:
+>               raise QuestionValidationError(str(error)) from error
+E               backend.app.services.question_service.QuestionValidationError: A current semantic validation report is required before approval.
+
+backend\app\services\question_service.py:625: QuestionValidationError
+___________ test_formal_asset_approved_guard_and_no_physical_unlink ___________
+
+self = <backend.app.services.question_service.QuestionService object at 0x0000022597B529E0>
+question_id = '052942bd-5295-4190-a132-402ef62103c6', status = 'Approved'
+teacher_id = UUID('5a6400fe-6cbb-43b3-ba0f-dea8d0b17c69'), created_by = None
+revision_comment = None
+
+    def update_question_status(
+        self,
+        question_id: UUID | str,
+        status: QuestionStatus | str,
+        teacher_id: UUID | str | None = None,
+        *,
+        created_by: UUID | str | None = None,
+        revision_comment: str | None = None,
+    ) -> QuestionSummary:
+        """按审核状态机持久化题目状态。"""
+    
+        question = self._load_question(question_id)
+        self._ensure_course_access(
+            self._load_course(question.course_id),
+            _resolve_actor_id(created_by, teacher_id),
+        )
+        next_status = _normalize_question_status(status)
+        current_status = question.status
+        if next_status == current_status:
+            return self._question_summary(question)
+        if next_status not in _ALLOWED_STATUS_TRANSITIONS.get(current_status, set()):
+            raise QuestionValidationError(
+                f"题目状态不能从“{current_status.value}”变更为“{next_status.value}”。"
+            )
+        if next_status is QuestionStatus.NEEDS_REVISION:
+            actor = _resolve_actor_id(created_by, teacher_id)
+            teacher = self.session.get(User, actor) if actor is not None else None
+            if teacher is None or not teacher.is_active or not any(role.name == UserRole.TEACHER for role in teacher.roles):
+                raise QuestionPermissionError("退回修订必须由真实启用的课程教师执行。")
+            if not isinstance(revision_comment, str) or not revision_comment.strip() or len(revision_comment.strip()) > 2000:
+                raise QuestionValidationError("退回修订必须提供不超过 2000 字的真实教师说明。")
+            if current_status is QuestionStatus.APPROVED and any(
+                exam.status in {ExamStatus.PUBLISHED, ExamStatus.CLOSED, ExamStatus.ARCHIVED}
+                or self.session.scalar(select(Submission.id).where(Submission.exam_id == exam.id).limit(1)) is not None
+                for exam in question.exams
+            ):
+                raise QuestionPublishedImmutableError(current_status)
+            self.session.add(QuestionRevisionComment(question_id=question.id, comment=revision_comment.strip(), commented_by=actor, commented_at=datetime.now(UTC)))
+        if next_status is QuestionStatus.APPROVED:
+            from backend.app.services.content_validation_service import (
+                ContentValidationError,
+                ContentValidationService,
+            )
+    
+            actor = _resolve_actor_id(created_by, teacher_id)
+            if actor is None:
+                raise QuestionPermissionError(
+                    "A real current teacher must approve the question."
+                )
+            try:
+>               ContentValidationService(self.session).require_can_approve(
+                    question, actor
+                )
+
+backend\app\services\question_service.py:621: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <backend.app.services.content_validation_service.ContentValidationService object at 0x000002259605D450>
+question = <backend.app.models.question.Question object at 0x0000022597EF5010>
+actor_id = UUID('5a6400fe-6cbb-43b3-ba0f-dea8d0b17c69')
+
+    def require_can_approve(
+        self, question: Question, actor_id: UUID
+    ) -> ValidationReportView:
+        """Shared approval gate; caller keeps the current Question lock and owns commit."""
+        locked = cast(Question, self._owner("question", question.id, actor_id))
+        report = self.session.scalars(
+            select(QuestionValidationResult)
+            .where(QuestionValidationResult.question_id == locked.id)
+            .order_by(QuestionValidationResult.run_no.desc())
+            .limit(1)
+            .with_for_update()
+            .execution_options(populate_existing=True)
+        ).first()
+        if report is None:
+>           raise ContentValidationError(
+                "CONTENT_VALIDATION_REQUIRED",
+                "A current semantic validation report is required before approval.",
+            )
+E           backend.app.services.content_validation_service.ContentValidationError: A current semantic validation report is required before approval.
+
+backend\app\services\content_validation_service.py:1123: ContentValidationError
+
+The above exception was the direct cause of the following exception:
+
+owned_document = (<sqlalchemy.orm.session.Session object at 0x0000022597E09490>, <backend.app.models.document.Document object at 0x0000...0022597D4B7D0>, WindowsPath('D:/YJX/Cache/Temp/pytest-of-10169/pytest-187/test_formal_asset_approved_gua0/persistent'))
+
+    def test_formal_asset_approved_guard_and_no_physical_unlink(owned_document):
+        session, doc, teacher, root = owned_document
+        service, page, _extracted = staged_case(owned_document)
+        questions = QuestionService(session)
+        summary = questions.create_question(doc.course_id, "SHORT_ANSWER", "含图问题", created_by=teacher.id)
+        asset = service.link_question(summary.id, AssetLinkRequest(file_id="p_" + page.id.hex, source_page_id=page.id, asset_type="figure", region={"bbox": [10, 10, 40, 30]}), actor_id=teacher.id)
+        questions.update_question_status(summary.id, "Pending Review", teacher_id=teacher.id)
+>       questions.update_question_status(summary.id, "Approved", teacher_id=teacher.id)
+
+tests\unit\services\test_question_asset_service.py:111: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <backend.app.services.question_service.QuestionService object at 0x0000022597B529E0>
+question_id = '052942bd-5295-4190-a132-402ef62103c6', status = 'Approved'
+teacher_id = UUID('5a6400fe-6cbb-43b3-ba0f-dea8d0b17c69'), created_by = None
+revision_comment = None
+
+    def update_question_status(
+        self,
+        question_id: UUID | str,
+        status: QuestionStatus | str,
+        teacher_id: UUID | str | None = None,
+        *,
+        created_by: UUID | str | None = None,
+        revision_comment: str | None = None,
+    ) -> QuestionSummary:
+        """按审核状态机持久化题目状态。"""
+    
+        question = self._load_question(question_id)
+        self._ensure_course_access(
+            self._load_course(question.course_id),
+            _resolve_actor_id(created_by, teacher_id),
+        )
+        next_status = _normalize_question_status(status)
+        current_status = question.status
+        if next_status == current_status:
+            return self._question_summary(question)
+        if next_status not in _ALLOWED_STATUS_TRANSITIONS.get(current_status, set()):
+            raise QuestionValidationError(
+                f"题目状态不能从“{current_status.value}”变更为“{next_status.value}”。"
+            )
+        if next_status is QuestionStatus.NEEDS_REVISION:
+            actor = _resolve_actor_id(created_by, teacher_id)
+            teacher = self.session.get(User, actor) if actor is not None else None
+            if teacher is None or not teacher.is_active or not any(role.name == UserRole.TEACHER for role in teacher.roles):
+                raise QuestionPermissionError("退回修订必须由真实启用的课程教师执行。")
+            if not isinstance(revision_comment, str) or not revision_comment.strip() or len(revision_comment.strip()) > 2000:
+                raise QuestionValidationError("退回修订必须提供不超过 2000 字的真实教师说明。")
+            if current_status is QuestionStatus.APPROVED and any(
+                exam.status in {ExamStatus.PUBLISHED, ExamStatus.CLOSED, ExamStatus.ARCHIVED}
+                or self.session.scalar(select(Submission.id).where(Submission.exam_id == exam.id).limit(1)) is not None
+                for exam in question.exams
+            ):
+                raise QuestionPublishedImmutableError(current_status)
+            self.session.add(QuestionRevisionComment(question_id=question.id, comment=revision_comment.strip(), commented_by=actor, commented_at=datetime.now(UTC)))
+        if next_status is QuestionStatus.APPROVED:
+            from backend.app.services.content_validation_service import (
+                ContentValidationError,
+                ContentValidationService,
+            )
+    
+            actor = _resolve_actor_id(created_by, teacher_id)
+            if actor is None:
+                raise QuestionPermissionError(
+                    "A real current teacher must approve the question."
+                )
+            try:
+                ContentValidationService(self.session).require_can_approve(
+                    question, actor
+                )
+            except ContentValidationError as error:
+>               raise QuestionValidationError(str(error)) from error
+E               backend.app.services.question_service.QuestionValidationError: A current semantic validation report is required before approval.
+
+backend\app\services\question_service.py:625: QuestionValidationError
+============================== warnings summary ===============================
+..\..\..\develop\Python\Lib\site-packages\fastapi\testclient.py:1
+  D:\develop\Python\Lib\site-packages\fastapi\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+tests/integration/test_teacher_setup.py::test_teacher_prepares_course_document_question_and_exam
+  D:\YJX\MyCode\EduAgent\backend\app\api\exams.py:260: StarletteDeprecationWarning: 'HTTP_422_UNPROCESSABLE_ENTITY' is deprecated. Use 'HTTP_422_UNPROCESSABLE_CONTENT' instead.
+    raise _exam_http_exception(exc) from None
+
+tests/integration/test_teacher_setup.py::test_teacher_prepares_course_document_question_and_exam
+  D:\YJX\MyCode\EduAgent\backend\app\api\questions.py:597: StarletteDeprecationWarning: 'HTTP_422_UNPROCESSABLE_ENTITY' is deprecated. Use 'HTTP_422_UNPROCESSABLE_CONTENT' instead.
+    raise _question_http_exception(exc) from None
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/integration/test_teacher_setup.py::test_teacher_prepares_course_document_question_and_exam
+FAILED tests/unit/services/test_paper_import_foundation.py::test_manual_source_analysis_clear_and_real_approval_time
+FAILED tests/unit/services/test_question_asset_service.py::test_formal_asset_approved_guard_and_no_physical_unlink
+3 failed, 5 passed, 3 warnings in 12.26s

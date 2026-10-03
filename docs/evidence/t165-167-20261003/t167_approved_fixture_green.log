@@ -1,0 +1,678 @@
+.............................................FF...F...                   [100%]
+================================== FAILURES ===================================
+______ test_submission_service_creates_reuses_draft_and_persists_answers ______
+
+self = <sqlalchemy.engine.base.Connection object at 0x00000211CA23AC90>
+dialect = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x00000211C8BCDD10>
+context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x00000211CA23BE90>
+statement = <sqlalchemy.dialects.sqlite.base.SQLiteCompiler object at 0x00000211C96E6450>
+parameters = [('9623424320bd4ca6b5d57ee8eac25a47', 'Controlled review basis', None, 'df03e7b5fb2c4db49e913989faa91344', '2026-10-03 03:59:19.173778', '2026-10-03 03:59:19.173781')]
+
+    def _exec_single_context(
+        self,
+        dialect: Dialect,
+        context: ExecutionContext,
+        statement: Union[str, Compiled],
+        parameters: Optional[_AnyMultiExecuteParams],
+    ) -> CursorResult[Any]:
+        """continue the _execute_context() method for a single DBAPI
+        cursor.execute() or cursor.executemany() call.
+    
+        """
+        if dialect.bind_typing is BindTyping.SETINPUTSIZES:
+            generic_setinputsizes = context._prepare_set_input_sizes()
+    
+            if generic_setinputsizes:
+                try:
+                    dialect.do_set_input_sizes(
+                        context.cursor, generic_setinputsizes, context
+                    )
+                except BaseException as e:
+                    self._handle_dbapi_exception(
+                        e, str(statement), parameters, None, context
+                    )
+    
+        cursor, str_statement, parameters = (
+            context.cursor,
+            context.statement,
+            context.parameters,
+        )
+    
+        effective_parameters: Optional[_AnyExecuteParams]
+    
+        if not context.executemany:
+            effective_parameters = parameters[0]
+        else:
+            effective_parameters = parameters
+    
+        if self._has_events or self.engine._has_events:
+            for fn in self.dispatch.before_cursor_execute:
+                str_statement, effective_parameters = fn(
+                    self,
+                    cursor,
+                    str_statement,
+                    effective_parameters,
+                    context,
+                    context.executemany,
+                )
+    
+        if self._echo:
+            self._log_info(str_statement)
+    
+            stats = context._get_cache_stats()
+    
+            if not self.engine.hide_parameters:
+                self._log_info(
+                    "[%s] %r",
+                    stats,
+                    sql_util._repr_params(
+                        effective_parameters,
+                        batches=10,
+                        ismulti=context.executemany,
+                    ),
+                )
+            else:
+                self._log_info(
+                    "[%s] [SQL parameters hidden due to hide_parameters=True]",
+                    stats,
+                )
+    
+        evt_handled: bool = False
+        try:
+            if context.execute_style is ExecuteStyle.EXECUTEMANY:
+                effective_parameters = cast(
+                    "_CoreMultiExecuteParams", effective_parameters
+                )
+                if self.dialect._has_events:
+                    for fn in self.dialect.dispatch.do_executemany:
+                        if fn(
+                            cursor,
+                            str_statement,
+                            effective_parameters,
+                            context,
+                        ):
+                            evt_handled = True
+                            break
+                if not evt_handled:
+                    self.dialect.do_executemany(
+                        cursor,
+                        str_statement,
+                        effective_parameters,
+                        context,
+                    )
+            elif not effective_parameters and context.no_parameters:
+                if self.dialect._has_events:
+                    for fn in self.dialect.dispatch.do_execute_no_params:
+                        if fn(cursor, str_statement, context):
+                            evt_handled = True
+                            break
+                if not evt_handled:
+                    self.dialect.do_execute_no_params(
+                        cursor, str_statement, context
+                    )
+            else:
+                effective_parameters = cast(
+                    "_CoreSingleExecuteParams", effective_parameters
+                )
+                if self.dialect._has_events:
+                    for fn in self.dialect.dispatch.do_execute:
+                        if fn(
+                            cursor,
+                            str_statement,
+                            effective_parameters,
+                            context,
+                        ):
+                            evt_handled = True
+                            break
+                if not evt_handled:
+>                   self.dialect.do_execute(
+                        cursor, str_statement, effective_parameters, context
+                    )
+
+D:\develop\Python\Lib\site-packages\sqlalchemy\engine\base.py:1969: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x00000211C8BCDD10>
+cursor = <sqlite3.Cursor object at 0x00000211CA1CE9C0>
+statement = 'INSERT INTO knowledge_bases (course_id, name, description, id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)'
+parameters = ('9623424320bd4ca6b5d57ee8eac25a47', 'Controlled review basis', None, 'df03e7b5fb2c4db49e913989faa91344', '2026-10-03 03:59:19.173778', '2026-10-03 03:59:19.173781')
+context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x00000211CA23BE90>
+
+    def do_execute(self, cursor, statement, parameters, context=None):
+>       cursor.execute(statement, parameters)
+E       sqlite3.IntegrityError: UNIQUE constraint failed: knowledge_bases.course_id, knowledge_bases.name
+
+D:\develop\Python\Lib\site-packages\sqlalchemy\engine\default.py:952: IntegrityError
+
+The above exception was the direct cause of the following exception:
+
+session = <sqlalchemy.orm.session.Session object at 0x00000211C9732120>
+
+        session: Session,
+    ) -> None:
+        """重复打开考试时复用草稿，并按题目幂等保存答案。"""
+    
+        teacher = add_teacher(session)
+        student = add_student(session)
+        course = add_course(session, teacher)
+        first_question = add_approved_question(
+            session,
+            course,
+            teacher,
+            content="解释变量的作用。",
+        )
+        second_question = add_approved_question(
+>           session,
+            course,
+            teacher,
+            content="解释函数的作用。",
+        )
+
+tests\unit\services\test_submission_service.py:235: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\unit\services\test_submission_service.py:134: in add_approved_question
+    approved = question_service.update_question_status(
+tests\support\question_validation_fixtures.py:82: in persist_current_semantic_pass
+    seed_teaching_reference(session, identity)
+tests\support\question_validation_fixtures.py:29: in seed_teaching_reference
+    session.flush()
+D:\develop\Python\Lib\site-packages\sqlalchemy\orm\session.py:4352: in flush
+    self._flush(objects)
+D:\develop\Python\Lib\site-packages\sqlalchemy\orm\session.py:4487: in _flush
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\sqlalchemy\util\langhelpers.py:122: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+D:\develop\Python\Lib\site-packages\sqlalchemy\orm\session.py:4448: in _flush
+    flush_context.execute()
+D:\develop\Python\Lib\site-packages\sqlalchemy\orm\unitofwork.py:465: in execute
+    rec.execute(self)
+D:\develop\Python\Lib\site-packages\sqlalchemy\orm\unitofwork.py:641: in execute
+    util.preloaded.orm_persistence.save_obj(
+D:\develop\Python\Lib\site-packages\sqlalchemy\orm\persistence.py:94: in save_obj
+    _emit_insert_statements(
+D:\develop\Python\Lib\site-packages\sqlalchemy\orm\persistence.py:1234: in _emit_insert_statements
+    result = connection.execute(
+D:\develop\Python\Lib\site-packages\sqlalchemy\engine\base.py:1421: in execute
+    return meth(
+D:\develop\Python\Lib\site-packages\sqlalchemy\sql\elements.py:526: in _execute_on_connection
+    return connection._execute_clauseelement(
+D:\develop\Python\Lib\site-packages\sqlalchemy\engine\base.py:1643: in _execute_clauseelement
+    ret = self._execute_context(
+D:\develop\Python\Lib\site-packages\sqlalchemy\engine\base.py:1848: in _execute_context
+    return self._exec_single_context(
+D:\develop\Python\Lib\site-packages\sqlalchemy\engine\base.py:1988: in _exec_single_context
+    self._handle_dbapi_exception(
+D:\develop\Python\Lib\site-packages\sqlalchemy\engine\base.py:2365: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+D:\develop\Python\Lib\site-packages\sqlalchemy\engine\base.py:1969: in _exec_single_context
+    self.dialect.do_execute(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x00000211C8BCDD10>
+cursor = <sqlite3.Cursor object at 0x00000211CA1CE9C0>
+statement = 'INSERT INTO knowledge_bases (course_id, name, description, id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)'
+parameters = ('9623424320bd4ca6b5d57ee8eac25a47', 'Controlled review basis', None, 'df03e7b5fb2c4db49e913989faa91344', '2026-10-03 03:59:19.173778', '2026-10-03 03:59:19.173781')
+context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x00000211CA23BE90>
+
+    def do_execute(self, cursor, statement, parameters, context=None):
+>       cursor.execute(statement, parameters)
+E       sqlalchemy.exc.IntegrityError: (sqlite3.IntegrityError) UNIQUE constraint failed: knowledge_bases.course_id, knowledge_bases.name
+E       [SQL: INSERT INTO knowledge_bases (course_id, name, description, id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)]
+E       [parameters: ('9623424320bd4ca6b5d57ee8eac25a47', 'Controlled review basis', None, 'df03e7b5fb2c4db49e913989faa91344', '2026-10-03 03:59:19.173778', '2026-10-03 03:59:19.173781')]
+E       (Background on this error at: https://sqlalche.me/e/20/gkpj)
+
+D:\develop\Python\Lib\site-packages\sqlalchemy\engine\default.py:952: IntegrityError
+________ test_submission_service_rejects_incomplete_or_foreign_answers ________
+
+self = <sqlalchemy.engine.base.Connection object at 0x00000211C90D0AD0>
+dialect = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x00000211CC8320D0>
+context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x00000211C90D1F10>
+statement = <sqlalchemy.dialects.sqlite.base.SQLiteCompiler object at 0x00000211CBE55A50>
+parameters = [('94eb1813b75c4991b2a4a0ada3d4eeea', 'Controlled review basis', None, 'c6867ff71c2c4760acd879838fb8f0d2', '2026-10-03 03:59:20.713154', '2026-10-03 03:59:20.713158')]
+
+    def _exec_single_context(
+        self,
+        dialect: Dialect,
+        context: ExecutionContext,
+        statement: Union[str, Compiled],
+        parameters: Optional[_AnyMultiExecuteParams],
+    ) -> CursorResult[Any]:
+        """continue the _execute_context() method for a single DBAPI
+        cursor.execute() or cursor.executemany() call.
+    
+        """
+        if dialect.bind_typing is BindTyping.SETINPUTSIZES:
+            generic_setinputsizes = context._prepare_set_input_sizes()
+    
+            if generic_setinputsizes:
+                try:
+                    dialect.do_set_input_sizes(
+                        context.cursor, generic_setinputsizes, context
+                    )
+                except BaseException as e:
+                    self._handle_dbapi_exception(
+                        e, str(statement), parameters, None, context
+                    )
+    
+        cursor, str_statement, parameters = (
+            context.cursor,
+            context.statement,
+            context.parameters,
+        )
+    
+        effective_parameters: Optional[_AnyExecuteParams]
+    
+        if not context.executemany:
+            effective_parameters = parameters[0]
+        else:
+            effective_parameters = parameters
+    
+        if self._has_events or self.engine._has_events:
+            for fn in self.dispatch.before_cursor_execute:
+                str_statement, effective_parameters = fn(
+                    self,
+                    cursor,
+                    str_statement,
+                    effective_parameters,
+                    context,
+                    context.executemany,
+                )
+    
+        if self._echo:
+            self._log_info(str_statement)
+    
+            stats = context._get_cache_stats()
+    
+            if not self.engine.hide_parameters:
+                self._log_info(
+                    "[%s] %r",
+                    stats,
+                    sql_util._repr_params(
+                        effective_parameters,
+                        batches=10,
+                        ismulti=context.executemany,
+                    ),
+                )
+            else:
+                self._log_info(
+                    "[%s] [SQL parameters hidden due to hide_parameters=True]",
+                    stats,
+                )
+    
+        evt_handled: bool = False
+        try:
+            if context.execute_style is ExecuteStyle.EXECUTEMANY:
+                effective_parameters = cast(
+                    "_CoreMultiExecuteParams", effective_parameters
+                )
+                if self.dialect._has_events:
+                    for fn in self.dialect.dispatch.do_executemany:
+                        if fn(
+                            cursor,
+                            str_statement,
+                            effective_parameters,
+                            context,
+                        ):
+                            evt_handled = True
+                            break
+                if not evt_handled:
+                    self.dialect.do_executemany(
+                        cursor,
+                        str_statement,
+                        effective_parameters,
+                        context,
+                    )
+            elif not effective_parameters and context.no_parameters:
+                if self.dialect._has_events:
+                    for fn in self.dialect.dispatch.do_execute_no_params:
+                        if fn(cursor, str_statement, context):
+                            evt_handled = True
+                            break
+                if not evt_handled:
+                    self.dialect.do_execute_no_params(
+                        cursor, str_statement, context
+                    )
+            else:
+                effective_parameters = cast(
+                    "_CoreSingleExecuteParams", effective_parameters
+                )
+                if self.dialect._has_events:
+                    for fn in self.dialect.dispatch.do_execute:
+                        if fn(
+                            cursor,
+                            str_statement,
+                            effective_parameters,
+                            context,
+                        ):
+                            evt_handled = True
+                            break
+                if not evt_handled:
+>                   self.dialect.do_execute(
+                        cursor, str_statement, effective_parameters, context
+                    )
+
+D:\develop\Python\Lib\site-packages\sqlalchemy\engine\base.py:1969: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x00000211CC8320D0>
+cursor = <sqlite3.Cursor object at 0x00000211D75B55C0>
+statement = 'INSERT INTO knowledge_bases (course_id, name, description, id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)'
+parameters = ('94eb1813b75c4991b2a4a0ada3d4eeea', 'Controlled review basis', None, 'c6867ff71c2c4760acd879838fb8f0d2', '2026-10-03 03:59:20.713154', '2026-10-03 03:59:20.713158')
+context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x00000211C90D1F10>
+
+    def do_execute(self, cursor, statement, parameters, context=None):
+>       cursor.execute(statement, parameters)
+E       sqlite3.IntegrityError: UNIQUE constraint failed: knowledge_bases.course_id, knowledge_bases.name
+
+D:\develop\Python\Lib\site-packages\sqlalchemy\engine\default.py:952: IntegrityError
+
+The above exception was the direct cause of the following exception:
+
+session = <sqlalchemy.orm.session.Session object at 0x00000211CA85C8C0>
+
+        session: Session,
+    ) -> None:
+        """缺少答案或提交不属于考试的题目时，草稿状态必须保持不变。"""
+    
+        teacher = add_teacher(session)
+        student = add_student(session)
+        course = add_course(session, teacher)
+        first_question = add_approved_question(
+            session,
+            course,
+            teacher,
+            content="第一道题。",
+        )
+        second_question = add_approved_question(
+>           session,
+            course,
+            teacher,
+            content="第二道题。",
+        )
+
+tests\unit\services\test_submission_service.py:291: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\unit\services\test_submission_service.py:134: in add_approved_question
+    approved = question_service.update_question_status(
+tests\support\question_validation_fixtures.py:82: in persist_current_semantic_pass
+    seed_teaching_reference(session, identity)
+tests\support\question_validation_fixtures.py:29: in seed_teaching_reference
+    session.flush()
+D:\develop\Python\Lib\site-packages\sqlalchemy\orm\session.py:4352: in flush
+    self._flush(objects)
+D:\develop\Python\Lib\site-packages\sqlalchemy\orm\session.py:4487: in _flush
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\sqlalchemy\util\langhelpers.py:122: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+D:\develop\Python\Lib\site-packages\sqlalchemy\orm\session.py:4448: in _flush
+    flush_context.execute()
+D:\develop\Python\Lib\site-packages\sqlalchemy\orm\unitofwork.py:465: in execute
+    rec.execute(self)
+D:\develop\Python\Lib\site-packages\sqlalchemy\orm\unitofwork.py:641: in execute
+    util.preloaded.orm_persistence.save_obj(
+D:\develop\Python\Lib\site-packages\sqlalchemy\orm\persistence.py:94: in save_obj
+    _emit_insert_statements(
+D:\develop\Python\Lib\site-packages\sqlalchemy\orm\persistence.py:1234: in _emit_insert_statements
+    result = connection.execute(
+D:\develop\Python\Lib\site-packages\sqlalchemy\engine\base.py:1421: in execute
+    return meth(
+D:\develop\Python\Lib\site-packages\sqlalchemy\sql\elements.py:526: in _execute_on_connection
+    return connection._execute_clauseelement(
+D:\develop\Python\Lib\site-packages\sqlalchemy\engine\base.py:1643: in _execute_clauseelement
+    ret = self._execute_context(
+D:\develop\Python\Lib\site-packages\sqlalchemy\engine\base.py:1848: in _execute_context
+    return self._exec_single_context(
+D:\develop\Python\Lib\site-packages\sqlalchemy\engine\base.py:1988: in _exec_single_context
+    self._handle_dbapi_exception(
+D:\develop\Python\Lib\site-packages\sqlalchemy\engine\base.py:2365: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+D:\develop\Python\Lib\site-packages\sqlalchemy\engine\base.py:1969: in _exec_single_context
+    self.dialect.do_execute(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x00000211CC8320D0>
+cursor = <sqlite3.Cursor object at 0x00000211D75B55C0>
+statement = 'INSERT INTO knowledge_bases (course_id, name, description, id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)'
+parameters = ('94eb1813b75c4991b2a4a0ada3d4eeea', 'Controlled review basis', None, 'c6867ff71c2c4760acd879838fb8f0d2', '2026-10-03 03:59:20.713154', '2026-10-03 03:59:20.713158')
+context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x00000211C90D1F10>
+
+    def do_execute(self, cursor, statement, parameters, context=None):
+>       cursor.execute(statement, parameters)
+E       sqlalchemy.exc.IntegrityError: (sqlite3.IntegrityError) UNIQUE constraint failed: knowledge_bases.course_id, knowledge_bases.name
+E       [SQL: INSERT INTO knowledge_bases (course_id, name, description, id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)]
+E       [parameters: ('94eb1813b75c4991b2a4a0ada3d4eeea', 'Controlled review basis', None, 'c6867ff71c2c4760acd879838fb8f0d2', '2026-10-03 03:59:20.713154', '2026-10-03 03:59:20.713158')]
+E       (Background on this error at: https://sqlalche.me/e/20/gkpj)
+
+D:\develop\Python\Lib\site-packages\sqlalchemy\engine\default.py:952: IntegrityError
+___________ test_exam_service_creates_associates_and_publishes_exam ___________
+
+self = <sqlalchemy.engine.base.Connection object at 0x00000211D75DDA90>
+dialect = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x00000211C8F16990>
+context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x00000211D75DC7D0>
+statement = <sqlalchemy.dialects.sqlite.base.SQLiteCompiler object at 0x00000211CBE8BD50>
+parameters = [('c2e08fb166f5474aad5cb3b4b4dd9c5c', 'Controlled review basis', None, '066455fbd54e479882a227491e0179df', '2026-10-03 03:59:23.285261', '2026-10-03 03:59:23.285264')]
+
+    def _exec_single_context(
+        self,
+        dialect: Dialect,
+        context: ExecutionContext,
+        statement: Union[str, Compiled],
+        parameters: Optional[_AnyMultiExecuteParams],
+    ) -> CursorResult[Any]:
+        """continue the _execute_context() method for a single DBAPI
+        cursor.execute() or cursor.executemany() call.
+    
+        """
+        if dialect.bind_typing is BindTyping.SETINPUTSIZES:
+            generic_setinputsizes = context._prepare_set_input_sizes()
+    
+            if generic_setinputsizes:
+                try:
+                    dialect.do_set_input_sizes(
+                        context.cursor, generic_setinputsizes, context
+                    )
+                except BaseException as e:
+                    self._handle_dbapi_exception(
+                        e, str(statement), parameters, None, context
+                    )
+    
+        cursor, str_statement, parameters = (
+            context.cursor,
+            context.statement,
+            context.parameters,
+        )
+    
+        effective_parameters: Optional[_AnyExecuteParams]
+    
+        if not context.executemany:
+            effective_parameters = parameters[0]
+        else:
+            effective_parameters = parameters
+    
+        if self._has_events or self.engine._has_events:
+            for fn in self.dispatch.before_cursor_execute:
+                str_statement, effective_parameters = fn(
+                    self,
+                    cursor,
+                    str_statement,
+                    effective_parameters,
+                    context,
+                    context.executemany,
+                )
+    
+        if self._echo:
+            self._log_info(str_statement)
+    
+            stats = context._get_cache_stats()
+    
+            if not self.engine.hide_parameters:
+                self._log_info(
+                    "[%s] %r",
+                    stats,
+                    sql_util._repr_params(
+                        effective_parameters,
+                        batches=10,
+                        ismulti=context.executemany,
+                    ),
+                )
+            else:
+                self._log_info(
+                    "[%s] [SQL parameters hidden due to hide_parameters=True]",
+                    stats,
+                )
+    
+        evt_handled: bool = False
+        try:
+            if context.execute_style is ExecuteStyle.EXECUTEMANY:
+                effective_parameters = cast(
+                    "_CoreMultiExecuteParams", effective_parameters
+                )
+                if self.dialect._has_events:
+                    for fn in self.dialect.dispatch.do_executemany:
+                        if fn(
+                            cursor,
+                            str_statement,
+                            effective_parameters,
+                            context,
+                        ):
+                            evt_handled = True
+                            break
+                if not evt_handled:
+                    self.dialect.do_executemany(
+                        cursor,
+                        str_statement,
+                        effective_parameters,
+                        context,
+                    )
+            elif not effective_parameters and context.no_parameters:
+                if self.dialect._has_events:
+                    for fn in self.dialect.dispatch.do_execute_no_params:
+                        if fn(cursor, str_statement, context):
+                            evt_handled = True
+                            break
+                if not evt_handled:
+                    self.dialect.do_execute_no_params(
+                        cursor, str_statement, context
+                    )
+            else:
+                effective_parameters = cast(
+                    "_CoreSingleExecuteParams", effective_parameters
+                )
+                if self.dialect._has_events:
+                    for fn in self.dialect.dispatch.do_execute:
+                        if fn(
+                            cursor,
+                            str_statement,
+                            effective_parameters,
+                            context,
+                        ):
+                            evt_handled = True
+                            break
+                if not evt_handled:
+>                   self.dialect.do_execute(
+                        cursor, str_statement, effective_parameters, context
+                    )
+
+D:\develop\Python\Lib\site-packages\sqlalchemy\engine\base.py:1969: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x00000211C8F16990>
+cursor = <sqlite3.Cursor object at 0x00000211D734E9C0>
+statement = 'INSERT INTO knowledge_bases (course_id, name, description, id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)'
+parameters = ('c2e08fb166f5474aad5cb3b4b4dd9c5c', 'Controlled review basis', None, '066455fbd54e479882a227491e0179df', '2026-10-03 03:59:23.285261', '2026-10-03 03:59:23.285264')
+context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x00000211D75DC7D0>
+
+    def do_execute(self, cursor, statement, parameters, context=None):
+>       cursor.execute(statement, parameters)
+E       sqlite3.IntegrityError: UNIQUE constraint failed: knowledge_bases.course_id, knowledge_bases.name
+
+D:\develop\Python\Lib\site-packages\sqlalchemy\engine\default.py:952: IntegrityError
+
+The above exception was the direct cause of the following exception:
+
+session = <sqlalchemy.orm.session.Session object at 0x00000211CBECFD40>
+
+        session: Session,
+    ) -> None:
+        """教师可以用已审核题目创建考试并完成发布。"""
+    
+        teacher = add_teacher(session)
+        course = add_course(session, teacher)
+        first_question = add_question(session, course, teacher, approved=True)
+        second_question = add_question(
+>           session,
+            course,
+            teacher,
+            content="解释函数的作用。",
+            score=5,
+            approved=True,
+        )
+
+tests\unit\services\test_exam_service.py:121: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\unit\services\test_exam_service.py:104: in add_question
+    summary = question_service.update_question_status(
+tests\support\question_validation_fixtures.py:82: in persist_current_semantic_pass
+    seed_teaching_reference(session, identity)
+tests\support\question_validation_fixtures.py:29: in seed_teaching_reference
+    session.flush()
+D:\develop\Python\Lib\site-packages\sqlalchemy\orm\session.py:4352: in flush
+    self._flush(objects)
+D:\develop\Python\Lib\site-packages\sqlalchemy\orm\session.py:4487: in _flush
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\sqlalchemy\util\langhelpers.py:122: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+D:\develop\Python\Lib\site-packages\sqlalchemy\orm\session.py:4448: in _flush
+    flush_context.execute()
+D:\develop\Python\Lib\site-packages\sqlalchemy\orm\unitofwork.py:465: in execute
+    rec.execute(self)
+D:\develop\Python\Lib\site-packages\sqlalchemy\orm\unitofwork.py:641: in execute
+    util.preloaded.orm_persistence.save_obj(
+D:\develop\Python\Lib\site-packages\sqlalchemy\orm\persistence.py:94: in save_obj
+    _emit_insert_statements(
+D:\develop\Python\Lib\site-packages\sqlalchemy\orm\persistence.py:1234: in _emit_insert_statements
+    result = connection.execute(
+D:\develop\Python\Lib\site-packages\sqlalchemy\engine\base.py:1421: in execute
+    return meth(
+D:\develop\Python\Lib\site-packages\sqlalchemy\sql\elements.py:526: in _execute_on_connection
+    return connection._execute_clauseelement(
+D:\develop\Python\Lib\site-packages\sqlalchemy\engine\base.py:1643: in _execute_clauseelement
+    ret = self._execute_context(
+D:\develop\Python\Lib\site-packages\sqlalchemy\engine\base.py:1848: in _execute_context
+    return self._exec_single_context(
+D:\develop\Python\Lib\site-packages\sqlalchemy\engine\base.py:1988: in _exec_single_context
+    self._handle_dbapi_exception(
+D:\develop\Python\Lib\site-packages\sqlalchemy\engine\base.py:2365: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+D:\develop\Python\Lib\site-packages\sqlalchemy\engine\base.py:1969: in _exec_single_context
+    self.dialect.do_execute(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x00000211C8F16990>
+cursor = <sqlite3.Cursor object at 0x00000211D734E9C0>
+statement = 'INSERT INTO knowledge_bases (course_id, name, description, id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)'
+parameters = ('c2e08fb166f5474aad5cb3b4b4dd9c5c', 'Controlled review basis', None, '066455fbd54e479882a227491e0179df', '2026-10-03 03:59:23.285261', '2026-10-03 03:59:23.285264')
+context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x00000211D75DC7D0>
+
+    def do_execute(self, cursor, statement, parameters, context=None):
+>       cursor.execute(statement, parameters)
+E       sqlalchemy.exc.IntegrityError: (sqlite3.IntegrityError) UNIQUE constraint failed: knowledge_bases.course_id, knowledge_bases.name
+E       [SQL: INSERT INTO knowledge_bases (course_id, name, description, id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)]
+E       [parameters: ('c2e08fb166f5474aad5cb3b4b4dd9c5c', 'Controlled review basis', None, '066455fbd54e479882a227491e0179df', '2026-10-03 03:59:23.285261', '2026-10-03 03:59:23.285264')]
+E       (Background on this error at: https://sqlalche.me/e/20/gkpj)
+
+D:\develop\Python\Lib\site-packages\sqlalchemy\engine\default.py:952: IntegrityError
+============================== warnings summary ===============================
+..\..\..\develop\Python\Lib\site-packages\fastapi\testclient.py:1
+  D:\develop\Python\Lib\site-packages\fastapi\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/unit/services/test_submission_service.py::test_submission_service_creates_reuses_draft_and_persists_answers
+FAILED tests/unit/services/test_submission_service.py::test_submission_service_rejects_incomplete_or_foreign_answers
+FAILED tests/unit/services/test_exam_service.py::test_exam_service_creates_associates_and_publishes_exam
+3 failed, 51 passed, 1 warning in 62.78s (0:01:02)

@@ -3008,6 +3008,8 @@ def create_gradio_app() -> gr.Blocks:
                     student_dashboard_view.continue_button,
                     student_dashboard_view.view_results_button,
                     *(component for component, _ in resets),
+                    *paper_import_view.reset(),
+                    *knowledge_base_view.chapter_scope.reset(),
                 ]
             )
         )

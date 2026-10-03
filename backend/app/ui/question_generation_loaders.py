@@ -17,7 +17,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 from typing import Any
-from uuid import UUID, uuid4
+from uuid import uuid4
 
 from backend.app.api.question_generation import (
     DEFAULT_PAGE_SIZE,
@@ -28,13 +28,22 @@ from backend.app.api.question_generation import (
     QuestionGenerationService,
     build_production_question_generation_service,
 )
-from backend.app.api.questions import QuestionDetailDTO, get_question
+from backend.app.api.questions import QuestionDetailDTO
+from backend.app.core.config import get_settings
 from backend.app.core.database import get_session_factory
-from backend.app.domain.enums import QuestionStatus, QuestionType, UserRole
+from backend.app.domain.enums import (
+    DocumentStatus,
+    QuestionStatus,
+    QuestionType,
+    UserRole,
+)
 from backend.app.domain.permissions import PermissionDeniedError, normalize_role
-from backend.app.models import User
+from backend.app.schemas.retrieval_scope import RetrievalScope
 from backend.app.services.course_service import CourseService
+from backend.app.services.knowledge_base_service import KnowledgeBaseService
+from backend.app.services.question_adaptation_service import AdaptationType
 from backend.app.services.question_service import QuestionService
+from backend.app.ui import question_review_loaders
 
 #: 出题条件未提供时使用的默认知识点集合（空集合表示不限定知识点）。
 EMPTY_KNOWLEDGE_POINTS: tuple[str, ...] = ()
@@ -101,6 +110,8 @@ async def generate_candidate_batch(
     difficulty: str | None = None,
     question_type: QuestionType | None = None,
     count: int = 1,
+    retrieval_scope: RetrievalScope | dict[str, Any] | None = None,
+    target_score: Any = None,
 ) -> CandidateGenerationResponse:
     """按教师条件生成候选题目并返回真实回执（含整批校验结论与检索依据）。"""
 
@@ -116,6 +127,8 @@ async def generate_candidate_batch(
         difficulty=(difficulty or "").strip() or None,
         question_type=question_type,
         count=count,
+        retrieval_scope=retrieval_scope,
+        target_score=target_score,
     )
 
 
@@ -159,17 +172,8 @@ def load_question_detail(
 ) -> QuestionDetailDTO:
     """通过现有题目详情契约读取持久化来源和意见，并复用教师归属校验。"""
 
-    teacher_id = require_teacher(state)
-    with get_session_factory()() as session:
-        teacher = session.get(User, UUID(teacher_id))
-        if teacher is None:
-            raise PermissionDeniedError("当前教师账号不存在。")
-        return get_question(
-            UUID(str(candidate_id).strip()),
-            teacher,
-            QuestionService(session),
-            session,
-        )
+    require_teacher(state)
+    return question_review_loaders.detail(candidate_id, state or {})
 
 
 def submit_candidate_review(
@@ -205,3 +209,42 @@ __all__ = [
     "state_user_id",
     "submit_candidate_review",
 ]
+
+
+async def adapt_candidate_batch(
+    state,
+    *,
+    course_id: str,
+    source_question_id: str,
+    adaptation_type: AdaptationType = "rewrite",
+    **kwargs,
+):
+    teacher_id = require_teacher(state)
+    return await build_candidate_service().adapt_candidates(
+        course_id=course_id,
+        actor_id=teacher_id,
+        request_id=_request_id(state),
+        source_question_id=source_question_id,
+        adaptation_type=adaptation_type,
+        **kwargs,
+    )
+
+
+def load_scope_context(course_id: str, state):
+    require_teacher(state)
+    with question_review_loaders._scope(state) as (session, user):
+        knowledge = KnowledgeBaseService(
+            session, storage_root=get_settings().storage_root
+        )
+        chapters = knowledge.list_chapters(course_id, user.id)
+        documents = [
+            item
+            for item in knowledge.list_documents(
+                course_id=course_id, teacher_id=user.id
+            )
+            if item.status == DocumentStatus.READY
+        ]
+        questions = QuestionService(session).list_questions(
+            course_id=course_id, teacher_id=user.id
+        )
+        return chapters, documents, questions

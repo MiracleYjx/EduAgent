@@ -42,6 +42,7 @@ from backend.app.api.questions import (
     QuestionSourceSnapshotDTO,
 )
 from backend.app.domain.enums import QuestionStatus, QuestionType
+from backend.app.schemas.image_assessment import ImageAssessmentView
 from backend.app.ui import question_generation_view as view
 
 #: 学生会话状态：用于验证视图守卫。
@@ -116,6 +117,22 @@ def _detail(
         source_status=source_status,
         sources=list(sources),
         revision_comments=list(comments),
+        image_assessment=ImageAssessmentView(
+            owner_kind="question",
+            owner_id=UUID(int=1),
+            assessment=None,
+            context_revision=0,
+            run_no=0,
+            check_no=0,
+            input_refs=None,
+            current_run=None,
+            current_check=None,
+            imported_review=None,
+            status="not_required",
+            confirmed_conditions=[],
+            requires_manual_review=False,
+            evidence_readable=True,
+        ),
     )
 
 
@@ -177,7 +194,17 @@ class _StubLoaders:
 
     def candidate_detail(self, candidate_id: str, state: Any) -> Any:
         self.calls.append(("detail", {"candidate_id": candidate_id}))
-        return self.details.get(candidate_id, _detail(candidate_id))
+        if candidate_id in self.details:
+            return self.details[candidate_id]
+        latest = next(
+            (item for item in self.page.items if item.candidate_id == candidate_id),
+            None,
+        )
+        return (
+            _detail(candidate_id).model_copy(update={"status": latest.status})
+            if latest is not None
+            else _detail(candidate_id)
+        )
 
     def review(self, state: Mapping[str, Any] | None, **kwargs: Any) -> Any:
         self.calls.append(("review", dict(kwargs)))
@@ -386,7 +413,7 @@ def test_generate_candidates_returns_rows_preview_and_buttons() -> None:
     assert items[0]["origin"] == GENERATION_ORIGIN
     assert "待审核 1 道" in status
     assert "参考答案" in preview
-    assert _update_value(approve) is True
+    assert _update_value(approve) is False
     assert _update_value(revision) is True
     assert "变量用于保存数据。" not in evidence
     assert "来自已保存详情的知识片段。" in evidence
@@ -483,7 +510,7 @@ def test_select_candidate_preview_and_action_state() -> None:
     )
     assert "参考答案" in preview
     assert selected is not None and selected["candidate_id"] == "candidate-1"
-    assert _update_value(approve) is True
+    assert _update_value(approve) is False
     assert _update_value(revision) is True
     assert "无来源" in evidence
     assert "待教师审核" in message
@@ -672,7 +699,7 @@ def test_revision_with_comment_reads_persisted_history() -> None:
                         commented_at=datetime(2026, 9, 19, 9, 0, tzinfo=UTC),
                     )
                 ]
-            )
+            ).model_copy(update={"status": QuestionStatus.NEEDS_REVISION})
         },
     )
     _install(loaders)
@@ -746,3 +773,53 @@ def test_refresh_generation_context_lists_real_courses() -> None:
     update, message = view.refresh_generation_context(_TEACHER_STATE)
     assert update.get("choices") == []
     assert "暂无课程" in message
+
+
+def test_v2_explicit_scope_and_target_score_are_forwarded_without_classification_inference():
+    loaders = _StubLoaders(
+        generation=_generation_response(_generated(QuestionStatus.PENDING_REVIEW))
+    )
+    _install(loaders)
+    asyncio.run(
+        view.generate_candidates(
+            "course-1",
+            "classification",
+            None,
+            "",
+            1,
+            _TEACHER_STATE,
+            ["00000000-0000-0000-0000-000000000111"],
+            ["00000000-0000-0000-0000-000000000112"],
+            "retrieval-label",
+            "00000000-0000-0000-0000-000000000111",
+            2,
+            3,
+            8,
+        )
+    )
+    sent = loaders.calls[0][1]
+    assert sent["target_score"] == 8
+    assert sent["knowledge_points"] == ["classification"]
+    assert sent["retrieval_scope"].knowledge_points == ("retrieval-label",)
+    assert sent["retrieval_scope"].section_range.start_order == 2
+    assert len(sent["retrieval_scope"].document_ids) == 1
+
+
+def test_v2_detail_state_replaces_stale_list_state_before_review():
+    candidate = _candidate()
+    latest = _detail().model_copy(update={"status": QuestionStatus.NEEDS_REVISION})
+    loaders = _StubLoaders(page=_page(candidate), details={"candidate-1": latest})
+    _install(loaders)
+    items = view.refresh_candidate_list("course-1", "", _TEACHER_STATE)[1]
+    assert items[0]["status"] == QuestionStatus.NEEDS_REVISION.value
+    selected = view.select_candidate(_SelectEvent(0), None, items, _TEACHER_STATE)
+    assert _update_value(selected[2]) is False
+    assert _update_value(selected[3]) is False
+
+
+def test_v2_dictionary_options_preview_keeps_values_and_order():
+    preview = view.candidate_preview_markdown(
+        {"content": "Question", "options": {"C": "first option", "A": "second option"}}
+    )
+    assert "first option" in preview and "second option" in preview
+    assert preview.index("C：first option") < preview.index("A：second option")

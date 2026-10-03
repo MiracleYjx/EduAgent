@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 from decimal import Decimal
+from pathlib import Path
 from uuid import UUID
 
 from sqlalchemy import select
@@ -24,7 +25,7 @@ from tests.support.semantic_validation_doubles import StubSemanticProvider
 def seed_teaching_reference(session: Session, question_id: UUID | str) -> DocumentChunk:
     question = session.get(Question, UUID(str(question_id)))
     assert question is not None
-    basis = KnowledgeBase(course_id=question.course_id, name="Controlled review basis")
+    basis = KnowledgeBase(course_id=question.course_id, name=f"Controlled review basis {question.id}")
     session.add(basis)
     session.flush()
     document = Document(
@@ -68,7 +69,11 @@ def seed_teaching_reference(session: Session, question_id: UUID | str) -> Docume
 
 
 def persist_current_semantic_pass(
-    session: Session, question_id: UUID | str, teacher_id: UUID | str
+    session: Session,
+    question_id: UUID | str,
+    teacher_id: UUID | str,
+    *,
+    root: Path | None = None,
 ):
     identity = UUID(str(question_id))
     if (
@@ -81,7 +86,7 @@ def persist_current_semantic_pass(
     ):
         seed_teaching_reference(session, identity)
     report = asyncio.run(
-        ContentValidationService(session).run_validation(
+        ContentValidationService(session, root=root).run_validation(
             identity, actor_id=UUID(str(teacher_id)), provider=StubSemanticProvider()
         )
     )

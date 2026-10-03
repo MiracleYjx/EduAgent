@@ -12,17 +12,21 @@ from html import escape
 from typing import Any, Literal, cast
 
 import gradio as gr
+from fastapi import HTTPException
 from sqlalchemy.exc import SQLAlchemyError
 
 from backend.app.core.database import get_session_factory
 from backend.app.domain.enums import QuestionStatus, QuestionType, UserRole
 from backend.app.domain.permissions import PermissionDeniedError, normalize_role
+from backend.app.services.auth_service import AuthenticationError
 from backend.app.services.course_service import CourseService, CourseServiceError
+from backend.app.services.file_storage_service import FileStorageError
 from backend.app.services.question_service import (
     QuestionService,
     QuestionServiceError,
     QuestionSummary,
 )
+from backend.app.ui import question_review_loaders
 from backend.app.ui.layout_view import (
     bind_confirmation,
     empty_state,
@@ -31,6 +35,10 @@ from backend.app.ui.layout_view import (
     status_choices,
     status_label,
     table_options,
+)
+from backend.app.ui.question_review_view import (
+    approval_enabled,
+    create_question_review_panel,
 )
 
 QUESTION_TYPE_CHOICES = [question_type.value for question_type in QuestionType]
@@ -95,6 +103,10 @@ def _format_error(error: BaseException) -> str:
         message = str(error) or "当前账号无权执行此操作。"
     elif isinstance(error, QuestionServiceError):
         message = str(error) or _GENERIC_ERROR
+    elif isinstance(error, (AuthenticationError, FileStorageError)):
+        message = str(error)
+    elif isinstance(error, HTTPException):
+        message = str(error.detail)
     elif isinstance(error, SQLAlchemyError):
         message = "系统暂时无法连接数据库，请稍后重试。"
     elif isinstance(error, (TypeError, ValueError, json.JSONDecodeError)):
@@ -647,6 +659,9 @@ def create_question_view(session_state: Any | None = None) -> QuestionView:
 
     state = session_state or gr.State(_empty_state())
     errors = (
+        AuthenticationError,
+        FileStorageError,
+        HTTPException,
         PermissionDeniedError,
         CourseServiceError,
         SQLAlchemyError,
@@ -655,6 +670,7 @@ def create_question_view(session_state: Any | None = None) -> QuestionView:
     )
     with gr.Column(visible=False, elem_id="edu-question-bank") as panel:
         snapshot = gr.State(None)
+        editing_mode = gr.State(False)
         question_id = gr.Textbox(visible=False, container=False)
         with gr.Row(elem_classes=["edu-question-heading"]):
             gr.HTML(
@@ -741,10 +757,14 @@ def create_question_view(session_state: Any | None = None) -> QuestionView:
                     elem_classes=["edu-icon"],
                 )
                 submit_button = gr.Button("提交审核", scale=0, interactive=False)
+                validation_button = gr.Button(
+                    "执行当前语义核验", scale=0, interactive=False
+                )
                 approve_button = gr.Button(
                     "审核通过", variant="primary", scale=0, interactive=False
                 )
                 revision_button = gr.Button("退回修订", scale=0, interactive=False)
+            revision_comment = gr.Textbox(label="退回修订意见", lines=2)
             preview = gr.HTML("", elem_id="edu-question-preview")
             with gr.Column(
                 visible=False,
@@ -783,6 +803,7 @@ def create_question_view(session_state: Any | None = None) -> QuestionView:
                 )
                 answer = gr.Textbox(label="参考答案", lines=3)
                 rubric = gr.Textbox(label="评分标准", lines=3)
+                analysis = gr.Textbox(label="解析（未提供时留空）", lines=3)
                 with gr.Row():
                     difficulty = gr.Textbox(label="难度")
                     points = gr.Textbox(
@@ -799,6 +820,17 @@ def create_question_view(session_state: Any | None = None) -> QuestionView:
                     cancel_button = gr.Button(
                         "取消编辑（放弃未保存修改）", visible=False
                     )
+            review_panel = create_question_review_panel(
+                question_id,
+                state,
+                approval_button=approve_button,
+                editing_state=editing_mode,
+                validation_button=validation_button,
+                revision_button=revision_button,
+                submit_button=submit_button,
+                question_snapshot=snapshot,
+                status_display=detail_status,
+            )
             with gr.Accordion(
                 "删除题目", open=False, elem_id="edu-question-delete"
             ) as delete_section:
@@ -814,6 +846,7 @@ def create_question_view(session_state: Any | None = None) -> QuestionView:
             cancel_button,
             delete_section,
             snapshot,
+            editing_mode,
             question_id,
             detail_status,
             edit_course,
@@ -826,15 +859,20 @@ def create_question_view(session_state: Any | None = None) -> QuestionView:
             boolean,
             answer,
             rubric,
+            analysis,
             difficulty,
             points,
             save_button,
             approve_button,
             revision_button,
             submit_button,
+            validation_button,
+            revision_comment,
             delete_target,
             delete_button,
+            *review_panel.outputs,
         ]
+        detail_outputs = list(dict.fromkeys(detail_outputs))
         outputs = [
             *detail_outputs,
             filter_course,
@@ -909,6 +947,7 @@ def create_question_view(session_state: Any | None = None) -> QuestionView:
                 cancel_button: gr.update(visible=editing and question is not None),
                 delete_section: gr.update(visible=question is not None and not editing),
                 snapshot: current,
+                editing_mode: editing,
                 question_id: question.id if question else "",
                 detail_status: warning
                 or (
@@ -957,6 +996,10 @@ def create_question_view(session_state: Any | None = None) -> QuestionView:
                     value=(question.scoring_rubric or "") if question else "",
                     interactive=editable,
                 ),
+                analysis: gr.update(
+                    value=(question.analysis or "") if question else "",
+                    interactive=editable,
+                ),
                 difficulty: gr.update(
                     value=(question.difficulty or "") if question else "",
                     interactive=editable,
@@ -972,7 +1015,7 @@ def create_question_view(session_state: Any | None = None) -> QuestionView:
                         question
                         and editable
                         and not editing
-                        and question.status == QuestionStatus.PENDING_REVIEW
+                        and approval_enabled(question)
                     ),
                 ),
                 revision_button: gr.update(
@@ -980,7 +1023,8 @@ def create_question_view(session_state: Any | None = None) -> QuestionView:
                     interactive=bool(
                         question
                         and not editing
-                        and question.status == QuestionStatus.PENDING_REVIEW
+                        and question.status
+                        in {QuestionStatus.PENDING_REVIEW, QuestionStatus.APPROVED}
                     ),
                 ),
                 submit_button: gr.update(
@@ -993,9 +1037,36 @@ def create_question_view(session_state: Any | None = None) -> QuestionView:
                         in {QuestionStatus.DRAFT, QuestionStatus.NEEDS_REVISION}
                     ),
                 ),
+                validation_button: gr.update(
+                    visible=not editing,
+                    interactive=bool(
+                        question
+                        and not editing
+                        and question.status == QuestionStatus.PENDING_REVIEW
+                    ),
+                ),
+                revision_comment: gr.update(
+                    value="", visible=not editing and question is not None
+                ),
                 delete_target: question.content[:100] if question else "",
                 delete_button: gr.update(interactive=question is not None),
             }
+            review_updates = (
+                review_panel.render(question, editing=editing)
+                if question is not None
+                else review_panel.clear()
+            )
+            for button in (
+                approve_button,
+                validation_button,
+                revision_button,
+                submit_button,
+            ):
+                if button in review_updates:
+                    result[button].update(review_updates.pop(button))
+            result.update(review_updates)
+            if editing:
+                result[approve_button] = gr.update(visible=False, interactive=False)
             for component, update in visibility(question_kind).items():
                 result[component].update(update)
             return result
@@ -1050,11 +1121,10 @@ def create_question_view(session_state: Any | None = None) -> QuestionView:
             ids: list[str], current_state: Mapping[str, Any], event: gr.SelectData
         ) -> dict[Any, Any]:
             try:
-                teacher_id = teacher_id_from_state(current_state)
-                with get_session_factory()() as session:
-                    question = QuestionService(session).get_question(
-                        selected_question_id(event, ids), teacher_id=teacher_id
-                    )
+                teacher_id_from_state(current_state)
+                question = question_review_loaders.detail(
+                    selected_question_id(event, ids), current_state
+                )
                 return {
                     **form(question, teacher_course_choices(current_state)),
                     message: "",
@@ -1083,13 +1153,10 @@ def create_question_view(session_state: Any | None = None) -> QuestionView:
             editing: bool = True,
         ) -> dict[Any, Any]:
             try:
-                teacher_id = teacher_id_from_state(current_state)
+                teacher_id_from_state(current_state)
                 if not original:
                     raise ValueError("请先选择题目。")
-                with get_session_factory()() as session:
-                    question = QuestionService(session).get_question(
-                        original["id"], teacher_id=teacher_id
-                    )
+                question = question_review_loaders.detail(original["id"], current_state)
                 return {
                     **form(
                         question, teacher_course_choices(current_state), editing=editing
@@ -1103,7 +1170,8 @@ def create_question_view(session_state: Any | None = None) -> QuestionView:
             question: QuestionSummary, current_state: Mapping[str, Any], text: str
         ) -> dict[Any, Any]:
             result = refresh(question.course_id, "", "", "", current_state)
-            result.update(form(question, teacher_course_choices(current_state)))
+            actual = question_review_loaders.detail(question.id, current_state)
+            result.update(form(actual, teacher_course_choices(current_state)))
             result.update(
                 {
                     filter_kind: gr.update(value=""),
@@ -1125,6 +1193,7 @@ def create_question_view(session_state: Any | None = None) -> QuestionView:
             truth: str | None,
             reference: str,
             criteria: str,
+            explanation: str,
             level: str,
             knowledge: str,
             value: float,
@@ -1145,6 +1214,7 @@ def create_question_view(session_state: Any | None = None) -> QuestionView:
                         "options": option_value,
                         "reference_answer": reference_value,
                         "scoring_rubric": criteria or None,
+                        "analysis": explanation or None,
                         "difficulty": level or None,
                         "knowledge_points": _parse_knowledge_points(
                             knowledge.replace("、", ",")
@@ -1171,15 +1241,23 @@ def create_question_view(session_state: Any | None = None) -> QuestionView:
         def review(
             original: dict[str, Any] | None,
             current_state: Mapping[str, Any],
+            comment: str,
             target: QuestionStatus,
         ) -> dict[Any, Any]:
             try:
                 teacher_id = teacher_id_from_state(current_state)
                 if not original:
                     raise ValueError("请先保存或选择题目。")
+                if target == QuestionStatus.NEEDS_REVISION and not comment.strip():
+                    raise ValueError("退回修订必须填写真实教师意见。")
                 with get_session_factory()() as session:
+                    extra = (
+                        {"revision_comment": comment.strip()}
+                        if target == QuestionStatus.NEEDS_REVISION
+                        else {}
+                    )
                     updated = QuestionService(session).update_question_status(
-                        original["id"], target, teacher_id=teacher_id
+                        original["id"], target, teacher_id=teacher_id, **extra
                     )
                 return refresh_after(
                     updated,
@@ -1258,6 +1336,7 @@ def create_question_view(session_state: Any | None = None) -> QuestionView:
                 boolean,
                 answer,
                 rubric,
+                analysis,
                 difficulty,
                 points,
                 score,
@@ -1272,9 +1351,33 @@ def create_question_view(session_state: Any | None = None) -> QuestionView:
         ):
             button.click(
                 partial(review, target=target),
-                inputs=[snapshot, state],
+                inputs=[snapshot, state, revision_comment],
                 **event_options,
             )
+
+        async def validate_current(original, current_state, teaching_chunk_ids=None):
+            try:
+                teacher_id_from_state(current_state)
+                if not original:
+                    raise ValueError("请先保存或选择题目。")
+                await question_review_loaders.run_validation(
+                    original["id"], current_state, teaching_chunk_ids
+                )
+                actual = question_review_loaders.detail(original["id"], current_state)
+                return refresh_after(
+                    actual, current_state, "已执行核验，请按真实分项结果处置。"
+                )
+            except errors as error:
+                return {
+                    message: _format_error(error),
+                    approve_button: gr.update(interactive=False),
+                }
+
+        validation_button.click(
+            validate_current,
+            inputs=[snapshot, state, review_panel.teaching_chunk_ids],
+            **event_options,
+        )
         kind.input(
             visibility,
             inputs=[kind],
@@ -1290,7 +1393,7 @@ def create_question_view(session_state: Any | None = None) -> QuestionView:
 
         # 修改表单后先保存，审核始终针对已持久化的题目。
         def dirty() -> tuple[Any, ...]:
-            return tuple(gr.update(interactive=False) for _ in range(3))
+            return tuple(gr.update(interactive=False) for _ in range(4))
 
         editable_components: tuple[Any, ...] = (
             kind,
@@ -1301,6 +1404,7 @@ def create_question_view(session_state: Any | None = None) -> QuestionView:
             boolean,
             answer,
             rubric,
+            analysis,
             difficulty,
             points,
             score,
@@ -1308,7 +1412,12 @@ def create_question_view(session_state: Any | None = None) -> QuestionView:
         for component in editable_components:
             component.input(
                 dirty,
-                outputs=[submit_button, approve_button, revision_button],
+                outputs=[
+                    submit_button,
+                    approve_button,
+                    revision_button,
+                    validation_button,
+                ],
                 show_progress="hidden",
             )
         bind_confirmation(

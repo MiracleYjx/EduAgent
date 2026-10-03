@@ -242,3 +242,29 @@ def test_message_empty_state_matches_session_messages(
         assert value == ""
     else:
         assert "暂无本次会话消息" in value
+
+
+def test_workspace_reset_only_returns_registered_output_components(
+    built_app: gr.Blocks,
+) -> None:
+    """Login invokes this same reset; Gradio must be able to serialize every component."""
+    block_fn = next(
+        fn
+        for fn in built_app.fns.values()
+        if fn.fn is not None and getattr(fn.fn, "__name__", "") == "clear_workspace"
+    )
+    result = block_fn.fn()
+    missing = [component for component in result if component not in block_fn.outputs]
+    assert missing == [], [
+        (
+            type(component).__name__,
+            getattr(component, "value", None),
+            getattr(component, "elem_id", None),
+        )
+        for component in missing
+    ]
+
+    from gradio.blocks import convert_component_dict_to_list
+
+    serialized = convert_component_dict_to_list(list(block_fn.outputs), result)
+    assert len(serialized) == len(block_fn.outputs)

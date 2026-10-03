@@ -27,6 +27,7 @@ from backend.app.api.question_generation import (
     GenerationFailedError,
     QuestionGenerationService,
 )
+from backend.app.core.config import get_settings
 from backend.app.domain.enums import (
     DocumentStatus,
     QuestionStatus,
@@ -42,12 +43,15 @@ from backend.app.models import (
     QuestionGenerationMetadata,
     QuestionRevisionComment,
     QuestionSourceChunk,
+    User,
 )
+from backend.app.services.auth_service import AuthService
 from backend.app.services.exam_service import ExamService, ExamValidationError
 from backend.app.services.question_service import QuestionService
 from backend.app.services.question_validator import QuestionValidator
 from backend.app.ui import question_generation_loaders as ui_loaders
 from backend.app.ui import question_generation_view as ui_view
+from backend.app.ui import question_review_loaders as review_loaders
 from tests.postgres_helpers import isolated_postgres_engine
 from tests.support.question_generation_doubles import (
     StubEmbeddingProvider,
@@ -192,13 +196,22 @@ def test_ui_selected_candidate_uses_production_detail_contract(
         ],
     )
     response = _generate(service, scenario, 1)
+    with Session(engine) as session:
+        teacher = session.get(User, UUID(scenario["teacher_id"]))
+        assert teacher is not None
+        token = AuthService(
+            session, secret_key=get_settings().JWT_SECRET_KEY.get_secret_value()
+        ).issue_access_token(teacher)
     state = {
-        "access_token": "test-token",
+        "access_token": token,
         "roles": ["Teacher"],
         "user_id": scenario["teacher_id"],
     }
     monkeypatch.setattr(
         ui_loaders, "get_session_factory", lambda: lambda: Session(engine)
+    )
+    monkeypatch.setattr(
+        review_loaders, "get_session_factory", lambda: lambda: Session(engine)
     )
     ui_view.configure_question_generation_loaders(
         candidate_detail=ui_loaders.load_question_detail
