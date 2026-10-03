@@ -132,9 +132,7 @@ def test_registered_async_callbacks_keep_coroutine_semantics_and_execute(
         "confirm_review",
         "save_review_changes",
     )
-    callbacks = {
-        name: _registered_callback(built_app, name) for name in callback_names
-    }
+    callbacks = {name: _registered_callback(built_app, name) for name in callback_names}
     assert all(inspect.iscoroutinefunction(callback) for callback in callbacks.values())
 
     monkeypatch.setattr(
@@ -194,3 +192,53 @@ def test_registered_callbacks_keep_authentication_error_for_expired_session(
             callback(*args)
 
     assert error_info.value.args == ("登录状态已失效，请退出后重新登录。",)
+
+
+def test_logout_resets_question_bank_display(built_app: gr.Blocks) -> None:
+    """退出时复位本次新增的面板状态，避免再次登录停留在空编辑表单。"""
+
+    result = _registered_callback(built_app, "clear_workspace")()
+    panels = {
+        block.elem_id: block for block in built_app.blocks.values() if block.elem_id
+    }
+    assert result[panels["edu-question-list"]]["visible"] is True
+    assert result[panels["edu-question-detail"]]["visible"] is False
+    assert result[panels["edu-question-editor"]]["visible"] is False
+
+
+@pytest.mark.parametrize("has_messages", [True, False])
+def test_message_empty_state_matches_session_messages(
+    built_app: gr.Blocks,
+    has_messages: bool,
+) -> None:
+    """消息内容和空态共用会话消息列表，展开时不同时显示数据与暂无消息。"""
+
+    messages = (
+        [
+            {
+                "kind": "页面反馈",
+                "related_object": "题库",
+                "status": "已打开",
+                "view_key": "teacher.questions",
+            }
+        ]
+        if has_messages
+        else []
+    )
+    result = _registered_callback(built_app, "open_message_panel")(
+        _teacher_state(),
+        {"messages": messages},
+        [],
+        [],
+        [],
+    )
+    empty = next(
+        block
+        for block in built_app.blocks.values()
+        if block.elem_id == "edu-message-empty"
+    )
+    value = result[empty]["value"]
+    if has_messages:
+        assert value == ""
+    else:
+        assert "暂无本次会话消息" in value

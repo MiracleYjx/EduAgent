@@ -8,6 +8,7 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from decimal import Decimal
 from functools import partial
+from html import escape
 from typing import Any, Literal, cast
 
 import gradio as gr
@@ -63,6 +64,9 @@ class QuestionView:
     panel: gr.Column
     questions_table: gr.Dataframe
     message: gr.Markdown
+    list_panel: gr.Column
+    detail_panel: gr.Column
+    editor: gr.Column
 
 
 def _empty_state() -> dict[str, Any]:
@@ -399,13 +403,18 @@ class QuestionSelection:
 def create_question_selection(label: str = "题目摘要") -> QuestionSelection:
     """创建不显示内部 ID 的题目选择组件。"""
 
+    settings = table_options(QUESTION_TABLE_HEADERS)
+    settings.update(
+        column_widths=[420, 100, 80, 180, 140],
+        elem_classes=["edu-status-table", "edu-question-table"],
+    )
     table = gr.Dataframe(
         headers=list(QUESTION_TABLE_HEADERS),
         datatype=QUESTION_TABLE_DATATYPES,
         value=[],
         interactive=False,
         label=label,
-        **table_options(QUESTION_TABLE_HEADERS),
+        **settings,
     )
     return QuestionSelection(table, gr.State([]))
 
@@ -567,8 +576,74 @@ def question_editor_payload(
     return result, reference
 
 
+def question_preview_html(
+    question: QuestionSummary, courses: Sequence[tuple[str, str]]
+) -> str:
+    """展示完整持久化题目；所有题目内容按文本转义，不猜测复杂选项。"""
+
+    def text(value: str | None) -> str:
+        return escape(value) if value else "尚未填写"
+
+    course_name = next(
+        (label for label, identifier in courses if identifier == question.course_id),
+        "所属课程暂不可用",
+    )
+    tags = [
+        course_name,
+        status_label(question.type, entity="question_type"),
+        f"{question.score} 分",
+    ]
+    if question.difficulty:
+        tags.append(f"难度：{question.difficulty}")
+    tags.extend(question.knowledge_points)
+    meta = "".join(
+        f'<span class="edu-question-tag">{escape(tag)}</span>' for tag in tags
+    )
+    options_html = ""
+    if question.options is not None:
+        try:
+            rows = option_text_rows(question.options)
+            options_html = "".join(
+                '<div class="edu-question-option">'
+                f'<b>{escape(key)}</b><span class="edu-question-body">{escape(value)}</span></div>'
+                for key, value in rows
+            )
+        except ValueError:
+            options_html = (
+                '<div class="edu-question-body">'
+                + escape(json.dumps(question.options, ensure_ascii=False, indent=2))
+                + "</div>"
+            )
+    return (
+        '<div class="edu-question-preview-grid">'
+        '<section class="edu-question-preview-section"><h3>题目内容</h3>'
+        f'<div class="edu-question-meta">{meta}</div>'
+        f'<div class="edu-question-body">{escape(question.content)}</div>{options_html}</section>'
+        '<section class="edu-question-preview-section"><h3>答案与评分</h3>'
+        f'<h4>参考答案</h4><div class="edu-question-body">{text(question.reference_answer)}</div>'
+        f'<h4>评分标准</h4><div class="edu-question-body">{text(question.scoring_rubric)}</div>'
+        "</section></div>"
+    )
+
+
+def question_list_summary(questions: Sequence[QuestionSummary]) -> str:
+    """统计只对应当前查询结果，不冒充全库统计。"""
+
+    pending = sum(
+        question.status == QuestionStatus.PENDING_REVIEW for question in questions
+    )
+    approved = sum(question.status == QuestionStatus.APPROVED for question in questions)
+    return (
+        '<div class="edu-question-summary">'
+        f"<span>当前筛选<strong>{len(questions)}</strong> 道</span>"
+        f'<span class="edu-summary-pending">待审核<strong>{pending}</strong></span>'
+        f'<span class="edu-summary-approved">已审核<strong>{approved}</strong></span>'
+        "</div>"
+    )
+
+
 def create_question_view(session_state: Any | None = None) -> QuestionView:
-    """创建上筛选、左题库、右详情的连续审核工作区。"""
+    """创建宽列表、只读详情和按需编辑的题库审核工作区。"""
 
     state = session_state or gr.State(_empty_state())
     errors = (
@@ -578,35 +653,105 @@ def create_question_view(session_state: Any | None = None) -> QuestionView:
         TypeError,
         ValueError,
     )
-    with gr.Column(visible=False) as panel:
-        gr.Markdown("## 题库与审核")
+    with gr.Column(visible=False, elem_id="edu-question-bank") as panel:
         snapshot = gr.State(None)
         question_id = gr.Textbox(visible=False, container=False)
-        with gr.Row():
-            filter_course = gr.Dropdown(label="课程", choices=[], value=None)
-            filter_kind = gr.Dropdown(
-                label="题型",
-                choices=status_choices(
-                    QUESTION_TYPE_CHOICES, entity="question_type", include_all=True
-                ),
-                value="",
+        with gr.Row(elem_classes=["edu-question-heading"]):
+            gr.HTML(
+                '<div class="edu-question-title"><h2>题库管理</h2>'
+                "<p>管理课程题目、核对答案与评分标准，审核后用于组卷。</p></div>"
             )
-            filter_point = gr.Textbox(label="知识点")
-            filter_status = gr.Dropdown(
-                label="审核状态",
-                choices=status_choices(
-                    QUESTION_STATUS_CHOICES, entity="question", include_all=True
-                ),
-                value="",
+            new_button = gr.Button(
+                "新建题目",
+                variant="primary",
+                scale=0,
+                elem_id="edu-question-new",
+                elem_classes=["edu-icon"],
             )
-            refresh_button = gr.Button("刷新题库", scale=0)
-            new_button = gr.Button("新建题目", variant="primary", scale=0)
-        message = gr.Markdown(empty_state("暂无题目。"))
-        with gr.Row():
-            with gr.Column(scale=60, min_width=360):
+        message = gr.Markdown("", elem_id="edu-question-message")
+        with gr.Column(elem_id="edu-question-list") as list_panel:
+            with (
+                gr.Column(elem_classes=["edu-surface"]),
+                gr.Row(elem_classes=["edu-filter-row"]),
+            ):
+                filter_course = gr.Dropdown(
+                    label="所属课程",
+                    choices=[],
+                    value=None,
+                    min_width=140,
+                )
+                filter_kind = gr.Dropdown(
+                    label="题型",
+                    choices=status_choices(
+                        QUESTION_TYPE_CHOICES, entity="question_type", include_all=True
+                    ),
+                    value="",
+                    min_width=120,
+                )
+                filter_point = gr.Textbox(
+                    label="知识点",
+                    placeholder="输入知识点",
+                    min_width=140,
+                )
+                filter_status = gr.Dropdown(
+                    label="审核状态",
+                    choices=status_choices(
+                        QUESTION_STATUS_CHOICES, entity="question", include_all=True
+                    ),
+                    value="",
+                    min_width=120,
+                )
+                with gr.Row(elem_classes=["edu-filter-actions"]):
+                    refresh_button = gr.Button(
+                        "查询",
+                        variant="primary",
+                        scale=0,
+                        elem_id="edu-question-refresh",
+                        elem_classes=["edu-icon"],
+                    )
+                    reset_button = gr.Button(
+                        "重置",
+                        scale=0,
+                        elem_id="edu-question-reset",
+                        elem_classes=["edu-icon"],
+                    )
+            with gr.Column(elem_classes=["edu-surface"]):
+                gr.HTML(
+                    '<div class="edu-question-list-title"><h3>题目列表</h3>'
+                    "<span>点击题目查看完整内容与审核详情</span></div>"
+                )
+                list_summary = gr.HTML(
+                    '<div class="edu-question-summary">选择课程或查询，加载你的题目。</div>',
+                    elem_id="edu-question-summary",
+                )
                 picker = create_question_selection()
-            with gr.Column(scale=40, min_width=300):
-                detail_status = gr.Markdown(empty_state("尚未选择题目。"))
+        with gr.Column(visible=False, elem_id="edu-question-detail") as detail_panel:
+            with gr.Row(elem_classes=["edu-detail-toolbar"]):
+                close_button = gr.Button(
+                    "返回题库",
+                    scale=0,
+                    elem_id="edu-question-back",
+                    elem_classes=["edu-icon"],
+                )
+                detail_status = gr.Markdown("", elem_id="edu-question-detail-status")
+                edit_button = gr.Button(
+                    "编辑题目",
+                    scale=0,
+                    elem_id="edu-question-edit",
+                    elem_classes=["edu-icon"],
+                )
+                submit_button = gr.Button("提交审核", scale=0, interactive=False)
+                approve_button = gr.Button(
+                    "审核通过", variant="primary", scale=0, interactive=False
+                )
+                revision_button = gr.Button("退回修订", scale=0, interactive=False)
+            preview = gr.HTML("", elem_id="edu-question-preview")
+            with gr.Column(
+                visible=False,
+                elem_id="edu-question-editor",
+                elem_classes=["edu-surface"],
+            ) as editor:
+                gr.Markdown("### 编辑题目\n保存后返回详情，再提交审核。")
                 edit_course = gr.Dropdown(label="所属课程", choices=[], value=None)
                 with gr.Row():
                     kind = gr.Dropdown(
@@ -617,7 +762,7 @@ def create_question_view(session_state: Any | None = None) -> QuestionView:
                         value=QuestionType.SHORT_ANSWER.value,
                     )
                     score = gr.Number(label="分值", value=10, minimum=0.01)
-                content = gr.Textbox(label="完整题干", lines=4)
+                content = gr.Textbox(label="完整题干", lines=5)
                 options = gr.Dataframe(
                     label="逐项选项",
                     headers=["选项标识", "选项内容"],
@@ -636,25 +781,38 @@ def create_question_view(session_state: Any | None = None) -> QuestionView:
                     choices=[("正确", "True"), ("错误", "False")],
                     visible=False,
                 )
-                answer = gr.Textbox(label="参考答案", lines=2)
+                answer = gr.Textbox(label="参考答案", lines=3)
                 rubric = gr.Textbox(label="评分标准", lines=3)
                 with gr.Row():
                     difficulty = gr.Textbox(label="难度")
-                    points = gr.Textbox(label="知识点")
-                with gr.Row():
+                    points = gr.Textbox(
+                        label="知识点", placeholder="多个知识点用逗号分隔"
+                    )
+                with gr.Row(elem_classes=["edu-editor-actions"]):
                     save_button = gr.Button(
-                        "保存", variant="primary", interactive=False
+                        "保存题目",
+                        variant="primary",
+                        interactive=False,
+                        elem_id="edu-question-save",
+                        elem_classes=["edu-icon"],
                     )
-                    approve_button = gr.Button("审核通过", interactive=False)
-                    revision_button = gr.Button("退回修订", interactive=False)
-                submit_button = gr.Button("提交审核", interactive=False)
-                with gr.Accordion("删除确认区", open=False):
-                    delete_target = gr.Textbox(label="待删除题目", interactive=False)
-                    delete_button = gr.Button(
-                        "删除题目", variant="stop", interactive=False
+                    cancel_button = gr.Button(
+                        "取消编辑（放弃未保存修改）", visible=False
                     )
+            with gr.Accordion(
+                "删除题目", open=False, elem_id="edu-question-delete"
+            ) as delete_section:
+                delete_target = gr.Textbox(label="待删除题目", interactive=False)
+                delete_button = gr.Button("删除题目", variant="stop", interactive=False)
 
         detail_outputs = [
+            list_panel,
+            detail_panel,
+            editor,
+            preview,
+            edit_button,
+            cancel_button,
+            delete_section,
             snapshot,
             question_id,
             detail_status,
@@ -677,7 +835,17 @@ def create_question_view(session_state: Any | None = None) -> QuestionView:
             delete_target,
             delete_button,
         ]
-        outputs = [*detail_outputs, filter_course, picker.table, picker.ids, message]
+        outputs = [
+            *detail_outputs,
+            filter_course,
+            filter_kind,
+            filter_point,
+            filter_status,
+            list_summary,
+            picker.table,
+            picker.ids,
+            message,
+        ]
 
         def visibility(value: str) -> dict[Any, Any]:
             choice = value in {
@@ -702,6 +870,7 @@ def create_question_view(session_state: Any | None = None) -> QuestionView:
             course: str | None = None,
             *,
             new: bool = False,
+            editing: bool = False,
         ) -> dict[Any, Any]:
             current = question.model_dump(mode="json") if question else None
             editable = (new or question is not None) and (
@@ -727,7 +896,18 @@ def create_question_view(session_state: Any | None = None) -> QuestionView:
                 question.reference_answer if question else None, row_values
             )
             choices = _option_choices(row_values)
+            editing = new or (editing and editable)
             result: dict[Any, Any] = {
+                list_panel: gr.update(visible=not (new or question is not None)),
+                detail_panel: gr.update(visible=new or question is not None),
+                editor: gr.update(visible=editing),
+                preview: gr.update(
+                    value=question_preview_html(question, courses) if question else "",
+                    visible=question is not None and not editing,
+                ),
+                edit_button: gr.update(visible=not editing, interactive=editable),
+                cancel_button: gr.update(visible=editing and question is not None),
+                delete_section: gr.update(visible=question is not None and not editing),
                 snapshot: current,
                 question_id: question.id if question else "",
                 detail_status: warning
@@ -785,26 +965,33 @@ def create_question_view(session_state: Any | None = None) -> QuestionView:
                     value="、".join(question.knowledge_points) if question else "",
                     interactive=editable,
                 ),
-                save_button: gr.update(interactive=editable),
+                save_button: gr.update(interactive=editable and editing),
                 approve_button: gr.update(
+                    visible=not editing,
                     interactive=bool(
                         question
                         and editable
+                        and not editing
                         and question.status == QuestionStatus.PENDING_REVIEW
-                    )
+                    ),
                 ),
                 revision_button: gr.update(
+                    visible=not editing,
                     interactive=bool(
-                        question and question.status == QuestionStatus.PENDING_REVIEW
-                    )
+                        question
+                        and not editing
+                        and question.status == QuestionStatus.PENDING_REVIEW
+                    ),
                 ),
                 submit_button: gr.update(
+                    visible=not editing,
                     interactive=bool(
                         question
                         and editable
+                        and not editing
                         and question.status
                         in {QuestionStatus.DRAFT, QuestionStatus.NEEDS_REVISION}
-                    )
+                    ),
                 ),
                 delete_target: question.content[:100] if question else "",
                 delete_button: gr.update(interactive=question is not None),
@@ -832,11 +1019,8 @@ def create_question_view(session_state: Any | None = None) -> QuestionView:
                         filter_course: gr.update(choices=courses, value=course),
                         picker.table: rows,
                         picker.ids: ids,
-                        message: (
-                            feedback(f"已加载 {len(rows)} 道题目。", "success")
-                            if rows
-                            else empty_state("暂无符合条件的题目。")
-                        ),
+                        list_summary: question_list_summary(questions),
+                        message: ("" if rows else empty_state("暂无符合条件的题目。")),
                     }
                 )
                 return result
@@ -845,6 +1029,7 @@ def create_question_view(session_state: Any | None = None) -> QuestionView:
                     **form(None, []),
                     picker.table: [],
                     picker.ids: [],
+                    list_summary: '<div class="edu-question-summary">题目统计暂不可用</div>',
                     message: _format_error(error),
                 }
 
@@ -877,11 +1062,55 @@ def create_question_view(session_state: Any | None = None) -> QuestionView:
             except errors as error:
                 return {**form(None, []), message: _format_error(error)}
 
+        def reset_filters(current_state: Mapping[str, Any]) -> dict[Any, Any]:
+            result = refresh(None, "", "", "", current_state)
+            result.update(
+                {
+                    filter_kind: gr.update(value=""),
+                    filter_point: gr.update(value=""),
+                    filter_status: gr.update(value=""),
+                }
+            )
+            return result
+
+        def close_detail() -> dict[Any, Any]:
+            return {**form(None, []), message: ""}
+
+        def edit_selected(
+            original: dict[str, Any] | None,
+            current_state: Mapping[str, Any],
+            *,
+            editing: bool = True,
+        ) -> dict[Any, Any]:
+            try:
+                teacher_id = teacher_id_from_state(current_state)
+                if not original:
+                    raise ValueError("请先选择题目。")
+                with get_session_factory()() as session:
+                    question = QuestionService(session).get_question(
+                        original["id"], teacher_id=teacher_id
+                    )
+                return {
+                    **form(
+                        question, teacher_course_choices(current_state), editing=editing
+                    ),
+                    message: "",
+                }
+            except errors as error:
+                return {message: _format_error(error)}
+
         def refresh_after(
             question: QuestionSummary, current_state: Mapping[str, Any], text: str
         ) -> dict[Any, Any]:
             result = refresh(question.course_id, "", "", "", current_state)
             result.update(form(question, teacher_course_choices(current_state)))
+            result.update(
+                {
+                    filter_kind: gr.update(value=""),
+                    filter_point: gr.update(value=""),
+                    filter_status: gr.update(value=""),
+                }
+            )
             result[message] = feedback(text, "success")
             return result
 
@@ -970,6 +1199,13 @@ def create_question_view(session_state: Any | None = None) -> QuestionView:
                     question = service.get_question(identifier, teacher_id=teacher_id)
                     service.delete_question(identifier, teacher_id=teacher_id)
                 result = refresh(question.course_id, "", "", "", current_state)
+                result.update(
+                    {
+                        filter_kind: gr.update(value=""),
+                        filter_point: gr.update(value=""),
+                        filter_status: gr.update(value=""),
+                    }
+                )
                 result[message] = feedback("题目已删除。", "success")
                 return result
             except errors as error:
@@ -996,6 +1232,14 @@ def create_question_view(session_state: Any | None = None) -> QuestionView:
             "concurrency_limit": 1,
         }
         refresh_button.click(refresh, inputs=filters, **event_options)
+        reset_button.click(reset_filters, inputs=[state], **event_options)
+        close_button.click(close_detail, **event_options)
+        edit_button.click(edit_selected, inputs=[snapshot, state], **event_options)
+        cancel_button.click(
+            partial(edit_selected, editing=False),
+            inputs=[snapshot, state],
+            **event_options,
+        )
         for component in (filter_course, filter_kind, filter_status):
             component.input(refresh, inputs=filters, **event_options)
         filter_point.submit(refresh, inputs=filters, **event_options)
@@ -1075,7 +1319,7 @@ def create_question_view(session_state: Any | None = None) -> QuestionView:
             inputs=[delete_target, question_id, state],
             outputs=outputs,
         )
-    return QuestionView(panel, picker.table, message)
+    return QuestionView(panel, picker.table, message, list_panel, detail_panel, editor)
 
 
 build_question_view = create_question_view

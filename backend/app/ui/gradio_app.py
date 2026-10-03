@@ -312,7 +312,9 @@ def _loaded_todo_messages(
             target = (
                 "teacher.review"
                 if "复核" in row_text
-                else "teacher.questions" if "审核" in row_text else "teacher.home"
+                else "teacher.questions"
+                if "审核" in row_text
+                else "teacher.home"
             )
             records.append(
                 {
@@ -1308,8 +1310,7 @@ def _student_dashboard_diagnosis(
         if diagnosis in (None, ""):
             continue
         return (
-            '<div class="student-dashboard-diagnosis">'
-            f"{escape(str(diagnosis))}</div>"
+            f'<div class="student-dashboard-diagnosis">{escape(str(diagnosis))}</div>'
         )
     return empty_state(STUDENT_DASHBOARD_DIAGNOSIS_EMPTY_MESSAGE)
 
@@ -1977,9 +1978,9 @@ def login_user(
         )
 
 
-def logout_user() -> (
-    tuple[LoginState, str, dict[str, Any], dict[str, Any], str, dict[str, Any], str]
-):
+def logout_user() -> tuple[
+    LoginState, str, dict[str, Any], dict[str, Any], str, dict[str, Any], str
+]:
     """清理当前 Gradio 会话并回到登录面板。"""
 
     return (
@@ -2291,9 +2292,7 @@ def _authenticated_state(state: Mapping[str, Any]) -> LoginState:
     if not token:
         raise AuthenticationError("请先登录。")
     with get_session_factory()() as session:
-        user = AuthService(session).get_current_user(
-            token
-        )
+        user = AuthService(session).get_current_user(token)
         return _user_state(user, token)
 
 
@@ -2388,7 +2387,11 @@ def create_gradio_app() -> gr.Blocks:
                     elem_id="edu-dev-mode-banner",
                 )
                 with gr.Row(elem_id="edu-topbar"):
-                    gr.HTML("<strong>EduAgent</strong>", elem_id="edu-brand")
+                    gr.HTML(
+                        '<div class="edu-brand-lockup"><span class="edu-logo-mark" '
+                        'aria-hidden="true"></span><strong>EduAgent</strong></div>',
+                        elem_id="edu-brand",
+                    )
                     context = gr.HTML(elem_id="edu-context")
                     page_search = gr.Textbox(
                         label="当前页搜索",
@@ -2398,7 +2401,9 @@ def create_gradio_app() -> gr.Blocks:
                         elem_id="edu-search",
                         interactive=True,
                     )
-                    message_button = gr.Button("消息", elem_id="edu-message-button")
+                    message_button = gr.Button(
+                        "消息", elem_id="edu-message-button", elem_classes=["edu-icon"]
+                    )
                     with gr.Accordion("用户菜单", open=False, elem_id="edu-user-menu"):
                         user_summary = gr.HTML(elem_id="edu-user")
                         role_selector = gr.Dropdown(
@@ -2449,6 +2454,7 @@ def create_gradio_app() -> gr.Blocks:
                                 back_button = gr.Button(
                                     "返回",
                                     elem_id="edu-page-back",
+                                    elem_classes=["edu-icon"],
                                     visible=False,
                                     interactive=False,
                                 )
@@ -2466,9 +2472,7 @@ def create_gradio_app() -> gr.Blocks:
                             open=False,
                             elem_id="edu-message-panel",
                         ) as message_panel:
-                            message_empty = gr.Markdown(
-                                empty_state("暂无本次会话消息。"), visible=True
-                            )
+                            message_empty = gr.Markdown("", elem_id="edu-message-empty")
                             message_table = gr.Dataframe(
                                 headers=list(TOPBAR_MESSAGE_HEADERS),
                                 datatype=TOPBAR_MESSAGE_DATATYPES,
@@ -2683,7 +2687,7 @@ def create_gradio_app() -> gr.Blocks:
                 message_button: _message_button_label(messages),
                 message_table: _message_rows(messages, state),
                 message_empty: gr.update(
-                    value=empty_state("暂无本次会话消息。"), visible=not messages
+                    value=empty_state("暂无本次会话消息。") if not messages else ""
                 ),
                 message_view_button: gr.update(interactive=False),
                 message_selected: None,
@@ -2764,6 +2768,9 @@ def create_gradio_app() -> gr.Blocks:
                     page_breadcrumb: "",
                     user_summary: "",
                     page_content: gr.update(value="", visible=True),
+                    question_view.list_panel: gr.update(visible=True),
+                    question_view.detail_panel: gr.update(visible=False),
+                    question_view.editor: gr.update(visible=False),
                     menu: gr.update(open=False),
                 }
             )
@@ -2988,6 +2995,9 @@ def create_gradio_app() -> gr.Blocks:
                     menu,
                     admin_view.panel,
                     *panels.values(),
+                    question_view.list_panel,
+                    question_view.detail_panel,
+                    question_view.editor,
                     *admin_sections.values(),
                     *groups.values(),
                     *buttons.values(),
@@ -3104,8 +3114,9 @@ def create_gradio_app() -> gr.Blocks:
                 message_button: _message_button_label(next_nav["messages"]),
                 message_table: _message_rows(next_nav["messages"], current_state),
                 message_empty: gr.update(
-                    value=empty_state("暂无本次会话消息。"),
-                    visible=not next_nav["messages"],
+                    value=empty_state("暂无本次会话消息。")
+                    if not next_nav["messages"]
+                    else "",
                 ),
             }
 

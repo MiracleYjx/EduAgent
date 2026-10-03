@@ -27,6 +27,7 @@ from backend.app.domain.enums import (
     ValidationStatus,
     WorkflowStatus,
 )
+from backend.app.ui.design_system import DESIGN_SYSTEM_CSS
 
 StatusTone = Literal["neutral", "info", "success", "warning", "danger"]
 StatusEntity = Literal[
@@ -679,6 +680,9 @@ WORKSPACE_CSS = STATUS_CSS + """
     #edu-login { margin: 32px auto; }
 }
 """
+
+
+WORKSPACE_CSS += DESIGN_SYSTEM_CSS
 
 
 WORKSPACE_JS = """
