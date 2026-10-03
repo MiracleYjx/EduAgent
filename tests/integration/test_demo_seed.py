@@ -1,5 +1,7 @@
 """T087：真实 PostgreSQL 隔离 schema，生产服务写入，只有 Embedding 使用替身。"""
 
+import asyncio
+from decimal import Decimal
 from uuid import UUID
 
 import pytest
@@ -17,6 +19,7 @@ from backend.app.models import (
     Question,
     User,
 )
+from backend.app.services.content_validation_service import ContentValidationService
 from backend.app.services.course_service import CourseService
 from backend.app.services.exam_service import ExamService
 from backend.app.services.knowledge_base_service import KnowledgeBaseService
@@ -25,6 +28,7 @@ from backend.app.services.submission_service import SubmissionService
 from scripts.demo_seed import DemoSeedError, seed_demo
 from scripts.run_retrieval_benchmark import StubHashEmbeddingProvider
 from tests.postgres_helpers import isolated_postgres_engine
+from tests.support.semantic_validation_doubles import StubSemanticProvider
 from tests.unit.settings_helpers import build_test_settings
 
 
@@ -37,6 +41,36 @@ class DemoEmbedding(StubHashEmbeddingProvider):
         if self.fail:
             raise EmbeddingProviderError("controlled test failure")
         return await super().embed_documents(documents)
+
+
+def _approve_demo_questions(session, question_ids):
+    """A real teacher selects ingested evidence; only the Provider is controlled."""
+    teacher = session.scalar(select(User).where(User.username == "dev_teacher"))
+    chunks = list(session.scalars(select(DocumentChunk).order_by(DocumentChunk.chunk_index)))
+    assert teacher is not None and chunks
+    provider = StubSemanticProvider()
+    questions = QuestionService(session)
+    for question_id in question_ids:
+        question = session.get(Question, UUID(question_id))
+        assert question is not None
+        if not question.scoring_rubric:
+            questions.update_question(
+                question.id,
+                scoring_rubric="选择 A 得 5 分，其他答案得 0 分。",
+                teacher_id=teacher.id,
+            )
+        report = asyncio.run(ContentValidationService(session).run_validation(
+            question.id,
+            actor_id=teacher.id,
+            teaching_chunk_ids=[chunk.id for chunk in chunks],
+            provider=provider,
+        ))
+        assert report.outcome == "passed" and report.can_review
+        assert all(item.kind == "chunk" for item in report.input_refs.evidence)
+        questions.update_question_status(
+            question.id, QuestionStatus.APPROVED, teacher_id=teacher.id,
+        )
+    assert len(provider.calls) == len(question_ids)
 
 
 def test_seed_twice_reuses_records_and_writes_through_real_services(monkeypatch):
@@ -60,9 +94,28 @@ def test_seed_twice_reuses_records_and_writes_through_real_services(monkeypatch)
     settings = build_test_settings(DEV_MODE=True)
     with isolated_postgres_engine() as engine:
         with Session(engine) as session:
-            first = seed_demo(session, settings=settings, embedding_provider=provider)
+            pending = seed_demo(session, settings=settings, embedding_provider=provider)
+            assert pending["status"] == "awaiting_teacher_review"
+            assert pending["awaiting_question_ids"] == pending["question_ids"]
+            assert pending["exam_id"] is None and pending["exam_status"] is None
+            assert {item["status"] for item in pending["question_states"]} == {
+                QuestionStatus.PENDING_REVIEW.value,
+            }
+            assert session.scalar(select(func.count()).select_from(Exam)) == 0
+            assert set(session.scalars(select(Question.status))) == {
+                QuestionStatus.PENDING_REVIEW,
+            }
             chunk_ids = set(session.scalars(select(DocumentChunk.id)))
             password_hashes = list(session.scalars(select(User.password_hash).order_by(User.id)))
+        with Session(engine) as session:
+            still_pending = seed_demo(session, settings=settings, embedding_provider=provider)
+            assert pending == still_pending
+            assert session.scalar(select(func.count()).select_from(Question)) == 2
+            assert session.scalar(select(func.count()).select_from(Exam)) == 0
+            _approve_demo_questions(session, pending["question_ids"])
+            first = seed_demo(session, settings=settings, embedding_provider=provider)
+            assert first["status"] == "ready" and not first["awaiting_question_ids"]
+            assert first["exam_status"] == ExamStatus.PUBLISHED.value
         with Session(engine) as session:
             second = seed_demo(session, settings=settings, embedding_provider=provider)
             assert first == second
@@ -86,7 +139,7 @@ def test_seed_twice_reuses_records_and_writes_through_real_services(monkeypatch)
             assert first["exam_id"] in {
                 item.id for item in SubmissionService(session).list_available_exams(student.id)
             }
-    assert provider.calls == 1  # 再次灌入不重复摄取或调用远端。
+    assert provider.calls == 1  # 再次构建不重复摄取或访问远端。
     assert calls == ["create_course", "create_knowledge_base", "ingest_document",
                      "create_question", "create_question", "create_exam"]
 
@@ -117,6 +170,49 @@ def test_seed_failed_ingestion_is_visible_and_retry_reuses_document():
         with Session(engine) as session:
             result = seed_demo(session, settings=settings, embedding_provider=provider)
             assert result["document_id"] == str(document_id)
+            assert result["status"] == "awaiting_teacher_review"
+            assert session.scalar(select(func.count()).select_from(Exam)) == 0
             assert session.scalar(select(func.count()).select_from(Document)) == 1
             assert session.scalar(select(Document.status)) is DocumentStatus.READY
     assert provider.calls == 2
+
+
+
+def test_seed_preserves_teacher_revision_and_does_not_create_exam():
+    settings = build_test_settings(DEV_MODE=True)
+    with isolated_postgres_engine() as engine, Session(engine) as session:
+        pending = seed_demo(session, settings=settings, embedding_provider=DemoEmbedding())
+        teacher = session.scalar(select(User).where(User.username == "dev_teacher"))
+        question_id = pending["question_ids"][0]
+        questions = QuestionService(session)
+        questions.update_question_status(
+            question_id,
+            QuestionStatus.NEEDS_REVISION,
+            teacher_id=teacher.id,
+            revision_comment="Controlled teacher asks for explicit scoring criteria.",
+        )
+        questions.update_question(question_id, score=6, teacher_id=teacher.id)
+        result = seed_demo(session, settings=settings, embedding_provider=DemoEmbedding())
+        assert result["status"] == "awaiting_teacher_review"
+        assert result["question_ids"] == pending["question_ids"]
+        assert question_id in result["awaiting_question_ids"]
+        row = session.get(Question, UUID(question_id))
+        assert row.status is QuestionStatus.NEEDS_REVISION and row.score == Decimal(6)
+        assert session.scalar(select(func.count()).select_from(Question)) == 2
+        assert session.scalar(select(func.count()).select_from(Exam)) == 0
+
+
+def test_seed_does_not_reopen_existing_closed_exam():
+    settings = build_test_settings(DEV_MODE=True)
+    with isolated_postgres_engine() as engine, Session(engine) as session:
+        pending = seed_demo(session, settings=settings, embedding_provider=DemoEmbedding())
+        _approve_demo_questions(session, pending["question_ids"])
+        ready = seed_demo(session, settings=settings, embedding_provider=DemoEmbedding())
+        teacher = session.scalar(select(User).where(User.username == "dev_teacher"))
+        ExamService(session).update_exam_status(
+            ready["exam_id"], ExamStatus.CLOSED, teacher_id=teacher.id,
+        )
+        with pytest.raises(DemoSeedError, match="DEMO_EXAM_NOT_OPEN"):
+            seed_demo(session, settings=settings, embedding_provider=DemoEmbedding())
+        assert session.get(Exam, UUID(ready["exam_id"])).status is ExamStatus.CLOSED
+        assert session.scalar(select(func.count()).select_from(Exam)) == 1

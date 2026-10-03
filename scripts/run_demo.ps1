@@ -67,8 +67,9 @@ try {
     Invoke-DemoCompose -Arguments @('exec', '-T', 'backend', 'python', '-m', 'scripts.demo_seed') -Stage 'seed'
 
     $port = ($config.services.backend.ports | Where-Object { $_.target -eq 8000 }).published
-    Write-Host "Demo ready: http://127.0.0.1:$port/gradio"
+    Write-Host "Demo UI running: http://127.0.0.1:$port/gradio"
     Write-Host 'Accounts: dev_teacher / dev_student / dev_admin (use DEV_MODE quick-login buttons; no password).'
+    Write-Host 'Exam availability follows seed JSON: awaiting_teacher_review requires teacher review, validation and approval, then rerun; ready means the demo exam is published.'
     Write-Host 'Local demonstration only. Disable DEV_MODE and remove demo accounts before production.'
 } catch {
     Write-Host "Demo startup failed: $($_.Exception.Message)" -ForegroundColor Red

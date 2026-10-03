@@ -1,0 +1,737 @@
+F.FFF.F......                                                            [100%]
+================================== FAILURES ===================================
+_______ test_seed_twice_reuses_records_and_writes_through_real_services _______
+
+self = <backend.app.services.question_service.QuestionService object at 0x000001C7C8063770>
+question_id = 'edbeb71a-d2f4-4b4e-8f73-9d57a6d19ea2'
+status = <QuestionStatus.APPROVED: 'Approved'>
+teacher_id = UUID('7417f2d5-7afb-476c-a90d-d653e41d1fda'), created_by = None
+revision_comment = None
+
+    def update_question_status(
+        self,
+        question_id: UUID | str,
+        status: QuestionStatus | str,
+        teacher_id: UUID | str | None = None,
+        *,
+        created_by: UUID | str | None = None,
+        revision_comment: str | None = None,
+    ) -> QuestionSummary:
+        """按审核状态机持久化题目状态。"""
+    
+        question = self._load_question(question_id)
+        self._ensure_course_access(
+            self._load_course(question.course_id),
+            _resolve_actor_id(created_by, teacher_id),
+        )
+        next_status = _normalize_question_status(status)
+        current_status = question.status
+        if next_status == current_status:
+            return self._question_summary(question)
+        if next_status not in _ALLOWED_STATUS_TRANSITIONS.get(current_status, set()):
+            raise QuestionValidationError(
+                f"题目状态不能从“{current_status.value}”变更为“{next_status.value}”。"
+            )
+        if next_status is QuestionStatus.NEEDS_REVISION:
+            actor = _resolve_actor_id(created_by, teacher_id)
+            teacher = self.session.get(User, actor) if actor is not None else None
+            if teacher is None or not teacher.is_active or not any(role.name == UserRole.TEACHER for role in teacher.roles):
+                raise QuestionPermissionError("退回修订必须由真实启用的课程教师执行。")
+            if not isinstance(revision_comment, str) or not revision_comment.strip() or len(revision_comment.strip()) > 2000:
+                raise QuestionValidationError("退回修订必须提供不超过 2000 字的真实教师说明。")
+            if current_status is QuestionStatus.APPROVED and any(
+                exam.status in {ExamStatus.PUBLISHED, ExamStatus.CLOSED, ExamStatus.ARCHIVED}
+                or self.session.scalar(select(Submission.id).where(Submission.exam_id == exam.id).limit(1)) is not None
+                for exam in question.exams
+            ):
+                raise QuestionPublishedImmutableError(current_status)
+            self.session.add(QuestionRevisionComment(question_id=question.id, comment=revision_comment.strip(), commented_by=actor, commented_at=datetime.now(UTC)))
+        if next_status is QuestionStatus.APPROVED:
+            from backend.app.services.content_validation_service import (
+                ContentValidationError,
+                ContentValidationService,
+            )
+    
+            actor = _resolve_actor_id(created_by, teacher_id)
+            if actor is None:
+                raise QuestionPermissionError(
+                    "A real current teacher must approve the question."
+                )
+            try:
+>               ContentValidationService(self.session).require_can_approve(
+                    question, actor
+                )
+
+backend\app\services\question_service.py:621: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <backend.app.services.content_validation_service.ContentValidationService object at 0x000001C7C9714440>
+question = <backend.app.models.question.Question object at 0x000001C7C9730A50>
+actor_id = UUID('7417f2d5-7afb-476c-a90d-d653e41d1fda')
+
+    def require_can_approve(
+        self, question: Question, actor_id: UUID
+    ) -> ValidationReportView:
+        """Shared approval gate; caller keeps the current Question lock and owns commit."""
+        locked = cast(Question, self._owner("question", question.id, actor_id))
+        report = self.session.scalars(
+            select(QuestionValidationResult)
+            .where(QuestionValidationResult.question_id == locked.id)
+            .order_by(QuestionValidationResult.run_no.desc())
+            .limit(1)
+            .with_for_update()
+            .execution_options(populate_existing=True)
+        ).first()
+        if report is None:
+>           raise ContentValidationError(
+                "CONTENT_VALIDATION_REQUIRED",
+                "A current semantic validation report is required before approval.",
+            )
+E           backend.app.services.content_validation_service.ContentValidationError: A current semantic validation report is required before approval.
+
+backend\app\services\content_validation_service.py:1123: ContentValidationError
+
+The above exception was the direct cause of the following exception:
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001C7C515DF30>
+
+    def test_seed_twice_reuses_records_and_writes_through_real_services(monkeypatch):
+        calls = []
+        for service, method in (
+            (CourseService, "create_course"),
+            (KnowledgeBaseService, "create_knowledge_base"),
+            (KnowledgeBaseService, "ingest_document"),
+            (QuestionService, "create_question"),
+            (ExamService, "create_exam"),
+        ):
+            original = getattr(service, method)
+    
+            def observe(self, *args, _original=original, _method=method, **kwargs):
+                calls.append(_method)
+                return _original(self, *args, **kwargs)
+    
+            monkeypatch.setattr(service, method, observe)
+    
+        provider = DemoEmbedding()
+        settings = build_test_settings(DEV_MODE=True)
+        with isolated_postgres_engine() as engine:
+            with Session(engine) as session:
+>               pending = seed_demo(session, settings=settings, embedding_provider=provider)
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\integration\test_demo_seed.py:97: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+scripts\demo_seed.py:145: in seed_demo
+    question = questions.update_question_status(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <backend.app.services.question_service.QuestionService object at 0x000001C7C8063770>
+question_id = 'edbeb71a-d2f4-4b4e-8f73-9d57a6d19ea2'
+status = <QuestionStatus.APPROVED: 'Approved'>
+teacher_id = UUID('7417f2d5-7afb-476c-a90d-d653e41d1fda'), created_by = None
+revision_comment = None
+
+    def update_question_status(
+        self,
+        question_id: UUID | str,
+        status: QuestionStatus | str,
+        teacher_id: UUID | str | None = None,
+        *,
+        created_by: UUID | str | None = None,
+        revision_comment: str | None = None,
+    ) -> QuestionSummary:
+        """按审核状态机持久化题目状态。"""
+    
+        question = self._load_question(question_id)
+        self._ensure_course_access(
+            self._load_course(question.course_id),
+            _resolve_actor_id(created_by, teacher_id),
+        )
+        next_status = _normalize_question_status(status)
+        current_status = question.status
+        if next_status == current_status:
+            return self._question_summary(question)
+        if next_status not in _ALLOWED_STATUS_TRANSITIONS.get(current_status, set()):
+            raise QuestionValidationError(
+                f"题目状态不能从“{current_status.value}”变更为“{next_status.value}”。"
+            )
+        if next_status is QuestionStatus.NEEDS_REVISION:
+            actor = _resolve_actor_id(created_by, teacher_id)
+            teacher = self.session.get(User, actor) if actor is not None else None
+            if teacher is None or not teacher.is_active or not any(role.name == UserRole.TEACHER for role in teacher.roles):
+                raise QuestionPermissionError("退回修订必须由真实启用的课程教师执行。")
+            if not isinstance(revision_comment, str) or not revision_comment.strip() or len(revision_comment.strip()) > 2000:
+                raise QuestionValidationError("退回修订必须提供不超过 2000 字的真实教师说明。")
+            if current_status is QuestionStatus.APPROVED and any(
+                exam.status in {ExamStatus.PUBLISHED, ExamStatus.CLOSED, ExamStatus.ARCHIVED}
+                or self.session.scalar(select(Submission.id).where(Submission.exam_id == exam.id).limit(1)) is not None
+                for exam in question.exams
+            ):
+                raise QuestionPublishedImmutableError(current_status)
+            self.session.add(QuestionRevisionComment(question_id=question.id, comment=revision_comment.strip(), commented_by=actor, commented_at=datetime.now(UTC)))
+        if next_status is QuestionStatus.APPROVED:
+            from backend.app.services.content_validation_service import (
+                ContentValidationError,
+                ContentValidationService,
+            )
+    
+            actor = _resolve_actor_id(created_by, teacher_id)
+            if actor is None:
+                raise QuestionPermissionError(
+                    "A real current teacher must approve the question."
+                )
+            try:
+                ContentValidationService(self.session).require_can_approve(
+                    question, actor
+                )
+            except ContentValidationError as error:
+>               raise QuestionValidationError(str(error)) from error
+E               backend.app.services.question_service.QuestionValidationError: A current semantic validation report is required before approval.
+
+backend\app\services\question_service.py:625: QuestionValidationError
+_______ test_seed_failed_ingestion_is_visible_and_retry_reuses_document _______
+
+self = <backend.app.services.question_service.QuestionService object at 0x000001C7C98582D0>
+question_id = 'fca27b88-b539-4dfe-bae8-d548fb11408a'
+status = <QuestionStatus.APPROVED: 'Approved'>
+teacher_id = UUID('9871596d-f102-4dde-8169-285ec75aed30'), created_by = None
+revision_comment = None
+
+    def update_question_status(
+        self,
+        question_id: UUID | str,
+        status: QuestionStatus | str,
+        teacher_id: UUID | str | None = None,
+        *,
+        created_by: UUID | str | None = None,
+        revision_comment: str | None = None,
+    ) -> QuestionSummary:
+        """按审核状态机持久化题目状态。"""
+    
+        question = self._load_question(question_id)
+        self._ensure_course_access(
+            self._load_course(question.course_id),
+            _resolve_actor_id(created_by, teacher_id),
+        )
+        next_status = _normalize_question_status(status)
+        current_status = question.status
+        if next_status == current_status:
+            return self._question_summary(question)
+        if next_status not in _ALLOWED_STATUS_TRANSITIONS.get(current_status, set()):
+            raise QuestionValidationError(
+                f"题目状态不能从“{current_status.value}”变更为“{next_status.value}”。"
+            )
+        if next_status is QuestionStatus.NEEDS_REVISION:
+            actor = _resolve_actor_id(created_by, teacher_id)
+            teacher = self.session.get(User, actor) if actor is not None else None
+            if teacher is None or not teacher.is_active or not any(role.name == UserRole.TEACHER for role in teacher.roles):
+                raise QuestionPermissionError("退回修订必须由真实启用的课程教师执行。")
+            if not isinstance(revision_comment, str) or not revision_comment.strip() or len(revision_comment.strip()) > 2000:
+                raise QuestionValidationError("退回修订必须提供不超过 2000 字的真实教师说明。")
+            if current_status is QuestionStatus.APPROVED and any(
+                exam.status in {ExamStatus.PUBLISHED, ExamStatus.CLOSED, ExamStatus.ARCHIVED}
+                or self.session.scalar(select(Submission.id).where(Submission.exam_id == exam.id).limit(1)) is not None
+                for exam in question.exams
+            ):
+                raise QuestionPublishedImmutableError(current_status)
+            self.session.add(QuestionRevisionComment(question_id=question.id, comment=revision_comment.strip(), commented_by=actor, commented_at=datetime.now(UTC)))
+        if next_status is QuestionStatus.APPROVED:
+            from backend.app.services.content_validation_service import (
+                ContentValidationError,
+                ContentValidationService,
+            )
+    
+            actor = _resolve_actor_id(created_by, teacher_id)
+            if actor is None:
+                raise QuestionPermissionError(
+                    "A real current teacher must approve the question."
+                )
+            try:
+>               ContentValidationService(self.session).require_can_approve(
+                    question, actor
+                )
+
+backend\app\services\question_service.py:621: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <backend.app.services.content_validation_service.ContentValidationService object at 0x000001C7C9859D10>
+question = <backend.app.models.question.Question object at 0x000001C7C9AD0290>
+actor_id = UUID('9871596d-f102-4dde-8169-285ec75aed30')
+
+    def require_can_approve(
+        self, question: Question, actor_id: UUID
+    ) -> ValidationReportView:
+        """Shared approval gate; caller keeps the current Question lock and owns commit."""
+        locked = cast(Question, self._owner("question", question.id, actor_id))
+        report = self.session.scalars(
+            select(QuestionValidationResult)
+            .where(QuestionValidationResult.question_id == locked.id)
+            .order_by(QuestionValidationResult.run_no.desc())
+            .limit(1)
+            .with_for_update()
+            .execution_options(populate_existing=True)
+        ).first()
+        if report is None:
+>           raise ContentValidationError(
+                "CONTENT_VALIDATION_REQUIRED",
+                "A current semantic validation report is required before approval.",
+            )
+E           backend.app.services.content_validation_service.ContentValidationError: A current semantic validation report is required before approval.
+
+backend\app\services\content_validation_service.py:1123: ContentValidationError
+
+The above exception was the direct cause of the following exception:
+
+    def test_seed_failed_ingestion_is_visible_and_retry_reuses_document():
+        provider = DemoEmbedding()
+        provider.fail = True
+        settings = build_test_settings(DEV_MODE=True)
+        with isolated_postgres_engine() as engine:
+            with Session(engine) as session:
+                with pytest.raises(DemoSeedError, match="DEMO_INGESTION_FAILED"):
+                    seed_demo(session, settings=settings, embedding_provider=provider)
+                document = session.scalar(select(Document))
+                document_id = document.id
+                assert document.status is DocumentStatus.FAILED and document.retryable
+                assert session.scalar(select(func.count()).select_from(DocumentChunk)) == 0
+                assert session.scalar(select(func.count()).select_from(Question)) == 0
+                assert session.scalar(select(func.count()).select_from(Exam)) == 0
+            provider.fail = False
+            with Session(engine) as session:
+>               result = seed_demo(session, settings=settings, embedding_provider=provider)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\integration\test_demo_seed.py:171: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+scripts\demo_seed.py:145: in seed_demo
+    question = questions.update_question_status(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <backend.app.services.question_service.QuestionService object at 0x000001C7C98582D0>
+question_id = 'fca27b88-b539-4dfe-bae8-d548fb11408a'
+status = <QuestionStatus.APPROVED: 'Approved'>
+teacher_id = UUID('9871596d-f102-4dde-8169-285ec75aed30'), created_by = None
+revision_comment = None
+
+    def update_question_status(
+        self,
+        question_id: UUID | str,
+        status: QuestionStatus | str,
+        teacher_id: UUID | str | None = None,
+        *,
+        created_by: UUID | str | None = None,
+        revision_comment: str | None = None,
+    ) -> QuestionSummary:
+        """按审核状态机持久化题目状态。"""
+    
+        question = self._load_question(question_id)
+        self._ensure_course_access(
+            self._load_course(question.course_id),
+            _resolve_actor_id(created_by, teacher_id),
+        )
+        next_status = _normalize_question_status(status)
+        current_status = question.status
+        if next_status == current_status:
+            return self._question_summary(question)
+        if next_status not in _ALLOWED_STATUS_TRANSITIONS.get(current_status, set()):
+            raise QuestionValidationError(
+                f"题目状态不能从“{current_status.value}”变更为“{next_status.value}”。"
+            )
+        if next_status is QuestionStatus.NEEDS_REVISION:
+            actor = _resolve_actor_id(created_by, teacher_id)
+            teacher = self.session.get(User, actor) if actor is not None else None
+            if teacher is None or not teacher.is_active or not any(role.name == UserRole.TEACHER for role in teacher.roles):
+                raise QuestionPermissionError("退回修订必须由真实启用的课程教师执行。")
+            if not isinstance(revision_comment, str) or not revision_comment.strip() or len(revision_comment.strip()) > 2000:
+                raise QuestionValidationError("退回修订必须提供不超过 2000 字的真实教师说明。")
+            if current_status is QuestionStatus.APPROVED and any(
+                exam.status in {ExamStatus.PUBLISHED, ExamStatus.CLOSED, ExamStatus.ARCHIVED}
+                or self.session.scalar(select(Submission.id).where(Submission.exam_id == exam.id).limit(1)) is not None
+                for exam in question.exams
+            ):
+                raise QuestionPublishedImmutableError(current_status)
+            self.session.add(QuestionRevisionComment(question_id=question.id, comment=revision_comment.strip(), commented_by=actor, commented_at=datetime.now(UTC)))
+        if next_status is QuestionStatus.APPROVED:
+            from backend.app.services.content_validation_service import (
+                ContentValidationError,
+                ContentValidationService,
+            )
+    
+            actor = _resolve_actor_id(created_by, teacher_id)
+            if actor is None:
+                raise QuestionPermissionError(
+                    "A real current teacher must approve the question."
+                )
+            try:
+                ContentValidationService(self.session).require_can_approve(
+                    question, actor
+                )
+            except ContentValidationError as error:
+>               raise QuestionValidationError(str(error)) from error
+E               backend.app.services.question_service.QuestionValidationError: A current semantic validation report is required before approval.
+
+backend\app\services\question_service.py:625: QuestionValidationError
+________ test_seed_preserves_teacher_revision_and_does_not_create_exam ________
+
+self = <backend.app.services.question_service.QuestionService object at 0x000001C7C9A78E10>
+question_id = 'd7d13d22-d605-435d-8fb3-b05be8c2c63e'
+status = <QuestionStatus.APPROVED: 'Approved'>
+teacher_id = UUID('5bd2facf-82d8-4d8e-a073-3a3746370fd4'), created_by = None
+revision_comment = None
+
+    def update_question_status(
+        self,
+        question_id: UUID | str,
+        status: QuestionStatus | str,
+        teacher_id: UUID | str | None = None,
+        *,
+        created_by: UUID | str | None = None,
+        revision_comment: str | None = None,
+    ) -> QuestionSummary:
+        """按审核状态机持久化题目状态。"""
+    
+        question = self._load_question(question_id)
+        self._ensure_course_access(
+            self._load_course(question.course_id),
+            _resolve_actor_id(created_by, teacher_id),
+        )
+        next_status = _normalize_question_status(status)
+        current_status = question.status
+        if next_status == current_status:
+            return self._question_summary(question)
+        if next_status not in _ALLOWED_STATUS_TRANSITIONS.get(current_status, set()):
+            raise QuestionValidationError(
+                f"题目状态不能从“{current_status.value}”变更为“{next_status.value}”。"
+            )
+        if next_status is QuestionStatus.NEEDS_REVISION:
+            actor = _resolve_actor_id(created_by, teacher_id)
+            teacher = self.session.get(User, actor) if actor is not None else None
+            if teacher is None or not teacher.is_active or not any(role.name == UserRole.TEACHER for role in teacher.roles):
+                raise QuestionPermissionError("退回修订必须由真实启用的课程教师执行。")
+            if not isinstance(revision_comment, str) or not revision_comment.strip() or len(revision_comment.strip()) > 2000:
+                raise QuestionValidationError("退回修订必须提供不超过 2000 字的真实教师说明。")
+            if current_status is QuestionStatus.APPROVED and any(
+                exam.status in {ExamStatus.PUBLISHED, ExamStatus.CLOSED, ExamStatus.ARCHIVED}
+                or self.session.scalar(select(Submission.id).where(Submission.exam_id == exam.id).limit(1)) is not None
+                for exam in question.exams
+            ):
+                raise QuestionPublishedImmutableError(current_status)
+            self.session.add(QuestionRevisionComment(question_id=question.id, comment=revision_comment.strip(), commented_by=actor, commented_at=datetime.now(UTC)))
+        if next_status is QuestionStatus.APPROVED:
+            from backend.app.services.content_validation_service import (
+                ContentValidationError,
+                ContentValidationService,
+            )
+    
+            actor = _resolve_actor_id(created_by, teacher_id)
+            if actor is None:
+                raise QuestionPermissionError(
+                    "A real current teacher must approve the question."
+                )
+            try:
+>               ContentValidationService(self.session).require_can_approve(
+                    question, actor
+                )
+
+backend\app\services\question_service.py:621: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <backend.app.services.content_validation_service.ContentValidationService object at 0x000001C7C9A79A90>
+question = <backend.app.models.question.Question object at 0x000001C7C9828290>
+actor_id = UUID('5bd2facf-82d8-4d8e-a073-3a3746370fd4')
+
+    def require_can_approve(
+        self, question: Question, actor_id: UUID
+    ) -> ValidationReportView:
+        """Shared approval gate; caller keeps the current Question lock and owns commit."""
+        locked = cast(Question, self._owner("question", question.id, actor_id))
+        report = self.session.scalars(
+            select(QuestionValidationResult)
+            .where(QuestionValidationResult.question_id == locked.id)
+            .order_by(QuestionValidationResult.run_no.desc())
+            .limit(1)
+            .with_for_update()
+            .execution_options(populate_existing=True)
+        ).first()
+        if report is None:
+>           raise ContentValidationError(
+                "CONTENT_VALIDATION_REQUIRED",
+                "A current semantic validation report is required before approval.",
+            )
+E           backend.app.services.content_validation_service.ContentValidationError: A current semantic validation report is required before approval.
+
+backend\app\services\content_validation_service.py:1123: ContentValidationError
+
+The above exception was the direct cause of the following exception:
+
+    def test_seed_preserves_teacher_revision_and_does_not_create_exam():
+        settings = build_test_settings(DEV_MODE=True)
+        with isolated_postgres_engine() as engine, Session(engine) as session:
+>           pending = seed_demo(session, settings=settings, embedding_provider=DemoEmbedding())
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\integration\test_demo_seed.py:184: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+scripts\demo_seed.py:145: in seed_demo
+    question = questions.update_question_status(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <backend.app.services.question_service.QuestionService object at 0x000001C7C9A78E10>
+question_id = 'd7d13d22-d605-435d-8fb3-b05be8c2c63e'
+status = <QuestionStatus.APPROVED: 'Approved'>
+teacher_id = UUID('5bd2facf-82d8-4d8e-a073-3a3746370fd4'), created_by = None
+revision_comment = None
+
+    def update_question_status(
+        self,
+        question_id: UUID | str,
+        status: QuestionStatus | str,
+        teacher_id: UUID | str | None = None,
+        *,
+        created_by: UUID | str | None = None,
+        revision_comment: str | None = None,
+    ) -> QuestionSummary:
+        """按审核状态机持久化题目状态。"""
+    
+        question = self._load_question(question_id)
+        self._ensure_course_access(
+            self._load_course(question.course_id),
+            _resolve_actor_id(created_by, teacher_id),
+        )
+        next_status = _normalize_question_status(status)
+        current_status = question.status
+        if next_status == current_status:
+            return self._question_summary(question)
+        if next_status not in _ALLOWED_STATUS_TRANSITIONS.get(current_status, set()):
+            raise QuestionValidationError(
+                f"题目状态不能从“{current_status.value}”变更为“{next_status.value}”。"
+            )
+        if next_status is QuestionStatus.NEEDS_REVISION:
+            actor = _resolve_actor_id(created_by, teacher_id)
+            teacher = self.session.get(User, actor) if actor is not None else None
+            if teacher is None or not teacher.is_active or not any(role.name == UserRole.TEACHER for role in teacher.roles):
+                raise QuestionPermissionError("退回修订必须由真实启用的课程教师执行。")
+            if not isinstance(revision_comment, str) or not revision_comment.strip() or len(revision_comment.strip()) > 2000:
+                raise QuestionValidationError("退回修订必须提供不超过 2000 字的真实教师说明。")
+            if current_status is QuestionStatus.APPROVED and any(
+                exam.status in {ExamStatus.PUBLISHED, ExamStatus.CLOSED, ExamStatus.ARCHIVED}
+                or self.session.scalar(select(Submission.id).where(Submission.exam_id == exam.id).limit(1)) is not None
+                for exam in question.exams
+            ):
+                raise QuestionPublishedImmutableError(current_status)
+            self.session.add(QuestionRevisionComment(question_id=question.id, comment=revision_comment.strip(), commented_by=actor, commented_at=datetime.now(UTC)))
+        if next_status is QuestionStatus.APPROVED:
+            from backend.app.services.content_validation_service import (
+                ContentValidationError,
+                ContentValidationService,
+            )
+    
+            actor = _resolve_actor_id(created_by, teacher_id)
+            if actor is None:
+                raise QuestionPermissionError(
+                    "A real current teacher must approve the question."
+                )
+            try:
+                ContentValidationService(self.session).require_can_approve(
+                    question, actor
+                )
+            except ContentValidationError as error:
+>               raise QuestionValidationError(str(error)) from error
+E               backend.app.services.question_service.QuestionValidationError: A current semantic validation report is required before approval.
+
+backend\app\services\question_service.py:625: QuestionValidationError
+_______________ test_seed_does_not_reopen_existing_closed_exam ________________
+
+self = <backend.app.services.question_service.QuestionService object at 0x000001C7C515DF30>
+question_id = '3cad1d2c-c062-4d88-85a5-5a4b7f7c22da'
+status = <QuestionStatus.APPROVED: 'Approved'>
+teacher_id = UUID('e10e1074-d8a4-4833-ad8d-4db2be7e1f7c'), created_by = None
+revision_comment = None
+
+    def update_question_status(
+        self,
+        question_id: UUID | str,
+        status: QuestionStatus | str,
+        teacher_id: UUID | str | None = None,
+        *,
+        created_by: UUID | str | None = None,
+        revision_comment: str | None = None,
+    ) -> QuestionSummary:
+        """按审核状态机持久化题目状态。"""
+    
+        question = self._load_question(question_id)
+        self._ensure_course_access(
+            self._load_course(question.course_id),
+            _resolve_actor_id(created_by, teacher_id),
+        )
+        next_status = _normalize_question_status(status)
+        current_status = question.status
+        if next_status == current_status:
+            return self._question_summary(question)
+        if next_status not in _ALLOWED_STATUS_TRANSITIONS.get(current_status, set()):
+            raise QuestionValidationError(
+                f"题目状态不能从“{current_status.value}”变更为“{next_status.value}”。"
+            )
+        if next_status is QuestionStatus.NEEDS_REVISION:
+            actor = _resolve_actor_id(created_by, teacher_id)
+            teacher = self.session.get(User, actor) if actor is not None else None
+            if teacher is None or not teacher.is_active or not any(role.name == UserRole.TEACHER for role in teacher.roles):
+                raise QuestionPermissionError("退回修订必须由真实启用的课程教师执行。")
+            if not isinstance(revision_comment, str) or not revision_comment.strip() or len(revision_comment.strip()) > 2000:
+                raise QuestionValidationError("退回修订必须提供不超过 2000 字的真实教师说明。")
+            if current_status is QuestionStatus.APPROVED and any(
+                exam.status in {ExamStatus.PUBLISHED, ExamStatus.CLOSED, ExamStatus.ARCHIVED}
+                or self.session.scalar(select(Submission.id).where(Submission.exam_id == exam.id).limit(1)) is not None
+                for exam in question.exams
+            ):
+                raise QuestionPublishedImmutableError(current_status)
+            self.session.add(QuestionRevisionComment(question_id=question.id, comment=revision_comment.strip(), commented_by=actor, commented_at=datetime.now(UTC)))
+        if next_status is QuestionStatus.APPROVED:
+            from backend.app.services.content_validation_service import (
+                ContentValidationError,
+                ContentValidationService,
+            )
+    
+            actor = _resolve_actor_id(created_by, teacher_id)
+            if actor is None:
+                raise QuestionPermissionError(
+                    "A real current teacher must approve the question."
+                )
+            try:
+>               ContentValidationService(self.session).require_can_approve(
+                    question, actor
+                )
+
+backend\app\services\question_service.py:621: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <backend.app.services.content_validation_service.ContentValidationService object at 0x000001C7C9A0B100>
+question = <backend.app.models.question.Question object at 0x000001C7C9B29250>
+actor_id = UUID('e10e1074-d8a4-4833-ad8d-4db2be7e1f7c')
+
+    def require_can_approve(
+        self, question: Question, actor_id: UUID
+    ) -> ValidationReportView:
+        """Shared approval gate; caller keeps the current Question lock and owns commit."""
+        locked = cast(Question, self._owner("question", question.id, actor_id))
+        report = self.session.scalars(
+            select(QuestionValidationResult)
+            .where(QuestionValidationResult.question_id == locked.id)
+            .order_by(QuestionValidationResult.run_no.desc())
+            .limit(1)
+            .with_for_update()
+            .execution_options(populate_existing=True)
+        ).first()
+        if report is None:
+>           raise ContentValidationError(
+                "CONTENT_VALIDATION_REQUIRED",
+                "A current semantic validation report is required before approval.",
+            )
+E           backend.app.services.content_validation_service.ContentValidationError: A current semantic validation report is required before approval.
+
+backend\app\services\content_validation_service.py:1123: ContentValidationError
+
+The above exception was the direct cause of the following exception:
+
+    def test_seed_does_not_reopen_existing_closed_exam():
+        settings = build_test_settings(DEV_MODE=True)
+        with isolated_postgres_engine() as engine, Session(engine) as session:
+>           pending = seed_demo(session, settings=settings, embedding_provider=DemoEmbedding())
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\integration\test_demo_seed.py:208: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+scripts\demo_seed.py:145: in seed_demo
+    question = questions.update_question_status(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <backend.app.services.question_service.QuestionService object at 0x000001C7C515DF30>
+question_id = '3cad1d2c-c062-4d88-85a5-5a4b7f7c22da'
+status = <QuestionStatus.APPROVED: 'Approved'>
+teacher_id = UUID('e10e1074-d8a4-4833-ad8d-4db2be7e1f7c'), created_by = None
+revision_comment = None
+
+    def update_question_status(
+        self,
+        question_id: UUID | str,
+        status: QuestionStatus | str,
+        teacher_id: UUID | str | None = None,
+        *,
+        created_by: UUID | str | None = None,
+        revision_comment: str | None = None,
+    ) -> QuestionSummary:
+        """按审核状态机持久化题目状态。"""
+    
+        question = self._load_question(question_id)
+        self._ensure_course_access(
+            self._load_course(question.course_id),
+            _resolve_actor_id(created_by, teacher_id),
+        )
+        next_status = _normalize_question_status(status)
+        current_status = question.status
+        if next_status == current_status:
+            return self._question_summary(question)
+        if next_status not in _ALLOWED_STATUS_TRANSITIONS.get(current_status, set()):
+            raise QuestionValidationError(
+                f"题目状态不能从“{current_status.value}”变更为“{next_status.value}”。"
+            )
+        if next_status is QuestionStatus.NEEDS_REVISION:
+            actor = _resolve_actor_id(created_by, teacher_id)
+            teacher = self.session.get(User, actor) if actor is not None else None
+            if teacher is None or not teacher.is_active or not any(role.name == UserRole.TEACHER for role in teacher.roles):
+                raise QuestionPermissionError("退回修订必须由真实启用的课程教师执行。")
+            if not isinstance(revision_comment, str) or not revision_comment.strip() or len(revision_comment.strip()) > 2000:
+                raise QuestionValidationError("退回修订必须提供不超过 2000 字的真实教师说明。")
+            if current_status is QuestionStatus.APPROVED and any(
+                exam.status in {ExamStatus.PUBLISHED, ExamStatus.CLOSED, ExamStatus.ARCHIVED}
+                or self.session.scalar(select(Submission.id).where(Submission.exam_id == exam.id).limit(1)) is not None
+                for exam in question.exams
+            ):
+                raise QuestionPublishedImmutableError(current_status)
+            self.session.add(QuestionRevisionComment(question_id=question.id, comment=revision_comment.strip(), commented_by=actor, commented_at=datetime.now(UTC)))
+        if next_status is QuestionStatus.APPROVED:
+            from backend.app.services.content_validation_service import (
+                ContentValidationError,
+                ContentValidationService,
+            )
+    
+            actor = _resolve_actor_id(created_by, teacher_id)
+            if actor is None:
+                raise QuestionPermissionError(
+                    "A real current teacher must approve the question."
+                )
+            try:
+                ContentValidationService(self.session).require_can_approve(
+                    question, actor
+                )
+            except ContentValidationError as error:
+>               raise QuestionValidationError(str(error)) from error
+E               backend.app.services.question_service.QuestionValidationError: A current semantic validation report is required before approval.
+
+backend\app\services\question_service.py:625: QuestionValidationError
+____ test_run_demo_waits_then_migrates_then_seeds_before_reporting_success ____
+
+run_demo = <function run_demo.<locals>.execute at 0x000001C7C9B4BA60>
+
+    def test_run_demo_waits_then_migrates_then_seeds_before_reporting_success(run_demo):
+        result, calls = run_demo()
+        assert result.returncode == 0, result.stdout + result.stderr
+        assert len(calls) == 4
+        assert calls[0][-3:] == ["config", "--format", "json"]
+        assert calls[1][-6:] == ["up", "-d", "--build", "--wait", "--wait-timeout", "30"]
+        assert calls[2][-6:] == ["exec", "-T", "backend", "alembic", "upgrade", "head"]
+        assert calls[3][-6:] == ["exec", "-T", "backend", "python", "-m", "scripts.demo_seed"]
+        assert "http://127.0.0.1:18000/gradio" in result.stdout
+        assert "dev_teacher / dev_student / dev_admin" in result.stdout
+>       assert "Demo UI running" in result.stdout and "Demo ready" not in result.stdout
+E       AssertionError: assert ('Demo UI running' in 'Demo ready: http://127.0.0.1:18000/gradio\nAccounts: dev_teacher / dev_student / dev_admin (use DEV_MODE quick-login buttons; no password).\nLocal demonstration only. Disable DEV_MODE and remove demo accounts before production.\n')
+E        +  where 'Demo ready: http://127.0.0.1:18000/gradio\nAccounts: dev_teacher / dev_student / dev_admin (use DEV_MODE quick-login buttons; no password).\nLocal demonstration only. Disable DEV_MODE and remove demo accounts before production.\n' = CompletedProcess(args=['C:\\Users\\10169\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powersh...s; no password).\nLocal demonstration only. Disable DEV_MODE and remove demo accounts before production.\n', stderr='').stdout
+
+tests\contract\test_run_demo.py:92: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/integration/test_demo_seed.py::test_seed_twice_reuses_records_and_writes_through_real_services
+FAILED tests/integration/test_demo_seed.py::test_seed_failed_ingestion_is_visible_and_retry_reuses_document
+FAILED tests/integration/test_demo_seed.py::test_seed_preserves_teacher_revision_and_does_not_create_exam
+FAILED tests/integration/test_demo_seed.py::test_seed_does_not_reopen_existing_closed_exam
+FAILED tests/contract/test_run_demo.py::test_run_demo_waits_then_migrates_then_seeds_before_reporting_success
+5 failed, 8 passed in 16.97s

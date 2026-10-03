@@ -590,7 +590,7 @@ M0 工程骨架 + Benchmark
 
 - [X] T166 [HIGH] [E3] **接入语义核验及服务端批准约束**：扩展 `services/question_validator.py`、`content_validation_service.py`、`question_service.py` 与 Agent 编排，对生成、改编、人工/导入补全候选核对答案、条件、选项歧义与 Rubric；Agent 只返结构化报告，服务计算 can_review，报告与合法 Needs Revision 转换原子保存。批准时记录真实 frozen_at，合法退回清除当前批准时间，历史未知不伪填。修改答案相关字段/图片/依据使旧核验失效，技术失败保留原错且阻止批准；现有候选 DTO、原阅卷拓扑和历史成绩读取保持。 依赖：T163、T164、T165。per FR-025/028/047、agent-workflow、SC-011（F033） (partial)
 
-- [ ] T167 [HIGH] [E3] **扩展候选审核与题库补全 UI**：在 `ui/question_generation_view.py`、`question_view.py`、相关 API/加载器展示范围、教学片段/位置、父题/原卷、解析、图像核对与分项核验，允许补全和显式修订/再提交/批准；只消费服务端真实状态和有效报告。复用当前工作区已有列表/详情/编辑与设计系统改动，实施时核实其合并状态，不覆盖用户成果。 依赖：T159、T165、T166。per FR-018/028/043/046/047、SC-011（F034） (partial)
+- [X] T167 [HIGH] [E3] **扩展候选审核与题库补全 UI**：在 `ui/question_generation_view.py`、`question_view.py`、相关 API/加载器展示范围、教学片段/位置、父题/原卷、解析、图像核对与分项核验，允许补全和显式修订/再提交/批准；只消费服务端真实状态和有效报告。复用当前工作区已有列表/详情/编辑与设计系统改动，实施时核实其合并状态，不覆盖用户成果。 依赖：T159、T165、T166。per FR-018/028/043/046/047、SC-011（F034） (partial)
 
 - [X] T168 [MEDIUM] [E3] **运行质量基线并确认验收阈值**：在 `benchmark/`、`scripts/` 与 `docs/evaluation.md` 按 T142/T146 执行真实 OCR/拆题、图片条件、语义核验标注评测；记录自动/人工结果、TP/FP/TN/FN、覆盖率和失败样本、实际模型/Prompt/数据版本。依据真实基线提出质量阈值供用户确认后补齐评测协议；无可评数据不填伪造百分比，未达目标如实报告并只列当前所需修复。 依赖：T142、T146、T160、T162、T164、T166。per G09、SC-010/011、plan 可评测目标、Constitution V（F035） (missing)
 

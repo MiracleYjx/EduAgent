@@ -600,3 +600,18 @@ T159 修夹具后的主壳先行：2 failed，分别在 generatorfunction 与动
 - 新增4个benchmark入口Ruff/mypy聚焦检查；离线重算15历史导入实测、1248原比较差异0、33实际辅助裁图分阶段，根汇总验证固定slot/原图匹配及原分子分母。修复汇总中的不存在fields.json引用为真实fields.csv，无新云请求。
 - 可评语义71/81、图片32/33、低清正确移交3/3；自动题干6/48及多项语义误报/覆盖未达确认目标。未知/NA/输入阻断/拒答不算TN，不去除真实synthetic来源说明以制造通过。
 - 用户已确认数值目标并保留未达标结论；T168完成测量及登记，整体质量not_met。4入口静态/离线验证不等同业务/全量pytest，既有测试与业务代码未改；AI+开发者学习口径与独立教师0保留。
+
+
+## 23. T167 演示兼容收尾 TCR（实施前，2026-10-03）
+
+- 授权与选择：用户授权先收尾T167再执行T169；沿此前推荐方案，演示人工题保留待审核，教师在界面补全、选真实教材Chunk、执行当前核验并批准后再重跑发布，不新增脚本自动模型调用或绕过批准门禁。
+- 必要性：原scripts/demo_seed.py直接批准缺当前报告的示例题，正确被服务拒绝；scripts/run_demo.ps1固定Demo ready提示会误报新的待审核状态。需在生产者和直接消费者同步如实展示状态。
+- 范围：仅demo_seed.py、run_demo.ps1及tests/integration/test_demo_seed.py、tests/contract/test_run_demo.py必要行为调整；文档另存演示流程，不改用户README及原示例题内容、不覆盖已有题状态/考试/答卷/成绩。
+- 覆盖：先创建全部题、只将Draft送审；awaiting_teacher_review显示实际题状态/待审ID及已有考试状态，不创建/发布考试；全部真正Approved后继续原幂等考试发布。测试先见待审幂等、真实已摄取Chunk和ContentValidationService/受控Provider核验再经QuestionService教师批准、重跑ready，保留原身份/密码/向量/学生可参加/失败重试及服务调用断言；选择题缺Rubric由测试教师显式补全，不伪造passed报告。人工退修、闭卷或已修改考试继续保留真实生命周期。PowerShell合同保留命令顺序、凭据保护、失败中止，仅修提示语义。
+- 验证：聚焦demo集成/PowerShell合同先RED后GREEN、Ruff/mypy；本批末次全量pytest复验当前源码和既有68项夹具修正，记录真实skip/失败，不将旧局部重验冒充全量通过。
+
+#### T167 本批执行结果
+
+- 原业务红测5 failed/8 passed，修正两个直接入口后13 passed；真实教材摄取→当前报告→教师批准→发布，原幂等/密码/学生参加/摄取重试/闭卷保护保留。
+- 当前工作区完整2144 passed/1原有用户样本冲突/2 skipped；不改该样本和断言。隔离提交快照完整2145 passed/2原条件skipped，638.11s，源码期间无变动；原冲突用例快照1 passed。
+- 全backend mypy199及Ruff通过，隔离迁移0021/check一致，用户文件原字节、业务库0012保持，owned资源清理。日志、精确tree及JUnit见docs/evidence/t167-demo-close-20261003/。

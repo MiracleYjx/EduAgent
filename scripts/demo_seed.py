@@ -131,6 +131,8 @@ def seed_demo(
     questions = QuestionService(session)
     existing = questions.list_questions(course.id, teacher_id=teacher_id)
     question_ids: list[str] = []
+    question_states: list[dict[str, str]] = []
+    awaiting_question_ids: list[str] = []
     for spec in QUESTION_SPECS:
         question = _unique([
             item for item in existing if item.content == spec["content"]
@@ -141,19 +143,34 @@ def seed_demo(
             question = questions.update_question_status(
                 question.id, QuestionStatus.PENDING_REVIEW, teacher_id=teacher_id,
             )
-        if question.status is QuestionStatus.PENDING_REVIEW:
-            question = questions.update_question_status(
-                question.id, QuestionStatus.APPROVED, teacher_id=teacher_id,
-            )
-        if question.status is not QuestionStatus.APPROVED:
-            raise DemoSeedError("DEMO_QUESTION_CHANGED：演示题目需人工处理，未覆盖其审核状态。")
         question_ids.append(question.id)
+        question_states.append({"id": question.id, "status": question.status.value})
+        if question.status is not QuestionStatus.APPROVED:
+            awaiting_question_ids.append(question.id)
 
     exams = ExamService(session)
     exam = _unique([
         item for item in exams.list_exams(course.id, teacher_id=teacher_id)
         if item.title == EXAM_TITLE
     ], "演示考试")
+    common_result = {
+        "course_id": course.id, "knowledge_base_id": knowledge_base.id,
+        "document_id": document.id, "question_ids": question_ids,
+        "question_states": question_states, "awaiting_question_ids": awaiting_question_ids,
+        "accounts": {role.value: account.username for role, account in accounts.items()},
+        "login": "使用 /gradio 登录页的开发模式快速登录按钮；不提供密码。",
+    }
+    if awaiting_question_ids:
+        return {
+            **common_result,
+            "status": "awaiting_teacher_review",
+            "exam_id": exam.id if exam is not None else None,
+            "exam_status": exam.status.value if exam is not None else None,
+            "next_step": (
+                "教师在题库补全缺失评分标准，选择本课程真实教学片段，"
+                "执行当前语义核验并逐题审核通过后，重跑本命令准备演示考试。"
+            ),
+        }
     if exam is None:
         exam = exams.create_exam(
             course.id, EXAM_TITLE, description="客观题 + 主观题；无截止日期，供开发账号体验。",
@@ -166,10 +183,8 @@ def seed_demo(
     if exam.status is not ExamStatus.PUBLISHED:
         raise DemoSeedError("DEMO_EXAM_NOT_OPEN：演示考试已关闭或归档，未重置生命周期。")
     return {
-        "status": "ready", "course_id": course.id, "knowledge_base_id": knowledge_base.id,
-        "document_id": document.id, "question_ids": question_ids, "exam_id": exam.id,
-        "accounts": {role.value: account.username for role, account in accounts.items()},
-        "login": "使用 /gradio 登录页的开发模式快速登录按钮；不提供密码。",
+        **common_result,
+        "status": "ready", "exam_id": exam.id, "exam_status": exam.status.value,
     }
 
 
