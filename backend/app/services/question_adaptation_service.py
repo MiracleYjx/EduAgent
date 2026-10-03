@@ -15,6 +15,7 @@ from backend.app.schemas.paper_import import PixelRegion
 from backend.app.schemas.question_assets import AssetLinkRequest
 from backend.app.services.file_storage_service import StoredFile
 from backend.app.services.question_asset_service import QuestionAssetService
+from backend.app.services.question_scoring_invalidation import bump_question_validation
 
 AdaptationType = Literal["rewrite", "translate", "extend"]
 
@@ -207,6 +208,7 @@ class QuestionAdaptationService:
                 adaptation_type=snapshot.adaptation_type,
             )
         )
+        bump_question_validation(self.session, question)
         assets = QuestionAssetService(self.session)
         for source in snapshot.context["assets"]:
             payload = AssetLinkRequest(

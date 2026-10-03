@@ -667,3 +667,21 @@ T172结果：新PG/HTTP 41 passed，共享回归94 passed；准入锁序、同�
 - 直接消费者补充：原reader测试创建时间排序口径随明确本场题序合同更新为与创建时间/UUID相反的显式关联序；保留答案身份及缺失拒绝断言。新增事务flush后失败恢复、Draft有答卷保护及持久条件缺口发布拒绝，不提前扩展T175完整冻结。
 
 T173结果：PG24+reader1、HTTP22、直接回归91均通过（存在重叠）；原测试路径错误和RED记录保留，5source mypy/Ruff通过。证据docs/evidence/t173-20261004/。
+
+## 29. T174 Rubric准备与教师确认 TCR（实施前，2026-10-04）
+
+- 覆盖：结构化数值或教师明确依据、可加总基准核对、28位Decimal先乘后除末次ROUND_HALF_UP；0.005、正负尾差、未知/定性/非加总；不自动分摊，不覆盖独立默认值；确认key/金额/合计/权限、真实教师UTC原因；同题不同场独立，改分/替换/源标准修订失效，缺依据/未确认发布拒绝。
+- UI仅补本场标准所需实际字段/表格/解释/准备确认命令，真实服务回读；追加必要UI/合同/PG验证与实际浏览器证据。完整E4发布并发保护/阅卷统计切换/性能验收仍由T175以后任务承接，不提前勾选。
+
+
+- T174 实施细化：本场 JSON scoring_basis 增加可空 preparation_id，新准备轮次由服务生成；旧历史未知保留 null。确认匹配真实轮次、当前修订/分值/完整已读 basis；同输入重试幂等，A→B→A 不复用旧确认。复用现有 Question.validation_revision 失效点并清除未保护草稿关联依据，不建新表。
+- 兼容测试必要性：两个旧 ExamService 发布用例、两个 demo 发布用例需显式使用真实合成教师进行本场准备/确认；原发布/幂等/参加资格/关闭不重开断言保留。demo 先返回 awaiting_exam_scoring，不伪造教师操作；PowerShell提示新增相同状态断言。新增API/PG/UI测试与实际浏览器证据验证对应动作，金额输入为字符串。
+
+- 全量回归发现新增发布门禁的旧合成夹具缺口：tests/contract/test_grading_api_contract.py::mixed_scenario 直接插入 Approved 题且客观题缺 Rubric，再调用真实发布入口。仅补该生产者的明确合成标准、当前语义核验/批准及本场准备确认，保留原持久评分、失败错误和不留部分结果断言。后续同类失败须逐一定位后登记，不放宽业务校验。
+- 真实浏览器通过基准3.00→本场10.00、三个1.00要点独立3.33/+0.01、明确确认3.34/3.33/3.33、实际教师UTC和发布；空白格使用Gradio父单元格+Enter/Tab路径可完整手工输入。
+
+- tests/integration/test_teacher_setup.py 旧完整教师流程在当前题目批准后直接发布，缺T174新增的本场标准步骤。仅在原发布之前通过真实HTTP GET/prepare/confirm补定性标准核对；旧课程/文档/题目批准/最终持久状态断言全部保留。
+
+- 全量还复现两个同源资产事务失败：新增失效 UPDATE 触发 autoflush，资产服务尚未把文件收据返回调用者就提前INSERT失败，导致外层没有失败收据。实现局部修为失效UPDATE使用 no_autoflush，保留原显式flush/commit与收据归属；不改原测试/断言。RED/修复后聚焦及最终全量均保存。
+
+- 最终提交源码快照 tree `7551c2a35dfb7493b0bfb2d2b212bf8be6816c5d` 全量 **2362 passed / 2 skipped / 107 warnings**（861.74s）；两skip为原M0隔离配置和Windows软链接条件。首轮2357 passed/3 failed/2 errors/2 skipped与修复后结果并存。Ruff22变更Python文件、全backend mypy207及隔离Alembic check通过；实际浏览器确认+发布与数据库回读通过，独立教师标注口径未变。完整证据见 `docs/evidence/t174-20261004/`。

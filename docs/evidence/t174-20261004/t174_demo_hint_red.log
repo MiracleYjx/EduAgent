@@ -1,0 +1,26 @@
+F                                                                        [100%]
+================================== FAILURES ===================================
+____ test_run_demo_waits_then_migrates_then_seeds_before_reporting_success ____
+
+run_demo = <function run_demo.<locals>.execute at 0x000002ADFE93DE40>
+
+    def test_run_demo_waits_then_migrates_then_seeds_before_reporting_success(run_demo):
+        result, calls = run_demo()
+        assert result.returncode == 0, result.stdout + result.stderr
+        assert len(calls) == 4
+        assert calls[0][-3:] == ["config", "--format", "json"]
+        assert calls[1][-6:] == ["up", "-d", "--build", "--wait", "--wait-timeout", "30"]
+        assert calls[2][-6:] == ["exec", "-T", "backend", "alembic", "upgrade", "head"]
+        assert calls[3][-6:] == ["exec", "-T", "backend", "python", "-m", "scripts.demo_seed"]
+        assert "http://127.0.0.1:18000/gradio" in result.stdout
+        assert "dev_teacher / dev_student / dev_admin" in result.stdout
+        assert "Demo UI running" in result.stdout and "Demo ready" not in result.stdout
+        assert "awaiting_teacher_review" in result.stdout
+>       assert "awaiting_exam_scoring" in result.stdout
+E       AssertionError: assert 'awaiting_exam_scoring' in 'Demo UI running: http://127.0.0.1:18000/gradio\nAccounts: dev_teacher / dev_student / dev_admin (use DEV_MODE quick-l... the demo exam is published.\nLocal demonstration only. Disable DEV_MODE and remove demo accounts before production.\n'
+E        +  where 'Demo UI running: http://127.0.0.1:18000/gradio\nAccounts: dev_teacher / dev_student / dev_admin (use DEV_MODE quick-l... the demo exam is published.\nLocal demonstration only. Disable DEV_MODE and remove demo accounts before production.\n' = CompletedProcess(args=['C:\\Users\\10169\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powersh...am is published.\nLocal demonstration only. Disable DEV_MODE and remove demo accounts before production.\n', stderr='').stdout
+
+tests\contract\test_run_demo.py:94: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/contract/test_run_demo.py::test_run_demo_waits_then_migrates_then_seeds_before_reporting_success
+1 failed in 0.98s

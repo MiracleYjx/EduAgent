@@ -1,0 +1,38 @@
+FF                                                                       [100%]
+================================== FAILURES ===================================
+________ test_missing_basis_rejects_publication_without_writing_draft _________
+
+database = (Engine(postgresql+psycopg://eduagent@127.0.0.1:5432/eduagent_e4_batch_61a956c9f313), {'actor': UUID('f130591e-b196-4d...4c06-8e48-1f496179b6a7'), UUID('351be962-4b0d-4517-be69-772b2d1af6f4'), UUID('3c294495-6f3c-44f1-9c4e-4891e0c0221a')]})
+
+    def test_missing_basis_rejects_publication_without_writing_draft(database):
+        engine, info = database
+        with Session(engine) as session:
+            clear_preparation(session, info["exam"])
+            before = facts(session, info["exam"])
+>           with pytest.raises(AssemblyError) as error:
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           Failed: DID NOT RAISE AssemblyError
+
+tests\integration\test_exam_scoring_publication.py:35: Failed
+_________ test_repeat_published_never_fills_unknown_historical_basis __________
+
+database = (Engine(postgresql+psycopg://eduagent@127.0.0.1:5432/eduagent_e4_batch_61a956c9f313), {'actor': UUID('9e2f9e35-76e7-46...4051-b33b-015e5dd3cfee'), UUID('2158742e-cf02-4d8e-95a7-e34e1cd95981'), UUID('cc5df13f-c10f-4e37-a4f8-f8d5146682e1')]})
+
+    def test_repeat_published_never_fills_unknown_historical_basis(database):
+        engine, info = database
+        with Session(engine) as session:
+            clear_preparation(session, info["exam"])
+            exam = session.get(Exam, info["exam"])
+            exam.status = ExamStatus.PUBLISHED
+            session.get(Question, info["questions"][1]).knowledge_points = ["Changed after historical publication"]
+            session.commit()
+            before = facts(session, info["exam"])
+>           with pytest.raises(AssemblyError) as error:
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           Failed: DID NOT RAISE AssemblyError
+
+tests\integration\test_exam_scoring_publication.py:54: Failed
+=========================== short test summary info ===========================
+FAILED tests/integration/test_exam_scoring_publication.py::test_missing_basis_rejects_publication_without_writing_draft
+FAILED tests/integration/test_exam_scoring_publication.py::test_repeat_published_never_fills_unknown_historical_basis
+2 failed in 5.50s

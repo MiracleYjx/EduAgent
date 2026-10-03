@@ -929,3 +929,22 @@ scripts/demo_seed.py 先准备全部题目，仅将 Draft 送审；未全部 App
 - GET assembly-preview 为教师专用完整DTO，读取当前内容、保持键序的选项JSON、答案/解析、实际分值与授权原图；学生无法访问。组卷意图及教师UTC不变，缺口按实际关联重算；未满足要求的草稿不能发布。阅卷读取器改为唯一的 ExamQuestion.order_index，不再按题库创建时间重排。
 - 新PG24项+直接reader1项通过，HTTP22项通过，直接回归91项通过；有重叠用例，不将这些计数当独立质量样本。覆盖3处写入后故障全事实回滚、四种状态/答卷保护、旧qid、跨课程/失效语义/真实缺图及不同创建时间顺序。5个变动后端入口mypy/Ruff通过。首次错误测试路径、RED及最终日志保留docs/evidence/t173-20261004/。
 - T174接续本场评分准备确认；T175完整发布冻结、T176/T177评分输入贯通、T179性能验收尚未完成。原业务数据库/用户修改保持，未进行云质量调用。
+
+
+## T174 Rubric换算、本场准备与真实确认（2026-10-04）
+
+新增考试评分服务及GET/prepare/confirm接口，教师在考试“发布检查”内读取原Rubric、题库满分、有效本场分值和已核对基准，显式提交数值要点或定性/非加总依据。客观题按题型生成确定性满分要点；不从自然语言正则猜分，不改变原题。至少28位Decimal先乘后除、仅末次ROUND_HALF_UP，独立默认分与有符号尾差保留；有尾差/定性/非加总须实际教师确认，记录身份、UTC和原因，不自动分摊。
+
+服务分配preparation_id，校验当前题目修订、有效/基准满分及完整expected_basis；同输入准备/确认重试保留真实轮次和确认。迟到准备不能覆盖另一轮准备或同轮新确认；源题变化、改分/替换清除可编辑草稿依据，改回原值不能复用旧确认。历史非Draft或有答卷关联不因此改写。真实PG发现旧Session缓存跨Question行锁保留旧确认，预览/移位/确认现在锁后刷新关联；并发RED/GREEN均保存。
+
+发布在同事务检查实际组卷条件、当前题目资格与评分依据，再固定score、base_score、scoring_basis、published_knowledge_points；旧Published缺依据明确报错，不用题库默认回填。demo保留草稿并返回awaiting_exam_scoring，提示教师实际准备确认后再运行，不代做核对。完整全引用冻结及新评分输入消费仍由T175–T178承接。
+
+**实际浏览器验证通过**：合成Teacher账号由AI操作，3.00基准换算本场10.00，三个1.00要点独立3.33并显示+0.01；显式确认3.34/3.33/3.33和真实说明后发布。新会话读回固定四项及Teacher/UTC，Published且editable=false。步骤、实际数据和服务收据见[evidence/t174-20261004/browser-verification.md](evidence/t174-20261004/browser-verification.md)。截图在会话返回，CUA文件保存权限拒绝，本目录没有截图文件；不以合成操作冒充真实教师标注。
+
+**最终全量通过**：精确提交源码快照tree `7551c2a35dfb7493b0bfb2d2b212bf8be6816c5d`、1860文件，**2362 passed / 2 skipped / 107 warnings**，pytest861.74s、外层872.771s。M0缺显式独占Compose变量、Windows不允许测试软链接两项跳过不计通过。全backend Mypy207文件、Ruff22变更Python文件、隔离Alembic check均通过；运行源码与待提交backend/tests/scripts一致。保护的两README与阅卷样本仅在快照取HEAD内容，工作区及.env原字节未改，.env不进快照。
+
+首轮全量2357 passed/3 failed/2 errors/2 skipped真实保留：两个阅卷合同夹具缺当前语义批准/评分依据，旧教师流程缺准备确认，已补真实合成流程且保留原断言；两项资产失败收据由失效UPDATE提前autoflush触发，局部no_autoflush修复且原测试未动。第一次快照误关闭autocrlf造成仅行尾差异，未改真实index；原结果作定位证据，最终重新使用正常Git过滤快照。历史失败、聚焦修复、源码清单和最终全量见[evidence/t174-20261004/README.md](evidence/t174-20261004/README.md)。
+
+本批无云调用，T146 AI辅助+开发者审查/独立教师0及T168整体质量not_met均保持；未宣称完整E4、性能、Docker M0或EXE通过。T170–T174范围完成，下一批可连续T175→T176→T177→T178，之后T179统一验收。
+
+2026-10-03T18:56:31Z已在零测试进程/零数据库连接后清理本批独占DB与Redis；临时UI进程和浏览器页也已关闭。原业务库仍0012_audit_logs，数据计数及两README、阅卷样本、.env原字节不变；未删除缓存和测试文件。最终清理与1860文件SHA收据一并保存。

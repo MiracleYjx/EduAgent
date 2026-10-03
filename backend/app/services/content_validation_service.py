@@ -80,6 +80,7 @@ from backend.app.services.file_storage_service import (
     FileStorageService,
 )
 from backend.app.services.question_asset_service import actual_image
+from backend.app.services.question_scoring_invalidation import bump_question_validation
 
 OwnerKind = Literal["question", "extracted_question"]
 Owner = Question | ExtractedQuestion
@@ -252,10 +253,9 @@ class ContentValidationService:
     def _save_assessment(owner: Owner, assessment: ImageAssessment) -> None:
         owner.image_assessment = assessment.model_dump(mode="json")
 
-    @staticmethod
-    def _bump_validation(owner: Owner) -> None:
+    def _bump_validation(self, owner: Owner) -> None:
         if isinstance(owner, Question):
-            owner.validation_revision += 1
+            bump_question_validation(self.session, owner)
 
     def _image_refs(self, owner: Owner) -> ImageInputRefs:
         fields = list(
@@ -1392,7 +1392,7 @@ class ContentValidationService:
             if latest is not None and self._teaching_basis(
                 ValidationInputRefs.model_validate(latest.input_refs)
             ) != self._teaching_basis(refs):
-                question.validation_revision += 1
+                bump_question_validation(self.session, question)
                 # Production sessions disable autoflush; startup reload must see this same transaction's revision.
                 self.session.flush()
             fields = SemanticQuestionFields.model_validate(

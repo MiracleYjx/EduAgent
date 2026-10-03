@@ -89,6 +89,8 @@ class HistoricalQuestionFacts(HistoryModel):
 
     @model_validator(mode="after")
     def validate_evidence_and_identity(self) -> Self:
+        if self.scoring_basis.preparation_id is not None:
+            raise ValueError("历史清单不能伪填当前准备轮次 preparation_id。")
         if self.scoring_basis.confirmation is not None:
             raise ValueError(
                 "清单不能指定教师或确认时间；服务记录当前真实核对身份和时间。"

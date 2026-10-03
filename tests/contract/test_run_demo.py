@@ -91,6 +91,7 @@ def test_run_demo_waits_then_migrates_then_seeds_before_reporting_success(run_de
     assert "dev_teacher / dev_student / dev_admin" in result.stdout
     assert "Demo UI running" in result.stdout and "Demo ready" not in result.stdout
     assert "awaiting_teacher_review" in result.stdout
+    assert "awaiting_exam_scoring" in result.stdout
 
 
 @pytest.mark.parametrize("missing", ["DEV_MODE", "EMBEDDING_API_KEY", "JWT_SECRET_KEY"])

@@ -30,7 +30,6 @@ from backend.app.services.content_validation_service import (
     ContentValidationError,
     ContentValidationService,
 )
-from backend.app.services.exam_scoring_rules import validate_scoring_basis
 from backend.app.services.file_storage_service import (
     FileStorageError,
     FileStorageService,
@@ -680,40 +679,16 @@ class ExamAssemblyService:
                 if link.scoring_basis is not None
                 else None
             )
-            if (
-                link.score is None
-                or link.base_score is None
-                or link.published_knowledge_points is None
-                or basis is None
-            ):
+            from backend.app.services.exam_scoring_service import require_scoring_ready
+
+            try:
+                require_scoring_ready(exam, link)
+            except AssemblyError as exc:
                 checks.append(
                     PublicationCheck(
-                        code="EXAM_SCORING_BASIS_MISSING",
-                        message="本场分值、原始满分、知识点及评分依据尚未完整固定。",
-                        question_id=question.id,
+                        code=exc.code, message=str(exc), question_id=question.id
                     )
                 )
-            else:
-                try:
-                    validate_scoring_basis(
-                        score=link.score,
-                        base_score=link.base_score,
-                        question_type=question.type,
-                        basis=basis,
-                    )
-                    if exam.status == ExamStatus.DRAFT and (
-                        link.base_score != question.score
-                        or link.published_knowledge_points != question.knowledge_points
-                    ):
-                        raise ValueError("草稿评分依据与当前题目不一致。")
-                except ValueError as exc:
-                    checks.append(
-                        PublicationCheck(
-                            code="EXAM_SCORING_BASIS_INVALID",
-                            message=str(exc),
-                            question_id=question.id,
-                        )
-                    )
             effective = (
                 link.score
                 if link.score is not None
@@ -772,6 +747,13 @@ class ExamAssemblyService:
                     .with_for_update()
                     .execution_options(populate_existing=True)
                 ).all()
+            self.session.scalars(
+                select(ExamQuestion)
+                .where(ExamQuestion.exam_id == exam.id)
+                .order_by(ExamQuestion.id)
+                .with_for_update()
+                .execution_options(populate_existing=True)
+            ).all()
             return self._preview(exam, actor_id)
         except FileStorageError as exc:
             failure = AssemblyError(

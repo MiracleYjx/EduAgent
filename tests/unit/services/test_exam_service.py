@@ -109,6 +109,83 @@ def add_question(
     return UUID(summary.id)
 
 
+
+def prepare_synthetic_exam_scoring(
+    session: Session, exam_id: UUID | str, teacher_id: UUID | str
+) -> None:
+    """Explicit synthetic teacher review through production commands, not truth labels."""
+    from backend.app.domain.enums import OBJECTIVE_QUESTION_TYPES
+    from backend.app.models import Exam, Question
+    from backend.app.schemas.exam_scoring import (
+        ScoringConfirmRequest,
+        ScoringPrepareRequest,
+    )
+    from backend.app.services.exam_scoring_service import ExamScoringService
+
+    exam = session.get(Exam, UUID(str(exam_id)))
+    assert exam is not None
+    identities = [link.question_id for link in exam.exam_question_links]
+    scoring = ExamScoringService(session)
+    for identity in identities:
+        current = scoring.get_scoring_basis(exam.id, identity, teacher_id=teacher_id)
+        question = session.get(Question, identity)
+        assert question is not None
+        objective = question.type in OBJECTIVE_QUESTION_TYPES
+        points = (
+            [
+                {
+                    "key": "correct_answer",
+                    "label": "Synthetic objective full-score criterion",
+                    "base_points": str(question.score),
+                }
+            ]
+            if objective
+            else []
+        )
+        prepared = scoring.prepare_scoring_basis(
+            exam.id,
+            identity,
+            ScoringPrepareRequest.model_validate(
+                {
+                    "expected_question_validation_revision": current.question_validation_revision,
+                    "expected_basis": (
+                        current.basis.model_dump(mode="json")
+                        if current.basis is not None
+                        else None
+                    ),
+                    "expected_effective_score": str(current.effective_score),
+                    "expected_base_score": (
+                        str(current.base_score)
+                        if current.base_score is not None
+                        else None
+                    ),
+                    "additive": objective,
+                    "points": points,
+                }
+            ),
+            teacher_id=teacher_id,
+        )
+        scoring.confirm_scoring_basis(
+            exam.id,
+            identity,
+            ScoringConfirmRequest.model_validate(
+                {
+                    "preparation_id": prepared.basis.preparation_id,
+                    "expected_basis": prepared.basis.model_dump(mode="json"),
+                    "expected_question_validation_revision": prepared.question_validation_revision,
+                    "expected_effective_score": str(prepared.effective_score),
+                    "expected_base_score": str(prepared.base_score),
+                    "confirmed_points": [
+                        {"key": point.key, "points": str(point.default_points)}
+                        for point in prepared.basis.points
+                    ],
+                    "reason": "Explicit synthetic teacher verification of fixture criteria; not independent teacher quality labels.",
+                }
+            ),
+            teacher_id=teacher_id,
+        )
+
+
 def test_exam_service_creates_associates_and_publishes_exam(
     session: Session,
 ) -> None:
@@ -150,6 +227,7 @@ def test_exam_service_creates_associates_and_publishes_exam(
     assert updated.question_count == 2
     assert updated.total_score == Decimal("15.00")
 
+    prepare_synthetic_exam_scoring(session, exam.id, teacher.id)
     published = service.publish_exam(exam.id, teacher_id=teacher.id)
     assert published.status is ExamStatus.PUBLISHED
     assert (
@@ -239,6 +317,7 @@ def test_exam_service_enforces_owner_and_freezes_published_exam(
     with pytest.raises(ExamPermissionError, match="无权访问"):
         service.publish_exam(exam.id, teacher_id=another_teacher.id)
 
+    prepare_synthetic_exam_scoring(session, exam.id, teacher.id)
     service.publish_exam(exam.id, teacher_id=teacher.id)
     with pytest.raises(ExamValidationError, match="已发布"):
         service.add_questions(exam.id, [question_id], teacher_id=teacher.id)

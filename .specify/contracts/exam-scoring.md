@@ -52,6 +52,7 @@ scoring_basis 的 Pydantic 结构引用数据模型，不保存完整题干、�
 | points | [{key, label, base_points, default_points, confirmed_points}]；key 唯一，金额为两位字符串，有限非负且不超对应满分 |
 | additive | bool，明确是否允许加总，不能猜测 |
 | rounding_delta | 可加总标准中 score - sum(default_points)，有符号两位字符串；非加总/定性为 null |
+| preparation_id | 当前准备轮次 UUID，由服务生成；历史未记录为 null，不补造。轮次与题目修订/本场上下文用于拒绝迟到确认 |
 | confirmation | null 或 {teacher_id, confirmed_at, reason}，由真实有权限教师填写，保留 UTC 时间/处置理由 |
 
 - default_points 保留独立四舍五入的真实结果；confirmed_points 保存教师最终明确采用的本场要点值，不能把人工调整伪称自动舍入。
@@ -125,3 +126,16 @@ ScoringInput 使用 Pydantic 结构，包含以下真实输入；业务标识由
 - 只有固定依据经校验且现有评分器能完整消费时允许执行；仅“JSON 非空”不构成核对通过。后台重读、工作流恢复和写入复核同样检查，不能通过已排队或旧暂停记录绕过。
 - 实施过程中的旧输入兼容仅允许本场/基准/题库满分相等、发布知识点相同、题序一致且无未传入图片的场景；客观题确定性单要点满分、主观题已确认的原文定性标准。其他完整依据保持可读，等待完整评分输入链接通，不能静默用旧默认值计算。
 - 历史盘点与显式证据回填入口见 docs/exam-history-reconciliation.md；未知项保持 SQL NULL，本次核对 UTC 不充当历史批准时间。提交回执不明时报告 unknown，重新审计实际状态，不假定回滚。
+
+
+### 本场标准准备与确认接口（T174）
+
+教师沿用考试管理权限，路径 qid 为 Question.id；所有写入仅允许 Draft 且无答卷历史。
+
+- `GET /api/exams/{id}/questions/{qid}/scoring-basis`：返回关联身份、原 Rubric、题目修订号、题库满分、显式/有效本场满分、可空基准、当前 basis 及 editable。题库当前满分不冒充已核对基准；未知历史有效满分保留 null。
+- `POST .../scoring-basis/prepare`：教师提交 expected_question_validation_revision、expected_effective_score、expected_base_score、expected_basis（当前完整 basis 或初始 null）、additive 和实际核对的 points[{key,label,base_points}]。题型决定 objective/subjective；客观题使用确定性满分要点，主观题数值由明确输入产生，定性标准保持空 points。服务器以 Decimal 计算独立默认值/有符号尾差，并保存基准和新的 preparation_id。相同真实输入重试保留已有轮次与确认；不同结构的准备请求须匹配当前完整已读 basis，迟到请求不得覆盖另一轮准备或同轮次新确认。
+- `POST .../scoring-basis/confirm`：提交上述已读上下文、preparation_id、expected_basis、逐 key 的 confirmed_points[{key,points}] 和真实处置理由。服务器校验完整要点集合、金额与加总语义，记录实际教师及 UTC；页面轮次或内容过期明确拒绝，不代替其他教师的确认。
+
+源题相关修订复用现有 validation_revision，并在同事务清除仍可编辑草稿的 base_score/scoring_basis；实际改分或替换同样失效。准备后修改再改回原值会产生新轮次，不能用旧页面提交通过。纯题序变化或分值同值写入保持依据。历史已有答卷或非 Draft 关联不因此被改写。
+
+草稿准备保留 score 的显式/缺省意图，不提前固定发布知识点。发布前统一检查实际条件、当前题目资格与评分依据；通过后同事务固定有效 score 及 published_knowledge_points。旧 Published 缺失依据仍报告缺失，不从当前题库补写。T175 将接续所有直接入口的完整发布冻结，T176/T177 接续评分输入消费。

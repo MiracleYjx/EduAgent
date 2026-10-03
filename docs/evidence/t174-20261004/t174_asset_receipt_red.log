@@ -1,0 +1,18 @@
+FF                                                                       [100%]
+================================== FAILURES ===================================
+________________ test_real_postgres_image_transaction_failure _________________
+tests\integration\test_question_adaptation.py:114: in test_real_postgres_image_transaction_failure
+    exercise_image_failure(database)
+tests\unit\services\test_question_adaptation_service.py:422: in test_reused_asset_failure_preserves_parent_bytes_and_atomic_candidate_boundary
+    assert any(item["stage"] == "failed" for item in receipts)
+E   assert False
+E    +  where False = any(<generator object test_reused_asset_failure_preserves_parent_bytes_and_atomic_candidate_boundary.<locals>.<genexpr> at 0x0000016D949F2190>)
+_ test_reused_asset_failure_preserves_parent_bytes_and_atomic_candidate_boundary _
+tests\unit\services\test_question_adaptation_service.py:422: in test_reused_asset_failure_preserves_parent_bytes_and_atomic_candidate_boundary
+    assert any(item["stage"] == "failed" for item in receipts)
+E   assert False
+E    +  where False = any(<generator object test_reused_asset_failure_preserves_parent_bytes_and_atomic_candidate_boundary.<locals>.<genexpr> at 0x0000016D94C41B10>)
+=========================== short test summary info ===========================
+FAILED tests/integration/test_question_adaptation.py::test_real_postgres_image_transaction_failure
+FAILED tests/unit/services/test_question_adaptation_service.py::test_reused_asset_failure_preserves_parent_bytes_and_atomic_candidate_boundary
+2 failed in 4.18s

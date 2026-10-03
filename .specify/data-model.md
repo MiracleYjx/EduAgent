@@ -438,6 +438,7 @@ scoring_basis 的最小结构（不是完整内容快照）：
 | points | 结构化数组；允许定性标准为空数组 | 每项保存稳定 key/说明、base_points、default_points、confirmed_points；金额为两位小数字符串，经校验转 Decimal |
 | additive | Boolean | 明确要点是否可加总；不得对重叠/门槛 Rubric 猜测加总方式 |
 | rounding_delta | 可空的两位小数字符串 | 本场满分减默认可加总要点之和，可为负；定性或不可加总时为 NULL |
+| preparation_id | 可空 UUID 字符串 | T174 新准备轮次由服务生成；相同输入重试保持，失效后重准备产生新值；历史未知为 NULL，不补造 |
 | confirmation | 可空的结构化对象 | 含 teacher_id、confirmed_at、reason；有尾差时必须有真实教师确认及明确处置，不伪造确认 |
 
 要点 key 唯一；数值为有限非负金额，base_points 不超过 base_score，default_points/confirmed_points 不超过本场 score；未知或定性要点不伪填 0。可加总标准须核对合计，confirmation 必须来自该课程有权限的真实教师，JSON 内的 teacher_id 不冒充已具有数据库外键。

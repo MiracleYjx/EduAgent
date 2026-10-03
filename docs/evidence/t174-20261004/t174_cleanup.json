@@ -1,0 +1,26 @@
+{
+  "recorded_at": "2026-10-03T18:56:31.578906+00:00",
+  "owned_database_dropped": "eduagent_e4_batch_61a956c9f313",
+  "owned_database_connections_before_drop": 0,
+  "owned_redis_removed": "eduagent-e4-batch-redis-61a956c9f313",
+  "ownership_label_verified": "T170-174",
+  "original_database_read_only": {
+    "revision": "0012_audit_logs",
+    "counts": {
+      "exams": 1,
+      "exam_questions": 2,
+      "submissions": 1,
+      "answers": 2,
+      "grading_results": 0,
+      "exam_results": 0,
+      "review_records": 0
+    }
+  },
+  "protected_original_bytes_preserved": {
+    "README.md": true,
+    "README.zh-CN.md": true,
+    "benchmark/corpus/grading_samples.json": true,
+    ".env": true
+  },
+  "cache_and_business_files_retained": true
+}

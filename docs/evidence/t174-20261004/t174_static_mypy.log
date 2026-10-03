@@ -1,0 +1,7 @@
+backend\app\ui\exam_view.py:726: error: Argument "row_count" to "Dataframe" has incompatible type "tuple[int, str]"; expected "int | None"  [arg-type]
+backend\app\ui\exam_view.py:727: error: Argument "col_count" to "Dataframe" has incompatible type "tuple[int, str]"; expected "None"  [arg-type]
+backend\app\ui\exam_view.py:757: error: Argument "col_count" to "Dataframe" has incompatible type "tuple[int, str]"; expected "None"  [arg-type]
+backend\app\ui\exam_view.py:1475: error: Argument 2 to "update" has incompatible type "**dict[str, list[Never]]"; expected "str | None"  [arg-type]
+backend\app\ui\exam_view.py:1475: error: Argument 2 to "update" has incompatible type "**dict[str, list[Never]]"; expected "bool | Literal['hidden'] | None"  [arg-type]
+backend\app\ui\exam_view.py:1649: error: "Component" has no attribute "input"  [attr-defined]
+Found 6 errors in 1 file (checked 207 source files)

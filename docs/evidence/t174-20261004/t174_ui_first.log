@@ -1,0 +1,22 @@
+...........                                                              [100%]
+============================== warnings summary ===============================
+tests/unit/ui/test_exam_scoring_view.py::test_panel_uses_text_amounts_readonly_source_and_explicit_teacher_actions
+  D:\develop\Python\Lib\site-packages\gradio\component_meta.py:194: DeprecationWarning: Passing a tuple to 'row_count' will be removed in Gradio 6.0. You will need to use 'row_count' for the initial row count and 'row_limits' for min/max constraints instead. For example, row_count=(5, 'fixed') should become row_count=5, row_limits=(5, 5).
+    return fn(self, **kwargs)
+
+tests/unit/ui/test_exam_scoring_view.py::test_panel_uses_text_amounts_readonly_source_and_explicit_teacher_actions
+tests/unit/ui/test_exam_scoring_view.py::test_panel_uses_text_amounts_readonly_source_and_explicit_teacher_actions
+  D:\develop\Python\Lib\site-packages\gradio\component_meta.py:194: DeprecationWarning: The 'col_count' parameter will be removed in Gradio 6.0. You will need to use 'column_count' instead.
+    return fn(self, **kwargs)
+
+tests/unit/ui/test_exam_scoring_view.py::test_panel_uses_text_amounts_readonly_source_and_explicit_teacher_actions
+tests/unit/ui/test_exam_scoring_view.py::test_panel_uses_text_amounts_readonly_source_and_explicit_teacher_actions
+  D:\develop\Python\Lib\site-packages\gradio\component_meta.py:194: DeprecationWarning: Passing a tuple to 'col_count' will be removed in Gradio 6.0. You will need to use 'column_count' for the initial column count and 'column_limits' for min/max constraints instead. For example, col_count=(3, 'fixed') should become column_count=3, column_limits=(3, 3).
+    return fn(self, **kwargs)
+
+tests/unit/ui/test_exam_scoring_view.py::test_panel_uses_text_amounts_readonly_source_and_explicit_teacher_actions
+  D:\develop\Python\Lib\site-packages\gradio\components\dataframe.py:192: UserWarning: The `col_count` parameter is deprecated and will be removed. Please use `column_count` instead.
+    warnings.warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+11 passed, 6 warnings in 8.74s

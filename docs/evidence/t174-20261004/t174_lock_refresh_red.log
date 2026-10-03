@@ -1,0 +1,136 @@
+FF                                                                       [100%]
+================================== FAILURES ===================================
+____ test_question_lock_wait_refreshes_invalidated_scoring_basis[preview] _____
+
+database = (Engine(postgresql+psycopg://eduagent@127.0.0.1:5432/eduagent_e4_batch_61a956c9f313), {'actor': UUID('f29b6e22-4728-41...424a-bdb2-f103d372c723'), UUID('1557e7f6-d5ad-4a49-b742-a844786dcb77'), UUID('f1adb4b0-8045-4b25-a4b5-4e8ba1decc02')]})
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x0000017D02668FC0>
+operation = 'preview'
+
+    @pytest.mark.parametrize("operation", ["preview", "move"])
+    def test_question_lock_wait_refreshes_invalidated_scoring_basis(
+        database, monkeypatch, operation
+    ):
+        from sqlalchemy import select
+    
+        from backend.app.schemas.exam_assembly import ExamQuestionPatchRequest
+        from backend.app.services.question_scoring_invalidation import (
+            bump_question_validation,
+        )
+        from tests.unit.services.test_exam_service import prepare_synthetic_exam_scoring
+    
+        engine, info = database
+        with Session(engine) as session:
+            prepare_synthetic_exam_scoring(session, info["exam"], info["actor"])
+            session.commit()
+            scalars = session.scalars
+            invalidated = False
+    
+            def invalidate_before_question_lock(statement, *args, **kwargs):
+                nonlocal invalidated
+                entities = getattr(statement, "column_descriptions", [])
+                if (
+                    not invalidated
+                    and getattr(statement, "_for_update_arg", None) is not None
+                    and any(item.get("entity") is Question for item in entities)
+                ):
+                    invalidated = True
+                    # The main command already holds Course/Exam and cached the link.
+                    # An earlier Question writer completes its real invalidation before
+                    # the command obtains that Question lock; no alternate database is used.
+                    with Session(engine) as writer:
+                        question = writer.scalars(
+                            select(Question)
+                            .where(Question.id == info["questions"][1])
+                            .with_for_update()
+                        ).one()
+                        bump_question_validation(writer, question)
+                        writer.commit()
+                return scalars(statement, *args, **kwargs)
+    
+            monkeypatch.setattr(session, "scalars", invalidate_before_question_lock)
+            if operation == "preview":
+                response = ExamAssemblyService(session).preview(
+                    info["exam"], actor_id=info["actor"]
+                )
+            else:
+                response = ExamService(session).patch_exam_question(
+                    info["exam"],
+                    info["questions"][1],
+                    ExamQuestionPatchRequest(order_index=1),
+                    teacher_id=info["actor"],
+                )
+            assert invalidated
+>           assert response.exam_questions[0].scoring_basis is None
+E           AssertionError: assert ScoringBasis(preparation_id=UUID('38e2cb5d-6de6-4fb2-bd53-4a90fc086e7e'), kind='subjective', rounding_mode='ROUND_HALF...e.utc), reason='Explicit synthetic teacher verification of fixture criteria; not independent teacher quality labels.')) is None
+E            +  where ScoringBasis(preparation_id=UUID('38e2cb5d-6de6-4fb2-bd53-4a90fc086e7e'), kind='subjective', rounding_mode='ROUND_HALF...e.utc), reason='Explicit synthetic teacher verification of fixture criteria; not independent teacher quality labels.')) = ExamQuestionView(id=UUID('d929749d-3bf7-42fd-9c97-9935c1eab0d3'), exam_id=UUID('d3c0a7fb-72f0-4562-b662-5c9b828f57af')..._rubric='Correct answer receives 3.00 points.', analysis='Controlled explanation.', knowledge_points=['K2'], assets=[]).scoring_basis
+
+tests\integration\test_exam_scoring_publication.py:308: AssertionError
+______ test_question_lock_wait_refreshes_invalidated_scoring_basis[move] ______
+
+database = (Engine(postgresql+psycopg://eduagent@127.0.0.1:5432/eduagent_e4_batch_61a956c9f313), {'actor': UUID('89788cc5-d24e-4e...4fea-a256-5b4443e71d26'), UUID('44e77048-70d9-4997-9f9a-8cd7540f73de'), UUID('0f14275e-1d3e-4925-9824-7df228a65e3d')]})
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x0000017D0266B230>
+operation = 'move'
+
+    @pytest.mark.parametrize("operation", ["preview", "move"])
+    def test_question_lock_wait_refreshes_invalidated_scoring_basis(
+        database, monkeypatch, operation
+    ):
+        from sqlalchemy import select
+    
+        from backend.app.schemas.exam_assembly import ExamQuestionPatchRequest
+        from backend.app.services.question_scoring_invalidation import (
+            bump_question_validation,
+        )
+        from tests.unit.services.test_exam_service import prepare_synthetic_exam_scoring
+    
+        engine, info = database
+        with Session(engine) as session:
+            prepare_synthetic_exam_scoring(session, info["exam"], info["actor"])
+            session.commit()
+            scalars = session.scalars
+            invalidated = False
+    
+            def invalidate_before_question_lock(statement, *args, **kwargs):
+                nonlocal invalidated
+                entities = getattr(statement, "column_descriptions", [])
+                if (
+                    not invalidated
+                    and getattr(statement, "_for_update_arg", None) is not None
+                    and any(item.get("entity") is Question for item in entities)
+                ):
+                    invalidated = True
+                    # The main command already holds Course/Exam and cached the link.
+                    # An earlier Question writer completes its real invalidation before
+                    # the command obtains that Question lock; no alternate database is used.
+                    with Session(engine) as writer:
+                        question = writer.scalars(
+                            select(Question)
+                            .where(Question.id == info["questions"][1])
+                            .with_for_update()
+                        ).one()
+                        bump_question_validation(writer, question)
+                        writer.commit()
+                return scalars(statement, *args, **kwargs)
+    
+            monkeypatch.setattr(session, "scalars", invalidate_before_question_lock)
+            if operation == "preview":
+                response = ExamAssemblyService(session).preview(
+                    info["exam"], actor_id=info["actor"]
+                )
+            else:
+                response = ExamService(session).patch_exam_question(
+                    info["exam"],
+                    info["questions"][1],
+                    ExamQuestionPatchRequest(order_index=1),
+                    teacher_id=info["actor"],
+                )
+            assert invalidated
+>           assert response.exam_questions[0].scoring_basis is None
+E           AssertionError: assert ScoringBasis(preparation_id=UUID('385f109a-55ff-459a-b975-afadf0d2b761'), kind='subjective', rounding_mode='ROUND_HALF...e.utc), reason='Explicit synthetic teacher verification of fixture criteria; not independent teacher quality labels.')) is None
+E            +  where ScoringBasis(preparation_id=UUID('385f109a-55ff-459a-b975-afadf0d2b761'), kind='subjective', rounding_mode='ROUND_HALF...e.utc), reason='Explicit synthetic teacher verification of fixture criteria; not independent teacher quality labels.')) = ExamQuestionView(id=UUID('c25b280c-5c80-457e-96f7-c56b404b222a'), exam_id=UUID('29bdc35d-75b5-407b-984d-81a5bec6a931')..._rubric='Correct answer receives 3.00 points.', analysis='Controlled explanation.', knowledge_points=['K2'], assets=[]).scoring_basis
+
+tests\integration\test_exam_scoring_publication.py:308: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/integration/test_exam_scoring_publication.py::test_question_lock_wait_refreshes_invalidated_scoring_basis[preview]
+FAILED tests/integration/test_exam_scoring_publication.py::test_question_lock_wait_refreshes_invalidated_scoring_basis[move]
+2 failed, 9 deselected in 6.39s

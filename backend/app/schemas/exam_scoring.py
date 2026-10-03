@@ -21,6 +21,8 @@ from pydantic import (
     model_validator,
 )
 
+from backend.app.domain.enums import QuestionType
+
 _LIMIT = Decimal("999999.99")
 _MONEY_TEXT = re.compile(r"^-?\d+(?:\.\d{1,2})?$")
 
@@ -117,6 +119,7 @@ class ScoringPoint(ScoringModel):
 
 
 class ScoringBasis(ScoringModel):
+    preparation_id: UUID | None = None
     kind: Literal["objective", "subjective"]
     rounding_mode: Literal["ROUND_HALF_UP"] = "ROUND_HALF_UP"
     points: list[ScoringPoint]
@@ -133,12 +136,95 @@ class ScoringBasis(ScoringModel):
         return self
 
 
+class ScoringBasePoint(ScoringModel):
+    key: str = Field(min_length=1)
+    label: str = Field(min_length=1)
+    base_points: NonNegativeAmount
+
+    @field_validator("key", "label")
+    @classmethod
+    def nonblank_text(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError("要点标识及说明不能为空。")
+        return value.strip()
+
+
+class ScoringContext(ScoringModel):
+    expected_question_validation_revision: int = Field(ge=0, strict=True)
+    expected_effective_score: Amount
+    expected_base_score: Amount | None
+
+
+class ScoringPrepareRequest(ScoringContext):
+    expected_basis: ScoringBasis | None
+    additive: StrictBool
+    points: list[ScoringBasePoint]
+
+    @model_validator(mode="after")
+    def unique_keys(self) -> Self:
+        if len({point.key for point in self.points}) != len(self.points):
+            raise ValueError("评分要点 key 不能重复。")
+        return self
+
+
+class ScoringConfirmedPoint(ScoringModel):
+    key: str = Field(min_length=1)
+    points: NonNegativeAmount
+
+    @field_validator("key")
+    @classmethod
+    def nonblank_key(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError("确认要点 key 不能为空。")
+        return value.strip()
+
+
+class ScoringConfirmRequest(ScoringContext):
+    preparation_id: UUID
+    expected_basis: ScoringBasis
+    confirmed_points: list[ScoringConfirmedPoint]
+    reason: str = Field(min_length=1, max_length=2000)
+
+    @field_validator("reason")
+    @classmethod
+    def nonblank_reason(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError("教师确认必须说明实际处置理由。")
+        return value.strip()
+
+    @model_validator(mode="after")
+    def unique_keys(self) -> Self:
+        if len({point.key for point in self.confirmed_points}) != len(
+            self.confirmed_points
+        ):
+            raise ValueError("确认要点 key 不能重复。")
+        return self
+
+
+class ScoringBasisView(ScoringModel):
+    exam_id: UUID
+    exam_question_id: UUID
+    question_id: UUID
+    question_type: QuestionType
+    source_rubric: str | None
+    question_validation_revision: int = Field(ge=0)
+    explicit_score: Amount | None
+    effective_score: Amount | None
+    question_score: Amount
+    base_score: Amount | None
+    basis: ScoringBasis | None
+    editable: bool
+
+
 __all__ = [
     "Amount",
     "NonNegativeAmount",
     "ScoringBasis",
+    "ScoringBasisView",
+    "ScoringConfirmRequest",
     "ScoringConfirmation",
     "ScoringPoint",
+    "ScoringPrepareRequest",
     "SignedAmount",
     "TotalAmount",
     "money_text",

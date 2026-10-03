@@ -29,6 +29,7 @@ from scripts.demo_seed import DemoSeedError, seed_demo
 from scripts.run_retrieval_benchmark import StubHashEmbeddingProvider
 from tests.postgres_helpers import isolated_postgres_engine
 from tests.support.semantic_validation_doubles import StubSemanticProvider
+from tests.unit.services.test_exam_service import prepare_synthetic_exam_scoring
 from tests.unit.settings_helpers import build_test_settings
 
 
@@ -113,6 +114,15 @@ def test_seed_twice_reuses_records_and_writes_through_real_services(monkeypatch)
             assert session.scalar(select(func.count()).select_from(Question)) == 2
             assert session.scalar(select(func.count()).select_from(Exam)) == 0
             _approve_demo_questions(session, pending["question_ids"])
+            scoring_pending = seed_demo(session, settings=settings, embedding_provider=provider)
+            assert scoring_pending["status"] == "awaiting_exam_scoring"
+            assert scoring_pending["exam_status"] == ExamStatus.DRAFT.value
+            assert not scoring_pending["awaiting_question_ids"]
+            assert scoring_pending["publication_checks"]
+            assert seed_demo(session, settings=settings, embedding_provider=provider) == scoring_pending
+            teacher = session.scalar(select(User).where(User.username == "dev_teacher"))
+            prepare_synthetic_exam_scoring(session, scoring_pending["exam_id"], teacher.id)
+            assert session.get(Exam, UUID(scoring_pending["exam_id"])).status == ExamStatus.DRAFT
             first = seed_demo(session, settings=settings, embedding_provider=provider)
             assert first["status"] == "ready" and not first["awaiting_question_ids"]
             assert first["exam_status"] == ExamStatus.PUBLISHED.value
@@ -207,8 +217,13 @@ def test_seed_does_not_reopen_existing_closed_exam():
     with isolated_postgres_engine() as engine, Session(engine) as session:
         pending = seed_demo(session, settings=settings, embedding_provider=DemoEmbedding())
         _approve_demo_questions(session, pending["question_ids"])
-        ready = seed_demo(session, settings=settings, embedding_provider=DemoEmbedding())
+        scoring_pending = seed_demo(session, settings=settings, embedding_provider=DemoEmbedding())
+        assert scoring_pending["status"] == "awaiting_exam_scoring"
+        assert scoring_pending["exam_status"] == ExamStatus.DRAFT.value
         teacher = session.scalar(select(User).where(User.username == "dev_teacher"))
+        prepare_synthetic_exam_scoring(session, scoring_pending["exam_id"], teacher.id)
+        ready = seed_demo(session, settings=settings, embedding_provider=DemoEmbedding())
+        assert ready["status"] == "ready" and ready["exam_status"] == ExamStatus.PUBLISHED.value
         ExamService(session).update_exam_status(
             ready["exam_id"], ExamStatus.CLOSED, teacher_id=teacher.id,
         )

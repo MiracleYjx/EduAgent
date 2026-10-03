@@ -1,0 +1,403 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="10" skipped="0" tests="10" time="9.219" timestamp="2026-10-04T02:02:52.066262+08:00" hostname="YJX"><testcase classname="tests.unit.ui.test_exam_scoring_view" name="test_panel_uses_text_amounts_readonly_source_and_explicit_teacher_actions" time="0.206"><failure message="StopIteration">app = Gradio Blocks instance: 30 backend functions
+--------------------------------------------
+fn_index=0
+ inputs:
+ |-&lt;grad...adio.components.state.State object at 0x0000016A6553F390&gt;
+ |-&lt;gradio.components.html.HTML object at 0x0000016A6553F4D0&gt;
+
+    def test_panel_uses_text_amounts_readonly_source_and_explicit_teacher_actions(app):
+&gt;       assert component(app, "source").interactive is False
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\unit\ui\test_exam_scoring_view.py:118: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+app = Gradio Blocks instance: 30 backend functions
+--------------------------------------------
+fn_index=0
+ inputs:
+ |-&lt;grad...adio.components.state.State object at 0x0000016A6553F390&gt;
+ |-&lt;gradio.components.html.HTML object at 0x0000016A6553F4D0&gt;
+name = 'source'
+
+    def component(app, name):
+&gt;       return next(
+            block
+            for block in app.blocks.values()
+            if block.elem_id == "edu-exam-scoring-" + name
+        )
+E       StopIteration
+
+tests\unit\ui\test_exam_scoring_view.py:30: StopIteration</failure></testcase><testcase classname="tests.unit.ui.test_exam_scoring_view" name="test_loading_uses_saved_basis_and_retains_unknown_prepared_base" time="0.001"><failure message="StopIteration">app = Gradio Blocks instance: 30 backend functions
+--------------------------------------------
+fn_index=0
+ inputs:
+ |-&lt;grad...adio.components.state.State object at 0x0000016A6553F390&gt;
+ |-&lt;gradio.components.html.HTML object at 0x0000016A6553F4D0&gt;
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x0000016A654C22C0&gt;
+
+    def test_loading_uses_saved_basis_and_retains_unknown_prepared_base(app, monkeypatch):
+        service = service_fixture(monkeypatch)
+&gt;       result = call(app, "load_scoring", EXAM, QUESTION, TEACHER)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\unit\ui\test_exam_scoring_view.py:128: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\unit\ui\test_exam_scoring_view.py:42: in call
+    return callback_node(app, name).fn(*args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+app = Gradio Blocks instance: 30 backend functions
+--------------------------------------------
+fn_index=0
+ inputs:
+ |-&lt;grad...adio.components.state.State object at 0x0000016A6553F390&gt;
+ |-&lt;gradio.components.html.HTML object at 0x0000016A6553F4D0&gt;
+name = 'load_scoring'
+
+    def callback_node(app, name):
+&gt;       return next(fn for fn in app.fns.values() if getattr(fn.fn, "__name__", "") == name)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       StopIteration
+
+tests\unit\ui\test_exam_scoring_view.py:38: StopIteration</failure></testcase><testcase classname="tests.unit.ui.test_exam_scoring_view" name="test_prepare_shows_real_signed_delta_without_distributing_points[10.00-+0.01-3.33]" time="0.001"><failure message="StopIteration">app = Gradio Blocks instance: 30 backend functions
+--------------------------------------------
+fn_index=0
+ inputs:
+ |-&lt;grad...adio.components.state.State object at 0x0000016A6553F390&gt;
+ |-&lt;gradio.components.html.HTML object at 0x0000016A6553F4D0&gt;
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x0000016A654C2C40&gt;
+score = '10.00', delta = '+0.01', default = '3.33'
+
+    @pytest.mark.parametrize(
+        ("score", "delta", "default"),
+        [("10.00", "+0.01", "3.33"), ("2.00", "-0.01", "0.67")],
+    )
+    def test_prepare_shows_real_signed_delta_without_distributing_points(
+        app, monkeypatch, score, delta, default
+    ):
+        before = raw_view(score=score)
+        service = service_fixture(
+            monkeypatch, before=before, after=raw_view(prepared=True, score=score)
+        )
+        rows = [[f"p{i}", f"实际条件 {i}", "1.00"] for i in range(1, 4)]
+&gt;       result = call(
+            app, "prepare_scoring", EXAM, QUESTION, "可加总数值要点", rows, before, TEACHER
+        )
+
+tests\unit\ui\test_exam_scoring_view.py:152: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\unit\ui\test_exam_scoring_view.py:42: in call
+    return callback_node(app, name).fn(*args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+app = Gradio Blocks instance: 30 backend functions
+--------------------------------------------
+fn_index=0
+ inputs:
+ |-&lt;grad...adio.components.state.State object at 0x0000016A6553F390&gt;
+ |-&lt;gradio.components.html.HTML object at 0x0000016A6553F4D0&gt;
+name = 'prepare_scoring'
+
+    def callback_node(app, name):
+&gt;       return next(fn for fn in app.fns.values() if getattr(fn.fn, "__name__", "") == name)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       StopIteration
+
+tests\unit\ui\test_exam_scoring_view.py:38: StopIteration</failure></testcase><testcase classname="tests.unit.ui.test_exam_scoring_view" name="test_prepare_shows_real_signed_delta_without_distributing_points[2.00--0.01-0.67]" time="0.002"><failure message="StopIteration">app = Gradio Blocks instance: 30 backend functions
+--------------------------------------------
+fn_index=0
+ inputs:
+ |-&lt;grad...adio.components.state.State object at 0x0000016A6553F390&gt;
+ |-&lt;gradio.components.html.HTML object at 0x0000016A6553F4D0&gt;
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x0000016A65704DD0&gt;
+score = '2.00', delta = '-0.01', default = '0.67'
+
+    @pytest.mark.parametrize(
+        ("score", "delta", "default"),
+        [("10.00", "+0.01", "3.33"), ("2.00", "-0.01", "0.67")],
+    )
+    def test_prepare_shows_real_signed_delta_without_distributing_points(
+        app, monkeypatch, score, delta, default
+    ):
+        before = raw_view(score=score)
+        service = service_fixture(
+            monkeypatch, before=before, after=raw_view(prepared=True, score=score)
+        )
+        rows = [[f"p{i}", f"实际条件 {i}", "1.00"] for i in range(1, 4)]
+&gt;       result = call(
+            app, "prepare_scoring", EXAM, QUESTION, "可加总数值要点", rows, before, TEACHER
+        )
+
+tests\unit\ui\test_exam_scoring_view.py:152: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\unit\ui\test_exam_scoring_view.py:42: in call
+    return callback_node(app, name).fn(*args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+app = Gradio Blocks instance: 30 backend functions
+--------------------------------------------
+fn_index=0
+ inputs:
+ |-&lt;grad...adio.components.state.State object at 0x0000016A6553F390&gt;
+ |-&lt;gradio.components.html.HTML object at 0x0000016A6553F4D0&gt;
+name = 'prepare_scoring'
+
+    def callback_node(app, name):
+&gt;       return next(fn for fn in app.fns.values() if getattr(fn.fn, "__name__", "") == name)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       StopIteration
+
+tests\unit\ui\test_exam_scoring_view.py:38: StopIteration</failure></testcase><testcase classname="tests.unit.ui.test_exam_scoring_view" name="test_qualitative_preparation_does_not_create_zero_points" time="0.002"><failure message="StopIteration">app = Gradio Blocks instance: 30 backend functions
+--------------------------------------------
+fn_index=0
+ inputs:
+ |-&lt;grad...adio.components.state.State object at 0x0000016A6553F390&gt;
+ |-&lt;gradio.components.html.HTML object at 0x0000016A6553F4D0&gt;
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x0000016A65708F30&gt;
+
+    def test_qualitative_preparation_does_not_create_zero_points(app, monkeypatch):
+        after = raw_view(prepared=True)
+        after["basis"].update(additive=False, points=[], rounding_delta=None)
+        service = service_fixture(monkeypatch, after=after)
+&gt;       result = call(
+            app, "prepare_scoring", EXAM, QUESTION, "定性文字标准", [], raw_view(), TEACHER
+        )
+
+tests\unit\ui\test_exam_scoring_view.py:172: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\unit\ui\test_exam_scoring_view.py:42: in call
+    return callback_node(app, name).fn(*args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+app = Gradio Blocks instance: 30 backend functions
+--------------------------------------------
+fn_index=0
+ inputs:
+ |-&lt;grad...adio.components.state.State object at 0x0000016A6553F390&gt;
+ |-&lt;gradio.components.html.HTML object at 0x0000016A6553F4D0&gt;
+name = 'prepare_scoring'
+
+    def callback_node(app, name):
+&gt;       return next(fn for fn in app.fns.values() if getattr(fn.fn, "__name__", "") == name)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       StopIteration
+
+tests\unit\ui\test_exam_scoring_view.py:38: StopIteration</failure></testcase><testcase classname="tests.unit.ui.test_exam_scoring_view" name="test_confirmation_sends_loaded_identity_exact_values_and_reason" time="0.001"><failure message="StopIteration">app = Gradio Blocks instance: 30 backend functions
+--------------------------------------------
+fn_index=0
+ inputs:
+ |-&lt;grad...adio.components.state.State object at 0x0000016A6553F390&gt;
+ |-&lt;gradio.components.html.HTML object at 0x0000016A6553F4D0&gt;
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x0000016A655DBF00&gt;
+
+    def test_confirmation_sends_loaded_identity_exact_values_and_reason(app, monkeypatch):
+        before = raw_view(prepared=True)
+        after = deepcopy(before)
+        after["basis"]["points"][0]["confirmed_points"] = "3.34"
+        after["basis"]["confirmation"] = {
+            "teacher_id": TEACHER["user_id"],
+            "confirmed_at": "2026-10-04T00:00:00Z",
+            "reason": "开发夹具中教师明确给首项增加0.01分",
+        }
+        service = service_fixture(monkeypatch, before=before, after=after)
+&gt;       result = call(
+            app,
+            "confirm_scoring",
+            EXAM,
+            QUESTION,
+            [["p1", "3.34"], ["p2", "3.33"], ["p3", "3.33"]],
+            after["basis"]["confirmation"]["reason"],
+            before,
+            TEACHER,
+        )
+
+tests\unit\ui\test_exam_scoring_view.py:191: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\unit\ui\test_exam_scoring_view.py:42: in call
+    return callback_node(app, name).fn(*args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+app = Gradio Blocks instance: 30 backend functions
+--------------------------------------------
+fn_index=0
+ inputs:
+ |-&lt;grad...adio.components.state.State object at 0x0000016A6553F390&gt;
+ |-&lt;gradio.components.html.HTML object at 0x0000016A6553F4D0&gt;
+name = 'confirm_scoring'
+
+    def callback_node(app, name):
+&gt;       return next(fn for fn in app.fns.values() if getattr(fn.fn, "__name__", "") == name)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       StopIteration
+
+tests\unit\ui\test_exam_scoring_view.py:38: StopIteration</failure></testcase><testcase classname="tests.unit.ui.test_exam_scoring_view" name="test_reloading_confirmed_or_protected_basis_is_readonly_and_factual" time="0.001"><failure message="StopIteration">app = Gradio Blocks instance: 30 backend functions
+--------------------------------------------
+fn_index=0
+ inputs:
+ |-&lt;grad...adio.components.state.State object at 0x0000016A6553F390&gt;
+ |-&lt;gradio.components.html.HTML object at 0x0000016A6553F4D0&gt;
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x0000016A65550050&gt;
+
+    def test_reloading_confirmed_or_protected_basis_is_readonly_and_factual(
+        app, monkeypatch
+    ):
+        before = raw_view(prepared=True, editable=False)
+        before["basis"]["confirmation"] = {
+            "teacher_id": TEACHER["user_id"],
+            "confirmed_at": "2026-10-04T00:00:00Z",
+            "reason": "真实读取的合成确认记录",
+        }
+        service_fixture(monkeypatch, before=before)
+&gt;       result = call(app, "load_scoring", EXAM, QUESTION, TEACHER)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\unit\ui\test_exam_scoring_view.py:222: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\unit\ui\test_exam_scoring_view.py:42: in call
+    return callback_node(app, name).fn(*args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+app = Gradio Blocks instance: 30 backend functions
+--------------------------------------------
+fn_index=0
+ inputs:
+ |-&lt;grad...adio.components.state.State object at 0x0000016A6553F390&gt;
+ |-&lt;gradio.components.html.HTML object at 0x0000016A6553F4D0&gt;
+name = 'load_scoring'
+
+    def callback_node(app, name):
+&gt;       return next(fn for fn in app.fns.values() if getattr(fn.fn, "__name__", "") == name)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       StopIteration
+
+tests\unit\ui\test_exam_scoring_view.py:38: StopIteration</failure></testcase><testcase classname="tests.unit.ui.test_exam_scoring_view" name="test_stale_confirmation_error_is_visible_without_success_or_local_mutation" time="0.001"><failure message="StopIteration">app = Gradio Blocks instance: 30 backend functions
+--------------------------------------------
+fn_index=0
+ inputs:
+ |-&lt;grad...adio.components.state.State object at 0x0000016A6553F390&gt;
+ |-&lt;gradio.components.html.HTML object at 0x0000016A6553F4D0&gt;
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x0000016A65551250&gt;
+
+    def test_stale_confirmation_error_is_visible_without_success_or_local_mutation(
+        app, monkeypatch
+    ):
+        service = service_fixture(monkeypatch)
+        service.confirm_scoring_basis.side_effect = ValueError(
+            "本场评分依据已改变，请重新加载。"
+        )
+        before = raw_view(prepared=True)
+        saved = deepcopy(before)
+&gt;       result = call(
+            app,
+            "confirm_scoring",
+            EXAM,
+            QUESTION,
+            [["p1", "3.34"], ["p2", "3.33"], ["p3", "3.33"]],
+            "明确核对",
+            before,
+            TEACHER,
+        )
+
+tests\unit\ui\test_exam_scoring_view.py:238: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\unit\ui\test_exam_scoring_view.py:42: in call
+    return callback_node(app, name).fn(*args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+app = Gradio Blocks instance: 30 backend functions
+--------------------------------------------
+fn_index=0
+ inputs:
+ |-&lt;grad...adio.components.state.State object at 0x0000016A6553F390&gt;
+ |-&lt;gradio.components.html.HTML object at 0x0000016A6553F4D0&gt;
+name = 'confirm_scoring'
+
+    def callback_node(app, name):
+&gt;       return next(fn for fn in app.fns.values() if getattr(fn.fn, "__name__", "") == name)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       StopIteration
+
+tests\unit\ui\test_exam_scoring_view.py:38: StopIteration</failure></testcase><testcase classname="tests.unit.ui.test_exam_scoring_view" name="test_other_role_cannot_load_or_prepare_scoring_basis" time="0.001"><failure message="StopIteration">app = Gradio Blocks instance: 30 backend functions
+--------------------------------------------
+fn_index=0
+ inputs:
+ |-&lt;grad...adio.components.state.State object at 0x0000016A6553F390&gt;
+ |-&lt;gradio.components.html.HTML object at 0x0000016A6553F4D0&gt;
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x0000016A654B99A0&gt;
+
+    def test_other_role_cannot_load_or_prepare_scoring_basis(app, monkeypatch):
+        service = service_fixture(monkeypatch)
+        denied = {**TEACHER, "roles": ["Student"]}
+&gt;       result = call(app, "load_scoring", EXAM, QUESTION, denied)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\unit\ui\test_exam_scoring_view.py:257: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\unit\ui\test_exam_scoring_view.py:42: in call
+    return callback_node(app, name).fn(*args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+app = Gradio Blocks instance: 30 backend functions
+--------------------------------------------
+fn_index=0
+ inputs:
+ |-&lt;grad...adio.components.state.State object at 0x0000016A6553F390&gt;
+ |-&lt;gradio.components.html.HTML object at 0x0000016A6553F4D0&gt;
+name = 'load_scoring'
+
+    def callback_node(app, name):
+&gt;       return next(fn for fn in app.fns.values() if getattr(fn.fn, "__name__", "") == name)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       StopIteration
+
+tests\unit\ui\test_exam_scoring_view.py:38: StopIteration</failure></testcase><testcase classname="tests.unit.ui.test_exam_scoring_view" name="test_switching_question_cannot_confirm_previous_preparation" time="0.001"><failure message="StopIteration">app = Gradio Blocks instance: 30 backend functions
+--------------------------------------------
+fn_index=0
+ inputs:
+ |-&lt;grad...adio.components.state.State object at 0x0000016A6553F390&gt;
+ |-&lt;gradio.components.html.HTML object at 0x0000016A6553F4D0&gt;
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x0000016A654BB7A0&gt;
+
+    def test_switching_question_cannot_confirm_previous_preparation(app, monkeypatch):
+        service = service_fixture(monkeypatch)
+&gt;       result = call(
+            app,
+            "confirm_scoring",
+            EXAM,
+            "00000000-0000-4000-8000-000000000021",
+            [],
+            "核对",
+            raw_view(prepared=True),
+            TEACHER,
+        )
+
+tests\unit\ui\test_exam_scoring_view.py:269: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\unit\ui\test_exam_scoring_view.py:42: in call
+    return callback_node(app, name).fn(*args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+app = Gradio Blocks instance: 30 backend functions
+--------------------------------------------
+fn_index=0
+ inputs:
+ |-&lt;grad...adio.components.state.State object at 0x0000016A6553F390&gt;
+ |-&lt;gradio.components.html.HTML object at 0x0000016A6553F4D0&gt;
+name = 'confirm_scoring'
+
+    def callback_node(app, name):
+&gt;       return next(fn for fn in app.fns.values() if getattr(fn.fn, "__name__", "") == name)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       StopIteration
+
+tests\unit\ui\test_exam_scoring_view.py:38: StopIteration</failure></testcase></testsuite></testsuites>

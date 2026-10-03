@@ -14,9 +14,22 @@ import gradio as gr
 from sqlalchemy.exc import SQLAlchemyError
 
 from backend.app.core.database import get_session_factory
-from backend.app.domain.enums import ExamStatus, QuestionStatus, UserRole
+from backend.app.domain.enums import (
+    OBJECTIVE_QUESTION_TYPES,
+    ExamStatus,
+    QuestionStatus,
+    UserRole,
+)
 from backend.app.domain.permissions import PermissionDeniedError, normalize_role
+from backend.app.schemas.exam_scoring import (
+    ScoringBasisView,
+    ScoringConfirmRequest,
+    ScoringPrepareRequest,
+    money_text,
+)
 from backend.app.services.course_service import CourseService, CourseServiceError
+from backend.app.services.exam_assembly_service import AssemblyError
+from backend.app.services.exam_scoring_service import ExamScoringService
 from backend.app.services.exam_service import (
     ExamPermissionError,
     ExamService,
@@ -103,7 +116,7 @@ def _format_error(error: BaseException) -> str:
         message = str(error) or "当前账号无权执行此操作。"
     elif isinstance(error, ExamPermissionError):
         message = str(error) or "当前账号无权访问该考试。"
-    elif isinstance(error, ExamServiceError):
+    elif isinstance(error, (ExamServiceError, AssemblyError)):
         message = str(error) or _GENERIC_ERROR
     elif isinstance(error, SQLAlchemyError):
         message = "系统暂时无法连接数据库，请稍后重试。"
@@ -595,6 +608,7 @@ def create_exam_view(session_state: Any | None = None) -> ExamView:
     errors = (
         PermissionDeniedError,
         ExamServiceError,
+        AssemblyError,
         CourseServiceError,
         SQLAlchemyError,
         TypeError,
@@ -605,6 +619,7 @@ def create_exam_view(session_state: Any | None = None) -> ExamView:
         exam_ids = gr.State([])
         selected_exam = gr.State(None)
         publication_snapshot = gr.State(None)
+        scoring_snapshot = gr.State(None)
         candidate_id = gr.State(None)
         remove_id = gr.Textbox(visible=False, container=False)
         with gr.Row():
@@ -672,6 +687,91 @@ def create_exam_view(session_state: Any | None = None) -> ExamView:
                         reload_questions = gr.Button("刷新题目")
                         check_button = gr.Button("进入发布检查", variant="primary")
                 with gr.Tab("发布检查", id="publish"):
+                    with gr.Accordion("本场评分标准", open=True):
+                        scoring_question = gr.Dropdown(
+                            label="核对评分标准的题目",
+                            choices=[],
+                            value=None,
+                            elem_id="edu-exam-scoring-question",
+                        )
+                        scoring_reload = gr.Button(
+                            "加载本场标准", elem_id="edu-exam-scoring-load"
+                        )
+                        scoring_source = gr.Textbox(
+                            label="题库原始评分标准",
+                            lines=3,
+                            interactive=False,
+                            elem_id="edu-exam-scoring-source",
+                        )
+                        scoring_context = gr.Markdown(
+                            empty_state("请选择本场题目，读取基准与本场分值。"),
+                            elem_id="edu-exam-scoring-context",
+                        )
+                        scoring_mode = gr.Radio(
+                            label="评分结构",
+                            choices=[
+                                "可加总数值要点",
+                                "非加总数值要点",
+                                "定性文字标准",
+                            ],
+                            value="定性文字标准",
+                            interactive=False,
+                            elem_id="edu-exam-scoring-mode",
+                        )
+                        scoring_points = gr.Dataframe(
+                            headers=["要点编号", "评分说明", "基准分值"],
+                            datatype=["str", "str", "str"],
+                            type="array",
+                            value=[],
+                            row_count=0,
+                            row_limits=(0, None),
+                            column_count=3,
+                            interactive=False,
+                            label="教师明确核对的基准要点",
+                            elem_id="edu-exam-scoring-points",
+                        )
+                        scoring_prepare = gr.Button(
+                            "准备本场标准",
+                            interactive=False,
+                            elem_id="edu-exam-scoring-prepare",
+                        )
+                        scoring_defaults = gr.Dataframe(
+                            headers=[
+                                "要点编号",
+                                "评分说明",
+                                "基准分值",
+                                "默认本场分值",
+                            ],
+                            datatype=["str", "str", "str", "str"],
+                            type="array",
+                            value=[],
+                            interactive=False,
+                            label="逐项换算结果",
+                            elem_id="edu-exam-scoring-defaults",
+                        )
+                        scoring_delta = gr.Markdown(elem_id="edu-exam-scoring-delta")
+                        scoring_final = gr.Dataframe(
+                            headers=["要点编号", "最终本场分值"],
+                            datatype=["str", "str"],
+                            type="array",
+                            value=[],
+                            column_count=2,
+                            interactive=False,
+                            label="教师最终采用的要点分值",
+                            elem_id="edu-exam-scoring-final",
+                        )
+                        scoring_reason = gr.Textbox(
+                            label="核对说明与尾差处置理由",
+                            lines=2,
+                            interactive=False,
+                            elem_id="edu-exam-scoring-reason",
+                        )
+                        scoring_confirm = gr.Button(
+                            "确认本场标准",
+                            interactive=False,
+                            elem_id="edu-exam-scoring-confirm",
+                        )
+                        scoring_status = gr.Markdown(elem_id="edu-exam-scoring-status")
                     publication_details = gr.Markdown(empty_state("尚未执行发布检查。"))
                     recheck_button = gr.Button("重新检查")
                     confirmed = gr.Checkbox(
@@ -692,6 +792,20 @@ def create_exam_view(session_state: Any | None = None) -> ExamView:
             exam_ids,
             selected_exam,
             publication_snapshot,
+            scoring_snapshot,
+            scoring_question,
+            scoring_reload,
+            scoring_source,
+            scoring_context,
+            scoring_mode,
+            scoring_points,
+            scoring_prepare,
+            scoring_defaults,
+            scoring_delta,
+            scoring_final,
+            scoring_reason,
+            scoring_confirm,
+            scoring_status,
             candidate_id,
             remove_id,
             filter_course,
@@ -734,8 +848,25 @@ def create_exam_view(session_state: Any | None = None) -> ExamView:
                 ),
             }
 
+        def clear_scoring() -> dict[Any, Any]:
+            return {
+                scoring_snapshot: None,
+                scoring_source: "",
+                scoring_context: empty_state("请选择本场题目，读取基准与本场分值。"),
+                scoring_mode: gr.update(value="定性文字标准", interactive=False),
+                scoring_points: gr.update(value=[], interactive=False),
+                scoring_prepare: gr.update(interactive=False),
+                scoring_defaults: [],
+                scoring_delta: "",
+                scoring_final: gr.update(value=[], interactive=False),
+                scoring_reason: gr.update(value="", interactive=False),
+                scoring_confirm: gr.update(interactive=False),
+                scoring_status: "",
+            }
+
         def clear() -> dict[Any, Any]:
-            result = invalidate()
+            result = {**invalidate(), **clear_scoring()}
+            result[scoring_question] = gr.update(choices=[], value=None)
             result.update(
                 {
                     selected_exam: None,
@@ -896,6 +1027,16 @@ def create_exam_view(session_state: Any | None = None) -> ExamView:
                         available.ids: available_ids,
                         chosen.table: chosen_rows,
                         chosen.ids: chosen_ids,
+                        scoring_question: gr.update(
+                            choices=[
+                                (
+                                    f"第 {index} 题 · {question.content[:55]}",
+                                    question.id,
+                                )
+                                for index, question in enumerate(questions, start=1)
+                            ],
+                            value=None,
+                        ),
                         summary: f"**题数：{latest.question_count}**　**总分：{latest.total_score if latest.total_score is not None else "未知（待核对）"} 分**",
                         question_message: (
                             ""
@@ -1079,11 +1220,276 @@ def create_exam_view(session_state: Any | None = None) -> ExamView:
             except errors as error:
                 return {**invalidate(), message: _format_error(error)}
 
+        def scoring_data(view: ScoringBasisView) -> dict[Any, Any]:
+            basis = view.basis
+            objective = view.question_type in OBJECTIVE_QUESTION_TYPES
+            editable = view.editable and view.effective_score is not None
+            mode = (
+                "可加总数值要点"
+                if basis and basis.additive
+                else (
+                    "非加总数值要点"
+                    if basis and basis.points
+                    else "可加总数值要点" if objective else "定性文字标准"
+                )
+            )
+            points = (
+                [
+                    [point.key, point.label, money_text(point.base_points)]
+                    for point in basis.points
+                ]
+                if basis
+                else (
+                    [
+                        [
+                            "correct",
+                            "正确作答按本场满分给分",
+                            money_text(view.question_score),
+                        ]
+                    ]
+                    if objective
+                    else []
+                )
+            )
+            context = (
+                f"**题库满分**：{money_text(view.question_score)} 分　"
+                f"**本场有效满分**：{money_text(view.effective_score) if view.effective_score is not None else '未知'} 分\n\n"
+                f"**已准备的基准满分**：{money_text(view.base_score) if view.base_score is not None else '尚未准备'}"
+            )
+            if objective:
+                context += "\n\n客观题沿用确定性整题给分规则：正确给本场满分，错误或合法空答按既有规则处理。"
+            else:
+                context += "\n\n请按原始标准明确填写数值要点；定性或重叠要点须核对本场对应语义。"
+            if basis is None:
+                delta = "尚未准备本场评分标准。"
+                status = ""
+            else:
+                delta = (
+                    f"**独立舍入尾差**：{basis.rounding_delta:+.2f} 分。请明确核对最终要点分值。"
+                    if basis.rounding_delta is not None
+                    else "尾差不适用：定性或非加总标准，请说明本场对应方式。"
+                )
+                confirmation = basis.confirmation
+                status = (
+                    feedback(
+                        f"已确认：{escape(confirmation.reason)}；教师 {confirmation.teacher_id}；"
+                        f"UTC {confirmation.confirmed_at.isoformat()}",
+                        "success",
+                    )
+                    if confirmation
+                    else feedback("准备结果已保存，尚无教师确认记录。", "warning")
+                )
+            return {
+                scoring_snapshot: view.model_dump(mode="json"),
+                scoring_source: view.source_rubric or "未提供原始评分标准",
+                scoring_context: context,
+                scoring_mode: gr.update(
+                    value=mode, interactive=editable and not objective
+                ),
+                scoring_points: gr.update(
+                    value=points,
+                    interactive=editable and not objective and mode != "定性文字标准",
+                ),
+                scoring_prepare: gr.update(interactive=editable),
+                scoring_defaults: (
+                    [
+                        [
+                            point.key,
+                            point.label,
+                            money_text(point.base_points),
+                            money_text(point.default_points),
+                        ]
+                        for point in basis.points
+                    ]
+                    if basis
+                    else []
+                ),
+                scoring_delta: delta,
+                scoring_final: gr.update(
+                    value=(
+                        [
+                            [point.key, money_text(point.confirmed_points)]
+                            for point in basis.points
+                        ]
+                        if basis
+                        else []
+                    ),
+                    interactive=bool(
+                        editable and basis and basis.points and not objective
+                    ),
+                ),
+                scoring_reason: gr.update(
+                    value=(
+                        basis.confirmation.reason
+                        if basis and basis.confirmation
+                        else ""
+                    ),
+                    interactive=editable,
+                ),
+                scoring_confirm: gr.update(
+                    interactive=bool(editable and basis and basis.preparation_id)
+                ),
+                scoring_status: status,
+            }
+
+        def loaded_scoring(
+            identifier: str | None, qid: str | None, loaded: Any
+        ) -> ScoringBasisView:
+            if not identifier or not qid or not isinstance(loaded, dict):
+                raise ValueError("请重新加载当前考试题目的评分标准。")
+            view = ScoringBasisView.model_validate(loaded)
+            if str(view.exam_id) != identifier or str(view.question_id) != qid:
+                raise ValueError("考试或题目已切换，请重新加载评分标准。")
+            if not view.editable:
+                raise ValueError("当前考试评分标准只允许查看。")
+            return view
+
+        def point_rows(value: Any, width: int) -> list[list[str]]:
+            if value is None:
+                return []
+            if not isinstance(value, (list, tuple)):
+                raise TypeError("请使用评分要点表格填写文本和十进制分值。")
+            rows: list[list[str]] = []
+            for row in value:
+                if not isinstance(row, (list, tuple)) or len(row) != width:
+                    raise ValueError("评分要点表格列数不正确。")
+                if any(item is not None and not isinstance(item, str) for item in row):
+                    raise ValueError("分值请填写十进制文本，不接受浮点数。")
+                cells = [(item or "").strip() for item in row]
+                if any(cells):
+                    rows.append(cells)
+            return rows
+
+        def load_scoring(
+            identifier: str | None, qid: str | None, current_state: Mapping[str, Any]
+        ) -> dict[Any, Any]:
+            try:
+                teacher = UUID(_teacher_id(current_state))
+                if not identifier or not qid:
+                    raise ValueError("请选择当前考试中的题目。")
+                with get_session_factory()() as session:
+                    view = ExamScoringService(session).get_scoring_basis(
+                        UUID(identifier), UUID(qid), teacher_id=teacher
+                    )
+                return {**clear_scoring(), **scoring_data(view)}
+            except errors as error:
+                return {**clear_scoring(), scoring_status: _format_error(error)}
+
+        def prepare_scoring(
+            identifier: str | None,
+            qid: str | None,
+            mode: str,
+            rows: Any,
+            loaded: Any,
+            current_state: Mapping[str, Any],
+        ) -> dict[Any, Any]:
+            try:
+                teacher = UUID(_teacher_id(current_state))
+                view = loaded_scoring(identifier, qid, loaded)
+                if mode not in {"可加总数值要点", "非加总数值要点", "定性文字标准"}:
+                    raise ValueError("请选择评分结构。")
+                supplied = [] if mode == "定性文字标准" else point_rows(rows, 3)
+                payload = ScoringPrepareRequest.model_validate(
+                    {
+                        "expected_question_validation_revision": view.question_validation_revision,
+                        "expected_effective_score": view.effective_score,
+                        "expected_base_score": view.base_score,
+                        "expected_basis": view.basis,
+                        "additive": mode == "可加总数值要点",
+                        "points": [
+                            {"key": row[0], "label": row[1], "base_points": row[2]}
+                            for row in supplied
+                        ],
+                    }
+                )
+                with get_session_factory()() as session:
+                    prepared = ExamScoringService(session).prepare_scoring_basis(
+                        view.exam_id, view.question_id, payload, teacher_id=teacher
+                    )
+                return {**invalidate(), **scoring_data(prepared)}
+            except errors as error:
+                return {
+                    **invalidate(),
+                    scoring_confirm: gr.update(interactive=False),
+                    scoring_status: _format_error(error),
+                }
+
+        def confirm_scoring(
+            identifier: str | None,
+            qid: str | None,
+            rows: Any,
+            reason: str,
+            loaded: Any,
+            current_state: Mapping[str, Any],
+        ) -> dict[Any, Any]:
+            try:
+                teacher = UUID(_teacher_id(current_state))
+                view = loaded_scoring(identifier, qid, loaded)
+                if view.basis is None or view.basis.preparation_id is None:
+                    raise ValueError("请先重新准备本场评分标准。")
+                payload = ScoringConfirmRequest.model_validate(
+                    {
+                        "preparation_id": view.basis.preparation_id,
+                        "expected_basis": view.basis,
+                        "expected_question_validation_revision": view.question_validation_revision,
+                        "expected_effective_score": view.effective_score,
+                        "expected_base_score": view.base_score,
+                        "confirmed_points": [
+                            {"key": row[0], "points": row[1]}
+                            for row in point_rows(rows, 2)
+                        ],
+                        "reason": reason,
+                    }
+                )
+                with get_session_factory()() as session:
+                    confirmed_view = ExamScoringService(session).confirm_scoring_basis(
+                        view.exam_id, view.question_id, payload, teacher_id=teacher
+                    )
+                return {**invalidate(), **scoring_data(confirmed_view)}
+            except errors as error:
+                return {
+                    **invalidate(),
+                    scoring_confirm: gr.update(interactive=False),
+                    scoring_status: _format_error(error),
+                }
+
+        def scoring_inputs_changed() -> dict[Any, Any]:
+            return {
+                **invalidate(),
+                scoring_confirm: gr.update(interactive=False),
+                scoring_status: feedback(
+                    "基准要点已编辑，请重新准备本场标准后确认。", "warning"
+                ),
+            }
+
+        def scoring_mode_changed(
+            mode: str, loaded: Any, current_state: Mapping[str, Any]
+        ) -> dict[Any, Any]:
+            try:
+                _teacher_id(current_state)
+                view = ScoringBasisView.model_validate(loaded)
+                result = scoring_inputs_changed()
+                result[scoring_points] = gr.update(
+                    interactive=view.editable
+                    and view.question_type not in OBJECTIVE_QUESTION_TYPES
+                    and mode != "定性文字标准",
+                )
+                if mode == "定性文字标准":
+                    result[scoring_points]["value"] = []
+                return result
+            except errors as error:
+                return {**invalidate(), scoring_status: _format_error(error)}
+
         def checked_data(
             identifier: str, current_state: Mapping[str, Any]
         ) -> tuple[ExamSummary, list[QuestionSummary], dict[str, Any]]:
             exam, questions = read_exam(identifier, current_state)
+            with get_session_factory()() as session:
+                preview = ExamService(session).preview_assembly(
+                    identifier, teacher_id=_teacher_id(current_state)
+                )
             snapshot = {
+                "assembly": preview.model_dump(mode="json"),
                 "exam": exam.model_dump(mode="json"),
                 "questions": [
                     question.model_dump(mode="json") for question in questions
@@ -1099,6 +1505,10 @@ def create_exam_view(session_state: Any | None = None) -> ExamView:
                     raise ValueError("请先保存考试。")
                 exam, questions, snapshot = checked_data(identifier, current_state)
                 issues = exam_publication_issues(exam, questions)
+                issues.extend(
+                    item["message"]
+                    for item in snapshot["assembly"]["publication_checks"]
+                )
                 approved_count = sum(
                     question.status == QuestionStatus.APPROVED for question in questions
                 )
@@ -1141,6 +1551,10 @@ def create_exam_view(session_state: Any | None = None) -> ExamView:
                 if snapshot != current:
                     raise ValueError("考试或题目已发生变化，请重新执行发布检查。")
                 issues = exam_publication_issues(exam, questions)
+                issues.extend(
+                    item["message"]
+                    for item in current["assembly"]["publication_checks"]
+                )
                 if issues:
                     raise ValueError("；".join(issues))
                 with get_session_factory()() as session:
@@ -1193,6 +1607,48 @@ def create_exam_view(session_state: Any | None = None) -> ExamView:
             "concurrency_id": "eduagent-ui",
             "concurrency_limit": 1,
         }
+        scoring_question.input(
+            load_scoring,
+            inputs=[selected_exam, scoring_question, state],
+            **event_options,
+        )
+        scoring_reload.click(
+            load_scoring,
+            inputs=[selected_exam, scoring_question, state],
+            **event_options,
+        )
+        scoring_prepare.click(
+            prepare_scoring,
+            inputs=[
+                selected_exam,
+                scoring_question,
+                scoring_mode,
+                scoring_points,
+                scoring_snapshot,
+                state,
+            ],
+            **event_options,
+        )
+        scoring_confirm.click(
+            confirm_scoring,
+            inputs=[
+                selected_exam,
+                scoring_question,
+                scoring_final,
+                scoring_reason,
+                scoring_snapshot,
+                state,
+            ],
+            **event_options,
+        )
+        scoring_mode.input(
+            scoring_mode_changed,
+            inputs=[scoring_mode, scoring_snapshot, state],
+            **event_options,
+        )
+        scoring_points.input(scoring_inputs_changed, **event_options)
+        scoring_final.input(invalidate, **event_options)
+        scoring_reason.input(invalidate, **event_options)
         refresh_button.click(
             refresh, inputs=[filter_course, filter_status, state], **event_options
         )

@@ -20,7 +20,13 @@ from backend.app.schemas.exam_assembly import (
     AssemblyResponse,
     ExamQuestionPatchRequest,
 )
+from backend.app.schemas.exam_scoring import (
+    ScoringBasisView,
+    ScoringConfirmRequest,
+    ScoringPrepareRequest,
+)
 from backend.app.services.exam_assembly_service import AssemblyError
+from backend.app.services.exam_scoring_service import ExamScoringService
 from backend.app.services.exam_service import (
     ExamConflictError,
     ExamNotFoundError,
@@ -163,6 +169,17 @@ def get_exam_service(
     """创建使用当前请求数据库会话的考试服务。"""
 
     return ExamService(session)
+
+
+def get_exam_scoring_service(
+    session: Annotated[Session, Depends(get_db)],
+) -> ExamScoringService:
+    return ExamScoringService(session)
+
+
+ExamScoringServiceDependency = Annotated[
+    ExamScoringService, Depends(get_exam_scoring_service)
+]
 
 
 ExamServiceDependency = Annotated[ExamService, Depends(get_exam_service)]
@@ -339,6 +356,59 @@ def patch_exam_question(
             exam_id, question_id, payload, teacher_id=teacher.id
         )
     except (AssemblyError, ExamServiceError, ValueError) as exc:
+        raise _exam_http_exception(exc) from None
+
+
+@router.get(
+    "/{exam_id}/questions/{question_id}/scoring-basis", response_model=ScoringBasisView
+)
+def get_exam_scoring_basis(
+    exam_id: UUID,
+    question_id: UUID,
+    teacher: ExamViewer,
+    service: ExamScoringServiceDependency,
+) -> ScoringBasisView:
+    try:
+        return service.get_scoring_basis(exam_id, question_id, teacher_id=teacher.id)
+    except (AssemblyError, ValueError) as exc:
+        raise _exam_http_exception(exc) from None
+
+
+@router.post(
+    "/{exam_id}/questions/{question_id}/scoring-basis/prepare",
+    response_model=ScoringBasisView,
+)
+def prepare_exam_scoring_basis(
+    exam_id: UUID,
+    question_id: UUID,
+    payload: ScoringPrepareRequest,
+    teacher: ExamEditor,
+    service: ExamScoringServiceDependency,
+) -> ScoringBasisView:
+    try:
+        return service.prepare_scoring_basis(
+            exam_id, question_id, payload, teacher_id=teacher.id
+        )
+    except (AssemblyError, ValueError) as exc:
+        raise _exam_http_exception(exc) from None
+
+
+@router.post(
+    "/{exam_id}/questions/{question_id}/scoring-basis/confirm",
+    response_model=ScoringBasisView,
+)
+def confirm_exam_scoring_basis(
+    exam_id: UUID,
+    question_id: UUID,
+    payload: ScoringConfirmRequest,
+    teacher: ExamEditor,
+    service: ExamScoringServiceDependency,
+) -> ScoringBasisView:
+    try:
+        return service.confirm_scoring_basis(
+            exam_id, question_id, payload, teacher_id=teacher.id
+        )
+    except (AssemblyError, ValueError) as exc:
         raise _exam_http_exception(exc) from None
 
 

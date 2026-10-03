@@ -14,6 +14,7 @@ from collections.abc import Generator
 from contextlib import ExitStack
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
+from uuid import UUID
 
 import gradio as gr
 import pytest
@@ -34,6 +35,7 @@ from backend.app.domain.enums import (
 )
 from backend.app.models import (
     Answer,
+    Exam,
     ExamResult,
     GradingResult,
     Question,
@@ -44,6 +46,7 @@ from backend.app.models import (
 from backend.app.schemas.ai import GradingResult as GradingResultPayload
 from backend.app.schemas.grading import GradingTaskStatus, QuestionResultDTO
 from backend.app.services.auth_service import create_access_token
+from backend.app.services.exam_service import ExamService
 from backend.app.services.grading.confidence_policy import ConfidenceDecision
 from backend.app.services.grading.grading_repository import DatabaseGradingRepository
 from backend.app.services.grading.grading_task_service import (
@@ -57,6 +60,7 @@ from backend.app.services.grading.grading_task_service import (
 )
 from backend.app.services.grading.subjective_grader import ProviderNotReadyError
 from backend.app.services.grading.subjective_pipeline import build_subjective_scorer
+from backend.app.services.question_service import QuestionService
 from tests.support.exam_scoring_fixtures import confirm_synthetic_exam_basis
 from tests.support.grading_doubles import (
     InMemoryGradingRepository,
@@ -65,6 +69,7 @@ from tests.support.grading_doubles import (
     StubSubmissionReader,
     make_task,
 )
+from tests.support.question_validation_fixtures import persist_current_semantic_pass
 from tests.support.subjective_grading_doubles import (
     StubEmbeddingProvider,
     StubReranker,
@@ -72,6 +77,7 @@ from tests.support.subjective_grading_doubles import (
     StubScoringProvider,
     make_chunk,
 )
+from tests.unit.services.test_exam_service import prepare_synthetic_exam_scoring
 from tests.unit.services.test_submission_service import (
     add_approved_question,
     add_course,
@@ -650,9 +656,10 @@ def mixed_scenario(session: Session) -> dict[str, object]:
         content="下列哪个是不可变类型？",
         options=["tuple", "list"],
         reference_answer="tuple",
+        scoring_rubric="合成客观题标准：答 tuple 得 10 分，其他答案得 0 分。",
         knowledge_points=["数据类型"],
         score=Decimal("10.00"),
-        status=QuestionStatus.APPROVED,
+        status=QuestionStatus.PENDING_REVIEW,
     )
     subjective = Question(
         course_id=course.id,
@@ -663,11 +670,28 @@ def mixed_scenario(session: Session) -> dict[str, object]:
         scoring_rubric="说明保存和引用数据即可。",
         knowledge_points=["变量"],
         score=Decimal("10.00"),
-        status=QuestionStatus.APPROVED,
+        status=QuestionStatus.PENDING_REVIEW,
     )
     session.add_all([objective, subjective])
     session.commit()
-    exam = add_published_exam(session, course, teacher, [objective.id, subjective.id])
+    # These are controlled protocol fixtures, not independently authored truth labels.
+    question_service = QuestionService(session)
+    for question in (objective, subjective):
+        persist_current_semantic_pass(session, question.id, teacher.id)
+        question_service.update_question_status(
+            question.id, QuestionStatus.APPROVED, teacher_id=teacher.id
+        )
+    exam_service = ExamService(session)
+    created = exam_service.create_exam(
+        course_id=course.id,
+        title="Synthetic mixed grading contract exam",
+        question_ids=[objective.id, subjective.id],
+        created_by=teacher.id,
+    )
+    prepare_synthetic_exam_scoring(session, created.id, teacher.id)
+    exam_service.publish_exam(created.id, teacher_id=teacher.id)
+    exam = session.get(Exam, UUID(created.id))
+    assert exam is not None
     student = add_student(session, username="mixed")
     submission = Submission(
         exam_id=exam.id,

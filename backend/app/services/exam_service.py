@@ -611,6 +611,14 @@ class ExamService:
                     .execution_options(populate_existing=True)
                 ).all()
             }
+            # A source edit can clear scoring facts while this command awaits Question locks.
+            self.session.scalars(
+                select(ExamQuestion)
+                .where(ExamQuestion.exam_id == exam.id)
+                .order_by(ExamQuestion.id)
+                .with_for_update()
+                .execution_options(populate_existing=True)
+            ).all()
             if replacement_id is not None:
                 question = questions.get(replacement_id)
                 if question is None:
@@ -682,18 +690,105 @@ class ExamService:
         *,
         created_by: UUID | str | None = None,
     ) -> ExamSummary:
-        """执行发布检查并将考试置为 Published。"""
+        """核对当前本场标准后同事务固定分值与知识点并发布。"""
+        from backend.app.services.exam_assembly_service import (
+            AssemblyError,
+            ExamAssemblyService,
+        )
+        from backend.app.services.exam_scoring_service import require_scoring_ready
+        from backend.app.services.file_storage_service import FileStorageError
 
-        exam = self._load_exam(exam_id)
-        actor_id = _resolve_actor_id(created_by, teacher_id)
-        self._ensure_course_access(self._load_course(exam.course_id), actor_id)
-        if exam.status is ExamStatus.PUBLISHED:
+        actor = _resolve_actor_id(created_by, teacher_id)
+        if actor is None:
+            raise ExamPermissionError("发布考试必须提供真实教师身份。")
+        assembly = ExamAssemblyService(self.session)
+        commit_started = False
+        try:
+            exam = assembly._load_exam(_normalize_uuid(exam_id, "考试标识"), actor)
+            ids = [link.question_id for link in exam.exam_question_links]
+            if ids:
+                self.session.scalars(
+                    select(Question)
+                    .where(Question.id.in_(ids))
+                    .order_by(Question.id)
+                    .with_for_update()
+                    .execution_options(populate_existing=True)
+                ).all()
+                # Question mutations can invalidate a link while we await its lock.
+                self.session.scalars(
+                    select(ExamQuestion)
+                    .where(ExamQuestion.exam_id == exam.id)
+                    .order_by(ExamQuestion.id)
+                    .with_for_update()
+                    .execution_options(populate_existing=True)
+                ).all()
+            if exam.status is ExamStatus.PUBLISHED:
+                for link in exam.exam_question_links:
+                    require_scoring_ready(exam, link)
+                return self._exam_summary(exam)
+            assembly.require_editable(exam)
             self._validate_publish_requirements(exam)
-            return self._exam_summary(exam)
-        self._ensure_draft(exam)
-        self._validate_publish_requirements(exam)
-        exam.status = ExamStatus.PUBLISHED
-        return self._commit_exam(exam, "发布考试失败。")
+            preview = assembly._preview(exam, actor)
+            if preview.publication_checks:
+                issue = preview.publication_checks[0]
+                raise AssemblyError(
+                    issue.code,
+                    issue.message,
+                    current_status=exam.status.value,
+                    details={
+                        "publication_checks": [
+                            item.model_dump(mode="json")
+                            for item in preview.publication_checks
+                        ]
+                    },
+                )
+            for link in exam.exam_question_links:
+                require_scoring_ready(exam, link)
+                link.score = link.effective_score
+                link.published_knowledge_points = list(
+                    link.question.knowledge_points or []
+                )
+            exam.status = ExamStatus.PUBLISHED
+            self.session.flush()
+            result = self._exam_summary(exam)
+            commit_started = True
+            self.session.commit()
+            return result
+        except AssemblyError as exc:
+            assembly._rollback(exc)
+            if exc.code == "EXAM_FORBIDDEN":
+                raise ExamPermissionError("无权访问该考试所属课程。") from exc
+            if exc.code == "EXAM_NOT_FOUND":
+                raise ExamNotFoundError(str(exc)) from exc
+            raise
+        except ExamServiceError:
+            self.session.rollback()
+            raise
+        except FileStorageError as exc:
+            error = AssemblyError(
+                exc.code,
+                str(exc),
+                http_status=exc.http_status,
+                current_status=exc.current_status,
+            )
+            assembly._rollback(error)
+            raise error from exc
+        except SQLAlchemyError as exc:
+            error = AssemblyError(
+                "EXAM_PUBLISH_COMMIT_UNKNOWN"
+                if commit_started
+                else "EXAM_PUBLISH_FAILED",
+                "发布提交结果未知，请重新加载核对实际状态。"
+                if commit_started
+                else "发布失败，本次修改已回滚。",
+                http_status=503,
+                details={
+                    "committed": None if commit_started else False,
+                    "error": assembly._technical_error(exc, "发布数据库操作失败。"),
+                },
+            )
+            assembly._rollback(error)
+            raise error from exc
 
     publish = publish_exam
 

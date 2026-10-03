@@ -268,6 +268,49 @@ def test_teacher_prepares_course_document_question_and_exam(
     assert exam["question_ids"] == [question_id]
     assert exam["question_count"] == 1
 
+    basis_url = f"/api/exams/{exam_id}/questions/{question_id}/scoring-basis"
+    current_basis = _expect_json(
+        client.get(basis_url, headers=headers), 200, "读取本场标准"
+    )
+    prepared_basis = _expect_json(
+        client.post(
+            basis_url + "/prepare",
+            headers=headers,
+            json={
+                "expected_question_validation_revision": current_basis[
+                    "question_validation_revision"
+                ],
+                "expected_effective_score": current_basis["effective_score"],
+                "expected_base_score": current_basis["base_score"],
+                "expected_basis": current_basis["basis"],
+                "additive": False,
+                "points": [],
+            },
+        ),
+        200,
+        "准备原文定性标准",
+    )
+    confirmed_basis = _expect_json(
+        client.post(
+            basis_url + "/confirm",
+            headers=headers,
+            json={
+                "expected_question_validation_revision": prepared_basis[
+                    "question_validation_revision"
+                ],
+                "expected_effective_score": prepared_basis["effective_score"],
+                "expected_base_score": prepared_basis["base_score"],
+                "preparation_id": prepared_basis["basis"]["preparation_id"],
+                "expected_basis": prepared_basis["basis"],
+                "confirmed_points": [],
+                "reason": "合成教师核对：原文封装与复用定性标准适用于本场10分。",
+            },
+        ),
+        200,
+        "确认本场定性标准",
+    )
+    assert confirmed_basis["basis"]["confirmation"]["teacher_id"] == str(teacher_id)
+
     published_exam = _expect_json(
         client.post(
             f"/api/exams/{exam_id}/publish",

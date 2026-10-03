@@ -1,0 +1,106 @@
+D:\develop\Python\Lib\site-packages\gradio\components\dataframe.py:197: UserWarning: The `column_limits` parameter is not yet implemented.
+  warnings.warn(
+D:\develop\Python\Lib\site-packages\gradio\components\dataframe.py:192: UserWarning: The `col_count` parameter is deprecated and will be removed. Please use `column_count` instead.
+  warnings.warn(
+INFO:     Started server process [67556]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:18749 (Press CTRL+C to quit)
+INFO:     127.0.0.1:7137 - "GET /gradio HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:7137 - "GET /gradio/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:7137 - "GET /gradio/static/js/iframeResizer.contentWindow.min.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9336 - "GET /gradio/assets/index-BkS15Xs3.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:7890 - "GET /gradio/assets/index-DZobeNVa.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:7890 - "GET /gradio/assets/Index-D-t5joK92.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9336 - "GET /gradio/assets/core-CAXGlMNg.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:7137 - "GET /gradio/assets/src-Dl2nhAat.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:8350 - "GET /gradio/assets/core-CzpTPg5X.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:12214 - "GET /gradio/assets/dist-Kll2twSG.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:8044 - "GET /gradio/assets/runtime-CCi_C8Gz.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:7890 - "GET /gradio/assets/src-BfutoOhM.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9336 - "GET /gradio/assets/statustracker-CouyIdTk.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:7137 - "GET /gradio/assets/Index-EZ26xow6.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:8350 - "GET /gradio/assets/logo-D4NPp-_W.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:8044 - "GET /gradio/assets/src-Dk2Ve7HQ.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:12214 - "GET /gradio/assets/statustracker-DPU4ThhG.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:12214 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:9336 - "GET /gradio/assets/browser-j4vcKnNL.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:7890 - "GET /gradio/assets/legacy-CccpxOkO.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:7890 - "GET /gradio/assets/zh-CN-CkzKEtHR.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:7890 - "GET /gradio/gradio_api/heartbeat/qwlbw6ln4br HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9336 - "GET /gradio/theme.css?v=8ad6f9b14414574fe6c6d9b4362dcdd63dfdc66d8c34cbef0982888dfc44ff04 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:7137 - "GET /gradio/assets/Blocks-0aNuD791.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:8044 - "GET /gradio/assets/api-logo-CCEtYehn.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:12214 - "GET /gradio/assets/Blocks-DDFr0Niq.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:8350 - "GET /gradio/assets/settings-logo-AL7zGNml.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:8350 - "GET /gradio/static/fonts/SourceSansPro/SourceSansPro-Regular.woff2 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:12214 - "GET /gradio/assets/Index-DrCM5gzc.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:8350 - "GET /gradio/assets/Index-Cgx-aBqH.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:8350 - "GET /gradio/assets/Index-DdCFxe0P.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:8044 - "GET /gradio/assets/Example-D7V1mKY3.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:12214 - "GET /gradio/assets/Index-BtjwKZJb.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:7137 - "GET /gradio/assets/Example-BG5zdIqX.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9336 - "GET /gradio/assets/HTML-C4ADBvkk.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:8350 - "GET /gradio/assets/HTML-BuYIBbeV.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:8044 - "GET /gradio/assets/Index-VzTVYr-q.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:12214 - "GET /gradio/assets/markdown-code-CW7mpWKO.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:7137 - "GET /gradio/assets/Example-CgIc4GLa.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9336 - "GET /gradio/assets/Index-BGK55NKF.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:8350 - "GET /gradio/assets/Index-LKTY8Jbn.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:8044 - "GET /gradio/assets/Image-Da_XA0w6.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:7137 - "GET /gradio/assets/Index-CcsdfK63.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:12214 - "GET /gradio/assets/ImagePreview-B2sIO-1d.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9336 - "GET /gradio/assets/Index-C1GyojFs.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:8350 - "GET /gradio/assets/Example-B1swpn2y.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:8044 - "GET /gradio/assets/Index-Ba0kRe4M.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:12214 - "GET /gradio/assets/Example-BeU1J4ps.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:7137 - "GET /gradio/assets/Index-l0AUS9hi.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9336 - "GET /gradio/assets/Index-B2IoSUlF.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:8350 - "GET /gradio/assets/Index-nz772N1q.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:8044 - "GET /gradio/assets/Example-qsJQ3Pbm.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:7137 - "GET /gradio/assets/Index-Bzhscryh.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:12214 - "GET /gradio/assets/src-DHR5oziv.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9336 - "GET /gradio/assets/Index-Bqii6RB8.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:8350 - "GET /gradio/assets/Index-BHng8pvl.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:8044 - "GET /gradio/assets/Example-DWDv4qx4.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:12214 - "GET /gradio/assets/Example-Cb41fFYF.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:7137 - "GET /gradio/assets/Index-CvOXDAXN.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9336 - "GET /gradio/assets/Index-j-xwmL9e.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9336 - "GET /gradio/assets/Index-DgD8sjzA.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:7137 - "GET /gradio/assets/Index-DRCpmDeD.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:8350 - "GET /gradio/assets/JSON-4hsSZ3V7.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:12214 - "GET /gradio/assets/Index-BsaKcsdE.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:8044 - "GET /gradio/assets/Index-D-h_yCjW.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:8350 - "GET /gradio/assets/prism-DtQvFAXp.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9336 - "GET /gradio/assets/Index-DnxvIExx.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:7137 - "GET /gradio/assets/markdown-code-h5itbPVU.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:8044 - "GET /gradio/assets/Index-HSTED4K72.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:12214 - "GET /gradio/assets/Example-0X2pyPJp.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:8350 - "GET /gradio/assets/Index-BF-wbmOv.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:7137 - "GET /gradio/assets/shared-DhgbHT7U.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9336 - "GET /gradio/assets/Image-C6EwRAez.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:8044 - "GET /gradio/assets/ImagePreview-DkOjf1wS.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:12214 - "GET /gradio/assets/Index-dp8qAiZ6.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:7137 - "GET /gradio/assets/Example-zffv55Vc.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:8350 - "GET /gradio/assets/Index-GgT5NFWC.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9336 - "GET /gradio/assets/Index-DuuyCZYu.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:8044 - "GET /gradio/assets/Index-DUAJPHl02.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:12214 - "GET /gradio/assets/Example-3dKDFY4a2.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:7137 - "GET /gradio/assets/Index-Cp4EMr1v.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:8350 - "GET /gradio/assets/Index-Cwp1HNkg.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9336 - "GET /gradio/assets/Example-DRNfFsvd.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:8044 - "GET /gradio/assets/src-BPf6-M07.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:12214 - "GET /gradio/assets/dsv-BSut97vP.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:12214 - "GET /gradio/assets/Example-CbsQ_w0w.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9336 - "GET /gradio/assets/Index-BaDEyhmX.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:8350 - "GET /gradio/assets/Index-DTdApZSv.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:8044 - "GET /gradio/assets/Index-DYkLshQb.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:7137 - "GET /gradio/assets/Index-2tzE3aT5.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:12214 - "GET /gradio/assets/Example-CExJWHv_.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9336 - "GET /gradio/assets/Index-q5yZ9Rht.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:7137 - "GET /gradio/assets/Index-OVRKBlkD.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:8350 - "GET /gradio/assets/JSON-_J_eq5-e.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:8044 - "GET /gradio/assets/Index-DPrNLxxB2.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:12214 - "GET /gradio/assets/Index-Cj6XGCNo.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9336 - "GET /gradio/assets/Example-BamLtfbF.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:7137 - "GET /gradio/assets/Index-rMZ1EyqX.js HTTP/1.1" 200 OK

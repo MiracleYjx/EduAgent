@@ -37,6 +37,7 @@ from backend.app.services.course_service import (
     CoursePermissionError,
     CourseServiceError,
 )
+from backend.app.services.question_scoring_invalidation import bump_question_validation
 
 _UNSET = object()
 _ALLOWED_STATUS_TRANSITIONS = {
@@ -526,7 +527,7 @@ class QuestionService:
             if field != "options"
         )
         if image_input_changed:
-            question.validation_revision += 1
+            bump_question_validation(self.session, question)
         if question.image_assessment is not None and image_input_changed:
             from backend.app.schemas.image_assessment import advance_image_context
 
@@ -627,7 +628,7 @@ class QuestionService:
             current_status is QuestionStatus.NEEDS_REVISION
             and next_status is QuestionStatus.PENDING_REVIEW
         ):
-            question.validation_revision += 1
+            bump_question_validation(self.session, question)
         question.status = next_status
         if next_status is QuestionStatus.APPROVED:
             question.frozen_at = datetime.now(UTC)

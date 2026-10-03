@@ -1,0 +1,54 @@
+{
+  "status": "Published",
+  "published_knowledge_points": [
+    "实验步骤"
+  ],
+  "view": {
+    "exam_id": "25cf055f-586a-4994-89bd-d14fc4f13eb5",
+    "exam_question_id": "af64f47d-80e4-4ffd-a84c-db1779cdc717",
+    "question_id": "332649f0-61ad-47b0-86c0-b47f6ffd73bd",
+    "question_type": "SHORT_ANSWER",
+    "source_rubric": "准备、执行、记录各 1 分，三个步骤可独立加总。",
+    "question_validation_revision": 0,
+    "explicit_score": "10.00",
+    "effective_score": "10.00",
+    "question_score": "3.00",
+    "base_score": "3.00",
+    "basis": {
+      "preparation_id": "3ae0a151-56c5-4b05-80a0-e6a3d2816383",
+      "kind": "subjective",
+      "rounding_mode": "ROUND_HALF_UP",
+      "points": [
+        {
+          "key": "p1",
+          "label": "准备",
+          "base_points": "1.00",
+          "default_points": "3.33",
+          "confirmed_points": "3.34"
+        },
+        {
+          "key": "p2",
+          "label": "执行",
+          "base_points": "1.00",
+          "default_points": "3.33",
+          "confirmed_points": "3.33"
+        },
+        {
+          "key": "p3",
+          "label": "记录",
+          "base_points": "1.00",
+          "default_points": "3.33",
+          "confirmed_points": "3.33"
+        }
+      ],
+      "additive": true,
+      "rounding_delta": "0.01",
+      "confirmation": {
+        "teacher_id": "c35c17ce-9ede-49c9-8309-d9c69d279c79",
+        "confirmed_at": "2026-10-03T18:30:36.440925Z",
+        "reason": "隔离界面验收：逐项默认合计9.99，明确将准备步骤定为3.34，其余各3.33，合计10.00。"
+      }
+    },
+    "editable": false
+  }
+}

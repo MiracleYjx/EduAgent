@@ -179,6 +179,14 @@ def seed_demo(
     if set(exam.question_ids) != set(question_ids):
         raise DemoSeedError("DEMO_EXAM_CHANGED：演示考试题目已变更，未覆盖现有组卷。")
     if exam.status is ExamStatus.DRAFT:
+        preview = exams.preview_assembly(exam.id, teacher_id=teacher_id)
+        if preview.publication_checks:
+            return {
+                **common_result, "status": "awaiting_exam_scoring",
+                "exam_id": exam.id, "exam_status": exam.status.value,
+                "publication_checks": [item.model_dump(mode="json") for item in preview.publication_checks],
+                "next_step": "教师在考试管理的发布检查中逐题准备并核对本场评分标准，确认后重跑命令发布。",
+            }
         exam = exams.publish_exam(exam.id, teacher_id=teacher_id)
     if exam.status is not ExamStatus.PUBLISHED:
         raise DemoSeedError("DEMO_EXAM_NOT_OPEN：演示考试已关闭或归档，未重置生命周期。")

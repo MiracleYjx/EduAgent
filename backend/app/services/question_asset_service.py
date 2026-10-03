@@ -48,6 +48,7 @@ from backend.app.services.question_asset_access import (
     student_can_read_question,
     visible_question_assets,
 )
+from backend.app.services.question_scoring_invalidation import bump_question_validation
 
 
 def actual_image(content: bytes) -> Image.Image:
@@ -289,7 +290,7 @@ class QuestionAssetService:
         asset._file_path, asset._file_metadata = stored.storage_path, stored.metadata.model_dump(mode="json")
         self.session.add(asset)
         question.image_assessment = next_assessment
-        question.validation_revision += 1
+        bump_question_validation(self.session, question)
         return QuestionAssetView(id=asset.id, question_id=question.id, file_id="a_" + asset.id.hex, asset_type=payload.asset_type, width=asset.width, height=asset.height, caption=asset.caption, source_page_id=asset.source_page_id, region=payload.region, order_index=asset.order_index, student_visible=asset.student_visible), stored
 
     def remove_question(self, question_id: UUID | str, asset_id: UUID, *, actor_id: UUID) -> None:
@@ -299,7 +300,7 @@ class QuestionAssetService:
             raise FileStorageError("FILE_NOT_FOUND", "题图关联不存在。", http_status=404)
         remaining = [entry for entry in question.assets if entry.id != asset.id]
         question.image_assessment = advance_image_context(question.image_assessment)
-        question.validation_revision += 1
+        bump_question_validation(self.session, question)
         self.session.delete(asset)
         self.session.flush()
         # Release old unique slots before assigning continuous new order.
@@ -325,7 +326,7 @@ class QuestionAssetService:
         asset = QuestionAsset(id=identity, question=question, asset_type=asset_type, width=image.width, height=image.height, caption=caption, order_index=len(question.assets) + 1, student_visible=student_visible, _file_path=stored.storage_path, _file_metadata=stored.metadata.model_dump(mode="json"))
         self.session.add(asset)
         question.image_assessment = next_assessment
-        question.validation_revision += 1
+        bump_question_validation(self.session, question)
         self._commit(stored)
         return QuestionAssetView.model_validate(asset)
 
@@ -336,7 +337,7 @@ class QuestionAssetService:
             raise FileStorageError("FILE_REFERENCE_CONFLICT", "排序须恰好包含本题全部资产一次。")
         if [asset.id for asset in question.assets] != asset_ids:
             question.image_assessment = advance_image_context(question.image_assessment)
-            question.validation_revision += 1
+            bump_question_validation(self.session, question)
             for asset in existing.values():
                 asset.order_index = None
             self.session.flush()
