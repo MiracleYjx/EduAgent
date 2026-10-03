@@ -85,6 +85,7 @@ from backend.app.services.review_service import ReviewOutcome
 from backend.app.services.workflow_checkpoint import (
     WorkflowCheckpointStore,
 )
+from tests.support.exam_scoring_fixtures import confirm_synthetic_exam_basis
 from tests.unit.models.sqlite_support import seed_submission
 from tests.unit.services.test_submission_service import add_user
 from tests.unit.settings_helpers import build_test_settings
@@ -273,6 +274,8 @@ def env(tmp_path: Path) -> Generator[dict[str, Any], None, None]:
     engine = _file_engine(tmp_path / "workflow.db")
     with Session(engine) as session:
         fixture = seed_submission(session)
+        confirm_synthetic_exam_basis(session, fixture.exam_id)
+        session.commit()
         yield {"engine": engine, "fixture": fixture}
     engine.dispose()
 

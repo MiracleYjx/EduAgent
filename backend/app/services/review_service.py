@@ -857,6 +857,11 @@ class ReviewService:
                 "该题目不属于本工作流状态的评分结果集合，拒绝跨工作流或凭空确认。"
             )
         snapshot = self._reader.load_for_teacher(submission_id, operator_id)
+        if snapshot.scoring_basis_error is not None:
+            raise ReviewServiceError(
+                "本场评分依据尚未核对或当前评分输入无法完整表达，拒绝写入复核结论。",
+                error_code=snapshot.scoring_basis_error,
+            )
         if snapshot.submission_id != submission_id:
             raise ReviewIdentityError("教师可访问的答卷与检查点记录的答卷不一致。")
         target = next(

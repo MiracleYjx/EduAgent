@@ -105,6 +105,8 @@ REVIEW_DECISION_SERVICE_NOT_READY: str = "REVIEW_DECISION_SERVICE_NOT_READY"
 
 #: 错误码到 HTTP 状态码的映射；未列出的错误按 500 处理并保持脱敏。
 _ERROR_STATUS: dict[str, int] = {
+    "EXAM_SCORING_BASIS_MISSING": 409,
+    "EXAM_SCORING_INPUT_NOT_SUPPORTED": 409,
     REVIEW_QUERY_STORE_NOT_READY: 503,
     REVIEW_DECISION_SERVICE_NOT_READY: 503,
     REVIEW_SERVICE_NOT_READY: 503,
@@ -599,7 +601,7 @@ class ReviewQueryService:
             question_content=question.content,
             reference_answer=question.reference_answer,
             scoring_rubric=question.scoring_rubric,
-            max_score=question.score,
+            max_score=result.max_score,
             student_answer=_answer_text(answer.content),
             score=result.score,
             reason=result.reason,

@@ -305,6 +305,20 @@ class SubmissionSnapshot:
     status: str
     answers: tuple[GradingTargetAnswer, ...]
     retrieval_scope: RetrievalScope = field(default_factory=RetrievalScope)
+    scoring_basis_error: str | None = "EXAM_SCORING_BASIS_MISSING"
+
+    def require_scoring_ready(self) -> None:
+        """读取历史不抛错；每个执行入口必须显式核对本场依据。"""
+        if self.scoring_basis_error is not None:
+            detail = (
+                "历史考试评分依据缺失或未通过核对，保留旧结果并拒绝重评。"
+                if self.scoring_basis_error == "EXAM_SCORING_BASIS_MISSING"
+                else "已固定的本场评分输入尚不能由当前评分器完整表达。"
+            )
+            error = GradingNotAllowedError(detail)
+            error.error_code = self.scoring_basis_error
+            error.args = (f"{error.error_code}：{detail}",)
+            raise error
 
     def to_context(self) -> SubmissionContext:
         """转换为 T054 汇总所需的预期题目集合与题序。"""
@@ -689,7 +703,63 @@ class DatabaseGradingSubmissionReader:
             course_id=str(exam.course_id),
             status=submission.status.value,
             answers=tuple(targets),
+            scoring_basis_error=_legacy_scoring_basis_error(exam, questions),
         )
+
+
+def _legacy_scoring_basis_error(exam: Exam, questions: Sequence[Any]) -> str | None:
+    """Only allow fixed facts exactly expressible by the current grading input.
+
+    This check never substitutes current bank data for unknown historical facts.
+    The complete per-exam scoring input is introduced in the scoring-chain task.
+    """
+    from backend.app.schemas.exam_scoring import ScoringBasis
+    from backend.app.services.exam_scoring_rules import validate_scoring_basis
+
+    links = sorted(exam.exam_question_links, key=lambda row: row.order_index)
+    if not links or any(
+        row.score is None
+        or row.base_score is None
+        or row.published_knowledge_points is None
+        or row.scoring_basis is None
+        for row in links
+    ):
+        return "EXAM_SCORING_BASIS_MISSING"
+    if [row.question_id for row in links] != [question.id for question in questions]:
+        return "EXAM_SCORING_INPUT_NOT_SUPPORTED"
+    for row in links:
+        assert row.score is not None and row.base_score is not None
+        try:
+            basis = ScoringBasis.model_validate(row.scoring_basis)
+            validate_scoring_basis(
+                score=row.score,
+                base_score=row.base_score,
+                question_type=row.question.type,
+                basis=basis,
+            )
+        except (TypeError, ValueError):
+            return "EXAM_SCORING_BASIS_MISSING"
+        question = row.question
+        if (
+            row.score != row.base_score
+            or row.score != question.score
+            or row.published_knowledge_points != list(question.knowledge_points or [])
+            or question.assets
+        ):
+            return "EXAM_SCORING_INPUT_NOT_SUPPORTED"
+        if question.type is QuestionType.SHORT_ANSWER:
+            if basis.points or basis.additive or basis.confirmation is None:
+                return "EXAM_SCORING_INPUT_NOT_SUPPORTED"
+        elif not (
+            basis.additive
+            and len(basis.points) == 1
+            and basis.rounding_delta == 0
+            and basis.points[0].base_points == row.base_score
+            and basis.points[0].default_points == row.score
+            and basis.points[0].confirmed_points == row.score
+        ):
+            return "EXAM_SCORING_INPUT_NOT_SUPPORTED"
+    return None
 
 
 class GradingProgressUpdater(Protocol):
@@ -853,6 +923,7 @@ class InlineGradingTaskExecutor:
                 self._reader.load(submission_id),
                 retrieval_scope=self._repository.get_retrieval_scope(task_id),
             )
+            snapshot.require_scoring_ready()
             outcome = self._pipeline.score(snapshot)
             exam_result = outcome.exam_result
             if exam_result is None:
@@ -987,6 +1058,7 @@ class GradingTaskService:
 
         self._repository.ensure_ready()
         snapshot = self._reader.load_for_teacher(submission_id, teacher_id)
+        snapshot.require_scoring_ready()
         scope = retrieval_scope if retrieval_scope is not None else RetrievalScope()
         if not scope.is_empty:
             validate_scope = getattr(self._reader, "validate_retrieval_scope", None)

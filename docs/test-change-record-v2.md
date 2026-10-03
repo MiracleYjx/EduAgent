@@ -641,3 +641,13 @@ T159 修夹具后的主壳先行：2 failed，分别在 generatorfunction 与动
 - 验证：先新Schema/模型/迁移行为RED，再实现及真实PG/旧考试服务聚焦；mypy/Ruff/迁移检查。本批最终完整回归使用排除原有用户样本差异的提交快照，原冲突事实已在T169记录，不修改其断言或用户数据。
 
 T170执行结果：新增模型入口RED真实失败后完成；直接回归249 passed、隔离PG迁移1 passed，mypy202/Ruff/Alembic check通过。新增tests/unit/services/test_exam_association_service.py验证旧入口写关联及非草稿未知分值；UI只把null显示为未知。证据见docs/evidence/t170-20261004/。
+
+## 26. T171 历史核对与兼容迁移 TCR（实施前，2026-10-04）
+
+- 必要性：T144证据仅证明部分运行时分值/知识点，不能自动证明发布Rubric/基准/时间。只读清单与显式证据核对、未知新评分拒绝需要验证。
+- 覆盖：原关联数、确定题序、NULL未知、旧结果/UTC读回，合法证据核对身份/课程/完整性、非空冲突拒绝、同内容幂等、同场回滚和失败恢复；不改Question.frozen_at或旧结果，不从现题库/模型补历史。只读GET保持，执行门禁覆盖触发/worker/复核写入，完整评分链由T176接续。
+
+- T171具体补验范围：tests/integration/test_exam_history_audit.py、test_exam_scoring_execution_gate.py，tests/unit/services/test_exam_scoring_rules.py、test_exam_execution_boundaries.py。真实PG验证历史读取与源事实，Workflow/Review真实服务+受控运行依赖验证无新评分/写入；非独立教师或云模型质量评测。
+- 执行夹具显式提供合成教师核对的完整依据；Snapshot替身显式声明能力，默认不授权。共享旧断言保持；改题型的范围测试同步生成对应合成basis。审查新增必要边界：旧Session行锁刷新、提交回执丢失保持unknown、三个API业务门禁映409，均先记录真实RED再修复。
+
+T171最终结果：64项聚焦通过；直接回归639通过、4夹具失败按真实题型补齐basis后4项重验通过；mypy205/Ruff通过。原始失败和stale/提交未知状态RED均保存，原业务库只读盘点与用户文件校验已记录。证据docs/evidence/t171-20261004/。

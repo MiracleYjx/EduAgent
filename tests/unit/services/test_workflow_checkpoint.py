@@ -435,6 +435,7 @@ def _snapshot(env: CheckpointEnv) -> SubmissionSnapshot:
     """构造与答卷夹具一致的权威快照（混合题型）。"""
 
     return SubmissionSnapshot(
+        scoring_basis_error=None,  # Explicit controlled snapshot, not a database inference.
         submission_id=str(env.fixture.submission_id),
         exam_id=str(env.fixture.exam_id),
         student_id=str(env.fixture.student_id),

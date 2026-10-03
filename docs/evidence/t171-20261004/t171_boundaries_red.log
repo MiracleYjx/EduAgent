@@ -1,0 +1,391 @@
+...FFFFFFFFF                                                             [100%]
+================================== FAILURES ===================================
+_ test_review_actions_refuse_unknown_history_without_rewriting_readable_results[confirm] _
+
+review_env = ReviewEnv(engine=Engine(sqlite:///D:\YJX\Cache\Temp\pytest-of-10169\pytest-203\test_review_actions_refuse_unk0\review....answer_id=UUID('3d144e98-acd3-4a6c-b52d-206f61f391bd'), second_answer_id=UUID('02e8a709-ea7f-4946-947d-f9a733585ed3')))
+action = 'confirm'
+
+    @pytest.mark.parametrize("action", ["confirm", "modify", "regrade"])
+    def test_review_actions_refuse_unknown_history_without_rewriting_readable_results(
+        review_env, action
+    ):
+        env = review_env
+        subjectives = review_cases._subjective_answer_ids(env)
+        agent = review_cases._StubGradingAgent(
+            submission_id=str(env.paper.submission_id),
+            low_confidence_answer_ids={subjectives[0]},
+        )
+        graph, _state, _result = review_cases._pause_run(
+            env, agent=agent, saver=review_cases._saver(env)
+        )
+        target_id = review_cases._paused_answer(env)
+        target = next(
+            item
+            for item in review_cases._snapshot(env).answers
+            if item.answer_id == target_id
+        )
+        revised = (
+            review_cases._grading_result(
+                target,
+                str(env.paper.submission_id),
+                score=8.0,
+                confidence=0.95,
+                review_status=ReviewStatus.NOT_REQUIRED.value,
+            )
+            if action == "modify"
+            else None
+        )
+        decision = review_cases._decision_payload(
+            env,
+            answer_id=target_id,
+            review_status=(
+                ReviewStatus.MODIFIED.value
+                if action == "modify"
+                else ReviewStatus.CONFIRMED.value
+            ),
+            revised_result=revised,
+        )
+        service = review_cases._service(env, workflow=graph)
+        stored_grade = review_cases._grading_row(env, target_id)
+>       _remove_known_basis(env.engine, env.paper.exam_id)
+                                        ^^^^^^^^^^^^^^^^^
+E       AttributeError: 'Paper' object has no attribute 'exam_id'
+
+tests\unit\services\test_exam_execution_boundaries.py:194: AttributeError
+_ test_review_actions_refuse_unknown_history_without_rewriting_readable_results[modify] _
+
+review_env = ReviewEnv(engine=Engine(sqlite:///D:\YJX\Cache\Temp\pytest-of-10169\pytest-203\test_review_actions_refuse_unk1\review....answer_id=UUID('bc5325e7-d8eb-4934-a0d0-219bf9d0f730'), second_answer_id=UUID('d6e3c2d4-0c18-4910-8155-8780365b4107')))
+action = 'modify'
+
+    @pytest.mark.parametrize("action", ["confirm", "modify", "regrade"])
+    def test_review_actions_refuse_unknown_history_without_rewriting_readable_results(
+        review_env, action
+    ):
+        env = review_env
+        subjectives = review_cases._subjective_answer_ids(env)
+        agent = review_cases._StubGradingAgent(
+            submission_id=str(env.paper.submission_id),
+            low_confidence_answer_ids={subjectives[0]},
+        )
+        graph, _state, _result = review_cases._pause_run(
+            env, agent=agent, saver=review_cases._saver(env)
+        )
+        target_id = review_cases._paused_answer(env)
+        target = next(
+            item
+            for item in review_cases._snapshot(env).answers
+            if item.answer_id == target_id
+        )
+        revised = (
+            review_cases._grading_result(
+                target,
+                str(env.paper.submission_id),
+                score=8.0,
+                confidence=0.95,
+                review_status=ReviewStatus.NOT_REQUIRED.value,
+            )
+            if action == "modify"
+            else None
+        )
+        decision = review_cases._decision_payload(
+            env,
+            answer_id=target_id,
+            review_status=(
+                ReviewStatus.MODIFIED.value
+                if action == "modify"
+                else ReviewStatus.CONFIRMED.value
+            ),
+            revised_result=revised,
+        )
+        service = review_cases._service(env, workflow=graph)
+        stored_grade = review_cases._grading_row(env, target_id)
+>       _remove_known_basis(env.engine, env.paper.exam_id)
+                                        ^^^^^^^^^^^^^^^^^
+E       AttributeError: 'Paper' object has no attribute 'exam_id'
+
+tests\unit\services\test_exam_execution_boundaries.py:194: AttributeError
+_ test_review_actions_refuse_unknown_history_without_rewriting_readable_results[regrade] _
+
+review_env = ReviewEnv(engine=Engine(sqlite:///D:\YJX\Cache\Temp\pytest-of-10169\pytest-203\test_review_actions_refuse_unk2\review....answer_id=UUID('55ac31eb-d1ff-41c3-9832-d68c7821636d'), second_answer_id=UUID('357b4030-e506-4a1e-8e90-cc5faa4271ca')))
+action = 'regrade'
+
+    @pytest.mark.parametrize("action", ["confirm", "modify", "regrade"])
+    def test_review_actions_refuse_unknown_history_without_rewriting_readable_results(
+        review_env, action
+    ):
+        env = review_env
+        subjectives = review_cases._subjective_answer_ids(env)
+        agent = review_cases._StubGradingAgent(
+            submission_id=str(env.paper.submission_id),
+            low_confidence_answer_ids={subjectives[0]},
+        )
+        graph, _state, _result = review_cases._pause_run(
+            env, agent=agent, saver=review_cases._saver(env)
+        )
+        target_id = review_cases._paused_answer(env)
+        target = next(
+            item
+            for item in review_cases._snapshot(env).answers
+            if item.answer_id == target_id
+        )
+        revised = (
+            review_cases._grading_result(
+                target,
+                str(env.paper.submission_id),
+                score=8.0,
+                confidence=0.95,
+                review_status=ReviewStatus.NOT_REQUIRED.value,
+            )
+            if action == "modify"
+            else None
+        )
+        decision = review_cases._decision_payload(
+            env,
+            answer_id=target_id,
+            review_status=(
+                ReviewStatus.MODIFIED.value
+                if action == "modify"
+                else ReviewStatus.CONFIRMED.value
+            ),
+            revised_result=revised,
+        )
+        service = review_cases._service(env, workflow=graph)
+        stored_grade = review_cases._grading_row(env, target_id)
+>       _remove_known_basis(env.engine, env.paper.exam_id)
+                                        ^^^^^^^^^^^^^^^^^
+E       AttributeError: 'Paper' object has no attribute 'exam_id'
+
+tests\unit\services\test_exam_execution_boundaries.py:194: AttributeError
+_ test_execution_basis_errors_keep_business_code_and_http_conflict[grading-EXAM_SCORING_BASIS_MISSING] _
+
+code = 'EXAM_SCORING_BASIS_MISSING', boundary = 'grading'
+
+    @pytest.mark.parametrize(
+        "code", ["EXAM_SCORING_BASIS_MISSING", "EXAM_SCORING_INPUT_NOT_SUPPORTED"]
+    )
+    @pytest.mark.parametrize("boundary", ["grading", "workflow", "reviews"])
+    def test_execution_basis_errors_keep_business_code_and_http_conflict(code, boundary):
+        snapshot = SubmissionSnapshot(
+            submission_id="s",
+            exam_id="e",
+            student_id="u",
+            course_id="c",
+            status="Submitted",
+            answers=(),
+            scoring_basis_error=code,
+        )
+        with pytest.raises(GradingNotAllowedError) as raised:
+            snapshot.require_scoring_ready()
+        if boundary == "grading":
+            response = grading._grading_http_exception(raised.value)
+        elif boundary == "workflow":
+            response = workflow._workflow_http_exception(
+                workflow._grading_error(raised.value)
+            )
+        else:
+            response = reviews._review_http_exception(
+                ReviewServiceError(raised.value.detail, error_code=code)
+            )
+        assert response.detail["error_code"] == code
+>       assert response.status_code == 409
+E       AssertionError: assert 500 == 409
+E        +  where 500 = HTTPException(status_code=500, detail={'error_code': 'EXAM_SCORING_BASIS_MISSING', 'message': '历史考试评分依据缺失或未通过核对，保留旧结果并拒绝重评。', 'retryable': False}).status_code
+
+tests\unit\services\test_exam_execution_boundaries.py:252: AssertionError
+_ test_execution_basis_errors_keep_business_code_and_http_conflict[grading-EXAM_SCORING_INPUT_NOT_SUPPORTED] _
+
+code = 'EXAM_SCORING_INPUT_NOT_SUPPORTED', boundary = 'grading'
+
+    @pytest.mark.parametrize(
+        "code", ["EXAM_SCORING_BASIS_MISSING", "EXAM_SCORING_INPUT_NOT_SUPPORTED"]
+    )
+    @pytest.mark.parametrize("boundary", ["grading", "workflow", "reviews"])
+    def test_execution_basis_errors_keep_business_code_and_http_conflict(code, boundary):
+        snapshot = SubmissionSnapshot(
+            submission_id="s",
+            exam_id="e",
+            student_id="u",
+            course_id="c",
+            status="Submitted",
+            answers=(),
+            scoring_basis_error=code,
+        )
+        with pytest.raises(GradingNotAllowedError) as raised:
+            snapshot.require_scoring_ready()
+        if boundary == "grading":
+            response = grading._grading_http_exception(raised.value)
+        elif boundary == "workflow":
+            response = workflow._workflow_http_exception(
+                workflow._grading_error(raised.value)
+            )
+        else:
+            response = reviews._review_http_exception(
+                ReviewServiceError(raised.value.detail, error_code=code)
+            )
+        assert response.detail["error_code"] == code
+>       assert response.status_code == 409
+E       AssertionError: assert 500 == 409
+E        +  where 500 = HTTPException(status_code=500, detail={'error_code': 'EXAM_SCORING_INPUT_NOT_SUPPORTED', 'message': '已固定的本场评分输入尚不能由当前评分器完整表达。', 'retryable': False}).status_code
+
+tests\unit\services\test_exam_execution_boundaries.py:252: AssertionError
+_ test_execution_basis_errors_keep_business_code_and_http_conflict[workflow-EXAM_SCORING_BASIS_MISSING] _
+
+code = 'EXAM_SCORING_BASIS_MISSING', boundary = 'workflow'
+
+    @pytest.mark.parametrize(
+        "code", ["EXAM_SCORING_BASIS_MISSING", "EXAM_SCORING_INPUT_NOT_SUPPORTED"]
+    )
+    @pytest.mark.parametrize("boundary", ["grading", "workflow", "reviews"])
+    def test_execution_basis_errors_keep_business_code_and_http_conflict(code, boundary):
+        snapshot = SubmissionSnapshot(
+            submission_id="s",
+            exam_id="e",
+            student_id="u",
+            course_id="c",
+            status="Submitted",
+            answers=(),
+            scoring_basis_error=code,
+        )
+        with pytest.raises(GradingNotAllowedError) as raised:
+            snapshot.require_scoring_ready()
+        if boundary == "grading":
+            response = grading._grading_http_exception(raised.value)
+        elif boundary == "workflow":
+            response = workflow._workflow_http_exception(
+                workflow._grading_error(raised.value)
+            )
+        else:
+            response = reviews._review_http_exception(
+                ReviewServiceError(raised.value.detail, error_code=code)
+            )
+        assert response.detail["error_code"] == code
+>       assert response.status_code == 409
+E       AssertionError: assert 500 == 409
+E        +  where 500 = HTTPException(status_code=500, detail={'error_code': 'EXAM_SCORING_BASIS_MISSING', 'message': '历史考试评分依据缺失或未通过核对，保留旧结果并拒绝重评。', 'retryable': False, 'source_code': None}).status_code
+
+tests\unit\services\test_exam_execution_boundaries.py:252: AssertionError
+_ test_execution_basis_errors_keep_business_code_and_http_conflict[workflow-EXAM_SCORING_INPUT_NOT_SUPPORTED] _
+
+code = 'EXAM_SCORING_INPUT_NOT_SUPPORTED', boundary = 'workflow'
+
+    @pytest.mark.parametrize(
+        "code", ["EXAM_SCORING_BASIS_MISSING", "EXAM_SCORING_INPUT_NOT_SUPPORTED"]
+    )
+    @pytest.mark.parametrize("boundary", ["grading", "workflow", "reviews"])
+    def test_execution_basis_errors_keep_business_code_and_http_conflict(code, boundary):
+        snapshot = SubmissionSnapshot(
+            submission_id="s",
+            exam_id="e",
+            student_id="u",
+            course_id="c",
+            status="Submitted",
+            answers=(),
+            scoring_basis_error=code,
+        )
+        with pytest.raises(GradingNotAllowedError) as raised:
+            snapshot.require_scoring_ready()
+        if boundary == "grading":
+            response = grading._grading_http_exception(raised.value)
+        elif boundary == "workflow":
+            response = workflow._workflow_http_exception(
+                workflow._grading_error(raised.value)
+            )
+        else:
+            response = reviews._review_http_exception(
+                ReviewServiceError(raised.value.detail, error_code=code)
+            )
+        assert response.detail["error_code"] == code
+>       assert response.status_code == 409
+E       AssertionError: assert 500 == 409
+E        +  where 500 = HTTPException(status_code=500, detail={'error_code': 'EXAM_SCORING_INPUT_NOT_SUPPORTED', 'message': '已固定的本场评分输入尚不能由当前评分器完整表达。', 'retryable': False, 'source_code': None}).status_code
+
+tests\unit\services\test_exam_execution_boundaries.py:252: AssertionError
+_ test_execution_basis_errors_keep_business_code_and_http_conflict[reviews-EXAM_SCORING_BASIS_MISSING] _
+
+code = 'EXAM_SCORING_BASIS_MISSING', boundary = 'reviews'
+
+    @pytest.mark.parametrize(
+        "code", ["EXAM_SCORING_BASIS_MISSING", "EXAM_SCORING_INPUT_NOT_SUPPORTED"]
+    )
+    @pytest.mark.parametrize("boundary", ["grading", "workflow", "reviews"])
+    def test_execution_basis_errors_keep_business_code_and_http_conflict(code, boundary):
+        snapshot = SubmissionSnapshot(
+            submission_id="s",
+            exam_id="e",
+            student_id="u",
+            course_id="c",
+            status="Submitted",
+            answers=(),
+            scoring_basis_error=code,
+        )
+        with pytest.raises(GradingNotAllowedError) as raised:
+            snapshot.require_scoring_ready()
+        if boundary == "grading":
+            response = grading._grading_http_exception(raised.value)
+        elif boundary == "workflow":
+            response = workflow._workflow_http_exception(
+                workflow._grading_error(raised.value)
+            )
+        else:
+            response = reviews._review_http_exception(
+                ReviewServiceError(raised.value.detail, error_code=code)
+            )
+        assert response.detail["error_code"] == code
+>       assert response.status_code == 409
+E       AssertionError: assert 500 == 409
+E        +  where 500 = HTTPException(status_code=500, detail={'error_code': 'EXAM_SCORING_BASIS_MISSING', 'message': '历史考试评分依据缺失或未通过核对，保留旧结果并拒绝重评。', 'retryable': False, 'source_code': None}).status_code
+
+tests\unit\services\test_exam_execution_boundaries.py:252: AssertionError
+_ test_execution_basis_errors_keep_business_code_and_http_conflict[reviews-EXAM_SCORING_INPUT_NOT_SUPPORTED] _
+
+code = 'EXAM_SCORING_INPUT_NOT_SUPPORTED', boundary = 'reviews'
+
+    @pytest.mark.parametrize(
+        "code", ["EXAM_SCORING_BASIS_MISSING", "EXAM_SCORING_INPUT_NOT_SUPPORTED"]
+    )
+    @pytest.mark.parametrize("boundary", ["grading", "workflow", "reviews"])
+    def test_execution_basis_errors_keep_business_code_and_http_conflict(code, boundary):
+        snapshot = SubmissionSnapshot(
+            submission_id="s",
+            exam_id="e",
+            student_id="u",
+            course_id="c",
+            status="Submitted",
+            answers=(),
+            scoring_basis_error=code,
+        )
+        with pytest.raises(GradingNotAllowedError) as raised:
+            snapshot.require_scoring_ready()
+        if boundary == "grading":
+            response = grading._grading_http_exception(raised.value)
+        elif boundary == "workflow":
+            response = workflow._workflow_http_exception(
+                workflow._grading_error(raised.value)
+            )
+        else:
+            response = reviews._review_http_exception(
+                ReviewServiceError(raised.value.detail, error_code=code)
+            )
+        assert response.detail["error_code"] == code
+>       assert response.status_code == 409
+E       AssertionError: assert 500 == 409
+E        +  where 500 = HTTPException(status_code=500, detail={'error_code': 'EXAM_SCORING_INPUT_NOT_SUPPORTED', 'message': '已固定的本场评分输入尚不能由当前评分器完整表达。', 'retryable': False, 'source_code': None}).status_code
+
+tests\unit\services\test_exam_execution_boundaries.py:252: AssertionError
+============================== warnings summary ===============================
+..\..\..\develop\Python\Lib\site-packages\fastapi\testclient.py:1
+  D:\develop\Python\Lib\site-packages\fastapi\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/unit/services/test_exam_execution_boundaries.py::test_review_actions_refuse_unknown_history_without_rewriting_readable_results[confirm]
+FAILED tests/unit/services/test_exam_execution_boundaries.py::test_review_actions_refuse_unknown_history_without_rewriting_readable_results[modify]
+FAILED tests/unit/services/test_exam_execution_boundaries.py::test_review_actions_refuse_unknown_history_without_rewriting_readable_results[regrade]
+FAILED tests/unit/services/test_exam_execution_boundaries.py::test_execution_basis_errors_keep_business_code_and_http_conflict[grading-EXAM_SCORING_BASIS_MISSING]
+FAILED tests/unit/services/test_exam_execution_boundaries.py::test_execution_basis_errors_keep_business_code_and_http_conflict[grading-EXAM_SCORING_INPUT_NOT_SUPPORTED]
+FAILED tests/unit/services/test_exam_execution_boundaries.py::test_execution_basis_errors_keep_business_code_and_http_conflict[workflow-EXAM_SCORING_BASIS_MISSING]
+FAILED tests/unit/services/test_exam_execution_boundaries.py::test_execution_basis_errors_keep_business_code_and_http_conflict[workflow-EXAM_SCORING_INPUT_NOT_SUPPORTED]
+FAILED tests/unit/services/test_exam_execution_boundaries.py::test_execution_basis_errors_keep_business_code_and_http_conflict[reviews-EXAM_SCORING_BASIS_MISSING]
+FAILED tests/unit/services/test_exam_execution_boundaries.py::test_execution_basis_errors_keep_business_code_and_http_conflict[reviews-EXAM_SCORING_INPUT_NOT_SUPPORTED]
+9 failed, 3 passed, 1 warning in 17.76s

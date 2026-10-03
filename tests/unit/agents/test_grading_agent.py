@@ -143,6 +143,7 @@ def _snapshot(*targets: GradingTargetAnswer) -> SubmissionSnapshot:
     """构造答卷只读快照（M3 类型，不新建重复类型）。"""
 
     return SubmissionSnapshot(
+        scoring_basis_error=None,  # Explicit controlled snapshot, not a database inference.
         submission_id="submission-1",
         exam_id="exam-1",
         student_id="student-1",

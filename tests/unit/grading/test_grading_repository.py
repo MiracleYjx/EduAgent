@@ -63,6 +63,7 @@ from backend.app.services.grading.grading_task_service import (
 )
 from backend.app.services.grading.result_aggregator import ResultAggregator
 from backend.app.services.workflow_checkpoint import WorkflowCheckpointError
+from tests.support.exam_scoring_fixtures import confirm_synthetic_exam_basis
 from tests.unit.models.sqlite_support import (
     SubmissionFixture,
     create_sqlite_engine,
@@ -88,7 +89,10 @@ def fixture(engine: Engine) -> SubmissionFixture:
     """一份含客观题与主观题的最小答卷。"""
 
     with Session(engine) as session:
-        return seed_submission(session)
+        fixture = seed_submission(session)
+        confirm_synthetic_exam_basis(session, fixture.exam_id)
+        session.commit()
+        return fixture
 
 
 @pytest.fixture

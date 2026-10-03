@@ -900,3 +900,15 @@ scripts/demo_seed.py 先准备全部题目，仅将 Draft 送审；未全部 App
 受校验Schema要求金额字符串/Decimal、最多两位小数、单题正值且≤999999.99；总分不误套单题上限，严格数量、去重标签和UTC身份。Draft未设分值时合法取题库默认；旧Published/Closed/Archived缺本场分值时摘要total_score=null，UI显示“未知（待核对）”，不妨碍读取题目列表与已存结果。新增完整数学依据校验和历史处置由T171/T174衔接。
 
 新增测试先RED：缺ExamQuestion收集失败、旧服务2项缺关联属性；模型/原入口首轮31 passed。最终直接影响回归249 passed（122.01s），真实隔离PG迁移1 passed，覆盖旧pairs/题序/NULL/FK/约束、有损降级拒绝与安全降级重升。全backend mypy202源文件、Ruff、隔离库upgrade/check均通过。原夹具仅改关联生产方式及迁移head，保留原业务断言；原0009测试用真实旧表结构写入，未把新列强塞旧迁移。原始日志与失败保留在[evidence/t170-20261004/](evidence/t170-20261004/manifest.json)。本条不宣称E4全量验收、模型质量或性能通过；整批最终再做精确提交快照全回归。原业务库与三项用户修改/.env保持。
+
+## T171 历史考试核对与执行兼容（2026-10-04）
+
+新增默认只读的 `scripts/audit_exam_history.py audit` 及显式 `apply`。管理员可盘点；回填还须具备真实Teacher角色和课程所有权。完整manifest逐字段绑定真实本地证据引用及文件摘要，全卷关联集合一致；只据证据填写分值/基准/发布知识点/标准及更强题序，不从当前题库推断。摘要仅校验文件字节完整性，真实性由当前核对者负责。记录实际操作账户和当前UTC核对，绝不充当历史批准时间；同内容幂等保留原确认，已有非空冲突拒绝，整份清单失败回滚。操作说明见[exam-history-reconciliation.md](exam-history-reconciliation.md)。
+
+执行入口新增真实依据与消费能力检查：触发、后台重读、Workflow启动/重建/恢复及Confirm/Revise/Re-grade均拒绝未知依据；已完整但旧评分输入不能表达的改分/结构化标准/图片等也明确阻断，HTTP409保持原业务code，完整评分输入由T176继续。读取历史任务/工作流/结果保留；复核详情满分采用持久GradingResult.max_score。兼容执行仅允许与当前输入完全一致的已核对事实，不以非空JSON或当前题库值充当历史依据。
+
+真实PG补验发现并修正：旧Session缓存NULL可能覆盖另一会话已确认事实，锁查询现刷新实际行；服务器COMMIT已成功但回执丢失时，CLI保留database_committed=null/commit_outcome_unknown，要求只读审计实际状态，不声称回滚。提交前失败false、已获成功回执后报告失败true，各有独立故障证据。
+
+最终新增/补充聚焦**64 passed**（33.90s），含16历史工具PG、6执行门禁PG、30纯规则及12工作流/复核/HTTP边界。直接回归首轮639 passed/4 failed；4项是旧范围测试改题型未同步合成basis，补齐生产者事实后4 passed，全部原断言保持。全backend及CLI mypy205源文件、backend/tests/CLI Ruff通过。最初RED、误写测试路径、夹具问题与审查RED日志全部保留，未把失败或skip算通过；整批最终精确提交快照全回归另记。证据见[evidence/t171-20261004/](evidence/t171-20261004/manifest.json)。
+
+2026-10-03T17:13:47Z 原库只读实时盘点：revision0012_audit_logs，1考试/2关联/1答卷/2答案，GradingResult/ExamResult/ReviewRecord均0。此为当前实际状态，不用T144历史盘点数量冒充；未对原库执行迁移或回填。所有回填和故障验证只作用本批隔离资源，三项用户修改/.env原字节校验保持；无新云模型调用。T146 AI辅助+开发者审查、独立教师0及T168质量not_met均保留。

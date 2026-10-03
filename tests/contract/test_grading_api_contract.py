@@ -57,6 +57,7 @@ from backend.app.services.grading.grading_task_service import (
 )
 from backend.app.services.grading.subjective_grader import ProviderNotReadyError
 from backend.app.services.grading.subjective_pipeline import build_subjective_scorer
+from tests.support.exam_scoring_fixtures import confirm_synthetic_exam_basis
 from tests.support.grading_doubles import (
     InMemoryGradingRepository,
     NonCallableSubmissionReader,
@@ -181,6 +182,7 @@ def _snapshot(scenario: dict[str, object]) -> SubmissionSnapshot:
     assert isinstance(answer, Answer)
     assert isinstance(submission, Submission)
     return SubmissionSnapshot(
+        scoring_basis_error=None,  # Explicit controlled snapshot, not a database inference.
         submission_id=str(submission.id),
         exam_id=str(submission.exam_id),
         student_id=str(submission.student_id),
@@ -930,6 +932,7 @@ def test_trigger_prevalidates_scope_before_creating_task_for_objective_submissio
     from backend.app.schemas.retrieval_scope import RetrievalScope, SectionRange
 
     scenario["question"].type = QuestionType.SINGLE_CHOICE
+    confirm_synthetic_exam_basis(session, scenario["exam"])
     course = scenario["course"]
     if case == "foreign_chapter":
         course = add_course(session, scenario["teacher"])

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="1" time="2.261" timestamp="2026-10-04T01:12:33.476031+08:00" hostname="YJX"><testcase classname="tests.integration.test_exam_history_audit" name="test_cli_reports_unknown_when_commit_succeeded_but_receipt_was_lost" time="1.260"><failure message="AssertionError: assert 'failed' == 'commit_outcome_unknown'&#10;  &#10;  - commit_outcome_unknown&#10;  + failed">history = (Engine(postgresql+psycopg://eduagent@127.0.0.1:5432/eduagent_e4_batch_61a956c9f313), {'actor': UUID('23f2a0e7-7692-49...owsPath('D:/YJX/Cache/Temp/pytest-of-10169/pytest-204/test_cli_reports_unknown_when_0/synthetic-original-record.json'))
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x00000143D91F4B00&gt;
+tmp_path = WindowsPath('D:/YJX/Cache/Temp/pytest-of-10169/pytest-204/test_cli_reports_unknown_when_0')
+
+    def test_cli_reports_unknown_when_commit_succeeded_but_receipt_was_lost(
+        history, monkeypatch, tmp_path
+    ):
+        from sqlalchemy.exc import SQLAlchemyError
+    
+        from scripts import audit_exam_history as cli
+    
+        engine, ids, raw, _ = history
+        manifest_path = tmp_path / "reviewed-ambiguous.json"
+        manifest_path.write_text(json.dumps(raw), encoding="utf-8")
+        report_path = tmp_path / "ambiguous-report.json"
+        monkeypatch.setenv("T171_TEST_TOKEN", "fixture-token-used-only-by-auth-double")
+        monkeypatch.setattr(
+            "sys.argv",
+            [
+                "audit_exam_history.py",
+                "--token-env",
+                "T171_TEST_TOKEN",
+                "--apply",
+                str(manifest_path),
+                "--report",
+                str(report_path),
+            ],
+        )
+        monkeypatch.setattr(cli, "get_session_factory", lambda: lambda: Session(engine))
+        monkeypatch.setattr(
+            cli,
+            "authenticate_admin",
+            lambda session, token: session.get(User, ids["actor"]),
+        )
+        actual_commit = Session.commit
+    
+        def commit_then_lose_receipt(session):
+            actual_commit(session)
+            raise SQLAlchemyError("injected lost COMMIT acknowledgement")
+    
+        monkeypatch.setattr(Session, "commit", commit_then_lose_receipt)
+        assert cli.main() == 1
+        recorded = json.loads(report_path.read_text(encoding="utf-8"))
+&gt;       assert recorded["status"] == "commit_outcome_unknown"
+E       AssertionError: assert 'failed' == 'commit_outcome_unknown'
+E         
+E         - commit_outcome_unknown
+E         + failed
+
+tests\integration\test_exam_history_audit.py:566: AssertionError</failure></testcase></testsuite></testsuites>

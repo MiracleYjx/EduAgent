@@ -138,6 +138,7 @@ from backend.app.services.workflow_checkpoint import (
     checkpoint_thread_id,
     runtime_has_checkpoint,
 )
+from tests.support.exam_scoring_fixtures import confirm_synthetic_exam_basis
 from tests.unit.settings_helpers import build_test_settings
 
 WORKFLOW_ID = "workflow-t074"
@@ -272,6 +273,7 @@ def _seed_paper(session: Session) -> Paper:
         status=AnswerStatus.SUBMITTED,
     )
     session.add(submission)
+    confirm_synthetic_exam_basis(session, exam)
     session.commit()
     return Paper(
         teacher_id=teacher.id,
@@ -321,6 +323,7 @@ def _seed_single_subjective(session: Session) -> Paper:
         status=AnswerStatus.SUBMITTED,
     )
     session.add(submission)
+    confirm_synthetic_exam_basis(session, exam)
     session.commit()
     return Paper(
         teacher_id=teacher.id,

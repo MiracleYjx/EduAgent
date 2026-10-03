@@ -1,0 +1,89 @@
+FFFFFF                                                                   [100%]
+================================== FAILURES ===================================
+_____________ test_unknown_history_readable_but_trigger_rejected ______________
+
+historical = (<sqlalchemy.orm.session.Session object at 0x000002B773119A90>, <backend.app.models.user.User object at 0x000002B77311...mission.Submission object at 0x000002B77311AE40>, <backend.app.models.answer.Answer object at 0x000002B77311AF90>, ...)
+
+    def test_unknown_history_readable_but_trigger_rejected(historical):
+        session,teacher,exam,question,submission,answer,result=historical
+        reader=DatabaseGradingSubmissionReader(session=session)
+        snapshot=reader.load_for_teacher(str(submission.id),str(teacher.id))
+>       assert snapshot.scoring_basis_error == "EXAM_SCORING_BASIS_MISSING"
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'SubmissionSnapshot' object has no attribute 'scoring_basis_error'
+
+tests\integration\test_exam_scoring_execution_gate.py:64: AttributeError
+________ test_only_complete_equivalent_fixed_basis_can_run[5.00-None] _________
+
+historical = (<sqlalchemy.orm.session.Session object at 0x000002B778CF42D0>, <backend.app.models.user.User object at 0x000002B778CF...mission.Submission object at 0x000002B778CF4B90>, <backend.app.models.answer.Answer object at 0x000002B778CF4CD0>, ...)
+score = '5.00', expected = None
+
+    @pytest.mark.parametrize("score,expected",[("5.00",None),("7.00","EXAM_SCORING_INPUT_NOT_SUPPORTED")])
+    def test_only_complete_equivalent_fixed_basis_can_run(historical,score,expected):
+        session,teacher,exam,question,submission,*_=historical
+        _fixed(exam,teacher,score);session.commit()
+        snapshot=DatabaseGradingSubmissionReader(session=session).load(str(submission.id))
+>       assert snapshot.scoring_basis_error == expected
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'SubmissionSnapshot' object has no attribute 'scoring_basis_error'
+
+tests\integration\test_exam_scoring_execution_gate.py:81: AttributeError
+_ test_only_complete_equivalent_fixed_basis_can_run[7.00-EXAM_SCORING_INPUT_NOT_SUPPORTED] _
+
+historical = (<sqlalchemy.orm.session.Session object at 0x000002B778CF4050>, <backend.app.models.user.User object at 0x000002B778BD...mission.Submission object at 0x000002B778CF7750>, <backend.app.models.answer.Answer object at 0x000002B778CF7890>, ...)
+score = '7.00', expected = 'EXAM_SCORING_INPUT_NOT_SUPPORTED'
+
+    @pytest.mark.parametrize("score,expected",[("5.00",None),("7.00","EXAM_SCORING_INPUT_NOT_SUPPORTED")])
+    def test_only_complete_equivalent_fixed_basis_can_run(historical,score,expected):
+        session,teacher,exam,question,submission,*_=historical
+        _fixed(exam,teacher,score);session.commit()
+        snapshot=DatabaseGradingSubmissionReader(session=session).load(str(submission.id))
+>       assert snapshot.scoring_basis_error == expected
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'SubmissionSnapshot' object has no attribute 'scoring_basis_error'
+
+tests\integration\test_exam_scoring_execution_gate.py:81: AttributeError
+____________ test_current_bank_change_does_not_reauthorize_history ____________
+
+historical = (<sqlalchemy.orm.session.Session object at 0x000002B778BD3950>, <backend.app.models.user.User object at 0x000002B778DA...mission.Submission object at 0x000002B778BD3E10>, <backend.app.models.answer.Answer object at 0x000002B778E2C050>, ...)
+
+    def test_current_bank_change_does_not_reauthorize_history(historical):
+        session,teacher,exam,question,submission,*_=historical
+        _fixed(exam,teacher);session.commit()
+        question.score=Decimal("99.00");session.commit()
+        snapshot=DatabaseGradingSubmissionReader(session=session).load(str(submission.id))
+>       assert snapshot.scoring_basis_error == "EXAM_SCORING_INPUT_NOT_SUPPORTED"
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'SubmissionSnapshot' object has no attribute 'scoring_basis_error'
+
+tests\integration\test_exam_scoring_execution_gate.py:92: AttributeError
+___________ test_background_execution_checks_again_before_pipeline ____________
+
+historical = (<sqlalchemy.orm.session.Session object at 0x000002B778E2C770>, <backend.app.models.user.User object at 0x000002B778D3...mission.Submission object at 0x000002B778E2D350>, <backend.app.models.answer.Answer object at 0x000002B778E2D480>, ...)
+
+    def test_background_execution_checks_again_before_pipeline(historical):
+        session,teacher,exam,question,submission,*_=historical
+        reader=DatabaseGradingSubmissionReader(session=session)
+>       repo=InMemoryGradingRepository();task=make_task(submission_id=str(submission.id))
+                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: make_task() missing 1 required positional argument: 'task_id'
+
+tests\integration\test_exam_scoring_execution_gate.py:98: TypeError
+________ test_unknown_snapshot_never_defaults_to_execution_permission _________
+
+    def test_unknown_snapshot_never_defaults_to_execution_permission():
+        snapshot=SubmissionSnapshot(submission_id="s",exam_id="e",student_id="u",course_id="c",status="Submitted",answers=())
+        with pytest.raises(GradingNotAllowedError,match="EXAM_SCORING_BASIS_MISSING"):
+>           snapshot.require_scoring_ready()
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           AttributeError: 'SubmissionSnapshot' object has no attribute 'require_scoring_ready'
+
+tests\integration\test_exam_scoring_execution_gate.py:112: AttributeError
+=========================== short test summary info ===========================
+FAILED tests/integration/test_exam_scoring_execution_gate.py::test_unknown_history_readable_but_trigger_rejected
+FAILED tests/integration/test_exam_scoring_execution_gate.py::test_only_complete_equivalent_fixed_basis_can_run[5.00-None]
+FAILED tests/integration/test_exam_scoring_execution_gate.py::test_only_complete_equivalent_fixed_basis_can_run[7.00-EXAM_SCORING_INPUT_NOT_SUPPORTED]
+FAILED tests/integration/test_exam_scoring_execution_gate.py::test_current_bank_change_does_not_reauthorize_history
+FAILED tests/integration/test_exam_scoring_execution_gate.py::test_background_execution_checks_again_before_pipeline
+FAILED tests/integration/test_exam_scoring_execution_gate.py::test_unknown_snapshot_never_defaults_to_execution_permission
+6 failed in 7.97s

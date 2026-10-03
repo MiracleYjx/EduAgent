@@ -600,7 +600,7 @@ M0 工程骨架 + Benchmark
 
 - [X] T170 [HIGH] [E4] **升级 ExamQuestion 与组卷条件模型**：在 `models/associations.py`、`models/exam.py`、新增 `models/exam_question.py`、schemas 和迁移升级原 exam_questions，保存 id/order_index/score/base_score/published_knowledge_points/scoring_basis 与 G08 约束；保留原 FK 语义和旧关系可读性，唯一性/金额约束一致。草稿合法缺省取题库值，旧发布数据只据真实证据处理。 依赖：T141、T144、T145、T169。per FR-048/049、G08、data-model §7.6/9/10（F037） (partial)
 
-- [ ] T171 [HIGH] [E4] **落实历史考试核对与兼容迁移**：在 `migrations/versions/`、`scripts/` 及 `docs/validation-report.md` 将 T144 盘点转为历史关联迁移/核对流程：题序依据当前确定排序或更强真实证据，分值/标准/知识点只按当时证据固定；未知显式报告，历史原始结果可读但不能未经核对重评。隔离数据库验证关联数量、历史读取及失败恢复，不以迁移执行时间伪造批准时间。 依赖：T144、T170。per FR-049、exam-scoring 历史兼容、data-model §10（F038） (missing)
+- [X] T171 [HIGH] [E4] **落实历史考试核对与兼容迁移**：在 `migrations/versions/`、`scripts/` 及 `docs/validation-report.md` 将 T144 盘点转为历史关联迁移/核对流程：题序依据当前确定排序或更强真实证据，分值/标准/知识点只按当时证据固定；未知显式报告，历史原始结果可读但不能未经核对重评。隔离数据库验证关联数量、历史读取及失败恢复，不以迁移执行时间伪造批准时间。 依赖：T144、T170。per FR-049、exam-scoring 历史兼容、data-model §10（F038） (missing)
 
 - [ ] T172 [HIGH] [E4] **实现条件组卷与约束持久化**：在新增 `services/exam_assembly_service.py`、`services/exam_service.py` 和 `api/exams.py` 实现 assemble：同课程已审核/补全/语义处置及图像可用候选，精确题型/数量/知识点覆盖/Decimal 总分；保存教师要求和成功组合，不自动降条件或改分。区分确有冲突与策略未找到，失败返回真实 gaps 且保持原草稿，不引入独立求解服务。 依赖：T170、T171。per FR-048、exam-assembly 输入/输出、SC-012（F039） (missing)
 

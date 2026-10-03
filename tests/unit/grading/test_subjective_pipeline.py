@@ -70,6 +70,7 @@ def _snapshot(fixture: SubmissionFixture) -> SubmissionSnapshot:
     """答卷快照：只保留评分链路需要的字段。"""
 
     return SubmissionSnapshot(
+        scoring_basis_error=None,  # Explicit controlled snapshot, not a database inference.
         submission_id=str(fixture.submission_id),
         exam_id=str(fixture.exam_id),
         student_id=str(fixture.student_id),

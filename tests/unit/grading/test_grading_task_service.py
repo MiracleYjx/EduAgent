@@ -293,6 +293,7 @@ def _snapshot(
     """构造答卷快照。"""
 
     return SubmissionSnapshot(
+        scoring_basis_error=None,  # Explicit controlled snapshot, not a database inference.
         submission_id=submission_id,
         exam_id="exam-1",
         student_id="student-1",

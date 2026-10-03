@@ -140,6 +140,8 @@ WORKFLOW_DIAGNOSIS_FAILED: str = "WORKFLOW_DIAGNOSIS_FAILED"
 
 #: 错误码到 HTTP 状态码的映射；未列出的错误按 500 处理并保持脱敏。
 _ERROR_STATUS: dict[str, int] = {
+    "EXAM_SCORING_BASIS_MISSING": 409,
+    "EXAM_SCORING_INPUT_NOT_SUPPORTED": 409,
     WORKFLOW_SERVICE_NOT_READY: 503,
     WORKFLOW_CHECKPOINT_STORE_NOT_READY: 503,
     GRADING_STORE_NOT_READY: 503,
@@ -513,6 +515,7 @@ class WorkflowService:
 
         del state
         snapshot = self._reader.load(str(run.submission_id))
+        self._require_scoring_ready(snapshot)
         saver = self._checkpointer()
         thread_id = checkpoint_thread_id(run)
         if thread_id:
@@ -555,6 +558,7 @@ class WorkflowService:
             with repository.lock_submission(submission_id):
                 # 等待锁期间答卷可能已完成评分，必须在取锁后读取授权与生命周期事实。
                 snapshot = self._load_for_teacher(submission_id, actor_id)
+                self._require_scoring_ready(snapshot)
                 existing = self._latest_run(submission_id, active_only=True)
                 if existing is not None:
                     return self._teacher_dto(existing, reused=True)
@@ -682,6 +686,7 @@ class WorkflowService:
                 "该运行没有可恢复的持久检查点，不提供自动恢复。"
             )
         snapshot = self._reader.load(str(row.submission_id))
+        self._require_scoring_ready(snapshot)
         saver = self._checkpointer()
         saver.bind_thread(thread_id, row.workflow_id)
         workflow = self._build_workflow(snapshot, saver)
@@ -1067,6 +1072,13 @@ class WorkflowService:
                 .order_by(ReviewRecord.created_at.desc(), ReviewRecord.id)
                 .limit(1)
             ).first()
+
+    @staticmethod
+    def _require_scoring_ready(snapshot: Any) -> None:
+        try:
+            snapshot.require_scoring_ready()
+        except GradingTaskError as error:
+            raise _grading_error(error) from None
 
     def _load_for_teacher(self, submission_id: str, actor_id: str) -> Any:
         """按教师课程归属读取答卷快照。"""

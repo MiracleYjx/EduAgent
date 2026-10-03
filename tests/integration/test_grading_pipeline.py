@@ -57,6 +57,7 @@ from backend.app.services.grading.grading_task_service import (
 )
 from backend.app.services.grading.subjective_pipeline import build_subjective_scorer
 from tests.postgres_helpers import isolated_postgres_engine
+from tests.support.exam_scoring_fixtures import confirm_synthetic_exam_basis
 from tests.support.subjective_grading_doubles import (
     StubEmbeddingProvider,
     StubReranker,
@@ -151,6 +152,7 @@ def mixed_scenario(engine: Engine) -> dict[str, Any]:
             for question in (objective, subjective_one, subjective_two)
         ]
         session.add(submission)
+        confirm_synthetic_exam_basis(session, exam)
         session.commit()
         return {
             "teacher_id": str(teacher.id),

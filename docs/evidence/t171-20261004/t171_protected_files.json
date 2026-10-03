@@ -1,0 +1,9 @@
+{
+  "all_original_bytes_preserved": true,
+  "files": [
+    "README.md",
+    "README.zh-CN.md",
+    "benchmark/corpus/grading_samples.json",
+    ".env"
+  ]
+}

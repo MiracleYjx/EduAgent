@@ -82,6 +82,7 @@ from backend.app.services.grading.grading_task_service import (
 from backend.app.services.grading.subjective_grader import SubjectiveGradingPayload
 from backend.app.services.workflow_checkpoint import WorkflowCheckpointStore
 from tests.postgres_helpers import isolated_postgres_engine
+from tests.support.exam_scoring_fixtures import confirm_synthetic_exam_basis
 from tests.support.subjective_grading_doubles import (
     StubEmbeddingProvider,
     StubReranker,
@@ -226,6 +227,7 @@ def _seed_paper(session: Session, suffix: str, *, solo: bool = False) -> Paper:
             )
         )
     session.add(submission)
+    confirm_synthetic_exam_basis(session, exam)
     session.commit()
     return Paper(
         teacher_id=str(teacher.id),

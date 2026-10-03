@@ -32,6 +32,7 @@ from backend.app.services.submission_service import (
     SubmissionService,
     SubmissionValidationError,
 )
+from tests.support.exam_scoring_fixtures import confirm_synthetic_exam_basis
 from tests.support.question_validation_fixtures import persist_current_semantic_pass
 
 
@@ -159,6 +160,7 @@ def add_published_exam(
         ends_at=ends_at,
         created_by=teacher.id,
     )
+    confirm_synthetic_exam_basis(session, UUID(summary.id))
     exam_service.publish_exam(summary.id, teacher_id=teacher.id)
     exam = session.get(Exam, UUID(summary.id))
     assert exam is not None
