@@ -82,6 +82,7 @@ from backend.app.models import (
     Answer,
     Course,
     Exam,
+    ExamQuestion,
     ExamResult,
     Question,
     ReviewRecord,
@@ -245,7 +246,10 @@ def _seed_paper(session: Session) -> Paper:
         course=course,
         creator=teacher,
         title="第一章测验",
-        questions=[objective, first, second],
+        exam_question_links=[
+            ExamQuestion(question=question, order_index=index)
+            for index, question in enumerate([objective, first, second], start=1)
+        ],
         status=ExamStatus.PUBLISHED,
     )
     submission = Submission(exam=exam, student=student, status=SubmissionStatus.SUBMITTED)
@@ -306,7 +310,7 @@ def _seed_single_subjective(session: Session) -> Paper:
         course=course,
         creator=teacher,
         title="单题测验",
-        questions=[question],
+        exam_question_links=[ExamQuestion(question=question, order_index=1)],
         status=ExamStatus.PUBLISHED,
     )
     submission = Submission(exam=exam, student=student, status=SubmissionStatus.SUBMITTED)

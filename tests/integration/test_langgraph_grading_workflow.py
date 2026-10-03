@@ -59,6 +59,7 @@ from backend.app.models import (
     AuditLog,
     Course,
     Exam,
+    ExamQuestion,
     ExamResult,
     GradingResult,
     Question,
@@ -196,7 +197,10 @@ def _seed_paper(session: Session, suffix: str, *, solo: bool = False) -> Paper:
         course=course,
         creator=teacher,
         title=f"T079 {suffix} 测验",
-        questions=questions,
+        exam_question_links=[
+            ExamQuestion(question=question, order_index=index)
+            for index, question in enumerate(questions, start=1)
+        ],
         status=ExamStatus.PUBLISHED,
     )
     submission = Submission(

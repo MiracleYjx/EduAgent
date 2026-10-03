@@ -29,6 +29,7 @@ from backend.app.models.base import Base, TimestampMixin, UUIDPrimaryKeyMixin, e
 if TYPE_CHECKING:
     from backend.app.models.course import Course
     from backend.app.models.exam import Exam
+    from backend.app.models.exam_question import ExamQuestion
     from backend.app.models.extracted_question import ExtractedQuestion
     from backend.app.models.question_asset import QuestionAsset
     from backend.app.models.question_validation_result import QuestionValidationResult
@@ -79,8 +80,11 @@ class Question(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     creator: Mapped[User] = relationship(
         "User", back_populates="created_questions", foreign_keys=[created_by]
     )
+    exam_question_links: Mapped[list[ExamQuestion]] = relationship(
+        "ExamQuestion", back_populates="question", passive_deletes="all"
+    )
     exams: Mapped[list[Exam]] = relationship(
-        "Exam", secondary=exam_questions, back_populates="questions"
+        "Exam", secondary=exam_questions, back_populates="questions", viewonly=True
     )
 
 

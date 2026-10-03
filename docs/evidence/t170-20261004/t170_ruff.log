@@ -1,0 +1,42 @@
+I001 [*] Import block is un-sorted or un-formatted
+  --> tests\unit\services\test_exam_association_service.py:2:1
+   |
+ 1 |   """T170 旧考试入口通过明确关联实体写入，历史未知分数保持未知。"""
+ 2 | / from decimal import Decimal
+ 3 | | from uuid import UUID
+ 4 | |
+ 5 | | from sqlalchemy.orm import Session
+ 6 | |
+ 7 | | from backend.app.domain.enums import ExamStatus
+ 8 | | from backend.app.models import Exam, Question
+ 9 | | from backend.app.services.exam_service import ExamService
+10 | | from tests.unit.services.test_exam_service import (
+11 | |     add_course, add_question, add_teacher, session as session,
+12 | | )
+   | |_^
+help: Organize imports
+   |
+10 | from tests.unit.services.test_exam_service import (
+   -     add_course, add_question, add_teacher, session as session,
+11 +     add_course,
+12 +     add_question,
+13 +     add_teacher,
+14 + )
+15 + from tests.unit.services.test_exam_service import (
+16 +     session as session,
+17 | )
+   |
+
+PLC0414 Import alias does not rename original package
+  --> tests\unit\services\test_exam_association_service.py:11:44
+   |
+ 9 | from backend.app.services.exam_service import ExamService
+10 | from tests.unit.services.test_exam_service import (
+11 |     add_course, add_question, add_teacher, session as session,
+   |                                            ^^^^^^^^^^^^^^^^^^
+12 | )
+   |
+help: Remove import alias
+
+Found 2 errors.
+[*] 1 fixable with the `--fix` option (1 hidden fix can be enabled with the `--unsafe-fixes` option).

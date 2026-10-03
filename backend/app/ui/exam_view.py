@@ -219,7 +219,7 @@ def _exam_rows(exams: Sequence[ExamSummary]) -> list[list[str]]:
             (exam.starts_at.isoformat() if exam.starts_at else "未设置"),
             str(exam.duration_minutes or "未设置"),
             str(exam.question_count),
-            str(exam.total_score),
+            str(exam.total_score) if exam.total_score is not None else "未知（待核对）",
             status_badge(exam.status, entity="exam"),
         ]
         for exam in exams
@@ -554,7 +554,7 @@ def exam_table_data(
             exam_opening_label(exam),
             str(exam.duration_minutes) if exam.duration_minutes else "不限时",
             str(exam.question_count),
-            str(exam.total_score),
+            str(exam.total_score) if exam.total_score is not None else "未知（待核对）",
             status_badge(exam.status, entity="exam"),
         ]
         for exam in exams
@@ -896,7 +896,7 @@ def create_exam_view(session_state: Any | None = None) -> ExamView:
                         available.ids: available_ids,
                         chosen.table: chosen_rows,
                         chosen.ids: chosen_ids,
-                        summary: f"**题数：{latest.question_count}**　**总分：{latest.total_score} 分**",
+                        summary: f"**题数：{latest.question_count}**　**总分：{latest.total_score if latest.total_score is not None else "未知（待核对）"} 分**",
                         question_message: (
                             ""
                             if candidates
@@ -1105,7 +1105,7 @@ def create_exam_view(session_state: Any | None = None) -> ExamView:
                 details = (
                     f"**考试名称**：{escape(exam.title)}\n\n"
                     f"**开放时间**：{exam_opening_label(exam)}（{UI_TIMEZONE_LABEL}）\n\n"
-                    f"**已审核题目**：{approved_count} / {exam.question_count} 道　**总分**：{exam.total_score} 分\n\n"
+                    f"**已审核题目**：{approved_count} / {exam.question_count} 道　**总分**：{exam.total_score if exam.total_score is not None else "未知（待核对）"} 分\n\n"
                 )
                 details += (
                     feedback("；".join(issues), "warning")

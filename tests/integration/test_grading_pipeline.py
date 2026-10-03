@@ -34,6 +34,7 @@ from backend.app.models import (
     Course,
     DiagnosisReport,
     Exam,
+    ExamQuestion,
     ExamResult,
     GradingResult,
     Question,
@@ -126,7 +127,12 @@ def mixed_scenario(engine: Engine) -> dict[str, Any]:
             course=course,
             creator=teacher,
             title="T058 混合答卷测验",
-            questions=[objective, subjective_one, subjective_two],
+            exam_question_links=[
+                ExamQuestion(question=question, order_index=index)
+                for index, question in enumerate(
+                    [objective, subjective_one, subjective_two], start=1
+                )
+            ],
             status=ExamStatus.PUBLISHED,
         )
         submission = Submission(

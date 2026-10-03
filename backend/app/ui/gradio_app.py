@@ -592,7 +592,7 @@ def _dashboard_exam_rows(
             _dashboard_exam_opening_label(exam),
             status_badge(exam.status, entity="exam"),
             str(exam.question_count),
-            str(exam.total_score),
+            str(exam.total_score) if exam.total_score is not None else "未知（待核对）",
         ]
         for exam in recent_exams
     ]

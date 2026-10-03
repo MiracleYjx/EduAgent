@@ -164,7 +164,7 @@ def _exam_rows(exams: Sequence[AvailableExamSummary]) -> list[list[str]]:
             status_badge(exam.status, entity="exam"),
             str(exam.duration_minutes or ""),
             str(exam.question_count),
-            str(exam.total_score),
+            str(exam.total_score) if exam.total_score is not None else "未知（待核对）",
             exam.starts_at.isoformat() if exam.starts_at else "",
             exam.ends_at.isoformat() if exam.ends_at else "",
         ]

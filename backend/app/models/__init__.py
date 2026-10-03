@@ -12,6 +12,7 @@ from backend.app.models.document import Document
 from backend.app.models.document_chunk import DocumentChunk
 from backend.app.models.exam import Exam
 from backend.app.models.exam_participant import ExamParticipant
+from backend.app.models.exam_question import ExamQuestion
 from backend.app.models.exam_result import ExamResult
 from backend.app.models.export_file import ExportFile
 from backend.app.models.extracted_question import ExtractedQuestion
@@ -49,6 +50,7 @@ __all__ = [
     "DocumentChunk",
     "Exam",
     "ExamParticipant",
+    "ExamQuestion",
     "ExamResult",
     "ExportFile",
     "ExtractedQuestion",

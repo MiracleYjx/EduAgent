@@ -395,7 +395,7 @@ def test_default_evidence_uses_actual_persisted_source_snapshot(owned_document):
 def test_published_or_submission_protected_question_cannot_retreat(
     owned_document, exam_status
 ):
-    from backend.app.models import Exam, Submission
+    from backend.app.models import Exam, ExamQuestion, Submission
     from backend.app.services.question_service import QuestionPublishedImmutableError
 
     session, _doc, teacher, _root = owned_document
@@ -406,7 +406,7 @@ def test_published_or_submission_protected_question_cannot_retreat(
         created_by=teacher.id,
         title="Actual fixture exam",
         status=exam_status,
-        questions=[question],
+        exam_question_links=[ExamQuestion(question=question, order_index=1)],
     )
     session.add(exam)
     session.flush()

@@ -631,3 +631,13 @@ T159 修夹具后的主壳先行：2 failed，分别在 generatorfunction 与动
 - 可复现生产服务入口r1真实夹具违约失败保留；显式知识点metadata与原字段保持，r2实际通过。10项类型边界错误保留，最小修正后入口mypy/Ruff通过，r3实际12cases/11events/0云调用通过；原字段、失败和机器结论不改写。
 - 完整提交快照2145 passed/2原条件skipped，工作区1原用户样本冲突另存；后端mypy199/Ruff/隔离迁移通过，源码未变。原业务库/用户文件保持，owned资源清理。T168质量not_met与AI辅助口径保留；不以受控业务报告冒称模型准确率/教师质量。
 - 证据：benchmark/results/v2/t169-20261003/与docs/evidence/t167-demo-close-20261003/；T169仅勾完成状态，其余任务定义不改。
+
+## 25. T170 关联实体与组卷Schema TCR（实施前，2026-10-04）
+
+- 授权：用户连续T170→T174，未决取舍按推荐方案；各项独立提交推送。保留三项用户修改及.env，原业务库只读，迁移/行为验证使用本批owned数据库。
+- 必要性：原exam_questions只有双外键，无法承载显式题序/本场分值/评分依据；新增行为须验证原表原地升级及旧关系可读，不允许双写或从当前题库猜历史值。
+- 覆盖：模型/Schema金额、严格整数与三题型分布、去重/UTC、SQL NULL与JSON形状；唯一/CHECK/FK删除语义；旧关联数量及Question.created_at/id确定顺序、评分依据保留NULL；安全降级与有新依据/不同题序拒绝丢失；ExamService原创建/追加/删除改为唯一写关联并维护显式连续顺序。
+- 兼容夹具：原Exam(questions=...)或secondary原始写入必须改为显式ExamQuestion及确定题序，保留原API/状态/授权/成绩业务断言。迁移head断言随真实新增0022更新。不得用自动默认max序号或写两套关系使旧夹具假成功。
+- 验证：先新Schema/模型/迁移行为RED，再实现及真实PG/旧考试服务聚焦；mypy/Ruff/迁移检查。本批最终完整回归使用排除原有用户样本差异的提交快照，原冲突事实已在T169记录，不修改其断言或用户数据。
+
+T170执行结果：新增模型入口RED真实失败后完成；直接回归249 passed、隔离PG迁移1 passed，mypy202/Ruff/Alembic check通过。新增tests/unit/services/test_exam_association_service.py验证旧入口写关联及非草稿未知分值；UI只把null显示为未知。证据见docs/evidence/t170-20261004/。

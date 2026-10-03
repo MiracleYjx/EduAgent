@@ -24,6 +24,7 @@ from backend.app.models import (
     Course,
     Document,
     Exam,
+    ExamQuestion,
     KnowledgeBase,
     Question,
     Role,
@@ -90,7 +91,7 @@ def test_models_can_persist_core_relationships() -> None:
             course=course,
             creator=teacher,
             title="第一章测验",
-            questions=[question],
+            exam_question_links=[ExamQuestion(question=question, order_index=1)],
             status=ExamStatus.DRAFT,
         )
         student = User(

@@ -1,0 +1,45 @@
+FF                                                                       [100%]
+================================== FAILURES ===================================
+____________ test_legacy_entry_writes_persistent_contiguous_order _____________
+
+session = <sqlalchemy.orm.session.Session object at 0x000001DD09169550>
+
+    def test_legacy_entry_writes_persistent_contiguous_order(session: Session) -> None:
+        teacher = add_teacher(session)
+        course = add_course(session, teacher)
+        ids = [add_question(session, course, teacher, content=f"题目{i}", approved=True)
+               for i in range(3)]
+        service = ExamService(session)
+        initial = service.create_exam(course.id, "关联实体", question_ids=ids[:2][::-1],
+                                      created_by=teacher.id)
+        exam = session.get(Exam, UUID(initial.id))
+        assert exam is not None
+>       assert [(link.question_id, link.order_index) for link in exam.exam_question_links] == [
+                                                                 ^^^^^^^^^^^^^^^^^^^^^^^^
+            (ids[0], 1), (ids[1], 2)]
+E       AttributeError: 'Exam' object has no attribute 'exam_question_links'
+
+tests\unit\services\test_exam_association_service.py:25: AttributeError
+_______ test_summary_uses_explicit_score_and_preserves_unknown_history ________
+
+session = <sqlalchemy.orm.session.Session object at 0x000001DD091E0770>
+
+    def test_summary_uses_explicit_score_and_preserves_unknown_history(session: Session) -> None:
+        teacher = add_teacher(session)
+        course = add_course(session, teacher)
+        qid = add_question(session, course, teacher, approved=True)
+        service = ExamService(session)
+        summary = service.create_exam(course.id, "未知历史", question_ids=[qid],
+                                      created_by=teacher.id)
+        exam = session.get(Exam, UUID(summary.id))
+        assert exam is not None
+        assert summary.total_score == Decimal("10.00")
+>       exam.exam_question_links[0].score = Decimal("7.25")
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'Exam' object has no attribute 'exam_question_links'
+
+tests\unit\services\test_exam_association_service.py:46: AttributeError
+=========================== short test summary info ===========================
+FAILED tests/unit/services/test_exam_association_service.py::test_legacy_entry_writes_persistent_contiguous_order
+FAILED tests/unit/services/test_exam_association_service.py::test_summary_uses_explicit_score_and_preserves_unknown_history
+2 failed in 2.98s

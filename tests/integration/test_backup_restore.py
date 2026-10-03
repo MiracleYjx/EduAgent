@@ -35,6 +35,7 @@ from backend.app.models import (
     Course,
     Document,
     Exam,
+    ExamQuestion,
     GradingResult,
     KnowledgeBase,
     Question,
@@ -122,7 +123,9 @@ def backup_case(tmp_path):
                 source_file="historical.txt", chunk_index=0)
             session.add(source)
             exam = Exam(course_id=course.id, created_by=teacher.id, title="published", status=ExamStatus.PUBLISHED)
-            exam.questions.append(question)
+            exam.exam_question_links.append(
+                ExamQuestion(question=question, order_index=1)
+            )
             session.add(exam)
             session.flush()
             submission = Submission(exam_id=exam.id, student_id=student.id, status=SubmissionStatus.REVIEWED)

@@ -36,6 +36,7 @@ from backend.app.models import (
     Answer,
     Course,
     Exam,
+    ExamQuestion,
     Question,
     Submission,
     User,
@@ -126,7 +127,7 @@ def _seed_scenario(engine: Engine) -> ScenarioIds:
             course=course,
             creator=teacher,
             title="P2.3 阶段测验",
-            questions=[question],
+            exam_question_links=[ExamQuestion(question=question, order_index=1)],
             status=ExamStatus.PUBLISHED,
         )
         final_submission = Submission(

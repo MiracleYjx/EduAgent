@@ -1,0 +1,18 @@
+........................................................................ [ 28%]
+........................................................................ [ 57%]
+........................................................................ [ 86%]
+.................................                                        [100%]
+============================== warnings summary ===============================
+..\..\..\develop\Python\Lib\site-packages\fastapi\testclient.py:1
+  D:\develop\Python\Lib\site-packages\fastapi\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+tests/integration/test_grading_pipeline.py::test_mixed_submission_runs_full_pipeline_and_forms_final_diagnosis
+tests/integration/test_grading_pipeline.py::test_low_confidence_subjective_stays_pending_and_blocks_diagnosis
+tests/integration/test_grading_pipeline.py::test_existing_report_becomes_stale_after_regrade
+tests/integration/test_grading_pipeline.py::test_partial_write_failure_leaves_no_intermediate_result
+  D:\YJX\MyCode\EduAgent\tests\integration\test_grading_pipeline.py:170: SAWarning: Object of type <User> not in session, add operation along 'Role.users' won't proceed (This warning originated from the Session 'autoflush' process, which was invoked automatically in response to a user-initiated operation. Consider using ``no_autoflush`` context manager if this warning happened while initializing objects.)
+    existing = session.scalars(select(Role).where(Role.name == role)).one_or_none()
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+249 passed, 5 warnings in 122.01s (0:02:02)

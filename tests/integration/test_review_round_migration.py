@@ -12,7 +12,7 @@ from sqlalchemy.schema import CreateSchema, DropSchema
 
 from backend.app.core.database import create_database_engine
 from backend.app.domain.enums import ReviewStatus
-from backend.app.models import Answer, Course, Exam, Role, Submission, User
+from backend.app.models import Answer, Course, Role, Submission, User
 from tests.integration.legacy_question_fixture import insert_legacy_question
 from tests.unit.models.sqlite_support import SubmissionFixture
 from tests.unit.models.test_grading_result import _grading_result
@@ -72,16 +72,21 @@ def test_review_round_migration_upgrade_downgrade_preserves_legacy_rows() -> Non
             old_questions = Table("questions", MetaData(), autoload_with=session.connection())
             session.execute(old_questions.update().values(status="Approved", knowledge_points=["数据类型"]).where(old_questions.c.id == objective))
             session.execute(old_questions.update().values(status="Approved", knowledge_points=["变量"]).where(old_questions.c.id == subjective))
-            exam = Exam(course=course, creator=teacher, title="第一章测验", status="Published")
-            submission = Submission(exam=exam, student=student, status="Submitted")
+            exam_id = uuid4()
+            old_exams = Table("exams", MetaData(), autoload_with=session.connection())
+            session.execute(old_exams.insert().values(
+                id=exam_id, course_id=course.id, created_by=teacher.id,
+                title="第一章测验", status="Published",
+            ))
+            submission = Submission(exam_id=exam_id, student=student, status="Submitted")
             objective_answer = Answer(submission=submission, question_id=objective, content="tuple", status="Graded")
             subjective_answer = Answer(submission=submission, question_id=subjective, content="变量用于保存数据。", status="Graded")
             session.add(submission)
             session.flush()
             associations = Table("exam_questions", MetaData(), autoload_with=session.connection())
-            session.execute(associations.insert(), [{"exam_id": exam.id, "question_id": identity} for identity in (objective, subjective)])
+            session.execute(associations.insert(), [{"exam_id": exam_id, "question_id": identity} for identity in (objective, subjective)])
             session.commit()
-            fixture = SubmissionFixture(teacher.id, student.id, course.id, objective, subjective, exam.id, submission.id, objective_answer.id, subjective_answer.id)
+            fixture = SubmissionFixture(teacher.id, student.id, course.id, objective, subjective, exam_id, submission.id, objective_answer.id, subjective_answer.id)
         metadata = MetaData()
         grading = Table("grading_results", metadata, autoload_with=engine)
         reviews = Table("review_records", metadata, autoload_with=engine)

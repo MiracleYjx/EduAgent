@@ -3,11 +3,12 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 from uuid import UUID
 
-from sqlalchemy import ForeignKey, Integer, String, Text
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import JSON, CheckConstraint, ForeignKey, Integer, String, Text
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
 from backend.app.domain.enums import ExamStatus
 from backend.app.models.associations import exam_questions
@@ -15,6 +16,7 @@ from backend.app.models.base import Base, TimestampMixin, UUIDPrimaryKeyMixin, e
 
 if TYPE_CHECKING:
     from backend.app.models.course import Course
+    from backend.app.models.exam_question import ExamQuestion
     from backend.app.models.question import Question
     from backend.app.models.submission import Submission
     from backend.app.models.user import User
@@ -24,6 +26,16 @@ class Exam(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     """教师从课程题库组织的考试。"""
 
     __tablename__ = "exams"
+    __table_args__ = (
+        CheckConstraint(
+            "assembly_constraints IS NULL OR jsonb_typeof(assembly_constraints) = 'object'",
+            name="ck_exams_assembly_constraints_shape",
+        ).ddl_if(dialect="postgresql"),
+    )
+
+    assembly_constraints: Mapped[dict[str, Any] | None] = mapped_column(
+        JSON(none_as_null=True).with_variant(JSONB(none_as_null=True), "postgresql")
+    )
 
     course_id: Mapped[UUID] = mapped_column(
         ForeignKey("courses.id", ondelete="CASCADE"), nullable=False, index=True
@@ -46,19 +58,34 @@ class Exam(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     creator: Mapped[User] = relationship(
         "User", back_populates="created_exams", foreign_keys=[created_by]
     )
-    # 题序必须确定：``exam_questions`` 只有复合主键、没有顺序列，如果不显式排序，数据库可能
-    # 按主键索引（``question_id``，随机 UUID）返回关联行，使同一份试卷的题序在不同环境或进程
-    # 间翻转（P1.2.5）。统一按题目创建时间排序、并列时按题目标识；如果需要显式的组卷顺序，
-    # 应单独新增顺序列与迁移，而不是依赖数据库返回顺序。
+    exam_question_links: Mapped[list[ExamQuestion]] = relationship(
+        "ExamQuestion",
+        back_populates="exam",
+        cascade="all, delete-orphan",
+        order_by="ExamQuestion.order_index",
+        passive_deletes=True,
+    )
+    # Existing readers retain query/eager-load support; all writes use the association.
     questions: Mapped[list[Question]] = relationship(
         "Question",
         secondary=exam_questions,
         back_populates="exams",
-        order_by="Question.created_at, Question.id",
+        order_by=exam_questions.c.order_index,
+        viewonly=True,
     )
     submissions: Mapped[list[Submission]] = relationship(
         "Submission", back_populates="exam", cascade="all, delete-orphan"
     )
+
+    @validates("assembly_constraints")
+    def valid_assembly_constraints(
+        self, key: str, value: dict[str, Any] | None
+    ) -> dict[str, Any] | None:
+        if value is None:
+            return None
+        from backend.app.schemas.exam_assembly import AssemblyConstraints
+
+        return AssemblyConstraints.model_validate(value).model_dump(mode="json")
 
 
 __all__ = ["Exam"]

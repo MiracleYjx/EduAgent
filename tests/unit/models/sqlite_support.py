@@ -28,7 +28,16 @@ from backend.app.domain.enums import (
     SubmissionStatus,
     UserRole,
 )
-from backend.app.models import Answer, Course, Exam, Question, Role, Submission, User
+from backend.app.models import (
+    Answer,
+    Course,
+    Exam,
+    ExamQuestion,
+    Question,
+    Role,
+    Submission,
+    User,
+)
 
 #: 结果类模型测试使用的标准单题满分。
 DEFAULT_MAX_SCORE: Final[Decimal] = Decimal("10.00")
@@ -122,7 +131,10 @@ def seed_submission(
         course=course,
         creator=teacher,
         title="第一章测验",
-        questions=[objective, subjective],
+        exam_question_links=[
+            ExamQuestion(question=question, order_index=index)
+            for index, question in enumerate([objective, subjective], start=1)
+        ],
         status=ExamStatus.PUBLISHED,
     )
     submission = Submission(exam=exam, student=student, status=status)

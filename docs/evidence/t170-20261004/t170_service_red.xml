@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="2" skipped="0" tests="2" time="2.981" timestamp="2026-10-04T00:49:50.283323+08:00" hostname="YJX"><testcase classname="tests.unit.services.test_exam_association_service" name="test_legacy_entry_writes_persistent_contiguous_order" time="1.519"><failure message="AttributeError: 'Exam' object has no attribute 'exam_question_links'">session = &lt;sqlalchemy.orm.session.Session object at 0x000001DD09169550&gt;
+
+    def test_legacy_entry_writes_persistent_contiguous_order(session: Session) -&gt; None:
+        teacher = add_teacher(session)
+        course = add_course(session, teacher)
+        ids = [add_question(session, course, teacher, content=f"题目{i}", approved=True)
+               for i in range(3)]
+        service = ExamService(session)
+        initial = service.create_exam(course.id, "关联实体", question_ids=ids[:2][::-1],
+                                      created_by=teacher.id)
+        exam = session.get(Exam, UUID(initial.id))
+        assert exam is not None
+&gt;       assert [(link.question_id, link.order_index) for link in exam.exam_question_links] == [
+                                                                 ^^^^^^^^^^^^^^^^^^^^^^^^
+            (ids[0], 1), (ids[1], 2)]
+E       AttributeError: 'Exam' object has no attribute 'exam_question_links'
+
+tests\unit\services\test_exam_association_service.py:25: AttributeError</failure></testcase><testcase classname="tests.unit.services.test_exam_association_service" name="test_summary_uses_explicit_score_and_preserves_unknown_history" time="0.162"><failure message="AttributeError: 'Exam' object has no attribute 'exam_question_links'">session = &lt;sqlalchemy.orm.session.Session object at 0x000001DD091E0770&gt;
+
+    def test_summary_uses_explicit_score_and_preserves_unknown_history(session: Session) -&gt; None:
+        teacher = add_teacher(session)
+        course = add_course(session, teacher)
+        qid = add_question(session, course, teacher, approved=True)
+        service = ExamService(session)
+        summary = service.create_exam(course.id, "未知历史", question_ids=[qid],
+                                      created_by=teacher.id)
+        exam = session.get(Exam, UUID(summary.id))
+        assert exam is not None
+        assert summary.total_score == Decimal("10.00")
+&gt;       exam.exam_question_links[0].score = Decimal("7.25")
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'Exam' object has no attribute 'exam_question_links'
+
+tests\unit\services\test_exam_association_service.py:46: AttributeError</failure></testcase></testsuite></testsuites>

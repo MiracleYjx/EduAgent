@@ -892,3 +892,11 @@ scripts/demo_seed.py 先准备全部题目，仅将 Draft 送审；未全部 App
 首轮评测夹具knowledge_points=[]违约失败收据保留；修为明示合成分类metadata后r2实际通过，r2源码冻结。入口10项类型边界问题如实保留日志，最小非空断言/局部变量/同payload的model_validate修复后聚焦mypy与Ruff通过，r3真实复验再次通过；失败未覆盖，未修改原样本/业务校验。详细复现方式见benchmark/t169/README.md，证据摘要见manifest.json。
 
 本批仅独占DB/Redis/文件根运行，零连接清理后原业务库仍0012_audit_logs，两README、阅卷样本及.env原字节一致。T146/T168 AI辅助口径与未知项保留。T169完成的是范围/状态/权限/事务/来源/重核验技术验收，不代表平台语义质量、性能、Docker M0、EXE或最终系统验收通过。下一批可依次T170→T171→T172。
+
+## T170 考试关联实体与受校验条件模型（2026-10-04）
+
+原 exam_questions 原地升级至0022_exam_question，保留考试CASCADE/题目RESTRICT外键；关联ID、连续题序与创建时间代表升级后的关联身份，绝不代替旧批准时间。旧分值、基准、发布知识点、Rubric及组卷意图均保持SQL NULL，不从当前题库反推。旧Exam.questions/Question.exams可查询与eager-load；写入统一使用ExamQuestion。原创建、追加和删除入口维护明确题序，移位使用临时正序号避免中间唯一冲突。
+
+受校验Schema要求金额字符串/Decimal、最多两位小数、单题正值且≤999999.99；总分不误套单题上限，严格数量、去重标签和UTC身份。Draft未设分值时合法取题库默认；旧Published/Closed/Archived缺本场分值时摘要total_score=null，UI显示“未知（待核对）”，不妨碍读取题目列表与已存结果。新增完整数学依据校验和历史处置由T171/T174衔接。
+
+新增测试先RED：缺ExamQuestion收集失败、旧服务2项缺关联属性；模型/原入口首轮31 passed。最终直接影响回归249 passed（122.01s），真实隔离PG迁移1 passed，覆盖旧pairs/题序/NULL/FK/约束、有损降级拒绝与安全降级重升。全backend mypy202源文件、Ruff、隔离库upgrade/check均通过。原夹具仅改关联生产方式及迁移head，保留原业务断言；原0009测试用真实旧表结构写入，未把新列强塞旧迁移。原始日志与失败保留在[evidence/t170-20261004/](evidence/t170-20261004/manifest.json)。本条不宣称E4全量验收、模型质量或性能通过；整批最终再做精确提交快照全回归。原业务库与三项用户修改/.env保持。

@@ -8,6 +8,7 @@ from backend.app.models import (
     Answer,
     Exam,
     ExamParticipant,
+    ExamQuestion,
     ExtractedQuestion,
     Question,
     QuestionAsset,
@@ -45,7 +46,8 @@ def opened_exam(case, question, *, assigned=True):
     question.status = QuestionStatus.APPROVED
     exam = Exam(
         course_id=doc.course_id, created_by=users[0].id, title="题图考试",
-        status=ExamStatus.PUBLISHED, questions=[question],
+        status=ExamStatus.PUBLISHED,
+        exam_question_links=[ExamQuestion(question=question, order_index=1)],
     )
     session.add(exam)
     session.flush()

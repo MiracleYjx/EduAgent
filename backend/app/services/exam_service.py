@@ -14,7 +14,7 @@ from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session, selectinload
 
 from backend.app.domain.enums import ExamStatus, QuestionStatus
-from backend.app.models import Course, Exam, Question, User
+from backend.app.models import Course, Exam, ExamQuestion, Question, User
 
 _UNSET = object()
 _ZERO_SCORE = Decimal("0.00")
@@ -62,12 +62,12 @@ class ExamSummary(BaseModel):
     ends_at: datetime | None = None
     question_ids: list[str]
     question_count: int
-    total_score: Decimal
+    total_score: Decimal | None
     created_at: datetime
     updated_at: datetime
 
     @property
-    def total_points(self) -> Decimal:
+    def total_points(self) -> Decimal | None:
         """兼容按总分命名的调用方。"""
 
         return self.total_score
@@ -293,7 +293,13 @@ class ExamService:
             starts_at=starts_at,
             ends_at=ends_at,
         )
-        exam.questions.extend(selected_questions)
+        exam.exam_question_links.extend(
+            ExamQuestion(question=question, order_index=index)
+            for index, question in enumerate(
+                sorted(selected_questions, key=lambda item: (item.created_at, item.id)),
+                start=1,
+            )
+        )
         self.session.add(exam)
         return self._commit_exam(exam, "创建考试失败。")
 
@@ -320,7 +326,12 @@ class ExamService:
         statement = (
             select(Exam)
             .join(Course, Exam.course_id == Course.id)
-            .options(selectinload(Exam.questions))
+            .options(
+                selectinload(Exam.questions),
+                selectinload(Exam.exam_question_links).selectinload(
+                    ExamQuestion.question
+                ),
+            )
         )
         if normalized_course_id is not None:
             statement = statement.where(Exam.course_id == normalized_course_id)
@@ -431,7 +442,14 @@ class ExamService:
             for question in selected_questions
             if question.id not in existing_ids
         ]
-        exam.questions.extend(questions_to_add)
+        next_index = len(exam.exam_question_links) + 1
+        exam.exam_question_links.extend(
+            ExamQuestion(question=question, order_index=index)
+            for index, question in enumerate(
+                sorted(questions_to_add, key=lambda item: (item.created_at, item.id)),
+                start=next_index,
+            )
+        )
         if not questions_to_add:
             return self._exam_summary(exam)
         return self._commit_exam(exam, "关联考试题目失败。")
@@ -481,9 +499,12 @@ class ExamService:
         ]
         if missing_ids:
             raise ExamConflictError("指定题目未关联到该考试。")
-        exam.questions[:] = [
-            question for question in exam.questions if question.id not in normalized_ids
+        exam.exam_question_links[:] = [
+            link
+            for link in exam.exam_question_links
+            if link.question_id not in normalized_ids
         ]
+        self._reindex_links(exam.exam_question_links)
         return self._commit_exam(exam, "移除考试题目失败。")
 
     def remove_question(
@@ -578,7 +599,12 @@ class ExamService:
         try:
             exam = self.session.scalar(
                 select(Exam)
-                .options(selectinload(Exam.questions))
+                .options(
+                    selectinload(Exam.questions),
+                    selectinload(Exam.exam_question_links).selectinload(
+                        ExamQuestion.question
+                    ),
+                )
                 .where(Exam.id == normalized_id)
             )
         except SQLAlchemyError as exc:
@@ -661,6 +687,20 @@ class ExamService:
                     f"只有 Approved 状态的题目才能发布考试，题目 {question.id} 当前为“{question.status.value}”。"
                 )
 
+    def _reindex_links(self, links: list[ExamQuestion]) -> None:
+        """在唯一约束始终有效的情况下按给定顺序写入连续题序。"""
+        try:
+            self.session.flush()  # 先删除已移除的关联。
+            offset = max((link.order_index for link in links), default=0) + len(links)
+            for index, link in enumerate(links, start=1):
+                link.order_index = offset + index
+            self.session.flush()
+            for index, link in enumerate(links, start=1):
+                link.order_index = index
+        except SQLAlchemyError as exc:
+            self.session.rollback()
+            raise ExamServiceError("无法保存考试题序。") from exc
+
     def _commit_exam(self, exam: Exam, fallback_message: str) -> ExamSummary:
         """提交考试变更并转换为安全摘要。"""
 
@@ -679,10 +719,14 @@ class ExamService:
     def _exam_summary(exam: Exam) -> ExamSummary:
         """将考试实体转换为不暴露 ORM 状态的摘要。"""
 
-        questions = list(getattr(exam, "questions", ()) or ())
-        total_score = sum(
-            (Decimal(str(question.score)) for question in questions),
-            _ZERO_SCORE,
+        links = sorted(exam.exam_question_links, key=lambda link: link.order_index)
+        questions = [link.question for link in links]
+        # 旧发布记录的未知分值不可由当前题库反推；列表和历史入口仍可读取。
+        total_score = (
+            None
+            if exam.status is not ExamStatus.DRAFT
+            and any(link.score is None for link in links)
+            else sum((link.effective_score for link in links), _ZERO_SCORE)
         )
         return ExamSummary(
             id=str(exam.id),
