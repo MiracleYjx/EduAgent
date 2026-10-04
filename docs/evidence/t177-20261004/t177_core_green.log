@@ -1,0 +1,56 @@
+........F...                                                             [100%]
+================================== FAILURES ===================================
+________ test_actual_images_use_independent_vision_provider_and_close _________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x0000021381AB4FC0>
+
+    def test_actual_images_use_independent_vision_provider_and_close(monkeypatch):
+        from backend.app.services.grading import subjective_grader as module
+    
+        value, teacher = fixed_input()
+        asset = {
+            "id": uuid4(),
+            "question_id": value.question_id,
+            "file_id": "controlled-original",
+            "asset_type": "diagram",
+            "width": 4,
+            "height": 3,
+            "caption": "Actual diagram",
+            "source_page_id": None,
+            "region": None,
+            "order_index": 1,
+            "student_visible": True,
+        }
+        from backend.app.schemas.question_assets import QuestionAssetView
+    
+        value = value.model_copy(
+            update={"assets": [QuestionAssetView.model_validate(asset)]}
+        )
+        src = source(value, teacher)
+        prepare_context(monkeypatch, src)
+        text = Provider()
+        vision = Provider()
+        monkeypatch.setattr(module, "create_vision_provider", lambda settings: vision)
+        monkeypatch.setattr(
+            module, "prepare_scoring_images", lambda *args, **kwargs: (image(),)
+        )
+        result = asyncio.run(
+            SubjectiveGrader(provider=text).grade(
+                object(), src, max_score=Decimal("10.00"), settings=build_test_settings()
+            )
+        )
+        assert result.score == Decimal("6.68")
+        assert text.calls == [] and len(vision.calls) == 1 and vision.closed
+        parts = vision.calls[0][0][1]["content"]
+        assert isinstance(parts, list) and any(p["type"] == "image" for p in parts)
+        part = next(p for p in parts if p["type"] == "image")
+>       assert part["image"].value == __import__("base64").b64encode(image().data).decode(
+               ^^^^^^^^^^^^^^^^^^^
+            "ascii"
+        )
+E       AttributeError: 'dict' object has no attribute 'value'. Did you mean: 'values'?
+
+tests\unit\grading\test_exam_scoring_consumption.py:297: AttributeError
+=========================== short test summary info ===========================
+FAILED tests/unit/grading/test_exam_scoring_consumption.py::test_actual_images_use_independent_vision_provider_and_close
+1 failed, 11 passed in 2.31s

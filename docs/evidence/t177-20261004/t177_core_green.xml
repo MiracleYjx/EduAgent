@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="12" time="2.310" timestamp="2026-10-04T09:50:47.205644+08:00" hostname="YJX"><testcase classname="tests.unit.grading.test_exam_scoring_consumption" name="test_exact_decimal_result_and_real_exam_identity[6.675-6.68]" time="0.002" /><testcase classname="tests.unit.grading.test_exam_scoring_consumption" name="test_exact_decimal_result_and_real_exam_identity[0.005-0.01]" time="0.001" /><testcase classname="tests.unit.grading.test_exam_scoring_consumption" name="test_raw_score_rejected_before_rounding[10.00000000000000000001]" time="0.001" /><testcase classname="tests.unit.grading.test_exam_scoring_consumption" name="test_raw_score_rejected_before_rounding[-0.00000000000000000001]" time="0.001" /><testcase classname="tests.unit.grading.test_exam_scoring_consumption" name="test_original_json_numeric_precision_is_not_lost" time="0.001" /><testcase classname="tests.unit.grading.test_exam_scoring_consumption" name="test_messages_use_confirmed_exam_points_without_second_scaling" time="0.002" /><testcase classname="tests.unit.grading.test_exam_scoring_consumption" name="test_source_rejects_wrong_fixed_question_without_rebuilding_input" time="0.001" /><testcase classname="tests.unit.grading.test_exam_scoring_consumption" name="test_real_retrieval_enrichment_preserves_all_fixed_facts" time="0.008" /><testcase classname="tests.unit.grading.test_exam_scoring_consumption" name="test_actual_images_use_independent_vision_provider_and_close" time="0.019"><failure message="AttributeError: 'dict' object has no attribute 'value'. Did you mean: 'values'?">monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x0000021381AB4FC0&gt;
+
+    def test_actual_images_use_independent_vision_provider_and_close(monkeypatch):
+        from backend.app.services.grading import subjective_grader as module
+    
+        value, teacher = fixed_input()
+        asset = {
+            "id": uuid4(),
+            "question_id": value.question_id,
+            "file_id": "controlled-original",
+            "asset_type": "diagram",
+            "width": 4,
+            "height": 3,
+            "caption": "Actual diagram",
+            "source_page_id": None,
+            "region": None,
+            "order_index": 1,
+            "student_visible": True,
+        }
+        from backend.app.schemas.question_assets import QuestionAssetView
+    
+        value = value.model_copy(
+            update={"assets": [QuestionAssetView.model_validate(asset)]}
+        )
+        src = source(value, teacher)
+        prepare_context(monkeypatch, src)
+        text = Provider()
+        vision = Provider()
+        monkeypatch.setattr(module, "create_vision_provider", lambda settings: vision)
+        monkeypatch.setattr(
+            module, "prepare_scoring_images", lambda *args, **kwargs: (image(),)
+        )
+        result = asyncio.run(
+            SubjectiveGrader(provider=text).grade(
+                object(), src, max_score=Decimal("10.00"), settings=build_test_settings()
+            )
+        )
+        assert result.score == Decimal("6.68")
+        assert text.calls == [] and len(vision.calls) == 1 and vision.closed
+        parts = vision.calls[0][0][1]["content"]
+        assert isinstance(parts, list) and any(p["type"] == "image" for p in parts)
+        part = next(p for p in parts if p["type"] == "image")
+&gt;       assert part["image"].value == __import__("base64").b64encode(image().data).decode(
+               ^^^^^^^^^^^^^^^^^^^
+            "ascii"
+        )
+E       AttributeError: 'dict' object has no attribute 'value'. Did you mean: 'values'?
+
+tests\unit\grading\test_exam_scoring_consumption.py:297: AttributeError</failure></testcase><testcase classname="tests.unit.grading.test_exam_scoring_consumption" name="test_no_image_capability_preserves_error_without_text_fallback" time="0.006" /><testcase classname="tests.unit.grading.test_exam_scoring_consumption" name="test_objective_decimal_grade_has_real_exam_link_without_provider" time="0.001" /><testcase classname="tests.unit.grading.test_exam_scoring_consumption" name="test_agent_envelope_carries_actual_enriched_input" time="0.007" /></testsuite></testsuites>

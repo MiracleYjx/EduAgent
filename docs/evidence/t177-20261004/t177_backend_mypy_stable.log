@@ -1,0 +1,2 @@
+backend\app\api\reviews.py:603: error: Incompatible types in assignment (expression has type "str | None", variable has type "str")  [assignment]
+Found 1 error in 1 file (checked 209 source files)

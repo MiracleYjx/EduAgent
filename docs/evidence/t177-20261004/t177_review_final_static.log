@@ -1,0 +1,13 @@
+PLC0414 Import alias does not rename original package
+  --> tests\unit\services\test_fixed_review_service.py:26:5
+   |
+24 | )
+25 | from tests.unit.services.test_review_service import (
+26 |     env as env,
+   |     ^^^^^^^^^^
+27 | )
+   |
+help: Remove import alias
+
+Found 1 error.
+No fixes available (1 hidden fix can be enabled with the `--unsafe-fixes` option).

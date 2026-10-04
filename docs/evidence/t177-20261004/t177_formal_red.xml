@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="3" skipped="0" tests="3" time="15.869" timestamp="2026-10-04T09:40:49.541439+08:00" hostname="YJX"><testcase classname="tests.integration.test_exam_scoring_consumers" name="test_formal_http_rounds_once_uses_fixed_standard_and_persists_real_inputs" time="1.751"><failure message="assert 409 == 200&#10; +  where 409 = &lt;Response [409 Conflict]&gt;.status_code">environment = ReviewEnv(engine=Engine(postgresql+psycopg://eduagent@127.0.0.1:5432/eduagent_e4_finish_3c487990ad44), paper=Paper(tea...ive_answer_id='df8ab042-a22b-4705-b922-f8000a860288', subjective_answer_ids=('df8ab042-a22b-4705-b922-f8000a860288',)))
+
+    def test_formal_http_rounds_once_uses_fixed_standard_and_persists_real_inputs(environment):
+        provider = SequenceScoringProvider([0.95], score=Decimal("0.005"))
+        with _api_client(environment, scoring_provider=provider) as harness:
+            started = _start(harness, environment)
+            result = _student_result(harness, environment)
+&gt;       assert started.status_code == 200
+E       assert 409 == 200
+E        +  where 409 = &lt;Response [409 Conflict]&gt;.status_code
+
+tests\integration\test_exam_scoring_consumers.py:58: AssertionError</failure></testcase><testcase classname="tests.integration.test_exam_scoring_consumers" name="test_manual_review_checks_raw_limit_before_rounding_and_keeps_row_identity" time="1.333"><failure message="assert 409 == 200&#10; +  where 409 = &lt;Response [409 Conflict]&gt;.status_code">environment = ReviewEnv(engine=Engine(postgresql+psycopg://eduagent@127.0.0.1:5432/eduagent_e4_finish_3c487990ad44), paper=Paper(tea...ive_answer_id='3ffba04a-8426-4da8-bfb2-df70ac12f00f', subjective_answer_ids=('3ffba04a-8426-4da8-bfb2-df70ac12f00f',)))
+
+    def test_manual_review_checks_raw_limit_before_rounding_and_keeps_row_identity(environment):
+        provider = SequenceScoringProvider([0.3], score=Decimal("1.005"))
+        with _api_client(environment, scoring_provider=provider) as harness:
+            started = _start(harness, environment)
+&gt;           assert started.status_code == 200
+E           assert 409 == 200
+E            +  where 409 = &lt;Response [409 Conflict]&gt;.status_code
+
+tests\integration\test_exam_scoring_consumers.py:82: AssertionError</failure></testcase><testcase classname="tests.integration.test_exam_scoring_consumers" name="test_raw_model_score_above_current_limit_is_not_rounded_into_success" time="1.348"><failure message="assert (409 == 200)&#10; +  where 409 = &lt;Response [409 Conflict]&gt;.status_code">environment = ReviewEnv(engine=Engine(postgresql+psycopg://eduagent@127.0.0.1:5432/eduagent_e4_finish_3c487990ad44), paper=Paper(tea...ive_answer_id='e0c7f1e4-cb1f-4548-bca0-1938a2b80668', subjective_answer_ids=('e0c7f1e4-cb1f-4548-bca0-1938a2b80668',)))
+
+    def test_raw_model_score_above_current_limit_is_not_rounded_into_success(environment):
+        provider = SequenceScoringProvider([0.95], score=Decimal("3.3300000000000000000001"))
+        with _api_client(environment, scoring_provider=provider) as harness:
+            started = _start(harness, environment)
+            result = _student_result(harness, environment)
+&gt;       assert started.status_code == 200 and started.json()["status"] == WorkflowStatus.FAILED.value
+E       assert (409 == 200)
+E        +  where 409 = &lt;Response [409 Conflict]&gt;.status_code
+
+tests\integration\test_exam_scoring_consumers.py:113: AssertionError</failure></testcase></testsuite></testsuites>

@@ -1,0 +1,308 @@
+FFFFFFFFFFFF                                                             [100%]
+================================== FAILURES ===================================
+________ test_exact_decimal_result_and_real_exam_identity[6.675-6.68] _________
+
+score = '6.675', expected = '6.68'
+
+    @pytest.mark.parametrize("score, expected", [("6.675", "6.68"), ("0.005", "0.01")])
+    def test_exact_decimal_result_and_real_exam_identity(score, expected):
+>       result = parse_subjective_payload(payload(score), question_type=QuestionType.SHORT_ANSWER,
+            max_score=Decimal("10.00"), answer_id="a", submission_id="s", exam_question_id="real-link")
+E       TypeError: parse_subjective_payload() got an unexpected keyword argument 'exam_question_id'
+
+tests\unit\grading\test_exam_scoring_consumption.py:73: TypeError
+________ test_exact_decimal_result_and_real_exam_identity[0.005-0.01] _________
+
+score = '0.005', expected = '0.01'
+
+    @pytest.mark.parametrize("score, expected", [("6.675", "6.68"), ("0.005", "0.01")])
+    def test_exact_decimal_result_and_real_exam_identity(score, expected):
+>       result = parse_subjective_payload(payload(score), question_type=QuestionType.SHORT_ANSWER,
+            max_score=Decimal("10.00"), answer_id="a", submission_id="s", exam_question_id="real-link")
+E       TypeError: parse_subjective_payload() got an unexpected keyword argument 'exam_question_id'
+
+tests\unit\grading\test_exam_scoring_consumption.py:73: TypeError
+______ test_raw_score_rejected_before_rounding[10.00000000000000000001] _______
+
+raw = '10.00000000000000000001'
+
+    @pytest.mark.parametrize("raw", ["10.00000000000000000001", "-0.00000000000000000001"])
+    def test_raw_score_rejected_before_rounding(raw):
+        with pytest.raises(ScoreOutOfRangeError):
+>           parse_subjective_payload(payload(raw), question_type=QuestionType.SHORT_ANSWER, max_score=Decimal("10.00"))
+
+tests\unit\grading\test_exam_scoring_consumption.py:83: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+raw = {'score': '10.00000000000000000001', 'confidence': 0.9, 'reason': 'Two of the three steps were given.', 'correct_points': ['prepare', 'execute'], ...}
+question_type = <QuestionType.SHORT_ANSWER: 'SHORT_ANSWER'>
+max_score = Decimal('10.00'), knowledge_points = (), retrieved_context_ids = ()
+answer_id = None, submission_id = None
+
+    def parse_subjective_payload(
+        raw: Any,
+        *,
+        question_type: QuestionType | str | None,
+        max_score: Any,
+        knowledge_points: Sequence[str] = (),
+        retrieved_context_ids: Sequence[str] = (),
+        answer_id: str | None = None,
+        submission_id: str | None = None,
+    ) -> GradingResult:
+        """把模型响应校验并转换为 :class:`GradingResult`。
+    
+        这是**已校验的中间结果**：``review_status`` 先回填 ``Not Required``，最终复核状态由入口的
+        置信度检查决定，本函数不代表 ``Accepted``。
+        """
+    
+        resolved_max_score = _resolve_max_score(max_score)
+        normalized_type = normalize_question_type(question_type)
+        if _SUBJECTIVE_ONLY_ROUTER.route_type(normalized_type) is not GradingMode.SUBJECTIVE:
+            raise GradingModeMismatchError(
+                f"题型 {normalized_type} 属于客观题路径，"
+                "不得使用主观题结构化评分解析器。"
+            )
+        payload_map = _load_payload(raw)
+        try:
+            payload = SubjectiveGradingPayload.model_validate(payload_map)
+        except ValidationError as exc:
+>           raise InvalidLLMResponseError(
+                f"评分响应未通过结构化校验：{_describe_validation_error(exc)}。"
+            ) from None
+E           backend.app.services.grading.subjective_grader.InvalidLLMResponseError: GRADING_INVALID_LLM_RESPONSE：评分响应未通过结构化校验：score：value_error。
+
+backend\app\services\grading\subjective_grader.py:334: InvalidLLMResponseError
+______ test_raw_score_rejected_before_rounding[-0.00000000000000000001] _______
+
+raw = '-0.00000000000000000001'
+
+    @pytest.mark.parametrize("raw", ["10.00000000000000000001", "-0.00000000000000000001"])
+    def test_raw_score_rejected_before_rounding(raw):
+        with pytest.raises(ScoreOutOfRangeError):
+>           parse_subjective_payload(payload(raw), question_type=QuestionType.SHORT_ANSWER, max_score=Decimal("10.00"))
+
+tests\unit\grading\test_exam_scoring_consumption.py:83: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+raw = {'score': '-0.00000000000000000001', 'confidence': 0.9, 'reason': 'Two of the three steps were given.', 'correct_points': ['prepare', 'execute'], ...}
+question_type = <QuestionType.SHORT_ANSWER: 'SHORT_ANSWER'>
+max_score = Decimal('10.00'), knowledge_points = (), retrieved_context_ids = ()
+answer_id = None, submission_id = None
+
+    def parse_subjective_payload(
+        raw: Any,
+        *,
+        question_type: QuestionType | str | None,
+        max_score: Any,
+        knowledge_points: Sequence[str] = (),
+        retrieved_context_ids: Sequence[str] = (),
+        answer_id: str | None = None,
+        submission_id: str | None = None,
+    ) -> GradingResult:
+        """把模型响应校验并转换为 :class:`GradingResult`。
+    
+        这是**已校验的中间结果**：``review_status`` 先回填 ``Not Required``，最终复核状态由入口的
+        置信度检查决定，本函数不代表 ``Accepted``。
+        """
+    
+        resolved_max_score = _resolve_max_score(max_score)
+        normalized_type = normalize_question_type(question_type)
+        if _SUBJECTIVE_ONLY_ROUTER.route_type(normalized_type) is not GradingMode.SUBJECTIVE:
+            raise GradingModeMismatchError(
+                f"题型 {normalized_type} 属于客观题路径，"
+                "不得使用主观题结构化评分解析器。"
+            )
+        payload_map = _load_payload(raw)
+        try:
+            payload = SubjectiveGradingPayload.model_validate(payload_map)
+        except ValidationError as exc:
+>           raise InvalidLLMResponseError(
+                f"评分响应未通过结构化校验：{_describe_validation_error(exc)}。"
+            ) from None
+E           backend.app.services.grading.subjective_grader.InvalidLLMResponseError: GRADING_INVALID_LLM_RESPONSE：评分响应未通过结构化校验：score：value_error。
+
+backend\app\services\grading\subjective_grader.py:334: InvalidLLMResponseError
+______________ test_original_json_numeric_precision_is_not_lost _______________
+
+    def test_original_json_numeric_precision_is_not_lost():
+        raw = '{"score":10.00000000000000000001,"confidence":0.9,"reason":"r","correct_points":[],"missing_knowledge_points":[],"suggestions":["s"]}'
+>       with pytest.raises(ScoreOutOfRangeError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ScoreOutOfRangeError
+
+tests\unit\grading\test_exam_scoring_consumption.py:88: Failed
+_______ test_messages_use_confirmed_exam_points_without_second_scaling ________
+
+    def test_messages_use_confirmed_exam_points_without_second_scaling():
+        value, teacher = fixed_input()
+>       messages = build_grading_messages(context(source(value, teacher)), max_score=Decimal("10.00"))
+                                                  ^^^^^^^^^^^^^^^^^^^^^^
+
+tests\unit\grading\test_exam_scoring_consumption.py:94: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+value = ScoringInput(exam_id='e2a0a8ee-cc9e-4c00-ba30-0b5d0eb12506', exam_question_id='0579f762-53a3-45ef-830c-cd669e643b08', ...udent_answer='prepare execute', assets=[], verified_image_conditions=None, course_context=None, source_references=None)
+teacher = '69a79474-8e06-489f-938c-a7ca60a59c43'
+
+    def source(value, teacher):
+>       return SubjectiveGradingSource(
+            question_type=value.question_type, course_id=value.course_id,
+            question_content=value.question_content, reference_answer=value.reference_answer,
+            scoring_rubric=value.source_rubric, student_answer=value.student_answer,
+            knowledge_points=tuple(value.published_knowledge_points), question_id=value.question_id,
+            answer_id=value.answer_id, submission_id=value.submission_id,
+            scoring_input=value, teacher_id=teacher,
+        )
+E       TypeError: SubjectiveGradingSource.__init__() got an unexpected keyword argument 'scoring_input'
+
+tests\unit\grading\test_exam_scoring_consumption.py:48: TypeError
+______ test_source_rejects_wrong_fixed_question_without_rebuilding_input ______
+
+    def test_source_rejects_wrong_fixed_question_without_rebuilding_input():
+        value, teacher = fixed_input()
+        with pytest.raises(Exception) as failure:
+            replace(source(value, teacher), question_id=str(uuid4()))
+>       assert getattr(failure.value, "error_code", None) == "GRADING_INVALID_INPUT"
+E       assert None == 'GRADING_INVALID_INPUT'
+E        +  where None = getattr(TypeError("SubjectiveGradingSource.__init__() got an unexpected keyword argument 'scoring_input'"), 'error_code', None)
+E        +    where TypeError("SubjectiveGradingSource.__init__() got an unexpected keyword argument 'scoring_input'") = <ExceptionInfo TypeError("SubjectiveGradingSource.__init__() got an unexpected keyword argument 'scoring_input'") tblen=2>.value
+
+tests\unit\grading\test_exam_scoring_consumption.py:105: AssertionError
+__________ test_real_retrieval_enrichment_preserves_all_fixed_facts ___________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x0000017000B57A80>
+
+    def test_real_retrieval_enrichment_preserves_all_fixed_facts(monkeypatch):
+        value, teacher = fixed_input()
+>       src=source(value, teacher)
+            ^^^^^^^^^^^^^^^^^^^^^^
+
+tests\unit\grading\test_exam_scoring_consumption.py:130: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+value = ScoringInput(exam_id='d637858d-841f-42ff-85a0-b49c38311cea', exam_question_id='6edc14b5-1797-4b5f-8d86-98a7a16be00a', ...udent_answer='prepare execute', assets=[], verified_image_conditions=None, course_context=None, source_references=None)
+teacher = '69b7ce20-027b-4dec-8305-188663f8fc41'
+
+    def source(value, teacher):
+>       return SubjectiveGradingSource(
+            question_type=value.question_type, course_id=value.course_id,
+            question_content=value.question_content, reference_answer=value.reference_answer,
+            scoring_rubric=value.source_rubric, student_answer=value.student_answer,
+            knowledge_points=tuple(value.published_knowledge_points), question_id=value.question_id,
+            answer_id=value.answer_id, submission_id=value.submission_id,
+            scoring_input=value, teacher_id=teacher,
+        )
+E       TypeError: SubjectiveGradingSource.__init__() got an unexpected keyword argument 'scoring_input'
+
+tests\unit\grading\test_exam_scoring_consumption.py:48: TypeError
+________ test_actual_images_use_independent_vision_provider_and_close _________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x0000017000B57E10>
+
+    def test_actual_images_use_independent_vision_provider_and_close(monkeypatch):
+        from backend.app.services.grading import subjective_grader as module
+        value, teacher=fixed_input()
+        asset={"id":uuid4(),"question_id":value.question_id,"file_id":"controlled-original","asset_type":"diagram",
+            "width":4,"height":3,"caption":"Actual diagram","source_page_id":None,"region":None,"order_index":1,"student_visible":True}
+        from backend.app.schemas.question_assets import QuestionAssetView
+        value=value.model_copy(update={"assets":[QuestionAssetView.model_validate(asset)]})
+>       src=source(value, teacher)
+            ^^^^^^^^^^^^^^^^^^^^^^
+
+tests\unit\grading\test_exam_scoring_consumption.py:158: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+value = ScoringInput(exam_id='216628cc-c32b-481e-8de3-2f608781b7ec', exam_question_id='5cee9d4a-94b6-4752-9562-3f09f0c1ca1b', ...ne, order_index=1, student_visible=True)], verified_image_conditions=None, course_context=None, source_references=None)
+teacher = '4701180b-c95b-4fc5-a531-7b10b1d32a4b'
+
+    def source(value, teacher):
+>       return SubjectiveGradingSource(
+            question_type=value.question_type, course_id=value.course_id,
+            question_content=value.question_content, reference_answer=value.reference_answer,
+            scoring_rubric=value.source_rubric, student_answer=value.student_answer,
+            knowledge_points=tuple(value.published_knowledge_points), question_id=value.question_id,
+            answer_id=value.answer_id, submission_id=value.submission_id,
+            scoring_input=value, teacher_id=teacher,
+        )
+E       TypeError: SubjectiveGradingSource.__init__() got an unexpected keyword argument 'scoring_input'
+
+tests\unit\grading\test_exam_scoring_consumption.py:48: TypeError
+_______ test_no_image_capability_preserves_error_without_text_fallback ________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x00000170011B5D90>
+
+    def test_no_image_capability_preserves_error_without_text_fallback(monkeypatch):
+        from backend.app.services.grading import subjective_grader as module
+        from backend.app.schemas.question_assets import QuestionAssetView
+        value,teacher=fixed_input()
+        value=value.model_copy(update={"assets":[QuestionAssetView.model_validate({"id":uuid4(),"question_id":value.question_id,"file_id":"controlled-original","asset_type":"diagram","width":4,"height":3,"caption":None,"source_page_id":None,"region":None,"order_index":1})]})
+>       src=source(value,teacher)
+            ^^^^^^^^^^^^^^^^^^^^^
+
+tests\unit\grading\test_exam_scoring_consumption.py:179: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+value = ScoringInput(exam_id='2e6858a1-b9d9-4e87-b334-dcc337b65253', exam_question_id='c30ac0c6-0270-4c10-b683-0d4f6f0eb042', ...e, order_index=1, student_visible=False)], verified_image_conditions=None, course_context=None, source_references=None)
+teacher = 'de12cbcf-7871-43cc-bb17-2fab981b30b2'
+
+    def source(value, teacher):
+>       return SubjectiveGradingSource(
+            question_type=value.question_type, course_id=value.course_id,
+            question_content=value.question_content, reference_answer=value.reference_answer,
+            scoring_rubric=value.source_rubric, student_answer=value.student_answer,
+            knowledge_points=tuple(value.published_knowledge_points), question_id=value.question_id,
+            answer_id=value.answer_id, submission_id=value.submission_id,
+            scoring_input=value, teacher_id=teacher,
+        )
+E       TypeError: SubjectiveGradingSource.__init__() got an unexpected keyword argument 'scoring_input'
+
+tests\unit\grading\test_exam_scoring_consumption.py:48: TypeError
+______ test_objective_decimal_grade_has_real_exam_link_without_provider _______
+
+    def test_objective_decimal_grade_has_real_exam_link_without_provider():
+>       result=ObjectiveGrader().grade(question_type=QuestionType.SINGLE_CHOICE, reference_answer="A",student_answer="A",
+            max_score=Decimal("17.23"),answer_id="a",submission_id="s",exam_question_id="link")
+E       TypeError: ObjectiveGrader.grade() got an unexpected keyword argument 'exam_question_id'
+
+tests\unit\grading\test_exam_scoring_consumption.py:191: TypeError
+______________ test_agent_envelope_carries_actual_enriched_input ______________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x00000170012B6580>
+
+    def test_agent_envelope_carries_actual_enriched_input(monkeypatch):
+        value,teacher=fixed_input()
+>       src=source(value,teacher)
+            ^^^^^^^^^^^^^^^^^^^^^
+
+tests\unit\grading\test_exam_scoring_consumption.py:199: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+value = ScoringInput(exam_id='cfef653f-e683-434c-87b5-a1517f7a87bd', exam_question_id='a6bca342-0116-4970-87fb-8d8c7382c65b', ...udent_answer='prepare execute', assets=[], verified_image_conditions=None, course_context=None, source_references=None)
+teacher = 'ec8c2157-4b1f-4825-8dfb-683929d33c41'
+
+    def source(value, teacher):
+>       return SubjectiveGradingSource(
+            question_type=value.question_type, course_id=value.course_id,
+            question_content=value.question_content, reference_answer=value.reference_answer,
+            scoring_rubric=value.source_rubric, student_answer=value.student_answer,
+            knowledge_points=tuple(value.published_knowledge_points), question_id=value.question_id,
+            answer_id=value.answer_id, submission_id=value.submission_id,
+            scoring_input=value, teacher_id=teacher,
+        )
+E       TypeError: SubjectiveGradingSource.__init__() got an unexpected keyword argument 'scoring_input'
+
+tests\unit\grading\test_exam_scoring_consumption.py:48: TypeError
+=========================== short test summary info ===========================
+FAILED tests/unit/grading/test_exam_scoring_consumption.py::test_exact_decimal_result_and_real_exam_identity[6.675-6.68]
+FAILED tests/unit/grading/test_exam_scoring_consumption.py::test_exact_decimal_result_and_real_exam_identity[0.005-0.01]
+FAILED tests/unit/grading/test_exam_scoring_consumption.py::test_raw_score_rejected_before_rounding[10.00000000000000000001]
+FAILED tests/unit/grading/test_exam_scoring_consumption.py::test_raw_score_rejected_before_rounding[-0.00000000000000000001]
+FAILED tests/unit/grading/test_exam_scoring_consumption.py::test_original_json_numeric_precision_is_not_lost
+FAILED tests/unit/grading/test_exam_scoring_consumption.py::test_messages_use_confirmed_exam_points_without_second_scaling
+FAILED tests/unit/grading/test_exam_scoring_consumption.py::test_source_rejects_wrong_fixed_question_without_rebuilding_input
+FAILED tests/unit/grading/test_exam_scoring_consumption.py::test_real_retrieval_enrichment_preserves_all_fixed_facts
+FAILED tests/unit/grading/test_exam_scoring_consumption.py::test_actual_images_use_independent_vision_provider_and_close
+FAILED tests/unit/grading/test_exam_scoring_consumption.py::test_no_image_capability_preserves_error_without_text_fallback
+FAILED tests/unit/grading/test_exam_scoring_consumption.py::test_objective_decimal_grade_has_real_exam_link_without_provider
+FAILED tests/unit/grading/test_exam_scoring_consumption.py::test_agent_envelope_carries_actual_enriched_input
+12 failed in 2.15s

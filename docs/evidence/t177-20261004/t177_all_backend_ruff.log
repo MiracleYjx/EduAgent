@@ -1,0 +1,330 @@
+I001 [*] Import block is un-sorted or un-formatted
+  --> backend\app\api\reviews.py:26:1
+   |
+24 |   """
+25 |
+26 | / from __future__ import annotations
+27 | |
+28 | | from collections.abc import Iterator, Mapping, Sequence
+29 | | from contextlib import contextmanager
+30 | | from datetime import datetime
+31 | | from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
+32 | | from typing import Annotated, Any, Literal
+33 | | from uuid import UUID
+34 | |
+35 | | from fastapi import APIRouter, Depends, HTTPException, Request
+36 | | from pydantic import BaseModel, ConfigDict, Field, field_validator
+37 | | from sqlalchemy import func, select
+38 | | from sqlalchemy.exc import SQLAlchemyError
+39 | | from sqlalchemy.orm import Session
+40 | |
+41 | | from backend.app.ai.workflows.grading_workflow import TeacherReviewDecision
+42 | | from backend.app.api.workflow import build_production_review_service
+43 | | from backend.app.core.config import AppSettings
+44 | | from backend.app.core.database import get_session_factory
+45 | | from backend.app.core.security import require_permission
+46 | | from backend.app.domain.enums import (
+47 | |     QuestionType,
+48 | |     ReviewStatus,
+49 | |     UserRole,
+50 | |     WorkflowStatus,
+51 | | )
+52 | | from backend.app.domain.permissions import Permission
+53 | | from backend.app.models import (
+54 | |     Answer,
+55 | |     Course,
+56 | |     Document,
+57 | |     DocumentChunk,
+58 | |     Exam,
+59 | |     GradingResult,
+60 | |     Question,
+61 | |     ReviewRecord,
+62 | |     Submission,
+63 | |     User,
+64 | |     WorkflowRun,
+65 | | )
+66 | | from backend.app.schemas.ai import GradingResult as GradingResultPayload
+67 | | from backend.app.schemas.grading import ScoringInput
+68 | | from backend.app.services.grading.grading_task_service import DatabaseGradingSubmissionReader
+69 | | from backend.app.services.review_service import (
+70 | |     REVIEW_SERVICE_AGGREGATION_FAILED,
+71 | |     REVIEW_SERVICE_ANSWER_NOT_FOUND,
+72 | |     REVIEW_SERVICE_CONFLICT,
+73 | |     REVIEW_SERVICE_IDENTITY_MISMATCH,
+74 | |     REVIEW_SERVICE_INVALID_DECISION,
+75 | |     REVIEW_SERVICE_NOT_READY,
+76 | |     REVIEW_SERVICE_PERMISSION_DENIED,
+77 | |     REVIEW_SERVICE_REVISION_REQUIRED,
+78 | |     REVIEW_SERVICE_STALE_DECISION,
+79 | |     REVIEW_SERVICE_STALE_ROUND,
+80 | |     ReviewOutcome,
+81 | |     ReviewService,
+82 | |     ReviewServiceError,
+83 | |     ReviewStaleRoundError,
+84 | |     find_matching_review_record,
+85 | | )
+86 | | from backend.app.services.workflow_checkpoint import (
+87 | |     WorkflowCheckpointError,
+88 | |     checkpoint_thread_id,
+89 | |     run_kind_criteria,
+90 | |     runtime_has_checkpoint,
+91 | | )
+   | |_^
+92 |
+93 |   router = APIRouter(prefix="/api/reviews", tags=["阅卷复核"])
+   |
+help: Organize imports
+   |
+67 | from backend.app.schemas.grading import ScoringInput
+   - from backend.app.services.grading.grading_task_service import DatabaseGradingSubmissionReader
+68 + from backend.app.services.grading.grading_task_service import (
+69 +     DatabaseGradingSubmissionReader,
+70 + )
+71 | from backend.app.services.review_service import (
+   |
+
+UP035 [*] Import from `collections.abc` instead: `Sequence`
+ --> migrations\versions\0001_enable_pgvector.py:3:1
+  |
+1 | """Enable PostgreSQL pgvector for the application database."""
+2 |
+3 | from typing import Sequence, Union
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+4 |
+5 | from alembic import op
+  |
+help: Import from `collections.abc`
+  |
+2 |
+  - from typing import Sequence, Union
+3 + from typing import Union
+4 + from collections.abc import Sequence
+5 |
+  |
+
+UP007 [*] Use `X | Y` for type annotations
+  --> migrations\versions\0001_enable_pgvector.py:8:16
+   |
+ 7 | revision: str = "0001_enable_pgvector"
+ 8 | down_revision: Union[str, None] = None
+   |                ^^^^^^^^^^^^^^^^
+ 9 | branch_labels: Union[str, Sequence[str], None] = None
+10 | depends_on: Union[str, Sequence[str], None] = None
+   |
+help: Convert to `X | Y`
+  |
+7 | revision: str = "0001_enable_pgvector"
+  - down_revision: Union[str, None] = None
+8 + down_revision: str | None = None
+9 | branch_labels: Union[str, Sequence[str], None] = None
+  |
+
+UP007 [*] Use `X | Y` for type annotations
+  --> migrations\versions\0001_enable_pgvector.py:9:16
+   |
+ 7 | revision: str = "0001_enable_pgvector"
+ 8 | down_revision: Union[str, None] = None
+ 9 | branch_labels: Union[str, Sequence[str], None] = None
+   |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+10 | depends_on: Union[str, Sequence[str], None] = None
+   |
+help: Convert to `X | Y`
+   |
+8  | down_revision: Union[str, None] = None
+   - branch_labels: Union[str, Sequence[str], None] = None
+9  + branch_labels: str | Sequence[str] | None = None
+10 | depends_on: Union[str, Sequence[str], None] = None
+   |
+
+UP007 [*] Use `X | Y` for type annotations
+  --> migrations\versions\0001_enable_pgvector.py:10:13
+   |
+ 8 | down_revision: Union[str, None] = None
+ 9 | branch_labels: Union[str, Sequence[str], None] = None
+10 | depends_on: Union[str, Sequence[str], None] = None
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+help: Convert to `X | Y`
+   |
+9  | branch_labels: Union[str, Sequence[str], None] = None
+   - depends_on: Union[str, Sequence[str], None] = None
+10 + depends_on: str | Sequence[str] | None = None
+11 |
+   |
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> tests\unit\agents\test_fixed_reviewer_inputs.py:2:1
+   |
+ 1 |   """T177 fixed Reviewer, Workflow and teacher revisions (TCR 32)."""
+ 2 | / from datetime import UTC, datetime
+ 3 | | from decimal import Decimal
+ 4 | | from uuid import uuid4
+ 5 | |
+ 6 | | import pytest
+ 7 | |
+ 8 | | from backend.app.ai.agents.reviewer_agent import ReviewerAgent
+ 9 | | from backend.app.api.reviews import ReviewDecisionScoreError, ReviewDecisionService, ReviewDetailDTO, TeacherDecisionRequest
+10 | | from backend.app.domain.enums import ReviewStatus
+11 | | from backend.app.schemas.ai import GradingResult
+12 | | from tests.unit.agents.test_reviewer_agent import _decision
+13 | | from tests.unit.workflows.test_fixed_scoring_state import scoring, snapshot, state
+   | |__________________________________________________________________________________^
+help: Organize imports
+   |
+8  | from backend.app.ai.agents.reviewer_agent import ReviewerAgent
+   - from backend.app.api.reviews import ReviewDecisionScoreError, ReviewDecisionService, ReviewDetailDTO, TeacherDecisionRequest
+9  + from backend.app.api.reviews import (
+10 +     ReviewDecisionScoreError,
+11 +     ReviewDecisionService,
+12 +     ReviewDetailDTO,
+13 +     TeacherDecisionRequest,
+14 + )
+15 | from backend.app.domain.enums import ReviewStatus
+   |
+
+C408 Unnecessary `dict()` call (rewrite as a literal)
+  --> tests\unit\agents\test_fixed_reviewer_inputs.py:25:9
+   |
+24 |   def result(fixed, **changes):
+25 |       raw=dict(question_type=fixed.question_type, score="2.50", max_score=fixed.effective_score,
+   |  _________^
+26 | |         reason="Condition X is present.", correct_points=["Condition X"], missing_knowledge_points=["Condition Y"],
+27 | |         knowledge_points=fixed.published_knowledge_points, suggestions=["Review Y."], confidence=.9,
+28 | |         validation_status="Validated", review_status="Not Required", answer_id=fixed.answer_id,
+29 | |         submission_id=fixed.submission_id, exam_question_id=fixed.exam_question_id)
+   | |___________________________________________________________________________________^
+30 |       raw.update(changes)
+31 |       return GradingResult.model_validate(raw)
+   |
+help: Rewrite as a literal
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> tests\unit\agents\test_fixed_reviewer_inputs.py:80:5
+   |
+79 |   def test_workflow_preserves_actual_enriched_agent_input_and_passes_it_to_reviewer():
+80 | /     import asyncio
+81 | |     from backend.app.ai.agents.invocation import AgentInvocation
+82 | |     from backend.app.ai.agents.state import AgentInput, AgentOutput
+83 | |     from backend.app.ai.workflows.grading_workflow import GradingWorkflow, GradingWorkflowDeps
+84 | |     from backend.app.schemas.grading import ScoringSourceReference
+   | |__________________________________________________________________^
+85 |
+86 |       fixed=fixed_input()
+   |
+help: Organize imports
+   |
+80 |     import asyncio
+81 +
+82 |     from backend.app.ai.agents.invocation import AgentInvocation
+83 |     from backend.app.ai.agents.state import AgentInput, AgentOutput
+   -     from backend.app.ai.workflows.grading_workflow import GradingWorkflow, GradingWorkflowDeps
+84 +     from backend.app.ai.workflows.grading_workflow import (
+85 +         GradingWorkflow,
+86 +         GradingWorkflowDeps,
+87 +     )
+88 |     from backend.app.schemas.grading import ScoringSourceReference
+   |
+
+I001 [*] Import block is un-sorted or un-formatted
+   --> tests\unit\agents\test_fixed_reviewer_inputs.py:111:5
+    |
+109 |   @pytest.mark.parametrize("decision",["Confirmed","Modified","Re-grade"])
+110 |   def test_workflow_teacher_actions_refuse_current_result_from_another_exam_link(decision):
+111 | /     from langgraph.checkpoint.memory import InMemorySaver
+112 | |     from backend.app.ai.workflows.grading_workflow import GradingWorkflow,GradingWorkflowDeps,GradingWorkflowError,TeacherReviewDec…
+113 | |     from backend.app.ai.agents.grading_agent import GradingAgent
+    | |________________________________________________________________^
+114 |       fixed=fixed_input()
+115 |       workflow=GradingWorkflow(GradingWorkflowDeps(snapshot=snapshot(fixed),agent=GradingAgent()),checkpointer=InMemorySaver())
+    |
+help: Organize imports
+    |
+111 |     from langgraph.checkpoint.memory import InMemorySaver
+    -     from backend.app.ai.workflows.grading_workflow import GradingWorkflow,GradingWorkflowDeps,GradingWorkflowError,TeacherReviewDecision
+112 +
+113 |     from backend.app.ai.agents.grading_agent import GradingAgent
+114 +     from backend.app.ai.workflows.grading_workflow import (
+115 +         GradingWorkflow,
+116 +         GradingWorkflowDeps,
+117 +         GradingWorkflowError,
+118 +         TeacherReviewDecision,
+119 +     )
+120 |     fixed=fixed_input()
+    |
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> tests\unit\services\test_fixed_review_service.py:2:1
+   |
+ 1 |   """T177: real review writes reject changed inputs and unknown stored identity (TCR 32)."""
+ 2 | / from uuid import UUID
+ 3 | |
+ 4 | | import pytest
+ 5 | | from sqlalchemy import select
+ 6 | | from sqlalchemy.orm import Session
+ 7 | |
+ 8 | | from backend.app.domain.enums import UserRole
+ 9 | | from backend.app.models import GradingResult, ReviewRecord
+10 | | from backend.app.services.review_service import ReviewServiceError
+11 | | from tests.unit.services.test_review_service import (
+12 | |     PENDING_REVIEW, THREAD_ID, WORKFLOW_ID, _StubGradingAgent, _decision_payload,
+13 | |     _pause_run, _run, _saver, _service, _store, _subjective_answer_ids, env,
+14 | | )
+   | |_^
+help: Organize imports
+   |
+11 | from tests.unit.services.test_review_service import (
+   -     PENDING_REVIEW, THREAD_ID, WORKFLOW_ID, _StubGradingAgent, _decision_payload,
+   -     _pause_run, _run, _saver, _service, _store, _subjective_answer_ids, env,
+12 +     PENDING_REVIEW,
+13 +     THREAD_ID,
+14 +     WORKFLOW_ID,
+15 +     _decision_payload,
+16 +     _pause_run,
+17 +     _run,
+18 +     _saver,
+19 +     _service,
+20 +     _store,
+21 +     _StubGradingAgent,
+22 +     _subjective_answer_ids,
+23 +     env,
+24 | )
+   |
+
+F401 [*] `tests.unit.services.test_review_service.env` imported but unused
+  --> tests\unit\services\test_fixed_review_service.py:13:73
+   |
+11 | from tests.unit.services.test_review_service import (
+12 |     PENDING_REVIEW, THREAD_ID, WORKFLOW_ID, _StubGradingAgent, _decision_payload,
+13 |     _pause_run, _run, _saver, _service, _store, _subjective_answer_ids, env,
+   |                                                                         ^^^
+14 | )
+   |
+help: Remove unused import: `tests.unit.services.test_review_service.env`
+   |
+12 |     PENDING_REVIEW, THREAD_ID, WORKFLOW_ID, _StubGradingAgent, _decision_payload,
+   -     _pause_run, _run, _saver, _service, _store, _subjective_answer_ids, env,
+13 +     _pause_run, _run, _saver, _service, _store, _subjective_answer_ids,
+14 | )
+   |
+
+F811 Redefinition of unused `env` from line 13
+  --> tests\unit\services\test_fixed_review_service.py:19:77
+   |
+17 | @pytest.mark.parametrize("action", ["Confirmed", "Modified", "Re-grade"])
+18 | @pytest.mark.parametrize("changed", ["checkpoint-revision", "result-link", "stored-unknown-link", "stored-max"])
+19 | def test_all_teacher_actions_reject_changed_or_unknown_actual_scoring_facts(env, action, changed):
+   |                                                                             ^^^ `env` redefined here
+20 |     answer_id=_subjective_answer_ids(env)[0]
+21 |     workflow,current,_=_pause_run(env,agent=_StubGradingAgent(
+   |
+  ::: tests\unit\services\test_fixed_review_service.py:13:73
+   |
+11 | from tests.unit.services.test_review_service import (
+12 |     PENDING_REVIEW, THREAD_ID, WORKFLOW_ID, _StubGradingAgent, _decision_payload,
+13 |     _pause_run, _run, _saver, _service, _store, _subjective_answer_ids, env,
+   |                                                                         --- previous definition of `env` here
+14 | )
+   |
+help: Remove definition: `env`
+
+Found 12 errors.
+[*] 10 fixable with the `--fix` option (1 hidden fix can be enabled with the `--unsafe-fixes` option).
