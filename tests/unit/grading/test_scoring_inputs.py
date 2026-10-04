@@ -179,9 +179,7 @@ def test_same_question_two_exams_use_independent_fixed_scores(database):
             value.exam_question_id
             != next(iter(snapshot(database).scoring_inputs.values())).exam_question_id
         )
-        with pytest.raises(GradingNotAllowedError) as error:
-            second_snapshot.require_scoring_ready()
-        assert error.value.error_code == "EXAM_SCORING_INPUT_NOT_SUPPORTED"
+        second_snapshot.require_scoring_ready()
 
 
 def test_missing_historical_basis_never_fabricates_fixed_input(database):

@@ -46,7 +46,7 @@ from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session
 
 from backend.app.ai.agents.invocation import AgentInvocation
-from backend.app.ai.agents.state import AgentOutput, AgentStatus, AgentType
+from backend.app.ai.agents.state import AgentInput, AgentOutput, AgentStatus, AgentType
 from backend.app.ai.workflows.grading_handoff import (
     LOAD_SUBMISSION,
     PENDING_REVIEW,
@@ -420,6 +420,12 @@ class _StubGradingAgent:
         return AgentInvocation(
             request_id=request_id,
             workflow_id=workflow_id,
+            input=AgentInput(
+                agent_type=AgentType.GRADING, request_id=request_id, workflow_id=workflow_id,
+                submission_context=snapshot.to_context(), answer_id=target.answer_id,
+                question_id=target.question_id, question_type=target.question_type,
+                scoring_input=target.scoring_input,
+            ),
             output=AgentOutput(
                 agent_type=AgentType.GRADING,
                 status=AgentStatus.PENDING_REVIEW if needs_review else AgentStatus.SUCCESS,
@@ -501,6 +507,7 @@ def _grading_result(
         review_status=review_status,
         answer_id=answer_id if answer_id is not None else target.answer_id,
         submission_id=submission_id,
+        exam_question_id=target.scoring_input.exam_question_id if target.scoring_input is not None else None,
     )
 
 

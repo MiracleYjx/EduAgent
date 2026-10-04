@@ -222,7 +222,9 @@ class ResultAggregator:
             items.append(item)
             if item.counted:
                 counted += 1
-                accumulated += item.effective_score or Decimal(0)
+                if item.effective_score is None:
+                    raise InvalidScoreError("A counted result has no effective score.")
+                accumulated += item.effective_score
             if item.requires_review:
                 pending_review += 1
             if item.validation_status == ValidationStatus.FAILED.value:
@@ -282,7 +284,7 @@ class ResultAggregator:
     ) -> dict[str, GradingResult]:
         """按答案标识索引结果，并校验归属与完整性。"""
 
-        expected_ids = {entry.answer_id for entry in expected}
+        expected_by_id = {entry.answer_id: entry for entry in expected}
         indexed: dict[str, GradingResult] = {}
         for result in results:
             answer_id = result.answer_id
@@ -292,8 +294,20 @@ class ResultAggregator:
                 raise SubmissionMismatchError(
                     f"结果属于答卷 {result.submission_id}，与当前答卷不一致。"
                 )
-            if answer_id not in expected_ids:
+            if answer_id not in expected_by_id:
                 raise UnexpectedResultError(f"结果 {answer_id} 不属于本次考试题目。")
+            entry = expected_by_id[answer_id]
+            if result.exam_question_id != entry.exam_question_id:
+                raise SubmissionMismatchError(
+                    "The scoring association differs from the expected exam item."
+                )
+            if (
+                entry.exam_question_id is not None
+                and result.knowledge_points != entry.knowledge_points
+            ):
+                raise SubmissionMismatchError(
+                    "The result changed the published knowledge points."
+                )
             if answer_id in indexed:
                 raise DuplicateResultError(f"答案 {answer_id} 出现多条评分结果。")
             indexed[answer_id] = result
@@ -370,7 +384,7 @@ class ResultAggregator:
             order=entry.order,
             answer_id=entry.answer_id,
             question_id=entry.question_id,
-            exam_question_id=entry.exam_question_id,
+            exam_question_id=result.exam_question_id,
             question_type=entry.question_type,
             max_score=entry.max_score,
             score=score,

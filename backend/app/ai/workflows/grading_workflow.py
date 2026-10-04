@@ -516,6 +516,7 @@ class GradingWorkflow:
                 "教师结论只能写入已有评分结果的题目，不存在的结果不得凭空确认。",
                 error_code=GRADING_WORKFLOW_INVALID_TEACHER_DECISION,
             )
+        self._validate_revised_result(target_result, decision.answer_id)
         decisions = dict(current.get("confidence_decisions") or {})
         existing = decisions.get(decision.answer_id)
         current_status = (
@@ -567,11 +568,30 @@ class GradingWorkflow:
             or revised.submission_id != self._deps.snapshot.submission_id
             or str(revised.question_type) != str(target.question_type)
             or not _same_max_score(revised.max_score, target.max_score)
+            or (
+                target.scoring_input is not None
+                and (
+                    revised.exam_question_id != target.scoring_input.exam_question_id
+                    or revised.knowledge_points
+                    != target.scoring_input.published_knowledge_points
+                )
+            )
         )
         if mismatched:
             raise GradingWorkflowError(
                 "修订结果与该题的答案/答卷/题型/满分不一致，拒绝写入。",
                 error_code=GRADING_WORKFLOW_INVALID_TEACHER_DECISION,
+            )
+
+        amount = Decimal(str(revised.score))
+        if (
+            not amount.is_finite()
+            or target is None
+            or target.max_score is None
+            or not Decimal(0) <= amount <= target.max_score
+        ):
+            raise GradingWorkflowError(
+                "复核分数超出本场上限。", error_code="GRADING_SCORE_OUT_OF_RANGE"
             )
 
     # ------------------------------------------------------------------ 图装配
@@ -1176,6 +1196,14 @@ class GradingWorkflow:
                 "GRADING_RESULT_OWNERSHIP_MISMATCH", "阅卷 Agent 的固定输入与本场目标不一致。",
                 current_node=current_node, keep_results=True,
             )
+        if target.scoring_input is not None and invocation.output.grading_result is not None:
+            try:
+                self._validate_revised_result(invocation.output.grading_result, target.answer_id)
+            except GradingWorkflowError as error:
+                return self._failure(
+                    error.error_code if error.error_code == "GRADING_SCORE_OUT_OF_RANGE" else "GRADING_RESULT_OWNERSHIP_MISMATCH",
+                    str(error), current_node=current_node, keep_results=True,
+                )
         agent_output = invocation.output
         record_trace(
             agent_type="grading", status=agent_output.status.value,
@@ -1201,6 +1229,12 @@ class GradingWorkflow:
                 str(error),
                 current_node=current_node,
             )
+        if target.scoring_input is not None:
+            assert invocation.input is not None and invocation.input.scoring_input is not None
+            enriched = invocation.input.scoring_input.model_copy(deep=True)
+            fixed_inputs = dict(state.get("scoring_inputs") or {})
+            fixed_inputs[target.answer_id] = enriched
+            patch.update({"scoring_input": enriched, "scoring_inputs": fixed_inputs})
         patch.update(
             self._record_result(
                 state,
@@ -1343,6 +1377,9 @@ class GradingWorkflow:
         reviewer = self._deps.reviewer if self._deps.reviewer is not None else ReviewerAgent()
         answer_id = str(state.get("current_answer_id") or "")
         target = self._target_for_answer(answer_id)
+        mismatch = self._fixed_context_failure(state, REVIEWER_AGENT, target)
+        if mismatch is not None:
+            return mismatch
         invocation = reviewer.review(
             state.get("grading_result"),
             state.get("confidence_decision"),
@@ -1352,6 +1389,7 @@ class GradingWorkflow:
             answer_id=answer_id or None,
             submission_id=self._deps.snapshot.submission_id,
             max_score=getattr(target, "max_score", None),
+            scoring_input=state.get("scoring_input"),
         )
         output = invocation.output
         if output.error is not None:

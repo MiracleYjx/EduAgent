@@ -1161,7 +1161,24 @@ def test_reconstructed_executor_loads_persisted_scope_into_subjective_source(
                 if answer.answer_id == str(fixture.subjective_answer_id)
             )
             sources.append(build_subjective_source(snapshot, target))
-            return _outcome(fixture)
+            old = _outcome(fixture)
+            results = tuple(
+                result.model_copy(
+                    update={
+                        "exam_question_id": snapshot.scoring_inputs[
+                            result.answer_id
+                        ].exam_question_id
+                    }
+                )
+                for result in old.results
+            )
+            return GradingOutcome(
+                results=results,
+                decisions=old.decisions,
+                exam_result=ResultAggregator().aggregate(
+                    snapshot.to_context(), results=results, decisions=old.decisions
+                ),
+            )
 
     session_factory = lambda: Session(engine)
     reconstructed = DatabaseGradingRepository(session_factory=session_factory)

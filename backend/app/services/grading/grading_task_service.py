@@ -37,7 +37,7 @@ from dataclasses import dataclass, field, replace
 from datetime import UTC, datetime
 from decimal import Decimal
 from pathlib import Path
-from typing import Any, Final, NoReturn, Protocol
+from typing import Final, NoReturn, Protocol
 from uuid import UUID, uuid4
 
 from pydantic import ValidationError
@@ -857,8 +857,7 @@ class DatabaseGradingSubmissionReader:
             course_id=str(exam.course_id),
             status=submission.status.value,
             answers=tuple(targets),
-            scoring_basis_error=input_error
-            or _legacy_scoring_basis_error(exam, questions),
+            scoring_basis_error=input_error,
         )
 
 
@@ -971,61 +970,6 @@ def _fixed_scoring_input(
     return value, error
 
 
-def _legacy_scoring_basis_error(exam: Exam, questions: Sequence[Any]) -> str | None:
-    """Only allow fixed facts exactly expressible by the current grading input.
-
-    This check never substitutes current bank data for unknown historical facts.
-    The complete per-exam scoring input is introduced in the scoring-chain task.
-    """
-    from backend.app.schemas.exam_scoring import ScoringBasis
-    from backend.app.services.exam_scoring_rules import validate_scoring_basis
-
-    links = sorted(exam.exam_question_links, key=lambda row: row.order_index)
-    if not links or any(
-        row.score is None
-        or row.base_score is None
-        or row.published_knowledge_points is None
-        or row.scoring_basis is None
-        for row in links
-    ):
-        return "EXAM_SCORING_BASIS_MISSING"
-    if [row.question_id for row in links] != [question.id for question in questions]:
-        return "EXAM_SCORING_INPUT_NOT_SUPPORTED"
-    for row in links:
-        assert row.score is not None and row.base_score is not None
-        try:
-            basis = ScoringBasis.model_validate(row.scoring_basis)
-            validate_scoring_basis(
-                score=row.score,
-                base_score=row.base_score,
-                question_type=row.question.type,
-                basis=basis,
-            )
-        except (TypeError, ValueError):
-            return "EXAM_SCORING_BASIS_MISSING"
-        question = row.question
-        if (
-            row.score != row.base_score
-            or row.score != question.score
-            or row.published_knowledge_points != list(question.knowledge_points or [])
-            or question.assets
-        ):
-            return "EXAM_SCORING_INPUT_NOT_SUPPORTED"
-        if question.type is QuestionType.SHORT_ANSWER:
-            if basis.points or basis.additive or basis.confirmation is None:
-                return "EXAM_SCORING_INPUT_NOT_SUPPORTED"
-        elif not (
-            basis.additive
-            and len(basis.points) == 1
-            and basis.rounding_delta == 0
-            and basis.points[0].base_points == row.base_score
-            and basis.points[0].default_points == row.score
-            and basis.points[0].confirmed_points == row.score
-        ):
-            return "EXAM_SCORING_INPUT_NOT_SUPPORTED"
-    return None
-
-
 class GradingProgressUpdater(Protocol):
     """持久进度更新合同：只更新既有列，不新增模型。"""
 
@@ -1079,8 +1023,19 @@ class DefaultScoringPipeline:
         self._subjective_scorer = subjective_scorer
 
     def score(self, snapshot: SubmissionSnapshot) -> GradingOutcome:
+        snapshot.require_scoring_ready()
         results: list[GradingResult] = []
         decisions: dict[str, ConfidenceDecision] = {}
+        actual_inputs = dict(snapshot.scoring_inputs)
+
+        def capture(value: ScoringInput) -> None:
+            current = actual_inputs.get(value.answer_id)
+            if current is None or not same_fixed_scoring_input(current, value):
+                raise GradingResultOwnershipError(
+                    "The retrieved input differs from the fixed scoring facts."
+                )
+            actual_inputs[value.answer_id] = value
+
         for target in snapshot.answers:
             mode = self._router.route_type(target.question_type)
             if mode is GradingMode.OBJECTIVE:
@@ -1090,7 +1045,15 @@ class DefaultScoringPipeline:
                 raise GradingExecutionNotReadyError(
                     "主观题阅卷链路（T069）尚未接通，无法完成评分。"
                 )
-            result, decision = self._subjective_scorer(snapshot, target)
+            score_with_input = getattr(
+                self._subjective_scorer, "score_with_input", None
+            )
+            if callable(score_with_input):
+                result, decision = score_with_input(
+                    snapshot, target, on_scoring_input=capture
+                )
+            else:
+                result, decision = self._subjective_scorer(snapshot, target)
             results.append(result)
             decisions[target.answer_id] = decision
         exam_result = self._aggregator.aggregate(
@@ -1102,7 +1065,7 @@ class DefaultScoringPipeline:
             results=tuple(results),
             decisions=decisions,
             exam_result=exam_result,
-            scoring_inputs=snapshot.scoring_inputs,
+            scoring_inputs=actual_inputs,
         )
 
     def _grade_objective(
@@ -1121,10 +1084,15 @@ class DefaultScoringPipeline:
             question_type=target.question_type,
             reference_answer=target.reference_answer,
             student_answer=student_answer,
-            max_score=float(target.max_score),
+            max_score=target.require_max_score(),
             knowledge_points=target.knowledge_points,
             answer_id=target.answer_id,
             submission_id=snapshot.submission_id,
+            exam_question_id=(
+                target.scoring_input.exam_question_id
+                if target.scoring_input is not None
+                else None
+            ),
         )
 
 
@@ -1197,9 +1165,11 @@ class InlineGradingTaskExecutor:
                 snapshot.require_fixed_inputs(saved or {})
             else:
                 snapshot.require_fixed_inputs({})
-            outcome = replace(
-                self._pipeline.score(snapshot), scoring_inputs=snapshot.scoring_inputs
-            )
+            outcome = self._pipeline.score(snapshot)
+            if outcome.scoring_inputs:
+                snapshot.require_fixed_inputs(outcome.scoring_inputs)
+            else:
+                outcome = replace(outcome, scoring_inputs=snapshot.scoring_inputs)
             exam_result = outcome.exam_result
             if exam_result is None:
                 raise GradingExecutionNotReadyError("评分管道未返回整卷结果。")

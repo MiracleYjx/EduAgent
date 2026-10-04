@@ -76,11 +76,10 @@
 
 from __future__ import annotations
 
-import math
 import re
 import unicodedata
 from collections.abc import Mapping, Sequence
-from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
+from decimal import ROUND_HALF_UP, Decimal, InvalidOperation, localcontext
 from types import MappingProxyType
 from typing import Any, ClassVar, Final
 
@@ -231,31 +230,17 @@ def _display_key(key: str) -> str:
     return key.upper()
 
 
-def _resolve_max_score(value: Any) -> float:
-    """校验并转换题目满分；只接受有限正数。
-
-    非数值、非有限数（NaN、±inf、``Decimal`` 的 signaling NaN）、超出浮点可表示范围的
-    超大值（整数或 ``Decimal``）以及非正数都统一转为 :class:`InvalidMaxScoreError`：
-    不向调用方泄漏 ``ValueError`` / ``OverflowError`` / ``InvalidOperation``，
-    也不把原始异常链带入业务错误。
-    """
-
+def _resolve_max_score(value: Any) -> Decimal:
+    """Keep numeric legacy inputs while computing exact finite positive amounts."""
     if isinstance(value, bool) or not isinstance(value, (int, float, Decimal)):
-        raise InvalidMaxScoreError(
-            f"题目满分必须是有限正数，收到类型 {type(value).__name__}。"
-        )
-    number: float | None = None
-    failed = False
+        raise InvalidMaxScoreError("题目满分必须是有限正数。")
     try:
-        number = float(value)
-    except (ValueError, OverflowError, InvalidOperation):
-        failed = True
-    if failed or number is None:
-        raise InvalidMaxScoreError(
-            f"题目满分必须是有限正数，收到 {value!r}；该数值无法转换为可比较的有限浮点数。"
-        )
-    if not math.isfinite(number) or number <= 0:
-        raise InvalidMaxScoreError(f"题目满分必须是有限正数，收到 {value!r}。")
+        number = value if isinstance(value, Decimal) else Decimal(str(value))
+        valid = number.is_finite() and 0 < number <= Decimal("1.7976931348623157e308")
+    except (ValueError, InvalidOperation):
+        valid = False
+    if not valid:
+        raise InvalidMaxScoreError("题目满分必须是有限正数。") from None
     return number
 
 
@@ -286,13 +271,10 @@ def _ensure_supported_answer(value: Any) -> None:
         for item in value:
             if not isinstance(item, str):
                 raise InvalidAnswerFormatError(
-                    "答案列表必须只包含字符串，"
-                    f"收到类型 {type(item).__name__}。"
+                    "答案列表必须只包含字符串，" f"收到类型 {type(item).__name__}。"
                 )
         return
-    raise InvalidAnswerFormatError(
-        f"不支持的答案类型：{type(value).__name__}。"
-    )
+    raise InvalidAnswerFormatError(f"不支持的答案类型：{type(value).__name__}。")
 
 
 def _scalar_answer_text(value: Any, *, label: str) -> str:
@@ -345,8 +327,10 @@ def _split_choice_items(
     parts = [part for part in CHOICE_KEY_SEPARATORS.split(normalized) if part]
     keys = [normalize_choice_key(part) for part in parts]
     keys = [key for key in keys if key]
-    if len(keys) == 1 and len(keys[0]) > 1 and (
-        known_keys is None or keys[0] not in known_keys
+    if (
+        len(keys) == 1
+        and len(keys[0]) > 1
+        and (known_keys is None or keys[0] not in known_keys)
     ):
         raise InvalidAnswerFormatError(
             f"{label}「{text}」缺少分隔符且不是已知选项键，评分器不自行拆分。"
@@ -387,8 +371,7 @@ def parse_multiple_choice_keys(
         for item in value:
             if not isinstance(item, str):
                 raise InvalidAnswerFormatError(
-                    f"{label}列表必须只包含字符串，"
-                    f"收到类型 {type(item).__name__}。"
+                    f"{label}列表必须只包含字符串，" f"收到类型 {type(item).__name__}。"
                 )
             # 契约：list[str] 的每一项就是一个完整选项键，不做二次切分、也不做 trim，
             # 避免把 "A,B" 或 "A 选项" 误解为多个键。
@@ -396,9 +379,7 @@ def parse_multiple_choice_keys(
             if key is not None:
                 keys.append(key)
     else:
-        raise InvalidAnswerFormatError(
-            f"不支持的{label}类型：{type(value).__name__}。"
-        )
+        raise InvalidAnswerFormatError(f"不支持的{label}类型：{type(value).__name__}。")
     resolved = frozenset(keys)
     if known_keys is not None:
         outside = sorted(_display_key(key) for key in resolved - known_keys)
@@ -409,27 +390,29 @@ def parse_multiple_choice_keys(
     return resolved
 
 
-def _proportional_score(max_score: float, hits: int, total: int) -> float:
+def _proportional_score(max_score: Decimal, hits: int, total: int) -> Decimal:
     """按命中比例计算分数：``ROUND_HALF_UP`` 两位小数，越界即显式失败。"""
 
     if total <= 0:
         raise GradingInvariantError("标准答案选项数为 0，无法计算比例分。")
-    exact = Decimal(str(max_score)) * Decimal(hits) / Decimal(total)
     try:
-        quantized = exact.quantize(SCORE_QUANTUM, rounding=ROUND_HALF_UP)
+        with localcontext() as context:
+            context.prec = max(28, len(max_score.as_tuple().digits) + 8)
+            exact = max_score * Decimal(hits) / Decimal(total)
+            quantized = exact.quantize(SCORE_QUANTUM, rounding=ROUND_HALF_UP)
     except InvalidOperation as exc:  # pragma: no cover - 防御性分支
         raise GradingInvariantError(f"比例分量化失败：{exc}。") from exc
     if quantized < 0 or quantized > Decimal(str(max_score)):
         raise GradingInvariantError(
             f"比例分 {quantized} 越出 [0, {max_score}] 区间，拒绝钳制。"
         )
-    return float(quantized)
+    return quantized
 
 
-def _format_score(value: float) -> str:
+def _format_score(value: Decimal) -> str:
     """分数展示：去掉无意义的小数零。"""
 
-    return f"{value:g}"
+    return f"{value.normalize():g}"
 
 
 class ObjectiveGrader:
@@ -447,11 +430,12 @@ class ObjectiveGrader:
         question_type: QuestionType | str | None,
         reference_answer: str | None,
         student_answer: str | Sequence[str] | None,
-        max_score: float,
+        max_score: Decimal | float,
         option_keys: Sequence[str] | None = None,
         knowledge_points: Sequence[str] = (),
         answer_id: str | None = None,
         submission_id: str | None = None,
+        exam_question_id: str | None = None,
     ) -> GradingResult:
         """按客观题规则给出确定性的 :class:`GradingResult`。"""
 
@@ -477,6 +461,7 @@ class ObjectiveGrader:
                 knowledge_points=knowledge,
                 answer_id=answer_id,
                 submission_id=submission_id,
+                exam_question_id=exam_question_id,
             )
         if normalized_type in SCALAR_OBJECTIVE_TYPES:
             return self._grade_scalar(
@@ -487,6 +472,7 @@ class ObjectiveGrader:
                 knowledge_points=knowledge,
                 answer_id=answer_id,
                 submission_id=submission_id,
+                exam_question_id=exam_question_id,
             )
         raise GradingModeMismatchError(
             f"题型 {normalized_type} 不在客观题规则评分范围内。"
@@ -498,10 +484,11 @@ class ObjectiveGrader:
         question_type: QuestionType,
         student_answer: Any,
         reference_answer: str,
-        max_score: float,
+        max_score: Decimal,
         knowledge_points: tuple[str, ...],
         answer_id: str | None,
         submission_id: str | None,
+        exam_question_id: str | None,
     ) -> GradingResult:
         """单选、判断与填空：整体文本等值。"""
 
@@ -509,7 +496,7 @@ class ObjectiveGrader:
         if is_blank_answer(student_answer):
             return self._build_result(
                 question_type=question_type,
-                score=0.0,
+                score=Decimal("0.00"),
                 max_score=max_score,
                 reason="学生答案缺失，按客观题规则记 0 分。",
                 correct_points=[],
@@ -518,6 +505,7 @@ class ObjectiveGrader:
                 suggestions=["本题未作答，请先补全答案再提交，避免无谓失分。"],
                 answer_id=answer_id,
                 submission_id=submission_id,
+                exam_question_id=exam_question_id,
             )
 
         given = _scalar_answer_text(student_answer, label="学生答案")
@@ -536,10 +524,11 @@ class ObjectiveGrader:
                 suggestions=["保持当前的准确作答，可继续挑战更高难度题目。"],
                 answer_id=answer_id,
                 submission_id=submission_id,
+                exam_question_id=exam_question_id,
             )
         return self._build_result(
             question_type=question_type,
-            score=0.0,
+            score=Decimal("0.00"),
             max_score=max_score,
             reason="学生答案与标准答案不一致，按客观题规则记 0 分。",
             correct_points=[],
@@ -548,6 +537,7 @@ class ObjectiveGrader:
             suggestions=["对照标准答案复核本题，确认是知识点遗漏还是审题问题。"],
             answer_id=answer_id,
             submission_id=submission_id,
+            exam_question_id=exam_question_id,
         )
 
     def _grade_multiple_choice(
@@ -555,11 +545,12 @@ class ObjectiveGrader:
         *,
         student_answer: Any,
         reference_answer: str,
-        max_score: float,
+        max_score: Decimal,
         option_keys: Sequence[str] | None,
         knowledge_points: tuple[str, ...],
         answer_id: str | None,
         submission_id: str | None,
+        exam_question_id: str | None,
     ) -> GradingResult:
         """多选：选项键集合比较，漏选按比例给分，错选不得分。"""
 
@@ -574,17 +565,16 @@ class ObjectiveGrader:
         if is_blank_answer(student_answer):
             return self._build_result(
                 question_type=QuestionType.MULTIPLE_CHOICE,
-                score=0.0,
+                score=Decimal("0.00"),
                 max_score=max_score,
                 reason="学生答案缺失，按客观题规则记 0 分。",
                 correct_points=[],
-                missing_points=[
-                    _display_key(key) for key in sorted(reference_keys)
-                ],
+                missing_points=[_display_key(key) for key in sorted(reference_keys)],
                 knowledge_points=knowledge_points,
                 suggestions=["本题未作答，请先补全答案再提交，避免无谓失分。"],
                 answer_id=answer_id,
                 submission_id=submission_id,
+                exam_question_id=exam_question_id,
             )
 
         student_keys = parse_multiple_choice_keys(
@@ -611,27 +601,27 @@ class ObjectiveGrader:
                 suggestions=["保持当前的准确作答，可继续挑战更高难度题目。"],
                 answer_id=answer_id,
                 submission_id=submission_id,
+                exam_question_id=exam_question_id,
             )
 
         if extra:
             extra_display = "、".join(sorted(_display_key(key) for key in extra))
             return self._build_result(
                 question_type=QuestionType.MULTIPLE_CHOICE,
-                score=0.0,
+                score=Decimal("0.00"),
                 max_score=max_score,
                 reason=(
                     f"多选题存在错选（{extra_display}），按客观题规则记 0 分，不倒扣。"
                 ),
                 correct_points=[],
-                missing_points=[
-                    _display_key(key) for key in sorted(missing)
-                ],
+                missing_points=[_display_key(key) for key in sorted(missing)],
                 knowledge_points=knowledge_points,
                 suggestions=[
                     "多选题存在错选，错选不计分，请重新核对每个选项与知识点的对应关系。"
                 ],
                 answer_id=answer_id,
                 submission_id=submission_id,
+                exam_question_id=exam_question_id,
             )
 
         score = _proportional_score(max_score, len(hits), len(reference_keys))
@@ -653,14 +643,15 @@ class ObjectiveGrader:
             ],
             answer_id=answer_id,
             submission_id=submission_id,
+            exam_question_id=exam_question_id,
         )
 
     def _build_result(
         self,
         *,
         question_type: QuestionType,
-        score: float,
-        max_score: float,
+        score: Decimal,
+        max_score: Decimal,
         reason: str,
         correct_points: Sequence[str],
         missing_points: Sequence[str],
@@ -668,6 +659,7 @@ class ObjectiveGrader:
         suggestions: list[str],
         answer_id: str | None,
         submission_id: str | None,
+        exam_question_id: str | None,
     ) -> GradingResult:
         """构造经过校验的 DTO；分数越界时显式失败而不是钳制。"""
 
@@ -690,6 +682,7 @@ class ObjectiveGrader:
             retrieved_context_ids=[],
             answer_id=answer_id,
             submission_id=submission_id,
+            exam_question_id=exam_question_id,
         )
 
 

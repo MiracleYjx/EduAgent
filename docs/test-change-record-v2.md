@@ -713,3 +713,27 @@ T173结果：PG24+reader1、HTTP22、直接回归91均通过（存在重叠）�
 - tests/contract/test_workflow_api_contract.py 受控 Agent 新增真实调用 input 信封；原“缺 runtime”检查点夹具补本轮真实 reader 输入，以继续只验证其原恢复支撑拒绝断言。另增缺输入/错关联的 HTTP 409 断言，保持两类失败可区分。原合法列表选项及暂停/恢复/教师复核行为断言保留。
 
 - T176 最终验证：输入/仓储 131 passed（含真实 PostgreSQL 6 项、SQLite 16 项及既有回归）；状态/Agent/API 218 passed，两组有重叠不相加。全 backend Mypy 208 源文件通过，最终全 backend/tests Ruff 通过，状态 6 模块最终类型检查通过。实际目标身份、题干/满分兼容投影篡改的 3 项 RED 修复后通过；旧合法选项列表、暂停恢复与复核原断言保留。原始失败、静态检查及最终 JUnit 见 docs/evidence/t176-20261004/。
+
+
+## 32. T177 统一评分消费、复核与汇总 TCR（实施前，2026-10-04）
+
+- 必要性：T176只接通真实输入，旧消费者仍按浮点/原Rubric评分并拒绝非等价依据；需验证固定本场标准、实际图片、身份和结果上限贯通全部执行及复核写入。
+- 覆盖：客观题纯规则零LLM；主观使用已确认要点/满分且不二次缩放；真实已授权原图及已核对条件进入有图能力Provider、失败/不支持明确待处理、资源关闭；原始Decimal先校验上限再ROUND_HALF_UP两位及再次校验，0.005/近上限/非法数字/越界不裁切；同场EQ身份贯通Agent/Reviewer/Workflow/仓储；Confirmed/Modified/Re-grade和原检查点/主键生命周期保持；待复核/失败/缺依据不记零分、发布标签及Decimal汇总/诊断范围保持。
+- 采用既有pytest unit/contract/真实隔离PG框架，受控Provider验证真实调用参数及边界，不代表模型质量或独立教师真值。必要旧生产者夹具变更逐项登记；原业务断言不得放宽。仅T177测试/实现与证据，不执行T179性能协议，不增加表。
+
+- T177必要协议测试适配：原structured评分测试将合法字符串“7.0”作非法值，与Decimal金额字符串合同冲突；改为真正非法“七分”，另增精确字符串/Decimal正例，保留其余越界、缺字段和状态断言。原7.34等浮点期望改Decimal(str(expected))仍证明相同实际金额，不放宽精度。
+
+- T177持久身份补充：真实save_single_result可脱离WorkflowRun执行，检查点无法作为每个结果的唯一身份登记。采用GradingResult可空exam_question_id FK/0023迁移，新固定结果保存实际关联，旧NULL不回填；Confirmed/Modified不得漂移，合法重新评分由当前固定输入明确写入。真实PG迁移验证旧行NULL、实际FK及upgrade/check、SQLite模型回归；只迁移本批隔离库。
+
+- tests/unit/services/test_review_service.py 的既有 StubGradingAgent/结果生产者须提供实际 AgentInput 和真实目标 exam_question_id，新协议事实来自当前reader；仅更新producer，原低置信、分数、复核、主键和恢复断言保留。
+
+- T177替换T176中间态门禁：tests/unit/grading/test_scoring_inputs.py同题两场与tests/integration/test_fixed_scoring_input.py真实已核对图的临时EXAM_SCORING_INPUT_NOT_SUPPORTED断言改为require_scoring_ready通过；完整消费者已接通，保留其余真实身份/发布值/图像证据断言和所有未知/失败门禁，不放行缺失依据。
+
+- T177首轮真实HTTP/PG新增6例：3通过/3失败；root新测试误从M4 envelope顶层取state并误用Subjective错误类型，改读既有state段和GradingContextError同时保留精确错误码断言。真实中途缺文件还暴露新helper错误属性message不属于FileStorageError，代码修为原str(error)，原失败日志保留。
+- 旧仓储范围worker夹具新fixed结果缺EQID：仅stub用本轮snapshot实际ID重建结果/上下文，不改范围/worker断言；模型精确列清单新增可空EQID及FK RESTRICT验证，原其他列约束保持。
+
+- root PG第二轮5 passed/1失败为新增测试按dict访问ProviderImage；按既有Provider真实对象协议改为类型校验和.value/.mime_type，原字节完全相等及条件/无Base64检查点断言保持。
+
+- T177扩大直接回归169例首轮153 passed/16失败，定位为 contract/test_workflow_api_contract.py 的T176 StubGradingAgent只增加了输入信封但未为新结果填写本场EQ身份。仅其producer从target.scoring_input取真实EQID，score/状态/原暂停恢复与复核断言保持，不放宽消费者。Ruff扩大至所有旧迁移另外发现0001的4项既有类型写法，保留未修改；实际本批检查范围为全backend/tests及新增0023。
+
+- T177最终：核心14新例+直接旧回归共257 passed；仓储/汇总/迁移及直接回归181 passed；复核/Workflow直接169例分次全通过（139不变+30合同重验），其中新增25例；root正式HTTP/真实原图6 passed。组间有重叠不相加。新增图像关闭失败保留原FILE_MISSING，成功后关闭失败明确VISION_PROVIDER_CLOSE_FAILED。全backend Mypy209、全backend/tests/新增0023 Ruff、隔离upgrade/check通过；所有真实RED/夹具/静态失败并存。

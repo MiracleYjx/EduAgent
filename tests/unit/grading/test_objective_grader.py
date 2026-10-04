@@ -228,7 +228,7 @@ def test_multiple_choice_missing_selection_scores_proportionally(
         max_score=3.0,
     )
 
-    assert result.score == expected_score
+    assert result.score == Decimal(str(expected_score))
     assert "漏选" in result.reason
 
 
@@ -243,7 +243,7 @@ def test_multiple_choice_ratio_uses_round_half_up(grader: ObjectiveGrader) -> No
         max_score=2.5,
     )
 
-    assert result.score == 0.63
+    assert result.score == Decimal("0.63")
 
 
 @pytest.mark.parametrize(
@@ -572,7 +572,7 @@ def test_score_is_produced_within_range_without_clamping(
         max_score=max_score,
     )
 
-    assert result.score == expected_score
+    assert result.score == Decimal(str(expected_score))
     assert 0.0 <= result.score <= result.max_score
 
 
@@ -666,9 +666,7 @@ def test_module_does_not_import_llm_embedding_or_retrieval() -> None:
         "sqlalchemy",
         "openai",
     )
-    assert not [
-        name for name in imported if name.startswith(forbidden_prefixes)
-    ]
+    assert not [name for name in imported if name.startswith(forbidden_prefixes)]
 
 
 def test_grading_does_not_open_network_connections(

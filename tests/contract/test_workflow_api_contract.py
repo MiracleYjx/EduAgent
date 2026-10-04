@@ -134,6 +134,9 @@ class _StubGradingAgent:
             ),
             answer_id=target.answer_id,
             submission_id=self.submission_id,
+            exam_question_id=(
+                target.scoring_input.exam_question_id if target.scoring_input else None
+            ),
         )
         decision = ConfidenceDecisionDTO(
             confidence=confidence,

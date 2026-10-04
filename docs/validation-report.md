@@ -970,3 +970,16 @@ M3/M4 与 Agent 实际传递固定输入，检查点升 v2，v1 显式读取且�
 聚焦输入/仓储 131 passed，状态/Agent/Workflow/API 218 passed（有重叠）；全 backend Mypy 208 源文件及全 backend/tests Ruff 通过。真实 PG 验证包括 JSONB 往返、当前图片核对、错场和恢复；RED 与夹具/静态失败原样保存，不以放宽断言制造成功。证据见 [evidence/t176-20261004/](evidence/t176-20261004/README.md)。
 
 原业务数据库仍 revision0012_audit_logs、1 考试/2 关联/1 答卷/2 答案且评分/复核0；用户 README、中文 README、开发者阅卷样本及 .env 字节保持。零新增云调用；T146 AI辅助+开发者审查、独立教师0及T168 not_met保持。T179 系统与性能验收待执行。
+
+
+## T177 规则/主观评分、复核与汇总贯通（2026-10-04）
+
+完整ScoringInput开始消费已确认本场要点/满分/发布标签：客观题仍纯确定性规则且零LLM，主观不二次缩放。结果和持久写入使用Decimal，原始有限区间先验再ROUND_HALF_UP两位并复查，不裁切；真实0.005→0.01、超上限微差拒绝、人工2.345→2.35均由正式HTTP/PG验证。待复核、缺依据及失败不计入最终总分，既有诊断final/current行为回归通过，无需改写诊断源码。
+
+新GradingResult可空exam_question_id及迁移0023保存真实评分关联，旧行NULL不回填；结果重读/确认/修改只取已保存身份，所有写入匹配实际答案/答卷/关联/上限/发布标签，原主键和复核轮次/CAS/重试生命周期保留。检索实际正文和来源经每调用局部回调保存，Agent→Reviewer→Workflow接收同一真实富集输入。
+
+图像使用实际授权原件及当前真实核对条件、独立Vision实例，图片二进制仅进入Provider调用；能力不足/中途丢图明确失败，没有OCR或其他图片替代。真实PG字节完全相等测试通过，原始FILE_MISSING不被关闭失败覆盖；评分完成但关闭失败显式VISION_PROVIDER_CLOSE_FAILED。
+
+验证：核心257 passed，仓储/汇总181 passed，复核直接169例分次全通过，正式HTTP/原图6 passed（组间有重叠不相加）；全backend Mypy209及全backend/tests/新增0023 Ruff通过。隔离数据库upgrade0023/Alembic check、真实旧行NULL/FK/身份/幂等验证通过；原库仍0012，原记录与用户4文件字节不变。必要旧producer仅补实际信封/EQ，金额合同测试适配Decimal，原行为断言保留；原始失败见 [evidence/t177-20261004/](evidence/t177-20261004/README.md)。
+
+零新增云调用，受控Provider不代表模型质量通过；T146 AI辅助+开发者审查/独立教师0、T168 not_met保持。T178界面接通与合并后全量回归接续，T179完整性能/系统验收另行执行。

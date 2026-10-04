@@ -42,7 +42,7 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Callable, Mapping, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Any, Final, Protocol
 
 from pydantic import ValidationError
@@ -65,7 +65,11 @@ from backend.app.core.config import AppSettings
 from backend.app.core.retry_policy import ProviderExecutionError
 from backend.app.domain.enums import GradingMode, QuestionType, ValidationStatus
 from backend.app.schemas.ai import GradingResult
-from backend.app.schemas.grading import ExamResultDTO
+from backend.app.schemas.grading import (
+    ExamResultDTO,
+    ScoringInput,
+    same_fixed_scoring_input,
+)
 from backend.app.services.grading.confidence_policy import (
     ConfidenceDecision,
     ConfidencePolicy,
@@ -104,7 +108,9 @@ GRADING_AGENT_ASYNC_REQUIRED: Final[str] = "GRADING_AGENT_ASYNC_REQUIRED"
 #: 主观题评分需要只读会话，但既未传入会话也没有会话工厂。
 GRADING_AGENT_MISSING_SESSION: Final[str] = "GRADING_AGENT_MISSING_SESSION"
 #: 题型无法分流（未知或不在支持范围）。
-GRADING_AGENT_UNSUPPORTED_QUESTION_TYPE: Final[str] = "GRADING_AGENT_UNSUPPORTED_QUESTION_TYPE"
+GRADING_AGENT_UNSUPPORTED_QUESTION_TYPE: Final[str] = (
+    "GRADING_AGENT_UNSUPPORTED_QUESTION_TYPE"
+)
 #: 评分结果未通过结构化校验。
 GRADING_AGENT_RESULT_NOT_VALIDATED: Final[str] = "GRADING_AGENT_RESULT_NOT_VALIDATED"
 #: 评分结果的答案/答卷/题型/满分与阅卷目标不一致。
@@ -192,6 +198,7 @@ class _AnswerOutcome:
     output: AgentOutput
     result: GradingResult | None = None
     decision: ConfidenceDecision | None = None
+    scoring_input: ScoringInput | None = None
 
 
 def _ensure_no_running_loop() -> None:
@@ -234,7 +241,9 @@ class GradingAgent:
         top_k: int = DEFAULT_TOP_K,
         session_factory: Callable[[], Session] | None = None,
     ) -> None:
-        self._objective_grader = objective_grader if objective_grader is not None else ObjectiveGrader()
+        self._objective_grader = (
+            objective_grader if objective_grader is not None else ObjectiveGrader()
+        )
         self._subjective_grader = subjective_grader
         self._aggregator = aggregator if aggregator is not None else ResultAggregator()
         self._router = router if router is not None else QuestionRouter()
@@ -276,7 +285,11 @@ class GradingAgent:
             workflow_id=workflow_id,
             output=outcome.output,
             input=self._input(
-                snapshot, target, request_id=request_id, workflow_id=workflow_id
+                snapshot,
+                target,
+                request_id=request_id,
+                workflow_id=workflow_id,
+                scoring_input=outcome.scoring_input,
             ),
         )
 
@@ -298,13 +311,19 @@ class GradingAgent:
         """
 
         request_id, workflow_id = normalize_trace_context(request_id, workflow_id)
-        outcome = await self._grade_answer(snapshot, target, session=session, settings=settings)
+        outcome = await self._grade_answer(
+            snapshot, target, session=session, settings=settings
+        )
         return AgentInvocation(
             request_id=request_id,
             workflow_id=workflow_id,
             output=outcome.output,
             input=self._input(
-                snapshot, target, request_id=request_id, workflow_id=workflow_id
+                snapshot,
+                target,
+                request_id=request_id,
+                workflow_id=workflow_id,
+                scoring_input=outcome.scoring_input,
             ),
         )
 
@@ -346,11 +365,16 @@ class GradingAgent:
             )
         results: list[GradingResult] = []
         decisions: dict[str, ConfidenceDecision] = {}
+        scoring_inputs: dict[str, ScoringInput] = {}
         for target in snapshot.answers:
-            outcome = await self._grade_answer(snapshot, target, session=None, settings=settings)
+            outcome = await self._grade_answer(
+                snapshot, target, session=None, settings=settings
+            )
             if outcome.result is None:
                 raise self._as_error(outcome.output)
             results.append(outcome.result)
+            if outcome.scoring_input is not None:
+                scoring_inputs[target.answer_id] = outcome.scoring_input
             if outcome.decision is not None:
                 decisions[target.answer_id] = outcome.decision
         exam_result = self._aggregator.aggregate(
@@ -362,6 +386,7 @@ class GradingAgent:
             results=tuple(results),
             decisions=decisions,
             exam_result=exam_result,
+            scoring_inputs=scoring_inputs,
         )
 
     @staticmethod
@@ -371,6 +396,7 @@ class GradingAgent:
         *,
         request_id: str,
         workflow_id: str | None,
+        scoring_input: ScoringInput | None = None,
     ) -> AgentInput | None:
         if (
             not isinstance(snapshot, SubmissionSnapshot)
@@ -380,6 +406,14 @@ class GradingAgent:
             return None  # Existing invalid-input outcome is retained.
         try:
             snapshot.require_fixed_target(target)
+            if scoring_input is not None and (
+                target.scoring_input is None
+                or not same_fixed_scoring_input(scoring_input, target.scoring_input)
+            ):
+                return None
+            actual_input = (
+                scoring_input if scoring_input is not None else target.scoring_input
+            )
             return AgentInput(
                 agent_type=AgentType.GRADING,
                 request_id=request_id,
@@ -389,8 +423,8 @@ class GradingAgent:
                 question_id=target.question_id,
                 question_type=target.question_type,
                 scoring_input=(
-                    target.scoring_input.model_copy(deep=True)
-                    if target.scoring_input is not None
+                    actual_input.model_copy(deep=True)
+                    if actual_input is not None
                     else None
                 ),
             )
@@ -422,7 +456,9 @@ class GradingAgent:
         except GradingTaskError as error:
             return self._failure(error.error_code, error.detail)
         if target.max_score is None:
-            return self._failure("EXAM_SCORING_BASIS_MISSING", "本场固定满分缺失，不能执行评分。")
+            return self._failure(
+                "EXAM_SCORING_BASIS_MISSING", "本场固定满分缺失，不能执行评分。"
+            )
         try:
             question_type = normalize_question_type(target.question_type)
             mode = self._router.route_type(question_type)
@@ -462,10 +498,15 @@ class GradingAgent:
                 question_type=target.question_type,
                 reference_answer=target.reference_answer,
                 student_answer=student_answer,
-                max_score=float(target.max_score),
+                max_score=target.max_score,
                 knowledge_points=target.knowledge_points,
                 answer_id=target.answer_id,
                 submission_id=snapshot.submission_id,
+                exam_question_id=(
+                    target.scoring_input.exam_question_id
+                    if target.scoring_input is not None
+                    else None
+                ),
             )
         except ObjectiveGradingError as error:
             return self._failure_from_exception(error)
@@ -475,6 +516,7 @@ class GradingAgent:
         return _AnswerOutcome(
             output=self._success_output(checked, None, question_type=question_type),
             result=checked,
+            scoring_input=target.scoring_input,
         )
 
     async def _grade_subjective(
@@ -505,15 +547,32 @@ class GradingAgent:
                 return self._failure_from_exception(error)
             resolved_settings = settings if settings is not None else self._settings
             # 仅默认评分器与默认策略共用评分器内产生的决策记录。
-            reuse_recorded_decision = self._subjective_grader is None and self._policy is None
-            policy = None if reuse_recorded_decision else self._resolved_policy(resolved_settings)
-            recording = DecisionRecordingPolicy(policy=policy, settings=resolved_settings)
+            reuse_recorded_decision = (
+                self._subjective_grader is None and self._policy is None
+            )
+            policy = (
+                None
+                if reuse_recorded_decision
+                else self._resolved_policy(resolved_settings)
+            )
+            recording = DecisionRecordingPolicy(
+                policy=policy, settings=resolved_settings
+            )
             metadata: LLMProviderMetadata | None = None
+            actual_input = target.scoring_input
 
             def record_metadata(value: LLMProviderMetadata) -> None:
                 # 每次调用独立保存；不缓存到 Agent，不串用其它题或并发请求的身份。
                 nonlocal metadata
                 metadata = value
+
+            def record_scoring_input(value: ScoringInput) -> None:
+                nonlocal actual_input
+                if target.scoring_input is None or not same_fixed_scoring_input(
+                    value, target.scoring_input
+                ):
+                    raise GradingContextError("实际检索回填改变了固定本场事实。")
+                actual_input = value
 
             grader: SubjectiveGraderLike = (
                 self._subjective_grader
@@ -522,6 +581,7 @@ class GradingAgent:
                     provider=self._provider,
                     policy=recording if reuse_recorded_decision else policy,
                     on_provider_metadata=record_metadata,
+                    on_scoring_input=record_scoring_input,
                 )
             )
             try:
@@ -535,8 +595,14 @@ class GradingAgent:
                     embedding_provider=self._embedding_provider,
                     settings=resolved_settings,
                 )
-            except (SubjectiveGradingError, GradingContextError, RetrievalError) as error:
-                return self._failure_from_exception(error)
+            except (
+                SubjectiveGradingError,
+                GradingContextError,
+                RetrievalError,
+            ) as error:
+                return replace(
+                    self._failure_from_exception(error), scoring_input=actual_input
+                )
             except ProviderExecutionError as error:
                 return self._failure_from_provider(error)
             except Exception:  # noqa: BLE001 - 统一收敛为脱敏失败，不泄露原始异常
@@ -549,7 +615,9 @@ class GradingAgent:
                 return checked
             try:
                 # 注入路径仍由 Agent 执行原有末端确认，不假设评分器已记录决策。
-                applied = checked if reuse_recorded_decision else recording.apply(checked)
+                applied = (
+                    checked if reuse_recorded_decision else recording.apply(checked)
+                )
             except ConfidencePolicyError as error:
                 return self._failure_from_exception(error)
             decision = recording.decision_for(target.answer_id)
@@ -563,10 +631,14 @@ class GradingAgent:
                 return _AnswerOutcome(output=mismatch)
             return _AnswerOutcome(
                 output=self._success_output(
-                    applied, decision, question_type=question_type, metadata=metadata,
+                    applied,
+                    decision,
+                    question_type=question_type,
+                    metadata=metadata,
                 ),
                 result=applied,
                 decision=decision,
+                scoring_input=actual_input,
             )
         finally:
             if owned_session and active_session is not None:
@@ -599,7 +671,12 @@ class GradingAgent:
             or result.submission_id != snapshot.submission_id
             or result.question_type != target.question_type
             or target.max_score is None
-            or result.max_score != float(target.max_score)
+            or result.max_score != target.max_score
+            or (
+                target.scoring_input is not None
+                and result.exam_question_id != target.scoring_input.exam_question_id
+            )
+            or result.knowledge_points != list(target.knowledge_points)
         ):
             return self._failure(
                 GRADING_AGENT_RESULT_MISMATCH,
@@ -639,15 +716,21 @@ class GradingAgent:
     ) -> AgentOutput:
         """构造成功输出；客观题不带决策快照与模型追踪字段。"""
 
-        requires_review = bool(decision.requires_review) if decision is not None else False
+        requires_review = (
+            bool(decision.requires_review) if decision is not None else False
+        )
         model = None
         prompt_version = None
         if decision is not None:
             model = metadata["model"] if metadata is not None else "unknown"
-            prompt_version = metadata["prompt_version"] if metadata is not None else "unknown"
+            prompt_version = (
+                metadata["prompt_version"] if metadata is not None else "unknown"
+            )
         return AgentOutput(
             agent_type=AgentType.GRADING,
-            status=AgentStatus.PENDING_REVIEW if requires_review else AgentStatus.SUCCESS,
+            status=(
+                AgentStatus.PENDING_REVIEW if requires_review else AgentStatus.SUCCESS
+            ),
             summary=(
                 f"第 {result.answer_id} 题评分完成并进入待人工复核。"
                 if requires_review
@@ -742,7 +825,11 @@ class GradingAgent:
 
         if self._policy is not None:
             return self._policy
-        return ConfidencePolicy(settings=settings) if settings is not None else ConfidencePolicy()
+        return (
+            ConfidencePolicy(settings=settings)
+            if settings is not None
+            else ConfidencePolicy()
+        )
 
 
 def grading_output_to_state_patch(

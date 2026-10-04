@@ -40,6 +40,7 @@ from tests.unit.models.sqlite_support import (
 GRADING_RESULT_COLUMNS = [
     "answer_id",
     "submission_id",
+    "exam_question_id",
     "question_type",
     "score",
     "max_score",
@@ -183,11 +184,18 @@ def test_grading_result_table_structure_matches_data_model() -> None:
     assert [column.name for column in table.columns] == GRADING_RESULT_COLUMNS
     assert {index.name for index in table.indexes} == {
         "ix_grading_results_submission_id",
+        "ix_grading_results_exam_question_id",
         "ix_grading_results_submission_review_status",
         "ix_grading_results_pending_review_round_id",
     }
     assert GRADING_RESULT_CONSTRAINTS.issubset(
         {constraint.name for constraint in table.constraints}
+    )
+    assert table.c.exam_question_id.nullable is True
+    relation = next(iter(table.c.exam_question_id.foreign_keys))
+    assert (
+        relation.target_fullname == "exam_questions.id"
+        and relation.ondelete == "RESTRICT"
     )
 
 
@@ -275,16 +283,12 @@ def test_exam_result_rejects_duplicate_submission() -> None:
     with Session(engine) as session:
         fixture = seed_submission(session)
         session.add(
-            _exam_result(
-                fixture.submission_id, fixture.exam_id, fixture.student_id
-            )
+            _exam_result(fixture.submission_id, fixture.exam_id, fixture.student_id)
         )
         session.commit()
 
         session.add(
-            _exam_result(
-                fixture.submission_id, fixture.exam_id, fixture.student_id
-            )
+            _exam_result(fixture.submission_id, fixture.exam_id, fixture.student_id)
         )
         with pytest.raises(IntegrityError):
             session.commit()
@@ -529,7 +533,9 @@ def test_exam_result_grading_results_relationship_is_readonly() -> None:
     engine = create_sqlite_engine()
     with Session(engine) as session:
         fixture = seed_submission(session)
-        session.add(_exam_result(fixture.submission_id, fixture.exam_id, fixture.student_id))
+        session.add(
+            _exam_result(fixture.submission_id, fixture.exam_id, fixture.student_id)
+        )
         session.add(
             _grading_result(
                 fixture.objective_answer_id,

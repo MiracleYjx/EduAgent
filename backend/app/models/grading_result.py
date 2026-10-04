@@ -107,13 +107,18 @@ class GradingResult(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     submission_id: Mapped[UUID] = mapped_column(
         ForeignKey("submissions.id", ondelete="CASCADE"), nullable=False, index=True
     )
+    exam_question_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("exam_questions.id", ondelete="RESTRICT"), nullable=True, index=True
+    )
     question_type: Mapped[QuestionType] = mapped_column(
         enum_type(QuestionType, "question_type"), nullable=False
     )
     score: Mapped[Decimal] = mapped_column(Numeric(8, 2), nullable=False)
     max_score: Mapped[Decimal] = mapped_column(Numeric(8, 2), nullable=False)
     reason: Mapped[str] = mapped_column(Text, nullable=False)
-    correct_points: Mapped[list[str]] = mapped_column(JSON, default=list, nullable=False)
+    correct_points: Mapped[list[str]] = mapped_column(
+        JSON, default=list, nullable=False
+    )
     missing_knowledge_points: Mapped[list[str]] = mapped_column(
         JSON, default=list, nullable=False
     )

@@ -461,7 +461,13 @@ class DatabaseGradingRepository:
                     submission_id
                 ).require_fixed_inputs(outcome.scoring_inputs)
             for payload in outcome.results:
-                self._upsert_result(session, submission, payload, outcome.decisions)
+                self._upsert_result(
+                    session,
+                    submission,
+                    payload,
+                    outcome.decisions,
+                    require_fixed_identity=bool(outcome.scoring_inputs),
+                )
             self._upsert_exam_result(session, submission, exam_result)
             self._mark_graded(session, submission)
             if task_id is not None:
@@ -600,7 +606,13 @@ class DatabaseGradingRepository:
             payloads, derived = _exam_result_payloads(target)
             merged = {**derived, **dict(decisions)}
             for payload in payloads:
-                self._upsert_result(session, submission, payload, merged)
+                self._upsert_result(
+                    session,
+                    submission,
+                    payload,
+                    merged,
+                    require_fixed_identity=scoring_inputs is not None,
+                )
             self._upsert_exam_result(session, submission, target)
             self._mark_graded(session, submission)
         else:
@@ -685,6 +697,8 @@ class DatabaseGradingRepository:
         submission: Submission,
         payload: GradingResultPayload,
         decisions: Mapping[str, ConfidenceDecision],
+        *,
+        require_fixed_identity: bool = False,
     ) -> None:
         """按 ``answer_id`` 就地写入单题结果与当次决策快照。"""
 
@@ -720,6 +734,16 @@ class DatabaseGradingRepository:
             raise GradingResultOwnershipError(
                 "评分结果的题型、满分或知识点不匹配固定本场输入。"
             )
+        if require_fixed_identity and payload.exam_question_id is None:
+            raise GradingResultOwnershipError(
+                "The new fixed result is missing its scoring association."
+            )
+        if payload.exam_question_id is not None and payload.exam_question_id != str(
+            link.id
+        ):
+            raise GradingResultOwnershipError(
+                "Result scoring association does not belong to the answer and exam."
+            )
         decision = decisions.get(payload.answer_id)
         row = session.scalars(
             select(GradingResult).where(GradingResult.answer_id == answer_uuid)
@@ -739,6 +763,18 @@ class DatabaseGradingRepository:
             raise GradingResultOwnershipError(
                 f"答案 {payload.answer_id} 已有属于其它答卷的评分结果，拒绝覆盖。"
             )
+        if (
+            row.exam_question_id is not None
+            and str(row.exam_question_id) != payload.exam_question_id
+        ):
+            raise GradingResultOwnershipError(
+                "The stored scoring association cannot be changed or removed."
+            )
+        row.exam_question_id = (
+            _as_uuid(payload.exam_question_id)
+            if payload.exam_question_id is not None
+            else None
+        )
         row.question_type = payload.question_type
         row.score = _as_decimal(payload.score)
         row.max_score = _as_decimal(payload.max_score)
@@ -1130,16 +1166,12 @@ class DatabaseGradingRepository:
         submission = session.get(Submission, row.submission_id)
         if submission is None:
             raise GradingResultOwnershipError("评分行缺少真实答卷，无法定位考试关联。")
-        link = session.scalar(
-            select(ExamQuestion).where(
-                ExamQuestion.exam_id == submission.exam_id,
-                ExamQuestion.question_id == answer.question_id,
-            )
-        )
         return ExpectedAnswer(
             order=order,
             answer_id=str(row.answer_id),
-            exam_question_id=str(link.id) if link is not None else None,
+            exam_question_id=(
+                str(row.exam_question_id) if row.exam_question_id is not None else None
+            ),
             question_id=question_id,
             question_type=row.question_type,
             max_score=_as_decimal(row.max_score),
@@ -1205,10 +1237,12 @@ def _exam_result_payloads(
 def _payload_from_item(item: QuestionResultDTO) -> GradingResultPayload:
     """把汇总明细还原为单题评分结果；仅用于结果入口的显式写入。"""
 
+    if item.score is None:
+        raise GradingTaskError("A missing score cannot become a grading result.")
     return GradingResultPayload(
         question_type=item.question_type,
-        score=float(item.score or 0),
-        max_score=float(item.max_score),
+        score=item.score,
+        max_score=item.max_score,
         reason=item.reason or "（未提供评分理由）",
         correct_points=list(item.correct_points),
         missing_knowledge_points=list(item.missing_knowledge_points),
@@ -1220,6 +1254,7 @@ def _payload_from_item(item: QuestionResultDTO) -> GradingResultPayload:
         retrieved_context_ids=list(item.retrieved_context_ids),
         answer_id=item.answer_id,
         submission_id=item.submission_id,
+        exam_question_id=item.exam_question_id,
     )
 
 
@@ -1228,8 +1263,8 @@ def _payload_from_row(row: GradingResult) -> GradingResultPayload:
 
     return GradingResultPayload(
         question_type=row.question_type,
-        score=float(row.score),
-        max_score=float(row.max_score),
+        score=_as_decimal(row.score),
+        max_score=_as_decimal(row.max_score),
         reason=row.reason,
         correct_points=list(row.correct_points),
         missing_knowledge_points=list(row.missing_knowledge_points),
@@ -1241,6 +1276,9 @@ def _payload_from_row(row: GradingResult) -> GradingResultPayload:
         retrieved_context_ids=list(row.retrieved_context_ids),
         answer_id=str(row.answer_id),
         submission_id=str(row.submission_id),
+        exam_question_id=(
+            str(row.exam_question_id) if row.exam_question_id is not None else None
+        ),
     )
 
 

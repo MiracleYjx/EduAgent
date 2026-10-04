@@ -259,9 +259,7 @@ def test_real_current_image_review_is_carried_without_bytes_paths_or_new_events(
     assert same_fixed_scoring_input(
         value, load(database, root=tmp_path).scoring_inputs[value.answer_id]
     )
-    with pytest.raises(GradingNotAllowedError) as error:
-        current.require_scoring_ready()
-    assert error.value.error_code == "EXAM_SCORING_INPUT_NOT_SUPPORTED"
+    current.require_scoring_ready()
 
 
 @pytest.mark.parametrize(

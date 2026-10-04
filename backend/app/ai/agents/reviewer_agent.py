@@ -30,6 +30,7 @@ from typing import Final
 from backend.app.ai.agents.invocation import AgentInvocation, normalize_trace_context
 from backend.app.ai.agents.state import (
     AgentError,
+    AgentInput,
     AgentOutput,
     AgentStatus,
     AgentType,
@@ -43,7 +44,7 @@ from backend.app.domain.enums import (
     ValidationStatus,
 )
 from backend.app.schemas.ai import GradingResult
-from backend.app.schemas.grading import ConfidenceDecisionDTO
+from backend.app.schemas.grading import ConfidenceDecisionDTO, ScoringInput
 from backend.app.services.grading.confidence_policy import HUMAN_DECIDED_REVIEW_STATES
 from backend.app.services.grading.question_router import (
     QuestionRouter,
@@ -131,6 +132,7 @@ class ReviewerAgent:
         submission_id: str | None = None,
         max_score: float | Decimal | None = None,
         knowledge_points: Sequence[str] | None = None,
+        scoring_input: ScoringInput | None = None,
     ) -> AgentInvocation:
         """复核单题评分结果，返回带追溯标识的 :class:`AgentInvocation`。
 
@@ -143,6 +145,23 @@ class ReviewerAgent:
         return AgentInvocation(
             request_id=request_id,
             workflow_id=workflow_id,
+            input=(
+                AgentInput(
+                    agent_type=AgentType.REVIEWER,
+                    request_id=request_id,
+                    workflow_id=workflow_id,
+                    question_id=scoring_input.question_id,
+                    question_type=scoring_input.question_type,
+                    answer_id=scoring_input.answer_id,
+                    scoring_input=scoring_input,
+                    grading_result=grading_result,
+                    confidence_decision=confidence_decision,
+                )
+                if isinstance(scoring_input, ScoringInput)
+                and isinstance(grading_result, GradingResult)
+                and isinstance(confidence_decision, ConfidenceDecisionDTO)
+                else None
+            ),
             output=self._decide(
                 grading_result,
                 confidence_decision,
@@ -151,6 +170,7 @@ class ReviewerAgent:
                 submission_id=submission_id,
                 max_score=max_score,
                 knowledge_points=knowledge_points,
+                scoring_input=scoring_input,
             ),
         )
 
@@ -160,6 +180,7 @@ class ReviewerAgent:
         *,
         request_id: str,
         workflow_id: str | None = None,
+        scoring_input: ScoringInput | None = None,
     ) -> AgentInvocation:
         """便捷入口：直接消费 T069 阅卷 Agent 的输出（``grading_result``+``confidence_decision``）。
 
@@ -183,6 +204,7 @@ class ReviewerAgent:
             request_id=request_id,
             workflow_id=workflow_id,
             question_type=output.question_type,
+            scoring_input=scoring_input,
         )
 
     # ------------------------------------------------------------------ 决策规则
@@ -197,6 +219,7 @@ class ReviewerAgent:
         submission_id: str | None,
         max_score: float | Decimal | None,
         knowledge_points: Sequence[str] | None = None,
+        scoring_input: ScoringInput | None = None,
     ) -> AgentOutput:
         """按"异常输入 → regrade → revise → accept"的优先级给出决策。"""
 
@@ -209,6 +232,55 @@ class ReviewerAgent:
             )
         result = grading_result
         decision = confidence_decision
+        declared_points = knowledge_points
+        if scoring_input is not None:
+            if not isinstance(scoring_input, ScoringInput):
+                return self._failure(
+                    REVIEWER_INVALID_INPUT, "复核固定输入必须为已校验的 ScoringInput。"
+                )
+            fixed = scoring_input
+            if (
+                result.exam_question_id != fixed.exam_question_id
+                or result.knowledge_points != fixed.published_knowledge_points
+                or (
+                    question_type is not None
+                    and str(question_type) != str(fixed.question_type)
+                )
+                or (answer_id is not None and answer_id != fixed.answer_id)
+                or (submission_id is not None and submission_id != fixed.submission_id)
+                or (
+                    max_score is not None
+                    and not _same_score(max_score, fixed.effective_score)
+                )
+                or (
+                    knowledge_points is not None
+                    and list(knowledge_points) != fixed.published_knowledge_points
+                )
+            ):
+                return self._failure(
+                    REVIEWER_RESULT_MISMATCH, "复核结果或兼容目标不属于本场固定评分输入。"
+                )
+            question_type, answer_id, submission_id = (
+                fixed.question_type,
+                fixed.answer_id,
+                fixed.submission_id,
+            )
+            max_score = fixed.effective_score
+            knowledge_points = fixed.published_knowledge_points
+            # Rubric criteria and published knowledge-point tags have distinct meanings.
+            declared_points = (
+                [point.label for point in fixed.scoring_basis.points]
+                if (
+                    fixed.question_type is QuestionType.SHORT_ANSWER
+                    and fixed.scoring_basis.points
+                )
+                else None
+            )
+            amount = Decimal(str(result.score))
+            if not amount.is_finite() or not Decimal(0) <= amount <= fixed.effective_score:
+                return self._failure(
+                    "GRADING_SCORE_OUT_OF_RANGE", "复核分数超出本场固定满分，不能接受。"
+                )
 
         if result.validation_status != ValidationStatus.VALIDATED.value:
             return self._failure(
@@ -276,7 +348,7 @@ class ReviewerAgent:
                 requires_review=False,
             )
 
-        conflict = self._knowledge_point_conflict(result, declared=knowledge_points)
+        conflict = self._knowledge_point_conflict(result, declared=declared_points)
         if conflict is not None:
             return self._success(
                 result,

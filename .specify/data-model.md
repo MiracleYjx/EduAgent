@@ -1082,3 +1082,8 @@ ExtractedQuestion.options 使用 SQLAlchemy JSON(none_as_null=True)，Question.o
 使用共享 Pydantic RetrievalScope 校验；小节严格正整数闭区间，标签仅 trim/精确去重。课程不由该载荷提供，从实际答卷课程授权取得。初次受理同任务保存，状态写入保持原键；新会话/执行器重读。旧缺键为空范围，非法已存值必须失败；不新增表/列/迁移，不反推题目标签。范围是任务检索意图，实际引用仍是检索结果和既有来源记录。
 
 显式范围不同不得复用进行中旧任务；章/资料/标签集合及区间相同可复用，旧省略保持原兼容，显式空对象和省略区分。失败或进程中断沿已有持久任务状态与教师显式重评，不新增自动恢复队列。
+
+
+### T177 实施补充：单题评分持久关联身份
+
+GradingResult 在既有结果表增加 `exam_question_id: UUID | NULL`，FK 指向 ExamQuestion.id（RESTRICT，无默认/历史回填）。新固定输入评分显式记录实际关联，Answer/Submission/ExamQuestion 归属在写入服务核对；重读/复核读取该已保存身份，不能凭当前题库或关联推断旧结果。旧结果 NULL 表示未记录，满分仍为原 GradingResult.max_score。Confirmed/Modified 保留同一结果主键和关联身份，显式重评须核对当前固定输入。该列用于真实身份追溯，不存完整题目版本，不把来源版本/哈希变成评分门禁。迁移仅增列/外键，独立保存入口不依赖一定存在的工作流检查点。

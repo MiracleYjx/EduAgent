@@ -46,6 +46,7 @@ from decimal import Decimal, InvalidOperation
 from typing import Any, Final, Protocol, cast
 from uuid import UUID
 
+from pydantic import ValidationError
 from sqlalchemy import select, update
 from sqlalchemy.engine import CursorResult
 from sqlalchemy.orm import Session
@@ -77,11 +78,13 @@ from backend.app.schemas.grading import (
     ConfidenceDecisionDTO,
     DiagnosisReportDTO,
     ExamResultDTO,
+    ScoringInput,
 )
 from backend.app.services.audit_service import audit_after_commit
 from backend.app.services.grading.grading_task_service import (
     GradingSubmissionReader,
     GradingTargetAnswer,
+    GradingTaskError,
     SubmissionSnapshot,
 )
 from backend.app.services.grading.result_aggregator import (
@@ -816,11 +819,64 @@ class ReviewService:
         if str(revised.question_type) != str(target.question_type):
             raise ReviewInvalidDecisionError("修订结果的题型与该题定义不一致。")
         try:
-            same_max_score = Decimal(str(revised.max_score)) == Decimal(str(target.max_score))
+            same_max_score = Decimal(str(revised.max_score)) == Decimal(
+                str(target.max_score)
+            )
         except (InvalidOperation, ValueError):
             same_max_score = False
         if not same_max_score:
             raise ReviewInvalidDecisionError("修订结果的满分与该题定义不一致。")
+
+        fixed = target.scoring_input
+        if fixed is not None and (
+            revised.exam_question_id != fixed.exam_question_id
+            or revised.knowledge_points != fixed.published_knowledge_points
+        ):
+            raise ReviewIdentityError("复核结果不属于本场真实关联或发布标签。")
+        amount = Decimal(str(revised.score))
+        if (
+            not amount.is_finite()
+            or target.max_score is None
+            or not Decimal(0) <= amount <= target.max_score
+        ):
+            raise ReviewInvalidDecisionError(
+                "复核分数超出本场上限。", error_code="GRADING_SCORE_OUT_OF_RANGE"
+            )
+
+    @staticmethod
+    def _require_checkpoint_inputs(
+        snapshot: SubmissionSnapshot, state: Mapping[str, Any]
+    ) -> None:
+        try:
+            snapshot.require_scoring_ready()
+            raw = state.get("scoring_inputs", {})
+            if not isinstance(raw, Mapping):
+                raise TypeError("Fixed scoring input map is missing.")
+            saved = {key: ScoringInput.model_validate(value) for key, value in raw.items()}
+            snapshot.require_fixed_inputs(saved)
+        except GradingTaskError as error:
+            raise ReviewServiceError(error.detail, error_code=error.error_code) from error
+        except (ValidationError, TypeError, ValueError) as error:
+            raise ReviewServiceError(
+                "复核检查点固定输入缺失或错误。",
+                error_code="GRADING_RESULT_OWNERSHIP_MISMATCH",
+            ) from error
+
+    @staticmethod
+    def _validate_stored_target(row: GradingResultRow, target: GradingTargetAnswer) -> None:
+        fixed = target.scoring_input
+        if fixed is not None and (
+            row.exam_question_id is None
+            or str(row.exam_question_id) != fixed.exam_question_id
+            or row.knowledge_points != fixed.published_knowledge_points
+        ):
+            raise ReviewIdentityError("当前评分记录没有同场真实关联或发布标签，拒绝覆盖。")
+        if row.question_type != target.question_type or row.max_score != target.max_score:
+            raise ReviewIdentityError("当前评分记录的题型或满分与本场固定输入不一致。")
+        if not row.score.is_finite() or row.score < 0 or row.score > row.max_score:
+            raise ReviewInvalidDecisionError(
+                "当前评分记录越界。", error_code="GRADING_SCORE_OUT_OF_RANGE"
+            )
 
     def _prepare(
         self,
@@ -857,11 +913,7 @@ class ReviewService:
                 "该题目不属于本工作流状态的评分结果集合，拒绝跨工作流或凭空确认。"
             )
         snapshot = self._reader.load_for_teacher(submission_id, operator_id)
-        if snapshot.scoring_basis_error is not None:
-            raise ReviewServiceError(
-                "本场评分依据尚未核对或当前评分输入无法完整表达，拒绝写入复核结论。",
-                error_code=snapshot.scoring_basis_error,
-            )
+        self._require_checkpoint_inputs(snapshot, state)
         if snapshot.submission_id != submission_id:
             raise ReviewIdentityError("教师可访问的答卷与检查点记录的答卷不一致。")
         target = next(
@@ -870,9 +922,13 @@ class ReviewService:
         )
         if target is None:
             raise ReviewAnswerNotFoundError("该答案不属于注入的答卷快照，拒绝写入复核结论。")
+        current_result = _current_result(state, decision.answer_id)
+        if current_result is None:
+            raise ReviewAnswerNotFoundError("检查点没有可复核的评分结果。")
+        self._validate_revised_result(current_result, target, submission_id)
         if decision.revised_result is not None:
             self._validate_revised_result(decision.revised_result, target, submission_id)
-        db_review = self._row_review_state(submission_id, decision.answer_id)
+        db_review = self._row_review_state(submission_id, decision.answer_id, target)
         if db_review is None:
             raise ReviewAnswerNotFoundError(
                 "该题目还没有评分结果行，复核记录不得凭空创建。"
@@ -927,7 +983,7 @@ class ReviewService:
         )
 
     def _row_review_state(
-        self, submission_id: str, answer_id: str
+        self, submission_id: str, answer_id: str, target: GradingTargetAnswer
     ) -> tuple[str, UUID | None] | None:
         """一起读取评分状态和轮次，作为事务内原子比较的基准。"""
 
@@ -935,6 +991,7 @@ class ReviewService:
             row = self._grading_row(session, submission_id, answer_id)
             if row is None:
                 return None
+            self._validate_stored_target(row, target)
             return row.review_status.value, row.pending_review_round_id
 
     # ------------------------------------------------------------------ 短事务
@@ -988,7 +1045,8 @@ class ReviewService:
         with self._open_session() as session:
             try:
                 # 锁定运行记录与评分行：并发复核同一答案时由数据库串行化。
-                self._require_locked_run(session, prepared.run.workflow_id)
+                locked_run = self._require_locked_run(session, prepared.run.workflow_id)
+                self._require_checkpoint_inputs(prepared.snapshot, self._checkpoints.restore_state(locked_run))
                 row = self._grading_row(
                     session, submission_id, decision.answer_id, lock=True
                 )
@@ -997,6 +1055,8 @@ class ReviewService:
                         "该题目还没有评分结果行，复核记录不得凭空创建。"
                     )
                 # 原子状态基础：必须是本次预检读到的权威状态，而不是事务内的新读取。
+                target = next(item for item in prepared.snapshot.answers if item.answer_id == decision.answer_id)
+                self._validate_stored_target(row, target)
                 observed = self._observed_status(prepared)
                 if row.review_status is not observed:
                     raise ReviewConflictError(

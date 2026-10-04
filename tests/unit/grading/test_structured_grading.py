@@ -183,8 +183,7 @@ class StubReranker(BaseReranker):
         self.calls += 1
         ordered = sorted(candidates, key=lambda item: item.score, reverse=True)
         return [
-            replace(chunk, rank=index)
-            for index, chunk in enumerate(ordered[:top_k])
+            replace(chunk, rank=index) for index, chunk in enumerate(ordered[:top_k])
         ]
 
 
@@ -251,9 +250,11 @@ def _grade(
             retriever=StubRetriever(hits if hits is not None else [_chunk("chunk-1")]),
             reranker=StubReranker(),
             embedding_provider=StubEmbeddingProvider(),
-            settings=settings
-            if settings is not None
-            else build_test_settings(confidence_threshold=0.5),
+            settings=(
+                settings
+                if settings is not None
+                else build_test_settings(confidence_threshold=0.5)
+            ),
         )
     )
 
@@ -307,8 +308,10 @@ def test_valid_mapping_allows_empty_point_lists() -> None:
         "null",
         "123",
         json.dumps({**_payload(), "extra_field": "多余字段"}, ensure_ascii=False),
-        json.dumps({key: value for key, value in _payload().items() if key != "reason"}),
-        json.dumps({**_payload(), "score": "7.0"}, ensure_ascii=False),
+        json.dumps(
+            {key: value for key, value in _payload().items() if key != "reason"}
+        ),
+        json.dumps({**_payload(), "score": "七分"}, ensure_ascii=False),
         json.dumps({**_payload(), "score": True}, ensure_ascii=False),
         json.dumps({**_payload(), "confidence": "0.9"}, ensure_ascii=False),
         json.dumps({**_payload(), "confidence": False}, ensure_ascii=False),
@@ -316,7 +319,9 @@ def test_valid_mapping_allows_empty_point_lists() -> None:
         json.dumps({**_payload(), "suggestions": []}, ensure_ascii=False),
         json.dumps({**_payload(), "suggestions": ["   "]}, ensure_ascii=False),
         json.dumps({**_payload(), "correct_points": ["  "]}, ensure_ascii=False),
-        json.dumps({**_payload(), "missing_knowledge_points": [""]}, ensure_ascii=False),
+        json.dumps(
+            {**_payload(), "missing_knowledge_points": [""]}, ensure_ascii=False
+        ),
         (
             '{"score": NaN, "confidence": 0.5, "reason": "r", '
             '"correct_points": [], "missing_knowledge_points": [], "suggestions": ["s"]}'
@@ -369,7 +374,7 @@ def test_score_is_rounded_half_up_to_two_decimals(
 
     result = _parse(_payload(score=score))
 
-    assert result.score == expected
+    assert result.score == Decimal(str(expected))
 
 
 def test_rounding_may_not_exceed_max_score() -> None:
@@ -570,7 +575,9 @@ def test_structured_provider_failure_maps_to_invalid_response(code: str) -> None
 
     provider = FakeGradingProvider(
         ProviderExecutionError(
-            ProviderErrorInfo(code=code, message="脱敏后的 Provider 失败。", attempt_count=2)
+            ProviderErrorInfo(
+                code=code, message="脱敏后的 Provider 失败。", attempt_count=2
+            )
         )
     )
 
@@ -581,13 +588,17 @@ def test_structured_provider_failure_maps_to_invalid_response(code: str) -> None
     assert code in str(excinfo.value)
 
 
-@pytest.mark.parametrize("code", ["ProviderTimeout", "ProviderRateLimited", "ProviderFailed"])
+@pytest.mark.parametrize(
+    "code", ["ProviderTimeout", "ProviderRateLimited", "ProviderFailed"]
+)
 def test_provider_call_failure_maps_to_provider_failed(code: str) -> None:
     """调用故障（超时、限流、服务失败）属于 Provider 失败。"""
 
     provider = FakeGradingProvider(
         ProviderExecutionError(
-            ProviderErrorInfo(code=code, message="脱敏后的 Provider 失败。", attempt_count=3)
+            ProviderErrorInfo(
+                code=code, message="脱敏后的 Provider 失败。", attempt_count=3
+            )
         )
     )
 
@@ -711,5 +722,10 @@ def test_prompt_schema_matches_payload_contract() -> None:
         SubjectiveGradingPayload.model_json_schema(), ensure_ascii=False
     )
     assert "score" in schema_json and "confidence" in schema_json
-    for field in ("reason", "correct_points", "missing_knowledge_points", "suggestions"):
+    for field in (
+        "reason",
+        "correct_points",
+        "missing_knowledge_points",
+        "suggestions",
+    ):
         assert field in schema_json

@@ -26,10 +26,11 @@
 
 from __future__ import annotations
 
+import base64
 import json
 import math
 from collections.abc import Callable, Mapping, Sequence
-from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
+from decimal import ROUND_HALF_UP, Decimal, InvalidOperation, localcontext
 from typing import Any, ClassVar, Final, Protocol
 
 from pydantic import (
@@ -52,6 +53,13 @@ from backend.app.ai.llm.base import (
 from backend.app.ai.llm.factory import create_llm_provider
 from backend.app.ai.retrieval.base import DEFAULT_TOP_K, BaseRetriever
 from backend.app.ai.retrieval.reranker import BaseReranker
+from backend.app.ai.vision.base import (
+    MAX_REQUEST_BYTES,
+    ProviderImage,
+    VisionFailure,
+    VisionImage,
+)
+from backend.app.ai.vision.provider import create_vision_provider
 from backend.app.core.config import AppSettings, get_settings
 from backend.app.core.retry_policy import ProviderExecutionError
 from backend.app.domain.enums import (
@@ -61,6 +69,7 @@ from backend.app.domain.enums import (
     ValidationStatus,
 )
 from backend.app.schemas.ai import GradingResult, NonEmptyText
+from backend.app.schemas.grading import ScoringInput
 from backend.app.services.grading.confidence_policy import ConfidencePolicy
 from backend.app.services.grading.grading_context import (
     GradingContext,
@@ -73,6 +82,10 @@ from backend.app.services.grading.grading_context import (
 from backend.app.services.grading.question_router import (
     QuestionRouter,
     normalize_question_type,
+)
+from backend.app.services.grading.scoring_images import (
+    GradingImageError,
+    prepare_scoring_images,
 )
 from backend.app.services.trace_service import trace_prompt_version
 
@@ -185,7 +198,7 @@ class SubjectiveGradingPayload(BaseModel):
         str_strip_whitespace=True,
     )
 
-    score: float = Field(description="本题得分，平台会再做范围与量化校验。")
+    score: Decimal = Field(description="本题得分，平台会再做范围与量化校验。")
     confidence: float = Field(description="评分置信度，范围 0 到 1。")
     reason: NonEmptyText = Field(description="评分理由。")
     correct_points: list[NonEmptyText] = Field(
@@ -199,16 +212,30 @@ class SubjectiveGradingPayload(BaseModel):
         description="面向学生的学习建议，至少一项。",
     )
 
-    @field_validator("score", "confidence", mode="before")
+    @field_validator("score", mode="before")
     @classmethod
-    def _reject_non_numeric_values(cls, value: Any) -> Any:
-        """拒绝字符串与布尔值，并要求有限数值。"""
+    def _exact_score(cls, value: Any) -> Decimal:
+        if isinstance(value, bool) or not isinstance(value, (int, float, Decimal, str)):
+            raise ValueError(  # noqa: TRY004 -- Pydantic requires ValueError.
+                "得分须为有限 Decimal 数值或十进制字符串"
+            )
+        try:
+            result = value if isinstance(value, Decimal) else Decimal(str(value))
+        except InvalidOperation:
+            raise ValueError("得分不是十进制数值") from None
+        if not result.is_finite():
+            raise ValueError("得分须为有限数值")
+        return result
 
+    @field_validator("confidence", mode="before")
+    @classmethod
+    def _numeric_confidence(cls, value: Any) -> Any:
         if isinstance(value, (bool, str, bytes, bytearray)):
-            # Pydantic 只把 ValueError/AssertionError 转换为校验失败，因此这里不用 TypeError。
-            raise ValueError("必须是 JSON 数值")  # noqa: TRY004
+            raise ValueError(  # noqa: TRY004 -- Pydantic requires ValueError.
+                "置信度须为 JSON 数值"
+            )
         if isinstance(value, float) and not math.isfinite(value):
-            raise ValueError("必须是有限数值")
+            raise ValueError("置信度须为有限数值")
         return value
 
 
@@ -237,29 +264,20 @@ class ConfidencePolicyLike(Protocol):
     def apply(self, result: GradingResult) -> GradingResult: ...
 
 
-def _resolve_max_score(value: Any) -> float:
-    """校验并转换题目满分；只接受有限正数。
-
-    非数值、``bool``、非有限数（NaN/±inf、``Decimal`` signaling NaN）、超出浮点范围的值与
-    非正数统一转为 :class:`InvalidMaxScoreError`，不泄漏 ``ValueError`` / ``OverflowError``。
-    """
-
+def _resolve_max_score(value: Any) -> Decimal:
+    """兼容历史数字输入，分值全程保留十进制精度。"""
     if isinstance(value, bool) or not isinstance(value, (int, float, Decimal)):
-        raise InvalidMaxScoreError(
-            f"题目满分必须是有限正数，收到类型 {type(value).__name__}。"
-        )
-    number: float | None = None
-    failed = False
+        raise InvalidMaxScoreError("题目满分必须是有限正数。")
     try:
-        number = float(value)
-    except (ValueError, OverflowError, InvalidOperation):
-        failed = True
-    if failed or number is None:
-        raise InvalidMaxScoreError(
-            f"题目满分必须是有限正数，收到 {value!r}；该数值无法转换为可比较的有限浮点数。"
-        )
-    if not math.isfinite(number) or number <= 0:
-        raise InvalidMaxScoreError(f"题目满分必须是有限正数，收到 {value!r}。")
+        number = value if isinstance(value, Decimal) else Decimal(str(value))
+        if (
+            not number.is_finite()
+            or number <= 0
+            or number > Decimal("1.7976931348623157e308")
+        ):
+            raise InvalidOperation
+    except (ValueError, InvalidOperation):
+        raise InvalidMaxScoreError("题目满分必须是有限正数。") from None
     return number
 
 
@@ -277,11 +295,11 @@ def _load_payload(raw: Any) -> Mapping[str, Any]:
     if isinstance(raw, (bytes, bytearray)):
         raw = raw.decode("utf-8", errors="strict")
     if not isinstance(raw, str):
-        raise InvalidLLMResponseError(
-            "评分响应必须是 JSON 文本或对象。"
-        )
+        raise InvalidLLMResponseError("评分响应必须是 JSON 文本或对象。")
     try:
-        payload = json.loads(raw, parse_constant=_reject_json_constant)
+        payload = json.loads(
+            raw, parse_float=Decimal, parse_constant=_reject_json_constant
+        )
     except (ValueError, TypeError):
         raise InvalidLLMResponseError("评分响应不是合法 JSON 对象。") from None
     if not isinstance(payload, Mapping):
@@ -313,6 +331,7 @@ def parse_subjective_payload(
     retrieved_context_ids: Sequence[str] = (),
     answer_id: str | None = None,
     submission_id: str | None = None,
+    exam_question_id: str | None = None,
 ) -> GradingResult:
     """把模型响应校验并转换为 :class:`GradingResult`。
 
@@ -322,7 +341,10 @@ def parse_subjective_payload(
 
     resolved_max_score = _resolve_max_score(max_score)
     normalized_type = normalize_question_type(question_type)
-    if _SUBJECTIVE_ONLY_ROUTER.route_type(normalized_type) is not GradingMode.SUBJECTIVE:
+    if (
+        _SUBJECTIVE_ONLY_ROUTER.route_type(normalized_type)
+        is not GradingMode.SUBJECTIVE
+    ):
         raise GradingModeMismatchError(
             f"题型 {normalized_type} 属于客观题路径，"
             "不得使用主观题结构化评分解析器。"
@@ -340,12 +362,14 @@ def parse_subjective_payload(
             f"得分 {payload.score} 超出 [0, {resolved_max_score}] 区间。"
         )
     try:
-        quantized = Decimal(str(payload.score)).quantize(
-            SCORE_QUANTUM, rounding=ROUND_HALF_UP
-        )
+        with localcontext() as decimal_context:
+            decimal_context.prec = max(
+                28, len(resolved_max_score.as_tuple().digits) + 8
+            )
+            quantized = payload.score.quantize(SCORE_QUANTUM, rounding=ROUND_HALF_UP)
     except InvalidOperation:  # pragma: no cover - 防御性分支
         raise ScoreOutOfRangeError("得分无法量化为两位小数。") from None
-    if quantized < 0 or quantized > Decimal(str(resolved_max_score)):
+    if quantized < 0 or quantized > resolved_max_score:
         raise ScoreOutOfRangeError(
             f"得分 {payload.score} 量化后超出 [0, {resolved_max_score}] 区间，拒绝钳制。"
         )
@@ -357,7 +381,7 @@ def parse_subjective_payload(
 
     return GradingResult(
         question_type=normalized_type,
-        score=float(quantized),
+        score=quantized,
         max_score=resolved_max_score,
         reason=payload.reason,
         correct_points=list(payload.correct_points),
@@ -370,47 +394,99 @@ def parse_subjective_payload(
         retrieved_context_ids=list(retrieved_context_ids),
         answer_id=answer_id,
         submission_id=submission_id,
+        exam_question_id=exam_question_id,
     )
 
 
-def _build_user_message(context: GradingContext, *, max_score: float) -> str:
-    """构造用户消息：平台满分与 §5.3 的全部评分输入。
-
-    评分标准与学生答案在 :class:`SubjectiveGradingSource` 构造阶段已保证非空白，
-    因此这里不再提供「未作答」等占位文案，避免用占位内容代替真实作答。
-    """
-
+def _build_user_message(context: GradingContext, *, max_score: Decimal | float) -> str:
     source = context.source
     knowledge_points = "、".join(source.knowledge_points) or "（题目未标注知识点）"
-    return "\n".join(
-        [
-            f"本题满分：{max_score}",
-            "【题目】",
-            source.question_content,
-            "【标准答案】",
-            source.reference_answer,
-            "【评分标准】",
-            str(source.scoring_rubric).strip(),
-            "【学生答案】",
-            source.student_answer_text,
-            "【知识点】",
-            knowledge_points,
-            "【课程检索上下文】",
-            context.final_context or "（无可用检索上下文）",
-        ]
+    sections = [
+        f"题目满分：{max_score}",
+        "【题目】",
+        source.question_content,
+        "【标准答案】",
+        source.reference_answer,
+        "【原始评分标准】",
+        str(source.scoring_rubric).strip(),
+        "【学生答案】",
+        source.student_answer_text,
+        "【发布时知识点】",
+        knowledge_points,
+    ]
+    fixed = source.scoring_input
+    if fixed is not None:
+        sections.extend(
+            [
+                "【本场已确认评分依据】",
+                json.dumps(
+                    fixed.scoring_basis.model_dump(mode="json"), ensure_ascii=False
+                ),
+                f"原题满分：{fixed.base_score}；本场满分：{fixed.effective_score}。",
+                "confirmed_points 已按本场满分确认，不得再次按原题比例缩放或使用原题满分计分。",
+            ]
+        )
+        if fixed.verified_image_conditions is not None:
+            sections.extend(
+                [
+                    "【当前真实人工核对的图片条件】",
+                    json.dumps(
+                        [
+                            item.model_dump(mode="json")
+                            for item in fixed.verified_image_conditions.check.confirmed_conditions
+                        ],
+                        ensure_ascii=False,
+                    ),
+                    "以下原图与这些已核对条件共同作为输入；不补写未给出的条件。",
+                ]
+            )
+    sections.extend(
+        ["【课程检索上下文】", context.final_context or "（无可用检索上下文）"]
     )
+    return "\n".join(sections)
 
 
 def build_grading_messages(
     context: GradingContext,
     *,
-    max_score: float,
+    max_score: Decimal | float,
+    images: Sequence[VisionImage] = (),
 ) -> list[LLMMessage]:
-    """构造评分消息：版本化系统提示 + 含五要素与 Final Context 的用户消息。"""
-
+    text = _build_user_message(context, max_score=max_score)
+    content: str | list[dict[str, Any]] = text
+    if images:
+        if sum(len(image.data) for image in images) > MAX_REQUEST_BYTES:
+            raise GradingImageError(
+                "VISION_IMAGE_TRANSPORT_UNAVAILABLE",
+                "本场题图总字节超过已支持请求限制。",
+            )
+        parts: list[dict[str, Any]] = [{"type": "text", "text": text}]
+        for index, image in enumerate(images, 1):
+            parts.append(
+                {"type": "text", "text": f"image_index={index}，本场题图原件。"}
+            )
+            parts.append(
+                {
+                    "type": "image",
+                    "image": ProviderImage(
+                        encoding="base64",
+                        value=base64.b64encode(image.data).decode("ascii"),
+                        mime_type=image.mime_type,
+                    ),
+                }
+            )
+        content = parts
+        serialized = json.dumps(
+            parts, ensure_ascii=False, default=lambda value: value.model_dump()
+        )
+        if len(serialized.encode("utf-8")) > MAX_REQUEST_BYTES - 1024:
+            raise GradingImageError(
+                "VISION_IMAGE_TRANSPORT_UNAVAILABLE",
+                "原图编码后的本场请求超过已支持传输限制。",
+            )
     return [
         {"role": "system", "content": _SUBJECTIVE_GRADING_SYSTEM_PROMPT},
-        {"role": "user", "content": _build_user_message(context, max_score=max_score)},
+        {"role": "user", "content": content},
     ]
 
 
@@ -431,10 +507,12 @@ class SubjectiveGrader:
         provider: BaseLLMProvider | None = None,
         policy: ConfidencePolicyLike | None = None,
         on_provider_metadata: Callable[[LLMProviderMetadata], None] | None = None,
+        on_scoring_input: Callable[[ScoringInput], None] | None = None,
     ) -> None:
         self._provider = provider
         self._policy = policy
         self._on_provider_metadata = on_provider_metadata
+        self._on_scoring_input = on_scoring_input
 
     async def grade(
         self,
@@ -457,6 +535,11 @@ class SubjectiveGrader:
 
         resolved_settings = settings if settings is not None else get_settings()
         resolved_max_score = _resolve_max_score(max_score)
+        if (
+            source.scoring_input is not None
+            and resolved_max_score != source.scoring_input.effective_score
+        ):
+            raise InvalidMaxScoreError("传入满分与固定本场输入不一致。")
         context = await build_grading_context(
             session,
             source,
@@ -468,11 +551,53 @@ class SubjectiveGrader:
             settings=settings,
         )
         context.ensure_sufficient()
-        messages = build_grading_messages(context, max_score=resolved_max_score)
-        payload = await self._generate_payload(messages, settings=resolved_settings)
-        answer_id = (
-            str(source.answer_id) if source.answer_id is not None else None
-        )
+        enriched = context.enriched_scoring_input()
+        if enriched is not None and self._on_scoring_input is not None:
+            self._on_scoring_input(enriched)
+        vision_provider = None
+        primary_error: BaseException | None = None
+        try:
+            images: tuple[VisionImage, ...] = ()
+            if source.scoring_input is not None and source.scoring_input.assets:
+                try:
+                    vision_provider = create_vision_provider(resolved_settings)
+                except VisionFailure as error:
+                    raise GradingImageError(
+                        error.code, error.message, retryable=error.retryable
+                    ) from None
+                if not vision_provider.supports_vision():
+                    raise GradingImageError(
+                        "VISION_NOT_SUPPORTED",
+                        "独立图片模型未声明真实图片输入能力，不能转为纯文本评分。",
+                    )
+                images = prepare_scoring_images(
+                    session, source, root=resolved_settings.storage_root
+                )
+            messages = build_grading_messages(
+                context, max_score=resolved_max_score, images=images
+            )
+            payload = await self._generate_payload(
+                messages, settings=resolved_settings, provider_override=vision_provider
+            )
+        except BaseException as error:
+            primary_error = error
+            raise
+        finally:
+            if vision_provider is not None:
+                try:
+                    await vision_provider.aclose()
+                except Exception:  # noqa: BLE001
+                    # Cleanup must preserve the original business failure.
+                    if primary_error is not None:
+                        primary_error.add_note(
+                            "独立图像 Provider 的资源清理也失败；保留原始评分错误。"
+                        )
+                    else:
+                        raise GradingImageError(
+                            "VISION_PROVIDER_CLOSE_FAILED",
+                            "独立图像 Provider 资源清理失败，未返回已完成评分。",
+                        ) from None
+        answer_id = str(source.answer_id) if source.answer_id is not None else None
         submission_id = (
             str(source.submission_id) if source.submission_id is not None else None
         )
@@ -484,6 +609,11 @@ class SubjectiveGrader:
             retrieved_context_ids=context.retrieved_context_ids,
             answer_id=answer_id,
             submission_id=submission_id,
+            exam_question_id=(
+                source.scoring_input.exam_question_id
+                if source.scoring_input is not None
+                else None
+            ),
         )
         return self._apply_confidence_check(result, resolved_settings)
 
@@ -492,10 +622,13 @@ class SubjectiveGrader:
         messages: LLMMessages,
         *,
         settings: AppSettings,
+        provider_override: BaseLLMProvider | None = None,
     ) -> SubjectiveGradingPayload:
         """调用 Provider 获取结构化评分 Payload，并把失败分类为业务错误码。"""
 
-        provider = self._provider
+        provider = (
+            provider_override if provider_override is not None else self._provider
+        )
         if provider is None:
             try:
                 provider = create_llm_provider(settings)
@@ -535,9 +668,12 @@ class SubjectiveGrader:
         if not isinstance(result, SubjectiveGradingPayload):
             raise InvalidLLMResponseError("评分 Provider 未返回约定的结构化结果。")
         if self._on_provider_metadata is not None:
-            self._on_provider_metadata(describe_llm_provider(
-                provider, prompt_version=SUBJECTIVE_GRADING_PROMPT_VERSION,
-            ))
+            self._on_provider_metadata(
+                describe_llm_provider(
+                    provider,
+                    prompt_version=SUBJECTIVE_GRADING_PROMPT_VERSION,
+                )
+            )
         return result
 
     def _apply_confidence_check(

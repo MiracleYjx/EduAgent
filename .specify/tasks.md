@@ -612,7 +612,7 @@ M0 工程骨架 + Benchmark
 
 - [X] T176 [HIGH] [E4] **贯通考试评分输入与身份**：在 `services/grading/grading_task_service.py` 的 DatabaseGradingSubmissionReader/SubmissionSnapshot、`schemas/grading.py`、Agent/Workflow 状态与仓储中传递 exam_question_id、本场分值/基准/标准、发布知识点及已核对图片；替换 v2 考试上下文直接读取 Question.score 的来源。新发布依据缺失明确报错，旧历史按 T171 兼容读取，幂等身份不跨场复用。 依赖：T164、T171、T175。per FR-043/049、exam-scoring ScoringInput、US3-v2/AC1–3（F043） (partial)
 
-- [ ] T177 [HIGH] [E4] **贯通规则评分、主观评分、复核与汇总**：在 `services/grading/`、`ai/agents/grading_agent.py`、`reviewer_agent.py`、`ai/workflows/`、`services/review_service.py`、`diagnosis_service.py` 消费同一固定输入；客观题不调用 LLM，主观题使用已核对标准且不二次缩放，图像能力不足明确待处理。原始/量化分数均校验本场上限，结果 Decimal 求和，失败/缺依据/待复核不记零分，保留既有检查点与复核生命周期。 依赖：T176。per FR-029–040扩展、FR-043/049、exam-scoring、SC-012/013（F044） (partial)
+- [X] T177 [HIGH] [E4] **贯通规则评分、主观评分、复核与汇总**：在 `services/grading/`、`ai/agents/grading_agent.py`、`reviewer_agent.py`、`ai/workflows/`、`services/review_service.py`、`diagnosis_service.py` 消费同一固定输入；客观题不调用 LLM，主观题使用已核对标准且不二次缩放，图像能力不足明确待处理。原始/量化分数均校验本场上限，结果 Decimal 求和，失败/缺依据/待复核不记零分，保留既有检查点与复核生命周期。 依赖：T176。per FR-029–040扩展、FR-043/049、exam-scoring、SC-012/013（F044） (partial)
 
 - [ ] T178 [HIGH] [E4] **接通组卷、答题与阅卷显示**：扩展 `ui/exam_view.py`、`student_exam_view.py`、`review_view.py` 及考试/提交接口，展示条件缺口、题序/替换、显式分值、Rubric/尾差核对与教师预览；学生答题按同一题序/本场值/题图且不泄露答案/源卷，缺必要图像明确异常。阅卷复核展示相同图像/条件/标准，旧答卷提交和参加资格规则保留。 依赖：T173、T174、T175、T176、T177。per FR-043/048/049、US2-v2/AC1、US3-v2/AC1–3（F045） (partial)
 

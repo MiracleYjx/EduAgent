@@ -34,6 +34,7 @@ from backend.app.ai.retrieval.base import DEFAULT_TOP_K, BaseRetriever, Retrieva
 from backend.app.ai.retrieval.reranker import BaseReranker
 from backend.app.core.config import AppSettings
 from backend.app.schemas.ai import GradingResult
+from backend.app.schemas.grading import ScoringInput
 from backend.app.services.grading.confidence_policy import (
     ConfidenceDecision,
     ConfidencePolicy,
@@ -78,6 +79,7 @@ def build_subjective_scorer(
     reranker: BaseReranker | None = None,
     embedding_provider: BaseEmbeddingProvider | None = None,
     top_k: int = DEFAULT_TOP_K,
+    on_scoring_input: Callable[[ScoringInput], None] | None = None,
 ) -> SubjectiveScorer:
     """构造 :class:`DefaultScoringPipeline` 使用的主观题评分器。
 
@@ -90,11 +92,15 @@ def build_subjective_scorer(
     def score(
         snapshot: SubmissionSnapshot,
         target: GradingTargetAnswer,
+        *,
+        on_scoring_input: Callable[[ScoringInput], None] | None = None,
     ) -> tuple[GradingResult, ConfidenceDecision]:
         """执行一次主观题评分；内部使用同步事件循环，须在无事件循环的调用线程执行。"""
 
         recording = DecisionRecordingPolicy(policy=policy, settings=settings)
-        grader = SubjectiveGrader(provider=provider, policy=recording)
+        grader = SubjectiveGrader(
+            provider=provider, policy=recording, on_scoring_input=on_scoring_input
+        )
         session = session_factory()
         try:
             source = build_subjective_source(snapshot, target)
@@ -119,7 +125,24 @@ def build_subjective_scorer(
             raise GradingExecutionNotReadyError(MISSING_DECISION_MESSAGE)
         return result, decision
 
-    return score
+    class ProductionScorer:
+        """显式生产能力；每次调用独立接收本轮实际上下文，不共享收集器。"""
+
+        def __call__(
+            self, snapshot: SubmissionSnapshot, target: GradingTargetAnswer
+        ) -> tuple[GradingResult, ConfidenceDecision]:
+            return score(snapshot, target, on_scoring_input=on_scoring_input)
+
+        def score_with_input(
+            self,
+            snapshot: SubmissionSnapshot,
+            target: GradingTargetAnswer,
+            *,
+            on_scoring_input: Callable[[ScoringInput], None],
+        ) -> tuple[GradingResult, ConfidenceDecision]:
+            return score(snapshot, target, on_scoring_input=on_scoring_input)
+
+    return ProductionScorer()
 
 
 def build_subjective_source(
@@ -149,6 +172,8 @@ def build_subjective_source(
         question_id=target.question_id,
         answer_id=target.answer_id,
         submission_id=snapshot.submission_id,
+        scoring_input=target.scoring_input,
+        teacher_id=target.teacher_id,
     )
 
 
@@ -158,7 +183,11 @@ def as_task_error(error: Exception) -> GradingTaskError:
     code = str(getattr(error, "error_code", GRADING_TASK_FAILED))
     retryable = bool(getattr(error, "retryable", False))
     source_code = getattr(error, "source_code", None)
-    detail = error.detail if isinstance(error, RetrievalError) else f"主观题评分失败（来源码 {code}）。"
+    detail = (
+        error.detail
+        if isinstance(error, RetrievalError)
+        else f"主观题评分失败（来源码 {code}）。"
+    )
     mapped = GradingTaskError(
         detail,
         retryable=retryable,

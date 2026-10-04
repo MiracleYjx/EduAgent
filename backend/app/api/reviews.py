@@ -28,7 +28,7 @@ from __future__ import annotations
 from collections.abc import Iterator, Mapping, Sequence
 from contextlib import contextmanager
 from datetime import datetime
-from decimal import Decimal, InvalidOperation
+from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
 from typing import Annotated, Any, Literal
 from uuid import UUID
 
@@ -64,6 +64,11 @@ from backend.app.models import (
     WorkflowRun,
 )
 from backend.app.schemas.ai import GradingResult as GradingResultPayload
+from backend.app.schemas.grading import ScoringInput
+from backend.app.services.grading.grading_task_service import (
+    DatabaseGradingSubmissionReader,
+    GradingTaskError,
+)
 from backend.app.services.review_service import (
     REVIEW_SERVICE_AGGREGATION_FAILED,
     REVIEW_SERVICE_ANSWER_NOT_FOUND,
@@ -123,6 +128,8 @@ _ERROR_STATUS: dict[str, int] = {
     REVIEW_SERVICE_IDENTITY_MISMATCH: 409,
     REVIEW_DECISION_REVISION_REQUIRED: 422,
     REVIEW_DECISION_INVALID_SCORE: 422,
+    "GRADING_SCORE_OUT_OF_RANGE": 422,
+    "GRADING_RESULT_OWNERSHIP_MISMATCH": 409,
     REVIEW_DECISION_UNSUPPORTED: 422,
     REVIEW_QUERY_INVALID_PAGE: 422,
     REVIEW_SERVICE_INVALID_DECISION: 422,
@@ -243,6 +250,7 @@ class ReviewQueueItemDTO(BaseModel):
     student_id: str
     student_name: str
     question_id: str
+    exam_question_id: str | None = None
     question_number: int
     question_type: QuestionType
     max_score: Decimal
@@ -290,11 +298,14 @@ class ReviewDetailDTO(BaseModel):
     student_id: str
     student_name: str
     question_id: str
+    exam_question_id: str | None = None
     question_number: int
     question_type: QuestionType
     question_content: str
     reference_answer: str | None = None
     scoring_rubric: str | None = None
+    scoring_input: ScoringInput | None = None
+    scoring_input_error: str | None = None
     max_score: Decimal
     student_answer: str
     score: Decimal | None = None
@@ -523,6 +534,7 @@ class ReviewQueryService:
             student_id=str(student.id),
             student_name=student.username,
             question_id=str(question.id),
+            exam_question_id=str(result.exam_question_id) if result.exam_question_id is not None else None,
             question_number=resolved_orders.get((exam.id, question.id), 0),
             question_type=result.question_type,
             max_score=result.max_score,
@@ -581,6 +593,17 @@ class ReviewQueryService:
                     .limit(1)
                 ).first()
                 orders = _question_orders(session, {exam.id})
+                current_input_error: str | None
+                try:
+                    current_snapshot = DatabaseGradingSubmissionReader(
+                        session=session
+                    ).load(str(submission.id))
+                except GradingTaskError as error:
+                    current_input = None
+                    current_input_error = error.error_code
+                else:
+                    current_input = current_snapshot.scoring_inputs.get(str(answer.id))
+                    current_input_error = current_snapshot.scoring_basis_error
         except SQLAlchemyError as error:
             raise ReviewQueryError(
                 "复核详情读取失败：结果存储未就绪。",
@@ -596,11 +619,14 @@ class ReviewQueryService:
             student_id=str(student.id),
             student_name=student.username,
             question_id=str(question.id),
+            exam_question_id=str(result.exam_question_id) if result.exam_question_id is not None else None,
             question_number=orders.get((exam.id, question.id), 0),
             question_type=result.question_type,
             question_content=question.content,
             reference_answer=question.reference_answer,
             scoring_rubric=question.scoring_rubric,
+            scoring_input=current_input,
+            scoring_input_error=current_input_error,
             max_score=result.max_score,
             student_answer=_answer_text(answer.content),
             score=result.score,
@@ -956,14 +982,18 @@ class ReviewDecisionService:
             max_score = Decimal(str(detail.max_score))
         except (InvalidOperation, ValueError) as error:
             raise ReviewDecisionScoreError("修订分数必须是有效数值。") from error
+        if not score.is_finite() or not max_score.is_finite() or max_score <= 0:
+            raise ReviewDecisionScoreError("修订分数或权威满分不是合法有限数值。")
         if score < 0 or score > max_score:
-            raise ReviewDecisionScoreError(
-                f"修订分数必须在 0～{max_score} 之间。"
-            )
+            raise ReviewDecisionScoreError(f"修订分数必须在 0～{max_score} 之间。")
+        score = score.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        if score < 0 or score > max_score:
+            raise ReviewDecisionScoreError("量化后的修订分数超出权威满分，不能保存。")
         return GradingResultPayload(
             question_type=detail.question_type,
-            score=float(score),
-            max_score=float(max_score),
+            score=score,
+            max_score=max_score,
+            exam_question_id=detail.exam_question_id,
             reason=str(payload.reason),
             correct_points=list(detail.correct_points),
             missing_knowledge_points=list(detail.missing_knowledge_points),

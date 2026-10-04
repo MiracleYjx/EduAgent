@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from decimal import Decimal
 from typing import Annotated, Literal
 
 from pydantic import (
@@ -104,8 +105,10 @@ class GradingResult(BaseModel):
         validation_alias=AliasChoices("question_type", "type"),
         description="被评分题目的题型。",
     )
-    score: Score = Field(description="本题得分，不能小于零。")
-    max_score: PositiveScore = Field(description="本题满分，必须大于零。")
+    score: Annotated[Decimal, Field(ge=0)] = Field(description="本题得分，不能小于零。")
+    max_score: Annotated[Decimal, Field(gt=0)] = Field(
+        description="本题满分，必须大于零。"
+    )
     reason: NonEmptyText = Field(description="评分理由。")
     correct_points: list[NonEmptyText] = Field(
         description="学生答案中命中的正确知识点或要点。",
@@ -141,6 +144,21 @@ class GradingResult(BaseModel):
         default=None,
         description="关联的答卷标识。",
     )
+
+    exam_question_id: NonEmptyText | None = Field(
+        default=None, description="真实本场关联；旧历史未知保持空。"
+    )
+
+    @field_validator("score", "max_score", mode="before")
+    @classmethod
+    def _exact_amount(cls, value: object) -> object:
+        if isinstance(value, bool):
+            raise ValueError(  # noqa: TRY004 -- Pydantic requires ValueError.
+                "分值不能是布尔值。"
+            )
+        if isinstance(value, (int, float)):
+            return Decimal(str(value))
+        return value
 
     @model_validator(mode="after")
     def _validate_score_range(self) -> GradingResult:

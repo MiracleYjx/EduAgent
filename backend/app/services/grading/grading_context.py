@@ -50,6 +50,7 @@ from backend.app.ai.retrieval.base import (
 from backend.app.ai.retrieval.reranker import BaseReranker, build_reranker
 from backend.app.core.config import AppSettings, get_settings
 from backend.app.domain.enums import GradingMode, QuestionType
+from backend.app.schemas.grading import ScoringInput, ScoringSourceReference
 from backend.app.schemas.retrieval_scope import RetrievalScope
 from backend.app.services.grading.question_router import (
     QuestionRouter,
@@ -236,8 +237,12 @@ class SubjectiveGradingSource:
     answer_id: UUID | str | None = None
     submission_id: UUID | str | None = None
     retrieval_scope: RetrievalScope = field(default_factory=RetrievalScope)
+    scoring_input: ScoringInput | None = None
+    teacher_id: UUID | str | None = None
     #: 平台侧的评分模式校验器；默认使用无状态 :class:`QuestionRouter`。
-    _router: QuestionRouter = field(default_factory=QuestionRouter, repr=False, compare=False)
+    _router: QuestionRouter = field(
+        default_factory=QuestionRouter, repr=False, compare=False
+    )
 
     def __post_init__(self) -> None:
         router = self._router if self._router is not None else QuestionRouter()
@@ -248,13 +253,14 @@ class SubjectiveGradingSource:
             )
         object.__setattr__(self, "question_type", normalized_type)
 
-        if not isinstance(self.reference_answer, str) or not self.reference_answer.strip():
+        if (
+            not isinstance(self.reference_answer, str)
+            or not self.reference_answer.strip()
+        ):
             raise ReferenceAnswerMissingError("题目缺少标准答案，无法组装评分依据。")
 
         if not isinstance(self.scoring_rubric, str) or not self.scoring_rubric.strip():
-            raise GradingInputError(
-                "题目缺少非空的评分标准，无法按规则评分。"
-            )
+            raise GradingInputError("题目缺少非空的评分标准，无法按规则评分。")
         object.__setattr__(self, "scoring_rubric", self.scoring_rubric.strip())
 
         object.__setattr__(
@@ -280,6 +286,25 @@ class SubjectiveGradingSource:
             if raw is not None:
                 object.__setattr__(self, name, _as_text(raw, label=name))
         object.__setattr__(self, "student_answer", self._normalize_answer())
+        fixed = self.scoring_input
+        if fixed is not None:
+            expected_answer = fixed.student_answer
+            if isinstance(expected_answer, list):
+                expected_answer = "\n".join(expected_answer)
+            if (
+                str(self.question_id) != fixed.question_id
+                or str(self.answer_id) != fixed.answer_id
+                or str(self.submission_id) != fixed.submission_id
+                or str(self.course_id) != fixed.course_id
+                or self.question_type != fixed.question_type
+                or self.question_content != fixed.question_content
+                or self.reference_answer != fixed.reference_answer
+                or self.scoring_rubric != (fixed.source_rubric or "").strip()
+                or self.student_answer != expected_answer
+                or self.knowledge_points != tuple(fixed.published_knowledge_points)
+            ):
+                raise GradingInputError("主观题来源与真实固定本场输入不一致。")
+            object.__setattr__(self, "scoring_input", fixed.model_copy(deep=True))
 
     def _normalize_answer(self) -> str:
         """校验学生答案形态；必须为文本或字符串列表，且不得为空白。
@@ -380,6 +405,28 @@ class GradingContext:
 
         return bool(self.chunks)
 
+    def enriched_scoring_input(self) -> ScoringInput | None:
+        """Record only the actual context and chunks written into this model request."""
+        fixed = self.source.scoring_input
+        if fixed is None:
+            return None
+        references = [
+            ScoringSourceReference(
+                chunk_id=chunk.chunk_id,
+                course_id=chunk.course_id,
+                document_id=chunk.document_id,
+                metadata=dict(chunk.metadata),
+            )
+            for chunk in self.chunks
+        ]
+        return fixed.model_copy(
+            deep=True,
+            update={
+                "course_context": self.final_context,
+                "source_references": references,
+            },
+        )
+
     def ensure_sufficient(self) -> None:
         """上下文不足时显式失败；供评分入口在调用模型前调用。"""
 
@@ -421,9 +468,7 @@ def _merge_filters(
     """
 
     course_id = UUID(str(source.course_id))
-    source_knowledge_bases = tuple(
-        UUID(value) for value in source.knowledge_base_ids
-    )
+    source_knowledge_bases = tuple(UUID(value) for value in source.knowledge_base_ids)
     document_ids = source.retrieval_scope.document_ids
     if filters is None:
         return RetrievalFilters(
@@ -433,9 +478,7 @@ def _merge_filters(
         )
     resolved = resolve_filters(filters)
     if resolved.course_ids and course_id not in resolved.course_ids:
-        raise GradingInputError(
-            "调用方过滤条件与题目所属课程不一致，拒绝跨课程检索。"
-        )
+        raise GradingInputError("调用方过滤条件与题目所属课程不一致，拒绝跨课程检索。")
     knowledge_base_ids = resolved.knowledge_base_ids or source_knowledge_bases
     if resolved.knowledge_base_ids and source_knowledge_bases:
         allowed = set(source_knowledge_bases)
@@ -453,7 +496,9 @@ def _merge_filters(
             value for value in resolved.document_ids if value in allowed_documents
         )
         if not document_ids:
-            raise GradingInputError("调用方资料过滤与显式检索范围无交集，拒绝扩大范围。")
+            raise GradingInputError(
+                "调用方资料过滤与显式检索范围无交集，拒绝扩大范围。"
+            )
     else:
         document_ids = document_ids or resolved.document_ids
     return RetrievalFilters(
@@ -587,9 +632,11 @@ async def build_grading_context(
     resolved_mode = normalize_mode(mode)
     resolved_settings = settings if settings is not None else get_settings()
     resolved_candidate_k = _resolve_positive_int(
-        candidate_k
-        if candidate_k is not None
-        else resolved_settings.rerank_max_candidates,
+        (
+            candidate_k
+            if candidate_k is not None
+            else resolved_settings.rerank_max_candidates
+        ),
         label="candidate_k",
     )
     resolved_fusion_top_k = _resolve_positive_int(
@@ -640,9 +687,7 @@ async def build_grading_context(
         retrieval_scope=source.retrieval_scope,
     )
     candidate_limit = (
-        resolved_fusion_top_k
-        if resolved_mode is RetrievalMode.HYBRID_RERANK
-        else limit
+        resolved_fusion_top_k if resolved_mode is RetrievalMode.HYBRID_RERANK else limit
     )
     if resolved_mode in {RetrievalMode.HYBRID, RetrievalMode.HYBRID_RERANK}:
         candidates = cast("_HybridLikeRetriever", active_retriever).search(
