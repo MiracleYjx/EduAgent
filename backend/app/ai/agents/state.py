@@ -34,7 +34,11 @@ from backend.app.schemas.ai import (
     NonEmptyText,
     QuestionCandidate,
 )
-from backend.app.schemas.grading import ConfidenceDecisionDTO, SubmissionContext
+from backend.app.schemas.grading import (
+    ConfidenceDecisionDTO,
+    ScoringInput,
+    SubmissionContext,
+)
 from backend.app.schemas.retrieval_scope import RetrievalScope
 from backend.app.services.grading.confidence_mapping import confidence_decision_snapshot
 from backend.app.services.grading.confidence_policy import (
@@ -43,7 +47,7 @@ from backend.app.services.grading.confidence_policy import (
 )
 
 #: 共用 Agent 状态类型版本；字段或语义发生变化时必须递增。
-AGENT_STATE_VERSION: Final[str] = "1"
+AGENT_STATE_VERSION: Final[str] = "2"
 
 #: Agent Trace 状态取值；与 T063 ``AgentRun`` 的 CHECK 约束取值逐字一致。
 AGENT_STATUS_TRACE_VALUES: Final[frozenset[str]] = frozenset(
@@ -279,6 +283,9 @@ class AgentInput(BaseModel):
     submission_context: SubmissionContext | None = Field(
         default=None, description="评分/复核输入的权威答卷上下文。"
     )
+    scoring_input: ScoringInput | None = Field(
+        default=None, description="实际所属本场的固定阅卷输入；旧独立调用缺失保留未知。"
+    )
     answer_id: NonEmptyText | None = Field(
         default=None, description="当前题目答案标识。"
     )
@@ -308,6 +315,26 @@ class AgentInput(BaseModel):
     parameters: dict[str, JsonValue] = Field(
         default_factory=dict, description="附加参数；只允许 JSON 可序列化值。"
     )
+
+    @model_validator(mode="after")
+    def _fixed_input_identity(self) -> AgentInput:
+        value = self.scoring_input
+        if value is None:
+            return self
+        for current, expected in (
+            (self.answer_id, value.answer_id),
+            (self.question_id, value.question_id),
+            (self.question_type, value.question_type),
+        ):
+            if current is not None and current != expected:
+                raise ValueError("Agent 当前身份与本场固定输入不一致。")
+        if self.submission_context is not None and (
+            self.submission_context.submission_id != value.submission_id
+            or self.submission_context.exam_id != value.exam_id
+            or self.submission_context.student_id != value.student_id
+        ):
+            raise ValueError("Agent 固定输入不属于当前考试/答卷/学生。")
+        return self
 
 
 class AgentOutput(BaseModel):

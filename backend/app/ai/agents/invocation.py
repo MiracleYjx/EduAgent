@@ -16,7 +16,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import ClassVar, Final
 
-from backend.app.ai.agents.state import AgentOutput
+from backend.app.ai.agents.state import AgentInput, AgentOutput
 
 #: 缺少贯穿请求的追溯标识。
 AGENT_MISSING_REQUEST_ID: Final[str] = "AGENT_MISSING_REQUEST_ID"
@@ -67,6 +67,7 @@ class AgentInvocation:
     request_id: str
     workflow_id: str | None
     output: AgentOutput
+    input: AgentInput | None = None
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "request_id", _normalize_request_id(self.request_id))

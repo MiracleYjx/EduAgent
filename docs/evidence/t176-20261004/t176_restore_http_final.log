@@ -1,0 +1,3003 @@
+..................................FFFFF.FFFFF.FF...FFFFFF...             [100%]
+================================== FAILURES ===================================
+_________ test_start_run_pauses_for_review_with_persistent_checkpoint _________
+
+env = {'engine': Engine(sqlite:///D:\YJX\Cache\Temp\pytest-of-10169\pytest-227\test_start_run_pauses_for_revi0\workflow.db),...er_id=UUID('781c74a9-b2e9-4aea-8bcd-cbf2aab89f7f'), subjective_answer_id=UUID('b288e99e-baa1-4cea-b122-3e7b1b361022'))}
+client_factory = <function client_factory.<locals>.factory at 0x00000267CF0FB1A0>
+
+    def test_start_run_pauses_for_review_with_persistent_checkpoint(
+        env: dict[str, Any], client_factory: Any
+    ) -> None:
+        """真实服务 + 真实持久 Checkpointer 跑到 interrupt：状态可查、待复核答案可见。"""
+    
+        client = client_factory(_service(env))
+>       response = _start(client, env)
+                   ^^^^^^^^^^^^^^^^^^^
+
+tests\contract\test_workflow_api_contract.py:475: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\contract\test_workflow_api_contract.py:389: in _start
+    return client.post(
+D:\develop\Python\Lib\site-packages\starlette\testclient.py:556: in post
+    return super().post(
+D:\develop\Python\Lib\site-packages\httpx\_client.py:1144: in post
+    return self.request(
+D:\develop\Python\Lib\site-packages\starlette\testclient.py:455: in request
+    return super().request(
+D:\develop\Python\Lib\site-packages\httpx\_client.py:825: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\httpx\_client.py:914: in send
+    response = self._send_handling_auth(
+D:\develop\Python\Lib\site-packages\httpx\_client.py:942: in _send_handling_auth
+    response = self._send_handling_redirects(
+D:\develop\Python\Lib\site-packages\httpx\_client.py:979: in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\httpx\_client.py:1014: in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\starlette\testclient.py:354: in handle_request
+    raise exc
+D:\develop\Python\Lib\site-packages\starlette\testclient.py:351: in handle_request
+    portal.call(self.app, scope, receive, send)
+D:\develop\Python\Lib\site-packages\anyio\from_thread.py:334: in call
+    return cast(T_Retval, self.start_task_soon(func, *args).result())
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\concurrent\futures\_base.py:456: in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\concurrent\futures\_base.py:401: in __get_result
+    raise self._exception
+D:\develop\Python\Lib\site-packages\anyio\from_thread.py:259: in _call_func
+    retval = await retval_or_awaitable
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\fastapi\applications.py:1163: in __call__
+    await super().__call__(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\applications.py:96: in __call__
+    await self.middleware_stack(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\middleware\errors.py:186: in __call__
+    raise exc
+D:\develop\Python\Lib\site-packages\starlette\middleware\errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+D:\develop\Python\Lib\site-packages\starlette\middleware\base.py:193: in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend\app\core\security.py:107: in dispatch
+    return await call_next(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\starlette\middleware\base.py:168: in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+D:\develop\Python\Lib\site-packages\starlette\middleware\base.py:144: in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+D:\develop\Python\Lib\site-packages\starlette\middleware\exceptions.py:63: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    raise exc
+D:\develop\Python\Lib\site-packages\starlette\_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+D:\develop\Python\Lib\site-packages\fastapi\middleware\asyncexitstack.py:18: in __call__
+    await self.app(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\routing.py:670: in __call__
+    await self.middleware_stack(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:2734: in app
+    await route.handle(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:1780: in handle
+    await self.original_router.handle(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:2789: in handle
+    await included_router._handle_selected(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:1800: in _handle_selected
+    await original_route.handle(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:1279: in handle
+    await app(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:158: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    raise exc
+D:\develop\Python\Lib\site-packages\starlette\_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:144: in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:706: in app
+    raw_response = await run_endpoint_function(
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:352: in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend\app\api\workflow.py:1426: in start_workflow_run
+    return await service.start_run(
+backend\app\api\workflow.py:621: in start_run
+    row = await self._persist_outcome(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <backend.app.api.workflow.WorkflowService object at 0x00000267D04E5F40>
+workflow_id = 'grading-19c5ec78-da26-4785-8180-a6125ba3d72b'
+state = {'workflow_id': 'grading-19c5ec78-da26-4785-8180-a6125ba3d72b', 'request_id': '30a1da67-2a20-4388-a4d4-47ebd7fcb2ed', 'submission_id': 'e45e1291-4c62-41d0-af7f-68d98d2b81ae', 'status': <WorkflowStatus.PAUSED: 'Paused'>, ...}
+thread_id = '00d65b57-5653-43c8-b35b-d3c04f0b4576'
+snapshot = SubmissionSnapshot(submission_id='e45e1291-4c62-41d0-af7f-68d98d2b81ae', exam_id='57691d67-d3bc-4e52-90b0-cf4fcbcd539b...ope=RetrievalScope(document_ids=(), chapter_ids=(), section_range=None, knowledge_points=()), scoring_basis_error=None)
+
+    async def _persist_outcome(
+        self,
+        *,
+        workflow_id: str,
+        state: Mapping[str, Any],
+        thread_id: str,
+        snapshot: Any,
+    ) -> WorkflowRun:
+        """按一次运行/恢复的真实结论落库：成绩与工作流状态在同一事务内写入（H01）。
+    
+        不能只写业务状态：待复核成绩、最终成绩与失败事实都必须落库，否则复核队列与结果读模型
+        看不到本轮结论。三种事实分支由 ``save_workflow_outcome`` 区分；``is_final=False`` 表示
+        成绩待教师复核。工作流状态在同一事务内由 ``save_checkpoint_within`` 写入，包含当前节点、
+        暂停原因、线程信息与恢复状态；任一步失败整体回滚。事务提交后按 ``is_final`` 生成诊断并写
+        终态（P1.3，见 :meth:`_finalize_diagnosis`）。
+        """
+    
+        payload = dict(state)
+        current_node = str(payload.get("current_node") or LOAD_SUBMISSION)
+        pause_reason = payload.get("pause_reason")
+        results, decisions, exam_result = _outcome_state_facts(payload, snapshot)
+        submission_id = str(payload.get("submission_id") or "")
+        try:
+>           row = self._outcome_repository().save_workflow_outcome(
+                submission_id,
+                context=snapshot.to_context(),
+                results=results,
+                decisions=decisions,
+                exam_result=exam_result,
+                **({"scoring_inputs": snapshot.scoring_inputs} if snapshot.scoring_inputs else {}),
+                state_writer=lambda session: self._checkpoints.save_checkpoint_within(
+                    session,
+                    workflow_id,
+                    payload,
+                    current_node,
+                    str(pause_reason) if pause_reason else None,
+                    thread_id=thread_id,
+                ),
+            )
+E           TypeError: DatabaseGradingRepository.save_workflow_outcome() got an unexpected keyword argument 'scoring_inputs'
+
+backend\app\api\workflow.py:898: TypeError
+____________________ test_repeated_start_reuses_active_run ____________________
+
+env = {'engine': Engine(sqlite:///D:\YJX\Cache\Temp\pytest-of-10169\pytest-227\test_repeated_start_reuses_act0\workflow.db),...er_id=UUID('af6d70ff-e275-4737-ae55-28669b3b85fb'), subjective_answer_id=UUID('033717e0-ecba-4d55-bac8-372be58cd77e'))}
+client_factory = <function client_factory.<locals>.factory at 0x00000267D0DBEC00>
+
+    def test_repeated_start_reuses_active_run(env: dict[str, Any], client_factory: Any) -> None:
+        """重复启动复用同一运行，不并行创建第二个活动运行。"""
+    
+        client = client_factory(_service(env))
+>       first = _start(client, env).json()
+                ^^^^^^^^^^^^^^^^^^^
+
+tests\contract\test_workflow_api_contract.py:508: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\contract\test_workflow_api_contract.py:389: in _start
+    return client.post(
+D:\develop\Python\Lib\site-packages\starlette\testclient.py:556: in post
+    return super().post(
+D:\develop\Python\Lib\site-packages\httpx\_client.py:1144: in post
+    return self.request(
+D:\develop\Python\Lib\site-packages\starlette\testclient.py:455: in request
+    return super().request(
+D:\develop\Python\Lib\site-packages\httpx\_client.py:825: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\httpx\_client.py:914: in send
+    response = self._send_handling_auth(
+D:\develop\Python\Lib\site-packages\httpx\_client.py:942: in _send_handling_auth
+    response = self._send_handling_redirects(
+D:\develop\Python\Lib\site-packages\httpx\_client.py:979: in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\httpx\_client.py:1014: in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\starlette\testclient.py:354: in handle_request
+    raise exc
+D:\develop\Python\Lib\site-packages\starlette\testclient.py:351: in handle_request
+    portal.call(self.app, scope, receive, send)
+D:\develop\Python\Lib\site-packages\anyio\from_thread.py:334: in call
+    return cast(T_Retval, self.start_task_soon(func, *args).result())
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\concurrent\futures\_base.py:456: in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\concurrent\futures\_base.py:401: in __get_result
+    raise self._exception
+D:\develop\Python\Lib\site-packages\anyio\from_thread.py:259: in _call_func
+    retval = await retval_or_awaitable
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\fastapi\applications.py:1163: in __call__
+    await super().__call__(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\applications.py:96: in __call__
+    await self.middleware_stack(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\middleware\errors.py:186: in __call__
+    raise exc
+D:\develop\Python\Lib\site-packages\starlette\middleware\errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+D:\develop\Python\Lib\site-packages\starlette\middleware\base.py:193: in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend\app\core\security.py:107: in dispatch
+    return await call_next(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\starlette\middleware\base.py:168: in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+D:\develop\Python\Lib\site-packages\starlette\middleware\base.py:144: in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+D:\develop\Python\Lib\site-packages\starlette\middleware\exceptions.py:63: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    raise exc
+D:\develop\Python\Lib\site-packages\starlette\_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+D:\develop\Python\Lib\site-packages\fastapi\middleware\asyncexitstack.py:18: in __call__
+    await self.app(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\routing.py:670: in __call__
+    await self.middleware_stack(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:2734: in app
+    await route.handle(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:1780: in handle
+    await self.original_router.handle(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:2789: in handle
+    await included_router._handle_selected(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:1800: in _handle_selected
+    await original_route.handle(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:1279: in handle
+    await app(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:158: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    raise exc
+D:\develop\Python\Lib\site-packages\starlette\_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:144: in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:706: in app
+    raw_response = await run_endpoint_function(
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:352: in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend\app\api\workflow.py:1426: in start_workflow_run
+    return await service.start_run(
+backend\app\api\workflow.py:621: in start_run
+    row = await self._persist_outcome(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <backend.app.api.workflow.WorkflowService object at 0x00000267D14697F0>
+workflow_id = 'grading-757751bc-c42a-4963-92c6-9c1707b1f41a'
+state = {'workflow_id': 'grading-757751bc-c42a-4963-92c6-9c1707b1f41a', 'request_id': '66d1166a-03b8-4e61-be8c-2bfe6f0efc53', 'submission_id': 'e30efbed-0a68-4cf6-a140-d1cbbbcf826d', 'status': <WorkflowStatus.PAUSED: 'Paused'>, ...}
+thread_id = 'ce0852a9-1a4d-436d-86f4-3e066d546793'
+snapshot = SubmissionSnapshot(submission_id='e30efbed-0a68-4cf6-a140-d1cbbbcf826d', exam_id='db0f3389-43c0-4338-8f78-08f36158715f...ope=RetrievalScope(document_ids=(), chapter_ids=(), section_range=None, knowledge_points=()), scoring_basis_error=None)
+
+    async def _persist_outcome(
+        self,
+        *,
+        workflow_id: str,
+        state: Mapping[str, Any],
+        thread_id: str,
+        snapshot: Any,
+    ) -> WorkflowRun:
+        """按一次运行/恢复的真实结论落库：成绩与工作流状态在同一事务内写入（H01）。
+    
+        不能只写业务状态：待复核成绩、最终成绩与失败事实都必须落库，否则复核队列与结果读模型
+        看不到本轮结论。三种事实分支由 ``save_workflow_outcome`` 区分；``is_final=False`` 表示
+        成绩待教师复核。工作流状态在同一事务内由 ``save_checkpoint_within`` 写入，包含当前节点、
+        暂停原因、线程信息与恢复状态；任一步失败整体回滚。事务提交后按 ``is_final`` 生成诊断并写
+        终态（P1.3，见 :meth:`_finalize_diagnosis`）。
+        """
+    
+        payload = dict(state)
+        current_node = str(payload.get("current_node") or LOAD_SUBMISSION)
+        pause_reason = payload.get("pause_reason")
+        results, decisions, exam_result = _outcome_state_facts(payload, snapshot)
+        submission_id = str(payload.get("submission_id") or "")
+        try:
+>           row = self._outcome_repository().save_workflow_outcome(
+                submission_id,
+                context=snapshot.to_context(),
+                results=results,
+                decisions=decisions,
+                exam_result=exam_result,
+                **({"scoring_inputs": snapshot.scoring_inputs} if snapshot.scoring_inputs else {}),
+                state_writer=lambda session: self._checkpoints.save_checkpoint_within(
+                    session,
+                    workflow_id,
+                    payload,
+                    current_node,
+                    str(pause_reason) if pause_reason else None,
+                    thread_id=thread_id,
+                ),
+            )
+E           TypeError: DatabaseGradingRepository.save_workflow_outcome() got an unexpected keyword argument 'scoring_inputs'
+
+backend\app\api\workflow.py:898: TypeError
+_________ test_start_ignores_background_task_run_for_same_submission __________
+
+env = {'engine': Engine(sqlite:///D:\YJX\Cache\Temp\pytest-of-10169\pytest-227\test_start_ignores_background_0\workflow.db),...er_id=UUID('0a0f0972-1819-4d82-9dcb-b795ff11d6b8'), subjective_answer_id=UUID('d4769cf4-bf54-41d5-8fa0-d0274037ee71'))}
+client_factory = <function client_factory.<locals>.factory at 0x00000267D18F89A0>
+
+    def test_start_ignores_background_task_run_for_same_submission(
+        env: dict[str, Any], client_factory: Any
+    ) -> None:
+        """M3 后台任务行不参与 M4 幂等启动：同一答卷仍创建本执行器的运行并按其复用（H05）。"""
+    
+        with Session(env["engine"]) as session:
+            session.add(
+                WorkflowRun(
+                    workflow_id="background-task-1",
+                    request_id="background-request",
+                    submission_id=env["fixture"].submission_id,
+                    status=WorkflowStatus.PAUSED,
+                    checkpoint={
+                        "kind": CHECKPOINT_KIND,
+                        "task": {},
+                        "current_node": "score",
+                    },
+                    pause_reason="存在待人工复核题目：本轮评分已完成，成绩尚未最终确认。",
+                    current_node="score",
+                )
+            )
+            session.commit()
+        client = client_factory(_service(env))
+    
+>       response = _start(client, env)
+                   ^^^^^^^^^^^^^^^^^^^
+
+tests\contract\test_workflow_api_contract.py:543: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\contract\test_workflow_api_contract.py:389: in _start
+    return client.post(
+D:\develop\Python\Lib\site-packages\starlette\testclient.py:556: in post
+    return super().post(
+D:\develop\Python\Lib\site-packages\httpx\_client.py:1144: in post
+    return self.request(
+D:\develop\Python\Lib\site-packages\starlette\testclient.py:455: in request
+    return super().request(
+D:\develop\Python\Lib\site-packages\httpx\_client.py:825: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\httpx\_client.py:914: in send
+    response = self._send_handling_auth(
+D:\develop\Python\Lib\site-packages\httpx\_client.py:942: in _send_handling_auth
+    response = self._send_handling_redirects(
+D:\develop\Python\Lib\site-packages\httpx\_client.py:979: in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\httpx\_client.py:1014: in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\starlette\testclient.py:354: in handle_request
+    raise exc
+D:\develop\Python\Lib\site-packages\starlette\testclient.py:351: in handle_request
+    portal.call(self.app, scope, receive, send)
+D:\develop\Python\Lib\site-packages\anyio\from_thread.py:334: in call
+    return cast(T_Retval, self.start_task_soon(func, *args).result())
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\concurrent\futures\_base.py:456: in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\concurrent\futures\_base.py:401: in __get_result
+    raise self._exception
+D:\develop\Python\Lib\site-packages\anyio\from_thread.py:259: in _call_func
+    retval = await retval_or_awaitable
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\fastapi\applications.py:1163: in __call__
+    await super().__call__(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\applications.py:96: in __call__
+    await self.middleware_stack(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\middleware\errors.py:186: in __call__
+    raise exc
+D:\develop\Python\Lib\site-packages\starlette\middleware\errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+D:\develop\Python\Lib\site-packages\starlette\middleware\base.py:193: in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend\app\core\security.py:107: in dispatch
+    return await call_next(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\starlette\middleware\base.py:168: in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+D:\develop\Python\Lib\site-packages\starlette\middleware\base.py:144: in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+D:\develop\Python\Lib\site-packages\starlette\middleware\exceptions.py:63: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    raise exc
+D:\develop\Python\Lib\site-packages\starlette\_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+D:\develop\Python\Lib\site-packages\fastapi\middleware\asyncexitstack.py:18: in __call__
+    await self.app(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\routing.py:670: in __call__
+    await self.middleware_stack(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:2734: in app
+    await route.handle(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:1780: in handle
+    await self.original_router.handle(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:2789: in handle
+    await included_router._handle_selected(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:1800: in _handle_selected
+    await original_route.handle(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:1279: in handle
+    await app(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:158: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    raise exc
+D:\develop\Python\Lib\site-packages\starlette\_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:144: in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:706: in app
+    raw_response = await run_endpoint_function(
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:352: in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend\app\api\workflow.py:1426: in start_workflow_run
+    return await service.start_run(
+backend\app\api\workflow.py:621: in start_run
+    row = await self._persist_outcome(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <backend.app.api.workflow.WorkflowService object at 0x00000267D0702CF0>
+workflow_id = 'grading-bdf877f1-b18f-4284-8c5e-80145c9277ed'
+state = {'workflow_id': 'grading-bdf877f1-b18f-4284-8c5e-80145c9277ed', 'request_id': '184134b6-7603-4a74-947d-80f96e68036a', 'submission_id': '17e670ca-6c01-49d6-a559-49f2ed5f43a4', 'status': <WorkflowStatus.PAUSED: 'Paused'>, ...}
+thread_id = '1af1aafe-21f5-4a07-97cd-48fded2fe4a0'
+snapshot = SubmissionSnapshot(submission_id='17e670ca-6c01-49d6-a559-49f2ed5f43a4', exam_id='0a1d539a-6e7d-4045-b7fa-888a2ea5ca3f...ope=RetrievalScope(document_ids=(), chapter_ids=(), section_range=None, knowledge_points=()), scoring_basis_error=None)
+
+    async def _persist_outcome(
+        self,
+        *,
+        workflow_id: str,
+        state: Mapping[str, Any],
+        thread_id: str,
+        snapshot: Any,
+    ) -> WorkflowRun:
+        """按一次运行/恢复的真实结论落库：成绩与工作流状态在同一事务内写入（H01）。
+    
+        不能只写业务状态：待复核成绩、最终成绩与失败事实都必须落库，否则复核队列与结果读模型
+        看不到本轮结论。三种事实分支由 ``save_workflow_outcome`` 区分；``is_final=False`` 表示
+        成绩待教师复核。工作流状态在同一事务内由 ``save_checkpoint_within`` 写入，包含当前节点、
+        暂停原因、线程信息与恢复状态；任一步失败整体回滚。事务提交后按 ``is_final`` 生成诊断并写
+        终态（P1.3，见 :meth:`_finalize_diagnosis`）。
+        """
+    
+        payload = dict(state)
+        current_node = str(payload.get("current_node") or LOAD_SUBMISSION)
+        pause_reason = payload.get("pause_reason")
+        results, decisions, exam_result = _outcome_state_facts(payload, snapshot)
+        submission_id = str(payload.get("submission_id") or "")
+        try:
+>           row = self._outcome_repository().save_workflow_outcome(
+                submission_id,
+                context=snapshot.to_context(),
+                results=results,
+                decisions=decisions,
+                exam_result=exam_result,
+                **({"scoring_inputs": snapshot.scoring_inputs} if snapshot.scoring_inputs else {}),
+                state_writer=lambda session: self._checkpoints.save_checkpoint_within(
+                    session,
+                    workflow_id,
+                    payload,
+                    current_node,
+                    str(pause_reason) if pause_reason else None,
+                    thread_id=thread_id,
+                ),
+            )
+E           TypeError: DatabaseGradingRepository.save_workflow_outcome() got an unexpected keyword argument 'scoring_inputs'
+
+backend\app\api\workflow.py:898: TypeError
+_________________ test_start_persists_pending_review_outcome __________________
+
+env = {'engine': Engine(sqlite:///D:\YJX\Cache\Temp\pytest-of-10169\pytest-227\test_start_persists_pending_re0\workflow.db),...er_id=UUID('457a5cfe-7095-453c-9626-101f20bcdd86'), subjective_answer_id=UUID('94f356c8-c657-4452-8a27-fc9bd477a5cc'))}
+client_factory = <function client_factory.<locals>.factory at 0x00000267D178A2A0>
+
+    def test_start_persists_pending_review_outcome(
+        env: dict[str, Any], client_factory: Any
+    ) -> None:
+        """低置信度暂停：单题结果与待复核整卷结果随正式启动落库，运行保持 Paused（H01）。"""
+    
+        client = client_factory(_service(env))
+>       body = _start(client, env).json()
+               ^^^^^^^^^^^^^^^^^^^
+
+tests\contract\test_workflow_api_contract.py:568: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\contract\test_workflow_api_contract.py:389: in _start
+    return client.post(
+D:\develop\Python\Lib\site-packages\starlette\testclient.py:556: in post
+    return super().post(
+D:\develop\Python\Lib\site-packages\httpx\_client.py:1144: in post
+    return self.request(
+D:\develop\Python\Lib\site-packages\starlette\testclient.py:455: in request
+    return super().request(
+D:\develop\Python\Lib\site-packages\httpx\_client.py:825: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\httpx\_client.py:914: in send
+    response = self._send_handling_auth(
+D:\develop\Python\Lib\site-packages\httpx\_client.py:942: in _send_handling_auth
+    response = self._send_handling_redirects(
+D:\develop\Python\Lib\site-packages\httpx\_client.py:979: in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\httpx\_client.py:1014: in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\starlette\testclient.py:354: in handle_request
+    raise exc
+D:\develop\Python\Lib\site-packages\starlette\testclient.py:351: in handle_request
+    portal.call(self.app, scope, receive, send)
+D:\develop\Python\Lib\site-packages\anyio\from_thread.py:334: in call
+    return cast(T_Retval, self.start_task_soon(func, *args).result())
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\concurrent\futures\_base.py:456: in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\concurrent\futures\_base.py:401: in __get_result
+    raise self._exception
+D:\develop\Python\Lib\site-packages\anyio\from_thread.py:259: in _call_func
+    retval = await retval_or_awaitable
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\fastapi\applications.py:1163: in __call__
+    await super().__call__(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\applications.py:96: in __call__
+    await self.middleware_stack(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\middleware\errors.py:186: in __call__
+    raise exc
+D:\develop\Python\Lib\site-packages\starlette\middleware\errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+D:\develop\Python\Lib\site-packages\starlette\middleware\base.py:193: in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend\app\core\security.py:107: in dispatch
+    return await call_next(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\starlette\middleware\base.py:168: in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+D:\develop\Python\Lib\site-packages\starlette\middleware\base.py:144: in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+D:\develop\Python\Lib\site-packages\starlette\middleware\exceptions.py:63: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    raise exc
+D:\develop\Python\Lib\site-packages\starlette\_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+D:\develop\Python\Lib\site-packages\fastapi\middleware\asyncexitstack.py:18: in __call__
+    await self.app(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\routing.py:670: in __call__
+    await self.middleware_stack(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:2734: in app
+    await route.handle(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:1780: in handle
+    await self.original_router.handle(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:2789: in handle
+    await included_router._handle_selected(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:1800: in _handle_selected
+    await original_route.handle(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:1279: in handle
+    await app(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:158: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    raise exc
+D:\develop\Python\Lib\site-packages\starlette\_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:144: in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:706: in app
+    raw_response = await run_endpoint_function(
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:352: in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend\app\api\workflow.py:1426: in start_workflow_run
+    return await service.start_run(
+backend\app\api\workflow.py:621: in start_run
+    row = await self._persist_outcome(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <backend.app.api.workflow.WorkflowService object at 0x00000267D18FE0B0>
+workflow_id = 'grading-ffa8aa9d-0e4c-45da-9e58-39955b6c89a1'
+state = {'workflow_id': 'grading-ffa8aa9d-0e4c-45da-9e58-39955b6c89a1', 'request_id': '434b0e6a-973c-451a-bfd8-ad4b21d4844e', 'submission_id': 'e0b0026d-9663-4b63-8cf2-4037a924e602', 'status': <WorkflowStatus.PAUSED: 'Paused'>, ...}
+thread_id = 'c0585f47-53d4-4869-9ce9-3aee7af90481'
+snapshot = SubmissionSnapshot(submission_id='e0b0026d-9663-4b63-8cf2-4037a924e602', exam_id='78d57c2f-8d8c-4045-a845-7bc6475746ba...ope=RetrievalScope(document_ids=(), chapter_ids=(), section_range=None, knowledge_points=()), scoring_basis_error=None)
+
+    async def _persist_outcome(
+        self,
+        *,
+        workflow_id: str,
+        state: Mapping[str, Any],
+        thread_id: str,
+        snapshot: Any,
+    ) -> WorkflowRun:
+        """按一次运行/恢复的真实结论落库：成绩与工作流状态在同一事务内写入（H01）。
+    
+        不能只写业务状态：待复核成绩、最终成绩与失败事实都必须落库，否则复核队列与结果读模型
+        看不到本轮结论。三种事实分支由 ``save_workflow_outcome`` 区分；``is_final=False`` 表示
+        成绩待教师复核。工作流状态在同一事务内由 ``save_checkpoint_within`` 写入，包含当前节点、
+        暂停原因、线程信息与恢复状态；任一步失败整体回滚。事务提交后按 ``is_final`` 生成诊断并写
+        终态（P1.3，见 :meth:`_finalize_diagnosis`）。
+        """
+    
+        payload = dict(state)
+        current_node = str(payload.get("current_node") or LOAD_SUBMISSION)
+        pause_reason = payload.get("pause_reason")
+        results, decisions, exam_result = _outcome_state_facts(payload, snapshot)
+        submission_id = str(payload.get("submission_id") or "")
+        try:
+>           row = self._outcome_repository().save_workflow_outcome(
+                submission_id,
+                context=snapshot.to_context(),
+                results=results,
+                decisions=decisions,
+                exam_result=exam_result,
+                **({"scoring_inputs": snapshot.scoring_inputs} if snapshot.scoring_inputs else {}),
+                state_writer=lambda session: self._checkpoints.save_checkpoint_within(
+                    session,
+                    workflow_id,
+                    payload,
+                    current_node,
+                    str(pause_reason) if pause_reason else None,
+                    thread_id=thread_id,
+                ),
+            )
+E           TypeError: DatabaseGradingRepository.save_workflow_outcome() got an unexpected keyword argument 'scoring_inputs'
+
+backend\app\api\workflow.py:898: TypeError
+______________ test_start_persists_final_result_for_accepted_run ______________
+
+env = {'engine': Engine(sqlite:///D:\YJX\Cache\Temp\pytest-of-10169\pytest-227\test_start_persists_final_resu0\workflow.db),...er_id=UUID('4d5e3461-e955-41bf-a9bf-76388f008c8c'), subjective_answer_id=UUID('15228596-935b-4091-acb8-0c2964675fcf'))}
+client_factory = <function client_factory.<locals>.factory at 0x00000267D31C2840>
+
+    def test_start_persists_final_result_for_accepted_run(
+        env: dict[str, Any], client_factory: Any
+    ) -> None:
+        """高置信度全部接受：最终成绩与运行终态随正式启动落库（H01）。"""
+    
+        client = client_factory(
+            _service(
+                env,
+                agent=_AcceptedSubjectiveAgent(
+                    submission_id=str(env["fixture"].submission_id)
+                ),
+            )
+        )
+>       body = _start(client, env).json()
+               ^^^^^^^^^^^^^^^^^^^
+
+tests\contract\test_workflow_api_contract.py:634: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\contract\test_workflow_api_contract.py:389: in _start
+    return client.post(
+D:\develop\Python\Lib\site-packages\starlette\testclient.py:556: in post
+    return super().post(
+D:\develop\Python\Lib\site-packages\httpx\_client.py:1144: in post
+    return self.request(
+D:\develop\Python\Lib\site-packages\starlette\testclient.py:455: in request
+    return super().request(
+D:\develop\Python\Lib\site-packages\httpx\_client.py:825: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\httpx\_client.py:914: in send
+    response = self._send_handling_auth(
+D:\develop\Python\Lib\site-packages\httpx\_client.py:942: in _send_handling_auth
+    response = self._send_handling_redirects(
+D:\develop\Python\Lib\site-packages\httpx\_client.py:979: in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\httpx\_client.py:1014: in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\starlette\testclient.py:354: in handle_request
+    raise exc
+D:\develop\Python\Lib\site-packages\starlette\testclient.py:351: in handle_request
+    portal.call(self.app, scope, receive, send)
+D:\develop\Python\Lib\site-packages\anyio\from_thread.py:334: in call
+    return cast(T_Retval, self.start_task_soon(func, *args).result())
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\concurrent\futures\_base.py:456: in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\concurrent\futures\_base.py:401: in __get_result
+    raise self._exception
+D:\develop\Python\Lib\site-packages\anyio\from_thread.py:259: in _call_func
+    retval = await retval_or_awaitable
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\fastapi\applications.py:1163: in __call__
+    await super().__call__(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\applications.py:96: in __call__
+    await self.middleware_stack(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\middleware\errors.py:186: in __call__
+    raise exc
+D:\develop\Python\Lib\site-packages\starlette\middleware\errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+D:\develop\Python\Lib\site-packages\starlette\middleware\base.py:193: in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend\app\core\security.py:107: in dispatch
+    return await call_next(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\starlette\middleware\base.py:168: in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+D:\develop\Python\Lib\site-packages\starlette\middleware\base.py:144: in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+D:\develop\Python\Lib\site-packages\starlette\middleware\exceptions.py:63: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    raise exc
+D:\develop\Python\Lib\site-packages\starlette\_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+D:\develop\Python\Lib\site-packages\fastapi\middleware\asyncexitstack.py:18: in __call__
+    await self.app(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\routing.py:670: in __call__
+    await self.middleware_stack(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:2734: in app
+    await route.handle(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:1780: in handle
+    await self.original_router.handle(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:2789: in handle
+    await included_router._handle_selected(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:1800: in _handle_selected
+    await original_route.handle(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:1279: in handle
+    await app(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:158: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    raise exc
+D:\develop\Python\Lib\site-packages\starlette\_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:144: in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:706: in app
+    raw_response = await run_endpoint_function(
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:352: in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend\app\api\workflow.py:1426: in start_workflow_run
+    return await service.start_run(
+backend\app\api\workflow.py:621: in start_run
+    row = await self._persist_outcome(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <backend.app.api.workflow.WorkflowService object at 0x00000267D31A9B70>
+workflow_id = 'grading-4abc583c-85a1-4927-8a89-a415d1a6fcc0'
+state = {'workflow_id': 'grading-4abc583c-85a1-4927-8a89-a415d1a6fcc0', 'request_id': 'f69348b4-d3fa-49f7-9975-339235284512', 'submission_id': 'a13c37fb-928a-4744-bcd5-0532ed658ef8', 'status': <WorkflowStatus.RUNNING: 'Running'>, ...}
+thread_id = '5da1f49b-892e-4e87-b5d4-18380c600b57'
+snapshot = SubmissionSnapshot(submission_id='a13c37fb-928a-4744-bcd5-0532ed658ef8', exam_id='3f6e77f9-e154-4c5e-a745-1b7c3611e68b...ope=RetrievalScope(document_ids=(), chapter_ids=(), section_range=None, knowledge_points=()), scoring_basis_error=None)
+
+    async def _persist_outcome(
+        self,
+        *,
+        workflow_id: str,
+        state: Mapping[str, Any],
+        thread_id: str,
+        snapshot: Any,
+    ) -> WorkflowRun:
+        """按一次运行/恢复的真实结论落库：成绩与工作流状态在同一事务内写入（H01）。
+    
+        不能只写业务状态：待复核成绩、最终成绩与失败事实都必须落库，否则复核队列与结果读模型
+        看不到本轮结论。三种事实分支由 ``save_workflow_outcome`` 区分；``is_final=False`` 表示
+        成绩待教师复核。工作流状态在同一事务内由 ``save_checkpoint_within`` 写入，包含当前节点、
+        暂停原因、线程信息与恢复状态；任一步失败整体回滚。事务提交后按 ``is_final`` 生成诊断并写
+        终态（P1.3，见 :meth:`_finalize_diagnosis`）。
+        """
+    
+        payload = dict(state)
+        current_node = str(payload.get("current_node") or LOAD_SUBMISSION)
+        pause_reason = payload.get("pause_reason")
+        results, decisions, exam_result = _outcome_state_facts(payload, snapshot)
+        submission_id = str(payload.get("submission_id") or "")
+        try:
+>           row = self._outcome_repository().save_workflow_outcome(
+                submission_id,
+                context=snapshot.to_context(),
+                results=results,
+                decisions=decisions,
+                exam_result=exam_result,
+                **({"scoring_inputs": snapshot.scoring_inputs} if snapshot.scoring_inputs else {}),
+                state_writer=lambda session: self._checkpoints.save_checkpoint_within(
+                    session,
+                    workflow_id,
+                    payload,
+                    current_node,
+                    str(pause_reason) if pause_reason else None,
+                    thread_id=thread_id,
+                ),
+            )
+E           TypeError: DatabaseGradingRepository.save_workflow_outcome() got an unexpected keyword argument 'scoring_inputs'
+
+backend\app\api\workflow.py:898: TypeError
+__________ test_start_rejects_graded_submission_and_explicit_regrade __________
+
+env = {'engine': Engine(sqlite:///D:\YJX\Cache\Temp\pytest-of-10169\pytest-227\test_start_rejects_graded_subm0\workflow.db),...er_id=UUID('7d60cd3c-7224-4d48-b239-0a1d6c8273d0'), subjective_answer_id=UUID('afb613a3-7dc0-4502-a504-b66bc288f837'))}
+client_factory = <function client_factory.<locals>.factory at 0x00000267D33C2A20>
+
+    def test_start_rejects_graded_submission_and_explicit_regrade(
+        env: dict[str, Any], client_factory: Any
+    ) -> None:
+        """Graded 仍返回生命周期 409；显式重评仍需使用既有阅卷入口。"""
+    
+        client = client_factory(_service(env))
+>       workflow_id = _start(client, env).json()["workflow_id"]
+                      ^^^^^^^^^^^^^^^^^^^
+
+tests\contract\test_workflow_api_contract.py:683: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\contract\test_workflow_api_contract.py:389: in _start
+    return client.post(
+D:\develop\Python\Lib\site-packages\starlette\testclient.py:556: in post
+    return super().post(
+D:\develop\Python\Lib\site-packages\httpx\_client.py:1144: in post
+    return self.request(
+D:\develop\Python\Lib\site-packages\starlette\testclient.py:455: in request
+    return super().request(
+D:\develop\Python\Lib\site-packages\httpx\_client.py:825: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\httpx\_client.py:914: in send
+    response = self._send_handling_auth(
+D:\develop\Python\Lib\site-packages\httpx\_client.py:942: in _send_handling_auth
+    response = self._send_handling_redirects(
+D:\develop\Python\Lib\site-packages\httpx\_client.py:979: in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\httpx\_client.py:1014: in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\starlette\testclient.py:354: in handle_request
+    raise exc
+D:\develop\Python\Lib\site-packages\starlette\testclient.py:351: in handle_request
+    portal.call(self.app, scope, receive, send)
+D:\develop\Python\Lib\site-packages\anyio\from_thread.py:334: in call
+    return cast(T_Retval, self.start_task_soon(func, *args).result())
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\concurrent\futures\_base.py:456: in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\concurrent\futures\_base.py:401: in __get_result
+    raise self._exception
+D:\develop\Python\Lib\site-packages\anyio\from_thread.py:259: in _call_func
+    retval = await retval_or_awaitable
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\fastapi\applications.py:1163: in __call__
+    await super().__call__(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\applications.py:96: in __call__
+    await self.middleware_stack(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\middleware\errors.py:186: in __call__
+    raise exc
+D:\develop\Python\Lib\site-packages\starlette\middleware\errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+D:\develop\Python\Lib\site-packages\starlette\middleware\base.py:193: in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend\app\core\security.py:107: in dispatch
+    return await call_next(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\starlette\middleware\base.py:168: in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+D:\develop\Python\Lib\site-packages\starlette\middleware\base.py:144: in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+D:\develop\Python\Lib\site-packages\starlette\middleware\exceptions.py:63: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    raise exc
+D:\develop\Python\Lib\site-packages\starlette\_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+D:\develop\Python\Lib\site-packages\fastapi\middleware\asyncexitstack.py:18: in __call__
+    await self.app(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\routing.py:670: in __call__
+    await self.middleware_stack(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:2734: in app
+    await route.handle(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:1780: in handle
+    await self.original_router.handle(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:2789: in handle
+    await included_router._handle_selected(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:1800: in _handle_selected
+    await original_route.handle(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:1279: in handle
+    await app(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:158: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    raise exc
+D:\develop\Python\Lib\site-packages\starlette\_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:144: in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:706: in app
+    raw_response = await run_endpoint_function(
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:352: in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend\app\api\workflow.py:1426: in start_workflow_run
+    return await service.start_run(
+backend\app\api\workflow.py:621: in start_run
+    row = await self._persist_outcome(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <backend.app.api.workflow.WorkflowService object at 0x00000267D2BF5A90>
+workflow_id = 'grading-cbab847e-a75f-419d-b672-fed42a35fabe'
+state = {'workflow_id': 'grading-cbab847e-a75f-419d-b672-fed42a35fabe', 'request_id': '15e8166a-8915-4f2c-a1df-830948025c52', 'submission_id': '72f20e06-7da8-4ad8-9e0f-f62ab9347f95', 'status': <WorkflowStatus.PAUSED: 'Paused'>, ...}
+thread_id = 'a922cbfc-408d-4956-9359-13d8fedcdf3d'
+snapshot = SubmissionSnapshot(submission_id='72f20e06-7da8-4ad8-9e0f-f62ab9347f95', exam_id='b5abc283-d30f-4c2e-b551-1172264fa233...ope=RetrievalScope(document_ids=(), chapter_ids=(), section_range=None, knowledge_points=()), scoring_basis_error=None)
+
+    async def _persist_outcome(
+        self,
+        *,
+        workflow_id: str,
+        state: Mapping[str, Any],
+        thread_id: str,
+        snapshot: Any,
+    ) -> WorkflowRun:
+        """按一次运行/恢复的真实结论落库：成绩与工作流状态在同一事务内写入（H01）。
+    
+        不能只写业务状态：待复核成绩、最终成绩与失败事实都必须落库，否则复核队列与结果读模型
+        看不到本轮结论。三种事实分支由 ``save_workflow_outcome`` 区分；``is_final=False`` 表示
+        成绩待教师复核。工作流状态在同一事务内由 ``save_checkpoint_within`` 写入，包含当前节点、
+        暂停原因、线程信息与恢复状态；任一步失败整体回滚。事务提交后按 ``is_final`` 生成诊断并写
+        终态（P1.3，见 :meth:`_finalize_diagnosis`）。
+        """
+    
+        payload = dict(state)
+        current_node = str(payload.get("current_node") or LOAD_SUBMISSION)
+        pause_reason = payload.get("pause_reason")
+        results, decisions, exam_result = _outcome_state_facts(payload, snapshot)
+        submission_id = str(payload.get("submission_id") or "")
+        try:
+>           row = self._outcome_repository().save_workflow_outcome(
+                submission_id,
+                context=snapshot.to_context(),
+                results=results,
+                decisions=decisions,
+                exam_result=exam_result,
+                **({"scoring_inputs": snapshot.scoring_inputs} if snapshot.scoring_inputs else {}),
+                state_writer=lambda session: self._checkpoints.save_checkpoint_within(
+                    session,
+                    workflow_id,
+                    payload,
+                    current_node,
+                    str(pause_reason) if pause_reason else None,
+                    thread_id=thread_id,
+                ),
+            )
+E           TypeError: DatabaseGradingRepository.save_workflow_outcome() got an unexpected keyword argument 'scoring_inputs'
+
+backend\app\api\workflow.py:898: TypeError
+_ test_historical_terminal_run_does_not_block_submitted_submission[Completed] _
+
+env = {'engine': Engine(sqlite:///D:\YJX\Cache\Temp\pytest-of-10169\pytest-227\test_historical_terminal_run_d0\workflow.db),...er_id=UUID('5d2172d1-af69-4cf0-b9de-f27c99d0520d'), subjective_answer_id=UUID('4266e22d-2bd5-4025-97ee-bb72e8b27bd3'))}
+client_factory = <function client_factory.<locals>.factory at 0x00000267D2DC0040>
+status = <WorkflowStatus.COMPLETED: 'Completed'>
+
+    @pytest.mark.parametrize("status", [WorkflowStatus.COMPLETED, WorkflowStatus.FAILED])
+    def test_historical_terminal_run_does_not_block_submitted_submission(
+        env: dict[str, Any], client_factory: Any, status: WorkflowStatus
+    ) -> None:
+        """只有历史终态时，Submitted 答卷可以受理新运行，无需把旧运行改为活动态。"""
+    
+        submission_id = str(env["fixture"].submission_id)
+        _store(env).save_checkpoint(
+            "historical-terminal",
+            {
+                "workflow_id": "historical-terminal",
+                "request_id": "historical-request",
+                "submission_id": submission_id,
+                "status": status,
+                "error": (
+                    {
+                        "error_code": "HISTORICAL_FAILURE",
+                        "message": "历史运行失败",
+                        "retryable": False,
+                    }
+                    if status is WorkflowStatus.FAILED
+                    else None
+                ),
+            },
+            "load_submission",
+            thread_id="historical-thread",
+        )
+        client = client_factory(_service(env))
+    
+>       response = _start(client, env)
+                   ^^^^^^^^^^^^^^^^^^^
+
+tests\contract\test_workflow_api_contract.py:730: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\contract\test_workflow_api_contract.py:389: in _start
+    return client.post(
+D:\develop\Python\Lib\site-packages\starlette\testclient.py:556: in post
+    return super().post(
+D:\develop\Python\Lib\site-packages\httpx\_client.py:1144: in post
+    return self.request(
+D:\develop\Python\Lib\site-packages\starlette\testclient.py:455: in request
+    return super().request(
+D:\develop\Python\Lib\site-packages\httpx\_client.py:825: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\httpx\_client.py:914: in send
+    response = self._send_handling_auth(
+D:\develop\Python\Lib\site-packages\httpx\_client.py:942: in _send_handling_auth
+    response = self._send_handling_redirects(
+D:\develop\Python\Lib\site-packages\httpx\_client.py:979: in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\httpx\_client.py:1014: in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\starlette\testclient.py:354: in handle_request
+    raise exc
+D:\develop\Python\Lib\site-packages\starlette\testclient.py:351: in handle_request
+    portal.call(self.app, scope, receive, send)
+D:\develop\Python\Lib\site-packages\anyio\from_thread.py:334: in call
+    return cast(T_Retval, self.start_task_soon(func, *args).result())
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\concurrent\futures\_base.py:456: in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\concurrent\futures\_base.py:401: in __get_result
+    raise self._exception
+D:\develop\Python\Lib\site-packages\anyio\from_thread.py:259: in _call_func
+    retval = await retval_or_awaitable
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\fastapi\applications.py:1163: in __call__
+    await super().__call__(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\applications.py:96: in __call__
+    await self.middleware_stack(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\middleware\errors.py:186: in __call__
+    raise exc
+D:\develop\Python\Lib\site-packages\starlette\middleware\errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+D:\develop\Python\Lib\site-packages\starlette\middleware\base.py:193: in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend\app\core\security.py:107: in dispatch
+    return await call_next(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\starlette\middleware\base.py:168: in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+D:\develop\Python\Lib\site-packages\starlette\middleware\base.py:144: in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+D:\develop\Python\Lib\site-packages\starlette\middleware\exceptions.py:63: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    raise exc
+D:\develop\Python\Lib\site-packages\starlette\_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+D:\develop\Python\Lib\site-packages\fastapi\middleware\asyncexitstack.py:18: in __call__
+    await self.app(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\routing.py:670: in __call__
+    await self.middleware_stack(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:2734: in app
+    await route.handle(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:1780: in handle
+    await self.original_router.handle(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:2789: in handle
+    await included_router._handle_selected(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:1800: in _handle_selected
+    await original_route.handle(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:1279: in handle
+    await app(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:158: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    raise exc
+D:\develop\Python\Lib\site-packages\starlette\_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:144: in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:706: in app
+    raw_response = await run_endpoint_function(
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:352: in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend\app\api\workflow.py:1426: in start_workflow_run
+    return await service.start_run(
+backend\app\api\workflow.py:621: in start_run
+    row = await self._persist_outcome(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <backend.app.api.workflow.WorkflowService object at 0x00000267D3BD3E70>
+workflow_id = 'grading-918537f1-8157-4d83-ac8e-f71370754344'
+state = {'workflow_id': 'grading-918537f1-8157-4d83-ac8e-f71370754344', 'request_id': '85c69c0e-e7d0-4322-b9be-7d0b64f812c6', 'submission_id': '630c7030-d70c-4027-a5ce-f0b236ddbceb', 'status': <WorkflowStatus.PAUSED: 'Paused'>, ...}
+thread_id = 'a5ab1307-00c5-4942-a82c-e83f565d1ee1'
+snapshot = SubmissionSnapshot(submission_id='630c7030-d70c-4027-a5ce-f0b236ddbceb', exam_id='8ebc1ff5-07ea-4d8d-9cf8-2adb4ea33f59...ope=RetrievalScope(document_ids=(), chapter_ids=(), section_range=None, knowledge_points=()), scoring_basis_error=None)
+
+    async def _persist_outcome(
+        self,
+        *,
+        workflow_id: str,
+        state: Mapping[str, Any],
+        thread_id: str,
+        snapshot: Any,
+    ) -> WorkflowRun:
+        """按一次运行/恢复的真实结论落库：成绩与工作流状态在同一事务内写入（H01）。
+    
+        不能只写业务状态：待复核成绩、最终成绩与失败事实都必须落库，否则复核队列与结果读模型
+        看不到本轮结论。三种事实分支由 ``save_workflow_outcome`` 区分；``is_final=False`` 表示
+        成绩待教师复核。工作流状态在同一事务内由 ``save_checkpoint_within`` 写入，包含当前节点、
+        暂停原因、线程信息与恢复状态；任一步失败整体回滚。事务提交后按 ``is_final`` 生成诊断并写
+        终态（P1.3，见 :meth:`_finalize_diagnosis`）。
+        """
+    
+        payload = dict(state)
+        current_node = str(payload.get("current_node") or LOAD_SUBMISSION)
+        pause_reason = payload.get("pause_reason")
+        results, decisions, exam_result = _outcome_state_facts(payload, snapshot)
+        submission_id = str(payload.get("submission_id") or "")
+        try:
+>           row = self._outcome_repository().save_workflow_outcome(
+                submission_id,
+                context=snapshot.to_context(),
+                results=results,
+                decisions=decisions,
+                exam_result=exam_result,
+                **({"scoring_inputs": snapshot.scoring_inputs} if snapshot.scoring_inputs else {}),
+                state_writer=lambda session: self._checkpoints.save_checkpoint_within(
+                    session,
+                    workflow_id,
+                    payload,
+                    current_node,
+                    str(pause_reason) if pause_reason else None,
+                    thread_id=thread_id,
+                ),
+            )
+E           TypeError: DatabaseGradingRepository.save_workflow_outcome() got an unexpected keyword argument 'scoring_inputs'
+
+backend\app\api\workflow.py:898: TypeError
+__ test_historical_terminal_run_does_not_block_submitted_submission[Failed] ___
+
+env = {'engine': Engine(sqlite:///D:\YJX\Cache\Temp\pytest-of-10169\pytest-227\test_historical_terminal_run_d1\workflow.db),...er_id=UUID('ee4b32f1-da66-4d5c-b9be-0d574f7d31ee'), subjective_answer_id=UUID('3a537db7-b06a-4709-8d4d-a0fad5220cc0'))}
+client_factory = <function client_factory.<locals>.factory at 0x00000267D4BA5620>
+status = <WorkflowStatus.FAILED: 'Failed'>
+
+    @pytest.mark.parametrize("status", [WorkflowStatus.COMPLETED, WorkflowStatus.FAILED])
+    def test_historical_terminal_run_does_not_block_submitted_submission(
+        env: dict[str, Any], client_factory: Any, status: WorkflowStatus
+    ) -> None:
+        """只有历史终态时，Submitted 答卷可以受理新运行，无需把旧运行改为活动态。"""
+    
+        submission_id = str(env["fixture"].submission_id)
+        _store(env).save_checkpoint(
+            "historical-terminal",
+            {
+                "workflow_id": "historical-terminal",
+                "request_id": "historical-request",
+                "submission_id": submission_id,
+                "status": status,
+                "error": (
+                    {
+                        "error_code": "HISTORICAL_FAILURE",
+                        "message": "历史运行失败",
+                        "retryable": False,
+                    }
+                    if status is WorkflowStatus.FAILED
+                    else None
+                ),
+            },
+            "load_submission",
+            thread_id="historical-thread",
+        )
+        client = client_factory(_service(env))
+    
+>       response = _start(client, env)
+                   ^^^^^^^^^^^^^^^^^^^
+
+tests\contract\test_workflow_api_contract.py:730: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\contract\test_workflow_api_contract.py:389: in _start
+    return client.post(
+D:\develop\Python\Lib\site-packages\starlette\testclient.py:556: in post
+    return super().post(
+D:\develop\Python\Lib\site-packages\httpx\_client.py:1144: in post
+    return self.request(
+D:\develop\Python\Lib\site-packages\starlette\testclient.py:455: in request
+    return super().request(
+D:\develop\Python\Lib\site-packages\httpx\_client.py:825: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\httpx\_client.py:914: in send
+    response = self._send_handling_auth(
+D:\develop\Python\Lib\site-packages\httpx\_client.py:942: in _send_handling_auth
+    response = self._send_handling_redirects(
+D:\develop\Python\Lib\site-packages\httpx\_client.py:979: in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\httpx\_client.py:1014: in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\starlette\testclient.py:354: in handle_request
+    raise exc
+D:\develop\Python\Lib\site-packages\starlette\testclient.py:351: in handle_request
+    portal.call(self.app, scope, receive, send)
+D:\develop\Python\Lib\site-packages\anyio\from_thread.py:334: in call
+    return cast(T_Retval, self.start_task_soon(func, *args).result())
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\concurrent\futures\_base.py:456: in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\concurrent\futures\_base.py:401: in __get_result
+    raise self._exception
+D:\develop\Python\Lib\site-packages\anyio\from_thread.py:259: in _call_func
+    retval = await retval_or_awaitable
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\fastapi\applications.py:1163: in __call__
+    await super().__call__(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\applications.py:96: in __call__
+    await self.middleware_stack(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\middleware\errors.py:186: in __call__
+    raise exc
+D:\develop\Python\Lib\site-packages\starlette\middleware\errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+D:\develop\Python\Lib\site-packages\starlette\middleware\base.py:193: in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend\app\core\security.py:107: in dispatch
+    return await call_next(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\starlette\middleware\base.py:168: in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+D:\develop\Python\Lib\site-packages\starlette\middleware\base.py:144: in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+D:\develop\Python\Lib\site-packages\starlette\middleware\exceptions.py:63: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    raise exc
+D:\develop\Python\Lib\site-packages\starlette\_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+D:\develop\Python\Lib\site-packages\fastapi\middleware\asyncexitstack.py:18: in __call__
+    await self.app(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\routing.py:670: in __call__
+    await self.middleware_stack(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:2734: in app
+    await route.handle(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:1780: in handle
+    await self.original_router.handle(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:2789: in handle
+    await included_router._handle_selected(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:1800: in _handle_selected
+    await original_route.handle(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:1279: in handle
+    await app(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:158: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    raise exc
+D:\develop\Python\Lib\site-packages\starlette\_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:144: in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:706: in app
+    raw_response = await run_endpoint_function(
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:352: in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend\app\api\workflow.py:1426: in start_workflow_run
+    return await service.start_run(
+backend\app\api\workflow.py:621: in start_run
+    row = await self._persist_outcome(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <backend.app.api.workflow.WorkflowService object at 0x00000267D4EDFBD0>
+workflow_id = 'grading-79d36b52-e6f9-48eb-af2d-05c136882965'
+state = {'workflow_id': 'grading-79d36b52-e6f9-48eb-af2d-05c136882965', 'request_id': '40e22f26-4da2-4ad7-937a-d3260ef3d144', 'submission_id': '7403a276-6fea-4ff3-9920-0a96575bebf3', 'status': <WorkflowStatus.PAUSED: 'Paused'>, ...}
+thread_id = 'e30ecd42-ec00-48f4-b9f4-e2684c3fdf71'
+snapshot = SubmissionSnapshot(submission_id='7403a276-6fea-4ff3-9920-0a96575bebf3', exam_id='53fc0357-67dd-47db-b1a9-3b953fa9eca9...ope=RetrievalScope(document_ids=(), chapter_ids=(), section_range=None, knowledge_points=()), scoring_basis_error=None)
+
+    async def _persist_outcome(
+        self,
+        *,
+        workflow_id: str,
+        state: Mapping[str, Any],
+        thread_id: str,
+        snapshot: Any,
+    ) -> WorkflowRun:
+        """按一次运行/恢复的真实结论落库：成绩与工作流状态在同一事务内写入（H01）。
+    
+        不能只写业务状态：待复核成绩、最终成绩与失败事实都必须落库，否则复核队列与结果读模型
+        看不到本轮结论。三种事实分支由 ``save_workflow_outcome`` 区分；``is_final=False`` 表示
+        成绩待教师复核。工作流状态在同一事务内由 ``save_checkpoint_within`` 写入，包含当前节点、
+        暂停原因、线程信息与恢复状态；任一步失败整体回滚。事务提交后按 ``is_final`` 生成诊断并写
+        终态（P1.3，见 :meth:`_finalize_diagnosis`）。
+        """
+    
+        payload = dict(state)
+        current_node = str(payload.get("current_node") or LOAD_SUBMISSION)
+        pause_reason = payload.get("pause_reason")
+        results, decisions, exam_result = _outcome_state_facts(payload, snapshot)
+        submission_id = str(payload.get("submission_id") or "")
+        try:
+>           row = self._outcome_repository().save_workflow_outcome(
+                submission_id,
+                context=snapshot.to_context(),
+                results=results,
+                decisions=decisions,
+                exam_result=exam_result,
+                **({"scoring_inputs": snapshot.scoring_inputs} if snapshot.scoring_inputs else {}),
+                state_writer=lambda session: self._checkpoints.save_checkpoint_within(
+                    session,
+                    workflow_id,
+                    payload,
+                    current_node,
+                    str(pause_reason) if pause_reason else None,
+                    thread_id=thread_id,
+                ),
+            )
+E           TypeError: DatabaseGradingRepository.save_workflow_outcome() got an unexpected keyword argument 'scoring_inputs'
+
+backend\app\api\workflow.py:898: TypeError
+______________ test_newer_terminal_run_does_not_hide_active_run _______________
+
+env = {'engine': Engine(sqlite:///D:\YJX\Cache\Temp\pytest-of-10169\pytest-227\test_newer_terminal_run_does_n0\workflow.db),...er_id=UUID('d31c6d28-dfee-4bcd-b6f5-c5d37581267e'), subjective_answer_id=UUID('39aa6f93-d7b6-484e-aba3-6cb0fa524e7f'))}
+client_factory = <function client_factory.<locals>.factory at 0x00000267D44C6700>
+
+    def test_newer_terminal_run_does_not_hide_active_run(
+        env: dict[str, Any], client_factory: Any
+    ) -> None:
+        """活动状态必须在查询中筛选，不能只按最近一行的终态判断。"""
+    
+        service = _service(env)
+        client = client_factory(service)
+>       first = _start(client, env).json()
+                ^^^^^^^^^^^^^^^^^^^
+
+tests\contract\test_workflow_api_contract.py:747: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\contract\test_workflow_api_contract.py:389: in _start
+    return client.post(
+D:\develop\Python\Lib\site-packages\starlette\testclient.py:556: in post
+    return super().post(
+D:\develop\Python\Lib\site-packages\httpx\_client.py:1144: in post
+    return self.request(
+D:\develop\Python\Lib\site-packages\starlette\testclient.py:455: in request
+    return super().request(
+D:\develop\Python\Lib\site-packages\httpx\_client.py:825: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\httpx\_client.py:914: in send
+    response = self._send_handling_auth(
+D:\develop\Python\Lib\site-packages\httpx\_client.py:942: in _send_handling_auth
+    response = self._send_handling_redirects(
+D:\develop\Python\Lib\site-packages\httpx\_client.py:979: in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\httpx\_client.py:1014: in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\starlette\testclient.py:354: in handle_request
+    raise exc
+D:\develop\Python\Lib\site-packages\starlette\testclient.py:351: in handle_request
+    portal.call(self.app, scope, receive, send)
+D:\develop\Python\Lib\site-packages\anyio\from_thread.py:334: in call
+    return cast(T_Retval, self.start_task_soon(func, *args).result())
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\concurrent\futures\_base.py:456: in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\concurrent\futures\_base.py:401: in __get_result
+    raise self._exception
+D:\develop\Python\Lib\site-packages\anyio\from_thread.py:259: in _call_func
+    retval = await retval_or_awaitable
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\fastapi\applications.py:1163: in __call__
+    await super().__call__(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\applications.py:96: in __call__
+    await self.middleware_stack(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\middleware\errors.py:186: in __call__
+    raise exc
+D:\develop\Python\Lib\site-packages\starlette\middleware\errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+D:\develop\Python\Lib\site-packages\starlette\middleware\base.py:193: in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend\app\core\security.py:107: in dispatch
+    return await call_next(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\starlette\middleware\base.py:168: in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+D:\develop\Python\Lib\site-packages\starlette\middleware\base.py:144: in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+D:\develop\Python\Lib\site-packages\starlette\middleware\exceptions.py:63: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    raise exc
+D:\develop\Python\Lib\site-packages\starlette\_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+D:\develop\Python\Lib\site-packages\fastapi\middleware\asyncexitstack.py:18: in __call__
+    await self.app(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\routing.py:670: in __call__
+    await self.middleware_stack(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:2734: in app
+    await route.handle(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:1780: in handle
+    await self.original_router.handle(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:2789: in handle
+    await included_router._handle_selected(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:1800: in _handle_selected
+    await original_route.handle(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:1279: in handle
+    await app(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:158: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    raise exc
+D:\develop\Python\Lib\site-packages\starlette\_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:144: in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:706: in app
+    raw_response = await run_endpoint_function(
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:352: in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend\app\api\workflow.py:1426: in start_workflow_run
+    return await service.start_run(
+backend\app\api\workflow.py:621: in start_run
+    row = await self._persist_outcome(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <backend.app.api.workflow.WorkflowService object at 0x00000267D4425390>
+workflow_id = 'grading-a99f405d-dc66-42bf-a84b-c26479ecf0c7'
+state = {'workflow_id': 'grading-a99f405d-dc66-42bf-a84b-c26479ecf0c7', 'request_id': '2102850a-0b6b-4eb7-b383-895edf1b94cf', 'submission_id': 'bb59e145-7e71-4799-afaf-73f12208bb73', 'status': <WorkflowStatus.PAUSED: 'Paused'>, ...}
+thread_id = '127a6f20-d9a9-4d78-9530-09664b59c751'
+snapshot = SubmissionSnapshot(submission_id='bb59e145-7e71-4799-afaf-73f12208bb73', exam_id='8b04ec2d-a7ef-4650-a53d-b73ae3681227...ope=RetrievalScope(document_ids=(), chapter_ids=(), section_range=None, knowledge_points=()), scoring_basis_error=None)
+
+    async def _persist_outcome(
+        self,
+        *,
+        workflow_id: str,
+        state: Mapping[str, Any],
+        thread_id: str,
+        snapshot: Any,
+    ) -> WorkflowRun:
+        """按一次运行/恢复的真实结论落库：成绩与工作流状态在同一事务内写入（H01）。
+    
+        不能只写业务状态：待复核成绩、最终成绩与失败事实都必须落库，否则复核队列与结果读模型
+        看不到本轮结论。三种事实分支由 ``save_workflow_outcome`` 区分；``is_final=False`` 表示
+        成绩待教师复核。工作流状态在同一事务内由 ``save_checkpoint_within`` 写入，包含当前节点、
+        暂停原因、线程信息与恢复状态；任一步失败整体回滚。事务提交后按 ``is_final`` 生成诊断并写
+        终态（P1.3，见 :meth:`_finalize_diagnosis`）。
+        """
+    
+        payload = dict(state)
+        current_node = str(payload.get("current_node") or LOAD_SUBMISSION)
+        pause_reason = payload.get("pause_reason")
+        results, decisions, exam_result = _outcome_state_facts(payload, snapshot)
+        submission_id = str(payload.get("submission_id") or "")
+        try:
+>           row = self._outcome_repository().save_workflow_outcome(
+                submission_id,
+                context=snapshot.to_context(),
+                results=results,
+                decisions=decisions,
+                exam_result=exam_result,
+                **({"scoring_inputs": snapshot.scoring_inputs} if snapshot.scoring_inputs else {}),
+                state_writer=lambda session: self._checkpoints.save_checkpoint_within(
+                    session,
+                    workflow_id,
+                    payload,
+                    current_node,
+                    str(pause_reason) if pause_reason else None,
+                    thread_id=thread_id,
+                ),
+            )
+E           TypeError: DatabaseGradingRepository.save_workflow_outcome() got an unexpected keyword argument 'scoring_inputs'
+
+backend\app\api\workflow.py:898: TypeError
+___________________ test_student_sees_only_public_progress ____________________
+
+env = {'engine': Engine(sqlite:///D:\YJX\Cache\Temp\pytest-of-10169\pytest-227\test_student_sees_only_public_0\workflow.db),...er_id=UUID('8cd37f6d-f0c3-4f64-a3c9-d8352570295f'), subjective_answer_id=UUID('4e3fe20f-ca96-40b5-b2e5-f9da2611ef8b'))}
+client_factory = <function client_factory.<locals>.factory at 0x00000267D57EDB20>
+
+    def test_student_sees_only_public_progress(env: dict[str, Any], client_factory: Any) -> None:
+        """学生只能看到自己的公开进度，越权学生返回 403。"""
+    
+        client = client_factory(_service(env))
+>       workflow_id = _start(client, env).json()["workflow_id"]
+                      ^^^^^^^^^^^^^^^^^^^
+
+tests\contract\test_workflow_api_contract.py:781: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\contract\test_workflow_api_contract.py:389: in _start
+    return client.post(
+D:\develop\Python\Lib\site-packages\starlette\testclient.py:556: in post
+    return super().post(
+D:\develop\Python\Lib\site-packages\httpx\_client.py:1144: in post
+    return self.request(
+D:\develop\Python\Lib\site-packages\starlette\testclient.py:455: in request
+    return super().request(
+D:\develop\Python\Lib\site-packages\httpx\_client.py:825: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\httpx\_client.py:914: in send
+    response = self._send_handling_auth(
+D:\develop\Python\Lib\site-packages\httpx\_client.py:942: in _send_handling_auth
+    response = self._send_handling_redirects(
+D:\develop\Python\Lib\site-packages\httpx\_client.py:979: in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\httpx\_client.py:1014: in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\starlette\testclient.py:354: in handle_request
+    raise exc
+D:\develop\Python\Lib\site-packages\starlette\testclient.py:351: in handle_request
+    portal.call(self.app, scope, receive, send)
+D:\develop\Python\Lib\site-packages\anyio\from_thread.py:334: in call
+    return cast(T_Retval, self.start_task_soon(func, *args).result())
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\concurrent\futures\_base.py:456: in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\concurrent\futures\_base.py:401: in __get_result
+    raise self._exception
+D:\develop\Python\Lib\site-packages\anyio\from_thread.py:259: in _call_func
+    retval = await retval_or_awaitable
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\fastapi\applications.py:1163: in __call__
+    await super().__call__(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\applications.py:96: in __call__
+    await self.middleware_stack(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\middleware\errors.py:186: in __call__
+    raise exc
+D:\develop\Python\Lib\site-packages\starlette\middleware\errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+D:\develop\Python\Lib\site-packages\starlette\middleware\base.py:193: in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend\app\core\security.py:107: in dispatch
+    return await call_next(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\starlette\middleware\base.py:168: in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+D:\develop\Python\Lib\site-packages\starlette\middleware\base.py:144: in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+D:\develop\Python\Lib\site-packages\starlette\middleware\exceptions.py:63: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    raise exc
+D:\develop\Python\Lib\site-packages\starlette\_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+D:\develop\Python\Lib\site-packages\fastapi\middleware\asyncexitstack.py:18: in __call__
+    await self.app(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\routing.py:670: in __call__
+    await self.middleware_stack(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:2734: in app
+    await route.handle(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:1780: in handle
+    await self.original_router.handle(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:2789: in handle
+    await included_router._handle_selected(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:1800: in _handle_selected
+    await original_route.handle(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:1279: in handle
+    await app(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:158: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    raise exc
+D:\develop\Python\Lib\site-packages\starlette\_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:144: in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:706: in app
+    raw_response = await run_endpoint_function(
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:352: in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend\app\api\workflow.py:1426: in start_workflow_run
+    return await service.start_run(
+backend\app\api\workflow.py:621: in start_run
+    row = await self._persist_outcome(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <backend.app.api.workflow.WorkflowService object at 0x00000267D57DA890>
+workflow_id = 'grading-f934d487-3632-482c-8292-df8239a0aa30'
+state = {'workflow_id': 'grading-f934d487-3632-482c-8292-df8239a0aa30', 'request_id': 'a04ecc55-4980-4376-8715-f23dc35974a1', 'submission_id': '2e333106-4782-4652-8323-4e481e32a406', 'status': <WorkflowStatus.PAUSED: 'Paused'>, ...}
+thread_id = '7b164e42-2a1e-476c-a506-0714e9479994'
+snapshot = SubmissionSnapshot(submission_id='2e333106-4782-4652-8323-4e481e32a406', exam_id='d16c55bd-216c-4dca-99be-4901a63599f9...ope=RetrievalScope(document_ids=(), chapter_ids=(), section_range=None, knowledge_points=()), scoring_basis_error=None)
+
+    async def _persist_outcome(
+        self,
+        *,
+        workflow_id: str,
+        state: Mapping[str, Any],
+        thread_id: str,
+        snapshot: Any,
+    ) -> WorkflowRun:
+        """按一次运行/恢复的真实结论落库：成绩与工作流状态在同一事务内写入（H01）。
+    
+        不能只写业务状态：待复核成绩、最终成绩与失败事实都必须落库，否则复核队列与结果读模型
+        看不到本轮结论。三种事实分支由 ``save_workflow_outcome`` 区分；``is_final=False`` 表示
+        成绩待教师复核。工作流状态在同一事务内由 ``save_checkpoint_within`` 写入，包含当前节点、
+        暂停原因、线程信息与恢复状态；任一步失败整体回滚。事务提交后按 ``is_final`` 生成诊断并写
+        终态（P1.3，见 :meth:`_finalize_diagnosis`）。
+        """
+    
+        payload = dict(state)
+        current_node = str(payload.get("current_node") or LOAD_SUBMISSION)
+        pause_reason = payload.get("pause_reason")
+        results, decisions, exam_result = _outcome_state_facts(payload, snapshot)
+        submission_id = str(payload.get("submission_id") or "")
+        try:
+>           row = self._outcome_repository().save_workflow_outcome(
+                submission_id,
+                context=snapshot.to_context(),
+                results=results,
+                decisions=decisions,
+                exam_result=exam_result,
+                **({"scoring_inputs": snapshot.scoring_inputs} if snapshot.scoring_inputs else {}),
+                state_writer=lambda session: self._checkpoints.save_checkpoint_within(
+                    session,
+                    workflow_id,
+                    payload,
+                    current_node,
+                    str(pause_reason) if pause_reason else None,
+                    thread_id=thread_id,
+                ),
+            )
+E           TypeError: DatabaseGradingRepository.save_workflow_outcome() got an unexpected keyword argument 'scoring_inputs'
+
+backend\app\api\workflow.py:898: TypeError
+___________ test_resume_requires_teacher_decision_for_review_pause ____________
+
+env = {'engine': Engine(sqlite:///D:\YJX\Cache\Temp\pytest-of-10169\pytest-227\test_resume_requires_teacher_d0\workflow.db),...er_id=UUID('366c76ca-c73b-4d53-b9fd-39e6d98f9587'), subjective_answer_id=UUID('466fdcc1-a3eb-41f5-87a2-798baca3c349'))}
+client_factory = <function client_factory.<locals>.factory at 0x00000267D5DFAF20>
+
+    def test_resume_requires_teacher_decision_for_review_pause(
+        env: dict[str, Any], client_factory: Any
+    ) -> None:
+        """人工复核暂停：缺少目标答案或缺少教师结论都返回 409。"""
+    
+        client = client_factory(_service(env))
+>       workflow_id = _start(client, env).json()["workflow_id"]
+                      ^^^^^^^^^^^^^^^^^^^
+
+tests\contract\test_workflow_api_contract.py:826: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\contract\test_workflow_api_contract.py:389: in _start
+    return client.post(
+D:\develop\Python\Lib\site-packages\starlette\testclient.py:556: in post
+    return super().post(
+D:\develop\Python\Lib\site-packages\httpx\_client.py:1144: in post
+    return self.request(
+D:\develop\Python\Lib\site-packages\starlette\testclient.py:455: in request
+    return super().request(
+D:\develop\Python\Lib\site-packages\httpx\_client.py:825: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\httpx\_client.py:914: in send
+    response = self._send_handling_auth(
+D:\develop\Python\Lib\site-packages\httpx\_client.py:942: in _send_handling_auth
+    response = self._send_handling_redirects(
+D:\develop\Python\Lib\site-packages\httpx\_client.py:979: in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\httpx\_client.py:1014: in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\starlette\testclient.py:354: in handle_request
+    raise exc
+D:\develop\Python\Lib\site-packages\starlette\testclient.py:351: in handle_request
+    portal.call(self.app, scope, receive, send)
+D:\develop\Python\Lib\site-packages\anyio\from_thread.py:334: in call
+    return cast(T_Retval, self.start_task_soon(func, *args).result())
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\concurrent\futures\_base.py:456: in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\concurrent\futures\_base.py:401: in __get_result
+    raise self._exception
+D:\develop\Python\Lib\site-packages\anyio\from_thread.py:259: in _call_func
+    retval = await retval_or_awaitable
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\fastapi\applications.py:1163: in __call__
+    await super().__call__(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\applications.py:96: in __call__
+    await self.middleware_stack(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\middleware\errors.py:186: in __call__
+    raise exc
+D:\develop\Python\Lib\site-packages\starlette\middleware\errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+D:\develop\Python\Lib\site-packages\starlette\middleware\base.py:193: in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend\app\core\security.py:107: in dispatch
+    return await call_next(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\starlette\middleware\base.py:168: in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+D:\develop\Python\Lib\site-packages\starlette\middleware\base.py:144: in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+D:\develop\Python\Lib\site-packages\starlette\middleware\exceptions.py:63: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    raise exc
+D:\develop\Python\Lib\site-packages\starlette\_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+D:\develop\Python\Lib\site-packages\fastapi\middleware\asyncexitstack.py:18: in __call__
+    await self.app(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\routing.py:670: in __call__
+    await self.middleware_stack(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:2734: in app
+    await route.handle(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:1780: in handle
+    await self.original_router.handle(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:2789: in handle
+    await included_router._handle_selected(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:1800: in _handle_selected
+    await original_route.handle(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:1279: in handle
+    await app(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:158: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    raise exc
+D:\develop\Python\Lib\site-packages\starlette\_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:144: in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:706: in app
+    raw_response = await run_endpoint_function(
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:352: in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend\app\api\workflow.py:1426: in start_workflow_run
+    return await service.start_run(
+backend\app\api\workflow.py:621: in start_run
+    row = await self._persist_outcome(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <backend.app.api.workflow.WorkflowService object at 0x00000267D5DF1E10>
+workflow_id = 'grading-a70b9d21-7963-48f9-b187-b5b0044c7316'
+state = {'workflow_id': 'grading-a70b9d21-7963-48f9-b187-b5b0044c7316', 'request_id': '3ad7c2bf-93db-42b2-b45d-bf2cdfb2ad44', 'submission_id': 'c783f1cc-2761-44ae-b75c-f3265e66dfd2', 'status': <WorkflowStatus.PAUSED: 'Paused'>, ...}
+thread_id = 'd1b8245a-23d4-40b3-b003-81fbe6454a81'
+snapshot = SubmissionSnapshot(submission_id='c783f1cc-2761-44ae-b75c-f3265e66dfd2', exam_id='25dcccc3-a3b6-4bd4-99bf-098b80e02f32...ope=RetrievalScope(document_ids=(), chapter_ids=(), section_range=None, knowledge_points=()), scoring_basis_error=None)
+
+    async def _persist_outcome(
+        self,
+        *,
+        workflow_id: str,
+        state: Mapping[str, Any],
+        thread_id: str,
+        snapshot: Any,
+    ) -> WorkflowRun:
+        """按一次运行/恢复的真实结论落库：成绩与工作流状态在同一事务内写入（H01）。
+    
+        不能只写业务状态：待复核成绩、最终成绩与失败事实都必须落库，否则复核队列与结果读模型
+        看不到本轮结论。三种事实分支由 ``save_workflow_outcome`` 区分；``is_final=False`` 表示
+        成绩待教师复核。工作流状态在同一事务内由 ``save_checkpoint_within`` 写入，包含当前节点、
+        暂停原因、线程信息与恢复状态；任一步失败整体回滚。事务提交后按 ``is_final`` 生成诊断并写
+        终态（P1.3，见 :meth:`_finalize_diagnosis`）。
+        """
+    
+        payload = dict(state)
+        current_node = str(payload.get("current_node") or LOAD_SUBMISSION)
+        pause_reason = payload.get("pause_reason")
+        results, decisions, exam_result = _outcome_state_facts(payload, snapshot)
+        submission_id = str(payload.get("submission_id") or "")
+        try:
+>           row = self._outcome_repository().save_workflow_outcome(
+                submission_id,
+                context=snapshot.to_context(),
+                results=results,
+                decisions=decisions,
+                exam_result=exam_result,
+                **({"scoring_inputs": snapshot.scoring_inputs} if snapshot.scoring_inputs else {}),
+                state_writer=lambda session: self._checkpoints.save_checkpoint_within(
+                    session,
+                    workflow_id,
+                    payload,
+                    current_node,
+                    str(pause_reason) if pause_reason else None,
+                    thread_id=thread_id,
+                ),
+            )
+E           TypeError: DatabaseGradingRepository.save_workflow_outcome() got an unexpected keyword argument 'scoring_inputs'
+
+backend\app\api\workflow.py:898: TypeError
+_____ test_resume_delegates_to_review_service_and_reports_partial_success _____
+
+env = {'engine': Engine(sqlite:///D:\YJX\Cache\Temp\pytest-of-10169\pytest-227\test_resume_delegates_to_revie0\workflow.db),...er_id=UUID('58c990d3-5fcf-4a48-a112-4c74f8b61f38'), subjective_answer_id=UUID('00641e91-efaa-4353-8fa7-f519256edc4a'))}
+client_factory = <function client_factory.<locals>.factory at 0x00000267D50CED40>
+
+    def test_resume_delegates_to_review_service_and_reports_partial_success(
+        env: dict[str, Any], client_factory: Any
+    ) -> None:
+        """已有教师结论时委托 T074 恢复；“已保存待继续”以部分成功回执表达。"""
+    
+        base_outcome = ReviewOutcome(
+            workflow_id="pending",
+            submission_id=str(env["fixture"].submission_id),
+            answer_id=str(env["fixture"].subjective_answer_id),
+            decision=ReviewStatus.CONFIRMED,
+            review_record_id=None,
+            workflow_status=WorkflowStatus.PAUSED,
+            interrupted=True,
+            pending_answer_ids=(str(env["fixture"].subjective_answer_id),),
+            resumable=True,
+            resumed=False,
+            resume_error_code="REVIEW_SERVICE_CONFLICT",
+            exam_result=None,
+            exam_result_persisted=False,
+            diagnosis=None,
+            diagnosis_error_code=None,
+        )
+        stub_review = _StubReviewService(base_outcome)
+        service = _service(env, review_service_provider=lambda: stub_review)
+        client = client_factory(service)
+>       started = _start(client, env).json()
+                  ^^^^^^^^^^^^^^^^^^^
+
+tests\contract\test_workflow_api_contract.py:872: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\contract\test_workflow_api_contract.py:389: in _start
+    return client.post(
+D:\develop\Python\Lib\site-packages\starlette\testclient.py:556: in post
+    return super().post(
+D:\develop\Python\Lib\site-packages\httpx\_client.py:1144: in post
+    return self.request(
+D:\develop\Python\Lib\site-packages\starlette\testclient.py:455: in request
+    return super().request(
+D:\develop\Python\Lib\site-packages\httpx\_client.py:825: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\httpx\_client.py:914: in send
+    response = self._send_handling_auth(
+D:\develop\Python\Lib\site-packages\httpx\_client.py:942: in _send_handling_auth
+    response = self._send_handling_redirects(
+D:\develop\Python\Lib\site-packages\httpx\_client.py:979: in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\httpx\_client.py:1014: in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\starlette\testclient.py:354: in handle_request
+    raise exc
+D:\develop\Python\Lib\site-packages\starlette\testclient.py:351: in handle_request
+    portal.call(self.app, scope, receive, send)
+D:\develop\Python\Lib\site-packages\anyio\from_thread.py:334: in call
+    return cast(T_Retval, self.start_task_soon(func, *args).result())
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\concurrent\futures\_base.py:456: in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\concurrent\futures\_base.py:401: in __get_result
+    raise self._exception
+D:\develop\Python\Lib\site-packages\anyio\from_thread.py:259: in _call_func
+    retval = await retval_or_awaitable
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\fastapi\applications.py:1163: in __call__
+    await super().__call__(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\applications.py:96: in __call__
+    await self.middleware_stack(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\middleware\errors.py:186: in __call__
+    raise exc
+D:\develop\Python\Lib\site-packages\starlette\middleware\errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+D:\develop\Python\Lib\site-packages\starlette\middleware\base.py:193: in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend\app\core\security.py:107: in dispatch
+    return await call_next(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\starlette\middleware\base.py:168: in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+D:\develop\Python\Lib\site-packages\starlette\middleware\base.py:144: in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+D:\develop\Python\Lib\site-packages\starlette\middleware\exceptions.py:63: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    raise exc
+D:\develop\Python\Lib\site-packages\starlette\_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+D:\develop\Python\Lib\site-packages\fastapi\middleware\asyncexitstack.py:18: in __call__
+    await self.app(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\routing.py:670: in __call__
+    await self.middleware_stack(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:2734: in app
+    await route.handle(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:1780: in handle
+    await self.original_router.handle(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:2789: in handle
+    await included_router._handle_selected(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:1800: in _handle_selected
+    await original_route.handle(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:1279: in handle
+    await app(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:158: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    raise exc
+D:\develop\Python\Lib\site-packages\starlette\_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:144: in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:706: in app
+    raw_response = await run_endpoint_function(
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:352: in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend\app\api\workflow.py:1426: in start_workflow_run
+    return await service.start_run(
+backend\app\api\workflow.py:621: in start_run
+    row = await self._persist_outcome(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <backend.app.api.workflow.WorkflowService object at 0x00000267D506F310>
+workflow_id = 'grading-df524730-d107-41a6-82cb-08f2c20f0ee1'
+state = {'workflow_id': 'grading-df524730-d107-41a6-82cb-08f2c20f0ee1', 'request_id': 'f38bdfc6-e088-446e-86b5-2002a8b987fc', 'submission_id': '53dc8ffc-7ba5-4bfd-a60b-ba0b6a588cf1', 'status': <WorkflowStatus.PAUSED: 'Paused'>, ...}
+thread_id = 'a84db38b-7b10-4cb7-b418-202750b40e5c'
+snapshot = SubmissionSnapshot(submission_id='53dc8ffc-7ba5-4bfd-a60b-ba0b6a588cf1', exam_id='80215be7-88e8-431f-a210-2f93ca684dce...ope=RetrievalScope(document_ids=(), chapter_ids=(), section_range=None, knowledge_points=()), scoring_basis_error=None)
+
+    async def _persist_outcome(
+        self,
+        *,
+        workflow_id: str,
+        state: Mapping[str, Any],
+        thread_id: str,
+        snapshot: Any,
+    ) -> WorkflowRun:
+        """按一次运行/恢复的真实结论落库：成绩与工作流状态在同一事务内写入（H01）。
+    
+        不能只写业务状态：待复核成绩、最终成绩与失败事实都必须落库，否则复核队列与结果读模型
+        看不到本轮结论。三种事实分支由 ``save_workflow_outcome`` 区分；``is_final=False`` 表示
+        成绩待教师复核。工作流状态在同一事务内由 ``save_checkpoint_within`` 写入，包含当前节点、
+        暂停原因、线程信息与恢复状态；任一步失败整体回滚。事务提交后按 ``is_final`` 生成诊断并写
+        终态（P1.3，见 :meth:`_finalize_diagnosis`）。
+        """
+    
+        payload = dict(state)
+        current_node = str(payload.get("current_node") or LOAD_SUBMISSION)
+        pause_reason = payload.get("pause_reason")
+        results, decisions, exam_result = _outcome_state_facts(payload, snapshot)
+        submission_id = str(payload.get("submission_id") or "")
+        try:
+>           row = self._outcome_repository().save_workflow_outcome(
+                submission_id,
+                context=snapshot.to_context(),
+                results=results,
+                decisions=decisions,
+                exam_result=exam_result,
+                **({"scoring_inputs": snapshot.scoring_inputs} if snapshot.scoring_inputs else {}),
+                state_writer=lambda session: self._checkpoints.save_checkpoint_within(
+                    session,
+                    workflow_id,
+                    payload,
+                    current_node,
+                    str(pause_reason) if pause_reason else None,
+                    thread_id=thread_id,
+                ),
+            )
+E           TypeError: DatabaseGradingRepository.save_workflow_outcome() got an unexpected keyword argument 'scoring_inputs'
+
+backend\app\api\workflow.py:898: TypeError
+__________________ test_production_checkpointer_is_persisted __________________
+
+env = {'engine': Engine(sqlite:///D:\YJX\Cache\Temp\pytest-of-10169\pytest-227\test_production_checkpointer_i0\workflow.db),...er_id=UUID('d3289fab-8b73-40f4-b45e-d01614e80fdd'), subjective_answer_id=UUID('4b222ffe-45cc-44f8-8f97-533718d1f607'))}
+client_factory = <function client_factory.<locals>.factory at 0x00000267D85DECA0>
+
+    def test_production_checkpointer_is_persisted(env: dict[str, Any], client_factory: Any) -> None:
+        """启动后运行记录里确实有持久 runtime 检查点（证明注入的是数据库 Checkpointer）。"""
+    
+        client = client_factory(_service(env))
+>       body = _start(client, env).json()
+               ^^^^^^^^^^^^^^^^^^^
+
+tests\contract\test_workflow_api_contract.py:972: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\contract\test_workflow_api_contract.py:389: in _start
+    return client.post(
+D:\develop\Python\Lib\site-packages\starlette\testclient.py:556: in post
+    return super().post(
+D:\develop\Python\Lib\site-packages\httpx\_client.py:1144: in post
+    return self.request(
+D:\develop\Python\Lib\site-packages\starlette\testclient.py:455: in request
+    return super().request(
+D:\develop\Python\Lib\site-packages\httpx\_client.py:825: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\httpx\_client.py:914: in send
+    response = self._send_handling_auth(
+D:\develop\Python\Lib\site-packages\httpx\_client.py:942: in _send_handling_auth
+    response = self._send_handling_redirects(
+D:\develop\Python\Lib\site-packages\httpx\_client.py:979: in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\httpx\_client.py:1014: in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\starlette\testclient.py:354: in handle_request
+    raise exc
+D:\develop\Python\Lib\site-packages\starlette\testclient.py:351: in handle_request
+    portal.call(self.app, scope, receive, send)
+D:\develop\Python\Lib\site-packages\anyio\from_thread.py:334: in call
+    return cast(T_Retval, self.start_task_soon(func, *args).result())
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\concurrent\futures\_base.py:456: in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\concurrent\futures\_base.py:401: in __get_result
+    raise self._exception
+D:\develop\Python\Lib\site-packages\anyio\from_thread.py:259: in _call_func
+    retval = await retval_or_awaitable
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\fastapi\applications.py:1163: in __call__
+    await super().__call__(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\applications.py:96: in __call__
+    await self.middleware_stack(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\middleware\errors.py:186: in __call__
+    raise exc
+D:\develop\Python\Lib\site-packages\starlette\middleware\errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+D:\develop\Python\Lib\site-packages\starlette\middleware\base.py:193: in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend\app\core\security.py:107: in dispatch
+    return await call_next(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\starlette\middleware\base.py:168: in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+D:\develop\Python\Lib\site-packages\starlette\middleware\base.py:144: in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+D:\develop\Python\Lib\site-packages\starlette\middleware\exceptions.py:63: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    raise exc
+D:\develop\Python\Lib\site-packages\starlette\_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+D:\develop\Python\Lib\site-packages\fastapi\middleware\asyncexitstack.py:18: in __call__
+    await self.app(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\routing.py:670: in __call__
+    await self.middleware_stack(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:2734: in app
+    await route.handle(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:1780: in handle
+    await self.original_router.handle(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:2789: in handle
+    await included_router._handle_selected(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:1800: in _handle_selected
+    await original_route.handle(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:1279: in handle
+    await app(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:158: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    raise exc
+D:\develop\Python\Lib\site-packages\starlette\_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:144: in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:706: in app
+    raw_response = await run_endpoint_function(
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:352: in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend\app\api\workflow.py:1426: in start_workflow_run
+    return await service.start_run(
+backend\app\api\workflow.py:621: in start_run
+    row = await self._persist_outcome(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <backend.app.api.workflow.WorkflowService object at 0x00000267D88450F0>
+workflow_id = 'grading-6c2d83bf-8ed6-4f8c-adcf-a39bfc8bbe39'
+state = {'workflow_id': 'grading-6c2d83bf-8ed6-4f8c-adcf-a39bfc8bbe39', 'request_id': '55f6ab38-785f-4852-86ae-a67695c0c767', 'submission_id': '790c1d4e-17a2-4fab-8098-b6d27594b82d', 'status': <WorkflowStatus.PAUSED: 'Paused'>, ...}
+thread_id = '5b948110-1ef4-4921-8b6b-4122ef4e444d'
+snapshot = SubmissionSnapshot(submission_id='790c1d4e-17a2-4fab-8098-b6d27594b82d', exam_id='9ebcc1ea-80fc-4a77-b5b5-05dc1b66f6f6...ope=RetrievalScope(document_ids=(), chapter_ids=(), section_range=None, knowledge_points=()), scoring_basis_error=None)
+
+    async def _persist_outcome(
+        self,
+        *,
+        workflow_id: str,
+        state: Mapping[str, Any],
+        thread_id: str,
+        snapshot: Any,
+    ) -> WorkflowRun:
+        """按一次运行/恢复的真实结论落库：成绩与工作流状态在同一事务内写入（H01）。
+    
+        不能只写业务状态：待复核成绩、最终成绩与失败事实都必须落库，否则复核队列与结果读模型
+        看不到本轮结论。三种事实分支由 ``save_workflow_outcome`` 区分；``is_final=False`` 表示
+        成绩待教师复核。工作流状态在同一事务内由 ``save_checkpoint_within`` 写入，包含当前节点、
+        暂停原因、线程信息与恢复状态；任一步失败整体回滚。事务提交后按 ``is_final`` 生成诊断并写
+        终态（P1.3，见 :meth:`_finalize_diagnosis`）。
+        """
+    
+        payload = dict(state)
+        current_node = str(payload.get("current_node") or LOAD_SUBMISSION)
+        pause_reason = payload.get("pause_reason")
+        results, decisions, exam_result = _outcome_state_facts(payload, snapshot)
+        submission_id = str(payload.get("submission_id") or "")
+        try:
+>           row = self._outcome_repository().save_workflow_outcome(
+                submission_id,
+                context=snapshot.to_context(),
+                results=results,
+                decisions=decisions,
+                exam_result=exam_result,
+                **({"scoring_inputs": snapshot.scoring_inputs} if snapshot.scoring_inputs else {}),
+                state_writer=lambda session: self._checkpoints.save_checkpoint_within(
+                    session,
+                    workflow_id,
+                    payload,
+                    current_node,
+                    str(pause_reason) if pause_reason else None,
+                    thread_id=thread_id,
+                ),
+            )
+E           TypeError: DatabaseGradingRepository.save_workflow_outcome() got an unexpected keyword argument 'scoring_inputs'
+
+backend\app\api\workflow.py:898: TypeError
+___________ test_start_generates_diagnosis_only_after_result_commit ___________
+
+env = {'engine': Engine(sqlite:///D:\YJX\Cache\Temp\pytest-of-10169\pytest-227\test_start_generates_diagnosis0\workflow.db),...er_id=UUID('a476f351-a21d-440f-9699-bce203561cab'), subjective_answer_id=UUID('6aa04b52-11f5-4361-9ebb-c1550995e0de'))}
+client_factory = <function client_factory.<locals>.factory at 0x00000267D8DE7600>
+
+    def test_start_generates_diagnosis_only_after_result_commit(
+        env: dict[str, Any], client_factory: Any
+    ) -> None:
+        """P1.3 正向：结果事务提交后才生成 Ready 诊断；诊断可读且运行 Completed。"""
+    
+        recorder = _ReadyDiagnosisService()
+        client = client_factory(
+            _accepted_service(env, diagnosis_service=_diagnosis_adapter(env, recorder))
+        )
+    
+>       body = _start(client, env).json()
+               ^^^^^^^^^^^^^^^^^^^
+
+tests\contract\test_workflow_api_contract.py:1114: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\contract\test_workflow_api_contract.py:389: in _start
+    return client.post(
+D:\develop\Python\Lib\site-packages\starlette\testclient.py:556: in post
+    return super().post(
+D:\develop\Python\Lib\site-packages\httpx\_client.py:1144: in post
+    return self.request(
+D:\develop\Python\Lib\site-packages\starlette\testclient.py:455: in request
+    return super().request(
+D:\develop\Python\Lib\site-packages\httpx\_client.py:825: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\httpx\_client.py:914: in send
+    response = self._send_handling_auth(
+D:\develop\Python\Lib\site-packages\httpx\_client.py:942: in _send_handling_auth
+    response = self._send_handling_redirects(
+D:\develop\Python\Lib\site-packages\httpx\_client.py:979: in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\httpx\_client.py:1014: in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\starlette\testclient.py:354: in handle_request
+    raise exc
+D:\develop\Python\Lib\site-packages\starlette\testclient.py:351: in handle_request
+    portal.call(self.app, scope, receive, send)
+D:\develop\Python\Lib\site-packages\anyio\from_thread.py:334: in call
+    return cast(T_Retval, self.start_task_soon(func, *args).result())
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\concurrent\futures\_base.py:456: in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\concurrent\futures\_base.py:401: in __get_result
+    raise self._exception
+D:\develop\Python\Lib\site-packages\anyio\from_thread.py:259: in _call_func
+    retval = await retval_or_awaitable
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\fastapi\applications.py:1163: in __call__
+    await super().__call__(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\applications.py:96: in __call__
+    await self.middleware_stack(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\middleware\errors.py:186: in __call__
+    raise exc
+D:\develop\Python\Lib\site-packages\starlette\middleware\errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+D:\develop\Python\Lib\site-packages\starlette\middleware\base.py:193: in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend\app\core\security.py:107: in dispatch
+    return await call_next(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\starlette\middleware\base.py:168: in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+D:\develop\Python\Lib\site-packages\starlette\middleware\base.py:144: in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+D:\develop\Python\Lib\site-packages\starlette\middleware\exceptions.py:63: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    raise exc
+D:\develop\Python\Lib\site-packages\starlette\_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+D:\develop\Python\Lib\site-packages\fastapi\middleware\asyncexitstack.py:18: in __call__
+    await self.app(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\routing.py:670: in __call__
+    await self.middleware_stack(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:2734: in app
+    await route.handle(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:1780: in handle
+    await self.original_router.handle(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:2789: in handle
+    await included_router._handle_selected(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:1800: in _handle_selected
+    await original_route.handle(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:1279: in handle
+    await app(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:158: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    raise exc
+D:\develop\Python\Lib\site-packages\starlette\_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:144: in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:706: in app
+    raw_response = await run_endpoint_function(
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:352: in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend\app\api\workflow.py:1426: in start_workflow_run
+    return await service.start_run(
+backend\app\api\workflow.py:621: in start_run
+    row = await self._persist_outcome(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <backend.app.api.workflow.WorkflowService object at 0x00000267D8DF99B0>
+workflow_id = 'grading-691e80a0-71d3-4d37-bfa9-f4fc81e8313a'
+state = {'workflow_id': 'grading-691e80a0-71d3-4d37-bfa9-f4fc81e8313a', 'request_id': '2c43e735-e7d2-426b-8acc-a026f7063455', 'submission_id': '120fe8bb-280d-420b-bcb7-6e82ca8dd0c2', 'status': <WorkflowStatus.RUNNING: 'Running'>, ...}
+thread_id = '0a17e7e7-8ec9-4aa1-8a49-b65391d3c5f7'
+snapshot = SubmissionSnapshot(submission_id='120fe8bb-280d-420b-bcb7-6e82ca8dd0c2', exam_id='223b2820-1cef-4f9f-b222-ec6cb629b354...ope=RetrievalScope(document_ids=(), chapter_ids=(), section_range=None, knowledge_points=()), scoring_basis_error=None)
+
+    async def _persist_outcome(
+        self,
+        *,
+        workflow_id: str,
+        state: Mapping[str, Any],
+        thread_id: str,
+        snapshot: Any,
+    ) -> WorkflowRun:
+        """按一次运行/恢复的真实结论落库：成绩与工作流状态在同一事务内写入（H01）。
+    
+        不能只写业务状态：待复核成绩、最终成绩与失败事实都必须落库，否则复核队列与结果读模型
+        看不到本轮结论。三种事实分支由 ``save_workflow_outcome`` 区分；``is_final=False`` 表示
+        成绩待教师复核。工作流状态在同一事务内由 ``save_checkpoint_within`` 写入，包含当前节点、
+        暂停原因、线程信息与恢复状态；任一步失败整体回滚。事务提交后按 ``is_final`` 生成诊断并写
+        终态（P1.3，见 :meth:`_finalize_diagnosis`）。
+        """
+    
+        payload = dict(state)
+        current_node = str(payload.get("current_node") or LOAD_SUBMISSION)
+        pause_reason = payload.get("pause_reason")
+        results, decisions, exam_result = _outcome_state_facts(payload, snapshot)
+        submission_id = str(payload.get("submission_id") or "")
+        try:
+>           row = self._outcome_repository().save_workflow_outcome(
+                submission_id,
+                context=snapshot.to_context(),
+                results=results,
+                decisions=decisions,
+                exam_result=exam_result,
+                **({"scoring_inputs": snapshot.scoring_inputs} if snapshot.scoring_inputs else {}),
+                state_writer=lambda session: self._checkpoints.save_checkpoint_within(
+                    session,
+                    workflow_id,
+                    payload,
+                    current_node,
+                    str(pause_reason) if pause_reason else None,
+                    thread_id=thread_id,
+                ),
+            )
+E           TypeError: DatabaseGradingRepository.save_workflow_outcome() got an unexpected keyword argument 'scoring_inputs'
+
+backend\app\api\workflow.py:898: TypeError
+___________ test_diagnosis_retryable_failure_keeps_committed_grades ___________
+
+env = {'engine': Engine(sqlite:///D:\YJX\Cache\Temp\pytest-of-10169\pytest-227\test_diagnosis_retryable_failu0\workflow.db),...er_id=UUID('877a248c-240e-4d14-941f-ac230065dea6'), subjective_answer_id=UUID('5d304ab7-6b29-4b11-9388-658738b01df6'))}
+client_factory = <function client_factory.<locals>.factory at 0x00000267D92FFF60>
+
+    def test_diagnosis_retryable_failure_keeps_committed_grades(
+        env: dict[str, Any], client_factory: Any
+    ) -> None:
+        """P1.3 反向：可重试诊断失败不回滚成绩；运行进入 Paused + resumable，且不写 Ready 诊断。"""
+    
+        from backend.app.core.retry_policy import ProviderErrorInfo, ProviderExecutionError
+    
+        failure = ProviderExecutionError(
+            ProviderErrorInfo(
+                code="ProviderTimeout",
+                message="诊断 Provider 超时。",
+                attempt_count=2,
+                retryable=True,
+                status="ProviderTimeout",
+            )
+        )
+        client = client_factory(
+            _accepted_service(
+                env, diagnosis_service=_diagnosis_adapter(env, _FailingDiagnosisService(failure))
+            )
+        )
+    
+>       body = _start(client, env).json()
+               ^^^^^^^^^^^^^^^^^^^
+
+tests\contract\test_workflow_api_contract.py:1151: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\contract\test_workflow_api_contract.py:389: in _start
+    return client.post(
+D:\develop\Python\Lib\site-packages\starlette\testclient.py:556: in post
+    return super().post(
+D:\develop\Python\Lib\site-packages\httpx\_client.py:1144: in post
+    return self.request(
+D:\develop\Python\Lib\site-packages\starlette\testclient.py:455: in request
+    return super().request(
+D:\develop\Python\Lib\site-packages\httpx\_client.py:825: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\httpx\_client.py:914: in send
+    response = self._send_handling_auth(
+D:\develop\Python\Lib\site-packages\httpx\_client.py:942: in _send_handling_auth
+    response = self._send_handling_redirects(
+D:\develop\Python\Lib\site-packages\httpx\_client.py:979: in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\httpx\_client.py:1014: in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\starlette\testclient.py:354: in handle_request
+    raise exc
+D:\develop\Python\Lib\site-packages\starlette\testclient.py:351: in handle_request
+    portal.call(self.app, scope, receive, send)
+D:\develop\Python\Lib\site-packages\anyio\from_thread.py:334: in call
+    return cast(T_Retval, self.start_task_soon(func, *args).result())
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\concurrent\futures\_base.py:456: in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\concurrent\futures\_base.py:401: in __get_result
+    raise self._exception
+D:\develop\Python\Lib\site-packages\anyio\from_thread.py:259: in _call_func
+    retval = await retval_or_awaitable
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\fastapi\applications.py:1163: in __call__
+    await super().__call__(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\applications.py:96: in __call__
+    await self.middleware_stack(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\middleware\errors.py:186: in __call__
+    raise exc
+D:\develop\Python\Lib\site-packages\starlette\middleware\errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+D:\develop\Python\Lib\site-packages\starlette\middleware\base.py:193: in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend\app\core\security.py:107: in dispatch
+    return await call_next(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\starlette\middleware\base.py:168: in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+D:\develop\Python\Lib\site-packages\starlette\middleware\base.py:144: in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+D:\develop\Python\Lib\site-packages\starlette\middleware\exceptions.py:63: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    raise exc
+D:\develop\Python\Lib\site-packages\starlette\_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+D:\develop\Python\Lib\site-packages\fastapi\middleware\asyncexitstack.py:18: in __call__
+    await self.app(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\routing.py:670: in __call__
+    await self.middleware_stack(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:2734: in app
+    await route.handle(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:1780: in handle
+    await self.original_router.handle(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:2789: in handle
+    await included_router._handle_selected(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:1800: in _handle_selected
+    await original_route.handle(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:1279: in handle
+    await app(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:158: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    raise exc
+D:\develop\Python\Lib\site-packages\starlette\_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:144: in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:706: in app
+    raw_response = await run_endpoint_function(
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:352: in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend\app\api\workflow.py:1426: in start_workflow_run
+    return await service.start_run(
+backend\app\api\workflow.py:621: in start_run
+    row = await self._persist_outcome(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <backend.app.api.workflow.WorkflowService object at 0x00000267D93275B0>
+workflow_id = 'grading-e5f71bc8-4c9f-4f5a-9e72-d2a6225994ad'
+state = {'workflow_id': 'grading-e5f71bc8-4c9f-4f5a-9e72-d2a6225994ad', 'request_id': '0d3dfad6-0fab-4003-9eeb-7a2f6cd1e4ea', 'submission_id': 'ead72a3e-5c84-45a3-bd40-583d732ef660', 'status': <WorkflowStatus.RUNNING: 'Running'>, ...}
+thread_id = 'cc5b6f15-83ee-42bb-a6b2-a9cd4666b4f5'
+snapshot = SubmissionSnapshot(submission_id='ead72a3e-5c84-45a3-bd40-583d732ef660', exam_id='ff29ea3a-5139-4ed0-8a01-a13ca0d39e3e...ope=RetrievalScope(document_ids=(), chapter_ids=(), section_range=None, knowledge_points=()), scoring_basis_error=None)
+
+    async def _persist_outcome(
+        self,
+        *,
+        workflow_id: str,
+        state: Mapping[str, Any],
+        thread_id: str,
+        snapshot: Any,
+    ) -> WorkflowRun:
+        """按一次运行/恢复的真实结论落库：成绩与工作流状态在同一事务内写入（H01）。
+    
+        不能只写业务状态：待复核成绩、最终成绩与失败事实都必须落库，否则复核队列与结果读模型
+        看不到本轮结论。三种事实分支由 ``save_workflow_outcome`` 区分；``is_final=False`` 表示
+        成绩待教师复核。工作流状态在同一事务内由 ``save_checkpoint_within`` 写入，包含当前节点、
+        暂停原因、线程信息与恢复状态；任一步失败整体回滚。事务提交后按 ``is_final`` 生成诊断并写
+        终态（P1.3，见 :meth:`_finalize_diagnosis`）。
+        """
+    
+        payload = dict(state)
+        current_node = str(payload.get("current_node") or LOAD_SUBMISSION)
+        pause_reason = payload.get("pause_reason")
+        results, decisions, exam_result = _outcome_state_facts(payload, snapshot)
+        submission_id = str(payload.get("submission_id") or "")
+        try:
+>           row = self._outcome_repository().save_workflow_outcome(
+                submission_id,
+                context=snapshot.to_context(),
+                results=results,
+                decisions=decisions,
+                exam_result=exam_result,
+                **({"scoring_inputs": snapshot.scoring_inputs} if snapshot.scoring_inputs else {}),
+                state_writer=lambda session: self._checkpoints.save_checkpoint_within(
+                    session,
+                    workflow_id,
+                    payload,
+                    current_node,
+                    str(pause_reason) if pause_reason else None,
+                    thread_id=thread_id,
+                ),
+            )
+E           TypeError: DatabaseGradingRepository.save_workflow_outcome() got an unexpected keyword argument 'scoring_inputs'
+
+backend\app\api\workflow.py:898: TypeError
+________ test_diagnosis_hard_failure_keeps_committed_grades_and_fails _________
+
+env = {'engine': Engine(sqlite:///D:\YJX\Cache\Temp\pytest-of-10169\pytest-227\test_diagnosis_hard_failure_ke0\workflow.db),...er_id=UUID('6849e188-0ced-4e22-90ab-077190ba0fdc'), subjective_answer_id=UUID('b128489f-1093-487f-9de4-3d4708002280'))}
+client_factory = <function client_factory.<locals>.factory at 0x00000267D84FDEE0>
+
+    def test_diagnosis_hard_failure_keeps_committed_grades_and_fails(
+        env: dict[str, Any], client_factory: Any
+    ) -> None:
+        """P1.3 反向：不可重试诊断失败保留成绩并如实 Failed（不伪造 Ready、不写空诊断）。"""
+    
+        client = client_factory(
+            _accepted_service(
+                env,
+                diagnosis_service=_diagnosis_adapter(
+                    env, _FailingDiagnosisService(RuntimeError("诊断服务不可用。"))
+                ),
+            )
+        )
+    
+>       body = _start(client, env).json()
+               ^^^^^^^^^^^^^^^^^^^
+
+tests\contract\test_workflow_api_contract.py:1177: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\contract\test_workflow_api_contract.py:389: in _start
+    return client.post(
+D:\develop\Python\Lib\site-packages\starlette\testclient.py:556: in post
+    return super().post(
+D:\develop\Python\Lib\site-packages\httpx\_client.py:1144: in post
+    return self.request(
+D:\develop\Python\Lib\site-packages\starlette\testclient.py:455: in request
+    return super().request(
+D:\develop\Python\Lib\site-packages\httpx\_client.py:825: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\httpx\_client.py:914: in send
+    response = self._send_handling_auth(
+D:\develop\Python\Lib\site-packages\httpx\_client.py:942: in _send_handling_auth
+    response = self._send_handling_redirects(
+D:\develop\Python\Lib\site-packages\httpx\_client.py:979: in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\httpx\_client.py:1014: in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\starlette\testclient.py:354: in handle_request
+    raise exc
+D:\develop\Python\Lib\site-packages\starlette\testclient.py:351: in handle_request
+    portal.call(self.app, scope, receive, send)
+D:\develop\Python\Lib\site-packages\anyio\from_thread.py:334: in call
+    return cast(T_Retval, self.start_task_soon(func, *args).result())
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\concurrent\futures\_base.py:456: in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\concurrent\futures\_base.py:401: in __get_result
+    raise self._exception
+D:\develop\Python\Lib\site-packages\anyio\from_thread.py:259: in _call_func
+    retval = await retval_or_awaitable
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\fastapi\applications.py:1163: in __call__
+    await super().__call__(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\applications.py:96: in __call__
+    await self.middleware_stack(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\middleware\errors.py:186: in __call__
+    raise exc
+D:\develop\Python\Lib\site-packages\starlette\middleware\errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+D:\develop\Python\Lib\site-packages\starlette\middleware\base.py:193: in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend\app\core\security.py:107: in dispatch
+    return await call_next(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\starlette\middleware\base.py:168: in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+D:\develop\Python\Lib\site-packages\starlette\middleware\base.py:144: in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+D:\develop\Python\Lib\site-packages\starlette\middleware\exceptions.py:63: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    raise exc
+D:\develop\Python\Lib\site-packages\starlette\_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+D:\develop\Python\Lib\site-packages\fastapi\middleware\asyncexitstack.py:18: in __call__
+    await self.app(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\routing.py:670: in __call__
+    await self.middleware_stack(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:2734: in app
+    await route.handle(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:1780: in handle
+    await self.original_router.handle(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:2789: in handle
+    await included_router._handle_selected(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:1800: in _handle_selected
+    await original_route.handle(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:1279: in handle
+    await app(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:158: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    raise exc
+D:\develop\Python\Lib\site-packages\starlette\_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:144: in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:706: in app
+    raw_response = await run_endpoint_function(
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:352: in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend\app\api\workflow.py:1426: in start_workflow_run
+    return await service.start_run(
+backend\app\api\workflow.py:621: in start_run
+    row = await self._persist_outcome(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <backend.app.api.workflow.WorkflowService object at 0x00000267D96A2890>
+workflow_id = 'grading-c07999d9-49ed-48d2-bd02-16252eb2e0b4'
+state = {'workflow_id': 'grading-c07999d9-49ed-48d2-bd02-16252eb2e0b4', 'request_id': '85c97401-eaf4-45ad-9247-4a7e470cf8b9', 'submission_id': 'adcbcdc9-0acd-4219-9cfc-3e091a7c495e', 'status': <WorkflowStatus.RUNNING: 'Running'>, ...}
+thread_id = '9e2930f2-6a19-4d71-aa3a-8c7c5a69b9a2'
+snapshot = SubmissionSnapshot(submission_id='adcbcdc9-0acd-4219-9cfc-3e091a7c495e', exam_id='a64b0cde-56ff-4f37-a7a8-30e59e21b045...ope=RetrievalScope(document_ids=(), chapter_ids=(), section_range=None, knowledge_points=()), scoring_basis_error=None)
+
+    async def _persist_outcome(
+        self,
+        *,
+        workflow_id: str,
+        state: Mapping[str, Any],
+        thread_id: str,
+        snapshot: Any,
+    ) -> WorkflowRun:
+        """按一次运行/恢复的真实结论落库：成绩与工作流状态在同一事务内写入（H01）。
+    
+        不能只写业务状态：待复核成绩、最终成绩与失败事实都必须落库，否则复核队列与结果读模型
+        看不到本轮结论。三种事实分支由 ``save_workflow_outcome`` 区分；``is_final=False`` 表示
+        成绩待教师复核。工作流状态在同一事务内由 ``save_checkpoint_within`` 写入，包含当前节点、
+        暂停原因、线程信息与恢复状态；任一步失败整体回滚。事务提交后按 ``is_final`` 生成诊断并写
+        终态（P1.3，见 :meth:`_finalize_diagnosis`）。
+        """
+    
+        payload = dict(state)
+        current_node = str(payload.get("current_node") or LOAD_SUBMISSION)
+        pause_reason = payload.get("pause_reason")
+        results, decisions, exam_result = _outcome_state_facts(payload, snapshot)
+        submission_id = str(payload.get("submission_id") or "")
+        try:
+>           row = self._outcome_repository().save_workflow_outcome(
+                submission_id,
+                context=snapshot.to_context(),
+                results=results,
+                decisions=decisions,
+                exam_result=exam_result,
+                **({"scoring_inputs": snapshot.scoring_inputs} if snapshot.scoring_inputs else {}),
+                state_writer=lambda session: self._checkpoints.save_checkpoint_within(
+                    session,
+                    workflow_id,
+                    payload,
+                    current_node,
+                    str(pause_reason) if pause_reason else None,
+                    thread_id=thread_id,
+                ),
+            )
+E           TypeError: DatabaseGradingRepository.save_workflow_outcome() got an unexpected keyword argument 'scoring_inputs'
+
+backend\app\api\workflow.py:898: TypeError
+____________ test_low_confidence_pause_does_not_generate_diagnosis ____________
+
+env = {'engine': Engine(sqlite:///D:\YJX\Cache\Temp\pytest-of-10169\pytest-227\test_low_confidence_pause_does0\workflow.db),...er_id=UUID('3f67255d-0d17-4c23-8fe5-0b094333f0d7'), subjective_answer_id=UUID('8ad722a5-7845-4310-a605-ddf9f83cace9'))}
+client_factory = <function client_factory.<locals>.factory at 0x00000267D9BE40E0>
+
+    def test_low_confidence_pause_does_not_generate_diagnosis(
+        env: dict[str, Any], client_factory: Any
+    ) -> None:
+        """P1.3 反向：低置信度暂停（非最终成绩）不调用诊断、更不写诊断记录。"""
+    
+        recorder = _ReadyDiagnosisService()
+        client = client_factory(_service(env, diagnosis_service=_diagnosis_adapter(env, recorder)))
+    
+>       body = _start(client, env).json()
+               ^^^^^^^^^^^^^^^^^^^
+
+tests\contract\test_workflow_api_contract.py:1196: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\contract\test_workflow_api_contract.py:389: in _start
+    return client.post(
+D:\develop\Python\Lib\site-packages\starlette\testclient.py:556: in post
+    return super().post(
+D:\develop\Python\Lib\site-packages\httpx\_client.py:1144: in post
+    return self.request(
+D:\develop\Python\Lib\site-packages\starlette\testclient.py:455: in request
+    return super().request(
+D:\develop\Python\Lib\site-packages\httpx\_client.py:825: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\httpx\_client.py:914: in send
+    response = self._send_handling_auth(
+D:\develop\Python\Lib\site-packages\httpx\_client.py:942: in _send_handling_auth
+    response = self._send_handling_redirects(
+D:\develop\Python\Lib\site-packages\httpx\_client.py:979: in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\httpx\_client.py:1014: in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\starlette\testclient.py:354: in handle_request
+    raise exc
+D:\develop\Python\Lib\site-packages\starlette\testclient.py:351: in handle_request
+    portal.call(self.app, scope, receive, send)
+D:\develop\Python\Lib\site-packages\anyio\from_thread.py:334: in call
+    return cast(T_Retval, self.start_task_soon(func, *args).result())
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\concurrent\futures\_base.py:456: in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\concurrent\futures\_base.py:401: in __get_result
+    raise self._exception
+D:\develop\Python\Lib\site-packages\anyio\from_thread.py:259: in _call_func
+    retval = await retval_or_awaitable
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\fastapi\applications.py:1163: in __call__
+    await super().__call__(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\applications.py:96: in __call__
+    await self.middleware_stack(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\middleware\errors.py:186: in __call__
+    raise exc
+D:\develop\Python\Lib\site-packages\starlette\middleware\errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+D:\develop\Python\Lib\site-packages\starlette\middleware\base.py:193: in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend\app\core\security.py:107: in dispatch
+    return await call_next(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\starlette\middleware\base.py:168: in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+D:\develop\Python\Lib\site-packages\starlette\middleware\base.py:144: in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+D:\develop\Python\Lib\site-packages\starlette\middleware\exceptions.py:63: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    raise exc
+D:\develop\Python\Lib\site-packages\starlette\_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+D:\develop\Python\Lib\site-packages\fastapi\middleware\asyncexitstack.py:18: in __call__
+    await self.app(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\routing.py:670: in __call__
+    await self.middleware_stack(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:2734: in app
+    await route.handle(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:1780: in handle
+    await self.original_router.handle(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:2789: in handle
+    await included_router._handle_selected(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:1800: in _handle_selected
+    await original_route.handle(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:1279: in handle
+    await app(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:158: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    raise exc
+D:\develop\Python\Lib\site-packages\starlette\_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:144: in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:706: in app
+    raw_response = await run_endpoint_function(
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:352: in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend\app\api\workflow.py:1426: in start_workflow_run
+    return await service.start_run(
+backend\app\api\workflow.py:621: in start_run
+    row = await self._persist_outcome(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <backend.app.api.workflow.WorkflowService object at 0x00000267DB306510>
+workflow_id = 'grading-f490a4d2-a570-4de2-abb8-336ae94b3c92'
+state = {'workflow_id': 'grading-f490a4d2-a570-4de2-abb8-336ae94b3c92', 'request_id': '4fc72f3e-7924-4980-ae13-d32a21f6428a', 'submission_id': 'dcd4ee50-769b-497b-9247-749b0cc22e74', 'status': <WorkflowStatus.PAUSED: 'Paused'>, ...}
+thread_id = 'd0e0cc50-a0a5-47d8-81be-17db68a96189'
+snapshot = SubmissionSnapshot(submission_id='dcd4ee50-769b-497b-9247-749b0cc22e74', exam_id='b3401215-8f53-4326-96d4-4240be5f46e7...ope=RetrievalScope(document_ids=(), chapter_ids=(), section_range=None, knowledge_points=()), scoring_basis_error=None)
+
+    async def _persist_outcome(
+        self,
+        *,
+        workflow_id: str,
+        state: Mapping[str, Any],
+        thread_id: str,
+        snapshot: Any,
+    ) -> WorkflowRun:
+        """按一次运行/恢复的真实结论落库：成绩与工作流状态在同一事务内写入（H01）。
+    
+        不能只写业务状态：待复核成绩、最终成绩与失败事实都必须落库，否则复核队列与结果读模型
+        看不到本轮结论。三种事实分支由 ``save_workflow_outcome`` 区分；``is_final=False`` 表示
+        成绩待教师复核。工作流状态在同一事务内由 ``save_checkpoint_within`` 写入，包含当前节点、
+        暂停原因、线程信息与恢复状态；任一步失败整体回滚。事务提交后按 ``is_final`` 生成诊断并写
+        终态（P1.3，见 :meth:`_finalize_diagnosis`）。
+        """
+    
+        payload = dict(state)
+        current_node = str(payload.get("current_node") or LOAD_SUBMISSION)
+        pause_reason = payload.get("pause_reason")
+        results, decisions, exam_result = _outcome_state_facts(payload, snapshot)
+        submission_id = str(payload.get("submission_id") or "")
+        try:
+>           row = self._outcome_repository().save_workflow_outcome(
+                submission_id,
+                context=snapshot.to_context(),
+                results=results,
+                decisions=decisions,
+                exam_result=exam_result,
+                **({"scoring_inputs": snapshot.scoring_inputs} if snapshot.scoring_inputs else {}),
+                state_writer=lambda session: self._checkpoints.save_checkpoint_within(
+                    session,
+                    workflow_id,
+                    payload,
+                    current_node,
+                    str(pause_reason) if pause_reason else None,
+                    thread_id=thread_id,
+                ),
+            )
+E           TypeError: DatabaseGradingRepository.save_workflow_outcome() got an unexpected keyword argument 'scoring_inputs'
+
+backend\app\api\workflow.py:898: TypeError
+_________ test_startup_recovery_turns_diagnosis_pending_run_resumable _________
+
+env = {'engine': Engine(sqlite:///D:\YJX\Cache\Temp\pytest-of-10169\pytest-227\test_startup_recovery_turns_di0\workflow.db),...er_id=UUID('e00b4042-826e-425d-8ea1-903ea9621245'), subjective_answer_id=UUID('93423eb0-4ce6-4e61-bb9d-a760e5cfd0a3'))}
+client_factory = <function client_factory.<locals>.factory at 0x00000267D9AA4F40>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x00000267D8D82C40>
+
+    def test_startup_recovery_turns_diagnosis_pending_run_resumable(
+        env: dict[str, Any], client_factory: Any, monkeypatch: Any
+    ) -> None:
+        """P1.4.1：结果已提交但诊断未生成的遗留运行被收敛为可恢复；恢复只补诊断、不重评。"""
+    
+        recorder = _ReadyDiagnosisService()
+        agent = _AcceptedSubjectiveAgent(submission_id=str(env["fixture"].submission_id))
+        service = _service(env, agent=agent, diagnosis_service=_diagnosis_adapter(env, recorder))
+        client = client_factory(service)
+    
+        async def _crash_before_diagnosis(*args: Any, **kwargs: Any) -> Any:
+            """模拟进程在“结果事务已提交、诊断生成”之间中断：只跳过诊断。"""
+    
+            return kwargs["row"]
+    
+        monkeypatch.setattr(
+            "backend.app.api.workflow.WorkflowService._finalize_diagnosis",
+            _crash_before_diagnosis,
+        )
+>       body = _start(client, env).json()
+               ^^^^^^^^^^^^^^^^^^^
+
+tests\contract\test_workflow_api_contract.py:1227: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\contract\test_workflow_api_contract.py:389: in _start
+    return client.post(
+D:\develop\Python\Lib\site-packages\starlette\testclient.py:556: in post
+    return super().post(
+D:\develop\Python\Lib\site-packages\httpx\_client.py:1144: in post
+    return self.request(
+D:\develop\Python\Lib\site-packages\starlette\testclient.py:455: in request
+    return super().request(
+D:\develop\Python\Lib\site-packages\httpx\_client.py:825: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\httpx\_client.py:914: in send
+    response = self._send_handling_auth(
+D:\develop\Python\Lib\site-packages\httpx\_client.py:942: in _send_handling_auth
+    response = self._send_handling_redirects(
+D:\develop\Python\Lib\site-packages\httpx\_client.py:979: in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\httpx\_client.py:1014: in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\starlette\testclient.py:354: in handle_request
+    raise exc
+D:\develop\Python\Lib\site-packages\starlette\testclient.py:351: in handle_request
+    portal.call(self.app, scope, receive, send)
+D:\develop\Python\Lib\site-packages\anyio\from_thread.py:334: in call
+    return cast(T_Retval, self.start_task_soon(func, *args).result())
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\concurrent\futures\_base.py:456: in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\concurrent\futures\_base.py:401: in __get_result
+    raise self._exception
+D:\develop\Python\Lib\site-packages\anyio\from_thread.py:259: in _call_func
+    retval = await retval_or_awaitable
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\fastapi\applications.py:1163: in __call__
+    await super().__call__(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\applications.py:96: in __call__
+    await self.middleware_stack(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\middleware\errors.py:186: in __call__
+    raise exc
+D:\develop\Python\Lib\site-packages\starlette\middleware\errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+D:\develop\Python\Lib\site-packages\starlette\middleware\base.py:193: in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend\app\core\security.py:107: in dispatch
+    return await call_next(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\starlette\middleware\base.py:168: in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+D:\develop\Python\Lib\site-packages\starlette\middleware\base.py:144: in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+D:\develop\Python\Lib\site-packages\starlette\middleware\exceptions.py:63: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    raise exc
+D:\develop\Python\Lib\site-packages\starlette\_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+D:\develop\Python\Lib\site-packages\fastapi\middleware\asyncexitstack.py:18: in __call__
+    await self.app(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\routing.py:670: in __call__
+    await self.middleware_stack(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:2734: in app
+    await route.handle(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:1780: in handle
+    await self.original_router.handle(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:2789: in handle
+    await included_router._handle_selected(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:1800: in _handle_selected
+    await original_route.handle(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:1279: in handle
+    await app(scope, receive, send)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:158: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+D:\develop\Python\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    raise exc
+D:\develop\Python\Lib\site-packages\starlette\_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:144: in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:706: in app
+    raw_response = await run_endpoint_function(
+D:\develop\Python\Lib\site-packages\fastapi\routing.py:352: in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend\app\api\workflow.py:1426: in start_workflow_run
+    return await service.start_run(
+backend\app\api\workflow.py:621: in start_run
+    row = await self._persist_outcome(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <backend.app.api.workflow.WorkflowService object at 0x00000267D9BA7690>
+workflow_id = 'grading-136f2bf8-9838-41c1-8869-4b7369e46698'
+state = {'workflow_id': 'grading-136f2bf8-9838-41c1-8869-4b7369e46698', 'request_id': '62da4055-f627-4480-8d2d-19591a56ec18', 'submission_id': 'f65630fb-5b67-4095-9ade-3ba385a5aea8', 'status': <WorkflowStatus.RUNNING: 'Running'>, ...}
+thread_id = '6d40a983-51a0-4c02-8aa9-c4bb3c6e1a8e'
+snapshot = SubmissionSnapshot(submission_id='f65630fb-5b67-4095-9ade-3ba385a5aea8', exam_id='e0fa6679-0610-420b-aa52-e2e4092cdc2f...ope=RetrievalScope(document_ids=(), chapter_ids=(), section_range=None, knowledge_points=()), scoring_basis_error=None)
+
+    async def _persist_outcome(
+        self,
+        *,
+        workflow_id: str,
+        state: Mapping[str, Any],
+        thread_id: str,
+        snapshot: Any,
+    ) -> WorkflowRun:
+        """按一次运行/恢复的真实结论落库：成绩与工作流状态在同一事务内写入（H01）。
+    
+        不能只写业务状态：待复核成绩、最终成绩与失败事实都必须落库，否则复核队列与结果读模型
+        看不到本轮结论。三种事实分支由 ``save_workflow_outcome`` 区分；``is_final=False`` 表示
+        成绩待教师复核。工作流状态在同一事务内由 ``save_checkpoint_within`` 写入，包含当前节点、
+        暂停原因、线程信息与恢复状态；任一步失败整体回滚。事务提交后按 ``is_final`` 生成诊断并写
+        终态（P1.3，见 :meth:`_finalize_diagnosis`）。
+        """
+    
+        payload = dict(state)
+        current_node = str(payload.get("current_node") or LOAD_SUBMISSION)
+        pause_reason = payload.get("pause_reason")
+        results, decisions, exam_result = _outcome_state_facts(payload, snapshot)
+        submission_id = str(payload.get("submission_id") or "")
+        try:
+>           row = self._outcome_repository().save_workflow_outcome(
+                submission_id,
+                context=snapshot.to_context(),
+                results=results,
+                decisions=decisions,
+                exam_result=exam_result,
+                **({"scoring_inputs": snapshot.scoring_inputs} if snapshot.scoring_inputs else {}),
+                state_writer=lambda session: self._checkpoints.save_checkpoint_within(
+                    session,
+                    workflow_id,
+                    payload,
+                    current_node,
+                    str(pause_reason) if pause_reason else None,
+                    thread_id=thread_id,
+                ),
+            )
+E           TypeError: DatabaseGradingRepository.save_workflow_outcome() got an unexpected keyword argument 'scoring_inputs'
+
+backend\app\api\workflow.py:898: TypeError
+============================== warnings summary ===============================
+..\..\..\develop\Python\Lib\site-packages\fastapi\testclient.py:1
+  D:\develop\Python\Lib\site-packages\fastapi\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/contract/test_workflow_api_contract.py::test_start_run_pauses_for_review_with_persistent_checkpoint
+FAILED tests/contract/test_workflow_api_contract.py::test_repeated_start_reuses_active_run
+FAILED tests/contract/test_workflow_api_contract.py::test_start_ignores_background_task_run_for_same_submission
+FAILED tests/contract/test_workflow_api_contract.py::test_start_persists_pending_review_outcome
+FAILED tests/contract/test_workflow_api_contract.py::test_start_persists_final_result_for_accepted_run
+FAILED tests/contract/test_workflow_api_contract.py::test_start_rejects_graded_submission_and_explicit_regrade
+FAILED tests/contract/test_workflow_api_contract.py::test_historical_terminal_run_does_not_block_submitted_submission[Completed]
+FAILED tests/contract/test_workflow_api_contract.py::test_historical_terminal_run_does_not_block_submitted_submission[Failed]
+FAILED tests/contract/test_workflow_api_contract.py::test_newer_terminal_run_does_not_hide_active_run
+FAILED tests/contract/test_workflow_api_contract.py::test_student_sees_only_public_progress
+FAILED tests/contract/test_workflow_api_contract.py::test_resume_requires_teacher_decision_for_review_pause
+FAILED tests/contract/test_workflow_api_contract.py::test_resume_delegates_to_review_service_and_reports_partial_success
+FAILED tests/contract/test_workflow_api_contract.py::test_production_checkpointer_is_persisted
+FAILED tests/contract/test_workflow_api_contract.py::test_start_generates_diagnosis_only_after_result_commit
+FAILED tests/contract/test_workflow_api_contract.py::test_diagnosis_retryable_failure_keeps_committed_grades
+FAILED tests/contract/test_workflow_api_contract.py::test_diagnosis_hard_failure_keeps_committed_grades_and_fails
+FAILED tests/contract/test_workflow_api_contract.py::test_low_confidence_pause_does_not_generate_diagnosis
+FAILED tests/contract/test_workflow_api_contract.py::test_startup_recovery_turns_diagnosis_pending_run_resumable
+18 failed, 42 passed, 1 warning in 63.79s (0:01:03)

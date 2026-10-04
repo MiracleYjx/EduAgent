@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="3" skipped="0" tests="3" time="2.350" timestamp="2026-10-04T09:26:45.496727+08:00" hostname="YJX"><testcase classname="tests.unit.workflows.test_fixed_scoring_state" name="test_direct_agent_rejects_foreign_or_changed_fixed_target_before_grader[other-answer]" time="0.004"><failure message="Failed: Foreign fixed input must be rejected before grading.">mutation = 'other-answer'
+
+    @pytest.mark.parametrize("mutation", ["other-answer", "changed-link", "changed-content"])
+    def test_direct_agent_rejects_foreign_or_changed_fixed_target_before_grader(mutation):
+        import asyncio
+        from dataclasses import replace
+        from backend.app.ai.agents.grading_agent import GradingAgent
+    
+        class NoGrader:
+            def grade(self, **kwargs):
+                pytest.fail("Foreign fixed input must be rejected before grading.")
+        fixed = scoring()
+        current = snapshot(fixed)
+        update = ({"answer_id": "other-answer"} if mutation == "other-answer" else
+                  {"exam_question_id": "other-link"} if mutation == "changed-link" else {})
+        changed = fixed.model_copy(update=update)
+        target = replace(current.answers[0], answer_id=changed.answer_id, scoring_input=changed)
+        if mutation == "changed-content":
+            target = replace(target, content="Unrecorded content")
+&gt;       invocation = asyncio.run(GradingAgent(objective_grader=NoGrader()).grade_answer_async(
+            current, target, request_id="request-controlled"))
+
+tests\unit\workflows\test_fixed_scoring_state.py:463: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+D:\develop\Python\Lib\asyncio\runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\asyncio\runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\asyncio\base_events.py:725: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+backend\app\ai\agents\grading_agent.py:300: in grade_answer_async
+    outcome = await self._grade_answer(snapshot, target, session=session, settings=settings)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend\app\ai\agents\grading_agent.py:429: in _grade_answer
+    return self._grade_objective(snapshot, target, question_type=question_type)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend\app\ai\agents\grading_agent.py:455: in _grade_objective
+    result = self._objective_grader.grade(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;tests.unit.workflows.test_fixed_scoring_state.test_direct_agent_rejects_foreign_or_changed_fixed_target_before_grader.&lt;locals&gt;.NoGrader object at 0x00000162D5366A50&gt;
+kwargs = {'question_type': &lt;QuestionType.SINGLE_CHOICE: 'SINGLE_CHOICE'&gt;, 'reference_answer': 'A', 'student_answer': 'A', 'max_score': 2.0, ...}
+
+    def grade(self, **kwargs):
+&gt;       pytest.fail("Foreign fixed input must be rejected before grading.")
+E       Failed: Foreign fixed input must be rejected before grading.
+
+tests\unit\workflows\test_fixed_scoring_state.py:454: Failed</failure></testcase><testcase classname="tests.unit.workflows.test_fixed_scoring_state" name="test_direct_agent_rejects_foreign_or_changed_fixed_target_before_grader[changed-link]" time="0.022"><failure message="Failed: Foreign fixed input must be rejected before grading.">mutation = 'changed-link'
+
+    @pytest.mark.parametrize("mutation", ["other-answer", "changed-link", "changed-content"])
+    def test_direct_agent_rejects_foreign_or_changed_fixed_target_before_grader(mutation):
+        import asyncio
+        from dataclasses import replace
+        from backend.app.ai.agents.grading_agent import GradingAgent
+    
+        class NoGrader:
+            def grade(self, **kwargs):
+                pytest.fail("Foreign fixed input must be rejected before grading.")
+        fixed = scoring()
+        current = snapshot(fixed)
+        update = ({"answer_id": "other-answer"} if mutation == "other-answer" else
+                  {"exam_question_id": "other-link"} if mutation == "changed-link" else {})
+        changed = fixed.model_copy(update=update)
+        target = replace(current.answers[0], answer_id=changed.answer_id, scoring_input=changed)
+        if mutation == "changed-content":
+            target = replace(target, content="Unrecorded content")
+&gt;       invocation = asyncio.run(GradingAgent(objective_grader=NoGrader()).grade_answer_async(
+            current, target, request_id="request-controlled"))
+
+tests\unit\workflows\test_fixed_scoring_state.py:463: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+D:\develop\Python\Lib\asyncio\runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\asyncio\runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\asyncio\base_events.py:725: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+backend\app\ai\agents\grading_agent.py:300: in grade_answer_async
+    outcome = await self._grade_answer(snapshot, target, session=session, settings=settings)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend\app\ai\agents\grading_agent.py:429: in _grade_answer
+    return self._grade_objective(snapshot, target, question_type=question_type)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend\app\ai\agents\grading_agent.py:455: in _grade_objective
+    result = self._objective_grader.grade(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;tests.unit.workflows.test_fixed_scoring_state.test_direct_agent_rejects_foreign_or_changed_fixed_target_before_grader.&lt;locals&gt;.NoGrader object at 0x00000162D0BC9400&gt;
+kwargs = {'question_type': &lt;QuestionType.SINGLE_CHOICE: 'SINGLE_CHOICE'&gt;, 'reference_answer': 'A', 'student_answer': 'A', 'max_score': 2.0, ...}
+
+    def grade(self, **kwargs):
+&gt;       pytest.fail("Foreign fixed input must be rejected before grading.")
+E       Failed: Foreign fixed input must be rejected before grading.
+
+tests\unit\workflows\test_fixed_scoring_state.py:454: Failed</failure></testcase><testcase classname="tests.unit.workflows.test_fixed_scoring_state" name="test_direct_agent_rejects_foreign_or_changed_fixed_target_before_grader[changed-content]" time="0.002"><failure message="Failed: Foreign fixed input must be rejected before grading.">mutation = 'changed-content'
+
+    @pytest.mark.parametrize("mutation", ["other-answer", "changed-link", "changed-content"])
+    def test_direct_agent_rejects_foreign_or_changed_fixed_target_before_grader(mutation):
+        import asyncio
+        from dataclasses import replace
+        from backend.app.ai.agents.grading_agent import GradingAgent
+    
+        class NoGrader:
+            def grade(self, **kwargs):
+                pytest.fail("Foreign fixed input must be rejected before grading.")
+        fixed = scoring()
+        current = snapshot(fixed)
+        update = ({"answer_id": "other-answer"} if mutation == "other-answer" else
+                  {"exam_question_id": "other-link"} if mutation == "changed-link" else {})
+        changed = fixed.model_copy(update=update)
+        target = replace(current.answers[0], answer_id=changed.answer_id, scoring_input=changed)
+        if mutation == "changed-content":
+            target = replace(target, content="Unrecorded content")
+&gt;       invocation = asyncio.run(GradingAgent(objective_grader=NoGrader()).grade_answer_async(
+            current, target, request_id="request-controlled"))
+
+tests\unit\workflows\test_fixed_scoring_state.py:463: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+D:\develop\Python\Lib\asyncio\runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\asyncio\runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\asyncio\base_events.py:725: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+backend\app\ai\agents\grading_agent.py:300: in grade_answer_async
+    outcome = await self._grade_answer(snapshot, target, session=session, settings=settings)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend\app\ai\agents\grading_agent.py:429: in _grade_answer
+    return self._grade_objective(snapshot, target, question_type=question_type)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend\app\ai\agents\grading_agent.py:455: in _grade_objective
+    result = self._objective_grader.grade(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;tests.unit.workflows.test_fixed_scoring_state.test_direct_agent_rejects_foreign_or_changed_fixed_target_before_grader.&lt;locals&gt;.NoGrader object at 0x00000162D5367380&gt;
+kwargs = {'question_type': &lt;QuestionType.SINGLE_CHOICE: 'SINGLE_CHOICE'&gt;, 'reference_answer': 'A', 'student_answer': 'A', 'max_score': 2.0, ...}
+
+    def grade(self, **kwargs):
+&gt;       pytest.fail("Foreign fixed input must be rejected before grading.")
+E       Failed: Foreign fixed input must be rejected before grading.
+
+tests\unit\workflows\test_fixed_scoring_state.py:454: Failed</failure></testcase></testsuite></testsuites>

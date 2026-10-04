@@ -1,0 +1,55 @@
+........................................................................ [ 34%]
+........................................................................ [ 68%]
+................................................F..................      [100%]
+================================== FAILURES ===================================
+_____________ test_resume_without_runtime_checkpoint_is_rejected ______________
+
+env = {'engine': Engine(sqlite:///D:\YJX\Cache\Temp\pytest-of-10169\pytest-225\test_resume_without_runtime_ch0\workflow.db),...er_id=UUID('709e242c-648f-4c24-b14b-e37124652396'), subjective_answer_id=UUID('263aa107-8f12-4363-933f-0b8266a466d7'))}
+client_factory = <function client_factory.<locals>.factory at 0x000001F24812BB00>
+
+    def test_resume_without_runtime_checkpoint_is_rejected(
+        env: dict[str, Any], client_factory: Any
+    ) -> None:
+        """没有持久 runtime 检查点的暂停运行不提供自动恢复。"""
+    
+        service = _service(env)
+        client = client_factory(service)
+        state = {
+            "workflow_id": "grading-without-runtime",
+            "request_id": "request-without-runtime",
+            "submission_id": str(env["fixture"].submission_id),
+            "status": WorkflowStatus.PAUSED,
+            "current_node": PENDING_REVIEW,
+            "pause_reason": "系统故障暂停。",
+            "retry_count": 0,
+            "confidence_decisions": {},
+            "grading_results": {},
+        }
+        _store(env).save_checkpoint(
+            "grading-without-runtime",
+            state,
+            PENDING_REVIEW,
+            "系统故障暂停。",
+            thread_id="thread-without-runtime",
+        )
+    
+        response = client.post(
+            "/api/workflow/runs/grading-without-runtime/resume",
+            headers=_headers(_users(env)["teacher"], UserRole.TEACHER),
+            json={},
+        )
+    
+>       assert response.status_code == 409
+E       assert 500 == 409
+E        +  where 500 = <Response [500 Internal Server Error]>.status_code
+
+tests\contract\test_workflow_api_contract.py:928: AssertionError
+============================== warnings summary ===============================
+..\..\..\develop\Python\Lib\site-packages\fastapi\testclient.py:1
+  D:\develop\Python\Lib\site-packages\fastapi\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/contract/test_workflow_api_contract.py::test_resume_without_runtime_checkpoint_is_rejected
+1 failed, 210 passed, 1 warning in 86.19s (0:01:26)

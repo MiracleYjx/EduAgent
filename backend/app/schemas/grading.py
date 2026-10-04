@@ -19,12 +19,29 @@ from __future__ import annotations
 from datetime import datetime
 from decimal import Decimal
 from enum import StrEnum
-from typing import Annotated
+from typing import Annotated, Any, Self
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    JsonValue,
+    SerializationInfo,
+    SerializerFunctionWrapHandler,
+    model_serializer,
+    model_validator,
+)
 
 from backend.app.domain.enums import QuestionType
 from backend.app.schemas.ai import ConfidenceScore, NonEmptyText
+from backend.app.schemas.content_validation import ImageReviewReference
+from backend.app.schemas.exam_scoring import Amount, ScoringBasis
+from backend.app.schemas.image_assessment import (
+    ImageInputRefs,
+    ImageManualCheck,
+    ImportedImageReview,
+)
+from backend.app.schemas.question_assets import QuestionAssetView
 
 #: 单题得分（不小于零）。
 DecimalScore = Annotated[Decimal, Field(ge=0)]
@@ -49,6 +66,182 @@ class ExamResultStatus(StrEnum):
     FAILED = "Failed"
 
 
+class ScoringSourceReference(BaseModel):
+    """References actually used by grading; absent before retrieval, never fabricated."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    chunk_id: NonEmptyText
+    course_id: NonEmptyText | None
+    document_id: NonEmptyText | None
+    metadata: dict[str, JsonValue] = Field(default_factory=dict)
+
+
+class VerifiedImageConditions(BaseModel):
+    """Current real review event, including the original event on imported images."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    review_ref: ImageReviewReference
+    context_revision: int = Field(ge=0, strict=True)
+    input_refs: ImageInputRefs
+    check: ImageManualCheck
+    imported_review: ImportedImageReview | None = None
+
+    @model_validator(mode="after")
+    def _actual_review(self) -> Self:
+        if (
+            self.check.status != "confirmed"
+            or self.review_ref.check_id != self.check.id
+        ):
+            raise ValueError("图片评分证据必须引用真实已确认核对。")
+        if self.check.input_refs.images != self.input_refs.images:
+            raise ValueError("图片评分证据必须对应当前整组原图。")
+        binding = self.imported_review
+        if binding is None:
+            if (
+                self.review_ref.owner_kind != "question"
+                or self.review_ref.binding_id is not None
+            ):
+                raise ValueError("本题核对不能伪造转入绑定。")
+            if self.check.context_revision != self.context_revision:
+                raise ValueError("本题核对修订号已过期。")
+        elif (
+            self.review_ref.owner_kind != "extracted_question"
+            or self.review_ref.binding_id != binding.id
+            or self.review_ref.owner_id != binding.source_ref.owner_id
+            or self.check.id != binding.source_ref.check_id
+            or binding.context_revision != self.context_revision
+            or binding.input_refs != self.input_refs
+        ):
+            raise ValueError("导入核对必须保留真实原身份及当前绑定。")
+        return self
+
+
+class ScoringInput(BaseModel):
+    """Server-built per-exam input; amounts and evidence are fixed business facts."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    exam_id: NonEmptyText
+    exam_question_id: NonEmptyText
+    question_id: NonEmptyText
+    submission_id: NonEmptyText
+    answer_id: NonEmptyText
+    student_id: NonEmptyText
+    course_id: NonEmptyText
+    order: int = Field(ge=1, strict=True)
+    question_validation_revision: int = Field(ge=0, strict=True)
+    question_type: QuestionType
+    question_content: NonEmptyText
+    options: dict[str, JsonValue] | list[JsonValue] | None
+    order_preserved: bool
+    reference_answer: str | None
+    source_rubric: str | None
+    effective_score: Amount
+    base_score: Amount
+    scoring_basis: ScoringBasis
+    published_knowledge_points: list[NonEmptyText]
+    student_answer: str | list[str] | dict[str, str] | None
+    assets: list[QuestionAssetView] = Field(default_factory=list)
+    verified_image_conditions: VerifiedImageConditions | None = None
+    course_context: str | None = None
+    source_references: list[ScoringSourceReference] | None = None
+
+    @model_validator(mode="before")
+    @classmethod
+    def _ordered_options(cls, value: object) -> object:
+        if not isinstance(value, dict) or "ordered_options" not in value:
+            return value
+        if "options" in value:
+            raise ValueError("选项仅保存一份真实内容，不能同时提供两种运输字段。")
+        raw = value["ordered_options"]
+        if not isinstance(raw, list):
+            # TypeError would bypass Pydantic's structured ValidationError boundary.
+            raise ValueError("检查点选项须为真实有序键值对。")  # noqa: TRY004
+        items: dict[str, JsonValue] = {}
+        for pair in raw:
+            if (
+                not isinstance(pair, (list, tuple))
+                or len(pair) != 2
+                or not isinstance(pair[0], str)
+            ):
+                raise ValueError("检查点选项须为真实有序键值对。")
+            key, text = pair
+            if key in items:
+                raise ValueError("检查点选项键重复。")
+            items[key] = text
+        restored = {
+            key: entry for key, entry in value.items() if key != "ordered_options"
+        }
+        restored["options"] = items
+        return restored
+
+    @model_serializer(mode="wrap")
+    def _checkpoint_options(
+        self, handler: SerializerFunctionWrapHandler, info: SerializationInfo
+    ) -> dict[str, Any]:
+        result = handler(self)
+        if (
+            info.mode == "json"
+            and isinstance(self.options, dict)
+            and "options" in result
+        ):
+            # DTO-level transport field cannot collide with business option keys or legacy lists.
+            result["ordered_options"] = list(result.pop("options").items())
+        return result
+
+    @model_validator(mode="after")
+    def _image_ownership(self) -> Self:
+        if any(str(asset.question_id) != self.question_id for asset in self.assets):
+            raise ValueError("评分题图必须属于当前题目。")
+        if len({asset.id for asset in self.assets}) != len(self.assets):
+            raise ValueError("评分题图身份重复。")
+        if [asset.order_index for asset in self.assets] != list(
+            range(1, len(self.assets) + 1)
+        ):
+            raise ValueError("评分题图须保持真实连续顺序。")
+        evidence = self.verified_image_conditions
+        if evidence is not None:
+            if not self.assets or [
+                (str(asset.id), asset.file_id) for asset in self.assets
+            ] != [
+                (str(image.asset_id), image.file_id)
+                for image in evidence.input_refs.images
+            ]:
+                raise ValueError("当前核对与评分题图身份或顺序不一致。")
+            if (
+                evidence.review_ref.owner_kind == "question"
+                and str(evidence.review_ref.owner_id) != self.question_id
+            ):
+                raise ValueError("本题核对不得属于其他题目。")
+        if (self.course_context is None) != (self.source_references is None):
+            raise ValueError("未检索与实际检索上下文必须明确区分。")
+        return self
+
+
+def scoring_input_identity(value: ScoringInput) -> tuple[str, ...]:
+    """Business identity assembled by services, never by the model or a prompt."""
+    return (
+        value.exam_id,
+        value.exam_question_id,
+        value.question_id,
+        value.submission_id,
+        value.answer_id,
+        value.student_id,
+        value.course_id,
+    )
+
+
+def same_fixed_scoring_input(left: ScoringInput, right: ScoringInput) -> bool:
+    """Retrieval enrichment is allowed; every fixed fact and option order must match."""
+    excluded = {"course_context", "source_references"}
+    return left.model_dump(mode="json", exclude=excluded) == right.model_dump(
+        mode="json", exclude=excluded
+    ) and (
+        list(left.options.items()) == list(right.options.items())
+        if isinstance(left.options, dict) and isinstance(right.options, dict)
+        else left.options == right.options
+    )
+
+
 class ExpectedAnswer(BaseModel):
     """服务端权威的单题预期集合条目（题序 + 答案/题目关联 + 满分 + 知识点）。"""
 
@@ -57,8 +250,13 @@ class ExpectedAnswer(BaseModel):
     order: int = Field(ge=1, description="考试中的题序，从 1 开始。")
     answer_id: NonEmptyText = Field(description="答卷中的答案标识。")
     question_id: NonEmptyText = Field(description="题目标识。")
+    exam_question_id: NonEmptyText | None = Field(
+        default=None, description="真实考试关联；旧结果未存时保持空。"
+    )
     question_type: QuestionType = Field(description="题目自身声明的题型。")
-    max_score: PositiveDecimalScore = Field(description="题目满分，来自题目定义。")
+    max_score: PositiveDecimalScore = Field(
+        description="本场固定满分；不从当前题库反推历史值。"
+    )
     knowledge_points: list[NonEmptyText] = Field(
         default_factory=list,
         description="题目声明的知识点；未声明时为空列表。",
@@ -99,6 +297,9 @@ class QuestionResultDTO(BaseModel):
     order: int = Field(ge=1, description="考试题序。")
     answer_id: NonEmptyText = Field(description="答案标识。")
     question_id: NonEmptyText = Field(description="题目标识。")
+    exam_question_id: NonEmptyText | None = Field(
+        default=None, description="真实考试关联；旧结果未存时保持空。"
+    )
     question_type: QuestionType = Field(description="题目题型。")
     max_score: PositiveDecimalScore = Field(description="题目满分。")
     score: DecimalScore | None = Field(
@@ -478,7 +679,9 @@ class TeacherExamResultSummaryDTO(BaseModel):
     exam_id: NonEmptyText = Field(description="考试标识。")
     submitted_count: int = Field(default=0, ge=0, description="已提交答卷数量。")
     final_count: int = Field(default=0, ge=0, description="已形成最终成绩的数量。")
-    pending_review_count: int = Field(default=0, ge=0, description="待复核题目数量合计。")
+    pending_review_count: int = Field(
+        default=0, ge=0, description="待复核题目数量合计。"
+    )
     average_of_final_scores: DecimalScore | None = Field(
         default=None, description="仅基于最终成绩的平均分；无最终成绩时为 None。"
     )

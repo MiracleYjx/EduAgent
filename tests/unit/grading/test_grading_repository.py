@@ -1142,7 +1142,14 @@ def test_reconstructed_executor_loads_persisted_scope_into_subjective_source(
 
     scope = RetrievalScope(knowledge_points=["persisted tag"])
     repository.save_task(
-        _task(fixture), request_id="persisted-scope", retrieval_scope=scope
+        _task(fixture),
+        request_id="persisted-scope",
+        retrieval_scope=scope,
+        scoring_inputs=DatabaseGradingSubmissionReader(
+            session_factory=lambda: Session(engine)
+        )
+        .load(str(fixture.submission_id))
+        .scoring_inputs,
     )
     sources: list[object] = []
 

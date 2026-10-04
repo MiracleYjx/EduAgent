@@ -45,11 +45,13 @@ from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from typing import Any, Final, Protocol
 
+from pydantic import ValidationError
 from sqlalchemy.orm import Session
 
 from backend.app.ai.agents.invocation import AgentInvocation, normalize_trace_context
 from backend.app.ai.agents.state import (
     AgentError,
+    AgentInput,
     AgentOutput,
     AgentStatus,
     AgentType,
@@ -77,6 +79,7 @@ from backend.app.services.grading.grading_task_service import (
     DecisionRecordingPolicy,
     GradingOutcome,
     GradingTargetAnswer,
+    GradingTaskError,
     SubmissionSnapshot,
 )
 from backend.app.services.grading.objective_grader import (
@@ -268,7 +271,14 @@ class GradingAgent:
         outcome = asyncio.run(
             self._grade_answer(snapshot, target, session=session, settings=settings)
         )
-        return AgentInvocation(request_id=request_id, workflow_id=workflow_id, output=outcome.output)
+        return AgentInvocation(
+            request_id=request_id,
+            workflow_id=workflow_id,
+            output=outcome.output,
+            input=self._input(
+                snapshot, target, request_id=request_id, workflow_id=workflow_id
+            ),
+        )
 
     async def grade_answer_async(
         self,
@@ -289,7 +299,14 @@ class GradingAgent:
 
         request_id, workflow_id = normalize_trace_context(request_id, workflow_id)
         outcome = await self._grade_answer(snapshot, target, session=session, settings=settings)
-        return AgentInvocation(request_id=request_id, workflow_id=workflow_id, output=outcome.output)
+        return AgentInvocation(
+            request_id=request_id,
+            workflow_id=workflow_id,
+            output=outcome.output,
+            input=self._input(
+                snapshot, target, request_id=request_id, workflow_id=workflow_id
+            ),
+        )
 
     def score(
         self,
@@ -347,6 +364,39 @@ class GradingAgent:
             exam_result=exam_result,
         )
 
+    @staticmethod
+    def _input(
+        snapshot: SubmissionSnapshot,
+        target: GradingTargetAnswer,
+        *,
+        request_id: str,
+        workflow_id: str | None,
+    ) -> AgentInput | None:
+        if (
+            not isinstance(snapshot, SubmissionSnapshot)
+            or not isinstance(target, GradingTargetAnswer)
+            or any(answer.max_score is None for answer in snapshot.answers)
+        ):
+            return None  # Existing invalid-input outcome is retained.
+        try:
+            snapshot.require_fixed_target(target)
+            return AgentInput(
+                agent_type=AgentType.GRADING,
+                request_id=request_id,
+                workflow_id=workflow_id,
+                submission_context=snapshot.to_context(),
+                answer_id=target.answer_id,
+                question_id=target.question_id,
+                question_type=target.question_type,
+                scoring_input=(
+                    target.scoring_input.model_copy(deep=True)
+                    if target.scoring_input is not None
+                    else None
+                ),
+            )
+        except (GradingTaskError, ValidationError):
+            return None  # Retain the original failure when no lawful envelope exists.
+
     # ------------------------------------------------------------------ 单题编排
 
     async def _grade_answer(
@@ -366,6 +416,13 @@ class GradingAgent:
                 GRADING_AGENT_INVALID_INPUT,
                 "阅卷输入必须是答卷快照与单题目标。",
             )
+        try:
+            snapshot.require_scoring_ready()
+            snapshot.require_fixed_target(target)
+        except GradingTaskError as error:
+            return self._failure(error.error_code, error.detail)
+        if target.max_score is None:
+            return self._failure("EXAM_SCORING_BASIS_MISSING", "本场固定满分缺失，不能执行评分。")
         try:
             question_type = normalize_question_type(target.question_type)
             mode = self._router.route_type(question_type)
@@ -393,6 +450,7 @@ class GradingAgent:
     ) -> _AnswerOutcome:
         """客观题：只调用确定性规则评分器，不调用置信度策略、不产生决策快照。"""
 
+        assert target.max_score is not None  # Established by _grade_answer.
         student_answer = target.student_answer
         if isinstance(student_answer, Mapping):
             return self._failure(
@@ -540,6 +598,7 @@ class GradingAgent:
             result.answer_id != target.answer_id
             or result.submission_id != snapshot.submission_id
             or result.question_type != target.question_type
+            or target.max_score is None
             or result.max_score != float(target.max_score)
         ):
             return self._failure(

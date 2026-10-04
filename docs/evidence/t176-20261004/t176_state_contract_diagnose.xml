@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="1" time="11.122" timestamp="2026-10-04T09:14:57.731544+08:00" hostname="YJX"><testcase classname="tests.contract.test_workflow_api_contract" name="test_start_run_pauses_for_review_with_persistent_checkpoint" time="1.390"><failure message="assert 409 == 200&#10; +  where 409 = &lt;Response [409 Conflict]&gt;.status_code">env = {'engine': Engine(sqlite:///D:\YJX\Cache\Temp\pytest-of-10169\pytest-224\test_start_run_pauses_for_revi0\workflow.db),...er_id=UUID('25bda0f6-5520-4e49-bd15-2b4b885d84c0'), subjective_answer_id=UUID('46f89a4f-48e3-4416-94aa-d93760d3af5d'))}
+client_factory = &lt;function client_factory.&lt;locals&gt;.factory at 0x0000021066A70860&gt;
+
+    def test_start_run_pauses_for_review_with_persistent_checkpoint(
+        env: dict[str, Any], client_factory: Any
+    ) -&gt; None:
+        """真实服务 + 真实持久 Checkpointer 跑到 interrupt：状态可查、待复核答案可见。"""
+    
+        client = client_factory(_service(env))
+        response = _start(client, env)
+    
+&gt;       assert response.status_code == 200
+E       assert 409 == 200
+E        +  where 409 = &lt;Response [409 Conflict]&gt;.status_code
+
+client     = &lt;starlette.testclient.TestClient object at 0x0000021066AEFCB0&gt;
+client_factory = &lt;function client_factory.&lt;locals&gt;.factory at 0x0000021066A70860&gt;
+env        = {'engine': Engine(sqlite:///D:\YJX\Cache\Temp\pytest-of-10169\pytest-224\test_start_run_pauses_for_revi0\workflow.db),
+ 'fixture': SubmissionFixture(teacher_id=UUID('6c32fe3f-822e-469e-a350-5408a26e97e8'),
+                              student_id=UUID('c82faacb-ab89-4211-9fa7-aff934758a69'),
+                              course_id=UUID('f24a847c-157e-455a-be5b-0dc94946e8c7'),
+                              objective_question_id=UUID('a495cd93-0ac0-47ff-9001-05c76534cde7'),
+                              subjective_question_id=UUID('65e9e8d6-0920-414d-b3ba-3be6ff571ffa'),
+                              exam_id=UUID('2ea46c07-5cbd-40df-a2ea-892449f537fc'),
+                              submission_id=UUID('a4439daf-3c4c-4c46-8972-72e73b30d190'),
+                              objective_answer_id=UUID('25bda0f6-5520-4e49-bd15-2b4b885d84c0'),
+                              subjective_answer_id=UUID('46f89a4f-48e3-4416-94aa-d93760d3af5d'))}
+response   = &lt;Response [409 Conflict]&gt;
+
+tests\contract\test_workflow_api_contract.py:467: AssertionError</failure></testcase></testsuite></testsuites>

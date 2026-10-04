@@ -1,0 +1,5 @@
+backend\app\services\grading\grading_task_service.py:415: error: Argument "max_score" to "ExpectedAnswer" has incompatible type "Decimal | None"; expected "Decimal"  [arg-type]
+backend\app\services\grading\grading_task_service.py:914: error: Argument "published_knowledge_points" to "ScoringInput" has incompatible type "list[str] | None"; expected "list[str]"  [arg-type]
+backend\app\services\grading\grading_repository.py:1136: error: Argument 2 to "where" of "Select" has incompatible type "bool | Any"; expected "ColumnElement[bool] | _HasClauseElement[bool] | SQLCoreOperations[bool] | ExpressionElementRole[bool] | TypedColumnsClauseRole[bool] | Callable[[], ColumnElement[bool]] | LambdaElement"  [arg-type]
+backend\app\services\grading\grading_repository.py:1136: error: Item "None" of "Answer | None" has no attribute "question_id"  [union-attr]
+Found 4 errors in 2 files (checked 4 source files)

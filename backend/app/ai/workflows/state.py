@@ -25,7 +25,7 @@ thread/checkpoint 标识、待写入任务或执行记录；完整恢复由 T073
 - **状态分离（O02）**：流程状态复用 ``WorkflowStatus``，复核状态复用 ``ReviewStatus``，两者与
   Agent Trace 状态（``backend.app.ai.agents.state.AgentStatus``）分离。待复核既不是失败也不是
   完成；教师的人工结论可以覆盖自动决策，但 Agent 不得声明人工结论。
-- **载荷版本**：``kind="langgraph-grading-state-payload"``、``version="1"``，与 M3（T056）的
+- **载荷版本**：``kind="langgraph-grading-state-payload"``、``version="2"``（明确读取已知 v1；缺失新事实保持缺失），与 M3（T056）的
   ``background-task-checkpoint`` 显式区分；编解码不推断 ``resumable``，也不自动置真。
 - **可序列化**：状态只承载文本、数值、枚举、既有 Pydantic DTO 与递归 JSON 值，禁止 Session、
   Provider、ORM 实体或其它不可 JSON 序列化对象。
@@ -61,7 +61,9 @@ from backend.app.schemas.grading import (
     DiagnosisStatus,
     ExamResultDTO,
     QuestionResultDTO,
+    ScoringInput,
     SubmissionContext,
+    same_fixed_scoring_input,
 )
 
 #: 状态缺失、类型非法或状态之间不自洽。
@@ -78,7 +80,7 @@ WORKFLOW_STATE_PAYLOAD_VERSION_UNSUPPORTED: Final[str] = (
 #: 业务状态快照载荷的 kind；与 M3 的后台任务检查点显式区分。
 WORKFLOW_STATE_PAYLOAD_KIND: Final[str] = "langgraph-grading-state-payload"
 #: 业务状态快照载荷版本；字段或语义变化时必须递增。
-WORKFLOW_STATE_PAYLOAD_VERSION: Final[str] = "1"
+WORKFLOW_STATE_PAYLOAD_VERSION: Final[str] = "2"
 #: M3（T056）后台任务检查点的 kind；本模块必须拒绝该载荷。
 LEGACY_BACKGROUND_TASK_CHECKPOINT_KIND: Final[str] = "background-task-checkpoint"
 #: 载荷中承载业务状态的键名。
@@ -122,6 +124,7 @@ ANSWER_SLOT_FIELDS: Final[frozenset[str]] = frozenset(
     {
         "current_answer_id",
         "current_answer_order",
+        "scoring_input",
         "question_type",
         "query",
         "retrieved_context_ids",
@@ -138,6 +141,7 @@ ANSWER_SLOT_FIELDS: Final[frozenset[str]] = frozenset(
 SUBMISSION_COLLECTION_FIELDS: Final[frozenset[str]] = frozenset(
     {
         "submission_context",
+        "scoring_inputs",
         "grading_results",
         "confidence_decisions",
         "final_results",
@@ -174,6 +178,8 @@ class GradingWorkflowState(TypedDict, total=False):
 
     # --- 答卷与当前题 ---
     submission_context: SubmissionContext | None
+    scoring_input: ScoringInput | None
+    scoring_inputs: dict[str, ScoringInput]
     question_type: QuestionType | None
 
     # --- 检索证据（主观题） ---
@@ -262,6 +268,8 @@ class WorkflowStateSnapshot(BaseModel):
     submission_context: SubmissionContext | None = Field(
         default=None, description="权威题目集合与稳定题序。"
     )
+    scoring_input: ScoringInput | None = None
+    scoring_inputs: dict[NonEmptyText, ScoringInput] = Field(default_factory=dict)
     question_type: QuestionType | None = Field(default=None, description="当前题目题型。")
     query: NonEmptyText | None = Field(
         default=None, description="当前主观题的检索查询文本。"
@@ -356,6 +364,48 @@ class WorkflowStateSnapshot(BaseModel):
                 raise ValueError(
                     "final_results 必须与 exam_result.items 同源，不得出现两份不同版本。"
                 )
+        return self
+
+    @model_validator(mode="after")
+    def _validate_fixed_inputs(self) -> WorkflowStateSnapshot:
+        expected = (
+            {item.answer_id: item for item in self.submission_context.expected_answers}
+            if self.submission_context is not None
+            else None
+        )
+        for answer_id, value in self.scoring_inputs.items():
+            if value.answer_id != answer_id or value.submission_id != self.submission_id:
+                raise ValueError("固定输入的答案键或答卷身份不一致。")
+            if self.submission_context is not None:
+                context = self.submission_context
+                if (
+                    value.exam_id != context.exam_id
+                    or value.student_id != context.student_id
+                ):
+                    raise ValueError("固定输入不属于当前考试或学生。")
+            if expected is not None:
+                target = expected.get(answer_id)
+                if target is None or (
+                    value.question_id != target.question_id
+                    or (
+                        target.exam_question_id is not None
+                        and value.exam_question_id != target.exam_question_id
+                    )
+                    or value.order != target.order
+                    or value.question_type != target.question_type
+                    or value.effective_score != target.max_score
+                    or value.published_knowledge_points != target.knowledge_points
+                ):
+                    raise ValueError("固定输入与本答卷实际题序、题目或评分依据不一致。")
+        if self.scoring_input is not None:
+            value = self.scoring_input
+            saved = self.scoring_inputs.get(value.answer_id)
+            if (
+                value.answer_id != self.current_answer_id
+                or saved is None
+                or not same_fixed_scoring_input(saved, value)
+            ):
+                raise ValueError("当前固定输入不属于当前答案或与整卷固定输入不同。")
         return self
 
     @model_validator(mode="after")
@@ -485,7 +535,7 @@ def workflow_state_from_checkpoint_payload(
             "业务状态载荷。"
         )
     version = checkpoint.get("version")
-    if version != WORKFLOW_STATE_PAYLOAD_VERSION:
+    if version not in {"1", WORKFLOW_STATE_PAYLOAD_VERSION}:
         raise WorkflowStatePayloadVersionError(
             f"检查点版本必须为 {WORKFLOW_STATE_PAYLOAD_VERSION!r}，收到 {version!r}。"
         )
@@ -494,6 +544,8 @@ def workflow_state_from_checkpoint_payload(
         raise WorkflowStateError(
             f"检查点载荷缺少 {CHECKPOINT_STATE_KEY!r} 状态内容。"
         )
+    if version == "1" and ({"scoring_input", "scoring_inputs"} & raw_state.keys()):
+        raise WorkflowStatePayloadVersionError("旧版本不得携带新版固定评分字段。")
     return workflow_state_from_json(raw_state)
 
 

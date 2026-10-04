@@ -1,0 +1,21 @@
+........F........................................................        [100%]
+================================== FAILURES ===================================
+____ test_full_fixed_inputs_round_trip_preserves_options_and_decimal_facts ____
+
+    def test_full_fixed_inputs_round_trip_preserves_options_and_decimal_facts():
+        fixed = scoring()
+        encoded = workflow_state_to_checkpoint_payload(state(fixed))
+>       assert encoded["state"]["scoring_input"]["options"] == [
+            ("C", "Third"),
+            ("A", "First"),
+            ("B", "Second"),
+        ]
+E       AssertionError: assert [['C', 'Third...B', 'Second']] == [('C', 'Third...B', 'Second')]
+E         
+E         At index 0 diff: ['C', 'Third'] != ('C', 'Third')
+E         Use -v to get more diff
+
+tests\unit\workflows\test_fixed_scoring_state.py:170: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/unit/workflows/test_fixed_scoring_state.py::test_full_fixed_inputs_round_trip_preserves_options_and_decimal_facts
+1 failed, 64 passed in 2.69s

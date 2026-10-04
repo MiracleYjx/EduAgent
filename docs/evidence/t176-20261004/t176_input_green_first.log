@@ -1,0 +1,35 @@
+.F.....F                                                                 [100%]
+================================== FAILURES ===================================
+______ test_fixed_compare_keeps_option_order_and_all_business_identities ______
+
+database = (Engine(sqlite:///:memory:), SubmissionFixture(teacher_id=UUID('06eb7880-30f5-4a60-b50a-584fadfffa83'), student_id=UUI...er_id=UUID('f2e9f783-d453-45cc-be2a-3980898db6ce'), subjective_answer_id=UUID('945ad346-8619-4d24-9b97-373e53773f9c')))
+
+    def test_fixed_compare_keeps_option_order_and_all_business_identities(database):
+        value = next(iter(snapshot(database).scoring_inputs.values()))
+        raw = value.model_dump(mode="json")
+>       raw["options"] = dict(reversed(list(raw["options"].items())))
+                                            ^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'list' object has no attribute 'items'
+
+tests\unit\grading\test_scoring_inputs.py:72: AttributeError
+________ test_repository_rejects_result_using_another_exam_full_score _________
+
+database = (Engine(sqlite:///:memory:), SubmissionFixture(teacher_id=UUID('1a913dec-d5d1-47d0-91e8-f27b9834219a'), student_id=UUI...er_id=UUID('b43b89db-fc0b-4e26-b91a-555b174b447b'), subjective_answer_id=UUID('663ed471-518d-4675-bc41-1009608971b6')))
+
+    def test_repository_rejects_result_using_another_exam_full_score(database):
+        engine, info = database
+        repository = DatabaseGradingRepository(session_factory=lambda: Session(engine))
+>       payload = ResultPayload(question_type="Single Choice", score=20.0, max_score=20.0,
+            reason="Controlled wrong exam basis", correct_points=[], missing_knowledge_points=[],
+            knowledge_points=["数据类型"], suggestions=[], confidence=1.0,
+            answer_id=str(info.objective_answer_id), submission_id=str(info.submission_id))
+E       pydantic_core._pydantic_core.ValidationError: 1 validation error for GradingResult
+E       question_type
+E         Input should be 'SINGLE_CHOICE', 'MULTIPLE_CHOICE', 'TRUE_FALSE', 'FILL_BLANK', 'SHORT_ANSWER' or 'ESSAY' [type=enum, input_value='Single Choice', input_type=str]
+E           For further information visit https://errors.pydantic.dev/2.13/v/enum
+
+tests\unit\grading\test_scoring_inputs.py:160: ValidationError
+=========================== short test summary info ===========================
+FAILED tests/unit/grading/test_scoring_inputs.py::test_fixed_compare_keeps_option_order_and_all_business_identities
+FAILED tests/unit/grading/test_scoring_inputs.py::test_repository_rejects_result_using_another_exam_full_score
+2 failed, 6 passed in 1.84s

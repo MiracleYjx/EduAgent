@@ -36,9 +36,11 @@ from contextlib import AbstractContextManager, contextmanager
 from dataclasses import dataclass, field, replace
 from datetime import UTC, datetime
 from decimal import Decimal
+from pathlib import Path
 from typing import Any, Final, NoReturn, Protocol
 from uuid import UUID, uuid4
 
+from pydantic import ValidationError
 from sqlalchemy.orm import Session
 
 from backend.app.ai.retrieval._filters import resolve_retrieval_scope
@@ -54,7 +56,14 @@ from backend.app.domain.enums import (
     QuestionType,
     SubmissionStatus,
 )
-from backend.app.models import Answer, Course, Exam, Submission, WorkflowRun
+from backend.app.models import (
+    Answer,
+    Course,
+    Exam,
+    ExamQuestion,
+    Submission,
+    WorkflowRun,
+)
 from backend.app.schemas.ai import GradingResult
 from backend.app.schemas.grading import (
     DiagnosisReportDTO,
@@ -62,7 +71,10 @@ from backend.app.schemas.grading import (
     GradingTaskStatus,
     GradingTaskStatusDTO,
     QuestionResultDTO,
+    ScoringInput,
     SubmissionContext,
+    VerifiedImageConditions,
+    same_fixed_scoring_input,
 )
 from backend.app.schemas.retrieval_scope import RetrievalScope
 from backend.app.services.audit_service import AuditService
@@ -286,12 +298,40 @@ class GradingTargetAnswer:
     answer_id: str
     question_id: str
     question_type: QuestionType
-    max_score: Decimal
+    max_score: Decimal | None
     knowledge_points: tuple[str, ...] = ()
     content: str = ""
     reference_answer: str | None = None
     scoring_rubric: str | None = None
     student_answer: str | Sequence[str] | Mapping[str, str] | None = None
+    scoring_input: ScoringInput | None = None
+    teacher_id: str | None = None
+
+    def require_max_score(self) -> Decimal:
+        if self.max_score is None:
+            error = GradingNotAllowedError("本场固定满分缺失，无法评分或正式汇总。")
+            error.error_code = "EXAM_SCORING_BASIS_MISSING"
+            raise error
+        return self.max_score
+
+    @classmethod
+    def from_scoring_input(
+        cls, value: ScoringInput, *, teacher_id: str | None
+    ) -> GradingTargetAnswer:
+        return cls(
+            order=value.order,
+            answer_id=value.answer_id,
+            question_id=value.question_id,
+            question_type=value.question_type,
+            max_score=value.effective_score,
+            knowledge_points=tuple(value.published_knowledge_points),
+            content=value.question_content,
+            reference_answer=value.reference_answer,
+            scoring_rubric=value.source_rubric,
+            student_answer=value.student_answer,
+            scoring_input=value,
+            teacher_id=teacher_id,
+        )
 
 
 @dataclass(frozen=True, slots=True)
@@ -319,12 +359,89 @@ class SubmissionSnapshot:
             error.error_code = self.scoring_basis_error
             error.args = (f"{error.error_code}：{detail}",)
             raise error
+        for target in self.answers:
+            self.require_fixed_target(target)
+
+    def require_fixed_target(self, target: GradingTargetAnswer) -> None:
+        """One boundary validates target ownership and compatibility projections."""
+        known = next(
+            (entry for entry in self.answers if entry.answer_id == target.answer_id),
+            None,
+        )
+        if known is None:
+            raise GradingResultOwnershipError("评分目标不属于当前答卷。")
+        value = target.scoring_input
+        if value is None and not self.scoring_inputs:
+            if (
+                self.scoring_basis_error is None
+                and target.max_score is not None
+                and target == known
+            ):
+                return
+            raise GradingResultOwnershipError("评分目标缺少真实本场输入。")
+        if value is None or known.scoring_input is None:
+            raise GradingResultOwnershipError("评分目标缺少真实本场输入。")
+        if (
+            value.exam_id != self.exam_id
+            or value.submission_id != self.submission_id
+            or value.student_id != self.student_id
+            or value.course_id != self.course_id
+            or target.teacher_id != known.teacher_id
+            or not same_fixed_scoring_input(value, known.scoring_input)
+        ):
+            raise GradingResultOwnershipError(
+                "评分目标的本场身份或固定事实不属于当前答卷。"
+            )
+        canonical = GradingTargetAnswer.from_scoring_input(
+            value, teacher_id=known.teacher_id
+        )
+        if target != canonical:
+            raise GradingResultOwnershipError("评分目标兼容字段背离了唯一固定输入。")
+
+    @property
+    def scoring_inputs(self) -> dict[str, ScoringInput]:
+        return {
+            target.answer_id: target.scoring_input
+            for target in self.answers
+            if target.scoring_input is not None
+        }
+
+    def require_fixed_inputs(self, saved: Mapping[str, ScoringInput]) -> None:
+        """Checkpoint input must match every current fixed target, including option order."""
+        current = self.scoring_inputs
+        # Explicitly ready v1 injected snapshots remain compatible; real unknown history is never ready.
+        if (
+            not current
+            and not saved
+            and self.scoring_basis_error is None
+            and all(target.max_score is not None for target in self.answers)
+        ):
+            return
+        if len(current) != len(self.answers) or set(saved) != set(current):
+            raise GradingResultOwnershipError(
+                "检查点缺少真实本场评分输入，拒绝推造或复用。"
+            )
+        if any(
+            not same_fixed_scoring_input(current[key], saved[key]) for key in current
+        ):
+            raise GradingResultOwnershipError(
+                "检查点固定评分输入与当前答卷或考试关联不一致。"
+            )
 
     def to_context(self) -> SubmissionContext:
         """转换为 T054 汇总所需的预期题目集合与题序。"""
 
         from backend.app.schemas.grading import ExpectedAnswer
 
+        if (
+            any(
+                answer.max_score is None or answer.scoring_input is None
+                for answer in self.answers
+            )
+            and self.scoring_basis_error is not None
+        ):
+            self.require_scoring_ready()
+            raise GradingNotAllowedError("缺少本场固定满分，无法构造正式汇总输入。")
         return SubmissionContext(
             submission_id=self.submission_id,
             exam_id=self.exam_id,
@@ -334,8 +451,13 @@ class SubmissionSnapshot:
                     order=answer.order,
                     answer_id=answer.answer_id,
                     question_id=answer.question_id,
+                    exam_question_id=(
+                        answer.scoring_input.exam_question_id
+                        if answer.scoring_input
+                        else None
+                    ),
                     question_type=answer.question_type,
-                    max_score=answer.max_score,
+                    max_score=answer.require_max_score(),
                     knowledge_points=list(answer.knowledge_points),
                 )
                 for answer in self.answers
@@ -350,6 +472,7 @@ class GradingOutcome:
     results: tuple[GradingResult, ...]
     decisions: Mapping[str, ConfidenceDecision] = field(default_factory=dict)
     exam_result: ExamResultDTO | None = None
+    scoring_inputs: Mapping[str, ScoringInput] = field(default_factory=dict)
 
 
 class GradingRepository(Protocol):
@@ -395,9 +518,12 @@ class GradingRepository(Protocol):
         *,
         request_id: str | None = None,
         retrieval_scope: RetrievalScope | None = None,
+        scoring_inputs: Mapping[str, ScoringInput] | None = None,
     ) -> None: ...
 
     def get_retrieval_scope(self, task_id: str) -> RetrievalScope: ...
+
+    def get_scoring_inputs(self, task_id: str) -> Mapping[str, ScoringInput] | None: ...
 
     def lock_submission(self, submission_id: str) -> AbstractContextManager[None]: ...
 
@@ -475,10 +601,14 @@ class NotConfiguredGradingRepository:
         *,
         request_id: str | None = None,
         retrieval_scope: RetrievalScope | None = None,
+        scoring_inputs: Mapping[str, ScoringInput] | None = None,
     ) -> None:
         self._reject()
 
     def get_retrieval_scope(self, task_id: str) -> RetrievalScope:
+        self._reject()
+
+    def get_scoring_inputs(self, task_id: str) -> Mapping[str, ScoringInput] | None:
         self._reject()
 
     def lock_submission(self, submission_id: str) -> AbstractContextManager[None]:
@@ -554,11 +684,13 @@ class DatabaseGradingSubmissionReader:
         *,
         session: Session | None = None,
         session_factory: Callable[[], Session] | None = None,
+        root: Path | None = None,
     ) -> None:
         if session is None and session_factory is None:
             raise ValueError("必须提供 session 或 session_factory。")
         self._session = session
         self._session_factory = session_factory
+        self._root = root
 
     @contextmanager
     def _use_session(self) -> Iterator[Session]:
@@ -575,7 +707,7 @@ class DatabaseGradingSubmissionReader:
     def load(self, submission_id: str) -> SubmissionSnapshot:
         with self._use_session() as session:
             submission = self._load_submission(session, submission_id)
-            return self._build_snapshot(session, submission)
+            return self._build_snapshot(session, submission, root=self._root)
 
     def load_for_teacher(
         self,
@@ -592,7 +724,7 @@ class DatabaseGradingSubmissionReader:
                 )
             if str(course.created_by) != str(teacher_id):
                 raise GradingPermissionError("无权访问该答卷所属课程。")
-            return self._build_snapshot(session, submission)
+            return self._build_snapshot(session, submission, root=self._root)
 
     def validate_retrieval_scope(
         self,
@@ -633,7 +765,9 @@ class DatabaseGradingSubmissionReader:
         return submission
 
     @staticmethod
-    def _build_snapshot(session: Session, submission: Submission) -> SubmissionSnapshot:
+    def _build_snapshot(
+        session: Session, submission: Submission, *, root: Path | None = None
+    ) -> SubmissionSnapshot:
         """按考试题目集合生成快照；不完整或越界数据显式失败。
 
         权威题目集合与题序来自 ``ExamQuestion.order_index``，不从已有 ``Answer``
@@ -673,21 +807,49 @@ class DatabaseGradingSubmissionReader:
             raise GradingSubmissionIncompleteError(
                 f"答卷缺少题目答案：{'、'.join(missing)}。"
             )
-        targets = [
-            GradingTargetAnswer(
-                order=order,
-                answer_id=str(answers_by_question[question.id].id),
-                question_id=str(question.id),
-                question_type=question.type,
-                max_score=_as_decimal(question.score),
-                knowledge_points=tuple(question.knowledge_points or ()),
-                content=question.content,
-                reference_answer=question.reference_answer,
-                scoring_rubric=question.scoring_rubric,
-                student_answer=answers_by_question[question.id].content,
+        course = session.get(Course, exam.course_id)
+        if course is None:
+            raise GradingSubmissionNotFoundError("答卷所属课程不存在。")
+        targets: list[GradingTargetAnswer] = []
+        input_error: str | None = None
+        for link in sorted(exam.exam_question_links, key=lambda item: item.order_index):
+            question = link.question
+            answer = answers_by_question[question.id]
+            value, error = _fixed_scoring_input(
+                session,
+                exam,
+                link,
+                submission,
+                answer,
+                teacher_id=str(course.created_by),
+                root=root,
             )
-            for order, question in enumerate(questions, start=1)
-        ]
+            input_error = input_error or error
+            if value is not None:
+                targets.append(
+                    GradingTargetAnswer.from_scoring_input(
+                        value, teacher_id=str(course.created_by)
+                    )
+                )
+            else:
+                # Unknown history stays readable, but never exposes bank values as fixed exam facts.
+                targets.append(
+                    GradingTargetAnswer(
+                        order=link.order_index,
+                        answer_id=str(answer.id),
+                        question_id=str(question.id),
+                        question_type=question.type,
+                        max_score=(
+                            _as_decimal(link.score) if link.score is not None else None
+                        ),
+                        knowledge_points=tuple(link.published_knowledge_points or ()),
+                        content=question.content,
+                        reference_answer=question.reference_answer,
+                        scoring_rubric=question.scoring_rubric,
+                        student_answer=answer.content,
+                        teacher_id=str(course.created_by),
+                    )
+                )
         return SubmissionSnapshot(
             submission_id=str(submission.id),
             exam_id=str(exam.id),
@@ -695,8 +857,118 @@ class DatabaseGradingSubmissionReader:
             course_id=str(exam.course_id),
             status=submission.status.value,
             answers=tuple(targets),
-            scoring_basis_error=_legacy_scoring_basis_error(exam, questions),
+            scoring_basis_error=input_error
+            or _legacy_scoring_basis_error(exam, questions),
         )
+
+
+def _fixed_scoring_input(
+    session: Session,
+    exam: Exam,
+    link: ExamQuestion,
+    submission: Submission,
+    answer: Answer,
+    *,
+    teacher_id: str,
+    root: Path | None,
+) -> tuple[ScoringInput | None, str | None]:
+    """Read real fixed facts and current evidence without inventing unknown historical values."""
+    from backend.app.schemas.content_validation import ImageReviewReference
+    from backend.app.schemas.exam_scoring import ScoringBasis
+    from backend.app.schemas.question_assets import QuestionAssetView
+    from backend.app.services.content_validation_service import ContentValidationService
+    from backend.app.services.exam_scoring_rules import validate_scoring_basis
+    from backend.app.services.file_storage_service import FileStorageError
+
+    question = link.question
+    if any(
+        value is None
+        for value in (
+            link.score,
+            link.base_score,
+            link.scoring_basis,
+            link.published_knowledge_points,
+        )
+    ):
+        return None, "EXAM_SCORING_BASIS_MISSING"
+    assert link.score is not None and link.base_score is not None
+    assert link.published_knowledge_points is not None
+    try:
+        basis = ScoringBasis.model_validate(link.scoring_basis)
+        validate_scoring_basis(
+            score=link.score,
+            base_score=link.base_score,
+            question_type=question.type,
+            basis=basis,
+        )
+    except (TypeError, ValueError):
+        return None, "EXAM_SCORING_BASIS_MISSING"
+    evidence = None
+    error = None
+    try:
+        assets = [
+            QuestionAssetView.model_validate(asset, from_attributes=True)
+            for asset in question.assets
+        ]
+        if assets:
+            view = ContentValidationService(session, root=root)._image_assessment_view(
+                "question", question.id, actor_id=UUID(teacher_id)
+            )
+            if view.error is not None:
+                error = view.error.code
+            elif (
+                view.status != "confirmed"
+                or view.current_check is None
+                or view.input_refs is None
+            ):
+                error = "VISION_REVIEW_REQUIRED"
+            else:
+                binding = view.imported_review
+                evidence = VerifiedImageConditions(
+                    review_ref=ImageReviewReference(
+                        owner_kind="extracted_question" if binding else "question",
+                        owner_id=(
+                            binding.source_ref.owner_id if binding else question.id
+                        ),
+                        check_id=view.current_check.id,
+                        binding_id=binding.id if binding else None,
+                    ),
+                    context_revision=view.context_revision,
+                    input_refs=view.input_refs,
+                    check=view.current_check,
+                    imported_review=binding,
+                )
+        value = ScoringInput(
+            exam_id=str(exam.id),
+            exam_question_id=str(link.id),
+            question_id=str(question.id),
+            submission_id=str(submission.id),
+            answer_id=str(answer.id),
+            student_id=str(submission.student_id),
+            course_id=str(exam.course_id),
+            order=link.order_index,
+            question_validation_revision=question.validation_revision,
+            question_type=question.type,
+            question_content=question.content,
+            options=question.options,
+            order_preserved=question.order_preserved,
+            reference_answer=question.reference_answer,
+            source_rubric=question.scoring_rubric,
+            effective_score=link.score,
+            base_score=link.base_score,
+            scoring_basis=basis,
+            published_knowledge_points=link.published_knowledge_points,
+            student_answer=answer.content,
+            assets=assets,
+            verified_image_conditions=evidence,
+            course_context=None,
+            source_references=None,
+        )
+    except FileStorageError as exc:
+        return None, exc.code
+    except (ValidationError, ValueError):
+        return None, "EXAM_SCORING_BASIS_MISSING"
+    return value, error
 
 
 def _legacy_scoring_basis_error(exam: Exam, questions: Sequence[Any]) -> str | None:
@@ -830,6 +1102,7 @@ class DefaultScoringPipeline:
             results=tuple(results),
             decisions=decisions,
             exam_result=exam_result,
+            scoring_inputs=snapshot.scoring_inputs,
         )
 
     def _grade_objective(
@@ -842,6 +1115,8 @@ class DefaultScoringPipeline:
             raise GradingExecutionNotReadyError(
                 "字典形态的学生答案缺少键语义与顺序约定，不能用于客观题评分。"
             )
+        if target.max_score is None:
+            raise GradingNotAllowedError("缺少本场满分，不能执行客观题评分。")
         return self._objective.grade(
             question_type=target.question_type,
             reference_answer=target.reference_answer,
@@ -916,7 +1191,15 @@ class InlineGradingTaskExecutor:
                 retrieval_scope=self._repository.get_retrieval_scope(task_id),
             )
             snapshot.require_scoring_ready()
-            outcome = self._pipeline.score(snapshot)
+            read_fixed = getattr(self._repository, "get_scoring_inputs", None)
+            if callable(read_fixed):
+                saved = read_fixed(task_id)
+                snapshot.require_fixed_inputs(saved or {})
+            else:
+                snapshot.require_fixed_inputs({})
+            outcome = replace(
+                self._pipeline.score(snapshot), scoring_inputs=snapshot.scoring_inputs
+            )
             exam_result = outcome.exam_result
             if exam_result is None:
                 raise GradingExecutionNotReadyError("评分管道未返回整卷结果。")
@@ -1097,11 +1380,17 @@ class GradingTaskService:
                 durable=self._repository.durable,
                 created_at=self._clock(),
             )
-            self._repository.save_task(
-                task,
-                request_id=trace_id,
-                retrieval_scope=scope,
-            )
+            if snapshot.scoring_inputs:
+                self._repository.save_task(
+                    task,
+                    request_id=trace_id,
+                    retrieval_scope=scope,
+                    scoring_inputs=snapshot.scoring_inputs,
+                )
+            else:
+                self._repository.save_task(
+                    task, request_id=trace_id, retrieval_scope=scope
+                )
         if self._audit_service is not None:
             self._audit_service.record(
                 actor_id=teacher_id,

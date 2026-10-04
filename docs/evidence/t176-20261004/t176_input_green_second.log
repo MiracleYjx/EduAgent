@@ -1,0 +1,22 @@
+.......F                                                                 [100%]
+================================== FAILURES ===================================
+________ test_repository_rejects_result_using_another_exam_full_score _________
+
+database = (Engine(sqlite:///:memory:), SubmissionFixture(teacher_id=UUID('a1ff8ba3-95d4-4a27-8557-62a6b3c9ee98'), student_id=UUI...er_id=UUID('f3411b82-d1b0-4421-b937-b62f754e52ad'), subjective_answer_id=UUID('7bfd077d-3645-4fdb-93f6-54108116c75a')))
+
+    def test_repository_rejects_result_using_another_exam_full_score(database):
+        engine, info = database
+        repository = DatabaseGradingRepository(session_factory=lambda: Session(engine))
+>       payload = ResultPayload(question_type="Single Choice", score=20.0, max_score=20.0,
+            reason="Controlled wrong exam basis", correct_points=[], missing_knowledge_points=[],
+            knowledge_points=["数据类型"], suggestions=[], confidence=1.0,
+            answer_id=str(info.objective_answer_id), submission_id=str(info.submission_id))
+E       pydantic_core._pydantic_core.ValidationError: 1 validation error for GradingResult
+E       question_type
+E         Input should be 'SINGLE_CHOICE', 'MULTIPLE_CHOICE', 'TRUE_FALSE', 'FILL_BLANK', 'SHORT_ANSWER' or 'ESSAY' [type=enum, input_value='Single Choice', input_type=str]
+E           For further information visit https://errors.pydantic.dev/2.13/v/enum
+
+tests\unit\grading\test_scoring_inputs.py:160: ValidationError
+=========================== short test summary info ===========================
+FAILED tests/unit/grading/test_scoring_inputs.py::test_repository_rejects_result_using_another_exam_full_score
+1 failed, 7 passed in 1.92s

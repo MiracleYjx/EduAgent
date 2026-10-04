@@ -1,0 +1,24 @@
+FF......                                                                 [100%]
+================================== FAILURES ===================================
+_______ test_new_payload_and_agent_versions_register_fixed_input_fields _______
+
+    def test_new_payload_and_agent_versions_register_fixed_input_fields():
+>       assert AGENT_STATE_VERSION == "2"
+E       AssertionError: assert '1' == '2'
+E         
+E         - 2
+E         + 1
+
+tests\unit\workflows\test_fixed_scoring_state.py:18: AssertionError
+_______ test_current_slot_is_cleared_without_erasing_submission_inputs ________
+
+    def test_current_slot_is_cleared_without_erasing_submission_inputs():
+        cleared = cleared_slots()
+>       assert "scoring_input" in cleared and cleared["scoring_input"] is None
+E       AssertionError: assert ('scoring_input' in {'confidence_decision': None, 'current_answer_order': None, 'retrieved_context': [], 'question_type': None, ...})
+
+tests\unit\workflows\test_fixed_scoring_state.py:27: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/unit/workflows/test_fixed_scoring_state.py::test_new_payload_and_agent_versions_register_fixed_input_fields
+FAILED tests/unit/workflows/test_fixed_scoring_state.py::test_current_slot_is_cleared_without_erasing_submission_inputs
+2 failed, 6 passed in 2.71s

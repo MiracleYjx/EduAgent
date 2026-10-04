@@ -139,3 +139,12 @@ ScoringInput 使用 Pydantic 结构，包含以下真实输入；业务标识由
 源题相关修订复用现有 validation_revision，并在同事务清除仍可编辑草稿的 base_score/scoring_basis；实际改分或替换同样失效。准备后修改再改回原值会产生新轮次，不能用旧页面提交通过。纯题序变化或分值同值写入保持依据。历史已有答卷或非 Draft 关联不因此被改写。
 
 草稿准备保留 score 的显式/缺省意图，不提前固定发布知识点。发布前统一检查实际条件、当前题目资格与评分依据；通过后同事务固定有效 score 及 published_knowledge_points。旧 Published 缺失依据仍报告缺失，不从当前题库补写。T175 将接续所有直接入口的完整发布冻结，T176/T177 接续评分输入消费。
+
+
+### 固定评分输入运输与恢复（T176 实施）
+
+- DatabaseGradingSubmissionReader 从实际 ExamQuestion 身份、题序及固定列组装 ScoringInput；未知历史字段保持缺失，执行明确阻断。独立单题目标的兼容分值/标签由同一固定输入派生，不再动态读取题库满分/知识点。
+- ScoringInput 的金额为 Decimal，JSON 输出十进制字符串；运行态 options 保留原字典或列表形状与原序；内部检查点 JSON 对字典唯一保存顶层 ordered_options 有序键值对数组（移除 options），列表/null 仍用 options 原形。解码拒绝双字段或重复键并严格还原，避免 JSONB 重排，也不与合法列表或业务选项键混淆。历史 order_preserved=false 如实保留，本轮运输保序不宣称原卷顺序已恢复。Question/ExtractedQuestion 的 JSON 列及公开题目 options 形状保持既有合同。
+- Agent 调用信封及 Workflow 当前题槽/整卷输入集合保存同一关联与真实内容、固定标准、资产及当前核对引用；图片二进制只在实际调用期读取，不进入检查点或本机路径字段。实际检索前 course_context/source_references 保持 null，之后可填本轮真实同课程依据。
+- 新 Workflow 业务载荷为 version=2；显式读取 version=1，缺失固定事实不补造，拒绝旧版本声称携带新字段及未知版本。恢复重新读取真实答卷，核对完整固定事实和选项顺序，不以 question_id 复用他场结果，也不以源码版本/哈希作业务门禁。
+- T176 中间阶段保留既有非等价标准/图片执行阻断；T177 消费本场标准和图像后解除对应限制。历史结果仍按原结果证据读取，不重写旧成绩。

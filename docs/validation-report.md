@@ -959,3 +959,14 @@ scripts/demo_seed.py 先准备全部题目，仅将 Draft 送审；未全部 App
 新增及聚焦验证：历史/题图/课程HTTP28 passed；root最终考试16 passed；考试接口/参加资格31 passed；T174发布直接回归所在批24 passed；内容/资产/来源/KB初轮123 passed/1 failed，消除代码中重复Course锁后相关45 passed，原锁序断言保持。计数有重叠，不当独立质量样本。全backend Mypy208文件和backend/tests Ruff通过。RED/GREEN、原口径问题和静态失败均保留于[evidence/t175-20261004/](evidence/t175-20261004/README.md)。
 
 T175完成的是现有入口的冻结与事务实现，整批全量回归另记，T179性能/端到端仍待执行。无云模型调用；原业务库和两README、开发者阅卷样本、.env未改。T146 AI辅助+开发者审查、独立教师0以及T168 not_met保持。继续T176。
+
+
+## T176 固定评分输入及身份贯通（2026-10-04）
+
+服务端从真实 Answer→Submission→ExamQuestion 生成唯一 ScoringInput，包含七项业务身份、本场题序/分值/基准/标准/发布知识点及真实已核对图片证据。未知旧历史保持空，不从题库补造；图片原件字节不写入检查点。对象选项用顶层 ordered_options 有序运输，合法旧列表原形保留，历史 order_preserved=false 不伪称顺序已知。
+
+M3/M4 与 Agent 实际传递固定输入，检查点升 v2，v1 显式读取且未知缺失保留；恢复核对本场实际完整集合，迟到/错场/改写标量投影或旧任务缺固定输入拒绝。仓储核对真实答案、关联、满分、标签及整卷归属；幂等主键与既有教师复核生命周期保留。T177 前非等价标准/图片评分执行门禁保留，本项不宣称评分消费者已完成。
+
+聚焦输入/仓储 131 passed，状态/Agent/Workflow/API 218 passed（有重叠）；全 backend Mypy 208 源文件及全 backend/tests Ruff 通过。真实 PG 验证包括 JSONB 往返、当前图片核对、错场和恢复；RED 与夹具/静态失败原样保存，不以放宽断言制造成功。证据见 [evidence/t176-20261004/](evidence/t176-20261004/README.md)。
+
+原业务数据库仍 revision0012_audit_logs、1 考试/2 关联/1 答卷/2 答案且评分/复核0；用户 README、中文 README、开发者阅卷样本及 .env 字节保持。零新增云调用；T146 AI辅助+开发者审查、独立教师0及T168 not_met保持。T179 系统与性能验收待执行。

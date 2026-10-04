@@ -142,6 +142,7 @@ WORKFLOW_DIAGNOSIS_FAILED: str = "WORKFLOW_DIAGNOSIS_FAILED"
 _ERROR_STATUS: dict[str, int] = {
     "EXAM_SCORING_BASIS_MISSING": 409,
     "EXAM_SCORING_INPUT_NOT_SUPPORTED": 409,
+    "GRADING_RESULT_OWNERSHIP_MISMATCH": 409,
     WORKFLOW_SERVICE_NOT_READY: 503,
     WORKFLOW_CHECKPOINT_STORE_NOT_READY: 503,
     GRADING_STORE_NOT_READY: 503,
@@ -513,9 +514,9 @@ class WorkflowService:
     def workflow_for_run(self, run: WorkflowRun, state: Mapping[str, Any]) -> GradingWorkflow:
         """按运行记录重建 T072 图（T074 复核服务恢复原图时使用）。"""
 
-        del state
         snapshot = self._reader.load(str(run.submission_id))
         self._require_scoring_ready(snapshot)
+        self._require_fixed_context(snapshot, state)
         saver = self._checkpointer()
         thread_id = checkpoint_thread_id(run)
         if thread_id:
@@ -578,6 +579,7 @@ class WorkflowService:
                     "retry_count": 0,
                     "status": WorkflowStatus.RUNNING,
                     "current_node": LOAD_SUBMISSION,
+                    "scoring_inputs": {key: value.model_copy(deep=True) for key, value in snapshot.scoring_inputs.items()},
                 }
                 # 沿用 M3 模式：受理记录在独立短事务提交后，才释放外层答卷锁。
                 self._save_state(
@@ -663,11 +665,13 @@ class WorkflowService:
         self._ensure_ready()
         self._outcome_repository()
         row = self._require_run(workflow_id)
-        self._load_for_teacher(str(row.submission_id), actor_id)
+        snapshot = self._load_for_teacher(str(row.submission_id), actor_id)
+        self._require_scoring_ready(snapshot)
         thread_id = checkpoint_thread_id(row)
         if not thread_id:
             raise WorkflowRunNotResumableError("运行记录缺少线程绑定，无法恢复。")
         state = self._checkpoints.restore_state(row)
+        self._require_fixed_context(snapshot, state)
         pending = pending_review_answer_ids(state)
         if pending:
             return await self._resume_with_teacher_decision(
@@ -687,6 +691,7 @@ class WorkflowService:
             )
         snapshot = self._reader.load(str(row.submission_id))
         self._require_scoring_ready(snapshot)
+        self._require_fixed_context(snapshot, state)
         saver = self._checkpointer()
         saver.bind_thread(thread_id, row.workflow_id)
         workflow = self._build_workflow(snapshot, saver)
@@ -896,6 +901,7 @@ class WorkflowService:
                 results=results,
                 decisions=decisions,
                 exam_result=exam_result,
+                **({"scoring_inputs": snapshot.scoring_inputs} if snapshot.scoring_inputs else {}),
                 state_writer=lambda session: self._checkpoints.save_checkpoint_within(
                     session,
                     workflow_id,
@@ -1079,6 +1085,35 @@ class WorkflowService:
             snapshot.require_scoring_ready()
         except GradingTaskError as error:
             raise _grading_error(error) from None
+
+    @staticmethod
+    def _require_fixed_context(snapshot: Any, state: Mapping[str, Any]) -> None:
+        from pydantic import ValidationError
+
+        from backend.app.schemas.grading import ScoringInput, same_fixed_scoring_input
+
+        try:
+            raw = state.get("scoring_inputs", {})
+            if not isinstance(raw, Mapping):
+                raise TypeError("Fixed input collection is not a mapping.")
+            saved = {key: ScoringInput.model_validate(value) for key, value in raw.items()}
+            snapshot.require_fixed_inputs(saved)
+            raw_current = state.get("scoring_input")
+            if raw_current is not None:
+                current = ScoringInput.model_validate(raw_current)
+                if (
+                    current.answer_id != state.get("current_answer_id")
+                    or current.answer_id not in saved
+                    or not same_fixed_scoring_input(saved[current.answer_id], current)
+                ):
+                    raise ValueError("Current input is outside the saved submission.")
+        except GradingTaskError as error:
+            raise _grading_error(error) from None
+        except (ValidationError, ValueError, TypeError) as error:
+            raise WorkflowRunConflictError(
+                "检查点固定输入缺失或与当前考试/答卷身份不一致。",
+                error_code="GRADING_RESULT_OWNERSHIP_MISMATCH",
+            ) from error
 
     def _load_for_teacher(self, submission_id: str, actor_id: str) -> Any:
         """按教师课程归属读取答卷快照。"""

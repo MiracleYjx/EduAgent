@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="2" skipped="0" tests="8" time="2.703" timestamp="2026-10-04T08:56:05.094721+08:00" hostname="YJX"><testcase classname="tests.unit.workflows.test_fixed_scoring_state" name="test_new_payload_and_agent_versions_register_fixed_input_fields" time="0.002"><failure message="AssertionError: assert '1' == '2'&#10;  &#10;  - 2&#10;  + 1">def test_new_payload_and_agent_versions_register_fixed_input_fields():
+&gt;       assert AGENT_STATE_VERSION == "2"
+E       AssertionError: assert '1' == '2'
+E         
+E         - 2
+E         + 1
+
+tests\unit\workflows\test_fixed_scoring_state.py:18: AssertionError</failure></testcase><testcase classname="tests.unit.workflows.test_fixed_scoring_state" name="test_current_slot_is_cleared_without_erasing_submission_inputs" time="0.001"><failure message="AssertionError: assert ('scoring_input' in {'confidence_decision': None, 'current_answer_order': None, 'retrieved_context': [], 'question_type': None, ...})">def test_current_slot_is_cleared_without_erasing_submission_inputs():
+        cleared = cleared_slots()
+&gt;       assert "scoring_input" in cleared and cleared["scoring_input"] is None
+E       AssertionError: assert ('scoring_input' in {'confidence_decision': None, 'current_answer_order': None, 'retrieved_context': [], 'question_type': None, ...})
+
+tests\unit\workflows\test_fixed_scoring_state.py:27: AssertionError</failure></testcase><testcase classname="tests.unit.workflows.test_fixed_scoring_state" name="test_known_v1_payload_preserves_missing_fixed_facts_without_invention" time="0.001" /><testcase classname="tests.unit.workflows.test_fixed_scoring_state" name="test_v1_cannot_claim_fields_from_new_fixed_input_contract" time="0.002" /><testcase classname="tests.unit.workflows.test_fixed_scoring_state" name="test_unknown_payload_versions_remain_rejected[3]" time="0.001" /><testcase classname="tests.unit.workflows.test_fixed_scoring_state" name="test_unknown_payload_versions_remain_rejected[unknown]" time="0.001" /><testcase classname="tests.unit.workflows.test_fixed_scoring_state" name="test_unknown_payload_versions_remain_rejected[2]" time="0.001" /><testcase classname="tests.unit.workflows.test_fixed_scoring_state" name="test_unknown_payload_versions_remain_rejected[None]" time="0.001" /></testsuite></testsuites>

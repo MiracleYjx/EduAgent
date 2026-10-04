@@ -696,3 +696,20 @@ T173结果：PG24+reader1、HTTP22、直接回归91均通过（存在重叠）�
 - 本批仅独占DB/Redis/文件根；原库、两README、开发者阅卷样本及.env原字节保持。T146 AI辅助+开发者审查、独立教师0及T168 not_met不变。T179完整性能/系统验收另行执行。
 
 - T175实际新增 tests/integration/test_exam_lifecycle_freeze.py、test_reference_lifecycle.py 和 contract/test_exam_lifecycle_api.py、test_course_reference_api.py；旧测试未改。新增28+root16与31/24相关回归通过（有重叠），直接回归123pass/1fail代码消除重复锁后45pass；静态208源文件和Ruff通过，详见T175证据README。六个新测试最初误把I01优先错误当成引用错误，已按既定合同修正，旧业务断言保留；静态接入和错误属性问题如实保留。
+
+
+## 31. T176 固定评分输入与身份 TCR（实施前，2026-10-04）
+
+- 必要性：实际 reader、恢复状态及 repository 尚在读取题库分值/知识点，不能证明两场同题的评分身份和固定依据一致。
+- 覆盖：同题两场身份/不同满分/发布标签、选项原序、缺依据拒绝、图片当前核对、Decimal 字符串序列化、v2 检查点往返、显式 v1 缺失保留与未知版本拒绝、恢复固定事实核对、仓储错场拒绝及幂等主键保持。采用现有 pytest 单元/合同/隔离 PostgreSQL 集成框架；新增聚焦测试，不放宽旧断言。
+- T176 中间提交保留旧消费者不支持的非等价输入执行门禁；T177 完成消费者后再放行。不新增数据表、迁移或哈希门禁；v1 历史未知不由题库补造。
+- 仅使用本批独占数据库、Redis 与文件根，保留原环境及用户未提交改动；AI 辅助基准声明及 T168 not_met 不变。完整系统/性能验收由 T179 承接。
+
+- T176 实施边界补充：工作流 JSONB 会重排 options 对象键，新增 ScoringInput 内部 JSON 编码以有序键值对数组运输，运行时还原 dict；真实 PG 往返验证，公开题目 JSON 接口保持既有形状。工作流载荷升为 v2，旧版本精确断言随版本升级，未知版本拒绝断言保留；v1 新字段缺失保持缺失。
+- 实际 AgentInvocation 原未承载调用信封，为接通真实生产者/消费者新增可空 input（旧构造兼容）；新逐题调用生成 AgentInput 固定输入，Workflow 交接前匹配真实 target，不能只新增未使用的 schema 字段。
+
+- 最终 T176 选项运输调整：实际 v1 支持字典/列表/嵌套 JSON 值；保留原合法 SQLite/PG 选项夹具，修新 DTO 适配。对象唯一编码为顶层 ordered_options，原列表/null 仍 options，拒绝歧义及双写；新增原列表、list-of-pairs、空字典及未知历史标记的往返断言。原 tests/unit/grading/test_grading_repository.py 的范围恢复用例仅更新 save_task 生产者，传本轮实际 reader.scoring_inputs，保留原作用域和 worker 消费断言；新版 worker 拒绝旧任务缺输入，不能用当前数据替造。
+
+- tests/contract/test_workflow_api_contract.py 受控 Agent 新增真实调用 input 信封；原“缺 runtime”检查点夹具补本轮真实 reader 输入，以继续只验证其原恢复支撑拒绝断言。另增缺输入/错关联的 HTTP 409 断言，保持两类失败可区分。原合法列表选项及暂停/恢复/教师复核行为断言保留。
+
+- T176 最终验证：输入/仓储 131 passed（含真实 PostgreSQL 6 项、SQLite 16 项及既有回归）；状态/Agent/API 218 passed，两组有重叠不相加。全 backend Mypy 208 源文件通过，最终全 backend/tests Ruff 通过，状态 6 模块最终类型检查通过。实际目标身份、题干/满分兼容投影篡改的 3 项 RED 修复后通过；旧合法选项列表、暂停恢复与复核原断言保留。原始失败、静态检查及最终 JUnit 见 docs/evidence/t176-20261004/。

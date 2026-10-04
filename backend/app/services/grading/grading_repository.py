@@ -33,6 +33,7 @@ from decimal import Decimal
 from typing import Any, Final
 from uuid import UUID
 
+from pydantic import ValidationError
 from sqlalchemy import select, text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
@@ -48,6 +49,7 @@ from backend.app.domain.enums import (
 from backend.app.models import (
     Answer,
     Exam,
+    ExamQuestion,
     ExamResult,
     GradingResult,
     Submission,
@@ -62,12 +64,14 @@ from backend.app.schemas.grading import (
     GradingTaskStatus,
     GradingTaskStatusDTO,
     QuestionResultDTO,
+    ScoringInput,
     SubmissionContext,
 )
 from backend.app.schemas.retrieval_scope import RetrievalScope
 from backend.app.services.grading.confidence_mapping import confidence_decision_snapshot
 from backend.app.services.grading.confidence_policy import ConfidenceDecision
 from backend.app.services.grading.grading_task_service import (
+    DatabaseGradingSubmissionReader,
     GradingOutcome,
     GradingResultOwnershipError,
     GradingStoreNotReadyError,
@@ -192,9 +196,7 @@ class DatabaseGradingRepository:
         with self._use_session() as session:
             submission = session.get(Submission, _as_uuid(submission_id))
             if submission is None:
-                raise GradingSubmissionNotFoundError(
-                    f"答卷 {submission_id} 不存在。"
-                )
+                raise GradingSubmissionNotFoundError(f"答卷 {submission_id} 不存在。")
             if session.get_bind().dialect.name == "postgresql":
                 session.execute(
                     select(Submission.id)
@@ -277,9 +279,9 @@ class DatabaseGradingRepository:
         """从本执行器的持久任务载荷读取显式范围；旧任务缺省为空。"""
 
         with self._use_session() as session:
-            row = session.scalars(select(WorkflowRun).where(
-                WorkflowRun.workflow_id == task_id
-            )).one_or_none()
+            row = session.scalars(
+                select(WorkflowRun).where(WorkflowRun.workflow_id == task_id)
+            ).one_or_none()
             if row is None or not _is_own_checkpoint(row):
                 raise GradingTaskError("阅卷任务不存在或不属于当前执行器。")
             checkpoint = row.checkpoint or {}
@@ -287,12 +289,43 @@ class DatabaseGradingRepository:
                 return RetrievalScope()
             return RetrievalScope.model_validate(checkpoint["retrieval_scope"])
 
+    def get_scoring_inputs(self, task_id: str) -> Mapping[str, ScoringInput] | None:
+        """None means a real legacy task did not record inputs; never synthesize them."""
+        with self._use_session() as session:
+            row = session.scalars(
+                select(WorkflowRun).where(WorkflowRun.workflow_id == task_id)
+            ).one_or_none()
+            if row is None or not _is_own_checkpoint(row):
+                raise GradingTaskError("任务不存在或不属于后台阅卷执行器。")
+            checkpoint = row.checkpoint or {}
+            if "scoring_inputs" not in checkpoint:
+                return None
+            raw = checkpoint["scoring_inputs"]
+            if not isinstance(raw, dict):
+                raise GradingResultOwnershipError("检查点固定评分输入形状无效。")
+            try:
+                values = {
+                    key: ScoringInput.model_validate(value)
+                    for key, value in raw.items()
+                }
+            except (ValidationError, ValueError, TypeError) as exc:
+                raise GradingResultOwnershipError(
+                    "检查点固定评分输入不符合实际身份与证据结构。"
+                ) from exc
+            if any(
+                key != value.answer_id or value.submission_id != str(row.submission_id)
+                for key, value in values.items()
+            ):
+                raise GradingResultOwnershipError("检查点评分输入不属于任务答卷。")
+            return values
+
     def save_task(
         self,
         task: GradingTaskStatusDTO,
         *,
         request_id: str | None = None,
         retrieval_scope: RetrievalScope | None = None,
+        scoring_inputs: Mapping[str, ScoringInput] | None = None,
     ) -> None:
         """单事务写入任务状态、检查点与一致的答卷进度。
 
@@ -302,9 +335,7 @@ class DatabaseGradingRepository:
 
         with self._use_session() as session, session.begin():
             row = session.scalars(
-                select(WorkflowRun).where(
-                    WorkflowRun.workflow_id == task.task_id
-                )
+                select(WorkflowRun).where(WorkflowRun.workflow_id == task.task_id)
             ).one_or_none()
             if row is None:
                 if request_id is None:
@@ -329,6 +360,19 @@ class DatabaseGradingRepository:
                 row.checkpoint = {
                     **(row.checkpoint or {}),
                     "retrieval_scope": retrieval_scope.model_dump(mode="json"),
+                }
+            if scoring_inputs is not None:
+                if any(
+                    key != value.answer_id or value.submission_id != task.submission_id
+                    for key, value in scoring_inputs.items()
+                ):
+                    raise GradingResultOwnershipError("受理评分输入与任务答卷不一致。")
+                row.checkpoint = {
+                    **(row.checkpoint or {}),
+                    "scoring_inputs": {
+                        key: value.model_dump(mode="json")
+                        for key, value in scoring_inputs.items()
+                    },
                 }
             self._apply_task(row, task)
             if task.status is GradingTaskStatus.FAILED:
@@ -365,7 +409,9 @@ class DatabaseGradingRepository:
             ),
         )
 
-    def save_exam_result_within(self, session: Session, exam_result: ExamResultDTO) -> None:
+    def save_exam_result_within(
+        self, session: Session, exam_result: ExamResultDTO
+    ) -> None:
         """在调用方事务内写入整卷结果与逐题结果（不提交、不关闭会话）。
 
         供复核服务把“复核记录 + 单题结果 + 当前整卷结果”写入同一事务；映射口径与
@@ -402,9 +448,7 @@ class DatabaseGradingRepository:
             submission_uuid = _as_uuid(submission_id)
             submission = session.get(Submission, submission_uuid)
             if submission is None:
-                raise GradingSubmissionNotFoundError(
-                    f"答卷 {submission_id} 不存在。"
-                )
+                raise GradingSubmissionNotFoundError(f"答卷 {submission_id} 不存在。")
             exam_result = outcome.exam_result
             if exam_result is None:
                 raise GradingTaskError("整批保存缺少整卷结果，拒绝写入。")
@@ -412,6 +456,10 @@ class DatabaseGradingRepository:
                 raise GradingResultOwnershipError(
                     "整卷结果与目标答卷不一致，拒绝写入。"
                 )
+            if outcome.scoring_inputs:
+                DatabaseGradingSubmissionReader(session=session).load(
+                    submission_id
+                ).require_fixed_inputs(outcome.scoring_inputs)
             for payload in outcome.results:
                 self._upsert_result(session, submission, payload, outcome.decisions)
             self._upsert_exam_result(session, submission, exam_result)
@@ -424,6 +472,7 @@ class DatabaseGradingRepository:
                     task_id,
                     answer_order=answer_order,
                     exam_result=exam_result,
+                    scoring_inputs=outcome.scoring_inputs,
                 )
 
     # ------------------------------------------------------------ M4 工作流结果
@@ -435,6 +484,7 @@ class DatabaseGradingRepository:
         results: Sequence[GradingResultPayload] = (),
         decisions: Mapping[str, ConfidenceDecision] | None = None,
         exam_result: ExamResultDTO | None = None,
+        scoring_inputs: Mapping[str, ScoringInput] | None = None,
         state_writer: Callable[[Session], WorkflowRun],
     ) -> WorkflowRun:
         """在一次事务内写入 M4 工作流结果与工作流业务状态（H01）。
@@ -463,6 +513,7 @@ class DatabaseGradingRepository:
                     results=results,
                     decisions=resolved_decisions,
                     exam_result=exam_result,
+                    scoring_inputs=scoring_inputs,
                     state_writer=state_writer,
                 )
             # 提交后刷新，避免向调用方返回已过期的会话对象。
@@ -478,6 +529,7 @@ class DatabaseGradingRepository:
         results: Sequence[GradingResultPayload],
         decisions: Mapping[str, ConfidenceDecision],
         exam_result: ExamResultDTO | None,
+        scoring_inputs: Mapping[str, ScoringInput] | None = None,
         state_writer: Callable[[Session], WorkflowRun],
     ) -> WorkflowRun:
         """在调用方事务内写入 M4 工作流结果（不提交、不关闭会话）。"""
@@ -486,10 +538,54 @@ class DatabaseGradingRepository:
         submission = session.get(Submission, submission_uuid)
         if submission is None:
             raise GradingSubmissionNotFoundError(f"答卷 {submission_id} 不存在。")
+        if (
+            context.submission_id != str(submission.id)
+            or context.exam_id != str(submission.exam_id)
+            or context.student_id != str(submission.student_id)
+        ):
+            raise GradingResultOwnershipError(
+                "工作流上下文的考试、学生或答卷身份不匹配实际答卷。"
+            )
+        actual_answers = {str(answer.id): answer for answer in submission.answers}
+        if {entry.answer_id for entry in context.expected_answers} != set(
+            actual_answers
+        ):
+            raise GradingResultOwnershipError("工作流预期答案集合与实际答卷不一致。")
+        for entry in context.expected_answers:
+            answer = actual_answers[entry.answer_id]
+            link = session.scalar(
+                select(ExamQuestion).where(
+                    ExamQuestion.exam_id == submission.exam_id,
+                    ExamQuestion.question_id == answer.question_id,
+                )
+            )
+            if (
+                link is None
+                or entry.question_id != str(answer.question_id)
+                or (
+                    entry.exam_question_id is not None
+                    and entry.exam_question_id != str(link.id)
+                )
+                or entry.order != link.order_index
+                or entry.question_type != link.question.type
+                or link.score is None
+                or entry.max_score != _as_decimal(link.score)
+                or link.published_knowledge_points is None
+                or entry.knowledge_points != link.published_knowledge_points
+            ):
+                raise GradingResultOwnershipError(
+                    "工作流上下文不匹配真实本场关联、题序或评分事实。"
+                )
+        if scoring_inputs is not None:
+            DatabaseGradingSubmissionReader(session=session).load(
+                submission_id
+            ).require_fixed_inputs(scoring_inputs)
         target = exam_result
         if target is None and results:
             if _as_uuid(context.submission_id) != submission_uuid:
-                raise GradingResultOwnershipError("提交上下文与目标答卷不一致，拒绝写入。")
+                raise GradingResultOwnershipError(
+                    "提交上下文与目标答卷不一致，拒绝写入。"
+                )
             target = self._aggregator.aggregate(
                 context,
                 results=list(results),
@@ -498,7 +594,9 @@ class DatabaseGradingRepository:
             )
         if target is not None:
             if _as_uuid(target.submission_id) != submission_uuid:
-                raise GradingResultOwnershipError("整卷结果与目标答卷不一致，拒绝写入。")
+                raise GradingResultOwnershipError(
+                    "整卷结果与目标答卷不一致，拒绝写入。"
+                )
             payloads, derived = _exam_result_payloads(target)
             merged = {**derived, **dict(decisions)}
             for payload in payloads:
@@ -510,7 +608,9 @@ class DatabaseGradingRepository:
         session.flush()
         row = state_writer(session)
         if row.submission_id != submission.id:
-            raise GradingResultOwnershipError("工作流运行与目标答卷不一致，拒绝提交结果。")
+            raise GradingResultOwnershipError(
+                "工作流运行与目标答卷不一致，拒绝提交结果。"
+            )
         if target is not None:
             row.exam_result_id = session.scalars(
                 select(ExamResult.id).where(ExamResult.submission_id == submission.id)
@@ -566,9 +666,7 @@ class DatabaseGradingRepository:
         with self._use_session() as session, session.begin():
             submission = session.get(Submission, _as_uuid(submission_id))
             if submission is None:
-                raise GradingSubmissionNotFoundError(
-                    f"答卷 {submission_id} 不存在。"
-                )
+                raise GradingSubmissionNotFoundError(f"答卷 {submission_id} 不存在。")
             if result.score is None:
                 return
             decisions: Mapping[str, ConfidenceDecision] = (
@@ -597,6 +695,30 @@ class DatabaseGradingRepository:
         if answer is None or answer.submission_id != submission.id:
             raise GradingResultOwnershipError(
                 f"答案 {payload.answer_id} 不属于目标答卷，拒绝写入评分结果。"
+            )
+        if payload.submission_id is not None and payload.submission_id != str(
+            submission.id
+        ):
+            raise GradingResultOwnershipError("评分载荷的答卷身份与目标答卷不一致。")
+        link = session.scalars(
+            select(ExamQuestion).where(
+                ExamQuestion.exam_id == submission.exam_id,
+                ExamQuestion.question_id == answer.question_id,
+            )
+        ).one_or_none()
+        if (
+            link is None
+            or link.score is None
+            or link.published_knowledge_points is None
+        ):
+            raise GradingResultOwnershipError("评分结果缺少真实本场关联或固定分值。")
+        if (
+            payload.question_type != link.question.type
+            or _as_decimal(payload.max_score) != _as_decimal(link.score)
+            or payload.knowledge_points != link.published_knowledge_points
+        ):
+            raise GradingResultOwnershipError(
+                "评分结果的题型、满分或知识点不匹配固定本场输入。"
             )
         decision = decisions.get(payload.answer_id)
         row = session.scalars(
@@ -652,6 +774,14 @@ class DatabaseGradingRepository:
     ) -> None:
         """按 ``submission_id`` 就地写入整卷结果与当次汇总事实。"""
 
+        if (
+            exam_result.submission_id != str(submission.id)
+            or exam_result.exam_id != str(submission.exam_id)
+            or exam_result.student_id != str(submission.student_id)
+        ):
+            raise GradingResultOwnershipError(
+                "整卷结果的考试、学生或答卷身份与真实答卷不一致。"
+            )
         row = session.scalars(
             select(ExamResult).where(ExamResult.submission_id == submission.id)
         ).one_or_none()
@@ -699,13 +829,18 @@ class DatabaseGradingRepository:
         submission = session.get(Submission, submission_id)
         if submission is None:
             return
-        saved_answer_ids = set(session.scalars(
-            select(GradingResult.answer_id).where(
-                GradingResult.submission_id == submission_id,
+        saved_answer_ids = set(
+            session.scalars(
+                select(GradingResult.answer_id).where(
+                    GradingResult.submission_id == submission_id,
+                )
             )
-        ))
+        )
         for answer in submission.answers:
-            if answer.status is not AnswerStatus.GRADED and answer.id not in saved_answer_ids:
+            if (
+                answer.status is not AnswerStatus.GRADED
+                and answer.id not in saved_answer_ids
+            ):
                 answer.status = AnswerStatus.FAILED
 
     def _write_checkpoint(
@@ -715,6 +850,7 @@ class DatabaseGradingRepository:
         *,
         answer_order: Sequence[str] | None,
         exam_result: ExamResultDTO,
+        scoring_inputs: Mapping[str, ScoringInput] | None = None,
     ) -> None:
         """在结果事务内写入检查点和终态，提交后无需再次发布完成状态。"""
 
@@ -723,13 +859,21 @@ class DatabaseGradingRepository:
         ).one_or_none()
         if row is None:
             raise GradingTaskError("保存结果时任务不存在，拒绝部分提交。")
-        if (
-            (row.checkpoint or {}).get("kind") != CHECKPOINT_KIND
-            or row.submission_id != _as_uuid(exam_result.submission_id)
+        if (row.checkpoint or {}).get(
+            "kind"
+        ) != CHECKPOINT_KIND or row.submission_id != _as_uuid(
+            exam_result.submission_id
         ):
-            raise GradingResultOwnershipError("任务不属于本执行器或目标答卷，拒绝写入。")
+            raise GradingResultOwnershipError(
+                "任务不属于本执行器或目标答卷，拒绝写入。"
+            )
         checkpoint = dict(row.checkpoint or {})
         checkpoint["kind"] = CHECKPOINT_KIND
+        if scoring_inputs:
+            checkpoint["scoring_inputs"] = {
+                key: value.model_dump(mode="json")
+                for key, value in scoring_inputs.items()
+            }
         if answer_order is not None:
             checkpoint["answer_order"] = [str(item) for item in answer_order]
         checkpoint["current_node"] = "aggregate"
@@ -740,19 +884,24 @@ class DatabaseGradingRepository:
             )
         ).one_or_none()
         row.checkpoint = checkpoint
-        self._apply_task(row, self._task_dto(row).model_copy(update={
-            "status": GradingTaskStatus.COMPLETED,
-            "reused": False,
-            "finished_at": self._clock(),
-            "expected_answer_count": exam_result.expected_answer_count,
-            "graded_answer_count": exam_result.graded_answer_count,
-            "pending_review_answer_count": exam_result.pending_review_answer_count,
-            "exam_result_status": exam_result.result_status,
-            "is_final": exam_result.is_final,
-            "error_code": None,
-            "error_message": None,
-            "retryable": False,
-        }))
+        self._apply_task(
+            row,
+            self._task_dto(row).model_copy(
+                update={
+                    "status": GradingTaskStatus.COMPLETED,
+                    "reused": False,
+                    "finished_at": self._clock(),
+                    "expected_answer_count": exam_result.expected_answer_count,
+                    "graded_answer_count": exam_result.graded_answer_count,
+                    "pending_review_answer_count": exam_result.pending_review_answer_count,
+                    "exam_result_status": exam_result.result_status,
+                    "is_final": exam_result.is_final,
+                    "error_code": None,
+                    "error_message": None,
+                    "retryable": False,
+                }
+            ),
+        )
 
     def _apply_task(self, row: WorkflowRun, task: GradingTaskStatusDTO) -> None:
         """把任务 DTO 写入工作流行，并按待复核语义决定 ``Paused``。"""
@@ -760,10 +909,7 @@ class DatabaseGradingRepository:
         pending_review = task.pending_review_answer_count or 0
         status = TASK_TO_WORKFLOW_STATUS[task.status]
         pause_reason: str | None = None
-        if (
-            task.status is GradingTaskStatus.COMPLETED
-            and pending_review > 0
-        ):
+        if task.status is GradingTaskStatus.COMPLETED and pending_review > 0:
             status = WorkflowStatus.PAUSED
             pause_reason = PENDING_REVIEW_PAUSE_REASON
         row.status = status
@@ -789,7 +935,9 @@ class DatabaseGradingRepository:
             "graded_answer_count": task.graded_answer_count,
             "pending_review_answer_count": task.pending_review_answer_count,
             "exam_result_status": (
-                None if task.exam_result_status is None else task.exam_result_status.value
+                None
+                if task.exam_result_status is None
+                else task.exam_result_status.value
             ),
             "is_final": task.is_final,
             "error_code": task.error_code,
@@ -873,9 +1021,7 @@ class DatabaseGradingRepository:
                 )
             )
         )
-        entries, payloads, decisions = self._rebuild_items(
-            session, exam_result, rows
-        )
+        entries, payloads, decisions = self._rebuild_items(session, exam_result, rows)
         aggregated = self._aggregator.aggregate(
             SubmissionContext(
                 submission_id=str(exam_result.submission_id),
@@ -911,20 +1057,23 @@ class DatabaseGradingRepository:
         session: Session,
         exam_result: ExamResult,
         rows: Sequence[GradingResult],
-    ) -> tuple[list[ExpectedAnswer], list[GradingResultPayload], dict[str, ConfidenceDecision]]:
+    ) -> tuple[
+        list[ExpectedAnswer], list[GradingResultPayload], dict[str, ConfidenceDecision]
+    ]:
         """按检查点题序重排评分行，缺失题目按考试定义补为空位。"""
 
         rows_by_answer = {str(row.answer_id): row for row in rows}
         answers = {
             str(answer.id): answer
             for answer in session.scalars(
-                select(Answer).where(
-                    Answer.submission_id == exam_result.submission_id
-                )
+                select(Answer).where(Answer.submission_id == exam_result.submission_id)
             )
         }
         exam = session.get(Exam, exam_result.exam_id)
-        questions = {str(question.id): question for question in (exam.questions if exam else [])}
+        links = {
+            str(link.question_id): link
+            for link in (exam.exam_question_links if exam else [])
+        }
         ordered = list(self._stored_answer_order(session, exam_result))
         for answer_id in rows_by_answer:
             if answer_id not in ordered:
@@ -936,25 +1085,29 @@ class DatabaseGradingRepository:
             row = rows_by_answer.get(answer_id)
             answer = answers.get(answer_id)
             if row is not None and answer is not None:
-                entries.append(
-                    self._entry_from_row(session, row, order=index)
-                )
+                entries.append(self._entry_from_row(session, row, order=index))
                 payloads.append(_payload_from_row(row))
                 decisions.update(_decisions_from_row(row))
                 continue
             if answer is None:
                 continue
-            question = questions.get(str(answer.question_id))
-            if question is None:
+            link = links.get(str(answer.question_id))
+            if link is None:
                 continue
+            if link.score is None or link.published_knowledge_points is None:
+                raise GradingTaskError(
+                    "历史未评分题缺少固定满分或知识点，不能从当前题库重建。"
+                )
+            question = link.question
             entries.append(
                 ExpectedAnswer(
                     order=index,
                     answer_id=answer_id,
                     question_id=str(question.id),
+                    exam_question_id=str(link.id),
                     question_type=question.type,
-                    max_score=_as_decimal(question.score),
-                    knowledge_points=list(question.knowledge_points or ()),
+                    max_score=_as_decimal(link.score),
+                    knowledge_points=list(link.published_knowledge_points),
                 )
             )
         return entries, payloads, decisions
@@ -969,14 +1122,24 @@ class DatabaseGradingRepository:
         """由评分行与所属答案构造预期条目：题型、满分与知识点取落库事实。"""
 
         answer = session.get(Answer, row.answer_id)
-        question_id = None if answer is None else str(answer.question_id)
-        if question_id is None:
+        if answer is None:
             raise GradingTaskError(
                 f"评分行 {row.answer_id} 缺少关联答案，无法重建题序。"
             )
+        question_id = str(answer.question_id)
+        submission = session.get(Submission, row.submission_id)
+        if submission is None:
+            raise GradingResultOwnershipError("评分行缺少真实答卷，无法定位考试关联。")
+        link = session.scalar(
+            select(ExamQuestion).where(
+                ExamQuestion.exam_id == submission.exam_id,
+                ExamQuestion.question_id == answer.question_id,
+            )
+        )
         return ExpectedAnswer(
             order=order,
             answer_id=str(row.answer_id),
+            exam_question_id=str(link.id) if link is not None else None,
             question_id=question_id,
             question_type=row.question_type,
             max_score=_as_decimal(row.max_score),
@@ -1011,15 +1174,15 @@ class DatabaseGradingRepository:
         answers = {
             str(answer.question_id): str(answer.id)
             for answer in session.scalars(
-                select(Answer).where(
-                    Answer.submission_id == exam_result.submission_id
-                )
+                select(Answer).where(Answer.submission_id == exam_result.submission_id)
             )
         }
         return tuple(
-            answers[str(question.id)]
-            for question in exam.questions
-            if str(question.id) in answers
+            answers[str(link.question_id)]
+            for link in sorted(
+                exam.exam_question_links, key=lambda item: item.order_index
+            )
+            if str(link.question_id) in answers
         )
 
 

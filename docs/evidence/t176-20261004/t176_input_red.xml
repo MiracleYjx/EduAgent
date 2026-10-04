@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="1" failures="0" skipped="0" tests="1" time="1.021" timestamp="2026-10-04T08:56:03.267170+08:00" hostname="YJX"><testcase classname="" name="tests.unit.grading.test_scoring_inputs" time="0.000"><error message="collection failure">ImportError while importing test module 'D:\YJX\MyCode\EduAgent\tests\unit\grading\test_scoring_inputs.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+D:\develop\Python\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\unit\grading\test_scoring_inputs.py:14: in &lt;module&gt;
+    from backend.app.schemas.grading import (
+E   ImportError: cannot import name 'ScoringInput' from 'backend.app.schemas.grading' (D:\YJX\MyCode\EduAgent\backend\app\schemas\grading.py)</error></testcase></testsuite></testsuites>

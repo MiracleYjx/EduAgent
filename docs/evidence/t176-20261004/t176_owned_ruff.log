@@ -1,0 +1,20 @@
+RUF100 [*] Unused `noqa` directive (unused: `TRY004`)
+   --> backend\app\schemas\grading.py:165:54
+    |
+163 |                 or not isinstance(pair[0], str)
+164 |             ):
+165 |                 raise ValueError("检查点选项须为真实有序键值对。")  # noqa: TRY004 - Pydantic validation boundary
+    |                                                                     ^^^^^^^^^^^^^^
+166 |             key, text = pair
+167 |             if key in items:
+    |
+help: Remove unused `noqa` directive
+    |
+164 |             ):
+    -                 raise ValueError("检查点选项须为真实有序键值对。")  # noqa: TRY004 - Pydantic validation boundary
+165 +                 raise ValueError("检查点选项须为真实有序键值对。")
+166 |             key, text = pair
+    |
+
+Found 1 error.
+[*] 1 fixable with the `--fix` option.

@@ -34,7 +34,7 @@ from sqlalchemy import create_engine, event, select
 from sqlalchemy.orm import Session
 
 from backend.app.ai.agents.invocation import AgentInvocation
-from backend.app.ai.agents.state import AgentOutput, AgentStatus, AgentType
+from backend.app.ai.agents.state import AgentInput, AgentOutput, AgentStatus, AgentType
 from backend.app.ai.workflows.grading_handoff import PENDING_REVIEW
 from backend.app.api.workflow import (
     WORKFLOW_REVIEW_DECISION_REQUIRED,
@@ -110,7 +110,7 @@ class _StubGradingAgent:
         session: Any = None,
         settings: Any = None,
     ) -> AgentInvocation:
-        del snapshot, session, settings
+        del session, settings
         self.calls.append(target.answer_id)
         if target.question_type is QuestionType.SINGLE_CHOICE:
             score, confidence, needs_review = 10.0, 1.0, False
@@ -150,6 +150,16 @@ class _StubGradingAgent:
         return AgentInvocation(
             request_id=request_id,
             workflow_id=workflow_id,
+            input=AgentInput(
+                agent_type=AgentType.GRADING,
+                request_id=request_id,
+                workflow_id=workflow_id,
+                submission_context=snapshot.to_context(),
+                answer_id=target.answer_id,
+                question_id=target.question_id,
+                question_type=target.question_type,
+                scoring_input=target.scoring_input,
+            ),
             output=AgentOutput(
                 agent_type=AgentType.GRADING,
                 status=AgentStatus.PENDING_REVIEW if needs_review else AgentStatus.SUCCESS,
@@ -898,6 +908,9 @@ def test_resume_without_runtime_checkpoint_is_rejected(
         "current_node": PENDING_REVIEW,
         "pause_reason": "系统故障暂停。",
         "retry_count": 0,
+        "scoring_inputs": service.reader.load(
+            str(env["fixture"].submission_id)
+        ).scoring_inputs,
         "confidence_decisions": {},
         "grading_results": {},
     }
@@ -1301,3 +1314,46 @@ def test_startup_recovery_leaves_runs_without_final_result_untouched(
     assert row.status is WorkflowStatus.RUNNING
     assert row.resumable is False
     assert _diagnosis_rows(env) == []
+
+
+@pytest.mark.parametrize("checkpoint_mode", ["missing", "other-link"])
+def test_resume_http_rejects_missing_or_wrong_actual_fixed_inputs(
+    env, client_factory, checkpoint_mode
+):
+    service = _service(env)
+    client = client_factory(service)
+    current = service.reader.load(str(env["fixture"].submission_id))
+    fixed = current.scoring_inputs
+    if checkpoint_mode == "other-link":
+        first = next(iter(fixed))
+        fixed[first] = fixed[first].model_copy(
+            update={"exam_question_id": "different-link"}
+        )
+    else:
+        fixed = {}
+    state = {
+        "workflow_id": "fixed-mismatch",
+        "request_id": "request-fixed-mismatch",
+        "submission_id": current.submission_id,
+        "status": WorkflowStatus.PAUSED,
+        "current_node": PENDING_REVIEW,
+        "pause_reason": "Controlled recovery pause",
+        "scoring_inputs": fixed,
+    }
+    _store(env).save_checkpoint(
+        "fixed-mismatch",
+        state,
+        PENDING_REVIEW,
+        "Controlled recovery pause",
+        thread_id="thread-fixed-mismatch",
+    )
+    response = client.post(
+        "/api/workflow/runs/fixed-mismatch/resume",
+        headers=_headers(_users(env)["teacher"], UserRole.TEACHER),
+        json={},
+    )
+    assert response.status_code == 409
+    assert (
+        response.json()["detail"]["error_code"] == "GRADING_RESULT_OWNERSHIP_MISMATCH"
+    )
+    assert not _repository(env).get_exam_result(current.submission_id)

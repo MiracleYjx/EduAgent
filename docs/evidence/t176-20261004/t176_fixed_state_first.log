@@ -1,0 +1,41 @@
+.........F...........................................                    [100%]
+================================== FAILURES ===================================
+__ test_state_fields_are_partitioned_into_identity_control_and_payload_sets ___
+
+    def test_state_fields_are_partitioned_into_identity_control_and_payload_sets() -> None:
+        """身份、运行控制、逐题槽位与整卷集合必须互不相交且覆盖全部工作通道。"""
+    
+        all_fields = set(get_type_hints(GradingWorkflowState))
+        assert IDENTITY_STATE_FIELDS == {"workflow_id", "request_id", "submission_id"}
+        assert set(RUN_CONTROL_STATE_FIELDS) == {
+            "status",
+            "current_node",
+            "retry_count",
+            "pause_reason",
+            "resumable",
+        }
+        # 换题/重评时必须清空的逐题槽位。
+>       assert set(ANSWER_SLOT_FIELDS) == {
+            "current_answer_id",
+            "current_answer_order",
+            "question_type",
+            "query",
+            "retrieved_context_ids",
+            "retrieved_context",
+            "grading_result",
+            "validation_status",
+            "confidence",
+            "confidence_decision",
+            "review_status",
+            "error",
+        }
+E       AssertionError: assert {'confidence'..._result', ...} == {'confidence'..._result', ...}
+E         
+E         Extra items in the left set:
+E         'scoring_input'
+E         Use -v to get more diff
+
+tests\unit\workflows\test_workflow_state.py:382: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/unit/workflows/test_workflow_state.py::test_state_fields_are_partitioned_into_identity_control_and_payload_sets
+1 failed, 52 passed in 2.45s

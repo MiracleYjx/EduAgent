@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="2" skipped="0" tests="8" time="1.836" timestamp="2026-10-04T09:07:22.815120+08:00" hostname="YJX"><testcase classname="tests.unit.grading.test_scoring_inputs" name="test_reader_carries_real_identity_basis_options_and_unretrieved_state" time="0.435" /><testcase classname="tests.unit.grading.test_scoring_inputs" name="test_fixed_compare_keeps_option_order_and_all_business_identities" time="0.058"><failure message="AttributeError: 'list' object has no attribute 'items'">database = (Engine(sqlite:///:memory:), SubmissionFixture(teacher_id=UUID('06eb7880-30f5-4a60-b50a-584fadfffa83'), student_id=UUI...er_id=UUID('f2e9f783-d453-45cc-be2a-3980898db6ce'), subjective_answer_id=UUID('945ad346-8619-4d24-9b97-373e53773f9c')))
+
+    def test_fixed_compare_keeps_option_order_and_all_business_identities(database):
+        value = next(iter(snapshot(database).scoring_inputs.values()))
+        raw = value.model_dump(mode="json")
+&gt;       raw["options"] = dict(reversed(list(raw["options"].items())))
+                                            ^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'list' object has no attribute 'items'
+
+tests\unit\grading\test_scoring_inputs.py:72: AttributeError</failure></testcase><testcase classname="tests.unit.grading.test_scoring_inputs" name="test_fixed_compare_allows_only_actual_retrieval_enrichment" time="0.060" /><testcase classname="tests.unit.grading.test_scoring_inputs" name="test_input_json_round_trip_preserves_decimal_and_options_order" time="0.057" /><testcase classname="tests.unit.grading.test_scoring_inputs" name="test_snapshot_rejects_foreign_or_missing_fixed_input" time="0.055" /><testcase classname="tests.unit.grading.test_scoring_inputs" name="test_same_question_two_exams_use_independent_fixed_scores" time="0.062" /><testcase classname="tests.unit.grading.test_scoring_inputs" name="test_missing_historical_basis_never_fabricates_fixed_input" time="0.065" /><testcase classname="tests.unit.grading.test_scoring_inputs" name="test_repository_rejects_result_using_another_exam_full_score" time="0.055"><failure message="pydantic_core._pydantic_core.ValidationError: 1 validation error for GradingResult&#10;question_type&#10;  Input should be 'SINGLE_CHOICE', 'MULTIPLE_CHOICE', 'TRUE_FALSE', 'FILL_BLANK', 'SHORT_ANSWER' or 'ESSAY' [type=enum, input_value='Single Choice', input_type=str]&#10;    For further information visit https://errors.pydantic.dev/2.13/v/enum">database = (Engine(sqlite:///:memory:), SubmissionFixture(teacher_id=UUID('1a913dec-d5d1-47d0-91e8-f27b9834219a'), student_id=UUI...er_id=UUID('b43b89db-fc0b-4e26-b91a-555b174b447b'), subjective_answer_id=UUID('663ed471-518d-4675-bc41-1009608971b6')))
+
+    def test_repository_rejects_result_using_another_exam_full_score(database):
+        engine, info = database
+        repository = DatabaseGradingRepository(session_factory=lambda: Session(engine))
+&gt;       payload = ResultPayload(question_type="Single Choice", score=20.0, max_score=20.0,
+            reason="Controlled wrong exam basis", correct_points=[], missing_knowledge_points=[],
+            knowledge_points=["数据类型"], suggestions=[], confidence=1.0,
+            answer_id=str(info.objective_answer_id), submission_id=str(info.submission_id))
+E       pydantic_core._pydantic_core.ValidationError: 1 validation error for GradingResult
+E       question_type
+E         Input should be 'SINGLE_CHOICE', 'MULTIPLE_CHOICE', 'TRUE_FALSE', 'FILL_BLANK', 'SHORT_ANSWER' or 'ESSAY' [type=enum, input_value='Single Choice', input_type=str]
+E           For further information visit https://errors.pydantic.dev/2.13/v/enum
+
+tests\unit\grading\test_scoring_inputs.py:160: ValidationError</failure></testcase></testsuite></testsuites>

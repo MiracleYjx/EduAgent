@@ -87,9 +87,14 @@ from backend.app.domain.enums import (
     WorkflowStatus,
 )
 from backend.app.schemas.ai import GradingResult
-from backend.app.schemas.grading import ConfidenceDecisionDTO
+from backend.app.schemas.grading import (
+    ConfidenceDecisionDTO,
+    ScoringInput,
+    same_fixed_scoring_input,
+)
 from backend.app.services.grading.grading_task_service import (
     GradingTargetAnswer,
+    GradingTaskError,
     SubmissionSnapshot,
 )
 from backend.app.services.grading.question_router import (
@@ -394,6 +399,11 @@ class GradingWorkflow:
 
         if self._checkpointer is None:
             raise GradingWorkflowError("未注入检查点时无法恢复：本批不具备恢复支撑。")
+        config = self._config(thread_id)
+        if config is None:
+            raise GradingWorkflowError("恢复需要有效 thread_id。")
+        current = dict(self._compiled.get_state(config).values)
+        self._require_fixed_context(current)
         payload = resume_value if resume_value is not None else {"acknowledged": True}
         raw = await self._compiled.ainvoke(
             Command(resume=payload),
@@ -498,6 +508,7 @@ class GradingWorkflow:
                 "教师决策的 workflow_id 与检查点身份不一致，拒绝跨工作流写入。",
                 error_code=GRADING_WORKFLOW_INVALID_TEACHER_DECISION,
             )
+        self._require_fixed_context(current)
         results = dict(current.get("grading_results") or {})
         target_result = results.get(decision.answer_id)
         if not isinstance(target_result, GradingResult):
@@ -949,6 +960,64 @@ class GradingWorkflow:
             return None, False
         return factory(), True
 
+    def _require_fixed_context(
+        self,
+        state: Mapping[str, Any],
+        target: GradingTargetAnswer | None = None,
+    ) -> None:
+        """Compare actual fixed inputs, never rebuild a checkpoint from current data."""
+        from pydantic import ValidationError
+
+        try:
+            self._deps.snapshot.require_scoring_ready()
+            raw = state.get("scoring_inputs", {})
+            if not isinstance(raw, Mapping):
+                raise TypeError("Fixed input collection is not a mapping.")
+            saved = {key: ScoringInput.model_validate(value) for key, value in raw.items()}
+            self._deps.snapshot.require_fixed_inputs(saved)
+            raw_current = state.get("scoring_input")
+            current = (
+                ScoringInput.model_validate(raw_current)
+                if raw_current is not None
+                else None
+            )
+            if current is not None and (
+                current.answer_id != state.get("current_answer_id")
+                or current.answer_id not in saved
+                or not same_fixed_scoring_input(saved[current.answer_id], current)
+            ):
+                raise ValueError("Current fixed input differs from its submission entry.")
+            if (
+                target is not None
+                and target.scoring_input is not None
+                and (
+                    current is None
+                    or not same_fixed_scoring_input(target.scoring_input, current)
+                )
+            ):
+                raise ValueError("Current fixed target is missing or changed.")
+        except GradingTaskError as error:
+            raise GradingWorkflowError(error.detail, error_code=error.error_code) from error
+        except (ValidationError, ValueError, TypeError) as error:
+            raise GradingWorkflowError(
+                "检查点固定评分输入不属于当前答卷或考试关联。",
+                error_code="GRADING_RESULT_OWNERSHIP_MISMATCH",
+            ) from error
+
+    def _fixed_context_failure(
+        self,
+        state: Mapping[str, Any],
+        node: str,
+        target: GradingTargetAnswer | None = None,
+    ) -> dict[str, Any] | None:
+        try:
+            self._require_fixed_context(state, target)
+        except GradingWorkflowError as error:
+            return self._failure(
+                error.error_code, str(error), current_node=node, keep_results=True
+            )
+        return None
+
     # ------------------------------------------------------------------ 节点实现
 
     async def _node_load_submission(self, state: Mapping[str, Any]) -> dict[str, Any]:
@@ -999,11 +1068,20 @@ class GradingWorkflow:
                     current_node=LOAD_SUBMISSION,
                 ),
             }
-        return {**patch, "submission_context": self._deps.snapshot.to_context()}
+        try:
+            self._deps.snapshot.require_scoring_ready()
+            fixed = {key: value.model_copy(deep=True) for key, value in self._deps.snapshot.scoring_inputs.items()}
+            self._deps.snapshot.require_fixed_inputs(fixed)
+        except GradingTaskError as error:
+            return {**patch, **self._failure(error.error_code, error.detail, current_node=LOAD_SUBMISSION)}
+        return {**patch, "submission_context": self._deps.snapshot.to_context(), "scoring_inputs": fixed}
 
     async def _node_classify_question(self, state: Mapping[str, Any]) -> dict[str, Any]:
         """`Classify Question`：按题序选中目标并写回身份（不参与分数判定）。"""
 
+        mismatch = self._fixed_context_failure(state, CLASSIFY_QUESTION)
+        if mismatch is not None:
+            return {**cleared_slots(), **mismatch}
         target = self._target_for_order(state.get("current_answer_order"))
         if target is None:
             return {
@@ -1029,6 +1107,7 @@ class GradingWorkflow:
             **cleared_slots(),
             "current_answer_id": target.answer_id,
             "current_answer_order": target.order,
+            "scoring_input": target.scoring_input.model_copy(deep=True) if target.scoring_input is not None else None,
             "question_type": target.question_type,
             "current_node": CLASSIFY_QUESTION,
             "status": WorkflowStatus.RUNNING,
@@ -1062,6 +1141,9 @@ class GradingWorkflow:
                 "当前答案标识与答卷快照不一致，拒绝评分。",
                 current_node=current_node,
             )
+        mismatch = self._fixed_context_failure(state, current_node, target)
+        if mismatch is not None:
+            return mismatch
         try:
             mode = self._mode_for(target.question_type)
         except GradingWorkflowError as error:
@@ -1086,6 +1168,14 @@ class GradingWorkflow:
                 close = getattr(session, "close", None)
                 if callable(close):
                     close()
+        if target.scoring_input is not None and (
+            invocation.input is None or invocation.input.scoring_input is None
+            or not same_fixed_scoring_input(target.scoring_input, invocation.input.scoring_input)
+        ):
+            return self._failure(
+                "GRADING_RESULT_OWNERSHIP_MISMATCH", "阅卷 Agent 的固定输入与本场目标不一致。",
+                current_node=current_node, keep_results=True,
+            )
         agent_output = invocation.output
         record_trace(
             agent_type="grading", status=agent_output.status.value,
@@ -1314,6 +1404,9 @@ class GradingWorkflow:
                 current_node=REGRADE,
                 keep_results=True,
             )
+        mismatch = self._fixed_context_failure(state, REGRADE, target)
+        if mismatch is not None:
+            return mismatch
         try:
             regrade_target_node(target.question_type)
         except GradingHandoffError as error:
@@ -1327,6 +1420,7 @@ class GradingWorkflow:
             **cleared_slots(),
             "current_answer_id": target.answer_id,
             "current_answer_order": target.order,
+            "scoring_input": target.scoring_input.model_copy(deep=True) if target.scoring_input is not None else None,
             "question_type": target.question_type,
             "retry_count": retry_count + 1,
             "current_node": REGRADE,

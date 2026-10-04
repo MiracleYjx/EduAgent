@@ -1,0 +1,1826 @@
+........FFFFFFFFFFFFFFFFFF.............................................. [ 34%]
+........................................................................ [ 68%]
+................................FFFFFFFFFFF.FFF..FFFFFF.FFFF.....        [100%]
+================================== FAILURES ===================================
+____ test_full_fixed_inputs_round_trip_preserves_options_and_decimal_facts ____
+
+    def test_full_fixed_inputs_round_trip_preserves_options_and_decimal_facts():
+>       fixed = scoring()
+                ^^^^^^^^^
+
+tests\unit\workflows\test_fixed_scoring_state.py:168: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+changes = {}
+
+    def scoring(**changes):
+        from backend.app.schemas.grading import ScoringInput
+    
+        values = dict(
+            exam_id="exam-controlled",
+            exam_question_id="link-controlled",
+            question_id="question-controlled",
+            submission_id="submission-controlled",
+            answer_id="answer-controlled",
+            student_id="student-controlled",
+            course_id="course-controlled",
+            order=1,
+            question_validation_revision=1,
+            question_type="SINGLE_CHOICE",
+            question_content="Controlled choice",
+            options={"C": "Third", "A": "First", "B": "Second"},
+            reference_answer="A",
+            source_rubric="Correct choice receives two points.",
+            effective_score="2.00",
+            base_score="2.00",
+            scoring_basis={
+                "kind": "objective",
+                "points": [
+                    {
+                        "key": "answer",
+                        "label": "Correct answer",
+                        "base_points": "2.00",
+                        "default_points": "2.00",
+                        "confirmed_points": "2.00",
+                    }
+                ],
+                "additive": True,
+                "rounding_delta": "0.00",
+            },
+            published_knowledge_points=["Fixed K"],
+            student_answer="A",
+            assets=[],
+        )
+        values.update(changes)
+>       return ScoringInput.model_validate(values)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       pydantic_core._pydantic_core.ValidationError: 1 validation error for ScoringInput
+E       order_preserved
+E         Field required [type=missing, input_value={'exam_id': 'exam-control...wer': 'A', 'assets': []}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.13/v/missing
+
+tests\unit\workflows\test_fixed_scoring_state.py:110: ValidationError
+_______ test_checkpoint_rejects_cross_context_fixed_inputs[answer-key] ________
+
+mutation = 'answer-key'
+
+    @pytest.mark.parametrize(
+        "mutation", ["answer-key", "submission", "exam", "student", "slot"]
+    )
+    def test_checkpoint_rejects_cross_context_fixed_inputs(mutation):
+>       fixed = scoring()
+                ^^^^^^^^^
+
+tests\unit\workflows\test_fixed_scoring_state.py:185: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+changes = {}
+
+    def scoring(**changes):
+        from backend.app.schemas.grading import ScoringInput
+    
+        values = dict(
+            exam_id="exam-controlled",
+            exam_question_id="link-controlled",
+            question_id="question-controlled",
+            submission_id="submission-controlled",
+            answer_id="answer-controlled",
+            student_id="student-controlled",
+            course_id="course-controlled",
+            order=1,
+            question_validation_revision=1,
+            question_type="SINGLE_CHOICE",
+            question_content="Controlled choice",
+            options={"C": "Third", "A": "First", "B": "Second"},
+            reference_answer="A",
+            source_rubric="Correct choice receives two points.",
+            effective_score="2.00",
+            base_score="2.00",
+            scoring_basis={
+                "kind": "objective",
+                "points": [
+                    {
+                        "key": "answer",
+                        "label": "Correct answer",
+                        "base_points": "2.00",
+                        "default_points": "2.00",
+                        "confirmed_points": "2.00",
+                    }
+                ],
+                "additive": True,
+                "rounding_delta": "0.00",
+            },
+            published_knowledge_points=["Fixed K"],
+            student_answer="A",
+            assets=[],
+        )
+        values.update(changes)
+>       return ScoringInput.model_validate(values)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       pydantic_core._pydantic_core.ValidationError: 1 validation error for ScoringInput
+E       order_preserved
+E         Field required [type=missing, input_value={'exam_id': 'exam-control...wer': 'A', 'assets': []}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.13/v/missing
+
+tests\unit\workflows\test_fixed_scoring_state.py:110: ValidationError
+_______ test_checkpoint_rejects_cross_context_fixed_inputs[submission] ________
+
+mutation = 'submission'
+
+    @pytest.mark.parametrize(
+        "mutation", ["answer-key", "submission", "exam", "student", "slot"]
+    )
+    def test_checkpoint_rejects_cross_context_fixed_inputs(mutation):
+>       fixed = scoring()
+                ^^^^^^^^^
+
+tests\unit\workflows\test_fixed_scoring_state.py:185: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+changes = {}
+
+    def scoring(**changes):
+        from backend.app.schemas.grading import ScoringInput
+    
+        values = dict(
+            exam_id="exam-controlled",
+            exam_question_id="link-controlled",
+            question_id="question-controlled",
+            submission_id="submission-controlled",
+            answer_id="answer-controlled",
+            student_id="student-controlled",
+            course_id="course-controlled",
+            order=1,
+            question_validation_revision=1,
+            question_type="SINGLE_CHOICE",
+            question_content="Controlled choice",
+            options={"C": "Third", "A": "First", "B": "Second"},
+            reference_answer="A",
+            source_rubric="Correct choice receives two points.",
+            effective_score="2.00",
+            base_score="2.00",
+            scoring_basis={
+                "kind": "objective",
+                "points": [
+                    {
+                        "key": "answer",
+                        "label": "Correct answer",
+                        "base_points": "2.00",
+                        "default_points": "2.00",
+                        "confirmed_points": "2.00",
+                    }
+                ],
+                "additive": True,
+                "rounding_delta": "0.00",
+            },
+            published_knowledge_points=["Fixed K"],
+            student_answer="A",
+            assets=[],
+        )
+        values.update(changes)
+>       return ScoringInput.model_validate(values)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       pydantic_core._pydantic_core.ValidationError: 1 validation error for ScoringInput
+E       order_preserved
+E         Field required [type=missing, input_value={'exam_id': 'exam-control...wer': 'A', 'assets': []}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.13/v/missing
+
+tests\unit\workflows\test_fixed_scoring_state.py:110: ValidationError
+__________ test_checkpoint_rejects_cross_context_fixed_inputs[exam] ___________
+
+mutation = 'exam'
+
+    @pytest.mark.parametrize(
+        "mutation", ["answer-key", "submission", "exam", "student", "slot"]
+    )
+    def test_checkpoint_rejects_cross_context_fixed_inputs(mutation):
+>       fixed = scoring()
+                ^^^^^^^^^
+
+tests\unit\workflows\test_fixed_scoring_state.py:185: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+changes = {}
+
+    def scoring(**changes):
+        from backend.app.schemas.grading import ScoringInput
+    
+        values = dict(
+            exam_id="exam-controlled",
+            exam_question_id="link-controlled",
+            question_id="question-controlled",
+            submission_id="submission-controlled",
+            answer_id="answer-controlled",
+            student_id="student-controlled",
+            course_id="course-controlled",
+            order=1,
+            question_validation_revision=1,
+            question_type="SINGLE_CHOICE",
+            question_content="Controlled choice",
+            options={"C": "Third", "A": "First", "B": "Second"},
+            reference_answer="A",
+            source_rubric="Correct choice receives two points.",
+            effective_score="2.00",
+            base_score="2.00",
+            scoring_basis={
+                "kind": "objective",
+                "points": [
+                    {
+                        "key": "answer",
+                        "label": "Correct answer",
+                        "base_points": "2.00",
+                        "default_points": "2.00",
+                        "confirmed_points": "2.00",
+                    }
+                ],
+                "additive": True,
+                "rounding_delta": "0.00",
+            },
+            published_knowledge_points=["Fixed K"],
+            student_answer="A",
+            assets=[],
+        )
+        values.update(changes)
+>       return ScoringInput.model_validate(values)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       pydantic_core._pydantic_core.ValidationError: 1 validation error for ScoringInput
+E       order_preserved
+E         Field required [type=missing, input_value={'exam_id': 'exam-control...wer': 'A', 'assets': []}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.13/v/missing
+
+tests\unit\workflows\test_fixed_scoring_state.py:110: ValidationError
+_________ test_checkpoint_rejects_cross_context_fixed_inputs[student] _________
+
+mutation = 'student'
+
+    @pytest.mark.parametrize(
+        "mutation", ["answer-key", "submission", "exam", "student", "slot"]
+    )
+    def test_checkpoint_rejects_cross_context_fixed_inputs(mutation):
+>       fixed = scoring()
+                ^^^^^^^^^
+
+tests\unit\workflows\test_fixed_scoring_state.py:185: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+changes = {}
+
+    def scoring(**changes):
+        from backend.app.schemas.grading import ScoringInput
+    
+        values = dict(
+            exam_id="exam-controlled",
+            exam_question_id="link-controlled",
+            question_id="question-controlled",
+            submission_id="submission-controlled",
+            answer_id="answer-controlled",
+            student_id="student-controlled",
+            course_id="course-controlled",
+            order=1,
+            question_validation_revision=1,
+            question_type="SINGLE_CHOICE",
+            question_content="Controlled choice",
+            options={"C": "Third", "A": "First", "B": "Second"},
+            reference_answer="A",
+            source_rubric="Correct choice receives two points.",
+            effective_score="2.00",
+            base_score="2.00",
+            scoring_basis={
+                "kind": "objective",
+                "points": [
+                    {
+                        "key": "answer",
+                        "label": "Correct answer",
+                        "base_points": "2.00",
+                        "default_points": "2.00",
+                        "confirmed_points": "2.00",
+                    }
+                ],
+                "additive": True,
+                "rounding_delta": "0.00",
+            },
+            published_knowledge_points=["Fixed K"],
+            student_answer="A",
+            assets=[],
+        )
+        values.update(changes)
+>       return ScoringInput.model_validate(values)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       pydantic_core._pydantic_core.ValidationError: 1 validation error for ScoringInput
+E       order_preserved
+E         Field required [type=missing, input_value={'exam_id': 'exam-control...wer': 'A', 'assets': []}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.13/v/missing
+
+tests\unit\workflows\test_fixed_scoring_state.py:110: ValidationError
+__________ test_checkpoint_rejects_cross_context_fixed_inputs[slot] ___________
+
+mutation = 'slot'
+
+    @pytest.mark.parametrize(
+        "mutation", ["answer-key", "submission", "exam", "student", "slot"]
+    )
+    def test_checkpoint_rejects_cross_context_fixed_inputs(mutation):
+>       fixed = scoring()
+                ^^^^^^^^^
+
+tests\unit\workflows\test_fixed_scoring_state.py:185: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+changes = {}
+
+    def scoring(**changes):
+        from backend.app.schemas.grading import ScoringInput
+    
+        values = dict(
+            exam_id="exam-controlled",
+            exam_question_id="link-controlled",
+            question_id="question-controlled",
+            submission_id="submission-controlled",
+            answer_id="answer-controlled",
+            student_id="student-controlled",
+            course_id="course-controlled",
+            order=1,
+            question_validation_revision=1,
+            question_type="SINGLE_CHOICE",
+            question_content="Controlled choice",
+            options={"C": "Third", "A": "First", "B": "Second"},
+            reference_answer="A",
+            source_rubric="Correct choice receives two points.",
+            effective_score="2.00",
+            base_score="2.00",
+            scoring_basis={
+                "kind": "objective",
+                "points": [
+                    {
+                        "key": "answer",
+                        "label": "Correct answer",
+                        "base_points": "2.00",
+                        "default_points": "2.00",
+                        "confirmed_points": "2.00",
+                    }
+                ],
+                "additive": True,
+                "rounding_delta": "0.00",
+            },
+            published_knowledge_points=["Fixed K"],
+            student_answer="A",
+            assets=[],
+        )
+        values.update(changes)
+>       return ScoringInput.model_validate(values)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       pydantic_core._pydantic_core.ValidationError: 1 validation error for ScoringInput
+E       order_preserved
+E         Field required [type=missing, input_value={'exam_id': 'exam-control...wer': 'A', 'assets': []}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.13/v/missing
+
+tests\unit\workflows\test_fixed_scoring_state.py:110: ValidationError
+_____ test_load_and_classify_save_actual_inputs_and_isolate_current_slot ______
+
+    def test_load_and_classify_save_actual_inputs_and_isolate_current_slot():
+        import asyncio
+    
+>       fixed = scoring()
+                ^^^^^^^^^
+
+tests\unit\workflows\test_fixed_scoring_state.py:205: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+changes = {}
+
+    def scoring(**changes):
+        from backend.app.schemas.grading import ScoringInput
+    
+        values = dict(
+            exam_id="exam-controlled",
+            exam_question_id="link-controlled",
+            question_id="question-controlled",
+            submission_id="submission-controlled",
+            answer_id="answer-controlled",
+            student_id="student-controlled",
+            course_id="course-controlled",
+            order=1,
+            question_validation_revision=1,
+            question_type="SINGLE_CHOICE",
+            question_content="Controlled choice",
+            options={"C": "Third", "A": "First", "B": "Second"},
+            reference_answer="A",
+            source_rubric="Correct choice receives two points.",
+            effective_score="2.00",
+            base_score="2.00",
+            scoring_basis={
+                "kind": "objective",
+                "points": [
+                    {
+                        "key": "answer",
+                        "label": "Correct answer",
+                        "base_points": "2.00",
+                        "default_points": "2.00",
+                        "confirmed_points": "2.00",
+                    }
+                ],
+                "additive": True,
+                "rounding_delta": "0.00",
+            },
+            published_knowledge_points=["Fixed K"],
+            student_answer="A",
+            assets=[],
+        )
+        values.update(changes)
+>       return ScoringInput.model_validate(values)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       pydantic_core._pydantic_core.ValidationError: 1 validation error for ScoringInput
+E       order_preserved
+E         Field required [type=missing, input_value={'exam_id': 'exam-control...wer': 'A', 'assets': []}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.13/v/missing
+
+tests\unit\workflows\test_fixed_scoring_state.py:110: ValidationError
+_____ test_each_grade_and_regrade_rejects_changed_link_before_call[grade] _____
+
+phase = 'grade'
+
+    @pytest.mark.parametrize("phase", ["grade", "regrade"])
+    def test_each_grade_and_regrade_rejects_changed_link_before_call(phase):
+        import asyncio
+    
+>       fixed = scoring()
+                ^^^^^^^^^
+
+tests\unit\workflows\test_fixed_scoring_state.py:220: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+changes = {}
+
+    def scoring(**changes):
+        from backend.app.schemas.grading import ScoringInput
+    
+        values = dict(
+            exam_id="exam-controlled",
+            exam_question_id="link-controlled",
+            question_id="question-controlled",
+            submission_id="submission-controlled",
+            answer_id="answer-controlled",
+            student_id="student-controlled",
+            course_id="course-controlled",
+            order=1,
+            question_validation_revision=1,
+            question_type="SINGLE_CHOICE",
+            question_content="Controlled choice",
+            options={"C": "Third", "A": "First", "B": "Second"},
+            reference_answer="A",
+            source_rubric="Correct choice receives two points.",
+            effective_score="2.00",
+            base_score="2.00",
+            scoring_basis={
+                "kind": "objective",
+                "points": [
+                    {
+                        "key": "answer",
+                        "label": "Correct answer",
+                        "base_points": "2.00",
+                        "default_points": "2.00",
+                        "confirmed_points": "2.00",
+                    }
+                ],
+                "additive": True,
+                "rounding_delta": "0.00",
+            },
+            published_knowledge_points=["Fixed K"],
+            student_answer="A",
+            assets=[],
+        )
+        values.update(changes)
+>       return ScoringInput.model_validate(values)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       pydantic_core._pydantic_core.ValidationError: 1 validation error for ScoringInput
+E       order_preserved
+E         Field required [type=missing, input_value={'exam_id': 'exam-control...wer': 'A', 'assets': []}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.13/v/missing
+
+tests\unit\workflows\test_fixed_scoring_state.py:110: ValidationError
+____ test_each_grade_and_regrade_rejects_changed_link_before_call[regrade] ____
+
+phase = 'regrade'
+
+    @pytest.mark.parametrize("phase", ["grade", "regrade"])
+    def test_each_grade_and_regrade_rejects_changed_link_before_call(phase):
+        import asyncio
+    
+>       fixed = scoring()
+                ^^^^^^^^^
+
+tests\unit\workflows\test_fixed_scoring_state.py:220: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+changes = {}
+
+    def scoring(**changes):
+        from backend.app.schemas.grading import ScoringInput
+    
+        values = dict(
+            exam_id="exam-controlled",
+            exam_question_id="link-controlled",
+            question_id="question-controlled",
+            submission_id="submission-controlled",
+            answer_id="answer-controlled",
+            student_id="student-controlled",
+            course_id="course-controlled",
+            order=1,
+            question_validation_revision=1,
+            question_type="SINGLE_CHOICE",
+            question_content="Controlled choice",
+            options={"C": "Third", "A": "First", "B": "Second"},
+            reference_answer="A",
+            source_rubric="Correct choice receives two points.",
+            effective_score="2.00",
+            base_score="2.00",
+            scoring_basis={
+                "kind": "objective",
+                "points": [
+                    {
+                        "key": "answer",
+                        "label": "Correct answer",
+                        "base_points": "2.00",
+                        "default_points": "2.00",
+                        "confirmed_points": "2.00",
+                    }
+                ],
+                "additive": True,
+                "rounding_delta": "0.00",
+            },
+            published_knowledge_points=["Fixed K"],
+            student_answer="A",
+            assets=[],
+        )
+        values.update(changes)
+>       return ScoringInput.model_validate(values)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       pydantic_core._pydantic_core.ValidationError: 1 validation error for ScoringInput
+E       order_preserved
+E         Field required [type=missing, input_value={'exam_id': 'exam-control...wer': 'A', 'assets': []}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.13/v/missing
+
+tests\unit\workflows\test_fixed_scoring_state.py:110: ValidationError
+_ test_missing_v1_fixed_context_and_option_reordering_cannot_resume_current_input _
+
+    def test_missing_v1_fixed_context_and_option_reordering_cannot_resume_current_input():
+        from backend.app.ai.workflows.grading_workflow import GradingWorkflowError
+    
+>       fixed = scoring()
+                ^^^^^^^^^
+
+tests\unit\workflows\test_fixed_scoring_state.py:239: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+changes = {}
+
+    def scoring(**changes):
+        from backend.app.schemas.grading import ScoringInput
+    
+        values = dict(
+            exam_id="exam-controlled",
+            exam_question_id="link-controlled",
+            question_id="question-controlled",
+            submission_id="submission-controlled",
+            answer_id="answer-controlled",
+            student_id="student-controlled",
+            course_id="course-controlled",
+            order=1,
+            question_validation_revision=1,
+            question_type="SINGLE_CHOICE",
+            question_content="Controlled choice",
+            options={"C": "Third", "A": "First", "B": "Second"},
+            reference_answer="A",
+            source_rubric="Correct choice receives two points.",
+            effective_score="2.00",
+            base_score="2.00",
+            scoring_basis={
+                "kind": "objective",
+                "points": [
+                    {
+                        "key": "answer",
+                        "label": "Correct answer",
+                        "base_points": "2.00",
+                        "default_points": "2.00",
+                        "confirmed_points": "2.00",
+                    }
+                ],
+                "additive": True,
+                "rounding_delta": "0.00",
+            },
+            published_knowledge_points=["Fixed K"],
+            student_answer="A",
+            assets=[],
+        )
+        values.update(changes)
+>       return ScoringInput.model_validate(values)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       pydantic_core._pydantic_core.ValidationError: 1 validation error for ScoringInput
+E       order_preserved
+E         Field required [type=missing, input_value={'exam_id': 'exam-control...wer': 'A', 'assets': []}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.13/v/missing
+
+tests\unit\workflows\test_fixed_scoring_state.py:110: ValidationError
+_____ test_actual_grading_agent_transmits_same_fixed_input_in_invocation ______
+
+    def test_actual_grading_agent_transmits_same_fixed_input_in_invocation():
+        import asyncio
+        from backend.app.ai.agents.grading_agent import GradingAgent
+        from backend.app.schemas.grading import same_fixed_scoring_input
+    
+>       fixed = scoring()
+                ^^^^^^^^^
+
+tests\unit\workflows\test_fixed_scoring_state.py:257: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+changes = {}
+
+    def scoring(**changes):
+        from backend.app.schemas.grading import ScoringInput
+    
+        values = dict(
+            exam_id="exam-controlled",
+            exam_question_id="link-controlled",
+            question_id="question-controlled",
+            submission_id="submission-controlled",
+            answer_id="answer-controlled",
+            student_id="student-controlled",
+            course_id="course-controlled",
+            order=1,
+            question_validation_revision=1,
+            question_type="SINGLE_CHOICE",
+            question_content="Controlled choice",
+            options={"C": "Third", "A": "First", "B": "Second"},
+            reference_answer="A",
+            source_rubric="Correct choice receives two points.",
+            effective_score="2.00",
+            base_score="2.00",
+            scoring_basis={
+                "kind": "objective",
+                "points": [
+                    {
+                        "key": "answer",
+                        "label": "Correct answer",
+                        "base_points": "2.00",
+                        "default_points": "2.00",
+                        "confirmed_points": "2.00",
+                    }
+                ],
+                "additive": True,
+                "rounding_delta": "0.00",
+            },
+            published_knowledge_points=["Fixed K"],
+            student_answer="A",
+            assets=[],
+        )
+        values.update(changes)
+>       return ScoringInput.model_validate(values)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       pydantic_core._pydantic_core.ValidationError: 1 validation error for ScoringInput
+E       order_preserved
+E         Field required [type=missing, input_value={'exam_id': 'exam-control...wer': 'A', 'assets': []}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.13/v/missing
+
+tests\unit\workflows\test_fixed_scoring_state.py:110: ValidationError
+____ test_api_reconstruction_checks_fixed_inputs_before_building_workflow _____
+
+    def test_api_reconstruction_checks_fixed_inputs_before_building_workflow():
+        from types import SimpleNamespace
+        from backend.app.api.workflow import WorkflowService, WorkflowRunError
+    
+>       fixed = scoring()
+                ^^^^^^^^^
+
+tests\unit\workflows\test_fixed_scoring_state.py:277: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+changes = {}
+
+    def scoring(**changes):
+        from backend.app.schemas.grading import ScoringInput
+    
+        values = dict(
+            exam_id="exam-controlled",
+            exam_question_id="link-controlled",
+            question_id="question-controlled",
+            submission_id="submission-controlled",
+            answer_id="answer-controlled",
+            student_id="student-controlled",
+            course_id="course-controlled",
+            order=1,
+            question_validation_revision=1,
+            question_type="SINGLE_CHOICE",
+            question_content="Controlled choice",
+            options={"C": "Third", "A": "First", "B": "Second"},
+            reference_answer="A",
+            source_rubric="Correct choice receives two points.",
+            effective_score="2.00",
+            base_score="2.00",
+            scoring_basis={
+                "kind": "objective",
+                "points": [
+                    {
+                        "key": "answer",
+                        "label": "Correct answer",
+                        "base_points": "2.00",
+                        "default_points": "2.00",
+                        "confirmed_points": "2.00",
+                    }
+                ],
+                "additive": True,
+                "rounding_delta": "0.00",
+            },
+            published_knowledge_points=["Fixed K"],
+            student_answer="A",
+            assets=[],
+        )
+        values.update(changes)
+>       return ScoringInput.model_validate(values)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       pydantic_core._pydantic_core.ValidationError: 1 validation error for ScoringInput
+E       order_preserved
+E         Field required [type=missing, input_value={'exam_id': 'exam-control...wer': 'A', 'assets': []}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.13/v/missing
+
+tests\unit\workflows\test_fixed_scoring_state.py:110: ValidationError
+_ test_actual_memory_checkpoint_resume_checks_fixed_facts_before_any_agent[v1-missing] _
+
+checkpoint_mode = 'v1-missing'
+
+    @pytest.mark.parametrize("checkpoint_mode", ["v1-missing", "other-exam", "other-link"])
+    def test_actual_memory_checkpoint_resume_checks_fixed_facts_before_any_agent(checkpoint_mode):
+        import asyncio
+        from langgraph.checkpoint.memory import InMemorySaver
+        from backend.app.ai.workflows.grading_workflow import GradingWorkflowError
+    
+        class NoCalls:
+            async def grade_answer_async(self, *args, **kwargs):
+                pytest.fail("Mismatch must stop before the Agent.")
+    
+>       fixed = scoring()
+                ^^^^^^^^^
+
+tests\unit\workflows\test_fixed_scoring_state.py:299: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+changes = {}
+
+    def scoring(**changes):
+        from backend.app.schemas.grading import ScoringInput
+    
+        values = dict(
+            exam_id="exam-controlled",
+            exam_question_id="link-controlled",
+            question_id="question-controlled",
+            submission_id="submission-controlled",
+            answer_id="answer-controlled",
+            student_id="student-controlled",
+            course_id="course-controlled",
+            order=1,
+            question_validation_revision=1,
+            question_type="SINGLE_CHOICE",
+            question_content="Controlled choice",
+            options={"C": "Third", "A": "First", "B": "Second"},
+            reference_answer="A",
+            source_rubric="Correct choice receives two points.",
+            effective_score="2.00",
+            base_score="2.00",
+            scoring_basis={
+                "kind": "objective",
+                "points": [
+                    {
+                        "key": "answer",
+                        "label": "Correct answer",
+                        "base_points": "2.00",
+                        "default_points": "2.00",
+                        "confirmed_points": "2.00",
+                    }
+                ],
+                "additive": True,
+                "rounding_delta": "0.00",
+            },
+            published_knowledge_points=["Fixed K"],
+            student_answer="A",
+            assets=[],
+        )
+        values.update(changes)
+>       return ScoringInput.model_validate(values)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       pydantic_core._pydantic_core.ValidationError: 1 validation error for ScoringInput
+E       order_preserved
+E         Field required [type=missing, input_value={'exam_id': 'exam-control...wer': 'A', 'assets': []}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.13/v/missing
+
+tests\unit\workflows\test_fixed_scoring_state.py:110: ValidationError
+_ test_actual_memory_checkpoint_resume_checks_fixed_facts_before_any_agent[other-exam] _
+
+checkpoint_mode = 'other-exam'
+
+    @pytest.mark.parametrize("checkpoint_mode", ["v1-missing", "other-exam", "other-link"])
+    def test_actual_memory_checkpoint_resume_checks_fixed_facts_before_any_agent(checkpoint_mode):
+        import asyncio
+        from langgraph.checkpoint.memory import InMemorySaver
+        from backend.app.ai.workflows.grading_workflow import GradingWorkflowError
+    
+        class NoCalls:
+            async def grade_answer_async(self, *args, **kwargs):
+                pytest.fail("Mismatch must stop before the Agent.")
+    
+>       fixed = scoring()
+                ^^^^^^^^^
+
+tests\unit\workflows\test_fixed_scoring_state.py:299: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+changes = {}
+
+    def scoring(**changes):
+        from backend.app.schemas.grading import ScoringInput
+    
+        values = dict(
+            exam_id="exam-controlled",
+            exam_question_id="link-controlled",
+            question_id="question-controlled",
+            submission_id="submission-controlled",
+            answer_id="answer-controlled",
+            student_id="student-controlled",
+            course_id="course-controlled",
+            order=1,
+            question_validation_revision=1,
+            question_type="SINGLE_CHOICE",
+            question_content="Controlled choice",
+            options={"C": "Third", "A": "First", "B": "Second"},
+            reference_answer="A",
+            source_rubric="Correct choice receives two points.",
+            effective_score="2.00",
+            base_score="2.00",
+            scoring_basis={
+                "kind": "objective",
+                "points": [
+                    {
+                        "key": "answer",
+                        "label": "Correct answer",
+                        "base_points": "2.00",
+                        "default_points": "2.00",
+                        "confirmed_points": "2.00",
+                    }
+                ],
+                "additive": True,
+                "rounding_delta": "0.00",
+            },
+            published_knowledge_points=["Fixed K"],
+            student_answer="A",
+            assets=[],
+        )
+        values.update(changes)
+>       return ScoringInput.model_validate(values)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       pydantic_core._pydantic_core.ValidationError: 1 validation error for ScoringInput
+E       order_preserved
+E         Field required [type=missing, input_value={'exam_id': 'exam-control...wer': 'A', 'assets': []}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.13/v/missing
+
+tests\unit\workflows\test_fixed_scoring_state.py:110: ValidationError
+_ test_actual_memory_checkpoint_resume_checks_fixed_facts_before_any_agent[other-link] _
+
+checkpoint_mode = 'other-link'
+
+    @pytest.mark.parametrize("checkpoint_mode", ["v1-missing", "other-exam", "other-link"])
+    def test_actual_memory_checkpoint_resume_checks_fixed_facts_before_any_agent(checkpoint_mode):
+        import asyncio
+        from langgraph.checkpoint.memory import InMemorySaver
+        from backend.app.ai.workflows.grading_workflow import GradingWorkflowError
+    
+        class NoCalls:
+            async def grade_answer_async(self, *args, **kwargs):
+                pytest.fail("Mismatch must stop before the Agent.")
+    
+>       fixed = scoring()
+                ^^^^^^^^^
+
+tests\unit\workflows\test_fixed_scoring_state.py:299: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+changes = {}
+
+    def scoring(**changes):
+        from backend.app.schemas.grading import ScoringInput
+    
+        values = dict(
+            exam_id="exam-controlled",
+            exam_question_id="link-controlled",
+            question_id="question-controlled",
+            submission_id="submission-controlled",
+            answer_id="answer-controlled",
+            student_id="student-controlled",
+            course_id="course-controlled",
+            order=1,
+            question_validation_revision=1,
+            question_type="SINGLE_CHOICE",
+            question_content="Controlled choice",
+            options={"C": "Third", "A": "First", "B": "Second"},
+            reference_answer="A",
+            source_rubric="Correct choice receives two points.",
+            effective_score="2.00",
+            base_score="2.00",
+            scoring_basis={
+                "kind": "objective",
+                "points": [
+                    {
+                        "key": "answer",
+                        "label": "Correct answer",
+                        "base_points": "2.00",
+                        "default_points": "2.00",
+                        "confirmed_points": "2.00",
+                    }
+                ],
+                "additive": True,
+                "rounding_delta": "0.00",
+            },
+            published_knowledge_points=["Fixed K"],
+            student_answer="A",
+            assets=[],
+        )
+        values.update(changes)
+>       return ScoringInput.model_validate(values)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       pydantic_core._pydantic_core.ValidationError: 1 validation error for ScoringInput
+E       order_preserved
+E         Field required [type=missing, input_value={'exam_id': 'exam-control...wer': 'A', 'assets': []}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.13/v/missing
+
+tests\unit\workflows\test_fixed_scoring_state.py:110: ValidationError
+_ test_direct_agent_preserves_real_scoring_gate_before_any_grader[EXAM_SCORING_BASIS_MISSING] _
+
+error_code = 'EXAM_SCORING_BASIS_MISSING'
+
+    @pytest.mark.parametrize("error_code", ["EXAM_SCORING_BASIS_MISSING", "EXAM_SCORING_BASIS_UNSUPPORTED"])
+    def test_direct_agent_preserves_real_scoring_gate_before_any_grader(error_code):
+        import asyncio
+        from dataclasses import replace
+        from backend.app.ai.agents.grading_agent import GradingAgent
+    
+        class NoGrader:
+            def grade(self, **kwargs):
+                pytest.fail("Missing or unsupported basis must stop before grading.")
+    
+>       current = replace(snapshot(scoring()), scoring_basis_error=error_code)
+                                   ^^^^^^^^^
+
+tests\unit\workflows\test_fixed_scoring_state.py:326: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+changes = {}
+
+    def scoring(**changes):
+        from backend.app.schemas.grading import ScoringInput
+    
+        values = dict(
+            exam_id="exam-controlled",
+            exam_question_id="link-controlled",
+            question_id="question-controlled",
+            submission_id="submission-controlled",
+            answer_id="answer-controlled",
+            student_id="student-controlled",
+            course_id="course-controlled",
+            order=1,
+            question_validation_revision=1,
+            question_type="SINGLE_CHOICE",
+            question_content="Controlled choice",
+            options={"C": "Third", "A": "First", "B": "Second"},
+            reference_answer="A",
+            source_rubric="Correct choice receives two points.",
+            effective_score="2.00",
+            base_score="2.00",
+            scoring_basis={
+                "kind": "objective",
+                "points": [
+                    {
+                        "key": "answer",
+                        "label": "Correct answer",
+                        "base_points": "2.00",
+                        "default_points": "2.00",
+                        "confirmed_points": "2.00",
+                    }
+                ],
+                "additive": True,
+                "rounding_delta": "0.00",
+            },
+            published_knowledge_points=["Fixed K"],
+            student_answer="A",
+            assets=[],
+        )
+        values.update(changes)
+>       return ScoringInput.model_validate(values)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       pydantic_core._pydantic_core.ValidationError: 1 validation error for ScoringInput
+E       order_preserved
+E         Field required [type=missing, input_value={'exam_id': 'exam-control...wer': 'A', 'assets': []}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.13/v/missing
+
+tests\unit\workflows\test_fixed_scoring_state.py:110: ValidationError
+_ test_direct_agent_preserves_real_scoring_gate_before_any_grader[EXAM_SCORING_BASIS_UNSUPPORTED] _
+
+error_code = 'EXAM_SCORING_BASIS_UNSUPPORTED'
+
+    @pytest.mark.parametrize("error_code", ["EXAM_SCORING_BASIS_MISSING", "EXAM_SCORING_BASIS_UNSUPPORTED"])
+    def test_direct_agent_preserves_real_scoring_gate_before_any_grader(error_code):
+        import asyncio
+        from dataclasses import replace
+        from backend.app.ai.agents.grading_agent import GradingAgent
+    
+        class NoGrader:
+            def grade(self, **kwargs):
+                pytest.fail("Missing or unsupported basis must stop before grading.")
+    
+>       current = replace(snapshot(scoring()), scoring_basis_error=error_code)
+                                   ^^^^^^^^^
+
+tests\unit\workflows\test_fixed_scoring_state.py:326: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+changes = {}
+
+    def scoring(**changes):
+        from backend.app.schemas.grading import ScoringInput
+    
+        values = dict(
+            exam_id="exam-controlled",
+            exam_question_id="link-controlled",
+            question_id="question-controlled",
+            submission_id="submission-controlled",
+            answer_id="answer-controlled",
+            student_id="student-controlled",
+            course_id="course-controlled",
+            order=1,
+            question_validation_revision=1,
+            question_type="SINGLE_CHOICE",
+            question_content="Controlled choice",
+            options={"C": "Third", "A": "First", "B": "Second"},
+            reference_answer="A",
+            source_rubric="Correct choice receives two points.",
+            effective_score="2.00",
+            base_score="2.00",
+            scoring_basis={
+                "kind": "objective",
+                "points": [
+                    {
+                        "key": "answer",
+                        "label": "Correct answer",
+                        "base_points": "2.00",
+                        "default_points": "2.00",
+                        "confirmed_points": "2.00",
+                    }
+                ],
+                "additive": True,
+                "rounding_delta": "0.00",
+            },
+            published_knowledge_points=["Fixed K"],
+            student_answer="A",
+            assets=[],
+        )
+        values.update(changes)
+>       return ScoringInput.model_validate(values)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       pydantic_core._pydantic_core.ValidationError: 1 validation error for ScoringInput
+E       order_preserved
+E         Field required [type=missing, input_value={'exam_id': 'exam-control...wer': 'A', 'assets': []}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.13/v/missing
+
+tests\unit\workflows\test_fixed_scoring_state.py:110: ValidationError
+_ test_direct_agent_unknown_historical_max_retains_original_failure_and_no_envelope _
+
+    def test_direct_agent_unknown_historical_max_retains_original_failure_and_no_envelope():
+        import asyncio
+        from dataclasses import replace
+        from backend.app.ai.agents.grading_agent import GradingAgent
+    
+>       current = snapshot(scoring())
+                           ^^^^^^^^^
+
+tests\unit\workflows\test_fixed_scoring_state.py:338: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+changes = {}
+
+    def scoring(**changes):
+        from backend.app.schemas.grading import ScoringInput
+    
+        values = dict(
+            exam_id="exam-controlled",
+            exam_question_id="link-controlled",
+            question_id="question-controlled",
+            submission_id="submission-controlled",
+            answer_id="answer-controlled",
+            student_id="student-controlled",
+            course_id="course-controlled",
+            order=1,
+            question_validation_revision=1,
+            question_type="SINGLE_CHOICE",
+            question_content="Controlled choice",
+            options={"C": "Third", "A": "First", "B": "Second"},
+            reference_answer="A",
+            source_rubric="Correct choice receives two points.",
+            effective_score="2.00",
+            base_score="2.00",
+            scoring_basis={
+                "kind": "objective",
+                "points": [
+                    {
+                        "key": "answer",
+                        "label": "Correct answer",
+                        "base_points": "2.00",
+                        "default_points": "2.00",
+                        "confirmed_points": "2.00",
+                    }
+                ],
+                "additive": True,
+                "rounding_delta": "0.00",
+            },
+            published_knowledge_points=["Fixed K"],
+            student_answer="A",
+            assets=[],
+        )
+        values.update(changes)
+>       return ScoringInput.model_validate(values)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       pydantic_core._pydantic_core.ValidationError: 1 validation error for ScoringInput
+E       order_preserved
+E         Field required [type=missing, input_value={'exam_id': 'exam-control...wer': 'A', 'assets': []}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.13/v/missing
+
+tests\unit\workflows\test_fixed_scoring_state.py:110: ValidationError
+_________ test_start_run_pauses_for_review_with_persistent_checkpoint _________
+
+env = {'engine': Engine(sqlite:///D:\YJX\Cache\Temp\pytest-of-10169\pytest-223\test_start_run_pauses_for_revi0\workflow.db),...er_id=UUID('ab1d612e-7bb7-4bb6-97cc-67cf6639365c'), subjective_answer_id=UUID('debc2ec3-381e-4be4-8fa2-87da28541108'))}
+client_factory = <function client_factory.<locals>.factory at 0x000001804132D580>
+
+    def test_start_run_pauses_for_review_with_persistent_checkpoint(
+        env: dict[str, Any], client_factory: Any
+    ) -> None:
+        """真实服务 + 真实持久 Checkpointer 跑到 interrupt：状态可查、待复核答案可见。"""
+    
+        client = client_factory(_service(env))
+        response = _start(client, env)
+    
+>       assert response.status_code == 200
+E       assert 409 == 200
+E        +  where 409 = <Response [409 Conflict]>.status_code
+
+tests\contract\test_workflow_api_contract.py:467: AssertionError
+____________________ test_repeated_start_reuses_active_run ____________________
+
+env = {'engine': Engine(sqlite:///D:\YJX\Cache\Temp\pytest-of-10169\pytest-223\test_repeated_start_reuses_act0\workflow.db),...er_id=UUID('4965eb9b-5ff3-4d11-b242-042f67e94d32'), subjective_answer_id=UUID('4ea07ce5-8062-4b5f-9887-5313984d424e'))}
+client_factory = <function client_factory.<locals>.factory at 0x00000180415F3560>
+
+    def test_repeated_start_reuses_active_run(env: dict[str, Any], client_factory: Any) -> None:
+        """重复启动复用同一运行，不并行创建第二个活动运行。"""
+    
+        client = client_factory(_service(env))
+        first = _start(client, env).json()
+        second = _start(client, env)
+    
+>       assert second.status_code == 200
+E       assert 409 == 200
+E        +  where 409 = <Response [409 Conflict]>.status_code
+
+tests\contract\test_workflow_api_contract.py:501: AssertionError
+_________ test_start_ignores_background_task_run_for_same_submission __________
+
+env = {'engine': Engine(sqlite:///D:\YJX\Cache\Temp\pytest-of-10169\pytest-223\test_start_ignores_background_0\workflow.db),...er_id=UUID('77518649-4a89-459a-8a03-376cf5945bd7'), subjective_answer_id=UUID('78f0b2d7-8ec8-462c-8a25-670604c9083e'))}
+client_factory = <function client_factory.<locals>.factory at 0x0000018041A92D40>
+
+    def test_start_ignores_background_task_run_for_same_submission(
+        env: dict[str, Any], client_factory: Any
+    ) -> None:
+        """M3 后台任务行不参与 M4 幂等启动：同一答卷仍创建本执行器的运行并按其复用（H05）。"""
+    
+        with Session(env["engine"]) as session:
+            session.add(
+                WorkflowRun(
+                    workflow_id="background-task-1",
+                    request_id="background-request",
+                    submission_id=env["fixture"].submission_id,
+                    status=WorkflowStatus.PAUSED,
+                    checkpoint={
+                        "kind": CHECKPOINT_KIND,
+                        "task": {},
+                        "current_node": "score",
+                    },
+                    pause_reason="存在待人工复核题目：本轮评分已完成，成绩尚未最终确认。",
+                    current_node="score",
+                )
+            )
+            session.commit()
+        client = client_factory(_service(env))
+    
+        response = _start(client, env)
+    
+>       assert response.status_code == 200
+E       assert 409 == 200
+E        +  where 409 = <Response [409 Conflict]>.status_code
+
+tests\contract\test_workflow_api_contract.py:535: AssertionError
+_________________ test_start_persists_pending_review_outcome __________________
+
+env = {'engine': Engine(sqlite:///D:\YJX\Cache\Temp\pytest-of-10169\pytest-223\test_start_persists_pending_re0\workflow.db),...er_id=UUID('93940296-3049-4572-93a5-b857cefcede8'), subjective_answer_id=UUID('fc2cf358-0306-46e9-afd7-39b240509bf1'))}
+client_factory = <function client_factory.<locals>.factory at 0x0000018041FFE660>
+
+    def test_start_persists_pending_review_outcome(
+        env: dict[str, Any], client_factory: Any
+    ) -> None:
+        """低置信度暂停：单题结果与待复核整卷结果随正式启动落库，运行保持 Paused（H01）。"""
+    
+        client = client_factory(_service(env))
+        body = _start(client, env).json()
+    
+>       assert body["status"] == WorkflowStatus.PAUSED.value
+               ^^^^^^^^^^^^^^
+E       KeyError: 'status'
+
+tests\contract\test_workflow_api_contract.py:560: KeyError
+______________ test_start_persists_final_result_for_accepted_run ______________
+
+env = {'engine': Engine(sqlite:///D:\YJX\Cache\Temp\pytest-of-10169\pytest-223\test_start_persists_final_resu0\workflow.db),...er_id=UUID('3bc22cee-483b-4f78-b672-9de4b979ccfd'), subjective_answer_id=UUID('7a104750-dcd5-455a-a142-b8594a5ff164'))}
+client_factory = <function client_factory.<locals>.factory at 0x0000018043406020>
+
+    def test_start_persists_final_result_for_accepted_run(
+        env: dict[str, Any], client_factory: Any
+    ) -> None:
+        """高置信度全部接受：最终成绩与运行终态随正式启动落库（H01）。"""
+    
+        client = client_factory(
+            _service(
+                env,
+                agent=_AcceptedSubjectiveAgent(
+                    submission_id=str(env["fixture"].submission_id)
+                ),
+            )
+        )
+        body = _start(client, env).json()
+    
+>       assert body["status"] == WorkflowStatus.COMPLETED.value
+               ^^^^^^^^^^^^^^
+E       KeyError: 'status'
+
+tests\contract\test_workflow_api_contract.py:626: KeyError
+_____________________ test_start_rejects_draft_submission _____________________
+
+env = {'engine': Engine(sqlite:///D:\YJX\Cache\Temp\pytest-of-10169\pytest-223\test_start_rejects_draft_submi0\workflow.db),...er_id=UUID('cc40a992-d3df-4747-a9bf-34694561d01b'), subjective_answer_id=UUID('f6a51863-75bc-4bb1-9e2b-966cc28e5902'))}
+client_factory = <function client_factory.<locals>.factory at 0x0000018043AB7060>
+
+    def test_start_rejects_draft_submission(env: dict[str, Any], client_factory: Any) -> None:
+        """草稿答卷不得启动阅卷，返回 409 且不写运行记录。"""
+    
+        with Session(env["engine"]) as session:
+            submission = session.get(Submission, env["fixture"].submission_id)
+            assert submission is not None
+            submission.status = SubmissionStatus.DRAFT
+            session.commit()
+        client = client_factory(_service(env))
+    
+        response = _start(client, env)
+    
+        assert response.status_code == 409
+>       assert response.json()["detail"]["error_code"] == WORKFLOW_SUBMISSION_NOT_READY
+E       AssertionError: assert 'EXAM_SCORING_BASIS_MISSING' == 'WORKFLOW_SUB...ION_NOT_READY'
+E         
+E         - WORKFLOW_SUBMISSION_NOT_READY
+E         + EXAM_SCORING_BASIS_MISSING
+
+tests\contract\test_workflow_api_contract.py:663: AssertionError
+__________ test_start_rejects_graded_submission_and_explicit_regrade __________
+
+env = {'engine': Engine(sqlite:///D:\YJX\Cache\Temp\pytest-of-10169\pytest-223\test_start_rejects_graded_subm0\workflow.db),...er_id=UUID('0748e322-e5b2-4d26-9e95-13ff5f4d0e18'), subjective_answer_id=UUID('de2eb641-022d-4482-bda2-0b75653eb171'))}
+client_factory = <function client_factory.<locals>.factory at 0x00000180415F1620>
+
+    def test_start_rejects_graded_submission_and_explicit_regrade(
+        env: dict[str, Any], client_factory: Any
+    ) -> None:
+        """Graded 仍返回生命周期 409；显式重评仍需使用既有阅卷入口。"""
+    
+        client = client_factory(_service(env))
+>       workflow_id = _start(client, env).json()["workflow_id"]
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'workflow_id'
+
+tests\contract\test_workflow_api_contract.py:673: KeyError
+_ test_historical_terminal_run_does_not_block_submitted_submission[Completed] _
+
+env = {'engine': Engine(sqlite:///D:\YJX\Cache\Temp\pytest-of-10169\pytest-223\test_historical_terminal_run_d0\workflow.db),...er_id=UUID('9631c7f3-79d4-4e55-a6f2-2d8e5b66ae33'), subjective_answer_id=UUID('35318916-b9b1-452c-a17e-b69e68182182'))}
+client_factory = <function client_factory.<locals>.factory at 0x00000180447E3240>
+status = <WorkflowStatus.COMPLETED: 'Completed'>
+
+    @pytest.mark.parametrize("status", [WorkflowStatus.COMPLETED, WorkflowStatus.FAILED])
+    def test_historical_terminal_run_does_not_block_submitted_submission(
+        env: dict[str, Any], client_factory: Any, status: WorkflowStatus
+    ) -> None:
+        """只有历史终态时，Submitted 答卷可以受理新运行，无需把旧运行改为活动态。"""
+    
+        submission_id = str(env["fixture"].submission_id)
+        _store(env).save_checkpoint(
+            "historical-terminal",
+            {
+                "workflow_id": "historical-terminal",
+                "request_id": "historical-request",
+                "submission_id": submission_id,
+                "status": status,
+                "error": (
+                    {
+                        "error_code": "HISTORICAL_FAILURE",
+                        "message": "历史运行失败",
+                        "retryable": False,
+                    }
+                    if status is WorkflowStatus.FAILED
+                    else None
+                ),
+            },
+            "load_submission",
+            thread_id="historical-thread",
+        )
+        client = client_factory(_service(env))
+    
+        response = _start(client, env)
+    
+>       assert response.status_code == 200
+E       assert 409 == 200
+E        +  where 409 = <Response [409 Conflict]>.status_code
+
+tests\contract\test_workflow_api_contract.py:722: AssertionError
+__ test_historical_terminal_run_does_not_block_submitted_submission[Failed] ___
+
+env = {'engine': Engine(sqlite:///D:\YJX\Cache\Temp\pytest-of-10169\pytest-223\test_historical_terminal_run_d1\workflow.db),...er_id=UUID('cb1f1556-cf7f-4736-8f99-350b12f08944'), subjective_answer_id=UUID('044aa1f8-f1eb-4d78-bcd4-3b4a4cb2a29c'))}
+client_factory = <function client_factory.<locals>.factory at 0x0000018044AEECA0>
+status = <WorkflowStatus.FAILED: 'Failed'>
+
+    @pytest.mark.parametrize("status", [WorkflowStatus.COMPLETED, WorkflowStatus.FAILED])
+    def test_historical_terminal_run_does_not_block_submitted_submission(
+        env: dict[str, Any], client_factory: Any, status: WorkflowStatus
+    ) -> None:
+        """只有历史终态时，Submitted 答卷可以受理新运行，无需把旧运行改为活动态。"""
+    
+        submission_id = str(env["fixture"].submission_id)
+        _store(env).save_checkpoint(
+            "historical-terminal",
+            {
+                "workflow_id": "historical-terminal",
+                "request_id": "historical-request",
+                "submission_id": submission_id,
+                "status": status,
+                "error": (
+                    {
+                        "error_code": "HISTORICAL_FAILURE",
+                        "message": "历史运行失败",
+                        "retryable": False,
+                    }
+                    if status is WorkflowStatus.FAILED
+                    else None
+                ),
+            },
+            "load_submission",
+            thread_id="historical-thread",
+        )
+        client = client_factory(_service(env))
+    
+        response = _start(client, env)
+    
+>       assert response.status_code == 200
+E       assert 409 == 200
+E        +  where 409 = <Response [409 Conflict]>.status_code
+
+tests\contract\test_workflow_api_contract.py:722: AssertionError
+______________ test_newer_terminal_run_does_not_hide_active_run _______________
+
+env = {'engine': Engine(sqlite:///D:\YJX\Cache\Temp\pytest-of-10169\pytest-223\test_newer_terminal_run_does_n0\workflow.db),...er_id=UUID('6842b3ed-4e8a-4e90-bc95-9e9300b7a03f'), subjective_answer_id=UUID('436c12e4-9342-495b-8eaa-d2bff86e76db'))}
+client_factory = <function client_factory.<locals>.factory at 0x000001804508F4C0>
+
+    def test_newer_terminal_run_does_not_hide_active_run(
+        env: dict[str, Any], client_factory: Any
+    ) -> None:
+        """活动状态必须在查询中筛选，不能只按最近一行的终态判断。"""
+    
+        service = _service(env)
+        client = client_factory(service)
+        first = _start(client, env).json()
+        _store(env).save_checkpoint(
+            "newer-terminal",
+            {
+                "workflow_id": "newer-terminal",
+                "request_id": "newer-request",
+                "submission_id": str(env["fixture"].submission_id),
+                "status": WorkflowStatus.COMPLETED,
+            },
+            "load_submission",
+            thread_id="newer-thread",
+        )
+        with Session(env["engine"]) as session:
+            newer = session.scalars(
+                select(WorkflowRun).where(WorkflowRun.workflow_id == "newer-terminal")
+            ).one()
+            newer.created_at = datetime.now(UTC) + timedelta(days=1)
+            session.commit()
+    
+        response = _start(client, env)
+    
+>       assert response.status_code == 200
+E       assert 409 == 200
+E        +  where 409 = <Response [409 Conflict]>.status_code
+
+tests\contract\test_workflow_api_contract.py:758: AssertionError
+___________________ test_student_sees_only_public_progress ____________________
+
+env = {'engine': Engine(sqlite:///D:\YJX\Cache\Temp\pytest-of-10169\pytest-223\test_student_sees_only_public_0\workflow.db),...er_id=UUID('273fe55e-2b80-49f9-9e33-3c72b2a31091'), subjective_answer_id=UUID('a3e9d0d4-ecdc-46e6-89b7-ffb7e8013a30'))}
+client_factory = <function client_factory.<locals>.factory at 0x0000018045886660>
+
+    def test_student_sees_only_public_progress(env: dict[str, Any], client_factory: Any) -> None:
+        """学生只能看到自己的公开进度，越权学生返回 403。"""
+    
+        client = client_factory(_service(env))
+>       workflow_id = _start(client, env).json()["workflow_id"]
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'workflow_id'
+
+tests\contract\test_workflow_api_contract.py:771: KeyError
+___________ test_resume_requires_teacher_decision_for_review_pause ____________
+
+env = {'engine': Engine(sqlite:///D:\YJX\Cache\Temp\pytest-of-10169\pytest-223\test_resume_requires_teacher_d0\workflow.db),...er_id=UUID('27ea91fe-b1ca-4615-9e9c-f1d4c518a3d9'), subjective_answer_id=UUID('14ea77df-3ab2-43ab-ad59-612c11f32d1c'))}
+client_factory = <function client_factory.<locals>.factory at 0x0000018046A751C0>
+
+    def test_resume_requires_teacher_decision_for_review_pause(
+        env: dict[str, Any], client_factory: Any
+    ) -> None:
+        """人工复核暂停：缺少目标答案或缺少教师结论都返回 409。"""
+    
+        client = client_factory(_service(env))
+>       workflow_id = _start(client, env).json()["workflow_id"]
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'workflow_id'
+
+tests\contract\test_workflow_api_contract.py:816: KeyError
+_____ test_resume_delegates_to_review_service_and_reports_partial_success _____
+
+env = {'engine': Engine(sqlite:///D:\YJX\Cache\Temp\pytest-of-10169\pytest-223\test_resume_delegates_to_revie0\workflow.db),...er_id=UUID('271a04b2-94cd-4d78-b0e5-e7545e56958b'), subjective_answer_id=UUID('65142bbe-55ac-4db8-a1ff-f240312511e7'))}
+client_factory = <function client_factory.<locals>.factory at 0x00000180475DC400>
+
+    def test_resume_delegates_to_review_service_and_reports_partial_success(
+        env: dict[str, Any], client_factory: Any
+    ) -> None:
+        """已有教师结论时委托 T074 恢复；“已保存待继续”以部分成功回执表达。"""
+    
+        base_outcome = ReviewOutcome(
+            workflow_id="pending",
+            submission_id=str(env["fixture"].submission_id),
+            answer_id=str(env["fixture"].subjective_answer_id),
+            decision=ReviewStatus.CONFIRMED,
+            review_record_id=None,
+            workflow_status=WorkflowStatus.PAUSED,
+            interrupted=True,
+            pending_answer_ids=(str(env["fixture"].subjective_answer_id),),
+            resumable=True,
+            resumed=False,
+            resume_error_code="REVIEW_SERVICE_CONFLICT",
+            exam_result=None,
+            exam_result_persisted=False,
+            diagnosis=None,
+            diagnosis_error_code=None,
+        )
+        stub_review = _StubReviewService(base_outcome)
+        service = _service(env, review_service_provider=lambda: stub_review)
+        client = client_factory(service)
+        started = _start(client, env).json()
+>       workflow_id = started["workflow_id"]
+                      ^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'workflow_id'
+
+tests\contract\test_workflow_api_contract.py:863: KeyError
+_____________ test_resume_without_runtime_checkpoint_is_rejected ______________
+
+env = {'engine': Engine(sqlite:///D:\YJX\Cache\Temp\pytest-of-10169\pytest-223\test_resume_without_runtime_ch0\workflow.db),...er_id=UUID('8fb46663-fae0-4550-aeeb-00fdad0429e4'), subjective_answer_id=UUID('3ca570f6-edd4-4733-b21c-9b60c12b1c3f'))}
+client_factory = <function client_factory.<locals>.factory at 0x0000018047DD6340>
+
+    def test_resume_without_runtime_checkpoint_is_rejected(
+        env: dict[str, Any], client_factory: Any
+    ) -> None:
+        """没有持久 runtime 检查点的暂停运行不提供自动恢复。"""
+    
+        service = _service(env)
+        client = client_factory(service)
+        state = {
+            "workflow_id": "grading-without-runtime",
+            "request_id": "request-without-runtime",
+            "submission_id": str(env["fixture"].submission_id),
+            "status": WorkflowStatus.PAUSED,
+            "current_node": PENDING_REVIEW,
+            "pause_reason": "系统故障暂停。",
+            "retry_count": 0,
+            "confidence_decisions": {},
+            "grading_results": {},
+        }
+        _store(env).save_checkpoint(
+            "grading-without-runtime",
+            state,
+            PENDING_REVIEW,
+            "系统故障暂停。",
+            thread_id="thread-without-runtime",
+        )
+    
+        response = client.post(
+            "/api/workflow/runs/grading-without-runtime/resume",
+            headers=_headers(_users(env)["teacher"], UserRole.TEACHER),
+            json={},
+        )
+    
+        assert response.status_code == 409
+>       assert response.json()["detail"]["error_code"] == WORKFLOW_RUN_NOT_RESUMABLE
+E       AssertionError: assert 'EXAM_SCORING_BASIS_MISSING' == 'WORKFLOW_RUN_NOT_RESUMABLE'
+E         
+E         - WORKFLOW_RUN_NOT_RESUMABLE
+E         + EXAM_SCORING_BASIS_MISSING
+
+tests\contract\test_workflow_api_contract.py:919: AssertionError
+__________________ test_production_checkpointer_is_persisted __________________
+
+env = {'engine': Engine(sqlite:///D:\YJX\Cache\Temp\pytest-of-10169\pytest-223\test_production_checkpointer_i0\workflow.db),...er_id=UUID('5af9b83a-3f1d-4de4-af27-8362ea6222df'), subjective_answer_id=UUID('3d4cf43c-1d30-4731-9ec4-273a057bc287'))}
+client_factory = <function client_factory.<locals>.factory at 0x0000018048BC1760>
+
+    def test_production_checkpointer_is_persisted(env: dict[str, Any], client_factory: Any) -> None:
+        """启动后运行记录里确实有持久 runtime 检查点（证明注入的是数据库 Checkpointer）。"""
+    
+        client = client_factory(_service(env))
+        body = _start(client, env).json()
+        runs = _runs(env)
+>       assert len(runs) == 1
+E       assert 0 == 1
+E        +  where 0 = len([])
+
+tests\contract\test_workflow_api_contract.py:961: AssertionError
+___________ test_start_generates_diagnosis_only_after_result_commit ___________
+
+env = {'engine': Engine(sqlite:///D:\YJX\Cache\Temp\pytest-of-10169\pytest-223\test_start_generates_diagnosis0\workflow.db),...er_id=UUID('108cc567-99af-4cdb-a560-14117bda698a'), subjective_answer_id=UUID('e81d1a3a-4d44-49d9-83da-ecaacaf55f72'))}
+client_factory = <function client_factory.<locals>.factory at 0x0000018048BC1C60>
+
+    def test_start_generates_diagnosis_only_after_result_commit(
+        env: dict[str, Any], client_factory: Any
+    ) -> None:
+        """P1.3 正向：结果事务提交后才生成 Ready 诊断；诊断可读且运行 Completed。"""
+    
+        recorder = _ReadyDiagnosisService()
+        client = client_factory(
+            _accepted_service(env, diagnosis_service=_diagnosis_adapter(env, recorder))
+        )
+    
+        body = _start(client, env).json()
+    
+>       assert body["status"] == WorkflowStatus.COMPLETED.value
+               ^^^^^^^^^^^^^^
+E       KeyError: 'status'
+
+tests\contract\test_workflow_api_contract.py:1103: KeyError
+___________ test_diagnosis_retryable_failure_keeps_committed_grades ___________
+
+env = {'engine': Engine(sqlite:///D:\YJX\Cache\Temp\pytest-of-10169\pytest-223\test_diagnosis_retryable_failu0\workflow.db),...er_id=UUID('ce23a7c6-07c9-4a97-8db4-1238bfa4bf53'), subjective_answer_id=UUID('5d40df2d-3962-4650-88aa-281bda82f9e8'))}
+client_factory = <function client_factory.<locals>.factory at 0x000001804966E700>
+
+    def test_diagnosis_retryable_failure_keeps_committed_grades(
+        env: dict[str, Any], client_factory: Any
+    ) -> None:
+        """P1.3 反向：可重试诊断失败不回滚成绩；运行进入 Paused + resumable，且不写 Ready 诊断。"""
+    
+        from backend.app.core.retry_policy import ProviderErrorInfo, ProviderExecutionError
+    
+        failure = ProviderExecutionError(
+            ProviderErrorInfo(
+                code="ProviderTimeout",
+                message="诊断 Provider 超时。",
+                attempt_count=2,
+                retryable=True,
+                status="ProviderTimeout",
+            )
+        )
+        client = client_factory(
+            _accepted_service(
+                env, diagnosis_service=_diagnosis_adapter(env, _FailingDiagnosisService(failure))
+            )
+        )
+    
+        body = _start(client, env).json()
+    
+>       assert body["status"] == WorkflowStatus.PAUSED.value
+               ^^^^^^^^^^^^^^
+E       KeyError: 'status'
+
+tests\contract\test_workflow_api_contract.py:1140: KeyError
+________ test_diagnosis_hard_failure_keeps_committed_grades_and_fails _________
+
+env = {'engine': Engine(sqlite:///D:\YJX\Cache\Temp\pytest-of-10169\pytest-223\test_diagnosis_hard_failure_ke0\workflow.db),...er_id=UUID('2f524e20-e67a-4025-857a-598a67fcd4b6'), subjective_answer_id=UUID('81e80306-c380-4957-9c5a-2ff180f2203b'))}
+client_factory = <function client_factory.<locals>.factory at 0x0000018049BC9760>
+
+    def test_diagnosis_hard_failure_keeps_committed_grades_and_fails(
+        env: dict[str, Any], client_factory: Any
+    ) -> None:
+        """P1.3 反向：不可重试诊断失败保留成绩并如实 Failed（不伪造 Ready、不写空诊断）。"""
+    
+        client = client_factory(
+            _accepted_service(
+                env,
+                diagnosis_service=_diagnosis_adapter(
+                    env, _FailingDiagnosisService(RuntimeError("诊断服务不可用。"))
+                ),
+            )
+        )
+    
+        body = _start(client, env).json()
+    
+>       assert body["status"] == WorkflowStatus.FAILED.value
+               ^^^^^^^^^^^^^^
+E       KeyError: 'status'
+
+tests\contract\test_workflow_api_contract.py:1166: KeyError
+____________ test_low_confidence_pause_does_not_generate_diagnosis ____________
+
+env = {'engine': Engine(sqlite:///D:\YJX\Cache\Temp\pytest-of-10169\pytest-223\test_low_confidence_pause_does0\workflow.db),...er_id=UUID('423d217b-552f-400d-aea7-3059f9673365'), subjective_answer_id=UUID('ecd8e066-a273-4629-807b-62a6172e18b9'))}
+client_factory = <function client_factory.<locals>.factory at 0x000001804AFF4FE0>
+
+    def test_low_confidence_pause_does_not_generate_diagnosis(
+        env: dict[str, Any], client_factory: Any
+    ) -> None:
+        """P1.3 反向：低置信度暂停（非最终成绩）不调用诊断、更不写诊断记录。"""
+    
+        recorder = _ReadyDiagnosisService()
+        client = client_factory(_service(env, diagnosis_service=_diagnosis_adapter(env, recorder)))
+    
+        body = _start(client, env).json()
+    
+>       assert body["status"] == WorkflowStatus.PAUSED.value
+               ^^^^^^^^^^^^^^
+E       KeyError: 'status'
+
+tests\contract\test_workflow_api_contract.py:1185: KeyError
+_________ test_startup_recovery_turns_diagnosis_pending_run_resumable _________
+
+env = {'engine': Engine(sqlite:///D:\YJX\Cache\Temp\pytest-of-10169\pytest-223\test_startup_recovery_turns_di0\workflow.db),...er_id=UUID('f692801e-a601-43ac-9d42-c0b417a44260'), subjective_answer_id=UUID('fe232eb2-927f-4ab2-92ef-a2bae0948b56'))}
+client_factory = <function client_factory.<locals>.factory at 0x000001804B8C99E0>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001804B65D4F0>
+
+    def test_startup_recovery_turns_diagnosis_pending_run_resumable(
+        env: dict[str, Any], client_factory: Any, monkeypatch: Any
+    ) -> None:
+        """P1.4.1：结果已提交但诊断未生成的遗留运行被收敛为可恢复；恢复只补诊断、不重评。"""
+    
+        recorder = _ReadyDiagnosisService()
+        agent = _AcceptedSubjectiveAgent(submission_id=str(env["fixture"].submission_id))
+        service = _service(env, agent=agent, diagnosis_service=_diagnosis_adapter(env, recorder))
+        client = client_factory(service)
+    
+        async def _crash_before_diagnosis(*args: Any, **kwargs: Any) -> Any:
+            """模拟进程在“结果事务已提交、诊断生成”之间中断：只跳过诊断。"""
+    
+            return kwargs["row"]
+    
+        monkeypatch.setattr(
+            "backend.app.api.workflow.WorkflowService._finalize_diagnosis",
+            _crash_before_diagnosis,
+        )
+        body = _start(client, env).json()
+    
+        # 遗留形态：整卷结果已提交且最终，但运行停在 Running、没有任何诊断。
+>       assert body["status"] == WorkflowStatus.RUNNING.value
+               ^^^^^^^^^^^^^^
+E       KeyError: 'status'
+
+tests\contract\test_workflow_api_contract.py:1217: KeyError
+__________ test_high_confidence_result_is_readable_from_results_api ___________
+
+env = ReviewEnv(engine=Engine(postgresql+psycopg://eduagent@127.0.0.1:5432/eduagent_e4_finish_3c487990ad44), paper=Paper(tea...ec283a44ebc7', subjective_answer_ids=('78f3a21b-d406-4815-a992-12a0fc736c8a', '5d0ea4e6-e322-4d00-ade0-4da52c835aae')))
+
+    def test_high_confidence_result_is_readable_from_results_api(
+        env: ReviewEnv,
+    ) -> None:
+        """高置信度混合答卷从启动 API 完成，并由结果/诊断 API 读回。"""
+    
+        scoring = SequenceScoringProvider([0.95, 0.95])
+        diagnosis = SuggestionProvider()
+        with _api_client(
+            env,
+            scoring_provider=scoring,
+            diagnosis_provider=diagnosis,
+        ) as harness:
+            started = _start(harness, env)
+            result = _student_result(harness, env)
+            report = _student_diagnosis(harness, env)
+    
+>       assert started.status_code == 200
+E       assert 409 == 200
+E        +  where 409 = <Response [409 Conflict]>.status_code
+
+tests\integration\test_langgraph_grading_workflow.py:525: AssertionError
+_____________ test_low_confidence_result_enters_real_review_queue _____________
+
+env = ReviewEnv(engine=Engine(postgresql+psycopg://eduagent@127.0.0.1:5432/eduagent_e4_finish_3c487990ad44), paper=Paper(tea...67bd69b95851', subjective_answer_ids=('e8c5b0ff-4e7d-4e20-b46d-f8d0bc4bfa55', '4bd8ee87-74f9-4596-9174-923ee34817e3')))
+
+    def test_low_confidence_result_enters_real_review_queue(
+        env: ReviewEnv,
+    ) -> None:
+        """低置信度结果由启动 API 落库，并由真实复核队列与详情读到。"""
+    
+        scoring = SequenceScoringProvider([0.3])
+        with _api_client(env, scoring_provider=scoring) as harness:
+            started = _start(harness, env)
+            queue = harness.client.get(
+                "/api/reviews/queue",
+                headers=_teacher_headers(env),
+            )
+            teacher_result = _teacher_result(harness, env)
+    
+>           assert started.status_code == 200
+E           assert 409 == 200
+E            +  where 409 = <Response [409 Conflict]>.status_code
+
+tests\integration\test_langgraph_grading_workflow.py:572: AssertionError
+_ test_decision_retry_returns_original_record_and_live_pending_count[confirm] _
+
+env = ReviewEnv(engine=Engine(postgresql+psycopg://eduagent@127.0.0.1:5432/eduagent_e4_finish_3c487990ad44), paper=Paper(tea...f802be7424ab', subjective_answer_ids=('db5bdf91-943c-4003-b7a5-7e046af168e4', 'e45e5459-ed3b-4402-80f4-457fb8275b8c')))
+action = 'confirm'
+
+    @pytest.mark.parametrize("action", ["confirm", "modify"])
+    def test_decision_retry_returns_original_record_and_live_pending_count(
+        env: ReviewEnv, action: str
+    ) -> None:
+        """真实 PostgreSQL/API 落库后跨实例重试，仅返回原记录及当前待复核数。"""
+    
+        with _api_client(env, scoring_provider=SequenceScoringProvider([0.3, 0.3])) as first:
+            started = _start(first, env)
+>           assert started.status_code == 200
+E           assert 409 == 200
+E            +  where 409 = <Response [409 Conflict]>.status_code
+
+tests\integration\test_langgraph_grading_workflow.py:614: AssertionError
+_ test_decision_retry_returns_original_record_and_live_pending_count[modify] __
+
+env = ReviewEnv(engine=Engine(postgresql+psycopg://eduagent@127.0.0.1:5432/eduagent_e4_finish_3c487990ad44), paper=Paper(tea...1bb215eb5507', subjective_answer_ids=('dde1e895-1c2a-4cb5-818e-f55573f6b21b', 'fc0654c5-3c2b-47f6-b6c4-a914c3db3e5c')))
+action = 'modify'
+
+    @pytest.mark.parametrize("action", ["confirm", "modify"])
+    def test_decision_retry_returns_original_record_and_live_pending_count(
+        env: ReviewEnv, action: str
+    ) -> None:
+        """真实 PostgreSQL/API 落库后跨实例重试，仅返回原记录及当前待复核数。"""
+    
+        with _api_client(env, scoring_provider=SequenceScoringProvider([0.3, 0.3])) as first:
+            started = _start(first, env)
+>           assert started.status_code == 200
+E           assert 409 == 200
+E            +  where 409 = <Response [409 Conflict]>.status_code
+
+tests\integration\test_langgraph_grading_workflow.py:614: AssertionError
+============================== warnings summary ===============================
+..\..\..\develop\Python\Lib\site-packages\fastapi\testclient.py:1
+  D:\develop\Python\Lib\site-packages\fastapi\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/unit/workflows/test_fixed_scoring_state.py::test_full_fixed_inputs_round_trip_preserves_options_and_decimal_facts
+FAILED tests/unit/workflows/test_fixed_scoring_state.py::test_checkpoint_rejects_cross_context_fixed_inputs[answer-key]
+FAILED tests/unit/workflows/test_fixed_scoring_state.py::test_checkpoint_rejects_cross_context_fixed_inputs[submission]
+FAILED tests/unit/workflows/test_fixed_scoring_state.py::test_checkpoint_rejects_cross_context_fixed_inputs[exam]
+FAILED tests/unit/workflows/test_fixed_scoring_state.py::test_checkpoint_rejects_cross_context_fixed_inputs[student]
+FAILED tests/unit/workflows/test_fixed_scoring_state.py::test_checkpoint_rejects_cross_context_fixed_inputs[slot]
+FAILED tests/unit/workflows/test_fixed_scoring_state.py::test_load_and_classify_save_actual_inputs_and_isolate_current_slot
+FAILED tests/unit/workflows/test_fixed_scoring_state.py::test_each_grade_and_regrade_rejects_changed_link_before_call[grade]
+FAILED tests/unit/workflows/test_fixed_scoring_state.py::test_each_grade_and_regrade_rejects_changed_link_before_call[regrade]
+FAILED tests/unit/workflows/test_fixed_scoring_state.py::test_missing_v1_fixed_context_and_option_reordering_cannot_resume_current_input
+FAILED tests/unit/workflows/test_fixed_scoring_state.py::test_actual_grading_agent_transmits_same_fixed_input_in_invocation
+FAILED tests/unit/workflows/test_fixed_scoring_state.py::test_api_reconstruction_checks_fixed_inputs_before_building_workflow
+FAILED tests/unit/workflows/test_fixed_scoring_state.py::test_actual_memory_checkpoint_resume_checks_fixed_facts_before_any_agent[v1-missing]
+FAILED tests/unit/workflows/test_fixed_scoring_state.py::test_actual_memory_checkpoint_resume_checks_fixed_facts_before_any_agent[other-exam]
+FAILED tests/unit/workflows/test_fixed_scoring_state.py::test_actual_memory_checkpoint_resume_checks_fixed_facts_before_any_agent[other-link]
+FAILED tests/unit/workflows/test_fixed_scoring_state.py::test_direct_agent_preserves_real_scoring_gate_before_any_grader[EXAM_SCORING_BASIS_MISSING]
+FAILED tests/unit/workflows/test_fixed_scoring_state.py::test_direct_agent_preserves_real_scoring_gate_before_any_grader[EXAM_SCORING_BASIS_UNSUPPORTED]
+FAILED tests/unit/workflows/test_fixed_scoring_state.py::test_direct_agent_unknown_historical_max_retains_original_failure_and_no_envelope
+FAILED tests/contract/test_workflow_api_contract.py::test_start_run_pauses_for_review_with_persistent_checkpoint
+FAILED tests/contract/test_workflow_api_contract.py::test_repeated_start_reuses_active_run
+FAILED tests/contract/test_workflow_api_contract.py::test_start_ignores_background_task_run_for_same_submission
+FAILED tests/contract/test_workflow_api_contract.py::test_start_persists_pending_review_outcome
+FAILED tests/contract/test_workflow_api_contract.py::test_start_persists_final_result_for_accepted_run
+FAILED tests/contract/test_workflow_api_contract.py::test_start_rejects_draft_submission
+FAILED tests/contract/test_workflow_api_contract.py::test_start_rejects_graded_submission_and_explicit_regrade
+FAILED tests/contract/test_workflow_api_contract.py::test_historical_terminal_run_does_not_block_submitted_submission[Completed]
+FAILED tests/contract/test_workflow_api_contract.py::test_historical_terminal_run_does_not_block_submitted_submission[Failed]
+FAILED tests/contract/test_workflow_api_contract.py::test_newer_terminal_run_does_not_hide_active_run
+FAILED tests/contract/test_workflow_api_contract.py::test_student_sees_only_public_progress
+FAILED tests/contract/test_workflow_api_contract.py::test_resume_requires_teacher_decision_for_review_pause
+FAILED tests/contract/test_workflow_api_contract.py::test_resume_delegates_to_review_service_and_reports_partial_success
+FAILED tests/contract/test_workflow_api_contract.py::test_resume_without_runtime_checkpoint_is_rejected
+FAILED tests/contract/test_workflow_api_contract.py::test_production_checkpointer_is_persisted
+FAILED tests/contract/test_workflow_api_contract.py::test_start_generates_diagnosis_only_after_result_commit
+FAILED tests/contract/test_workflow_api_contract.py::test_diagnosis_retryable_failure_keeps_committed_grades
+FAILED tests/contract/test_workflow_api_contract.py::test_diagnosis_hard_failure_keeps_committed_grades_and_fails
+FAILED tests/contract/test_workflow_api_contract.py::test_low_confidence_pause_does_not_generate_diagnosis
+FAILED tests/contract/test_workflow_api_contract.py::test_startup_recovery_turns_diagnosis_pending_run_resumable
+FAILED tests/integration/test_langgraph_grading_workflow.py::test_high_confidence_result_is_readable_from_results_api
+FAILED tests/integration/test_langgraph_grading_workflow.py::test_low_confidence_result_enters_real_review_queue
+FAILED tests/integration/test_langgraph_grading_workflow.py::test_decision_retry_returns_original_record_and_live_pending_count[confirm]
+FAILED tests/integration/test_langgraph_grading_workflow.py::test_decision_retry_returns_original_record_and_live_pending_count[modify]
+42 failed, 167 passed, 1 warning in 65.60s (0:01:05)

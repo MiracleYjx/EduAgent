@@ -610,7 +610,7 @@ M0 工程骨架 + Benchmark
 
 - [X] T175 [HIGH] [E4] **实现原子发布与全引用生命周期冻结**：在 `exam_service.py`、`question_service.py`、资产/父题服务及课程/考试/文档删除直接入口统一发布/修订/删除的事务检查与固定锁顺序；发布时固定四项本场依据，立即保护内容/解析/题图/来源，Closed/Archived 或答卷/评分/复核历史继续保护，不能通过级联删除或退回修订解冻。保留 I01 错误及元数据例外，受保护题另建派生候选，不引入完整快照。 依赖：T148、T154、T165、T170、T173、T174。per FR-018/049、exam-assembly 发布冻结、data-model §9.1（F042） (partial)
 
-- [ ] T176 [HIGH] [E4] **贯通考试评分输入与身份**：在 `services/grading/grading_task_service.py` 的 DatabaseGradingSubmissionReader/SubmissionSnapshot、`schemas/grading.py`、Agent/Workflow 状态与仓储中传递 exam_question_id、本场分值/基准/标准、发布知识点及已核对图片；替换 v2 考试上下文直接读取 Question.score 的来源。新发布依据缺失明确报错，旧历史按 T171 兼容读取，幂等身份不跨场复用。 依赖：T164、T171、T175。per FR-043/049、exam-scoring ScoringInput、US3-v2/AC1–3（F043） (partial)
+- [X] T176 [HIGH] [E4] **贯通考试评分输入与身份**：在 `services/grading/grading_task_service.py` 的 DatabaseGradingSubmissionReader/SubmissionSnapshot、`schemas/grading.py`、Agent/Workflow 状态与仓储中传递 exam_question_id、本场分值/基准/标准、发布知识点及已核对图片；替换 v2 考试上下文直接读取 Question.score 的来源。新发布依据缺失明确报错，旧历史按 T171 兼容读取，幂等身份不跨场复用。 依赖：T164、T171、T175。per FR-043/049、exam-scoring ScoringInput、US3-v2/AC1–3（F043） (partial)
 
 - [ ] T177 [HIGH] [E4] **贯通规则评分、主观评分、复核与汇总**：在 `services/grading/`、`ai/agents/grading_agent.py`、`reviewer_agent.py`、`ai/workflows/`、`services/review_service.py`、`diagnosis_service.py` 消费同一固定输入；客观题不调用 LLM，主观题使用已核对标准且不二次缩放，图像能力不足明确待处理。原始/量化分数均校验本场上限，结果 Decimal 求和，失败/缺依据/待复核不记零分，保留既有检查点与复核生命周期。 依赖：T176。per FR-029–040扩展、FR-043/049、exam-scoring、SC-012/013（F044） (partial)
 

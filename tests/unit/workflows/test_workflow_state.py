@@ -382,6 +382,7 @@ def test_state_fields_are_partitioned_into_identity_control_and_payload_sets() -
     assert set(ANSWER_SLOT_FIELDS) == {
         "current_answer_id",
         "current_answer_order",
+        "scoring_input",
         "question_type",
         "query",
         "retrieved_context_ids",
@@ -396,6 +397,7 @@ def test_state_fields_are_partitioned_into_identity_control_and_payload_sets() -
     # 整卷级集合必须保留，不得随换题清空。
     assert set(SUBMISSION_COLLECTION_FIELDS) == {
         "submission_context",
+        "scoring_inputs",
         "grading_results",
         "confidence_decisions",
         "final_results",
@@ -806,7 +808,7 @@ def test_checkpoint_payload_kind_and_version_are_enforced() -> None:
     """检查点载荷必须带明确 kind/version，并拒绝未知版本与 M3 后台任务检查点。"""
 
     assert WORKFLOW_STATE_PAYLOAD_KIND == "langgraph-grading-state-payload"
-    assert WORKFLOW_STATE_PAYLOAD_VERSION == "1"
+    assert WORKFLOW_STATE_PAYLOAD_VERSION == "2"
     assert LEGACY_BACKGROUND_TASK_CHECKPOINT_KIND == LEGACY_M3_KIND
 
     payload = workflow_state_to_checkpoint_payload(_complete_state())
@@ -828,7 +830,7 @@ def test_checkpoint_payload_kind_and_version_are_enforced() -> None:
 
     with pytest.raises(WorkflowStatePayloadVersionError) as version_error:
         workflow_state_from_checkpoint_payload(
-            {**payload, "version": "2"}
+            {**payload, "version": "3"}
         )
     assert version_error.value.error_code == WORKFLOW_STATE_PAYLOAD_VERSION_UNSUPPORTED
 
