@@ -1,0 +1,123 @@
+FFFFFFF                                                                  [100%]
+================================== FAILURES ===================================
+___ test_student_detail_and_summary_use_same_fixed_order_values_and_labels ____
+
+scenario = (<sqlalchemy.orm.session.Session object at 0x000002282E40D160>, SubmissionFixture(teacher_id=UUID('b839822a-f1ea-4a7f-...4df6-8ca2-7a1e87b19768')), WindowsPath('D:/YJX/Cache/Temp/pytest-of-10169/pytest-243/test_student_detail_and_summar0'))
+
+    def test_student_detail_and_summary_use_same_fixed_order_values_and_labels(scenario):
+        session, info, root = scenario
+>       service = SubmissionService(session,root=root)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: SubmissionService.__init__() got an unexpected keyword argument 'root'
+
+tests\unit\services\test_student_fixed_exam.py:68: TypeError
+______________ test_unknown_historical_score_is_not_bank_default ______________
+
+scenario = (<sqlalchemy.orm.session.Session object at 0x000002282E736210>, SubmissionFixture(teacher_id=UUID('d7bfe995-ab6e-42ea-...4733-a914-27be5e896ead')), WindowsPath('D:/YJX/Cache/Temp/pytest-of-10169/pytest-243/test_unknown_historical_score_0'))
+
+    def test_unknown_historical_score_is_not_bank_default(scenario):
+        session, info, root = scenario
+        link = session.get(Exam, info.exam_id).exam_question_links[0]
+        link.score = None
+        session.commit()
+>       service = SubmissionService(session,root=root)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: SubmissionService.__init__() got an unexpected keyword argument 'root'
+
+tests\unit\services\test_student_fixed_exam.py:87: TypeError
+______ test_actual_visible_image_is_inline_and_has_no_private_provenance ______
+
+scenario = (<sqlalchemy.orm.session.Session object at 0x000002282E737B10>, SubmissionFixture(teacher_id=UUID('94bceb4b-849f-43d3-...40da-a8e2-396483663c28')), WindowsPath('D:/YJX/Cache/Temp/pytest-of-10169/pytest-243/test_actual_visible_image_is_i0'))
+
+    def test_actual_visible_image_is_inline_and_has_no_private_provenance(scenario):
+        asset, _path, content = add_image(scenario)
+        session, info, root = scenario
+>       detail = SubmissionService(session,root=root).get_exam_detail(info.exam_id,student_id=info.student_id,include_images=True)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: SubmissionService.__init__() got an unexpected keyword argument 'root'
+
+tests\unit\services\test_student_fixed_exam.py:96: TypeError
+_ test_required_hidden_or_missing_image_cannot_start_or_submit[hidden-EXAM_REQUIRED_IMAGE_UNAVAILABLE] _
+
+scenario = (<sqlalchemy.orm.session.Session object at 0x000002282F9750F0>, SubmissionFixture(teacher_id=UUID('0c83b1dd-8820-42e9-...4a50-85f0-b734a7a30443')), WindowsPath('D:/YJX/Cache/Temp/pytest-of-10169/pytest-243/test_required_hidden_or_missin0'))
+change = 'hidden', code = 'EXAM_REQUIRED_IMAGE_UNAVAILABLE'
+
+    @pytest.mark.parametrize("change,code",[("hidden","EXAM_REQUIRED_IMAGE_UNAVAILABLE"),("missing","FILE_MISSING"),("changed","FILE_CONTENT_CHANGED")])
+    def test_required_hidden_or_missing_image_cannot_start_or_submit(scenario,change,code):
+        asset,path,_content = add_image(scenario)
+        session, info, root = scenario
+        if change == "hidden":
+            asset.student_visible = False
+            session.commit()
+        elif change == "missing":
+            path.unlink()
+        else:
+            path.write_bytes(b"changed fixture bytes")
+>       service = SubmissionService(session,root=root)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: SubmissionService.__init__() got an unexpected keyword argument 'root'
+
+tests\unit\services\test_student_fixed_exam.py:115: TypeError
+_ test_required_hidden_or_missing_image_cannot_start_or_submit[missing-FILE_MISSING] _
+
+scenario = (<sqlalchemy.orm.session.Session object at 0x000002282F976520>, SubmissionFixture(teacher_id=UUID('cfed30ee-bca3-4225-...431c-8b52-489c0ccc76da')), WindowsPath('D:/YJX/Cache/Temp/pytest-of-10169/pytest-243/test_required_hidden_or_missin1'))
+change = 'missing', code = 'FILE_MISSING'
+
+    @pytest.mark.parametrize("change,code",[("hidden","EXAM_REQUIRED_IMAGE_UNAVAILABLE"),("missing","FILE_MISSING"),("changed","FILE_CONTENT_CHANGED")])
+    def test_required_hidden_or_missing_image_cannot_start_or_submit(scenario,change,code):
+        asset,path,_content = add_image(scenario)
+        session, info, root = scenario
+        if change == "hidden":
+            asset.student_visible = False
+            session.commit()
+        elif change == "missing":
+            path.unlink()
+        else:
+            path.write_bytes(b"changed fixture bytes")
+>       service = SubmissionService(session,root=root)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: SubmissionService.__init__() got an unexpected keyword argument 'root'
+
+tests\unit\services\test_student_fixed_exam.py:115: TypeError
+_ test_required_hidden_or_missing_image_cannot_start_or_submit[changed-FILE_CONTENT_CHANGED] _
+
+scenario = (<sqlalchemy.orm.session.Session object at 0x000002282FA92450>, SubmissionFixture(teacher_id=UUID('fcd627c6-b1bc-4ae3-...46cc-879d-6265e5e87169')), WindowsPath('D:/YJX/Cache/Temp/pytest-of-10169/pytest-243/test_required_hidden_or_missin2'))
+change = 'changed', code = 'FILE_CONTENT_CHANGED'
+
+    @pytest.mark.parametrize("change,code",[("hidden","EXAM_REQUIRED_IMAGE_UNAVAILABLE"),("missing","FILE_MISSING"),("changed","FILE_CONTENT_CHANGED")])
+    def test_required_hidden_or_missing_image_cannot_start_or_submit(scenario,change,code):
+        asset,path,_content = add_image(scenario)
+        session, info, root = scenario
+        if change == "hidden":
+            asset.student_visible = False
+            session.commit()
+        elif change == "missing":
+            path.unlink()
+        else:
+            path.write_bytes(b"changed fixture bytes")
+>       service = SubmissionService(session,root=root)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: SubmissionService.__init__() got an unexpected keyword argument 'root'
+
+tests\unit\services\test_student_fixed_exam.py:115: TypeError
+_ test_teacher_only_image_without_necessary_conditions_does_not_become_public _
+
+scenario = (<sqlalchemy.orm.session.Session object at 0x000002282FAF89E0>, SubmissionFixture(teacher_id=UUID('18e9deaf-6727-4cde-...45aa-89db-96a605212aab')), WindowsPath('D:/YJX/Cache/Temp/pytest-of-10169/pytest-243/test_teacher_only_image_withou0'))
+
+    def test_teacher_only_image_without_necessary_conditions_does_not_become_public(scenario):
+        asset,_path,_content = add_image(scenario,visible=False,necessary=False)
+        session, info, root = scenario
+>       detail = SubmissionService(session,root=root).get_exam_detail(info.exam_id,student_id=info.student_id,include_images=True)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: SubmissionService.__init__() got an unexpected keyword argument 'root'
+
+tests\unit\services\test_student_fixed_exam.py:125: TypeError
+=========================== short test summary info ===========================
+FAILED tests/unit/services/test_student_fixed_exam.py::test_student_detail_and_summary_use_same_fixed_order_values_and_labels
+FAILED tests/unit/services/test_student_fixed_exam.py::test_unknown_historical_score_is_not_bank_default
+FAILED tests/unit/services/test_student_fixed_exam.py::test_actual_visible_image_is_inline_and_has_no_private_provenance
+FAILED tests/unit/services/test_student_fixed_exam.py::test_required_hidden_or_missing_image_cannot_start_or_submit[hidden-EXAM_REQUIRED_IMAGE_UNAVAILABLE]
+FAILED tests/unit/services/test_student_fixed_exam.py::test_required_hidden_or_missing_image_cannot_start_or_submit[missing-FILE_MISSING]
+FAILED tests/unit/services/test_student_fixed_exam.py::test_required_hidden_or_missing_image_cannot_start_or_submit[changed-FILE_CONTENT_CHANGED]
+FAILED tests/unit/services/test_student_fixed_exam.py::test_teacher_only_image_without_necessary_conditions_does_not_become_public
+7 failed in 2.60s

@@ -459,7 +459,7 @@ def test_select_item_renders_dual_pane_detail() -> None:
     assert "学生甲" in header and "30%" in header
     assert "待人工复核" in header
     assert answer == "变量用于保存数据。"
-    assert score == 6.0
+    assert score == "6.00"
     assert reason == "说明了变量的作用。"
     assert "变量" in knowledge_points
     assert "引用数据" in knowledge_points

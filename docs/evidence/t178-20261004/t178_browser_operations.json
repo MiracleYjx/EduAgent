@@ -1,0 +1,17 @@
+{
+  "at": "2026-10-04T17:49:19.015Z",
+  "operations": [
+    "teacher assemble TRUE_FALSE=1 SHORT_ANSWER=1 total20",
+    "replace objective and move to order1 at3.33 -> total gap13.33",
+    "reassemble exact13.33 with override",
+    "teacher actual320x200 authorized image preview",
+    "prepare and explicit confirm qualitative and objective bases",
+    "actual publish via UI",
+    "student sees same order10.00/3.33 and actual image, no visible answers/Rubric",
+    "student typed and saved two answers, original submit persisted then revealed8/11 event mismatch",
+    "corrected server review shows same image/current conditions/saved RAG/score2.01",
+    "fresh one-question UI submit succeeds and all navigation/write controls frozen"
+  ],
+  "note": "AI operates synthetic accounts; controlled providers; no independent teacher annotation, no model quality or performance claim",
+  "browserErrors": []
+}

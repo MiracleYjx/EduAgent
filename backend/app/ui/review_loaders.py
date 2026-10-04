@@ -14,23 +14,34 @@ ORM 会话或领域仓储；每次调用自建服务与数据库会话，不缓�
 
 from __future__ import annotations
 
+import base64
 from collections.abc import Mapping
+from decimal import Decimal, InvalidOperation
+from html import escape
 from typing import Any
 from uuid import UUID
 
+from backend.app.ai.vision.base import VisionFailure, VisionImage
 from backend.app.api.reviews import (
     DEFAULT_PAGE_SIZE,
+    REVIEW_DECISION_INVALID_SCORE,
     ReviewDecisionOutcomeDTO,
     ReviewDecisionService,
     ReviewDetailDTO,
+    ReviewQueryError,
     ReviewQueryService,
     ReviewQueuePageDTO,
     TeacherDecisionRequest,
 )
 from backend.app.api.workflow import build_production_review_service
+from backend.app.core.config import get_settings
 from backend.app.core.database import get_session_factory
 from backend.app.domain.enums import ReviewStatus, UserRole
 from backend.app.domain.permissions import PermissionDeniedError, normalize_role
+from backend.app.services.file_storage_service import (
+    FileStorageError,
+    FileStorageService,
+)
 
 
 def state_user_id(state: Mapping[str, Any] | None) -> str:
@@ -146,6 +157,83 @@ def load_detail(
     )
 
 
+def load_images(
+    state: Mapping[str, Any] | None,
+    *,
+    submission_id: str,
+    answer_id: str,
+) -> str:
+    """重新授权读取本场详情与原图，不把文件定位交给浏览器公共缓存。"""
+    teacher_id = require_teacher(state)
+    detail = build_query_service().get_answer_detail(
+        teacher_id, str(submission_id), str(answer_id)
+    )
+    if detail.scoring_input_error:
+        raise ReviewQueryError(
+            "本场图像依据不可用，请核对真实输入。",
+            error_code=detail.scoring_input_error,
+        )
+    fixed = detail.scoring_input
+    if fixed is None:
+        return "<p>历史记录未保存本场题图输入，图片来源未知。</p>"
+    if not fixed.assets:
+        return "<p>本场题目没有题图。</p>"
+    html: list[str] = []
+    try:
+        with get_session_factory()() as session:
+            files = FileStorageService(session, root=get_settings().storage_root)
+            for asset in fixed.assets:
+                path, file = files.download(
+                    asset.file_id, actor_id=_require_uuid(teacher_id, "教师标识")
+                )
+                try:
+                    raw = path.read_bytes()
+                except FileNotFoundError:
+                    raise ReviewQueryError(
+                        "真实题图原件缺失。", error_code="FILE_MISSING"
+                    ) from None
+                except OSError:
+                    raise ReviewQueryError(
+                        "真实题图原件不可读。", error_code="FILE_UNREADABLE"
+                    ) from None
+                image = VisionImage.from_bytes(raw)
+                if (
+                    (file.media_type is not None and file.media_type != image.mime_type)
+                    or image.width != asset.width
+                    or image.height != asset.height
+                ):
+                    raise ReviewQueryError(
+                        "实际原图格式或尺寸与本场输入不一致。",
+                        error_code="FILE_CONTENT_CHANGED",
+                    )
+                caption = escape(asset.caption or f"第 {asset.order_index} 张本场原图")
+                content = base64.b64encode(image.data).decode("ascii")
+                html.append(
+                    f'<figure><figcaption>{caption}</figcaption><img alt="{caption}" src="data:{image.mime_type};base64,{content}" style="max-width:100%;height:auto;max-height:780px;object-fit:contain" /></figure>'
+                )
+    except FileStorageError as error:
+        raise ReviewQueryError(str(error), error_code=error.code) from None
+    except VisionFailure as error:
+        raise ReviewQueryError(
+            error.message, error_code=error.code, retryable=error.retryable
+        ) from None
+    return "\n".join(html)
+
+
+def _decimal_score(value: Any) -> Decimal:
+    try:
+        score = value if isinstance(value, Decimal) else Decimal(str(value))
+    except InvalidOperation:
+        raise ReviewQueryError(
+            "修改分数须填写有限十进制数值。", error_code=REVIEW_DECISION_INVALID_SCORE
+        ) from None
+    if not score.is_finite():
+        raise ReviewQueryError(
+            "修改分数须填写有限十进制数值。", error_code=REVIEW_DECISION_INVALID_SCORE
+        )
+    return score
+
+
 async def submit_decision(
     state: Mapping[str, Any] | None,
     *,
@@ -157,6 +245,7 @@ async def submit_decision(
     comment: str | None = None,
     workflow_id: str | None = None,
     expected_review_status: ReviewStatus | str | None = None,
+    expected_review_round_id: UUID | str | None = None,
 ) -> ReviewDecisionOutcomeDTO:
     """提交教师结论（确认或修改）；返回真实回执，包含部分成功语义。"""
 
@@ -165,11 +254,16 @@ async def submit_decision(
         submission_id=_require_uuid(submission_id, "答卷标识"),
         answer_id=_require_uuid(answer_id, "答案标识"),
         action="modify" if action == "modify" else "confirm",
-        score=score if action == "modify" else None,
+        score=_decimal_score(score) if action == "modify" else None,
         reason=reason if action == "modify" else None,
         comment=comment,
         workflow_id=workflow_id,
         expected_review_status=_review_status(expected_review_status),
+        expected_review_round_id=(
+            _require_uuid(expected_review_round_id, "复核轮次")
+            if expected_review_round_id is not None
+            else None
+        ),
     )
     return await build_decision_service().submit(teacher_id=teacher_id, payload=payload)
 
@@ -178,6 +272,7 @@ __all__ = [
     "build_decision_service",
     "build_query_service",
     "load_detail",
+    "load_images",
     "load_queue",
     "require_teacher",
     "state_user_id",

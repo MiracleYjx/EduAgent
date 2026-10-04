@@ -1,0 +1,180 @@
+D:\develop\Python\Lib\site-packages\gradio\components\dataframe.py:197: UserWarning: The `column_limits` parameter is not yet implemented.
+  warnings.warn(
+D:\develop\Python\Lib\site-packages\gradio\components\dataframe.py:183: UserWarning: The `row_limits` parameter is not yet implemented.
+  warnings.warn(
+INFO:     Started server process [94556]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:18759 (Press CTRL+C to quit)
+INFO:     127.0.0.1:1050 - "GET /gradio/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:1050 - "GET /gradio/gradio_api/heartbeat/v8i80yudtd HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9441 - "GET /gradio/theme.css?v=8ad6f9b14414574fe6c6d9b4362dcdd63dfdc66d8c34cbef0982888dfc44ff04 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9441 - "POST /gradio/gradio_api/queue/join HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9441 - "GET /gradio/gradio_api/queue/data?session_hash=v8i80yudtd HTTP/1.1" 200 OK
+D:\develop\Python\Lib\site-packages\gradio\components\dataframe.py:197: UserWarning: The `column_limits` parameter is not yet implemented.
+  warnings.warn(
+D:\develop\Python\Lib\site-packages\gradio\components\dataframe.py:183: UserWarning: The `row_limits` parameter is not yet implemented.
+  warnings.warn(
+INFO:     127.0.0.1:9441 - "POST /gradio/gradio_api/queue/join HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9441 - "POST /gradio/gradio_api/queue/join HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9441 - "POST /gradio/gradio_api/queue/join HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9441 - "POST /gradio/gradio_api/queue/join HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9441 - "POST /gradio/gradio_api/queue/join HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9441 - "POST /gradio/gradio_api/queue/join HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9441 - "POST /gradio/gradio_api/queue/join HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9441 - "POST /gradio/gradio_api/queue/join HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9441 - "POST /gradio/gradio_api/queue/join HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9441 - "POST /gradio/gradio_api/queue/join HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9441 - "POST /gradio/gradio_api/queue/join HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9441 - "POST /gradio/gradio_api/queue/join HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9441 - "POST /gradio/gradio_api/queue/join HTTP/1.1" 200 OK
+D:\develop\Python\Lib\site-packages\gradio\components\dataframe.py:197: UserWarning: The `column_limits` parameter is not yet implemented.
+  warnings.warn(
+INFO:     127.0.0.1:9441 - "POST /gradio/gradio_api/queue/join HTTP/1.1" 200 OK
+D:\develop\Python\Lib\site-packages\gradio\components\dataframe.py:197: UserWarning: The `column_limits` parameter is not yet implemented.
+  warnings.warn(
+INFO:     127.0.0.1:9441 - "POST /gradio/gradio_api/queue/join HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9441 - "POST /gradio/gradio_api/queue/join HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9441 - "GET /gradio/gradio_api/queue/data?session_hash=v8i80yudtd HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9441 - "POST /gradio/gradio_api/queue/join HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9441 - "POST /gradio/gradio_api/queue/join HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9441 - "POST /gradio/gradio_api/queue/join HTTP/1.1" 200 OK
+INFO:     127.0.0.1:12962 - "GET /gradio/gradio_api/queue/data?session_hash=v8i80yudtd HTTP/1.1" 200 OK
+INFO:     127.0.0.1:12962 - "POST /gradio/gradio_api/queue/join HTTP/1.1" 200 OK
+D:\develop\Python\Lib\site-packages\gradio\components\dataframe.py:197: UserWarning: The `column_limits` parameter is not yet implemented.
+  warnings.warn(
+D:\develop\Python\Lib\site-packages\gradio\components\dataframe.py:183: UserWarning: The `row_limits` parameter is not yet implemented.
+  warnings.warn(
+INFO:     127.0.0.1:12962 - "POST /gradio/gradio_api/queue/join HTTP/1.1" 200 OK
+INFO:     127.0.0.1:12962 - "GET /gradio/gradio_api/queue/data?session_hash=v8i80yudtd HTTP/1.1" 200 OK
+INFO:     127.0.0.1:12962 - "POST /gradio/gradio_api/queue/join HTTP/1.1" 200 OK
+INFO:     127.0.0.1:12962 - "GET /gradio/gradio_api/queue/data?session_hash=v8i80yudtd HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9132 - "POST /gradio/gradio_api/queue/join HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9132 - "GET /gradio/gradio_api/queue/data?session_hash=v8i80yudtd HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9132 - "POST /gradio/gradio_api/queue/join HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9132 - "GET /gradio/gradio_api/queue/data?session_hash=v8i80yudtd HTTP/1.1" 200 OK
+INFO:     127.0.0.1:4223 - "POST /gradio/gradio_api/queue/join HTTP/1.1" 200 OK
+INFO:     127.0.0.1:4223 - "GET /gradio/gradio_api/queue/data?session_hash=v8i80yudtd HTTP/1.1" 200 OK
+D:\develop\Python\Lib\site-packages\gradio\components\dataframe.py:197: UserWarning: The `column_limits` parameter is not yet implemented.
+  warnings.warn(
+D:\develop\Python\Lib\site-packages\gradio\components\dataframe.py:183: UserWarning: The `row_limits` parameter is not yet implemented.
+  warnings.warn(
+INFO:     127.0.0.1:4223 - "POST /gradio/gradio_api/queue/join HTTP/1.1" 200 OK
+Traceback (most recent call last):
+  File "D:\develop\Python\Lib\site-packages\gradio\queueing.py", line 882, in process_events
+    response = await route_utils.call_process_api(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<5 lines>...
+    )
+    ^
+  File "D:\develop\Python\Lib\site-packages\gradio\route_utils.py", line 410, in call_process_api
+    output = await app.get_blocks().process_api(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<12 lines>...
+    )
+    ^
+  File "D:\develop\Python\Lib\site-packages\gradio\blocks.py", line 2330, in process_api
+    result = await self.call_function(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<9 lines>...
+    )
+    ^
+  File "D:\develop\Python\Lib\site-packages\gradio\blocks.py", line 1690, in call_function
+    prediction = await anyio.to_thread.run_sync(  # type: ignore
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        fn, *processed_input, limiter=self.limiter
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\develop\Python\Lib\site-packages\anyio\to_thread.py", line 63, in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        func, args, abandon_on_cancel=abandon_on_cancel, limiter=limiter
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\develop\Python\Lib\site-packages\anyio\_backends\_asyncio.py", line 2518, in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+  File "D:\develop\Python\Lib\site-packages\anyio\_backends\_asyncio.py", line 1002, in run
+    result = context.run(func, *args)
+  File "D:\develop\Python\Lib\site-packages\gradio\utils.py", line 1114, in wrapper
+    response = f(*args, **kwargs)
+  File "D:\YJX\MyCode\EduAgent\backend\app\ui\gradio_app.py", line 2333, in guarded
+    values = authenticated_arguments(args)
+  File "D:\YJX\MyCode\EduAgent\backend\app\ui\gradio_app.py", line 2309, in authenticated_arguments
+    raise gr.Error("登录状态已失效，请退出后重新登录。") from None
+gradio.exceptions.Error: '登录状态已失效，请退出后重新登录。'
+INFO:     127.0.0.1:4223 - "POST /gradio/gradio_api/queue/join HTTP/1.1" 200 OK
+Traceback (most recent call last):
+  File "D:\develop\Python\Lib\site-packages\gradio\queueing.py", line 882, in process_events
+    response = await route_utils.call_process_api(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<5 lines>...
+    )
+    ^
+  File "D:\develop\Python\Lib\site-packages\gradio\route_utils.py", line 410, in call_process_api
+    output = await app.get_blocks().process_api(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<12 lines>...
+    )
+    ^
+  File "D:\develop\Python\Lib\site-packages\gradio\blocks.py", line 2330, in process_api
+    result = await self.call_function(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<9 lines>...
+    )
+    ^
+  File "D:\develop\Python\Lib\site-packages\gradio\blocks.py", line 1690, in call_function
+    prediction = await anyio.to_thread.run_sync(  # type: ignore
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        fn, *processed_input, limiter=self.limiter
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\develop\Python\Lib\site-packages\anyio\to_thread.py", line 63, in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        func, args, abandon_on_cancel=abandon_on_cancel, limiter=limiter
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\develop\Python\Lib\site-packages\anyio\_backends\_asyncio.py", line 2518, in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+  File "D:\develop\Python\Lib\site-packages\anyio\_backends\_asyncio.py", line 1002, in run
+    result = context.run(func, *args)
+  File "D:\develop\Python\Lib\site-packages\gradio\utils.py", line 1114, in wrapper
+    response = f(*args, **kwargs)
+  File "D:\YJX\MyCode\EduAgent\backend\app\ui\gradio_app.py", line 2333, in guarded
+    values = authenticated_arguments(args)
+  File "D:\YJX\MyCode\EduAgent\backend\app\ui\gradio_app.py", line 2309, in authenticated_arguments
+    raise gr.Error("登录状态已失效，请退出后重新登录。") from None
+gradio.exceptions.Error: '登录状态已失效，请退出后重新登录。'
+INFO:     127.0.0.1:4223 - "GET /gradio/gradio_api/queue/data?session_hash=v8i80yudtd HTTP/1.1" 200 OK
+INFO:     127.0.0.1:4223 - "POST /gradio/gradio_api/queue/join HTTP/1.1" 200 OK
+INFO:     127.0.0.1:4223 - "GET /gradio/gradio_api/queue/data?session_hash=v8i80yudtd HTTP/1.1" 200 OK
+D:\develop\Python\Lib\site-packages\gradio\components\dataframe.py:197: UserWarning: The `column_limits` parameter is not yet implemented.
+  warnings.warn(
+D:\develop\Python\Lib\site-packages\gradio\components\dataframe.py:183: UserWarning: The `row_limits` parameter is not yet implemented.
+  warnings.warn(
+INFO:     127.0.0.1:10493 - "POST /gradio/gradio_api/queue/join HTTP/1.1" 200 OK
+INFO:     127.0.0.1:10493 - "GET /gradio/gradio_api/queue/data?session_hash=v8i80yudtd HTTP/1.1" 200 OK
+D:\develop\Python\Lib\site-packages\gradio\components\dataframe.py:197: UserWarning: The `column_limits` parameter is not yet implemented.
+  warnings.warn(
+D:\develop\Python\Lib\site-packages\gradio\components\dataframe.py:183: UserWarning: The `row_limits` parameter is not yet implemented.
+  warnings.warn(
+INFO:     127.0.0.1:10493 - "POST /gradio/gradio_api/queue/join HTTP/1.1" 200 OK
+INFO:     127.0.0.1:10493 - "GET /gradio/gradio_api/queue/data?session_hash=v8i80yudtd HTTP/1.1" 200 OK
+INFO:     127.0.0.1:7766 - "POST /gradio/gradio_api/queue/join HTTP/1.1" 200 OK
+INFO:     127.0.0.1:7766 - "GET /gradio/gradio_api/queue/data?session_hash=v8i80yudtd HTTP/1.1" 200 OK
+INFO:     127.0.0.1:7766 - "POST /gradio/gradio_api/queue/join HTTP/1.1" 200 OK
+INFO:     127.0.0.1:7766 - "GET /gradio/gradio_api/queue/data?session_hash=v8i80yudtd HTTP/1.1" 200 OK
+INFO:     127.0.0.1:7766 - "POST /gradio/gradio_api/queue/join HTTP/1.1" 200 OK
+INFO:     127.0.0.1:7766 - "GET /gradio/gradio_api/queue/data?session_hash=v8i80yudtd HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5388 - "POST /gradio/gradio_api/queue/join HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5388 - "GET /gradio/gradio_api/queue/data?session_hash=v8i80yudtd HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5388 - "POST /gradio/gradio_api/queue/join HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5388 - "GET /gradio/gradio_api/queue/data?session_hash=v8i80yudtd HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5388 - "POST /gradio/gradio_api/queue/join HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5388 - "GET /gradio/gradio_api/queue/data?session_hash=v8i80yudtd HTTP/1.1" 200 OK

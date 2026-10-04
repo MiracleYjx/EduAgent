@@ -737,3 +737,36 @@ T173结果：PG24+reader1、HTTP22、直接回归91均通过（存在重叠）�
 - T177扩大直接回归169例首轮153 passed/16失败，定位为 contract/test_workflow_api_contract.py 的T176 StubGradingAgent只增加了输入信封但未为新结果填写本场EQ身份。仅其producer从target.scoring_input取真实EQID，score/状态/原暂停恢复与复核断言保持，不放宽消费者。Ruff扩大至所有旧迁移另外发现0001的4项既有类型写法，保留未修改；实际本批检查范围为全backend/tests及新增0023。
 
 - T177最终：核心14新例+直接旧回归共257 passed；仓储/汇总/迁移及直接回归181 passed；复核/Workflow直接169例分次全通过（139不变+30合同重验），其中新增25例；root正式HTTP/真实原图6 passed。组间有重叠不相加。新增图像关闭失败保留原FILE_MISSING，成功后关闭失败明确VISION_PROVIDER_CLOSE_FAILED。全backend Mypy209、全backend/tests/新增0023 Ruff、隔离upgrade/check通过；所有真实RED/夹具/静态失败并存。
+
+
+## 33. T178 组卷/学生答题/阅卷统一显示 TCR（实施前，2026-10-04）
+
+- 必要性：当前教师缺条件组卷与移位/替换/显式分值界面，学生API/UI仍读题库分值/标签并重排选项，复核未展示同一本场标准、实际检索及原图；这些是已接通评分事实的直接消费者。
+- 覆盖：教师条件/失败缺口与intent_saved、真实题序/替换/score省略与null、准备尾差/发布确认保持；学生安全DTO严格同EQ题序/固定score/发布标签/原选项序/只明确允许图片，无答案/解析/标准/源卷/整页图，必要图隐藏或缺失显式阻断；参加资格/时间/保存/提交旧规则保持。复核读取结果已保存身份/满分及同一固定输入、已保存实际检索上下文、原图核对条件；未知旧依据明确显示。
+- 图像由实际FileStorage授权读取bytes后内联HTML dataURI，不复制至Gradio公共文件缓存，不生成含JWT下载URL，不从selected状态信任file_id；所有正文说明转义。复核分数输入Number改Textbox以保留原Decimal字符串，相关组件类型/金额运输测试按新合同最小更新；回传已知pending_review_round_id以保持CAS轮次，旧未知为null。
+- 采用既有pytest unit/contract/隔离PG；真实本地浏览器操作+持久回读验证代表流程，受控Provider/合成教师输入明确标识，零云调用。最终以排除原用户3个文件改动的精确提交快照运行全量pytest、Mypy/Ruff/迁移check，原文件字节及index保持。T179完整性能/系统协议不在本项宣称通过。必要旧producer更新及真实失败逐项追加，不修改旧行为断言。
+
+- T178用户主动暂停收口（2026-10-04）：保持未勾选/未提交；教师GREEN22 passed，复核GREEN31 passed/2 failed，学生RED7 failed，复核API RED3 failed。各组有重叠，不汇总为完成验收。未执行全量/浏览器/最终静态检查；已停止全部本批Python验证。原工作区、原DB与所有失败证据保留；详见docs/t178-handoff-20261004.md，下一次从该记录继续。
+
+- T178恢复（2026-10-05）：新增学生RED夹具在固定依据后直接改本场score，导致要点仍是旧满分，先修夹具生产者为与实际新score一致的显式确认要点，保留金额/标签/图像断言。复核points须读ScoringBasis.points[].confirmed_points（不是不存在的顶层confirmed_points），作者teacher_id。旧展示金额6.0→"6.00"按Textbox合同适配，其他断言保留。追加未知依据开始/保存/提交阻断、原选项顺序与同场安全HTML展示验证；所有证据使用新标签，保留暂停前失败。
+
+- T178聚焦首轮63通过/2失败：真实文件合同通过create_app(settings=...)注入文件根，而新增SubmissionService依赖仍用了全局root；生产者工厂改为复用get_app_settings，不改文件合同断言或复制文件。该修复同时保证API与文件下载使用同一实际配置。主壳既有resettable_components递归包含HTML/State，新增原图组件无需另建重置机制。
+
+- T178文件合同第二轮64通过/1失败，新增响应200断言并附真实body以定位，不改变原资产列表/永久私有/授权断言；复核loader已验证ScoringInput.assets连续1..n，直接按该真实顺序读图，不给缺失order_index造默认值。
+
+- T178原图子集根因：第3张允许裁图构成单张读取集合，ContentValidationService._read_images要求读取集合序号1..n；学生读取只为此临时子集赋读取序号，原QuestionAsset.order_index、全组核对身份/原图顺序保持，未改真实来源或登记。导入核对先经既有_bound_check验证原事件与正式题绑定，不能再用正式字段名与原暂存字段名强求相等。保留原永久私有裁图合同验证。
+
+- T178合并后全量首轮2536 passed/13 failed/5 errors/2 skipped：失败为T177合同补齐后尚未适配的producer及中间态断言。修改前登记：diagnosis_report_store本地造分前显式生成本场依据和关联ID（不改公共未知历史seed）；teacher_results_ui合成Teacher增加真实角色，定稿前补本场标准与实际EQID；grading_api_contract受控scorer补target.scoring_input真实EQID。保留原诊断/CAS/任务/成绩/UI断言。agent_state的float类型断言改Decimal且保留8.5值；迁移链追加已实施0023，不删旧链；T171非等价临时NOT_SUPPORTED门禁在T177消费者接通后改为固定满分/基准不随题库漂移的显式断言，旧缺依据拒绝及历史分数不变断言保持。只修这些实际失败，不降级业务检查。
+- 验证辅助脚本第一次漏写snapshot manifest（循环变量覆盖），r1/r2临时index树及全部2234文件SHA完全一致后补存r1清单；工作区/真实index/保护文件未改。浏览器保存截图的只读EPERM通过受限本地证据接收器保存，不改变应用权限；Playwright fill未触发Gradio键盘事件，真实键入后已答2/2，保留前次明确未答错误。
+
+- T178真实浏览器交卷发现既有confirm_submit返回11项而事件仅绑定8控件，导致服务已提交但前端Column收到interactive参数报错。先补真实Gradio postprocess与真实SubmissionService提交的RED，修事件绑定包含上一题/标记/下一题，保留交卷资格和服务状态；本问题必须修复后重验，不能将已落库当界面通过。
+
+- 全量修复首轮71通过/3失败：新断言误用了ScoringInput.max_score，修为既有effective_score，金额断言不变。交卷RED证明8/11错位；其合成草稿答案原为GRADED，显式改本测试producer为DRAFT再验证真实提交，公共历史seed保持不改。
+
+- T178最终兼容性复查：新学生写入门禁不应要求阅卷ScoringBasis（任务明确保留旧答卷提交规则）。先将本批新未知依据测试修正为原合法开始/保存/提交成功、分值保持未知且阅卷仍拒绝的RED，再删除学生路径多余评分校验；必要题图失败仍阻断。不是放宽新评分或改变旧参加/时窗规则；旧seed和既有拒绝断言不改。
+
+- 旧答卷兼容聚焦首轮33通过/1失败：save_answers原合同返回答案列表，新测试误作答卷DTO读取id；改为核对实际保存答案的题目ID和内容，其余未知分值/阅卷拒绝断言保持。两个误写测试路径的无运行记录保留，不计通过。
+
+- T178复核部分成功边界复查：教师修改已提交但图恢复失败时，M4检查点保留原模型score/reason，数据库已是Modified；它们是合法可变评分，不是固定输入身份。先补真实HTTP modify＋受控恢复成功/失败的显示RED，核对2.345→2.35且同轮已保存检索正文保留。仅Modified跳过原模型score/reason相等门禁，其余本场身份/固定输入/上限/发布标签/检索ID及原错场/未知历史拒绝均保留，不重写检查点。
+
+- T178最终收尾：2557 passed / 2 skipped / 0 failed / 0 errors；pytest 991.147s，外部总耗时 1001.464s；Mypy209文件、Ruff、隔离Alembic check通过。两跳过项明确为M0独占配置缺失/宿主符号链接权限，保留首轮真实失败、中间通过和主动停止回执。最终源码与受测快照同一实现，仅pytest夹具noqa注释/换行AST一致。真实浏览器缺口/换位替换/本场值/原图/发布/提交冻结/复核及实际M4回读证据见docs/evidence/t178-20261004/；只勾选T178，不声明T179性能或模型质量通过。原环境与用户文件保持，独占验证资源已清理。

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="1" time="8.157" timestamp="2026-10-05T01:30:16.095332+08:00" hostname="YJX"><testcase classname="tests.unit.services.test_student_fixed_exam" name="test_real_submit_event_postprocess_freezes_workspace" time="6.670"><failure message="assert 8 == 11&#10; +  where 8 = len([&lt;gradio.components.markdown.Markdown object at 0x0000029A0E795A90&gt;, &lt;gradio.components.markdown.Markdown object at 0x...nts.textbox.Textbox object at 0x0000029A0E7960D0&gt;, &lt;gradio.components.button.Button object at 0x0000029A0E796490&gt;, ...])&#10; +    where [&lt;gradio.components.markdown.Markdown object at 0x0000029A0E795A90&gt;, &lt;gradio.components.markdown.Markdown object at 0x...nts.textbox.Textbox object at 0x0000029A0E7960D0&gt;, &lt;gradio.components.button.Button object at 0x0000029A0E796490&gt;, ...] = {'fn': 'confirm_submit', 'preprocess': True, 'postprocess': True}.outputs&#10; +  and   11 = len(('', '&lt;div class=&quot;edu-state-banner edu-tone-danger&quot; role=&quot;alert&quot;&gt;&lt;span class=&quot;edu-status edu-tone-danger&quot; data-status=...被覆盖。&lt;/div&gt;&lt;/div&gt;', {'__type__': 'update'}, {'__type__': 'update'}, {'__type__': 'update'}, {'__type__': 'update'}, ...))">scenario = (&lt;sqlalchemy.orm.session.Session object at 0x0000029A72AA92B0&gt;, SubmissionFixture(teacher_id=UUID('8a465be6-bf90-4e11-...4d5a-b4b6-43441227849c')), WindowsPath('D:/YJX/Cache/Temp/pytest-of-10169/pytest-252/test_real_submit_event_postpro0'))
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x0000029A72DA5E00&gt;
+
+    def test_real_submit_event_postprocess_freezes_workspace(scenario, monkeypatch):
+        import asyncio
+        import gradio as gr
+        from gradio.state_holder import SessionState
+        import backend.app.ui.student_exam_view as ui
+    
+        session, info, _root = scenario
+        monkeypatch.setattr(ui, "get_session_factory", lambda: lambda: Session(session.get_bind()))
+        state = {"user_id": str(info.student_id), "roles": ["Student"], "access_token": "synthetic"}
+        with gr.Blocks() as app:
+            ui.create_student_exam_view(gr.State(state))
+        node = next(fn for fn in app.fns.values() if fn.fn.__name__ == "confirm_submit")
+        answers = {str(info.objective_question_id): "A", str(info.subjective_question_id): "Explicit synthetic answer"}
+        records = [{"id": key} for key in answers]
+        result = node.fn(str(info.submission_id), answers, records, True, state)
+&gt;       assert len(node.outputs) == len(result)
+E       assert 8 == 11
+E        +  where 8 = len([&lt;gradio.components.markdown.Markdown object at 0x0000029A0E795A90&gt;, &lt;gradio.components.markdown.Markdown object at 0x...nts.textbox.Textbox object at 0x0000029A0E7960D0&gt;, &lt;gradio.components.button.Button object at 0x0000029A0E796490&gt;, ...])
+E        +    where [&lt;gradio.components.markdown.Markdown object at 0x0000029A0E795A90&gt;, &lt;gradio.components.markdown.Markdown object at 0x...nts.textbox.Textbox object at 0x0000029A0E7960D0&gt;, &lt;gradio.components.button.Button object at 0x0000029A0E796490&gt;, ...] = {'fn': 'confirm_submit', 'preprocess': True, 'postprocess': True}.outputs
+E        +  and   11 = len(('', '&lt;div class="edu-state-banner edu-tone-danger" role="alert"&gt;&lt;span class="edu-status edu-tone-danger" data-status=...被覆盖。&lt;/div&gt;&lt;/div&gt;', {'__type__': 'update'}, {'__type__': 'update'}, {'__type__': 'update'}, {'__type__': 'update'}, ...))
+
+tests\unit\services\test_student_fixed_exam.py:340: AssertionError</failure></testcase></testsuite></testsuites>

@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "D:\YJX\MyCode\EduAgent\.cache\t175-178-20261004\inspect_ui.py", line 16, in <module>
+    (base/'t178_browser_readback_inspection.json').write_text(json.dumps({'detail':d.model_dump(mode='json'),'status':run.status.value,'error_code':run.error_code,'checkpoint':run.checkpoint},ensure_ascii=False,indent=2),encoding='utf-8')
+                                                                                                                                                    ^^^^^^^^^^^^^^
+AttributeError: 'WorkflowRun' object has no attribute 'error_code'

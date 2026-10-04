@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="11" skipped="0" tests="11" time="14.856" timestamp="2026-10-04T10:16:19.473073+08:00" hostname="YJX"><testcase classname="tests.unit.ui.test_exam_assembly_view" name="test_request_keeps_exact_teacher_counts_coverage_and_decimal_override" time="0.004"><failure message="AttributeError: module 'backend.app.ui.exam_view' has no attribute '_assembly_request'">def test_request_keeps_exact_teacher_counts_coverage_and_decimal_override():
+&gt;       payload = view._assembly_request(COURSE, ["1", "0", "2"], [["条件", "2"]], {QUESTION: "3.33"}, "10.00")
+                  ^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'backend.app.ui.exam_view' has no attribute '_assembly_request'
+
+tests\unit\ui\test_exam_assembly_view.py:25: AttributeError</failure></testcase><testcase classname="tests.unit.ui.test_exam_assembly_view" name="test_request_rejects_noninteger_or_negative_counts[1.5]" time="0.002"><failure message="AttributeError: module 'backend.app.ui.exam_view' has no attribute '_assembly_request'">count = '1.5'
+
+    @pytest.mark.parametrize("count", ["1.5", "-1", "NaN"])
+    def test_request_rejects_noninteger_or_negative_counts(count):
+        with pytest.raises(ValueError):
+&gt;           view._assembly_request(COURSE, [count, "0", "1"], [], {}, "10.00")
+            ^^^^^^^^^^^^^^^^^^^^^^
+E           AttributeError: module 'backend.app.ui.exam_view' has no attribute '_assembly_request'
+
+tests\unit\ui\test_exam_assembly_view.py:37: AttributeError</failure></testcase><testcase classname="tests.unit.ui.test_exam_assembly_view" name="test_request_rejects_noninteger_or_negative_counts[-1]" time="0.001"><failure message="AttributeError: module 'backend.app.ui.exam_view' has no attribute '_assembly_request'">count = '-1'
+
+    @pytest.mark.parametrize("count", ["1.5", "-1", "NaN"])
+    def test_request_rejects_noninteger_or_negative_counts(count):
+        with pytest.raises(ValueError):
+&gt;           view._assembly_request(COURSE, [count, "0", "1"], [], {}, "10.00")
+            ^^^^^^^^^^^^^^^^^^^^^^
+E           AttributeError: module 'backend.app.ui.exam_view' has no attribute '_assembly_request'
+
+tests\unit\ui\test_exam_assembly_view.py:37: AttributeError</failure></testcase><testcase classname="tests.unit.ui.test_exam_assembly_view" name="test_request_rejects_noninteger_or_negative_counts[NaN]" time="0.001"><failure message="AttributeError: module 'backend.app.ui.exam_view' has no attribute '_assembly_request'">count = 'NaN'
+
+    @pytest.mark.parametrize("count", ["1.5", "-1", "NaN"])
+    def test_request_rejects_noninteger_or_negative_counts(count):
+        with pytest.raises(ValueError):
+&gt;           view._assembly_request(COURSE, [count, "0", "1"], [], {}, "10.00")
+            ^^^^^^^^^^^^^^^^^^^^^^
+E           AttributeError: module 'backend.app.ui.exam_view' has no attribute '_assembly_request'
+
+tests\unit\ui\test_exam_assembly_view.py:37: AttributeError</failure></testcase><testcase classname="tests.unit.ui.test_exam_assembly_view" name="test_patch_distinguishes_omitted_explicit_and_default_score[False-False-99-expected0]" time="0.002"><failure message="AttributeError: module 'backend.app.ui.exam_view' has no attribute '_exam_question_patch'">change = False, default = False, score = '99', expected = {}
+
+    @pytest.mark.parametrize(("change", "default", "score", "expected"), [(False, False, "99", {}), (True, True, "99", {"score": None}), (True, False, "3.33", {"score": "3.33"})])
+    def test_patch_distinguishes_omitted_explicit_and_default_score(change, default, score, expected):
+&gt;       payload = view._exam_question_patch("2", REPLACEMENT, change, default, score)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'backend.app.ui.exam_view' has no attribute '_exam_question_patch'
+
+tests\unit\ui\test_exam_assembly_view.py:42: AttributeError</failure></testcase><testcase classname="tests.unit.ui.test_exam_assembly_view" name="test_patch_distinguishes_omitted_explicit_and_default_score[True-True-99-expected1]" time="0.002"><failure message="AttributeError: module 'backend.app.ui.exam_view' has no attribute '_exam_question_patch'">change = True, default = True, score = '99', expected = {'score': None}
+
+    @pytest.mark.parametrize(("change", "default", "score", "expected"), [(False, False, "99", {}), (True, True, "99", {"score": None}), (True, False, "3.33", {"score": "3.33"})])
+    def test_patch_distinguishes_omitted_explicit_and_default_score(change, default, score, expected):
+&gt;       payload = view._exam_question_patch("2", REPLACEMENT, change, default, score)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'backend.app.ui.exam_view' has no attribute '_exam_question_patch'
+
+tests\unit\ui\test_exam_assembly_view.py:42: AttributeError</failure></testcase><testcase classname="tests.unit.ui.test_exam_assembly_view" name="test_patch_distinguishes_omitted_explicit_and_default_score[True-False-3.33-expected2]" time="0.001"><failure message="AttributeError: module 'backend.app.ui.exam_view' has no attribute '_exam_question_patch'">change = True, default = False, score = '3.33', expected = {'score': '3.33'}
+
+    @pytest.mark.parametrize(("change", "default", "score", "expected"), [(False, False, "99", {}), (True, True, "99", {"score": None}), (True, False, "3.33", {"score": "3.33"})])
+    def test_patch_distinguishes_omitted_explicit_and_default_score(change, default, score, expected):
+&gt;       payload = view._exam_question_patch("2", REPLACEMENT, change, default, score)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'backend.app.ui.exam_view' has no attribute '_exam_question_patch'
+
+tests\unit\ui\test_exam_assembly_view.py:42: AttributeError</failure></testcase><testcase classname="tests.unit.ui.test_exam_assembly_view" name="test_failure_reports_confirmed_unsaved_unknown_intent_without_claiming_success" time="0.001"><failure message="AttributeError: module 'backend.app.ui.exam_view' has no attribute '_assembly_failure'">def test_failure_reports_confirmed_unsaved_unknown_intent_without_claiming_success():
+        error = AssemblyError("EXAM_ASSEMBLY_UNSATISFIABLE", "候选不足", details={"intent_saved": None, "intent_save_error": {"code": "DISCONNECT"}, "gaps": [{"kind": "type", "question_type": "SHORT_ANSWER", "required": 2, "available": 1, "missing": 1}]})
+&gt;       text = view._assembly_failure(error)
+               ^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'backend.app.ui.exam_view' has no attribute '_assembly_failure'
+
+tests\unit\ui\test_exam_assembly_view.py:49: AttributeError</failure></testcase><testcase classname="tests.unit.ui.test_exam_assembly_view" name="test_preview_reads_only_authorized_bytes_and_escapes_text" time="0.014"><failure message="AttributeError: module 'backend.app.ui.exam_view' has no attribute '_teacher_preview_html'">tmp_path = WindowsPath('D:/YJX/Cache/Temp/pytest-of-10169/pytest-241/test_preview_reads_only_author0')
+
+    def test_preview_reads_only_authorized_bytes_and_escapes_text(tmp_path):
+        path = tmp_path / "private.png"
+        path.write_bytes(b"actual-owned-image")
+        files = Mock()
+        files.download.return_value = (path, Mock(media_type="image/png"))
+&gt;       html = view._teacher_preview_html(preview(), files, UUID(TEACHER["user_id"]))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'backend.app.ui.exam_view' has no attribute '_teacher_preview_html'
+
+tests\unit\ui\test_exam_assembly_view.py:66: AttributeError</failure></testcase><testcase classname="tests.unit.ui.test_exam_assembly_view" name="test_preview_missing_asset_does_not_emit_partial_success" time="0.001"><failure message="AttributeError: module 'backend.app.ui.exam_view' has no attribute '_teacher_preview_html'">def test_preview_missing_asset_does_not_emit_partial_success():
+        files = Mock()
+        files.download.side_effect = FileStorageError("FILE_MISSING", "真实原图缺失")
+        with pytest.raises(FileStorageError) as found:
+&gt;           view._teacher_preview_html(preview(), files, UUID(TEACHER["user_id"]))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           AttributeError: module 'backend.app.ui.exam_view' has no attribute '_teacher_preview_html'
+
+tests\unit\ui\test_exam_assembly_view.py:79: AttributeError</failure></testcase><testcase classname="tests.unit.ui.test_exam_assembly_view" name="test_new_write_controls_exist_and_failure_clears_previous_confirmations" time="0.804"><failure message="StopIteration">app = Gradio Blocks instance: 38 backend functions
+--------------------------------------------
+fn_index=0
+ inputs:
+ |-&lt;grad...adio.components.state.State object at 0x000002158D56E5D0&gt;
+ |-&lt;gradio.components.html.HTML object at 0x000002158D56E710&gt;
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x00000215EDD1E060&gt;
+
+    def test_new_write_controls_exist_and_failure_clears_previous_confirmations(app, monkeypatch):
+        for suffix in ["assemble", "patch", "preview", "default-score", "override-question"]:
+&gt;           component(app, suffix)
+
+tests\unit\ui\test_exam_assembly_view.py:100: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+app = Gradio Blocks instance: 38 backend functions
+--------------------------------------------
+fn_index=0
+ inputs:
+ |-&lt;grad...adio.components.state.State object at 0x000002158D56E5D0&gt;
+ |-&lt;gradio.components.html.HTML object at 0x000002158D56E710&gt;
+suffix = 'assemble'
+
+    def component(app, suffix):
+&gt;       return next(block for block in app.blocks.values() if block.elem_id == "edu-exam-assembly-" + suffix)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       StopIteration
+
+tests\unit\ui\test_exam_assembly_view.py:95: StopIteration</failure></testcase></testsuite></testsuites>

@@ -19,7 +19,7 @@ from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session
 
 from backend.app.domain.enums import QuestionType
-from backend.app.models import DiagnosisReport, ExamResult
+from backend.app.models import DiagnosisReport, ExamQuestion, ExamResult
 from backend.app.schemas.ai import GradingResult as GradingResultPayload
 from backend.app.schemas.grading import (
     DiagnosisReportDTO,
@@ -39,6 +39,7 @@ from backend.app.services.grading.diagnosis_report_store import (
 from backend.app.services.grading.grading_repository import DatabaseGradingRepository
 from backend.app.services.grading.grading_task_service import GradingOutcome
 from backend.app.services.grading.result_aggregator import ResultAggregator
+from tests.support.exam_scoring_fixtures import confirm_synthetic_exam_basis
 from tests.unit.models.sqlite_support import (
     SubmissionFixture,
     create_sqlite_engine,
@@ -130,6 +131,16 @@ def _final_exam_result(
 ) -> ExamResultDTO:
     """写入一份全部题目可接受的最终整卷结果，并返回该 DTO。"""
 
+    # Only this executing producer gains fixed facts; unknown-history seed stays unchanged.
+    with Session(engine) as session:
+        confirm_synthetic_exam_basis(session, fixture.exam_id)
+        session.commit()
+        links = {
+            link.question_id: str(link.id)
+            for link in session.scalars(
+                select(ExamQuestion).where(ExamQuestion.exam_id == fixture.exam_id)
+            )
+        }
     decision = ConfidenceDecision(
         confidence=0.9,
         threshold=0.8,
@@ -153,6 +164,7 @@ def _final_exam_result(
             review_status="Not Required",
             retrieved_context_ids=[],
             answer_id=str(fixture.objective_answer_id),
+            exam_question_id=links[fixture.objective_question_id],
             submission_id=str(fixture.submission_id),
         ),
         GradingResultPayload(
@@ -169,11 +181,31 @@ def _final_exam_result(
             review_status="Not Required",
             retrieved_context_ids=["chunk-1"],
             answer_id=str(fixture.subjective_answer_id),
+            exam_question_id=links[fixture.subjective_question_id],
             submission_id=str(fixture.submission_id),
         ),
     )
+    context = _context(fixture)
+    context = context.model_copy(
+        update={
+            "expected_answers": [
+                entry.model_copy(
+                    update={
+                        "exam_question_id": links[
+                            (
+                                fixture.objective_question_id
+                                if entry.order == 1
+                                else fixture.subjective_question_id
+                            )
+                        ]
+                    }
+                )
+                for entry in context.expected_answers
+            ]
+        }
+    )
     exam_result = ResultAggregator().aggregate(
-        _context(fixture),
+        context,
         results=list(payloads),
         decisions={str(fixture.subjective_answer_id): decision},
     )
@@ -232,9 +264,7 @@ def test_recorder_saves_ready_report_with_real_exam_result_id(
     """诊断按真实主键落库，来源时间取当次消费的汇总时间。"""
 
     exam_result = _final_exam_result(engine, fixture)
-    recorder = DiagnosisRecorder(
-        store=_store(engine), service=StubDiagnosisService()
-    )
+    recorder = DiagnosisRecorder(store=_store(engine), service=StubDiagnosisService())
 
     saved = recorder.record(exam_result)
 
@@ -335,7 +365,9 @@ def test_save_refuses_to_overwrite_newer_result(
         )
 
 
-def test_save_rejects_result_no_longer_final(engine: Engine, fixture: SubmissionFixture) -> None:
+def test_save_rejects_result_no_longer_final(
+    engine: Engine, fixture: SubmissionFixture
+) -> None:
     exam = _final_exam_result(engine, fixture)
     with Session(engine) as session, session.begin():
         row = session.scalars(select(ExamResult)).one()

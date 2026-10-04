@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from decimal import Decimal
 from typing import Annotated, Any
 from uuid import UUID
 
@@ -16,22 +15,23 @@ from pydantic import (
     field_validator,
     model_validator,
 )
-from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.orm import Session, selectinload
+from sqlalchemy.orm import Session
 
+from backend.app.core.config import AppSettings
 from backend.app.core.database import get_db
-from backend.app.core.security import require_permission
-from backend.app.domain.enums import QuestionType, SubmissionStatus
+from backend.app.core.security import get_app_settings, require_permission
+from backend.app.domain.enums import SubmissionStatus
 from backend.app.domain.permissions import Permission
-from backend.app.models import Exam, Question, User
-from backend.app.schemas.question_assets import QuestionAssetView
-from backend.app.services.question_asset_access import visible_question_assets
+from backend.app.models import User
 from backend.app.services.submission_service import (
     AnswerContent,
     AnswerSummary,
     AvailableExamSummary,
+    StudentExamDetail,
+    StudentQuestionSummary,
     SubmissionConflictError,
+    SubmissionInputUnavailableError,
     SubmissionNotFoundError,
     SubmissionPermissionError,
     SubmissionService,
@@ -42,29 +42,6 @@ from backend.app.services.submission_service import (
 
 router = APIRouter(prefix="/api/submissions", tags=["学生答卷"])
 exam_submission_router = APIRouter(prefix="/api/exams", tags=["学生答卷"])
-
-
-class StudentQuestionSummary(BaseModel):
-    """学生作答时可见的题目内容，不包含参考答案和评分标准。"""
-
-    model_config = ConfigDict(frozen=True)
-
-    id: str
-    type: QuestionType
-    content: str
-    options: dict[str, Any] | list[Any] | None = None
-    difficulty: str | None = None
-    knowledge_points: list[str] = Field(default_factory=list)
-    score: Decimal
-    position: int
-    assets: list[QuestionAssetView] = Field(default_factory=list)
-
-
-class StudentExamDetail(AvailableExamSummary):
-    """学生打开考试时看到的安全考试详情。"""
-
-    questions: list[StudentQuestionSummary] = Field(default_factory=list)
-    submission: SubmissionSummary | None = None
 
 
 AnswerPayload = str | list[str] | dict[str, str] | None
@@ -266,10 +243,11 @@ SubmissionSubmitPayload = SubmissionSubmitRequest
 
 def get_submission_service(
     session: Annotated[Session, Depends(get_db)],
+    settings: Annotated[AppSettings, Depends(get_app_settings)],
 ) -> SubmissionService:
     """创建使用当前请求数据库会话的答卷服务。"""
 
-    return SubmissionService(session)
+    return SubmissionService(session, root=settings.storage_root)
 
 
 SubmissionServiceDependency = Annotated[
@@ -297,7 +275,9 @@ StudentSubmissionViewer = Annotated[
 def _submission_http_exception(error: BaseException) -> HTTPException:
     """将答卷服务异常转换为统一的中文 HTTP 错误。"""
 
-    if isinstance(error, SubmissionNotFoundError):
+    if isinstance(error, SubmissionInputUnavailableError):
+        code = status.HTTP_409_CONFLICT
+    elif isinstance(error, SubmissionNotFoundError):
         code = status.HTTP_404_NOT_FOUND
     elif isinstance(error, SubmissionPermissionError):
         code = status.HTTP_403_FORBIDDEN
@@ -341,39 +321,7 @@ def _load_student_exam_detail(
 ) -> StudentExamDetail:
     """加载已开放考试的题目内容，并过滤学生不可见的答案字段。"""
 
-    available = service.get_available_exam(
-        exam_id,
-        student_id=student_id,
-    )
-    try:
-        exam = service.session.scalar(
-            select(Exam).options(selectinload(Exam.questions).selectinload(Question.assets)).where(Exam.id == exam_id)
-        )
-    except SQLAlchemyError as exc:
-        raise SubmissionServiceError("无法读取考试题目。") from exc
-    if exam is None:
-        raise SubmissionNotFoundError("考试不存在。")
-
-    questions = [
-        StudentQuestionSummary(
-            id=str(question.id),
-            type=question.type,
-            content=question.content,
-            options=question.options,
-            difficulty=question.difficulty,
-            knowledge_points=list(question.knowledge_points or []),
-            score=question.score,
-            position=position,
-            assets=[QuestionAssetView.model_validate(asset) for asset in visible_question_assets(service.session, question)],
-        )
-        for position, question in enumerate(exam.questions, start=1)
-    ]
-    submission = service.find_submission(exam_id, student_id)
-    return StudentExamDetail(
-        **available.model_dump(),
-        questions=questions,
-        submission=submission,
-    )
+    return service.get_exam_detail(exam_id, student_id=student_id)
 
 
 def _start_submission(

@@ -145,30 +145,33 @@ def test_unknown_history_readable_but_trigger_rejected(historical):
     assert session.get(GradingResult, result.id).max_score == Decimal("3.00")
 
 
-@pytest.mark.parametrize(
-    "score,expected", [("5.00", None), ("7.00", "EXAM_SCORING_INPUT_NOT_SUPPORTED")]
-)
-def test_only_complete_equivalent_fixed_basis_can_run(historical, score, expected):
+@pytest.mark.parametrize("score", ["5.00", "7.00"])
+def test_complete_fixed_basis_can_run_after_t177(historical, score):
     session, teacher, exam, _question, submission, *_ = historical
     _fixed(exam, teacher, score)
     session.commit()
     snapshot = DatabaseGradingSubmissionReader(session=session).load(str(submission.id))
-    assert snapshot.scoring_basis_error == expected
-    if expected:
-        with pytest.raises(GradingNotAllowedError, match=expected):
-            snapshot.require_scoring_ready()
-    else:
-        snapshot.require_scoring_ready()
+    assert snapshot.scoring_basis_error is None
+    snapshot.require_scoring_ready()
+    assert snapshot.answers[0].scoring_input.effective_score == Decimal(score)
+    assert snapshot.answers[0].scoring_input.base_score == Decimal("5.00")
 
 
-def test_current_bank_change_does_not_reauthorize_history(historical):
-    session, teacher, exam, question, submission, *_ = historical
+def test_current_bank_change_does_not_rewrite_fixed_history(historical):
+    session, teacher, exam, question, submission, _answer, result = historical
     _fixed(exam, teacher)
     session.commit()
     question.score = Decimal("99.00")
     session.commit()
     snapshot = DatabaseGradingSubmissionReader(session=session).load(str(submission.id))
-    assert snapshot.scoring_basis_error == "EXAM_SCORING_INPUT_NOT_SUPPORTED"
+    assert snapshot.scoring_basis_error is None
+    snapshot.require_scoring_ready()
+    fixed = snapshot.answers[0].scoring_input
+    assert fixed.effective_score == Decimal("5.00")
+    assert fixed.base_score == Decimal("5.00")
+    assert fixed.scoring_basis.points[0].confirmed_points == Decimal("5.00")
+    assert session.get(GradingResult, result.id).max_score == Decimal("3.00")
+    assert session.get(GradingResult, result.id).score == Decimal("2.00")
 
 
 def test_background_execution_checks_again_before_pipeline(historical):

@@ -170,7 +170,9 @@ def test_full_pages_and_same_byte_aliases_stay_private_even_if_true(files_api):
     for file_id in (full_asset["file_id"], _uploaded["file_id"], "p_" + page.id.hex, "d_" + page.paper_import.document_id.hex):
         assert client.get("/api/files/" + file_id, headers=headers[2]).status_code == 403
     assert client.get("/api/files/" + crop.json()["file_id"], headers=headers[2]).status_code == 200
-    detail = client.get(f"/api/submissions/exams/{exam.id}", headers=headers[2]).json()
+    response = client.get(f"/api/submissions/exams/{exam.id}", headers=headers[2])
+    assert response.status_code == 200, response.text
+    detail = response.json()
     assert [asset["id"] for asset in detail["questions"][0]["assets"]] == [crop.json()["id"]]
     assert service.list_question(question.id, actor_id=users[0].id)
 

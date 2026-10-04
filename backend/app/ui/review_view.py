@@ -15,6 +15,7 @@ from __future__ import annotations
 
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
+from html import escape
 from typing import Any
 
 import gradio as gr
@@ -61,7 +62,7 @@ class ReviewView:
     panel: gr.Column
     queue: gr.Dataframe
     answer: gr.Textbox
-    score: gr.Number
+    score: gr.Textbox
     reason: gr.Textbox
     evidence: gr.Markdown
     message: gr.Markdown
@@ -76,6 +77,7 @@ class ReviewView:
     selected_item: gr.State | None = None
     confirm_button: gr.Button | None = None
     save_button: gr.Button | None = None
+    images: gr.HTML | None = None
 
 
 @dataclass(frozen=True)
@@ -85,12 +87,14 @@ class ReviewLoaders:
     queue: Callable[..., ReviewQueuePageDTO]
     detail: Callable[..., ReviewDetailDTO]
     decision: Callable[..., Any]
+    images: Callable[..., str]
 
 
 _DEFAULT_LOADERS = ReviewLoaders(
     queue=loaders.load_queue,
     detail=loaders.load_detail,
     decision=loaders.submit_decision,
+    images=loaders.load_images,
 )
 
 _active_loaders: ReviewLoaders = _DEFAULT_LOADERS
@@ -101,6 +105,7 @@ def configure_review_loaders(
     queue: Callable[..., Any] | None = None,
     detail: Callable[..., Any] | None = None,
     decision: Callable[..., Any] | None = None,
+    images: Callable[..., str] | None = None,
 ) -> None:
     """注入复核接线点（传 ``None`` 表示沿用生产默认）。"""
 
@@ -109,6 +114,7 @@ def configure_review_loaders(
         queue=queue or _DEFAULT_LOADERS.queue,
         detail=detail or _DEFAULT_LOADERS.detail,
         decision=decision or _DEFAULT_LOADERS.decision,
+        images=images or _DEFAULT_LOADERS.images,
     )
 
 
@@ -203,14 +209,31 @@ def _evidence_markdown(item: Mapping[str, Any] | Any | None) -> str:
     if item is None:
         return empty_state("请选择复核记录以查看检索依据。")
     evidence = _value(item, "evidence", []) or []
+    fixed = _value(item, "scoring_input", None)
+    saved_context = _value(fixed, "course_context", None)
     lines: list[str] = []
+    if saved_context is not None:
+        lines.extend(["**本轮实际模型检索输入（已保存）：**", str(saved_context)])
+        references = _value(fixed, "source_references", []) or []
+        lines.append(
+            "**实际引用：** "
+            + "、".join(str(_value(value, "chunk_id", "")) for value in references)
+        )
+    elif fixed is not None:
+        lines.append(feedback("本条记录未保存实际模型检索正文，保留未知。", "warning"))
+    if evidence:
+        lines.append("**当前授权资料正文：**")
     if evidence:
         for index, entry in enumerate(evidence, start=1):
             source = str(
-                _value(entry, "source_file", "") or _value(entry, "document_id", "") or "未标注资料"
+                _value(entry, "source_file", "")
+                or _value(entry, "document_id", "")
+                or "未标注资料"
             )
             chunk_index = _value(entry, "chunk_index", None)
-            location = f"片段 {chunk_index}" if chunk_index is not None else "片段序号未知"
+            location = (
+                f"片段 {chunk_index}" if chunk_index is not None else "片段序号未知"
+            )
             content = str(_value(entry, "content", ""))
             lines.append(f"{index}. **{source}**（{location}）\n   {content}")
     else:
@@ -218,12 +241,69 @@ def _evidence_markdown(item: Mapping[str, Any] | Any | None) -> str:
     unresolved = int(_value(item, "unresolved_evidence_count", 0) or 0)
     out_of_course = int(_value(item, "out_of_course_evidence_count", 0) or 0)
     if unresolved:
-        lines.append(feedback(f"有 {unresolved} 条引用无法解析到片段，未展示正文。", "warning"))
+        lines.append(
+            feedback(f"有 {unresolved} 条引用无法解析到片段，未展示正文。", "warning")
+        )
     if out_of_course:
         lines.append(
             feedback(f"已过滤 {out_of_course} 条不属于该课程的检索片段。", "warning")
         )
     lines.append(feedback(EVIDENCE_SCOPE_NOTE, "info"))
+    return "\n\n".join(lines)
+
+
+def _scoring_basis_markdown(item: Mapping[str, Any] | Any) -> str:
+    fixed = _value(item, "scoring_input", None)
+    original = (
+        _value(fixed, "source_rubric", None)
+        if fixed is not None
+        else _value(item, "scoring_rubric", None)
+    )
+    lines = [f"**原始评分标准：**\n\n{original or '未提供'}"]
+    if fixed is None:
+        lines.append(
+            feedback("历史记录未记录固定本场评分依据，不能从当前题库推算。", "warning")
+        )
+        return "\n\n".join(lines)
+    lines.append(
+        f"**本场满分：** {_value(fixed, 'effective_score', '未知')}　**原题满分：** {_value(fixed, 'base_score', '未知')}"
+    )
+    basis = _value(fixed, "scoring_basis", None)
+    points = _value(basis, "points", []) or []
+    if points:
+        lines.append("**本场已确认评分要点：**")
+        lines.extend(
+            f"- {_value(point, 'label', '')}：{_value(point, 'confirmed_points', '未知')} 分"
+            for point in points
+        )
+        lines.append("已确认要点采用本场分值，不得再次按原题比例缩放。")
+    else:
+        lines.append(
+            "**客观题规则：** 按本场满分应用既有确定性规则。"
+            if _value(basis, "kind") == "objective"
+            else "**本场定性标准：** 原标准已核对与本场满分的对应语义，不生成数值要点、不二次缩放。"
+        )
+    verified = _value(fixed, "verified_image_conditions", None)
+    assets = _value(fixed, "assets", []) or []
+    if assets:
+        if verified is None:
+            lines.append(
+                feedback(
+                    "必要图片条件尚无当前真实人工核对，保留待核对状态。", "warning"
+                )
+            )
+        else:
+            check = _value(verified, "check", None)
+            lines.append(
+                f"**当前图片核对：** {_value(check, 'teacher_id', '未知')}　{_value(check, 'checked_at', '未知')}"
+            )
+            conditions = _value(check, "confirmed_conditions", []) or []
+            lines.extend(
+                f"- 图像条件：{_value(condition, 'text', '')}"
+                for condition in conditions
+            )
+            if not conditions:
+                lines.append("当前核对未增加条件文字。")
     return "\n\n".join(lines)
 
 
@@ -234,7 +314,7 @@ def _detail_fields(item: Mapping[str, Any] | Any | None) -> tuple[Any, ...]:
         return (
             empty_state("尚无复核记录。"),
             "",
-            None,
+            "",
             "",
             "**知识点：** 暂无",
             "**参考答案：** 暂无",
@@ -246,6 +326,7 @@ def _detail_fields(item: Mapping[str, Any] | Any | None) -> tuple[Any, ...]:
     confidence_text = (
         f"{float(confidence):.0%}" if isinstance(confidence, (int, float)) else "未知"
     )
+    fixed = _value(item, "scoring_input", None)
     header = "\n\n".join(
         [
             "**学生：** {}　**考试：** {}　**题号：** {}　**实际置信度：** {}".format(
@@ -257,7 +338,38 @@ def _detail_fields(item: Mapping[str, Any] | Any | None) -> tuple[Any, ...]:
             status_banner(_value(item, "review_status", ""), entity="review"),
         ]
     )
-    knowledge_points = _value(item, "knowledge_points", []) or []
+    header += f"\n\n**本场满分：** {_value(item, 'max_score', '未知')}"
+    header += "\n\n**题目：**\n\n" + str(
+        _value(fixed, "question_content", "")
+        if fixed is not None
+        else _value(item, "question_content", "")
+    )
+    if fixed is not None:
+        options = _value(fixed, "options", None)
+        if options:
+            header += "\n\n" + "\n\n".join(
+                f"{key}. {value}"
+                for key, value in (
+                    options.items()
+                    if isinstance(options, Mapping)
+                    else enumerate(options, start=1)
+                )
+            )
+        if not _value(fixed, "order_preserved", True):
+            header += "\n\n" + feedback(
+                "历史选项原顺序未知，当前保存顺序不代表已恢复原顺序。", "warning"
+            )
+    if _value(item, "scoring_input_error", None):
+        header += "\n\n" + feedback(
+            f"本场输入不可用：{_value(item, 'scoring_input_error')}，请先核对。",
+            "error",
+        )
+    knowledge_points = (
+        _value(fixed, "published_knowledge_points", [])
+        if fixed is not None
+        else _value(item, "knowledge_points", [])
+    )
+    knowledge_points = knowledge_points or []
     missing = _value(item, "missing_knowledge_points", []) or []
     correct = _value(item, "correct_points", []) or []
     points_text = "、".join(str(point) for point in knowledge_points) or "未标注"
@@ -269,11 +381,11 @@ def _detail_fields(item: Mapping[str, Any] | Any | None) -> tuple[Any, ...]:
     return (
         header,
         str(_value(item, "student_answer", "")),
-        float(score) if score is not None else None,
+        str(score) if score is not None else "",
         str(_value(item, "reason", "") or ""),
         f"**知识点：** {points_text}",
-        f"**参考答案：**\n\n{_value(item, 'reference_answer', None) or '未提供'}",
-        f"**评分标准：**\n\n{_value(item, 'scoring_rubric', None) or '未提供'}",
+        f"**参考答案：**\n\n{(_value(fixed, 'reference_answer', None) if fixed is not None else _value(item, 'reference_answer', None)) or '未提供'}",
+        _scoring_basis_markdown(item),
         _evidence_markdown(item),
     )
 
@@ -281,7 +393,7 @@ def _detail_fields(item: Mapping[str, Any] | Any | None) -> tuple[Any, ...]:
 def _action_updates(item: Mapping[str, Any] | Any | None) -> tuple[Any, Any]:
     """按权威复核状态决定确认/保存按钮是否可用。"""
 
-    if item is None:
+    if item is None or _value(item, "scoring_input_error", None):
         return gr.update(interactive=False), gr.update(interactive=False)
     status = str(_value(item, "review_status", ""))
     if status in {ReviewStatus.PENDING_REVIEW.value, ReviewStatus.PENDING_REVIEW.name}:
@@ -354,6 +466,23 @@ def _load_detail(
     )
 
 
+def load_selected_review_images(
+    selected: Mapping[str, Any] | None, state: Mapping[str, Any] | None = None
+) -> str:
+    """只回传记录身份，原图来自重新授权后的详情；失败清空旧图。"""
+    if not selected:
+        return "<p>请先选择复核记录以查看本场原图。</p>"
+    try:
+        _ensure_teacher(state)
+        return _active_loaders.images(
+            state,
+            submission_id=str(selected.get("submission_id") or ""),
+            answer_id=str(selected.get("answer_id") or ""),
+        )
+    except (PermissionDeniedError, ReviewQueryError, SQLAlchemyError) as error:
+        return f'<p role="alert">{escape(_error_message(error))}</p>'
+
+
 def select_review_item(
     queue_items: Sequence[Mapping[str, Any]] | None,
     state: Mapping[str, Any] | None,
@@ -406,7 +535,10 @@ def _render_detail_for(
     status = str(_value(item, "review_status", ""))
     if selected_message is not None:
         message = feedback(selected_message, "info")
-    elif status in {ReviewStatus.PENDING_REVIEW.value, ReviewStatus.PENDING_REVIEW.name}:
+    elif status in {
+        ReviewStatus.PENDING_REVIEW.value,
+        ReviewStatus.PENDING_REVIEW.name,
+    }:
         message = feedback("该题待人工复核：可确认 AI 评分或修改分数与理由。", "info")
     else:
         message = feedback(NOT_PENDING_MESSAGE, "warning")
@@ -515,6 +647,8 @@ async def _submit_review_action(
             reason=reason,
             workflow_id=str(item.get("workflow_id") or "") or None,
             expected_review_status=ReviewStatus.PENDING_REVIEW.value,
+            expected_review_round_id=str(item.get("pending_review_round_id") or "")
+            or None,
         )
     except (
         PermissionDeniedError,
@@ -613,17 +747,24 @@ def create_review_view(session_state: Any | None = None) -> ReviewView:
                             interactive=False,
                         )
                     with gr.Column(scale=55):
-                        score = gr.Number(
-                            label="AI 分数", value=None, precision=2, interactive=True
+                        score = gr.Textbox(
+                            label="分数（十进制）",
+                            value="",
+                            interactive=True,
+                            placeholder="例如 6.675，由服务按规则校验并舍入",
                         )
                         reason = gr.Textbox(label="评分理由", lines=5, interactive=True)
                         knowledge_points = gr.Markdown("**知识点：** 暂无")
                         reference_answer = gr.Markdown("**参考答案：** 暂无")
                         scoring_rubric = gr.Markdown("**评分标准：** 暂无")
+                with gr.Accordion("本场原图（教师授权预览）", open=True):
+                    images = gr.HTML("<p>尚未选择复核记录。</p>")
                 with gr.Accordion("检索依据", open=False):
                     evidence = gr.Markdown(empty_state("暂无检索依据可展示"))
                 with gr.Row(elem_classes=["review-actions"]):
-                    confirm = gr.Button("确认评分", variant="primary", interactive=False)
+                    confirm = gr.Button(
+                        "确认评分", variant="primary", interactive=False
+                    )
                     save = gr.Button("保存修改", interactive=False)
                     next_item = gr.Button("下一条", interactive=False)
 
@@ -651,6 +792,11 @@ def create_review_view(session_state: Any | None = None) -> ReviewView:
                 message,
             ],
             show_progress="hidden",
+        ).then(
+            fn=load_selected_review_images,
+            inputs=[selected_item, state],
+            outputs=[images],
+            show_progress="hidden",
         )
         _action_outputs_list = [
             message,
@@ -673,6 +819,11 @@ def create_review_view(session_state: Any | None = None) -> ReviewView:
             inputs=[selected_item, exam_filter, student_filter, status_filter, state],
             outputs=_action_outputs_list,
             show_progress="hidden",
+        ).then(
+            fn=load_selected_review_images,
+            inputs=[selected_item, state],
+            outputs=[images],
+            show_progress="hidden",
         )
         save.click(
             fn=save_review_changes,
@@ -686,6 +837,11 @@ def create_review_view(session_state: Any | None = None) -> ReviewView:
                 state,
             ],
             outputs=_action_outputs_list,
+            show_progress="hidden",
+        ).then(
+            fn=load_selected_review_images,
+            inputs=[selected_item, state],
+            outputs=[images],
             show_progress="hidden",
         )
         next_item.click(
@@ -705,6 +861,11 @@ def create_review_view(session_state: Any | None = None) -> ReviewView:
                 save,
                 message,
             ],
+            show_progress="hidden",
+        ).then(
+            fn=load_selected_review_images,
+            inputs=[selected_item, state],
+            outputs=[images],
             show_progress="hidden",
         )
 
@@ -727,6 +888,7 @@ def create_review_view(session_state: Any | None = None) -> ReviewView:
         selected_item=selected_item,
         confirm_button=confirm,
         save_button=save,
+        images=images,
     )
 
 
@@ -745,6 +907,7 @@ __all__ = [
     "configure_review_loaders",
     "confirm_review",
     "create_review_view",
+    "load_selected_review_images",
     "next_review_item",
     "refresh_review_queue",
     "review_queue_rows",

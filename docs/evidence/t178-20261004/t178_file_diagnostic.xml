@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="1" time="10.756" timestamp="2026-10-05T00:56:13.023753+08:00" hostname="YJX"><testcase classname="tests.contract.test_question_asset_visibility" name="test_full_pages_and_same_byte_aliases_stay_private_even_if_true" time="1.148"><failure message="AssertionError: {&quot;detail&quot;:&quot;IMAGE_ASSESSMENT_INVALID：实际题图记录无效，请联系教师。&quot;}&#10;assert 409 == 200&#10; +  where 409 = &lt;Response [409 Conflict]&gt;.status_code">files_api = (&lt;starlette.testclient.TestClient object at 0x000001F8402BB620&gt;, &lt;sqlalchemy.orm.session.Session object at 0x000001F83...DlhNDU2YjQtYzZlZC00MWVhLTljM2YtNmEyNzEyZDgwZDlkIiwidHlwZSI6ImFjY2VzcyJ9.zdr58WnlmPD-EjzuTAq8QN3GKSSm8Z5jR8hTcOLClYA'}])
+
+    def test_full_pages_and_same_byte_aliases_stay_private_even_if_true(files_api):
+        client, session, files, doc, users, headers = files_api
+        service, page, _extracted = staged_case((session, doc, users[0], files.root))
+        question, _uploaded = question_and_asset(files_api)
+        payload = {"file_id": "p_" + page.id.hex, "source_page_id": str(page.id), "asset_type": "figure"}
+        endpoint = f"/api/questions/{question.id}/assets"
+        forbidden = client.post(endpoint, headers=headers[0], json=payload | {"student_visible": True})
+        assert forbidden.status_code == 422, forbidden.text
+        full = client.post(endpoint, headers=headers[0], json=payload)
+        assert full.status_code == 201, full.text
+        full_asset = full.json()
+        assert client.patch(visibility_url(question, full_asset), headers=headers[0], json={"student_visible": True}).status_code == 422
+        crop = client.post(endpoint, headers=headers[0], json=payload | {
+            "region": {"bbox": [10, 10, 40, 30]}, "student_visible": True,
+        })
+        assert crop.status_code == 201, crop.text
+        # A manually uploaded alias of a known complete page must not bypass its source policy.
+        assert client.patch(visibility_url(question, _uploaded), headers=headers[0], json={"student_visible": True}).status_code == 422
+        session.expire_all()
+        for identity in (full_asset["id"], _uploaded["id"]):
+            session.get(QuestionAsset, UUID(identity)).student_visible = True
+        session.commit()
+        exam = opened_exam(files_api, question)
+        assets = client.get(endpoint, headers=headers[2])
+        assert assets.status_code == 200
+        assert [asset["id"] for asset in assets.json()] == [crop.json()["id"]]
+        assert len(client.get(endpoint, headers=headers[0]).json()) == 3
+        for file_id in (full_asset["file_id"], _uploaded["file_id"], "p_" + page.id.hex, "d_" + page.paper_import.document_id.hex):
+            assert client.get("/api/files/" + file_id, headers=headers[2]).status_code == 403
+        assert client.get("/api/files/" + crop.json()["file_id"], headers=headers[2]).status_code == 200
+        response = client.get(f"/api/submissions/exams/{exam.id}", headers=headers[2])
+&gt;       assert response.status_code == 200, response.text
+E       AssertionError: {"detail":"IMAGE_ASSESSMENT_INVALID：实际题图记录无效，请联系教师。"}
+E       assert 409 == 200
+E        +  where 409 = &lt;Response [409 Conflict]&gt;.status_code
+
+tests\contract\test_question_asset_visibility.py:174: AssertionError</failure></testcase></testsuite></testsuites>

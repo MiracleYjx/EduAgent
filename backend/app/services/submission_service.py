@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+import base64
 from collections.abc import Iterable, Mapping, Sequence
 from copy import deepcopy
 from datetime import UTC, datetime
 from decimal import Decimal
+from pathlib import Path
 from typing import Any, cast
 from uuid import UUID
 
@@ -19,6 +21,7 @@ from backend.app.domain.enums import (
     AnswerStatus,
     ExamStatus,
     QuestionStatus,
+    QuestionType,
     SubmissionStatus,
     UserRole,
 )
@@ -107,6 +110,44 @@ class AvailableExamSummary(ExamSummary):
     """学生当前可以参加的考试摘要。"""
 
 
+class StudentQuestionAsset(BaseModel):
+    """Only explicitly public asset facts; inline bytes are internal to the UI."""
+
+    model_config = ConfigDict(frozen=True, from_attributes=True)
+    id: UUID
+    question_id: UUID
+    file_id: str
+    asset_type: str
+    width: int
+    height: int
+    caption: str | None
+    order_index: int | None
+    student_visible: bool
+    image_data: str | None = Field(default=None, exclude=True)
+
+
+class StudentQuestionSummary(BaseModel):
+    """One safe question projected from the real exam association."""
+
+    model_config = ConfigDict(frozen=True)
+    id: str
+    exam_question_id: str
+    type: QuestionType
+    content: str
+    options: dict[str, Any] | list[Any] | None = None
+    order_preserved: bool
+    difficulty: str | None = None
+    knowledge_points: list[str] = Field(default_factory=list)
+    score: Decimal | None
+    position: int
+    assets: list[StudentQuestionAsset] = Field(default_factory=list)
+
+
+class StudentExamDetail(AvailableExamSummary):
+    questions: list[StudentQuestionSummary] = Field(default_factory=list)
+    submission: SubmissionSummary | None = None
+
+
 class SubmissionServiceError(RuntimeError):
     """答卷服务的异常基类。"""
 
@@ -142,6 +183,14 @@ class SubmissionPermissionError(SubmissionServiceError):
 
 class SubmissionNotAvailableError(SubmissionValidationError):
     """考试尚未开放、已经结束或不满足参加条件时抛出。"""
+
+
+class SubmissionInputUnavailableError(SubmissionNotAvailableError):
+    """An actual required exam input is unavailable; do not fabricate defaults."""
+
+    def __init__(self, code: str, message: str) -> None:
+        self.error_code = code
+        super().__init__(f"{code}：{message}")
 
 
 # 兼容调用方对异常名称的不同约定。
@@ -363,8 +412,9 @@ def _normalize_answer_entries(
 class SubmissionService:
     """封装学生考试资格、答卷写入和答卷状态机。"""
 
-    def __init__(self, session: Session) -> None:
+    def __init__(self, session: Session, *, root: Path | None = None) -> None:
         self.session = session
+        self.root = root
 
     def list_available_exams(
         self,
@@ -433,6 +483,162 @@ class SubmissionService:
 
     get_exam = get_available_exam
 
+    def get_exam_detail(
+        self,
+        exam_id: UUID | str,
+        *,
+        student_id: StudentInput,
+        include_images: bool = False,
+    ) -> StudentExamDetail:
+        """Shared API/UI projection; authorizes actual files without private provenance."""
+        actor = _normalize_uuid(student_id, "学生标识")
+        available = self.get_available_exam(exam_id, student_id=actor)
+        exam = self._load_exam(exam_id)
+        questions = []
+        for link in sorted(exam.exam_question_links, key=lambda item: item.order_index):
+            question = link.question
+            images = self._student_images(
+                question, actor, include_images=include_images
+            )
+            questions.append(
+                StudentQuestionSummary(
+                    id=str(question.id),
+                    exam_question_id=str(link.id),
+                    type=question.type,
+                    content=question.content,
+                    options=question.options,
+                    order_preserved=question.order_preserved,
+                    difficulty=question.difficulty,
+                    knowledge_points=list(link.published_knowledge_points or []),
+                    score=link.score,
+                    position=link.order_index,
+                    assets=images,
+                )
+            )
+        return StudentExamDetail(
+            **available.model_dump(),
+            questions=questions,
+            submission=self.find_submission(exam_id, actor),
+        )
+
+    def _student_images(
+        self,
+        question: Any,
+        actor_id: UUID,
+        *,
+        include_images: bool,
+    ) -> list[StudentQuestionAsset]:
+        # Local imports keep the existing FileStorage -> participation lookup acyclic.
+        from backend.app.schemas.image_assessment import current_image_check
+        from backend.app.services.content_validation_service import (
+            ContentValidationService,
+        )
+        from backend.app.services.file_storage_service import FileStorageError
+        from backend.app.services.question_asset_access import visible_question_assets
+
+        if not question.assets:
+            return []
+        validation = ContentValidationService(self.session, root=self.root)
+        try:
+            refs = validation._image_refs(question)
+            assessment = validation._assessment(question)
+            check = current_image_check(assessment)
+            bound = False
+            # Imported checks retain their real original event and binding.
+            if check is None and assessment.imported_review is not None:
+                populated = refs.model_copy(
+                    update={
+                        "images": [
+                            image.model_copy(
+                                update={
+                                    "width": asset.width,
+                                    "height": asset.height,
+                                    "mime_type": (asset.file_metadata or {}).get(
+                                        "media_type"
+                                    ),
+                                }
+                            )
+                            for image, asset in zip(
+                                refs.images, question.assets, strict=True
+                            )
+                        ]
+                    }
+                )
+                check = validation._bound_check(question, assessment, populated)
+                bound = check is not None
+            if (
+                check is not None
+                and not bound
+                and not validation._same_identity(check.input_refs, refs)
+            ):
+                raise SubmissionInputUnavailableError(
+                    "VISION_STATE_CONFLICT", "当前核对与题图身份不一致，请联系教师。"
+                )
+            required = set()
+            if check is not None and check.status == "confirmed":
+                required = {
+                    condition.asset_id for condition in check.confirmed_conditions
+                }
+                required.update(
+                    finding.asset_id
+                    for finding in check.image_findings
+                    if finding.finding == "conditions_confirmed"
+                )
+            visible = visible_question_assets(self.session, question)
+            visible_ids = {asset.id for asset in visible}
+            if not required.issubset(visible_ids):
+                raise SubmissionInputUnavailableError(
+                    "EXAM_REQUIRED_IMAGE_UNAVAILABLE",
+                    "作答所需题图未开放，不能开始或提交，请联系教师。",
+                )
+            if not visible:
+                return []
+            public_refs = refs.model_copy(
+                update={
+                    "images": [
+                        image.model_copy(update={"image_index": index})
+                        for index, image in enumerate(
+                            (
+                                value
+                                for value in refs.images
+                                if value.asset_id in visible_ids
+                            ),
+                            start=1,
+                        )
+                    ]
+                }
+            )
+            _, actual = validation._read_images(public_refs, actor_id)
+            by_id = {image.asset_id: image for image in actual}
+            result = []
+            for asset in visible:
+                image = by_id[asset.id]
+                if image.width != asset.width or image.height != asset.height:
+                    raise SubmissionInputUnavailableError(
+                        "FILE_CONTENT_CHANGED", "实际题图尺寸与登记不一致，请联系教师。"
+                    )
+                view = StudentQuestionAsset.model_validate(asset)
+                if include_images:
+                    view = view.model_copy(
+                        update={
+                            "image_data": f"data:{image.mime_type};base64,"
+                            + base64.b64encode(image.data).decode("ascii")
+                        }
+                    )
+                result.append(view)
+            return result
+        except FileStorageError as error:
+            raise SubmissionInputUnavailableError(error.code, str(error)) from error
+        except (TypeError, ValueError) as error:
+            raise SubmissionInputUnavailableError(
+                "IMAGE_ASSESSMENT_INVALID", "实际题图记录无效，请联系教师。"
+            ) from error
+
+    def _ensure_student_images(self, exam: Exam, student_id: UUID) -> None:
+        """Check actual answer images without adding a grading gate to legacy submissions."""
+        for link in sorted(exam.exam_question_links, key=lambda item: item.order_index):
+            self._student_images(link.question, student_id, include_images=False)
+
     def create_submission(
         self,
         exam_id: UUID | str,
@@ -470,6 +676,7 @@ class SubmissionService:
                     existing_summary,
                 )
             self._ensure_exam_available(exam, moment)
+            self._ensure_student_images(exam, normalized_student_id)
             if answers is not None:
                 self._save_answer_entries(
                     existing,
@@ -491,6 +698,7 @@ class SubmissionService:
             return existing_summary
 
         self._ensure_exam_available(exam, moment)
+        self._ensure_student_images(exam, normalized_student_id)
         submission = Submission(
             exam_id=exam.id,
             student_id=normalized_student_id,
@@ -675,6 +883,7 @@ class SubmissionService:
         self._validate_answer_question_ids(exam, entries)
         moment = _resolve_time(now, current_time, as_of)
         self._ensure_exam_available(exam, moment)
+        self._ensure_student_images(exam, submission.student_id)
         prospective = {
             answer.question_id: answer.content for answer in submission.answers
         }
@@ -969,6 +1178,7 @@ class SubmissionService:
         exam = self._submission_exam(submission)
         self._ensure_exam_participation(exam.id, submission.student_id)
         self._validate_answer_question_ids(exam, entries)
+        self._ensure_student_images(exam, submission.student_id)
         self._save_answer_entries(submission, entries, exam)
         try:
             self.session.commit()
@@ -1115,13 +1325,17 @@ class SubmissionService:
     def _exam_participation_filter(student_id: UUID | None) -> ColumnElement[bool]:
         """仅允许已分配学生；没有分配记录的考试兼容历史全体开放行为。"""
 
-        assignments = select(ExamParticipant.id).where(ExamParticipant.exam_id == Exam.id)
+        assignments = select(ExamParticipant.id).where(
+            ExamParticipant.exam_id == Exam.id
+        )
         return or_(
             ~assignments.exists(),
             assignments.where(ExamParticipant.student_id == student_id).exists(),
         )
 
-    def _ensure_exam_participation(self, exam_id: UUID, student_id: UUID | None) -> None:
+    def _ensure_exam_participation(
+        self, exam_id: UUID, student_id: UUID | None
+    ) -> None:
         """按当前数据库分配记录检查资格，避免已有草稿绕过范围变化。"""
 
         try:
@@ -1327,10 +1541,9 @@ class SubmissionService:
         """将答卷实体及答案关系转换为摘要。"""
 
         exam = cls._submission_exam(submission)
-        questions = list(exam.questions or ())
-        question_order = {
-            question.id: index for index, question in enumerate(questions)
-        }
+        links = sorted(exam.exam_question_links, key=lambda item: item.order_index)
+        questions = [link.question for link in links]
+        question_order = {link.question_id: link.order_index for link in links}
         answer_entities = sorted(
             submission.answers or (),
             key=lambda answer: (
@@ -1368,10 +1581,14 @@ class SubmissionService:
     def _available_exam_summary(exam: Exam) -> AvailableExamSummary:
         """将已开放考试转换为学生可读取的摘要。"""
 
-        questions = list(exam.questions or ())
-        total_score = sum(
-            (Decimal(str(question.score)) for question in questions),
-            _ZERO_SCORE,
+        links = sorted(exam.exam_question_links, key=lambda item: item.order_index)
+        questions = [link.question for link in links]
+        total_score = (
+            None
+            if any(link.score is None for link in links)
+            else sum(
+                (link.score for link in links if link.score is not None), _ZERO_SCORE
+            )
         )
         return AvailableExamSummary(
             id=str(exam.id),

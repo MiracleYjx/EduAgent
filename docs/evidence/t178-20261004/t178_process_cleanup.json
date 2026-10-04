@@ -1,0 +1,23 @@
+[
+  {
+    "verified_own_process": true,
+    "parent_pid": 95708,
+    "script": "t175-178-20261004/launch_browser.cjs",
+    "stopped_with_children": true,
+    "pid": 101444
+  },
+  {
+    "verified_own_process": true,
+    "parent_pid": 99144,
+    "script": "t175-178-20261004/browser_evidence_server.py",
+    "stopped_with_children": true,
+    "pid": 103004
+  },
+  {
+    "verified_own_process": true,
+    "parent_pid": 104372,
+    "script": "t175-178-20261004/serve_ui.py",
+    "stopped_with_children": true,
+    "pid": 96204
+  }
+]

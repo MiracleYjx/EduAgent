@@ -775,6 +775,7 @@ def _pending_review_scorer():
                 retrieved_context_ids=["chunk-1"],
                 answer_id=target.answer_id,
                 submission_id=snapshot.submission_id,
+                exam_question_id=target.scoring_input.exam_question_id,
             ),
             ConfidenceDecision(
                 confidence=0.5,
@@ -963,12 +964,14 @@ def test_trigger_prevalidates_scope_before_creating_task_for_objective_submissio
     chapter = Chapter(
         course_id=course.id,
         title="教师确认章节",
-        sections=[]
-        if case == "missing_directory"
-        else [
-            {"section_order": 1, "title": "第一节"},
-            {"section_order": 2, "title": "第二节"},
-        ],
+        sections=(
+            []
+            if case == "missing_directory"
+            else [
+                {"section_order": 1, "title": "第一节"},
+                {"section_order": 2, "title": "第二节"},
+            ]
+        ),
         confirmed_by=scenario["teacher"].id,
         confirmed_at=datetime.now(UTC),
     )

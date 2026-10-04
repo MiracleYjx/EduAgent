@@ -1,0 +1,41 @@
+F811 Redefinition of unused `environment` from line 13
+  --> tests\integration\test_review_fixed_input_display.py:24:5
+   |
+22 | @pytest.mark.parametrize("change", [None, "foreign_input", "legacy_identity"])
+23 | def test_review_display_uses_only_matching_actual_input(
+24 |     environment, change
+   |     ^^^^^^^^^^^ `environment` redefined here
+25 | ):  # noqa: F811 -- pytest imported fixture
+26 |     provider = ConfirmedPointProvider([0.3], score=Decimal("1.005"))
+   |
+  ::: tests\integration\test_review_fixed_input_display.py:13:5
+   |
+11 | from tests.integration.test_exam_scoring_consumers import (
+12 |     ConfirmedPointProvider,
+13 |     environment,  # noqa: F401 -- shared real PostgreSQL fixture
+   |     ----------- previous definition of `environment` here
+14 | )
+15 | from tests.integration.test_langgraph_grading_workflow import (
+   |
+help: Remove definition: `environment`
+
+RUF100 [*] Unused `noqa` directive (unused: `F811`)
+  --> tests\integration\test_review_fixed_input_display.py:25:5
+   |
+23 | def test_review_display_uses_only_matching_actual_input(
+24 |     environment, change
+25 | ):  # noqa: F811 -- pytest imported fixture
+   |     ^^^^^^^^^^^^
+26 |     provider = ConfirmedPointProvider([0.3], score=Decimal("1.005"))
+27 |     with _api_client(environment, scoring_provider=provider) as harness:
+   |
+help: Remove unused `noqa` directive
+   |
+24 |     environment, change
+   - ):  # noqa: F811 -- pytest imported fixture
+25 + ):
+26 |     provider = ConfirmedPointProvider([0.3], score=Decimal("1.005"))
+   |
+
+Found 2 errors.
+[*] 1 fixable with the `--fix` option.

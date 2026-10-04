@@ -1,0 +1,12 @@
+{
+  "recorded_at": "2026-10-04T18:18:18.404470+00:00",
+  "snapshot_tree": "ba073a7b08788301fe49b0650df02191c30d8ef5",
+  "parent_head": "d491a025b415ab369d43b8534d3564da60bc2f40",
+  "runtime_and_test_files_checked": 453,
+  "normal_git_clean_filters": true,
+  "identical_blob_count": 452,
+  "only_comment_format_difference": "tests/integration/test_review_fixed_input_display.py",
+  "test_ast_identical": true,
+  "protected_user_bytes_unchanged": true,
+  "runtime_code_identical_to_tested_snapshot": true
+}

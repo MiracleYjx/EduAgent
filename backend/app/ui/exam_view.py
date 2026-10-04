@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+import base64
 import re
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
+from decimal import Decimal, InvalidOperation
 from html import escape
 from typing import Any, Literal, cast
 from uuid import UUID
@@ -21,6 +23,12 @@ from backend.app.domain.enums import (
     UserRole,
 )
 from backend.app.domain.permissions import PermissionDeniedError, normalize_role
+from backend.app.schemas.exam_assembly import (
+    AssemblyRequest,
+    AssemblyResponse,
+    ExamQuestionPatchRequest,
+    ScoreOverride,
+)
 from backend.app.schemas.exam_scoring import (
     ScoringBasisView,
     ScoringConfirmRequest,
@@ -35,6 +43,10 @@ from backend.app.services.exam_service import (
     ExamService,
     ExamServiceError,
     ExamSummary,
+)
+from backend.app.services.file_storage_service import (
+    FileStorageError,
+    FileStorageService,
 )
 from backend.app.services.question_service import QuestionService, QuestionSummary
 from backend.app.ui.layout_view import (
@@ -116,7 +128,7 @@ def _format_error(error: BaseException) -> str:
         message = str(error) or "当前账号无权执行此操作。"
     elif isinstance(error, ExamPermissionError):
         message = str(error) or "当前账号无权访问该考试。"
-    elif isinstance(error, (ExamServiceError, AssemblyError)):
+    elif isinstance(error, (ExamServiceError, AssemblyError, FileStorageError)):
         message = str(error) or _GENERIC_ERROR
     elif isinstance(error, SQLAlchemyError):
         message = "系统暂时无法连接数据库，请稍后重试。"
@@ -601,6 +613,187 @@ def exam_publication_issues(
     return issues
 
 
+_ASSEMBLY_TYPES = ("SINGLE_CHOICE", "TRUE_FALSE", "SHORT_ANSWER")
+_ASSEMBLY_LABELS = {
+    "SINGLE_CHOICE": "单选题",
+    "TRUE_FALSE": "判断题",
+    "SHORT_ANSWER": "简答题",
+}
+
+
+def _assembly_count(value: Any, *, allow_zero: bool = False) -> int:
+    try:
+        amount = Decimal(str(value).strip() or "0")
+    except InvalidOperation as error:
+        raise ValueError("题数和题序必须为合法整数。") from error
+    if (
+        not amount.is_finite()
+        or amount != amount.to_integral_value()
+        or amount < (0 if allow_zero else 1)
+    ):
+        raise ValueError("题数和题序必须为合法整数。")
+    return int(amount)
+
+
+def _assembly_rows(value: Any, width: int) -> list[list[str]]:
+    if hasattr(value, "values"):
+        value = value.values.tolist()
+    if value is None:
+        return []
+    if not isinstance(value, (list, tuple)):
+        raise TypeError("表格内容格式无效。")
+    rows = []
+    for row in value:
+        if not isinstance(row, (list, tuple)) or len(row) != width:
+            raise ValueError("表格列数不匹配。")
+        fields = ["" if item is None else str(item).strip() for item in row]
+        if any(fields):
+            rows.append(fields)
+    return rows
+
+
+def _assembly_request(
+    course_id: str,
+    counts: Sequence[Any],
+    coverage: Any,
+    overrides: Mapping[str, Any],
+    total_score: Any,
+) -> AssemblyRequest:
+    if len(counts) != len(_ASSEMBLY_TYPES):
+        raise ValueError("请填写三种题型的数量。")
+    distribution = [
+        {"question_type": kind, "count": _assembly_count(value, allow_zero=True)}
+        for kind, value in zip(_ASSEMBLY_TYPES, counts, strict=True)
+    ]
+    return AssemblyRequest.model_validate(
+        {
+            "course_id": course_id,
+            "question_count": sum(item["count"] for item in distribution),
+            "type_distribution": [item for item in distribution if item["count"]],
+            "knowledge_coverage": [
+                {"knowledge_point": row[0], "min_questions": _assembly_count(row[1])}
+                for row in _assembly_rows(coverage, 2)
+            ],
+            "total_score": total_score,
+            "score_overrides": [
+                {"question_id": qid, "score": value} for qid, value in overrides.items()
+            ],
+        }
+    )
+
+
+def _exam_question_patch(
+    order: Any,
+    replacement: str | None,
+    change_score: bool,
+    use_default: bool,
+    score: Any,
+) -> ExamQuestionPatchRequest:
+    payload: dict[str, Any] = {}
+    if order is not None and str(order).strip():
+        payload["order_index"] = _assembly_count(order)
+    if replacement:
+        payload["replacement_question_id"] = replacement
+    if change_score:
+        payload["score"] = None if use_default else score
+    return ExamQuestionPatchRequest.model_validate(payload)
+
+
+def _assembly_failure(error: AssemblyError) -> str:
+    saved = error.details.get("intent_saved")
+    intent = (
+        "本次要求已保存，可调整后重试。"
+        if saved is True
+        else (
+            "本次要求尚未保存。"
+            if saved is False
+            else "本次要求保存结果未知，请重新加载核对。"
+        )
+    )
+    details = [str(error), intent]
+    for item in error.details.get("gaps", []):
+        label = _ASSEMBLY_LABELS.get(
+            item.get("question_type"), item.get("knowledge_point", "条件")
+        )
+        details.append(
+            f"{label}：要求 {item.get('required', '未知')}，可用 {item.get('available', '未知')}，缺少 {item.get('missing', '未知')}。"
+        )
+    for item in error.details.get("conditions", []):
+        if not item.get("satisfied", False):
+            details.append(str(item.get("reason") or item))
+    if error.details.get("intent_save_error"):
+        details.append(f"保存失败原因：{error.details['intent_save_error']}")
+    return feedback(" ".join(escape(item) for item in details), "warning")
+
+
+def _teacher_preview_html(
+    preview: AssemblyResponse, files: FileStorageService, actor_id: UUID
+) -> str:
+    def text(value: Any) -> str:
+        return escape("未知（待核对）" if value is None else str(value))
+
+    sections = [
+        f"<section class='edu-exam-preview'><h3>教师完整预览 · 总分 {text(preview.total_score)}</h3>"
+    ]
+    for question in preview.exam_questions:
+        sections.append(
+            f"<article><h4>第 {question.order_index} 题 · {_ASSEMBLY_LABELS[question.question_type.value]} · 本场满分 {text(question.effective_score)}</h4>"
+        )
+        sections.append(
+            f"<p>显式分值：{text(question.score)}；基准满分：{text(question.base_score)}</p><div style='white-space:pre-wrap'>{text(question.content)}</div>"
+        )
+        if question.options is not None:
+            items = (
+                question.options.items()
+                if isinstance(question.options, dict)
+                else enumerate(question.options, start=1)
+            )
+            sections.append(
+                "<ol>"
+                + "".join(
+                    f"<li>{text(key)} · {text(value)}</li>" for key, value in items
+                )
+                + "</ol>"
+            )
+        for asset in question.assets:
+            path, metadata = files.download(asset.file_id, actor_id=actor_id)
+            if metadata.media_type not in {"image/png", "image/jpeg", "image/webp"}:
+                raise FileStorageError(
+                    "IMAGE_MEDIA_TYPE_UNKNOWN", "题图媒体类型未知或不支持，请核对原图。"
+                )
+            try:
+                original = path.read_bytes()
+            except OSError as error:
+                raise FileStorageError(
+                    "FILE_MISSING", "题图读取失败，请核对原图。", http_status=404
+                ) from error
+            encoded = base64.b64encode(original).decode("ascii")
+            sections.append(
+                f"<figure><img src='data:{metadata.media_type};base64,{encoded}' alt='{escape(asset.caption or '题图', quote=True)}' style='max-width:100%;height:auto'><figcaption>{text(asset.caption or '题图')} · 学生可见：{'是' if asset.student_visible else '否'}</figcaption></figure>"
+            )
+        for label, value in (
+            ("参考答案", question.reference_answer),
+            ("原始评分标准", question.scoring_rubric),
+            ("解析", question.analysis),
+            ("知识点", "、".join(question.knowledge_points)),
+        ):
+            sections.append(
+                f"<p><strong>{label}</strong></p><div style='white-space:pre-wrap'>{text(value)}</div>"
+            )
+        if question.scoring_basis is not None:
+            basis = question.scoring_basis
+            sections.append(
+                f"<p>本场标准：{'已确认' if basis.confirmation else '待确认'}；舍入尾差：{text(basis.rounding_delta)}</p>"
+            )
+            for point in basis.points:
+                sections.append(
+                    f"<p>{text(point.label)}：基准 {text(point.base_points)}；默认 {text(point.default_points)}；本场 {text(point.confirmed_points)}</p>"
+                )
+        sections.append("</article><hr>")
+    sections.append("</section>")
+    return "".join(sections)
+
+
 def create_exam_view(session_state: Any | None = None) -> ExamView:
     """创建考试列表和基本信息、选择题目、发布检查三个步骤。"""
 
@@ -609,6 +802,7 @@ def create_exam_view(session_state: Any | None = None) -> ExamView:
         PermissionDeniedError,
         ExamServiceError,
         AssemblyError,
+        FileStorageError,
         CourseServiceError,
         SQLAlchemyError,
         TypeError,
@@ -621,6 +815,7 @@ def create_exam_view(session_state: Any | None = None) -> ExamView:
         publication_snapshot = gr.State(None)
         scoring_snapshot = gr.State(None)
         candidate_id = gr.State(None)
+        assembly_overrides = gr.State({})
         remove_id = gr.Textbox(visible=False, container=False)
         with gr.Row():
             filter_course = gr.Dropdown(label="课程", choices=[])
@@ -666,6 +861,120 @@ def create_exam_view(session_state: Any | None = None) -> ExamView:
                         )
                     save_button = gr.Button("保存并选择题目", variant="primary")
                 with gr.Tab("选择题目", id="questions"):
+                    with gr.Accordion("按条件组卷", open=False):
+                        gr.Markdown(
+                            "题数为三种题型数量之和；已审核题按当前课程选择。失败时保留原卷，并显示要求是否实际保存。"
+                        )
+                        with gr.Row():
+                            assembly_single = gr.Textbox(
+                                label="单选题数",
+                                value="0",
+                                elem_id="edu-exam-assembly-single",
+                            )
+                            assembly_true = gr.Textbox(
+                                label="判断题数",
+                                value="0",
+                                elem_id="edu-exam-assembly-true",
+                            )
+                            assembly_short = gr.Textbox(
+                                label="简答题数",
+                                value="0",
+                                elem_id="edu-exam-assembly-short",
+                            )
+                            assembly_total = gr.Textbox(
+                                label="要求总分", elem_id="edu-exam-assembly-total"
+                            )
+                        assembly_coverage = gr.Dataframe(
+                            headers=["知识点", "最少题数"],
+                            datatype=["str", "str"],
+                            type="array",
+                            value=[],
+                            column_count=2,
+                            row_count=0,
+                            row_limits=(0, None),
+                            label="知识点覆盖要求",
+                            elem_id="edu-exam-assembly-coverage",
+                        )
+                        with gr.Row():
+                            override_question = gr.Dropdown(
+                                label="指定本场分值的候选题",
+                                choices=[],
+                                elem_id="edu-exam-assembly-override-question",
+                            )
+                            override_score = gr.Textbox(
+                                label="指定分值",
+                                elem_id="edu-exam-assembly-override-score",
+                            )
+                            override_remove = gr.Checkbox(
+                                label="移除此指定分值", value=False
+                            )
+                            override_apply = gr.Button(
+                                "保存指定分值",
+                                elem_id="edu-exam-assembly-override-apply",
+                            )
+                        override_table = gr.Dataframe(
+                            headers=["题目", "指定本场分值"],
+                            datatype=["str", "str"],
+                            type="array",
+                            value=[],
+                            interactive=False,
+                            label="本次组卷指定分值",
+                            elem_id="edu-exam-assembly-overrides",
+                        )
+                        assemble_button = gr.Button(
+                            "按条件重新组卷",
+                            variant="primary",
+                            interactive=False,
+                            elem_id="edu-exam-assembly-assemble",
+                        )
+                        assembly_status = gr.Markdown(
+                            elem_id="edu-exam-assembly-status"
+                        )
+                    assembly_facts = gr.Dataframe(
+                        headers=["题序", "题型", "显式分值", "本场满分", "题干"],
+                        datatype=["str"] * 5,
+                        value=[],
+                        interactive=False,
+                        label="当前试卷实际题序与分值",
+                        elem_id="edu-exam-assembly-facts",
+                    )
+                    with gr.Accordion("调整题序、替换与本场分值", open=False):
+                        patch_question = gr.Dropdown(
+                            label="要调整的本场题目",
+                            choices=[],
+                            elem_id="edu-exam-assembly-patch-question",
+                        )
+                        with gr.Row():
+                            patch_order = gr.Textbox(
+                                label="新题序（留空不修改）",
+                                elem_id="edu-exam-assembly-order",
+                            )
+                            patch_replacement = gr.Dropdown(
+                                label="替换为（留空不替换）",
+                                choices=[],
+                                elem_id="edu-exam-assembly-replacement",
+                            )
+                        with gr.Row():
+                            patch_change_score = gr.Checkbox(
+                                label="修改本场分值",
+                                value=False,
+                                elem_id="edu-exam-assembly-change-score",
+                            )
+                            patch_default_score = gr.Checkbox(
+                                label="恢复题库默认分值",
+                                value=False,
+                                elem_id="edu-exam-assembly-default-score",
+                            )
+                            patch_score = gr.Textbox(
+                                label="显式本场分值", elem_id="edu-exam-assembly-score"
+                            )
+                        patch_button = gr.Button(
+                            "保存本场调整",
+                            interactive=False,
+                            elem_id="edu-exam-assembly-patch",
+                        )
+                    with gr.Accordion("教师完整试卷预览", open=False):
+                        teacher_preview = gr.HTML(elem_id="edu-exam-assembly-preview")
                     question_message = gr.Markdown(
                         empty_state("请先保存考试基本信息。")
                     )
@@ -836,6 +1145,28 @@ def create_exam_view(session_state: Any | None = None) -> ExamView:
             lifecycle_target,
             lifecycle,
             lifecycle_button,
+            assembly_overrides,
+            assembly_single,
+            assembly_true,
+            assembly_short,
+            assembly_total,
+            assembly_coverage,
+            override_question,
+            override_score,
+            override_remove,
+            override_apply,
+            override_table,
+            assemble_button,
+            assembly_status,
+            assembly_facts,
+            patch_question,
+            patch_order,
+            patch_replacement,
+            patch_change_score,
+            patch_default_score,
+            patch_score,
+            patch_button,
+            teacher_preview,
         ]
 
         def invalidate() -> dict[Any, Any]:
@@ -866,6 +1197,32 @@ def create_exam_view(session_state: Any | None = None) -> ExamView:
 
         def clear() -> dict[Any, Any]:
             result = {**invalidate(), **clear_scoring()}
+            result.update(
+                {
+                    assembly_overrides: {},
+                    assembly_single: "0",
+                    assembly_true: "0",
+                    assembly_short: "0",
+                    assembly_total: "",
+                    assembly_coverage: [],
+                    override_question: gr.update(choices=[], value=None),
+                    override_score: "",
+                    override_remove: False,
+                    override_apply: gr.update(interactive=False),
+                    override_table: [],
+                    assemble_button: gr.update(interactive=False),
+                    assembly_status: "",
+                    assembly_facts: [],
+                    patch_question: gr.update(choices=[], value=None),
+                    patch_order: "",
+                    patch_replacement: gr.update(choices=[], value=None),
+                    patch_change_score: False,
+                    patch_default_score: False,
+                    patch_score: "",
+                    patch_button: gr.update(interactive=False),
+                    teacher_preview: "",
+                }
+            )
             result[scoring_question] = gr.update(choices=[], value=None)
             result.update(
                 {
@@ -934,6 +1291,245 @@ def create_exam_view(session_state: Any | None = None) -> ExamView:
                     for qid in exam.question_ids
                 ]
             return exam, questions
+
+        def assembly_data(
+            preview: AssemblyResponse, candidates: list[QuestionSummary], editable: bool
+        ) -> dict[Any, Any]:
+            intent = preview.assembly_constraints
+            counts = (
+                {
+                    item.question_type: str(item.count)
+                    for item in intent.request.type_distribution
+                }
+                if intent
+                else {}
+            )
+            overrides = (
+                {
+                    str(item.question_id): money_text(item.score)
+                    for item in intent.request.score_overrides
+                }
+                if intent
+                else {}
+            )
+            labels = {question.id: question.content[:75] for question in candidates}
+            conditions = [
+                f"{'满足' if item.satisfied else '缺口'} · {item.kind}：要求 {item.target}，当前 {item.actual if item.actual is not None else '未知'}。{item.reason or ''}"
+                for item in preview.conditions
+            ]
+            checks = [item.message for item in preview.publication_checks]
+            details = (
+                f"最近组卷要求记录于 {intent.recorded_at.isoformat()}。"
+                if intent
+                else "尚无保存的组卷要求。"
+            )
+            if conditions:
+                details += "\n\n" + "\n\n".join(escape(item) for item in conditions)
+            if checks:
+                details += "\n\n" + feedback("；".join(checks), "warning")
+            choices = [(labels[question.id], question.id) for question in candidates]
+            return {
+                assembly_overrides: overrides,
+                assembly_single: gr.update(
+                    value=counts.get("SINGLE_CHOICE", "0"), interactive=editable
+                ),
+                assembly_true: gr.update(
+                    value=counts.get("TRUE_FALSE", "0"), interactive=editable
+                ),
+                assembly_short: gr.update(
+                    value=counts.get("SHORT_ANSWER", "0"), interactive=editable
+                ),
+                assembly_total: gr.update(
+                    value=money_text(intent.request.total_score) if intent else "",
+                    interactive=editable,
+                ),
+                assembly_coverage: gr.update(
+                    value=(
+                        [
+                            [item.knowledge_point, str(item.min_questions)]
+                            for item in intent.request.knowledge_coverage
+                        ]
+                        if intent
+                        else []
+                    ),
+                    interactive=editable,
+                ),
+                override_question: gr.update(
+                    choices=choices, value=None, interactive=editable
+                ),
+                override_score: gr.update(value="", interactive=editable),
+                override_remove: gr.update(value=False, interactive=editable),
+                override_apply: gr.update(interactive=editable),
+                override_table: [
+                    [labels.get(qid, "当前候选题中已不可用"), score]
+                    for qid, score in overrides.items()
+                ],
+                assemble_button: gr.update(interactive=editable),
+                assembly_status: details,
+                assembly_facts: [
+                    [
+                        str(item.order_index),
+                        _ASSEMBLY_LABELS[item.question_type.value],
+                        money_text(item.score) if item.score is not None else "默认",
+                        (
+                            money_text(item.effective_score)
+                            if item.effective_score is not None
+                            else "未知"
+                        ),
+                        item.content,
+                    ]
+                    for item in preview.exam_questions
+                ],
+                patch_question: gr.update(
+                    choices=[
+                        (
+                            f"第 {item.order_index} 题 · {item.content[:55]}",
+                            str(item.question_id),
+                        )
+                        for item in preview.exam_questions
+                    ],
+                    value=None,
+                    interactive=editable,
+                ),
+                patch_replacement: gr.update(
+                    choices=choices, value=None, interactive=editable
+                ),
+                patch_order: gr.update(value="", interactive=editable),
+                patch_change_score: gr.update(value=False, interactive=editable),
+                patch_default_score: gr.update(value=False, interactive=editable),
+                patch_score: gr.update(value="", interactive=editable),
+                patch_button: gr.update(
+                    interactive=editable and bool(preview.exam_questions)
+                ),
+            }
+
+        def set_override(
+            identifier: str | None,
+            qid: str | None,
+            score: Any,
+            remove: bool,
+            saved: Mapping[str, str],
+            current_state: Mapping[str, Any],
+        ) -> dict[Any, Any]:
+            try:
+                if not identifier or not qid:
+                    raise ValueError("请选择已保存考试及候选题。")
+                exam, _ = read_exam(identifier, current_state)
+                if exam.status != ExamStatus.DRAFT:
+                    raise ValueError("已发布考试不能修改组卷要求。")
+                candidates = load_question_choices(
+                    exam.course_id,
+                    None,
+                    None,
+                    QuestionStatus.APPROVED.value,
+                    current_state,
+                )
+                labels = {question.id: question.content[:75] for question in candidates}
+                if qid not in labels:
+                    raise ValueError("指定分值的候选题当前已不可用。")
+                updated = dict(saved)
+                if remove:
+                    updated.pop(qid, None)
+                else:
+                    item = ScoreOverride.model_validate(
+                        {"question_id": qid, "score": score}
+                    )
+                    updated[qid] = money_text(item.score)
+                return {
+                    **invalidate(),
+                    assembly_overrides: updated,
+                    override_table: [
+                        [labels.get(key, "当前候选题中已不可用"), value]
+                        for key, value in updated.items()
+                    ],
+                    assembly_status: feedback(
+                        "指定分值已加入本次要求；执行组卷后保存到考试。", "info"
+                    ),
+                }
+            except errors as error:
+                return {**invalidate(), assembly_status: _format_error(error)}
+
+        def write_failure(
+            identifier: str | None,
+            current_state: Mapping[str, Any],
+            error: BaseException,
+        ) -> dict[Any, Any]:
+            result = {**invalidate(), **clear_scoring(), teacher_preview: ""}
+            if identifier and isinstance(error, AssemblyError):
+                try:
+                    exam, _ = read_exam(identifier, current_state)
+                    result.update(form(exam, current_state, step="questions"))
+                except errors as reload_error:
+                    result[message] = _format_error(reload_error)
+                result[assembly_status] = _assembly_failure(error)
+            else:
+                result[assembly_status] = _format_error(error)
+            return result
+
+        def assemble(
+            identifier: str | None,
+            course: str | None,
+            single: Any,
+            true_false: Any,
+            short: Any,
+            coverage: Any,
+            total: Any,
+            overrides: Mapping[str, Any],
+            current_state: Mapping[str, Any],
+        ) -> dict[Any, Any]:
+            try:
+                teacher = _teacher_id(current_state)
+                if not identifier or not course:
+                    raise ValueError("请先保存课程考试。")
+                payload = _assembly_request(
+                    course, [single, true_false, short], coverage, overrides, total
+                )
+                with get_session_factory()() as session:
+                    ExamService(session).assemble_exam(
+                        identifier, payload, teacher_id=teacher
+                    )
+                exam, _ = read_exam(identifier, current_state)
+                return {
+                    **list_updates(exam.course_id, "", current_state),
+                    **form(exam, current_state, step="questions"),
+                    message: feedback(
+                        "组卷成功，已重新读取本场题序、分值和条件。", "success"
+                    ),
+                }
+            except errors as error:
+                return write_failure(identifier, current_state, error)
+
+        def patch_question_row(
+            identifier: str | None,
+            qid: str | None,
+            order: Any,
+            replacement: str | None,
+            change_score: bool,
+            use_default: bool,
+            score: Any,
+            current_state: Mapping[str, Any],
+        ) -> dict[Any, Any]:
+            try:
+                teacher = _teacher_id(current_state)
+                if not identifier or not qid:
+                    raise ValueError("请选择考试及本场题目。")
+                payload = _exam_question_patch(
+                    order, replacement, change_score, use_default, score
+                )
+                with get_session_factory()() as session:
+                    ExamService(session).patch_exam_question(
+                        identifier, qid, payload, teacher_id=teacher
+                    )
+                exam, _ = read_exam(identifier, current_state)
+                return {
+                    **list_updates(exam.course_id, "", current_state),
+                    **form(exam, current_state, step="questions"),
+                    message: feedback(
+                        "本场题目已更新；请重新核对评分标准与发布条件。", "success"
+                    ),
+                }
+            except errors as error:
+                return write_failure(identifier, current_state, error)
 
         def form(
             exam: ExamSummary | None,
@@ -1014,11 +1610,23 @@ def create_exam_view(session_state: Any | None = None) -> ExamView:
                     QuestionStatus.APPROVED.value,
                     current_state,
                 )
+                all_candidates = candidates
                 candidates = [
                     question
                     for question in candidates
                     if question.id not in latest.question_ids
                 ]
+                with get_session_factory()() as session:
+                    actual_preview = ExamService(session).preview_assembly(
+                        exam.id, teacher_id=_teacher_id(current_state)
+                    )
+                    preview_html = _teacher_preview_html(
+                        actual_preview,
+                        FileStorageService(session),
+                        UUID(_teacher_id(current_state)),
+                    )
+                result.update(assembly_data(actual_preview, all_candidates, editable))
+                result[teacher_preview] = preview_html
                 available_rows, available_ids = question_selection_data(candidates)
                 chosen_rows, chosen_ids = question_selection_data(questions)
                 result.update(
@@ -1607,6 +2215,47 @@ def create_exam_view(session_state: Any | None = None) -> ExamView:
             "concurrency_id": "eduagent-ui",
             "concurrency_limit": 1,
         }
+        assemble_button.click(
+            assemble,
+            inputs=[
+                selected_exam,
+                edit_course,
+                assembly_single,
+                assembly_true,
+                assembly_short,
+                assembly_coverage,
+                assembly_total,
+                assembly_overrides,
+                state,
+            ],
+            **event_options,
+        )
+        override_apply.click(
+            set_override,
+            inputs=[
+                selected_exam,
+                override_question,
+                override_score,
+                override_remove,
+                assembly_overrides,
+                state,
+            ],
+            **event_options,
+        )
+        patch_button.click(
+            patch_question_row,
+            inputs=[
+                selected_exam,
+                patch_question,
+                patch_order,
+                patch_replacement,
+                patch_change_score,
+                patch_default_score,
+                patch_score,
+                state,
+            ],
+            **event_options,
+        )
         scoring_question.input(
             load_scoring,
             inputs=[selected_exam, scoring_question, state],

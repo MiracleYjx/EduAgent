@@ -167,7 +167,9 @@ def _agent_run_status_trace_values() -> set[str]:
             and constraint.name == "ck_agent_runs_status_trace_value"
         ):
             return set(re.findall(r"'([a-z_]+)'", str(constraint.sqltext)))
-    raise AssertionError("AgentRun 缺少 Trace 状态 CHECK 约束，无法核对 AgentStatus 取值。")
+    raise AssertionError(
+        "AgentRun 缺少 Trace 状态 CHECK 约束，无法核对 AgentStatus 取值。"
+    )
 
 
 def test_agent_status_values_follow_agent_run_trace_constraint() -> None:
@@ -177,7 +179,9 @@ def test_agent_status_values_follow_agent_run_trace_constraint() -> None:
     assert {status.value for status in AgentStatus} == AGENT_STATUS_TRACE_VALUES
     assert AGENT_STATUS_TRACE_VALUES == {"success", "failure", "pending_review"}
     # 待复核/失败与工作流状态不得混用同一枚举。
-    assert AGENT_STATUS_TRACE_VALUES & {status.value for status in WorkflowStatus} == set()
+    assert (
+        AGENT_STATUS_TRACE_VALUES & {status.value for status in WorkflowStatus} == set()
+    )
 
 
 def test_agent_input_requires_request_id_and_allows_standalone_workflow() -> None:
@@ -235,7 +239,9 @@ def test_four_agent_inputs_and_outputs_are_structured_dtos() -> None:
         agent_type=AgentType.QUESTION,
         status=AgentStatus.SUCCESS,
         question_candidates=[
-            QuestionCandidate(question_type=QuestionType.SHORT_ANSWER, **_CANDIDATE_KWARGS)
+            QuestionCandidate(
+                question_type=QuestionType.SHORT_ANSWER, **_CANDIDATE_KWARGS
+            )
         ],
         retrieved_context_ids=["chunk-1"],
         prompt_version="question-prompt-v1",
@@ -265,7 +271,9 @@ def test_four_agent_inputs_and_outputs_are_structured_dtos() -> None:
     )
 
     for output in (supervisor_output, question_output, grading_output, reviewer_output):
-        payload = json.loads(json.dumps(output.model_dump(mode="json"), ensure_ascii=False))
+        payload = json.loads(
+            json.dumps(output.model_dump(mode="json"), ensure_ascii=False)
+        )
         restored = AgentOutput.model_validate(payload)
         assert restored.agent_type is output.agent_type
         assert restored.status is output.status
@@ -291,7 +299,9 @@ def test_supervisor_decision_requires_next_agent_only_when_routing() -> None:
             next_agent=AgentType.GRADING,
             reason="已结束但残留路由目标。",
         )
-    finished = SupervisorDecision(action=SupervisorAction.FINISH, reason="答卷已全部完成。")
+    finished = SupervisorDecision(
+        action=SupervisorAction.FINISH, reason="答卷已全部完成。"
+    )
     assert finished.next_agent is None
 
 
@@ -376,7 +386,11 @@ def test_agent_output_rejects_human_decided_review_status() -> None:
 def test_reviewer_outcome_rules_preserve_accept_revise_regrade_contract() -> None:
     """Reviewer 决策取值保持 accept/revise/regrade，并校验与修订结果的一致性。"""
 
-    assert {decision.value for decision in ReviewDecision} == {"accept", "revise", "regrade"}
+    assert {decision.value for decision in ReviewDecision} == {
+        "accept",
+        "revise",
+        "regrade",
+    }
     assert ReviewerOutcome(decision=ReviewDecision.ACCEPT, reason="分数与理由一致。")
     with pytest.raises(ValidationError):
         ReviewerOutcome(decision=ReviewDecision.REVISE, reason="缺少修订结果。")
@@ -423,7 +437,9 @@ def test_retrieved_context_item_maps_retrieved_chunk_fields_faithfully() -> None
     assert item.keyword_score != 0.0
 
     # rank=0 表示未编号，映射为 None；空白来源标识同样退化为 None。
-    unranked = RetrievedContextItem.from_chunk(_retrieved_chunk(rank=0, source_mode=None))
+    unranked = RetrievedContextItem.from_chunk(
+        _retrieved_chunk(rank=0, source_mode=None)
+    )
     assert unranked.rank is None
     assert unranked.source_mode is None
     assert json.loads(json.dumps(unranked.model_dump(mode="json")))["rank"] is None
@@ -446,7 +462,11 @@ def test_agent_input_parameters_only_allow_recursive_json_values() -> None:
     allowed = AgentInput(
         agent_type=AgentType.QUESTION,
         request_id="request-3",
-        parameters={"count": 3, "knowledge_points": ["极限", "连续"], "nested": {"ok": None}},
+        parameters={
+            "count": 3,
+            "knowledge_points": ["极限", "连续"],
+            "nested": {"ok": None},
+        },
     )
     assert allowed.parameters["count"] == 3
     assert json.dumps(allowed.model_dump(mode="json"), ensure_ascii=False)
@@ -468,7 +488,9 @@ def test_agent_input_parameters_only_allow_recursive_json_values() -> None:
 def test_confidence_decision_adapters_round_trip_without_redeciding() -> None:
     """快照与 T053 决策对象互转必须原样保留历史阈值与状态。"""
 
-    decision = _confidence_decision(confidence=0.42, threshold=0.85, requires_review=True)
+    decision = _confidence_decision(
+        confidence=0.42, threshold=0.85, requires_review=True
+    )
     snapshot = confidence_decision_snapshot(decision)
 
     assert snapshot.threshold == 0.85
@@ -493,7 +515,7 @@ def test_grading_result_dto_is_reused_and_not_redefined() -> None:
         validation_status=ValidationStatus.VALIDATED,
     )
     assert output.grading_result is grading
-    assert isinstance(output.grading_result.score, float)
+    assert isinstance(output.grading_result.score, Decimal)
     assert output.validation_status is ValidationStatus.VALIDATED
-    # Decimal 型汇总字段不属于单题评分 DTO，避免与 T054 汇总结果混淆。
-    assert not isinstance(output.grading_result.score, Decimal)
+    # 单题金额沿用T177的精确Decimal合同，金额与原DTO身份保持。
+    assert output.grading_result.score == Decimal("8.5")

@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="3" skipped="0" tests="74" time="42.525" timestamp="2026-10-05T01:28:53.186544+08:00" hostname="YJX"><testcase classname="tests.contract.test_grading_api_contract" name="test_trigger_creates_task_and_returns_queued" time="1.050" /><testcase classname="tests.contract.test_grading_api_contract" name="test_trigger_reuses_in_flight_task" time="0.716" /><testcase classname="tests.contract.test_grading_api_contract" name="test_trigger_completed_task_requires_regrade" time="0.772" /><testcase classname="tests.contract.test_grading_api_contract" name="test_trigger_rejects_draft_submission" time="1.026" /><testcase classname="tests.contract.test_grading_api_contract" name="test_trigger_unknown_submission_returns_not_found" time="0.769" /><testcase classname="tests.contract.test_grading_api_contract" name="test_trigger_enforces_role_boundaries" time="0.784" /><testcase classname="tests.contract.test_grading_api_contract" name="test_trigger_denies_cross_course_teacher" time="0.834" /><testcase classname="tests.contract.test_grading_api_contract" name="test_trigger_rejects_invalid_payload" time="0.785" /><testcase classname="tests.contract.test_grading_api_contract" name="test_task_status_endpoint_reports_state" time="1.149" /><testcase classname="tests.contract.test_grading_api_contract" name="test_single_result_endpoint_returns_validated_result" time="0.740" /><testcase classname="tests.contract.test_grading_api_contract" name="test_default_dependency_reports_store_not_ready" time="0.758" /><testcase classname="tests.contract.test_grading_api_contract" name="test_task_query_denies_teacher_from_other_course" time="0.830" /><testcase classname="tests.contract.test_grading_api_contract" name="test_trigger_without_configured_store_never_reads_business_data" time="0.730" /><testcase classname="tests.contract.test_grading_api_contract" name="test_single_result_query_denies_teacher_from_other_course" time="1.302" /><testcase classname="tests.contract.test_grading_api_contract" name="test_trigger_persists_results_and_reads_them_from_database" time="0.854" /><testcase classname="tests.contract.test_grading_api_contract" name="test_subjective_failure_keeps_business_error_code_without_partial_results" time="0.803" /><testcase classname="tests.contract.test_grading_api_contract" name="test_trigger_api_persists_explicit_retrieval_scope" time="0.723" /><testcase classname="tests.contract.test_grading_api_contract" name="test_trigger_api_rejects_unknown_scope_field" time="0.761" /><testcase classname="tests.contract.test_grading_api_contract" name="test_trigger_prevalidates_scope_before_creating_task_for_objective_submission[missing_chapter-422-RETRIEVAL_SCOPE_INVALID]" time="1.228" /><testcase classname="tests.contract.test_grading_api_contract" name="test_trigger_prevalidates_scope_before_creating_task_for_objective_submission[foreign_chapter-422-RETRIEVAL_SCOPE_INVALID]" time="0.750" /><testcase classname="tests.contract.test_grading_api_contract" name="test_trigger_prevalidates_scope_before_creating_task_for_objective_submission[missing_directory-503-RETRIEVAL_SCOPE_NOT_READY]" time="0.752" /><testcase classname="tests.contract.test_grading_api_contract" name="test_trigger_prevalidates_scope_before_creating_task_for_objective_submission[out_of_directory-422-RETRIEVAL_SCOPE_INVALID]" time="0.734" /><testcase classname="tests.contract.test_grading_api_contract" name="test_trigger_api_reused_scope_conflict_distinguishes_omitted_and_explicit[payload0-202]" time="0.750" /><testcase classname="tests.contract.test_grading_api_contract" name="test_trigger_api_reused_scope_conflict_distinguishes_omitted_and_explicit[payload1-409]" time="0.744" /><testcase classname="tests.contract.test_grading_api_contract" name="test_trigger_api_reused_scope_conflict_distinguishes_omitted_and_explicit[payload2-409]" time="1.379" /><testcase classname="tests.contract.test_grading_api_contract" name="test_trigger_api_reused_scope_conflict_distinguishes_omitted_and_explicit[payload3-202]" time="0.753" /><testcase classname="tests.unit.agents.test_agent_state" name="test_agent_status_values_follow_agent_run_trace_constraint" time="0.001" /><testcase classname="tests.unit.agents.test_agent_state" name="test_agent_input_requires_request_id_and_allows_standalone_workflow" time="0.001" /><testcase classname="tests.unit.agents.test_agent_state" name="test_four_agent_inputs_and_outputs_are_structured_dtos" time="0.001" /><testcase classname="tests.unit.agents.test_agent_state" name="test_supervisor_decision_requires_next_agent_only_when_routing" time="0.001" /><testcase classname="tests.unit.agents.test_agent_state" name="test_agent_output_failure_and_pending_review_rules" time="0.001" /><testcase classname="tests.unit.agents.test_agent_state" name="test_agent_output_rejects_human_decided_review_status" time="0.001" /><testcase classname="tests.unit.agents.test_agent_state" name="test_reviewer_outcome_rules_preserve_accept_revise_regrade_contract" time="0.001" /><testcase classname="tests.unit.agents.test_agent_state" name="test_retrieved_context_item_maps_retrieved_chunk_fields_faithfully" time="0.001" /><testcase classname="tests.unit.agents.test_agent_state" name="test_retrieved_context_item_rejects_non_json_metadata" time="0.001" /><testcase classname="tests.unit.agents.test_agent_state" name="test_agent_input_parameters_only_allow_recursive_json_values" time="0.001" /><testcase classname="tests.unit.agents.test_agent_state" name="test_confidence_decision_adapters_round_trip_without_redeciding" time="0.001" /><testcase classname="tests.unit.agents.test_agent_state" name="test_grading_result_dto_is_reused_and_not_redefined" time="0.001" /><testcase classname="tests.unit.models.test_m3_migrations" name="test_revision_chain_is_linear_and_head_matches_expected" time="0.129" /><testcase classname="tests.unit.models.test_m3_migrations" name="test_revision_upgrade_creates_only_its_own_objects[0005_grading_results]" time="0.008" /><testcase classname="tests.unit.models.test_m3_migrations" name="test_revision_upgrade_creates_only_its_own_objects[0006_diagnosis_reports]" time="0.002" /><testcase classname="tests.unit.models.test_m3_migrations" name="test_revision_upgrade_creates_only_its_own_objects[0007_review_records]" time="0.003" /><testcase classname="tests.unit.models.test_m3_migrations" name="test_revision_upgrade_creates_only_its_own_objects[0008_workflow_runs]" time="0.003" /><testcase classname="tests.unit.models.test_m3_migrations" name="test_revision_upgrade_creates_only_its_own_objects[0009_agent_runs]" time="0.003" /><testcase classname="tests.unit.models.test_m3_migrations" name="test_revision_downgrade_removes_only_its_own_objects[0005_grading_results]" time="0.003" /><testcase classname="tests.unit.models.test_m3_migrations" name="test_revision_downgrade_removes_only_its_own_objects[0006_diagnosis_reports]" time="0.002" /><testcase classname="tests.unit.models.test_m3_migrations" name="test_revision_downgrade_removes_only_its_own_objects[0007_review_records]" time="0.002" /><testcase classname="tests.unit.models.test_m3_migrations" name="test_revision_downgrade_removes_only_its_own_objects[0008_workflow_runs]" time="0.002" /><testcase classname="tests.unit.models.test_m3_migrations" name="test_revision_downgrade_removes_only_its_own_objects[0009_agent_runs]" time="0.003" /><testcase classname="tests.unit.models.test_m3_migrations" name="test_revision_does_not_reference_application_enum_classes[0005_grading_results]" time="0.001" /><testcase classname="tests.unit.models.test_m3_migrations" name="test_revision_does_not_reference_application_enum_classes[0006_diagnosis_reports]" time="0.001" /><testcase classname="tests.unit.models.test_m3_migrations" name="test_revision_does_not_reference_application_enum_classes[0007_review_records]" time="0.001" /><testcase classname="tests.unit.models.test_m3_migrations" name="test_revision_does_not_reference_application_enum_classes[0008_workflow_runs]" time="0.001" /><testcase classname="tests.unit.models.test_m3_migrations" name="test_revision_does_not_reference_application_enum_classes[0009_agent_runs]" time="0.001" /><testcase classname="tests.integration.test_exam_scoring_execution_gate" name="test_unknown_history_readable_but_trigger_rejected" time="1.013" /><testcase classname="tests.integration.test_exam_scoring_execution_gate" name="test_complete_fixed_basis_can_run_after_t177[5.00]" time="0.935"><failure message="AttributeError: 'ScoringInput' object has no attribute 'max_score'. Did you mean: 'base_score'?">historical = (&lt;sqlalchemy.orm.session.Session object at 0x0000018040B828A0&gt;, &lt;backend.app.models.user.User object at 0x0000018040B9...mission.Submission object at 0x0000018040BBD180&gt;, &lt;backend.app.models.answer.Answer object at 0x0000018040BA9520&gt;, ...)
+score = '5.00'
+
+    @pytest.mark.parametrize("score", ["5.00", "7.00"])
+    def test_complete_fixed_basis_can_run_after_t177(historical, score):
+        session, teacher, exam, _question, submission, *_ = historical
+        _fixed(exam, teacher, score)
+        session.commit()
+        snapshot = DatabaseGradingSubmissionReader(session=session).load(str(submission.id))
+        assert snapshot.scoring_basis_error is None
+        snapshot.require_scoring_ready()
+&gt;       assert snapshot.answers[0].scoring_input.max_score == Decimal(score)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\integration\test_exam_scoring_execution_gate.py:156: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = ScoringInput(exam_id='1b62e7bb-d128-4bfe-8965-c035b686e967', exam_question_id='0a2e431c-4f17-4426-a44f-e13b5beaef12', ...ints=['K'], student_answer='A', assets=[], verified_image_conditions=None, course_context=None, source_references=None)
+item = 'max_score'
+
+    def __getattr__(self, item: str) -&gt; Any:
+        private_attributes = object.__getattribute__(self, '__private_attributes__')
+        if item in private_attributes:
+            attribute = private_attributes[item]
+            if hasattr(attribute, '__get__'):
+                return attribute.__get__(self, type(self))  # type: ignore
+    
+            try:
+                # Note: self.__pydantic_private__ cannot be None if self.__private_attributes__ has items
+                return self.__pydantic_private__[item]  # type: ignore
+            except KeyError as exc:
+                raise AttributeError(f'{type(self).__name__!r} object has no attribute {item!r}') from exc
+        else:
+            # `__pydantic_extra__` can fail to be set if the model is not yet fully initialized.
+            # See `BaseModel.__repr_args__` for more details
+            try:
+                pydantic_extra = object.__getattribute__(self, '__pydantic_extra__')
+            except AttributeError:
+                pydantic_extra = None
+    
+            if pydantic_extra and item in pydantic_extra:
+                return pydantic_extra[item]
+            else:
+                if hasattr(self.__class__, item):
+                    return super().__getattribute__(item)  # Raises AttributeError if appropriate
+                else:
+                    # this is the current error
+&gt;                   raise AttributeError(f'{type(self).__name__!r} object has no attribute {item!r}')
+E                   AttributeError: 'ScoringInput' object has no attribute 'max_score'. Did you mean: 'base_score'?
+
+D:\develop\Python\Lib\site-packages\pydantic\main.py:1042: AttributeError</failure></testcase><testcase classname="tests.integration.test_exam_scoring_execution_gate" name="test_complete_fixed_basis_can_run_after_t177[7.00]" time="0.940"><failure message="AttributeError: 'ScoringInput' object has no attribute 'max_score'. Did you mean: 'base_score'?">historical = (&lt;sqlalchemy.orm.session.Session object at 0x0000018040B82E40&gt;, &lt;backend.app.models.user.User object at 0x00000180406E...mission.Submission object at 0x0000018040BBE830&gt;, &lt;backend.app.models.answer.Answer object at 0x0000018040BA6690&gt;, ...)
+score = '7.00'
+
+    @pytest.mark.parametrize("score", ["5.00", "7.00"])
+    def test_complete_fixed_basis_can_run_after_t177(historical, score):
+        session, teacher, exam, _question, submission, *_ = historical
+        _fixed(exam, teacher, score)
+        session.commit()
+        snapshot = DatabaseGradingSubmissionReader(session=session).load(str(submission.id))
+        assert snapshot.scoring_basis_error is None
+        snapshot.require_scoring_ready()
+&gt;       assert snapshot.answers[0].scoring_input.max_score == Decimal(score)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\integration\test_exam_scoring_execution_gate.py:156: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = ScoringInput(exam_id='db8e16d5-57a9-4d48-ad9a-b66eb553e530', exam_question_id='bb7d19ac-91f0-43a1-8bf0-7b0ddf3d8e0b', ...ints=['K'], student_answer='A', assets=[], verified_image_conditions=None, course_context=None, source_references=None)
+item = 'max_score'
+
+    def __getattr__(self, item: str) -&gt; Any:
+        private_attributes = object.__getattribute__(self, '__private_attributes__')
+        if item in private_attributes:
+            attribute = private_attributes[item]
+            if hasattr(attribute, '__get__'):
+                return attribute.__get__(self, type(self))  # type: ignore
+    
+            try:
+                # Note: self.__pydantic_private__ cannot be None if self.__private_attributes__ has items
+                return self.__pydantic_private__[item]  # type: ignore
+            except KeyError as exc:
+                raise AttributeError(f'{type(self).__name__!r} object has no attribute {item!r}') from exc
+        else:
+            # `__pydantic_extra__` can fail to be set if the model is not yet fully initialized.
+            # See `BaseModel.__repr_args__` for more details
+            try:
+                pydantic_extra = object.__getattribute__(self, '__pydantic_extra__')
+            except AttributeError:
+                pydantic_extra = None
+    
+            if pydantic_extra and item in pydantic_extra:
+                return pydantic_extra[item]
+            else:
+                if hasattr(self.__class__, item):
+                    return super().__getattribute__(item)  # Raises AttributeError if appropriate
+                else:
+                    # this is the current error
+&gt;                   raise AttributeError(f'{type(self).__name__!r} object has no attribute {item!r}')
+E                   AttributeError: 'ScoringInput' object has no attribute 'max_score'. Did you mean: 'base_score'?
+
+D:\develop\Python\Lib\site-packages\pydantic\main.py:1042: AttributeError</failure></testcase><testcase classname="tests.integration.test_exam_scoring_execution_gate" name="test_current_bank_change_does_not_rewrite_fixed_history" time="0.968"><failure message="AttributeError: 'ScoringInput' object has no attribute 'max_score'. Did you mean: 'base_score'?">historical = (&lt;sqlalchemy.orm.session.Session object at 0x000001803D8E9A90&gt;, &lt;backend.app.models.user.User object at 0x000001804096...mission.Submission object at 0x0000018040BBD7B0&gt;, &lt;backend.app.models.answer.Answer object at 0x0000018040E64560&gt;, ...)
+
+    def test_current_bank_change_does_not_rewrite_fixed_history(historical):
+        session, teacher, exam, question, submission, _answer, result = historical
+        _fixed(exam, teacher)
+        session.commit()
+        question.score = Decimal("99.00")
+        session.commit()
+        snapshot = DatabaseGradingSubmissionReader(session=session).load(str(submission.id))
+        assert snapshot.scoring_basis_error is None
+        snapshot.require_scoring_ready()
+        fixed = snapshot.answers[0].scoring_input
+&gt;       assert fixed.max_score == Decimal("5.00")
+               ^^^^^^^^^^^^^^^
+
+tests\integration\test_exam_scoring_execution_gate.py:170: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = ScoringInput(exam_id='90f2455d-c1c4-4412-b1c1-cd18f28f9346', exam_question_id='9a9a955d-2bf9-466d-9f48-a10c5ab11796', ...ints=['K'], student_answer='A', assets=[], verified_image_conditions=None, course_context=None, source_references=None)
+item = 'max_score'
+
+    def __getattr__(self, item: str) -&gt; Any:
+        private_attributes = object.__getattribute__(self, '__private_attributes__')
+        if item in private_attributes:
+            attribute = private_attributes[item]
+            if hasattr(attribute, '__get__'):
+                return attribute.__get__(self, type(self))  # type: ignore
+    
+            try:
+                # Note: self.__pydantic_private__ cannot be None if self.__private_attributes__ has items
+                return self.__pydantic_private__[item]  # type: ignore
+            except KeyError as exc:
+                raise AttributeError(f'{type(self).__name__!r} object has no attribute {item!r}') from exc
+        else:
+            # `__pydantic_extra__` can fail to be set if the model is not yet fully initialized.
+            # See `BaseModel.__repr_args__` for more details
+            try:
+                pydantic_extra = object.__getattribute__(self, '__pydantic_extra__')
+            except AttributeError:
+                pydantic_extra = None
+    
+            if pydantic_extra and item in pydantic_extra:
+                return pydantic_extra[item]
+            else:
+                if hasattr(self.__class__, item):
+                    return super().__getattribute__(item)  # Raises AttributeError if appropriate
+                else:
+                    # this is the current error
+&gt;                   raise AttributeError(f'{type(self).__name__!r} object has no attribute {item!r}')
+E                   AttributeError: 'ScoringInput' object has no attribute 'max_score'. Did you mean: 'base_score'?
+
+D:\develop\Python\Lib\site-packages\pydantic\main.py:1042: AttributeError</failure></testcase><testcase classname="tests.integration.test_exam_scoring_execution_gate" name="test_background_execution_checks_again_before_pipeline" time="0.918" /><testcase classname="tests.integration.test_exam_scoring_execution_gate" name="test_unknown_snapshot_never_defaults_to_execution_permission" time="0.001" /><testcase classname="tests.unit.grading.test_diagnosis_report_store" name="test_recorder_saves_ready_report_with_real_exam_result_id" time="0.091" /><testcase classname="tests.unit.grading.test_diagnosis_report_store" name="test_read_returns_stale_when_exam_result_updates" time="0.072" /><testcase classname="tests.unit.grading.test_diagnosis_report_store" name="test_recorder_does_not_store_not_ready_result" time="0.066" /><testcase classname="tests.unit.grading.test_diagnosis_report_store" name="test_save_refuses_to_overwrite_newer_result" time="0.075" /><testcase classname="tests.unit.grading.test_diagnosis_report_store" name="test_save_rejects_result_no_longer_final" time="0.068" /><testcase classname="tests.unit.grading.test_diagnosis_report_store" name="test_failed_report_keeps_error_code_and_scores" time="0.073" /><testcase classname="tests.unit.grading.test_diagnosis_report_store" name="test_read_without_report_returns_not_ready_without_write" time="0.067" /><testcase classname="tests.unit.grading.test_diagnosis_report_store" name="test_read_without_exam_result_returns_not_ready" time="0.051" /><testcase classname="tests.integration.test_teacher_results_ui" name="test_course_selection_loads_exams_with_production_loaders" time="0.270" /><testcase classname="tests.integration.test_teacher_results_ui" name="test_exam_selection_loads_students_with_production_loaders" time="0.062" /><testcase classname="tests.integration.test_teacher_results_ui" name="test_teacher_summary_matches_results_query_service" time="0.051" /><testcase classname="tests.integration.test_teacher_results_ui" name="test_selected_student_renders_persisted_diagnosis_and_empty_state" time="0.073" /><testcase classname="tests.integration.test_teacher_results_ui" name="test_pending_result_carries_review_context" time="0.060" /><testcase classname="tests.integration.test_diagnosis_concurrency" name="test_old_save_cannot_overwrite_new_report_during_interleaved_update" time="1.084" /></testsuite></testsuites>

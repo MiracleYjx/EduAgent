@@ -614,7 +614,7 @@ M0 工程骨架 + Benchmark
 
 - [X] T177 [HIGH] [E4] **贯通规则评分、主观评分、复核与汇总**：在 `services/grading/`、`ai/agents/grading_agent.py`、`reviewer_agent.py`、`ai/workflows/`、`services/review_service.py`、`diagnosis_service.py` 消费同一固定输入；客观题不调用 LLM，主观题使用已核对标准且不二次缩放，图像能力不足明确待处理。原始/量化分数均校验本场上限，结果 Decimal 求和，失败/缺依据/待复核不记零分，保留既有检查点与复核生命周期。 依赖：T176。per FR-029–040扩展、FR-043/049、exam-scoring、SC-012/013（F044） (partial)
 
-- [ ] T178 [HIGH] [E4] **接通组卷、答题与阅卷显示**：扩展 `ui/exam_view.py`、`student_exam_view.py`、`review_view.py` 及考试/提交接口，展示条件缺口、题序/替换、显式分值、Rubric/尾差核对与教师预览；学生答题按同一题序/本场值/题图且不泄露答案/源卷，缺必要图像明确异常。阅卷复核展示相同图像/条件/标准，旧答卷提交和参加资格规则保留。 依赖：T173、T174、T175、T176、T177。per FR-043/048/049、US2-v2/AC1、US3-v2/AC1–3（F045） (partial)
+- [X] T178 [HIGH] [E4] **接通组卷、答题与阅卷显示**：扩展 `ui/exam_view.py`、`student_exam_view.py`、`review_view.py` 及考试/提交接口，展示条件缺口、题序/替换、显式分值、Rubric/尾差核对与教师预览；学生答题按同一题序/本场值/题图且不泄露答案/源卷，缺必要图像明确异常。阅卷复核展示相同图像/条件/标准，旧答卷提交和参加资格规则保留。 依赖：T173、T174、T175、T176、T177。per FR-043/048/049、US2-v2/AC1、US3-v2/AC1–3（F045） (partial)
 
 - [ ] T179 [HIGH] [E4] **验收组卷、考试分值与发布冻结**：按 T145 执行条件满足/不满足无写入、移位/替换、同题两场不同满分、默认值、0.005 边界、正负尾差确认、越界失败、并发发布/修订/资产变更、Closed/Archived/历史保护及旧 API/迁移回归；核对预览到评分/复核/汇总一致。按 T142 运行≤100题组卷性能，200题既有请求边界不被改写；证据落 `docs/validation-report.md` 与 benchmark/results。 依赖：T145、T146、T171、T172、T173、T174、T175、T176、T177、T178。per FR-048/049、SC-012、plan Gate 14–16（F046） (partial)
 

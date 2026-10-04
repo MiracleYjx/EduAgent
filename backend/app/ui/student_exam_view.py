@@ -5,22 +5,21 @@ from __future__ import annotations
 import json
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
+from html import escape
 from typing import Any, Literal, cast
 from uuid import UUID
 
 import gradio as gr
-from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.orm import selectinload
 
 from backend.app.core.database import get_session_factory
 from backend.app.domain.enums import QuestionType, SubmissionStatus, UserRole
 from backend.app.domain.permissions import PermissionDeniedError, normalize_role
-from backend.app.models import Exam
 from backend.app.services.submission_service import (
     AnswerContent,
     AnswerSummary,
     AvailableExamSummary,
+    StudentExamDetail,
     SubmissionConflictError,
     SubmissionNotAvailableError,
     SubmissionNotFoundError,
@@ -178,25 +177,25 @@ def _question_type_text(value: QuestionType | str) -> str:
     return status_label(value, entity="question_type")
 
 
-def _question_rows(exam: Exam) -> list[list[str]]:
+def _question_rows(exam: StudentExamDetail) -> list[list[str]]:
     """将考试题目转换为不含标准答案的表格行。"""
 
     rows: list[list[str]] = []
-    for position, question in enumerate(exam.questions or (), start=1):
+    for question in exam.questions:
         options = question.options
         options_text = (
             ""
             if options is None
-            else json.dumps(options, ensure_ascii=False, sort_keys=True)
+            else json.dumps(options, ensure_ascii=False, sort_keys=False)
         )
         rows.append(
             [
-                str(position),
+                str(question.position),
                 str(question.id),
                 _question_type_text(question.type),
                 question.content,
                 options_text,
-                str(question.score),
+                str(question.score) if question.score is not None else "未知（待核对）",
                 "、".join(question.knowledge_points or []),
             ]
         )
@@ -323,26 +322,18 @@ def _load_exam(
     service: SubmissionService,
     exam_id: str,
     student_id: str,
-) -> tuple[Exam, SubmissionSummary]:
+) -> tuple[StudentExamDetail, SubmissionSummary]:
     """校验考试开放状态并加载题目和学生草稿。"""
 
-    service.get_available_exam(exam_id, student_id=student_id)
-    try:
-        exam = service.session.scalar(
-            select(Exam)
-            .options(selectinload(Exam.questions))
-            .where(Exam.id == UUID(exam_id))
-        )
-    except SQLAlchemyError as exc:
-        raise SubmissionServiceError("无法读取考试题目。") from exc
-    if exam is None:
-        raise SubmissionNotFoundError("考试不存在。")
     submission = service.get_or_create_submission(
         exam_id,
         student_id,
         initialize_answers=True,
     )
-    return exam, submission
+    detail = service.get_exam_detail(
+        exam_id, student_id=student_id, include_images=True
+    )
+    return detail, submission
 
 
 def refresh_exams(state: Mapping[str, Any]) -> tuple[list[list[str]], str]:
@@ -545,9 +536,16 @@ def _workspace_detail(
     record = records[index]
     question_type = record["type"]
     content = (
-        f"### 第 {index + 1} 题　{status_label(question_type, entity='question_type')}　"
-        f"{record['score']} 分\n\n{record['content']}"
+        f"<h3>第 {record.get('position', index + 1)} 题　{escape(status_label(question_type, entity='question_type'))}　"
+        f"{escape(str(record['score']))} 分</h3><div style='white-space:pre-wrap'>{escape(str(record['content']))}</div>"
     )
+    if not record.get("order_preserved", True):
+        content += "<p>历史选项原顺序未知，当前顺序不表示已经恢复。</p>"
+    for image in record.get("assets", []):
+        caption = escape(image.get("caption") or "题图")
+        data = image.get("image_data")
+        if data:
+            content += f'<figure><img alt="{caption}" src="{escape(data, quote=True)}" style="max-width:100%;height:auto"/><figcaption>{caption}</figcaption></figure>'
     options = record.get("options")
     choices: list[tuple[str, str]] = []
     if isinstance(options, Mapping):
@@ -581,7 +579,7 @@ def _workspace_detail(
     )
 
 
-def _workspace_records(exam: Exam) -> list[dict[str, Any]]:
+def _workspace_records(exam: StudentExamDetail) -> list[dict[str, Any]]:
     """只保存当前考试实际返回的题目和分值信息。"""
 
     return [
@@ -590,7 +588,21 @@ def _workspace_records(exam: Exam) -> list[dict[str, Any]]:
             "type": question.type.value,
             "content": question.content,
             "options": question.options,
-            "score": str(question.score),
+            "score": (
+                str(question.score) if question.score is not None else "未知（待核对）"
+            ),
+            "position": question.position,
+            "exam_question_id": question.exam_question_id,
+            "order_preserved": question.order_preserved,
+            "knowledge_points": question.knowledge_points,
+            "assets": [
+                {
+                    "caption": image.caption,
+                    "image_data": image.image_data,
+                    "order_index": image.order_index,
+                }
+                for image in question.assets
+            ],
         }
         for question in exam.questions or ()
     ]
@@ -901,7 +913,7 @@ def create_student_exam_view(session_state: Any | None = None) -> StudentExamVie
                     card = gr.HTML()
                     mark_button = gr.Button("标记本题")
                 with gr.Column(scale=1):
-                    question_detail = gr.Markdown(empty_state("请选择考试。"))
+                    question_detail = gr.HTML(empty_state("请选择考试。"))
                     single = gr.Radio(label="单选答案", choices=[], visible=False)
                     boolean = gr.Radio(
                         label="判断答案",
@@ -1087,6 +1099,9 @@ def create_student_exam_view(session_state: Any | None = None) -> StudentExamVie
                 answer_text,
                 save_button,
                 submit_button,
+                previous_button,
+                mark_button,
+                next_button,
                 confirmation,
             ],
             show_progress="minimal",

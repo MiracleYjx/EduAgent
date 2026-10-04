@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="3" skipped="0" tests="7" time="2.260" timestamp="2026-10-05T00:47:17.763610+08:00" hostname="YJX"><testcase classname="tests.unit.services.test_student_fixed_exam" name="test_student_detail_and_summary_use_same_fixed_order_values_and_labels" time="0.266" /><testcase classname="tests.unit.services.test_student_fixed_exam" name="test_unknown_historical_score_is_not_bank_default" time="0.080" /><testcase classname="tests.unit.services.test_student_fixed_exam" name="test_actual_visible_image_is_inline_and_has_no_private_provenance" time="0.162" /><testcase classname="tests.unit.services.test_student_fixed_exam" name="test_required_hidden_or_missing_image_cannot_start_or_submit[hidden-EXAM_REQUIRED_IMAGE_UNAVAILABLE]" time="0.099"><failure message="AssertionError: Regex pattern did not match.&#10;  Expected regex: 'EXAM_REQUIRED_IMAGE_UNAVAILABLE'&#10;  Actual message: 'EXAM_SCORING_BASIS_MISSING：本场固定评分依据无效，请联系教师核对。'">scenario = (&lt;sqlalchemy.orm.session.Session object at 0x00000245F3901E00&gt;, SubmissionFixture(teacher_id=UUID('8187b6bc-64bd-4dd9-...413b-8bb9-57a238970c15')), WindowsPath('D:/YJX/Cache/Temp/pytest-of-10169/pytest-246/test_required_hidden_or_missin0'))
+change = 'hidden', code = 'EXAM_REQUIRED_IMAGE_UNAVAILABLE'
+
+    @pytest.mark.parametrize("change,code",[("hidden","EXAM_REQUIRED_IMAGE_UNAVAILABLE"),("missing","FILE_MISSING"),("changed","FILE_CONTENT_CHANGED")])
+    def test_required_hidden_or_missing_image_cannot_start_or_submit(scenario,change,code):
+        asset,path,_content = add_image(scenario)
+        session, info, root = scenario
+        if change == "hidden":
+            asset.student_visible = False
+            session.commit()
+        elif change == "missing":
+            path.unlink()
+        else:
+            path.write_bytes(b"changed fixture bytes")
+        service = SubmissionService(session,root=root)
+        for operation in [lambda:service.create_submission(info.exam_id,student_id=info.student_id,initialize_answers=True),lambda:service.submit_submission(info.submission_id,student_id=info.student_id,answers={str(info.objective_question_id):"D",str(info.subjective_question_id):"text"})]:
+&gt;           with pytest.raises(SubmissionServiceError,match=code):
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           AssertionError: Regex pattern did not match.
+E             Expected regex: 'EXAM_REQUIRED_IMAGE_UNAVAILABLE'
+E             Actual message: 'EXAM_SCORING_BASIS_MISSING：本场固定评分依据无效，请联系教师核对。'
+
+tests\unit\services\test_student_fixed_exam.py:117: AssertionError</failure></testcase><testcase classname="tests.unit.services.test_student_fixed_exam" name="test_required_hidden_or_missing_image_cannot_start_or_submit[missing-FILE_MISSING]" time="0.092"><failure message="AssertionError: Regex pattern did not match.&#10;  Expected regex: 'FILE_MISSING'&#10;  Actual message: 'EXAM_SCORING_BASIS_MISSING：本场固定评分依据无效，请联系教师核对。'">scenario = (&lt;sqlalchemy.orm.session.Session object at 0x00000245F3BA42B0&gt;, SubmissionFixture(teacher_id=UUID('bd042be0-744a-4dd9-...4e8a-aa9b-4d21bf2f711c')), WindowsPath('D:/YJX/Cache/Temp/pytest-of-10169/pytest-246/test_required_hidden_or_missin1'))
+change = 'missing', code = 'FILE_MISSING'
+
+    @pytest.mark.parametrize("change,code",[("hidden","EXAM_REQUIRED_IMAGE_UNAVAILABLE"),("missing","FILE_MISSING"),("changed","FILE_CONTENT_CHANGED")])
+    def test_required_hidden_or_missing_image_cannot_start_or_submit(scenario,change,code):
+        asset,path,_content = add_image(scenario)
+        session, info, root = scenario
+        if change == "hidden":
+            asset.student_visible = False
+            session.commit()
+        elif change == "missing":
+            path.unlink()
+        else:
+            path.write_bytes(b"changed fixture bytes")
+        service = SubmissionService(session,root=root)
+        for operation in [lambda:service.create_submission(info.exam_id,student_id=info.student_id,initialize_answers=True),lambda:service.submit_submission(info.submission_id,student_id=info.student_id,answers={str(info.objective_question_id):"D",str(info.subjective_question_id):"text"})]:
+&gt;           with pytest.raises(SubmissionServiceError,match=code):
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           AssertionError: Regex pattern did not match.
+E             Expected regex: 'FILE_MISSING'
+E             Actual message: 'EXAM_SCORING_BASIS_MISSING：本场固定评分依据无效，请联系教师核对。'
+
+tests\unit\services\test_student_fixed_exam.py:117: AssertionError</failure></testcase><testcase classname="tests.unit.services.test_student_fixed_exam" name="test_required_hidden_or_missing_image_cannot_start_or_submit[changed-FILE_CONTENT_CHANGED]" time="0.093"><failure message="AssertionError: Regex pattern did not match.&#10;  Expected regex: 'FILE_CONTENT_CHANGED'&#10;  Actual message: 'EXAM_SCORING_BASIS_MISSING：本场固定评分依据无效，请联系教师核对。'">scenario = (&lt;sqlalchemy.orm.session.Session object at 0x00000245F3C4FAD0&gt;, SubmissionFixture(teacher_id=UUID('17475d3e-db3f-4917-...4901-9e83-5947127e935c')), WindowsPath('D:/YJX/Cache/Temp/pytest-of-10169/pytest-246/test_required_hidden_or_missin2'))
+change = 'changed', code = 'FILE_CONTENT_CHANGED'
+
+    @pytest.mark.parametrize("change,code",[("hidden","EXAM_REQUIRED_IMAGE_UNAVAILABLE"),("missing","FILE_MISSING"),("changed","FILE_CONTENT_CHANGED")])
+    def test_required_hidden_or_missing_image_cannot_start_or_submit(scenario,change,code):
+        asset,path,_content = add_image(scenario)
+        session, info, root = scenario
+        if change == "hidden":
+            asset.student_visible = False
+            session.commit()
+        elif change == "missing":
+            path.unlink()
+        else:
+            path.write_bytes(b"changed fixture bytes")
+        service = SubmissionService(session,root=root)
+        for operation in [lambda:service.create_submission(info.exam_id,student_id=info.student_id,initialize_answers=True),lambda:service.submit_submission(info.submission_id,student_id=info.student_id,answers={str(info.objective_question_id):"D",str(info.subjective_question_id):"text"})]:
+&gt;           with pytest.raises(SubmissionServiceError,match=code):
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           AssertionError: Regex pattern did not match.
+E             Expected regex: 'FILE_CONTENT_CHANGED'
+E             Actual message: 'EXAM_SCORING_BASIS_MISSING：本场固定评分依据无效，请联系教师核对。'
+
+tests\unit\services\test_student_fixed_exam.py:117: AssertionError</failure></testcase><testcase classname="tests.unit.services.test_student_fixed_exam" name="test_teacher_only_image_without_necessary_conditions_does_not_become_public" time="0.099" /></testsuite></testsuites>

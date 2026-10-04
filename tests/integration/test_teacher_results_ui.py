@@ -38,6 +38,7 @@ from backend.app.models import (
     Exam,
     ExamQuestion,
     Question,
+    Role,
     Submission,
     User,
     WorkflowRun,
@@ -63,6 +64,7 @@ from backend.app.ui.results_view import (
     create_teacher_results_view,
     review_context_is_complete,
 )
+from tests.support.exam_scoring_fixtures import confirm_synthetic_exam_basis
 
 
 @dataclass(frozen=True, slots=True)
@@ -71,6 +73,7 @@ class ScenarioIds:
     course_id: str
     exam_id: str
     question_id: str
+    exam_question_id: str
     final_student_id: str
     final_submission_id: str
     final_answer_id: str
@@ -101,6 +104,7 @@ def _seed_scenario(engine: Engine) -> ScenarioIds:
             email="p23-teacher@example.com",
             password_hash="hashed-password",
         )
+        teacher.roles.append(Role(name=UserRole.TEACHER))
         final_student = User(
             username="最终学生",
             email="p23-final@example.com",
@@ -156,11 +160,14 @@ def _seed_scenario(engine: Engine) -> ScenarioIds:
         )
         session.add_all([final_submission, pending_submission])
         session.commit()
+        confirm_synthetic_exam_basis(session, exam)
+        session.commit()
         ids = ScenarioIds(
             teacher_id=str(teacher.id),
             course_id=str(course.id),
             exam_id=str(exam.id),
             question_id=str(question.id),
+            exam_question_id=str(exam.exam_question_links[0].id),
             final_student_id=str(final_student.id),
             final_submission_id=str(final_submission.id),
             final_answer_id=str(final_answer.id),
@@ -169,9 +176,7 @@ def _seed_scenario(engine: Engine) -> ScenarioIds:
             pending_answer_id=str(pending_answer.id),
         )
 
-    repository = DatabaseGradingRepository(
-        session_factory=_session_factory(engine)
-    )
+    repository = DatabaseGradingRepository(session_factory=_session_factory(engine))
     repository.save_exam_result(_exam_result(ids, final=True))
     repository.save_exam_result(_exam_result(ids, final=False))
     with Session(engine) as session, session.begin():
@@ -199,9 +204,7 @@ def _seed_scenario(engine: Engine) -> ScenarioIds:
 
 
 def _exam_result(ids: ScenarioIds, *, final: bool) -> ExamResultDTO:
-    submission_id = (
-        ids.final_submission_id if final else ids.pending_submission_id
-    )
+    submission_id = ids.final_submission_id if final else ids.pending_submission_id
     student_id = ids.final_student_id if final else ids.pending_student_id
     answer_id = ids.final_answer_id if final else ids.pending_answer_id
     decision = ConfidenceDecisionDTO(
@@ -245,6 +248,7 @@ def _exam_result(ids: ScenarioIds, *, final: bool) -> ExamResultDTO:
                 order=1,
                 answer_id=answer_id,
                 question_id=ids.question_id,
+                exam_question_id=ids.exam_question_id,
                 question_type=QuestionType.SHORT_ANSWER,
                 max_score=Decimal("10.00"),
                 score=Decimal("8.00") if final else Decimal("6.00"),

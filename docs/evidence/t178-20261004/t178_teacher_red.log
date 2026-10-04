@@ -1,0 +1,163 @@
+FFFFFFFFFFF                                                              [100%]
+================================== FAILURES ===================================
+____ test_request_keeps_exact_teacher_counts_coverage_and_decimal_override ____
+
+    def test_request_keeps_exact_teacher_counts_coverage_and_decimal_override():
+>       payload = view._assembly_request(COURSE, ["1", "0", "2"], [["条件", "2"]], {QUESTION: "3.33"}, "10.00")
+                  ^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'backend.app.ui.exam_view' has no attribute '_assembly_request'
+
+tests\unit\ui\test_exam_assembly_view.py:25: AttributeError
+___________ test_request_rejects_noninteger_or_negative_counts[1.5] ___________
+
+count = '1.5'
+
+    @pytest.mark.parametrize("count", ["1.5", "-1", "NaN"])
+    def test_request_rejects_noninteger_or_negative_counts(count):
+        with pytest.raises(ValueError):
+>           view._assembly_request(COURSE, [count, "0", "1"], [], {}, "10.00")
+            ^^^^^^^^^^^^^^^^^^^^^^
+E           AttributeError: module 'backend.app.ui.exam_view' has no attribute '_assembly_request'
+
+tests\unit\ui\test_exam_assembly_view.py:37: AttributeError
+___________ test_request_rejects_noninteger_or_negative_counts[-1] ____________
+
+count = '-1'
+
+    @pytest.mark.parametrize("count", ["1.5", "-1", "NaN"])
+    def test_request_rejects_noninteger_or_negative_counts(count):
+        with pytest.raises(ValueError):
+>           view._assembly_request(COURSE, [count, "0", "1"], [], {}, "10.00")
+            ^^^^^^^^^^^^^^^^^^^^^^
+E           AttributeError: module 'backend.app.ui.exam_view' has no attribute '_assembly_request'
+
+tests\unit\ui\test_exam_assembly_view.py:37: AttributeError
+___________ test_request_rejects_noninteger_or_negative_counts[NaN] ___________
+
+count = 'NaN'
+
+    @pytest.mark.parametrize("count", ["1.5", "-1", "NaN"])
+    def test_request_rejects_noninteger_or_negative_counts(count):
+        with pytest.raises(ValueError):
+>           view._assembly_request(COURSE, [count, "0", "1"], [], {}, "10.00")
+            ^^^^^^^^^^^^^^^^^^^^^^
+E           AttributeError: module 'backend.app.ui.exam_view' has no attribute '_assembly_request'
+
+tests\unit\ui\test_exam_assembly_view.py:37: AttributeError
+_ test_patch_distinguishes_omitted_explicit_and_default_score[False-False-99-expected0] _
+
+change = False, default = False, score = '99', expected = {}
+
+    @pytest.mark.parametrize(("change", "default", "score", "expected"), [(False, False, "99", {}), (True, True, "99", {"score": None}), (True, False, "3.33", {"score": "3.33"})])
+    def test_patch_distinguishes_omitted_explicit_and_default_score(change, default, score, expected):
+>       payload = view._exam_question_patch("2", REPLACEMENT, change, default, score)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'backend.app.ui.exam_view' has no attribute '_exam_question_patch'
+
+tests\unit\ui\test_exam_assembly_view.py:42: AttributeError
+_ test_patch_distinguishes_omitted_explicit_and_default_score[True-True-99-expected1] _
+
+change = True, default = True, score = '99', expected = {'score': None}
+
+    @pytest.mark.parametrize(("change", "default", "score", "expected"), [(False, False, "99", {}), (True, True, "99", {"score": None}), (True, False, "3.33", {"score": "3.33"})])
+    def test_patch_distinguishes_omitted_explicit_and_default_score(change, default, score, expected):
+>       payload = view._exam_question_patch("2", REPLACEMENT, change, default, score)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'backend.app.ui.exam_view' has no attribute '_exam_question_patch'
+
+tests\unit\ui\test_exam_assembly_view.py:42: AttributeError
+_ test_patch_distinguishes_omitted_explicit_and_default_score[True-False-3.33-expected2] _
+
+change = True, default = False, score = '3.33', expected = {'score': '3.33'}
+
+    @pytest.mark.parametrize(("change", "default", "score", "expected"), [(False, False, "99", {}), (True, True, "99", {"score": None}), (True, False, "3.33", {"score": "3.33"})])
+    def test_patch_distinguishes_omitted_explicit_and_default_score(change, default, score, expected):
+>       payload = view._exam_question_patch("2", REPLACEMENT, change, default, score)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'backend.app.ui.exam_view' has no attribute '_exam_question_patch'
+
+tests\unit\ui\test_exam_assembly_view.py:42: AttributeError
+_ test_failure_reports_confirmed_unsaved_unknown_intent_without_claiming_success _
+
+    def test_failure_reports_confirmed_unsaved_unknown_intent_without_claiming_success():
+        error = AssemblyError("EXAM_ASSEMBLY_UNSATISFIABLE", "候选不足", details={"intent_saved": None, "intent_save_error": {"code": "DISCONNECT"}, "gaps": [{"kind": "type", "question_type": "SHORT_ANSWER", "required": 2, "available": 1, "missing": 1}]})
+>       text = view._assembly_failure(error)
+               ^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'backend.app.ui.exam_view' has no attribute '_assembly_failure'
+
+tests\unit\ui\test_exam_assembly_view.py:49: AttributeError
+__________ test_preview_reads_only_authorized_bytes_and_escapes_text __________
+
+tmp_path = WindowsPath('D:/YJX/Cache/Temp/pytest-of-10169/pytest-241/test_preview_reads_only_author0')
+
+    def test_preview_reads_only_authorized_bytes_and_escapes_text(tmp_path):
+        path = tmp_path / "private.png"
+        path.write_bytes(b"actual-owned-image")
+        files = Mock()
+        files.download.return_value = (path, Mock(media_type="image/png"))
+>       html = view._teacher_preview_html(preview(), files, UUID(TEACHER["user_id"]))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'backend.app.ui.exam_view' has no attribute '_teacher_preview_html'
+
+tests\unit\ui\test_exam_assembly_view.py:66: AttributeError
+__________ test_preview_missing_asset_does_not_emit_partial_success ___________
+
+    def test_preview_missing_asset_does_not_emit_partial_success():
+        files = Mock()
+        files.download.side_effect = FileStorageError("FILE_MISSING", "真实原图缺失")
+        with pytest.raises(FileStorageError) as found:
+>           view._teacher_preview_html(preview(), files, UUID(TEACHER["user_id"]))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           AttributeError: module 'backend.app.ui.exam_view' has no attribute '_teacher_preview_html'
+
+tests\unit\ui\test_exam_assembly_view.py:79: AttributeError
+___ test_new_write_controls_exist_and_failure_clears_previous_confirmations ___
+
+app = Gradio Blocks instance: 38 backend functions
+--------------------------------------------
+fn_index=0
+ inputs:
+ |-<grad...adio.components.state.State object at 0x000002158D56E5D0>
+ |-<gradio.components.html.HTML object at 0x000002158D56E710>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x00000215EDD1E060>
+
+    def test_new_write_controls_exist_and_failure_clears_previous_confirmations(app, monkeypatch):
+        for suffix in ["assemble", "patch", "preview", "default-score", "override-question"]:
+>           component(app, suffix)
+
+tests\unit\ui\test_exam_assembly_view.py:100: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+app = Gradio Blocks instance: 38 backend functions
+--------------------------------------------
+fn_index=0
+ inputs:
+ |-<grad...adio.components.state.State object at 0x000002158D56E5D0>
+ |-<gradio.components.html.HTML object at 0x000002158D56E710>
+suffix = 'assemble'
+
+    def component(app, suffix):
+>       return next(block for block in app.blocks.values() if block.elem_id == "edu-exam-assembly-" + suffix)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       StopIteration
+
+tests\unit\ui\test_exam_assembly_view.py:95: StopIteration
+============================== warnings summary ===============================
+tests/unit/ui/test_exam_assembly_view.py::test_new_write_controls_exist_and_failure_clears_previous_confirmations
+  D:\develop\Python\Lib\site-packages\gradio\components\dataframe.py:183: UserWarning: The `row_limits` parameter is not yet implemented.
+    warnings.warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/unit/ui/test_exam_assembly_view.py::test_request_keeps_exact_teacher_counts_coverage_and_decimal_override
+FAILED tests/unit/ui/test_exam_assembly_view.py::test_request_rejects_noninteger_or_negative_counts[1.5]
+FAILED tests/unit/ui/test_exam_assembly_view.py::test_request_rejects_noninteger_or_negative_counts[-1]
+FAILED tests/unit/ui/test_exam_assembly_view.py::test_request_rejects_noninteger_or_negative_counts[NaN]
+FAILED tests/unit/ui/test_exam_assembly_view.py::test_patch_distinguishes_omitted_explicit_and_default_score[False-False-99-expected0]
+FAILED tests/unit/ui/test_exam_assembly_view.py::test_patch_distinguishes_omitted_explicit_and_default_score[True-True-99-expected1]
+FAILED tests/unit/ui/test_exam_assembly_view.py::test_patch_distinguishes_omitted_explicit_and_default_score[True-False-3.33-expected2]
+FAILED tests/unit/ui/test_exam_assembly_view.py::test_failure_reports_confirmed_unsaved_unknown_intent_without_claiming_success
+FAILED tests/unit/ui/test_exam_assembly_view.py::test_preview_reads_only_authorized_bytes_and_escapes_text
+FAILED tests/unit/ui/test_exam_assembly_view.py::test_preview_missing_asset_does_not_emit_partial_success
+FAILED tests/unit/ui/test_exam_assembly_view.py::test_new_write_controls_exist_and_failure_clears_previous_confirmations
+11 failed, 1 warning in 14.88s

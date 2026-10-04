@@ -33,7 +33,7 @@ from typing import Annotated, Any, Literal
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Request
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator
 from sqlalchemy import func, select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
@@ -64,7 +64,7 @@ from backend.app.models import (
     WorkflowRun,
 )
 from backend.app.schemas.ai import GradingResult as GradingResultPayload
-from backend.app.schemas.grading import ScoringInput
+from backend.app.schemas.grading import ScoringInput, same_fixed_scoring_input
 from backend.app.services.grading.grading_task_service import (
     DatabaseGradingSubmissionReader,
     GradingTaskError,
@@ -344,7 +344,9 @@ class TeacherDecisionRequest(BaseModel):
     answer_id: UUID = Field(description="答案标识。")
     action: Literal["confirm", "modify"] = Field(description="确认或修改评分。")
     score: Decimal | None = Field(default=None, description="修改后的分数。")
-    reason: str | None = Field(default=None, max_length=65535, description="修改后的理由。")
+    reason: str | None = Field(
+        default=None, max_length=65535, description="修改后的理由。"
+    )
     comment: str | None = Field(default=None, max_length=2000, description="教师备注。")
     workflow_id: str | None = Field(
         default=None, max_length=64, description="期望的工作流标识；不匹配即拒绝。"
@@ -398,7 +400,9 @@ def _as_uuid(value: Any, label: str) -> UUID:
     try:
         return UUID(text)
     except ValueError as error:
-        raise ReviewAnswerNotFoundError(f"{label} 必须是 UUID，收到 {value!r}。") from error
+        raise ReviewAnswerNotFoundError(
+            f"{label} 必须是 UUID，收到 {value!r}。"
+        ) from error
 
 
 def _answer_text(content: Any) -> str:
@@ -473,7 +477,9 @@ class ReviewQueryService:
                 if exam_id is not None:
                     conditions.append(Exam.id == _as_uuid(exam_id, "考试标识"))
                 if student_id is not None:
-                    conditions.append(Submission.student_id == _as_uuid(student_id, "学生标识"))
+                    conditions.append(
+                        Submission.student_id == _as_uuid(student_id, "学生标识")
+                    )
                 if status is not None:
                     conditions.append(GradingResult.review_status == status)
                 base = self._queue_query().where(*conditions)
@@ -534,7 +540,11 @@ class ReviewQueryService:
             student_id=str(student.id),
             student_name=student.username,
             question_id=str(question.id),
-            exam_question_id=str(result.exam_question_id) if result.exam_question_id is not None else None,
+            exam_question_id=(
+                str(result.exam_question_id)
+                if result.exam_question_id is not None
+                else None
+            ),
             question_number=resolved_orders.get((exam.id, question.id), 0),
             question_type=result.question_type,
             max_score=result.max_score,
@@ -604,6 +614,10 @@ class ReviewQueryService:
                 else:
                     current_input = current_snapshot.scoring_inputs.get(str(answer.id))
                     current_input_error = current_snapshot.scoring_basis_error
+                    if current_input_error is None:
+                        current_input, current_input_error = _saved_review_input(
+                            current_input, result, run
+                        )
         except SQLAlchemyError as error:
             raise ReviewQueryError(
                 "复核详情读取失败：结果存储未就绪。",
@@ -619,7 +633,11 @@ class ReviewQueryService:
             student_id=str(student.id),
             student_name=student.username,
             question_id=str(question.id),
-            exam_question_id=str(result.exam_question_id) if result.exam_question_id is not None else None,
+            exam_question_id=(
+                str(result.exam_question_id)
+                if result.exam_question_id is not None
+                else None
+            ),
             question_number=orders.get((exam.id, question.id), 0),
             question_type=result.question_type,
             question_content=question.content,
@@ -669,7 +687,9 @@ class ReviewQueryService:
             raise ReviewQueryPermissionError("无权访问该答卷所属课程。")
 
     def find_recorded_decision(
-        self, teacher_id: str, decision: TeacherReviewDecision,
+        self,
+        teacher_id: str,
+        decision: TeacherReviewDecision,
         expected_review_round_id: UUID | None = None,
     ) -> ReviewRecordDTO | None:
         """授权详情读取后，核验最新记录是否仍代表本次请求的决定。"""
@@ -685,7 +705,10 @@ class ReviewQueryService:
                 if run is None:
                     return None
                 record = find_matching_review_record(
-                    session, run=run, decision=decision, actor_id=teacher_id,
+                    session,
+                    run=run,
+                    decision=decision,
+                    actor_id=teacher_id,
                     expected_review_round_id=expected_review_round_id,
                 )
                 return self._record_dto(record) if record is not None else None
@@ -705,7 +728,10 @@ class ReviewQueryService:
                     GradingResult.submission_id == _as_uuid(submission_id, "答卷标识"),
                     GradingResult.review_status == ReviewStatus.PENDING_REVIEW,
                 )
-                return int(session.scalar(select(func.count()).select_from(pending.subquery())) or 0)
+                return int(
+                    session.scalar(select(func.count()).select_from(pending.subquery()))
+                    or 0
+                )
         except SQLAlchemyError as error:
             raise ReviewQueryError(
                 "待复核数量读取失败：结果存储未就绪。",
@@ -786,11 +812,73 @@ def _question_orders(
     orders: dict[tuple[UUID, UUID], int] = {}
     for exam_id in exam_ids:
         exam = session.get(Exam, exam_id)
-        if exam is None:
-            continue
-        for index, question in enumerate(list(exam.questions), start=1):
-            orders[(exam_id, question.id)] = index
+        if exam is not None:
+            for link in exam.exam_question_links:
+                orders[(exam_id, link.question_id)] = link.order_index
     return orders
+
+
+def _saved_review_input(
+    current: ScoringInput | None,
+    result: GradingResult,
+    run: WorkflowRun | None,
+) -> tuple[ScoringInput | None, str | None]:
+    """Only display retrieval from a saved M4 input proven against the real row.
+
+    Database rows remain the source of scores and student answers. A checkpoint
+    supplies the actual saved model context, never a reconstructed historical score.
+    Missing M3/legacy provenance stays unknown.
+    """
+    if result.exam_question_id is None:
+        return None, "EXAM_SCORING_INPUT_NOT_RECORDED"
+    if current is None:
+        return None, "EXAM_SCORING_BASIS_MISSING"
+    mismatch = "GRADING_RESULT_OWNERSHIP_MISMATCH"
+    if (
+        str(result.exam_question_id) != current.exam_question_id
+        or result.max_score != current.effective_score
+        or list(result.knowledge_points or []) != current.published_knowledge_points
+    ):
+        return None, mismatch
+    if run is None:
+        return current, None
+    state = (run.checkpoint or {}).get("state")
+    if not isinstance(state, dict):
+        return current, None
+    inputs = state.get("scoring_inputs") or {}
+    results = state.get("grading_results") or {}
+    if not isinstance(inputs, dict) or not isinstance(results, dict):
+        return current, mismatch
+    raw_input, raw_result = inputs.get(current.answer_id), results.get(
+        current.answer_id
+    )
+    if raw_input is None or raw_result is None:
+        return current, None
+    try:
+        saved = ScoringInput.model_validate(raw_input)
+        scored = GradingResultPayload.model_validate(raw_result)
+    except ValidationError:
+        return current, mismatch
+    # A saved teacher modification may precede graph resume; fixed inputs stay identical.
+    teacher_modified = result.review_status == ReviewStatus.MODIFIED
+    if (
+        not same_fixed_scoring_input(saved, current)
+        or scored.answer_id != str(result.answer_id)
+        or scored.submission_id != str(result.submission_id)
+        or scored.exam_question_id != str(result.exam_question_id)
+        or scored.question_type != result.question_type
+        or scored.max_score != result.max_score
+        or (not teacher_modified and scored.score != result.score)
+        or (not teacher_modified and scored.reason != result.reason)
+        or scored.knowledge_points != list(result.knowledge_points or [])
+        or scored.retrieved_context_ids != list(result.retrieved_context_ids or [])
+        or any(
+            ref.course_id not in {None, current.course_id}
+            for ref in saved.source_references or []
+        )
+    ):
+        return current, mismatch
+    return saved, None
 
 
 def _review_status(value: ReviewStatus | str | None) -> ReviewStatus | None:
@@ -897,7 +985,9 @@ class ReviewDecisionService:
                 review_round_id=duplicate.review_round_id,
                 idempotency_degraded=degraded,
                 resume_status=(
-                    "succeeded" if workflow_status is WorkflowStatus.COMPLETED else "pending"
+                    "succeeded"
+                    if workflow_status is WorkflowStatus.COMPLETED
+                    else "pending"
                 ),
                 workflow_status=workflow_status,
                 pending_review_count=self._query.count_pending_reviews(
@@ -976,7 +1066,9 @@ class ReviewDecisionService:
         """按白名单构造修订结果：只替换分数与理由，其余取数据库权威原结果。"""
 
         if payload.score is None or not (payload.reason or "").strip():
-            raise ReviewDecisionRevisionRequiredError("修改评分必须给出新的分数与理由。")
+            raise ReviewDecisionRevisionRequiredError(
+                "修改评分必须给出新的分数与理由。"
+            )
         try:
             score = Decimal(str(payload.score))
             max_score = Decimal(str(detail.max_score))
