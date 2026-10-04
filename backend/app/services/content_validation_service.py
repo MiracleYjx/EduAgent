@@ -81,6 +81,7 @@ from backend.app.services.file_storage_service import (
 )
 from backend.app.services.question_asset_service import actual_image
 from backend.app.services.question_scoring_invalidation import bump_question_validation
+from backend.app.services.reference_lifecycle import lock_course
 
 OwnerKind = Literal["question", "extracted_question"]
 Owner = Question | ExtractedQuestion
@@ -220,6 +221,10 @@ class ContentValidationService:
                     current_status=record.status.value,
                 )
         else:
+            if lock_course(self.session, course_id) is None:
+                raise ContentValidationError(
+                    "CONTENT_NOT_FOUND", "题目所属课程不存在。", http_status=404
+                )
             record = self.session.scalars(
                 select(Question)
                 .options(
@@ -1099,7 +1104,9 @@ class ContentValidationService:
                 http_status=422,
             )
         if question.assets:
-            view = self._image_assessment_view("question", question.id, actor_id=actor_id)
+            view = self._image_assessment_view(
+                "question", question.id, actor_id=actor_id
+            )
             if view.status != "confirmed" or not {
                 asset.id for asset in question.assets
             } <= {

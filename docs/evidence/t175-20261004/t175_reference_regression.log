@@ -1,0 +1,76 @@
+........................................................................ [ 58%]
+....................F...............................                     [100%]
+================================== FAILURES ===================================
+____ test_real_postgres_parent_reference_protection_and_legal_child_delete ____
+
+database = (Engine(postgresql+psycopg://eduagent@127.0.0.1:5432/eduagent_e4_finish_3c487990ad44), {'actor_id': '91bdb853-40d0-409...069ff9', 'parent_id': '0b891922-bbea-4857-a0ab-b14a0f319f8b', 'chunk_id': '951d8b61-67fd-43d8-9abf-b9bc560df52c', ...})
+
+    def test_real_postgres_parent_reference_protection_and_legal_child_delete(
+        database: Any,
+    ) -> None:
+        from uuid import UUID
+    
+        from sqlalchemy import event, func, select
+    
+        from backend.app.models import (
+            QuestionGenerationMetadata,
+            QuestionSourceChunk,
+            QuestionSourcePaper,
+        )
+        from backend.app.services.question_service import (
+            QuestionConflictError,
+            QuestionService,
+        )
+        from tests.unit.services.test_question_adaptation_service import generate
+    
+        engine, info = database
+        response, _provider = generate(database)
+        child_id = UUID(response.candidates[0].candidate_id)
+        with Session(engine) as session:
+            with pytest.raises(QuestionConflictError):
+                QuestionService(session).delete_question(
+                    info["parent_id"], teacher_id=info["actor_id"]
+                )
+            session.rollback()
+            assert session.get(Question, child_id) is not None
+            assert (
+                session.scalar(select(func.count()).select_from(QuestionSourcePaper)) == 1
+            )
+        locks = []
+    
+        def observe(_connection, _cursor, statement, _parameters, _context, _executemany):
+            statement = statement.lower()
+            if "for update" in statement:
+                if "from courses" in statement:
+                    locks.append("Course")
+                elif "from questions" in statement:
+                    locks.append("Question")
+    
+        event.listen(engine, "before_cursor_execute", observe)
+        try:
+            with Session(engine) as session:
+                QuestionService(session).delete_question(
+                    child_id, teacher_id=info["actor_id"]
+                )
+        finally:
+            event.remove(engine, "before_cursor_execute", observe)
+>       assert locks[:2] == ["Course", "Question"]
+E       AssertionError: assert ['Course', 'Course'] == ['Course', 'Question']
+E         
+E         At index 1 diff: 'Course' != 'Question'
+E         Use -v to get more diff
+
+tests\integration\test_question_adaptation.py:166: AssertionError
+============================== warnings summary ===============================
+..\..\..\develop\Python\Lib\site-packages\fastapi\testclient.py:1
+  D:\develop\Python\Lib\site-packages\fastapi\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+tests/contract/test_knowledge_base_upload_contract.py::test_upload_document_rejects_unsupported_format
+  D:\YJX\MyCode\EduAgent\backend\app\api\knowledge_bases.py:475: StarletteDeprecationWarning: 'HTTP_422_UNPROCESSABLE_ENTITY' is deprecated. Use 'HTTP_422_UNPROCESSABLE_CONTENT' instead.
+    raise _knowledge_base_http_exception(exc) from None
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/integration/test_question_adaptation.py::test_real_postgres_parent_reference_protection_and_legal_child_delete
+1 failed, 123 passed, 2 warnings in 86.54s (0:01:26)

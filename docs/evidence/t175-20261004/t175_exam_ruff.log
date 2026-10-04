@@ -1,0 +1,95 @@
+F821 Undefined name `Submission`
+   --> backend\app\services\exam_service.py:958:24
+    |
+956 |             exam.status is not ExamStatus.DRAFT
+957 |             or self.session.scalar(
+958 |                 select(Submission.id).where(Submission.exam_id == exam.id).limit(1)
+    |                        ^^^^^^^^^^
+959 |             )
+960 |             is not None
+    |
+
+F821 Undefined name `Submission`
+   --> backend\app\services\exam_service.py:958:45
+    |
+956 |             exam.status is not ExamStatus.DRAFT
+957 |             or self.session.scalar(
+958 |                 select(Submission.id).where(Submission.exam_id == exam.id).limit(1)
+    |                                             ^^^^^^^^^^
+959 |             )
+960 |             is not None
+    |
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> tests\contract\test_exam_lifecycle_api.py:3:1
+   |
+ 1 |   """T175 old exam writes preserve structured immutable errors (TCR §30)."""
+ 2 |
+ 3 | / from uuid import uuid4
+ 4 | |
+ 5 | | import pytest
+ 6 | |
+ 7 | | from backend.app.api.exams import get_exam_service
+ 8 | | from backend.app.domain.enums import ExamStatus
+ 9 | | from backend.app.services.exam_service import ExamPublishedImmutableError
+10 | | from tests.contract.test_exam_assembly_api import _headers
+11 | | from tests.contract.test_exam_participation_contract import (
+12 | |     client as client,
+13 | |     session as session,
+14 | | )  # noqa: PLC0414
+15 | | from tests.unit.services.test_submission_service import add_teacher
+   | |___________________________________________________________________^
+help: Organize imports
+   |
+12 |     client as client,
+13 + )  # noqa: PLC0414
+14 + from tests.contract.test_exam_participation_contract import (
+15 |     session as session,
+   - )  # noqa: PLC0414
+16 + )
+17 | from tests.unit.services.test_submission_service import add_teacher
+   |
+
+PLC0414 Import alias does not rename original package
+  --> tests\contract\test_exam_lifecycle_api.py:12:5
+   |
+10 | from tests.contract.test_exam_assembly_api import _headers
+11 | from tests.contract.test_exam_participation_contract import (
+12 |     client as client,
+   |     ^^^^^^^^^^^^^^^^
+13 |     session as session,
+14 | )  # noqa: PLC0414
+   |
+help: Remove import alias
+
+PLC0414 Import alias does not rename original package
+  --> tests\contract\test_exam_lifecycle_api.py:13:5
+   |
+11 | from tests.contract.test_exam_participation_contract import (
+12 |     client as client,
+13 |     session as session,
+   |     ^^^^^^^^^^^^^^^^^^
+14 | )  # noqa: PLC0414
+15 | from tests.unit.services.test_submission_service import add_teacher
+   |
+help: Remove import alias
+
+RUF100 [*] Unused `noqa` directive (unused: `PLC0414`)
+  --> tests\contract\test_exam_lifecycle_api.py:14:4
+   |
+12 |     client as client,
+13 |     session as session,
+14 | )  # noqa: PLC0414
+   |    ^^^^^^^^^^^^^^^
+15 | from tests.unit.services.test_submission_service import add_teacher
+   |
+help: Remove unused `noqa` directive
+   |
+13 |     session as session,
+   - )  # noqa: PLC0414
+14 + )
+15 | from tests.unit.services.test_submission_service import add_teacher
+   |
+
+Found 6 errors.
+[*] 2 fixable with the `--fix` option (2 hidden fixes can be enabled with the `--unsafe-fixes` option).

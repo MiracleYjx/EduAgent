@@ -685,3 +685,14 @@ T173结果：PG24+reader1、HTTP22、直接回归91均通过（存在重叠）�
 - 全量还复现两个同源资产事务失败：新增失效 UPDATE 触发 autoflush，资产服务尚未把文件收据返回调用者就提前INSERT失败，导致外层没有失败收据。实现局部修为失效UPDATE使用 no_autoflush，保留原显式flush/commit与收据归属；不改原测试/断言。RED/修复后聚焦及最终全量均保存。
 
 - 最终提交源码快照 tree `7551c2a35dfb7493b0bfb2d2b212bf8be6816c5d` 全量 **2362 passed / 2 skipped / 107 warnings**（861.74s）；两skip为原M0隔离配置和Windows软链接条件。首轮2357 passed/3 failed/2 errors/2 skipped与修复后结果并存。Ruff22变更Python文件、全backend mypy207及隔离Alembic check通过；实际浏览器确认+发布与数据库回读通过，独立教师标注口径未变。完整证据见 `docs/evidence/t174-20261004/`。
+
+
+## 30. T175 原子发布及全引用冻结 TCR（实施前，2026-10-04）
+
+- 必要性：T174只完成发布必要依据，T175需核对所有直接写入和级联删除入口的真实保护，不能用Approved守卫代替发布/历史冻结。
+- 覆盖：发布固定四项本场依据且原子失败；同课程Course→Exam→排序Question/关联锁与最新状态回读；并发发布/退修/内容/资产/父题来源/删除不得竞态放行；Published/Closed/Archived或答卷及历史引用继续保护。
+- API错误：保留既有I01六类内容字段QUESTION_APPROVED_IMMUTABLE及题库difficulty/knowledge_points维护；发布引用的原地退修/解析/题图/来源/删除用QUESTION_REFERENCED_IMMUTABLE，考试事实修改用EXAM_PUBLISHED_IMMUTABLE；不通过级联删除解冻，不建完整内容快照。
+- 测试：在现有pytest unit/contract/integration框架先记录暴露缺口的行为，再最小修复；真实PostgreSQL并发及事务回滚验证。旧断言保留，若生产夹具因新合同需补实际准备则逐条说明，不改标签或放宽标准。新增/修改文件和RED/GREEN证据在实施中追加。
+- 本批仅独占DB/Redis/文件根；原库、两README、开发者阅卷样本及.env原字节保持。T146 AI辅助+开发者审查、独立教师0及T168 not_met不变。T179完整性能/系统验收另行执行。
+
+- T175实际新增 tests/integration/test_exam_lifecycle_freeze.py、test_reference_lifecycle.py 和 contract/test_exam_lifecycle_api.py、test_course_reference_api.py；旧测试未改。新增28+root16与31/24相关回归通过（有重叠），直接回归123pass/1fail代码消除重复锁后45pass；静态208源文件和Ruff通过，详见T175证据README。六个新测试最初误把I01优先错误当成引用错误，已按既定合同修正，旧业务断言保留；静态接入和错误属性问题如实保留。

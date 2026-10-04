@@ -17,7 +17,6 @@ from sqlalchemy.orm import Session, selectinload
 from sqlalchemy.orm.attributes import flag_modified
 
 from backend.app.domain.enums import (
-    ExamStatus,
     QuestionSourceType,
     QuestionStatus,
     QuestionType,
@@ -28,7 +27,6 @@ from backend.app.models import (
     Course,
     Question,
     QuestionRevisionComment,
-    Submission,
     User,
 )
 from backend.app.services.audit_service import audit_after_commit
@@ -38,6 +36,7 @@ from backend.app.services.course_service import (
     CourseServiceError,
 )
 from backend.app.services.question_scoring_invalidation import bump_question_validation
+from backend.app.services.reference_lifecycle import lock_course, question_is_protected
 
 _UNSET = object()
 _ALLOWED_STATUS_TRANSITIONS = {
@@ -80,11 +79,13 @@ class QuestionApprovedImmutableError(QuestionConflictError):
 class QuestionPublishedImmutableError(QuestionConflictError):
     """An approved question's current publication/history must remain protected."""
 
-    code = "QUESTION_PUBLISHED_IMMUTABLE"
+    code = "QUESTION_REFERENCED_IMMUTABLE"
 
     def __init__(self, current_status: QuestionStatus) -> None:
         self.current_status = current_status
-        super().__init__("题目已被发布或答卷历史保护，不能原地退回修订；请新建派生候选。")
+        super().__init__(
+            "题目已被发布或答卷历史保护，不能原地退回修订；请新建派生候选。"
+        )
 
 
 class QuestionValidationError(QuestionServiceError):
@@ -479,6 +480,8 @@ class QuestionService:
         }
         if question.status is QuestionStatus.APPROVED and has_content_update:
             raise QuestionApprovedImmutableError(question.status)
+        if has_content_update and question_is_protected(self.session, question.id):
+            raise QuestionPublishedImmutableError(question.status)
         if has_type:
             question.type = _resolve_question_type(question_type, type)
         if content is not None:
@@ -547,19 +550,33 @@ class QuestionService:
         from backend.app.models.question_source_paper import QuestionSourcePaper
 
         identity = _normalize_uuid(question_id, "题目标识")
-        course_id = self.session.scalar(select(Question.course_id).where(Question.id == identity))
+        course_id = self.session.scalar(
+            select(Question.course_id).where(Question.id == identity)
+        )
         if course_id is None:
             raise QuestionNotFoundError("题目不存在。")
         course = self._load_course(course_id)
         self._ensure_course_access(course, _resolve_actor_id(created_by, teacher_id))
-        self.session.execute(select(Course.id).where(Course.id == course_id).with_for_update())
         question = self._load_question(identity)
         if question.course_id != course_id:
             raise QuestionConflictError("题目课程归属已经变化，请重新读取。")
-        if self.session.scalar(select(QuestionSourcePaper.id).where(QuestionSourcePaper.source_question_id == identity).limit(1)) is not None:
+        if question_is_protected(self.session, identity):
+            raise QuestionPublishedImmutableError(question.status)
+        if (
+            self.session.scalar(
+                select(QuestionSourcePaper.id)
+                .where(QuestionSourcePaper.source_question_id == identity)
+                .limit(1)
+            )
+            is not None
+        ):
             raise QuestionConflictError("题目仍是派生题的真实父题，不能删除来源关系。")
         try:
-            self.session.execute(delete(QuestionSourcePaper).where(QuestionSourcePaper.derived_question_id == identity))
+            self.session.execute(
+                delete(QuestionSourcePaper).where(
+                    QuestionSourcePaper.derived_question_id == identity
+                )
+            )
             self.session.delete(question)
             self.session.commit()
         except IntegrityError as exc:
@@ -589,6 +606,8 @@ class QuestionService:
         current_status = question.status
         if next_status == current_status:
             return self._question_summary(question)
+        if question_is_protected(self.session, question.id):
+            raise QuestionPublishedImmutableError(current_status)
         if next_status not in _ALLOWED_STATUS_TRANSITIONS.get(current_status, set()):
             raise QuestionValidationError(
                 f"题目状态不能从“{current_status.value}”变更为“{next_status.value}”。"
@@ -596,17 +615,28 @@ class QuestionService:
         if next_status is QuestionStatus.NEEDS_REVISION:
             actor = _resolve_actor_id(created_by, teacher_id)
             teacher = self.session.get(User, actor) if actor is not None else None
-            if teacher is None or not teacher.is_active or not any(role.name == UserRole.TEACHER for role in teacher.roles):
-                raise QuestionPermissionError("退回修订必须由真实启用的课程教师执行。")
-            if not isinstance(revision_comment, str) or not revision_comment.strip() or len(revision_comment.strip()) > 2000:
-                raise QuestionValidationError("退回修订必须提供不超过 2000 字的真实教师说明。")
-            if current_status is QuestionStatus.APPROVED and any(
-                exam.status in {ExamStatus.PUBLISHED, ExamStatus.CLOSED, ExamStatus.ARCHIVED}
-                or self.session.scalar(select(Submission.id).where(Submission.exam_id == exam.id).limit(1)) is not None
-                for exam in question.exams
+            if (
+                teacher is None
+                or not teacher.is_active
+                or not any(role.name == UserRole.TEACHER for role in teacher.roles)
             ):
-                raise QuestionPublishedImmutableError(current_status)
-            self.session.add(QuestionRevisionComment(question_id=question.id, comment=revision_comment.strip(), commented_by=actor, commented_at=datetime.now(UTC)))
+                raise QuestionPermissionError("退回修订必须由真实启用的课程教师执行。")
+            if (
+                not isinstance(revision_comment, str)
+                or not revision_comment.strip()
+                or len(revision_comment.strip()) > 2000
+            ):
+                raise QuestionValidationError(
+                    "退回修订必须提供不超过 2000 字的真实教师说明。"
+                )
+            self.session.add(
+                QuestionRevisionComment(
+                    question_id=question.id,
+                    comment=revision_comment.strip(),
+                    commented_by=actor,
+                    commented_at=datetime.now(UTC),
+                )
+            )
         if next_status is QuestionStatus.APPROVED:
             from backend.app.services.content_validation_service import (
                 ContentValidationError,
@@ -670,6 +700,11 @@ class QuestionService:
 
         normalized_id = _normalize_uuid(question_id, "题目标识")
         try:
+            course_id = self.session.scalar(
+                select(Question.course_id).where(Question.id == normalized_id)
+            )
+            if course_id is None or lock_course(self.session, course_id) is None:
+                raise QuestionNotFoundError("题目不存在。")
             question = self.session.scalar(
                 select(Question)
                 .options(selectinload(Question.course))

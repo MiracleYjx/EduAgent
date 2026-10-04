@@ -47,6 +47,16 @@ class ExamValidationError(ExamServiceError):
     """考试输入或生命周期规则不满足时抛出。"""
 
 
+class ExamPublishedImmutableError(ExamValidationError):
+    """Published or historical exam facts cannot be edited through old commands."""
+
+    code = "EXAM_PUBLISHED_IMMUTABLE"
+
+    def __init__(self, current_status: ExamStatus) -> None:
+        self.current_status = current_status
+        super().__init__("已发布、已结束或答卷历史保护的考试不能修改。")
+
+
 class ExamPermissionError(ExamServiceError):
     """当前教师无权访问考试所属课程时抛出。"""
 
@@ -265,7 +275,7 @@ class ExamService:
         """创建草稿考试，并在初始组卷时校验所有题目。"""
 
         normalized_course_id = _normalize_uuid(course_id, "课程标识")
-        course = self._load_course(normalized_course_id)
+        course = self._load_course(normalized_course_id, for_update=True)
         actor_id = _resolve_actor_id(created_by, teacher_id)
         if actor_id is None:
             raise ExamValidationError("创建者标识不能为空。")
@@ -406,7 +416,7 @@ class ExamService:
         ):
             raise ExamValidationError("至少需要提供一个更新字段。")
 
-        exam = self._load_exam(exam_id)
+        exam = self._load_exam(exam_id, for_update=True)
         actor_id = _resolve_actor_id(created_by, teacher_id)
         self._ensure_course_access(self._load_course(exam.course_id), actor_id)
         self._ensure_draft(exam)
@@ -443,7 +453,7 @@ class ExamService:
     ) -> ExamSummary:
         """向草稿考试追加题目，并强制要求题目已审核且属于同一课程。"""
 
-        exam = self._load_exam(exam_id)
+        exam = self._load_exam(exam_id, for_update=True)
         actor_id = _resolve_actor_id(created_by, teacher_id)
         self._ensure_course_access(self._load_course(exam.course_id), actor_id)
         self._ensure_draft(exam)
@@ -505,7 +515,7 @@ class ExamService:
     ) -> ExamSummary:
         """从草稿考试移除已关联的题目。"""
 
-        exam = self._load_exam(exam_id)
+        exam = self._load_exam(exam_id, for_update=True)
         actor_id = _resolve_actor_id(created_by, teacher_id)
         self._ensure_course_access(self._load_course(exam.course_id), actor_id)
         self._ensure_draft(exam)
@@ -671,9 +681,11 @@ class ExamService:
         except (SQLAlchemyError, ExamServiceError, ValueError, OSError) as exc:
             error = AssemblyError(
                 "EXAM_PATCH_COMMIT_UNKNOWN" if commit_started else "EXAM_PATCH_FAILED",
-                "提交结果未知，请重新加载核对实际记录。"
-                if commit_started
-                else "修改失败，本次题目修改已回滚。",
+                (
+                    "提交结果未知，请重新加载核对实际记录。"
+                    if commit_started
+                    else "修改失败，本次题目修改已回滚。"
+                ),
                 http_status=503,
                 details={
                     "committed": None if commit_started else False,
@@ -775,12 +787,16 @@ class ExamService:
             raise error from exc
         except SQLAlchemyError as exc:
             error = AssemblyError(
-                "EXAM_PUBLISH_COMMIT_UNKNOWN"
-                if commit_started
-                else "EXAM_PUBLISH_FAILED",
-                "发布提交结果未知，请重新加载核对实际状态。"
-                if commit_started
-                else "发布失败，本次修改已回滚。",
+                (
+                    "EXAM_PUBLISH_COMMIT_UNKNOWN"
+                    if commit_started
+                    else "EXAM_PUBLISH_FAILED"
+                ),
+                (
+                    "发布提交结果未知，请重新加载核对实际状态。"
+                    if commit_started
+                    else "发布失败，本次修改已回滚。"
+                ),
                 http_status=503,
                 details={
                     "committed": None if commit_started else False,
@@ -810,7 +826,7 @@ class ExamService:
                 created_by=created_by,
             )
 
-        exam = self._load_exam(exam_id)
+        exam = self._load_exam(exam_id, for_update=True)
         actor_id = _resolve_actor_id(created_by, teacher_id)
         self._ensure_course_access(self._load_course(exam.course_id), actor_id)
         if next_status is exam.status:
@@ -824,26 +840,38 @@ class ExamService:
 
     set_exam_status = update_exam_status
 
-    def _load_course(self, course_id: UUID | str) -> Course:
+    def _load_course(
+        self, course_id: UUID | str, *, for_update: bool = False
+    ) -> Course:
         """加载课程并统一处理不存在错误。"""
 
         normalized_id = _normalize_uuid(course_id, "课程标识")
         try:
-            course = self.session.scalar(
-                select(Course).where(Course.id == normalized_id)
-            )
+            statement = select(Course).where(Course.id == normalized_id)
+            if for_update:
+                statement = statement.with_for_update().execution_options(
+                    populate_existing=True
+                )
+            course = self.session.scalar(statement)
         except SQLAlchemyError as exc:
             raise ExamServiceError("无法读取课程信息。") from exc
         if course is None:
             raise ExamNotFoundError("课程不存在。")
         return course
 
-    def _load_exam(self, exam_id: UUID | str) -> Exam:
+    def _load_exam(self, exam_id: UUID | str, *, for_update: bool = False) -> Exam:
         """加载考试及其题目关系。"""
 
         normalized_id = _normalize_uuid(exam_id, "考试标识")
         try:
-            exam = self.session.scalar(
+            if for_update:
+                course_id = self.session.scalar(
+                    select(Exam.course_id).where(Exam.id == normalized_id)
+                )
+                if course_id is None:
+                    raise ExamNotFoundError("考试不存在。")
+                self._load_course(course_id, for_update=True)
+            statement = (
                 select(Exam)
                 .options(
                     selectinload(Exam.questions),
@@ -853,6 +881,11 @@ class ExamService:
                 )
                 .where(Exam.id == normalized_id)
             )
+            if for_update:
+                statement = statement.with_for_update().execution_options(
+                    populate_existing=True
+                )
+            exam = self.session.scalar(statement)
         except SQLAlchemyError as exc:
             raise ExamServiceError("无法读取考试信息。") from exc
         if exam is None:
@@ -870,7 +903,11 @@ class ExamService:
             return []
         try:
             questions = self.session.scalars(
-                select(Question).where(Question.id.in_(question_ids))
+                select(Question)
+                .where(Question.id.in_(question_ids))
+                .order_by(Question.id)
+                .with_for_update()
+                .execution_options(populate_existing=True)
             ).all()
         except SQLAlchemyError as exc:
             raise ExamServiceError("无法读取组卷题目。") from exc
@@ -912,12 +949,14 @@ class ExamService:
         if user is None:
             raise ExamValidationError("考试创建者不存在。")
 
-    @staticmethod
-    def _ensure_draft(exam: Exam) -> None:
-        """限制只有草稿考试可以修改组卷和元数据。"""
+    def _ensure_draft(self, exam: Exam) -> None:
+        """Only a current Draft without retained business history can be edited."""
+        from backend.app.services.reference_lifecycle import exam_has_protected_history
 
-        if exam.status is not ExamStatus.DRAFT:
-            raise ExamValidationError("已发布或已结束的考试不能修改。")
+        if exam.status is not ExamStatus.DRAFT or exam_has_protected_history(
+            self.session, exam.id
+        ):
+            raise ExamPublishedImmutableError(exam.status)
 
     def _validate_publish_requirements(self, exam: Exam) -> None:
         """再次核验发布考试所需的题目边界。"""
@@ -1032,6 +1071,7 @@ __all__ = [
     "ExamConflictError",
     "ExamNotFoundError",
     "ExamPermissionError",
+    "ExamPublishedImmutableError",
     "ExamService",
     "ExamServiceError",
     "ExamSummary",

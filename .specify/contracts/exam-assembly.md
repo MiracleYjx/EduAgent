@@ -135,3 +135,8 @@ PATCH /api/exams/{id}/questions/{qid}
 - 唯一约束 (exam_id, question_id)、(exam_id, order_index) 必须保持；移位/替换采用可保持事务一致性的更新顺序，不放宽数据库约束。
 - 同场修改序列化检查；不同考试的分值/题序/评分依据独立。替换或并发发布后，客户端旧 qid 操作明确拒绝，不猜测意图。
 - 验证题型/数量/知识点/总分约束满足率、不可满足时原卷事实无写入且失败意图已保存、意图保存失败/未知的真实反馈、重启读取及人工调整重算、移位/替换/预览、原题带图、发布即冻结和历史保护；性能另测，不在契约中宣称已达标。
+
+
+### T175 实施边界：现有直接入口与冻结错误
+
+现有考试metadata/add/remove/status与发布共用Course首锁和最新Exam行；单题/资产/候选审核/父题写为Course→Question，文件定位最后。引用保护直接查询当前数据库，不能从旧Session关联推断无引用。旧考试write同样409/EXAM_PUBLISHED_IMMUTABLE，题目/题图/来源及实际状态变化同样QUESTION_REFERENCED_IMMUTABLE，Approved内容I01优先保留；同状态读取幂等。课程级联擦除发布或历史引用拒绝COURSE_REFERENCED_IMMUTABLE。现无独立删卷/删文档公网入口，不新增；普通知识库Chunk快照/SET NULL合法语义保留。

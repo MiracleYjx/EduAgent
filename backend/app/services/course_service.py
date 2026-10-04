@@ -29,6 +29,12 @@ class CourseConflictError(CourseServiceError):
     """课程变更违反数据约束时抛出。"""
 
 
+class CourseReferencedImmutableError(CourseConflictError):
+    """Published or historical references prohibit the aggregate cascade."""
+
+    code = "COURSE_REFERENCED_IMMUTABLE"
+
+
 class CourseValidationError(CourseServiceError):
     """课程输入或状态不符合业务规则时抛出。"""
 
@@ -233,11 +239,22 @@ class CourseService:
     ) -> None:
         """删除课程及其由 ORM 管理的课程资源。"""
 
-        course = self._load_course(course_id)
+        from backend.app.services.reference_lifecycle import (
+            course_has_protected_history,
+            lock_course,
+        )
+
+        course = lock_course(self.session, _normalize_uuid(course_id, "课程标识"))
+        if course is None:
+            raise CourseNotFoundError("课程不存在。")
         self._ensure_course_access(
             course,
             _resolve_actor_id(teacher_id, created_by),
         )
+        if course_has_protected_history(self.session, course.id):
+            raise CourseReferencedImmutableError(
+                "课程含发布、已结束或答卷/评分历史，不能级联删除。"
+            )
         try:
             self.session.delete(course)
             self.session.commit()
@@ -333,6 +350,7 @@ __all__ = [
     "CourseConflictError",
     "CourseNotFoundError",
     "CoursePermissionError",
+    "CourseReferencedImmutableError",
     "CourseService",
     "CourseServiceError",
     "CourseSummary",

@@ -425,9 +425,13 @@ class KnowledgeBaseService:
         knowledge_base_id: UUID | str,
         teacher_id: UUID | str | None = None,
     ) -> None:
-        """删除知识库及其由 ORM 管理的文档元数据。"""
+        """删除知识库；真实 Chunk 快照和引用原材料保持原保留规则。"""
+        from backend.app.services.reference_lifecycle import lock_course
 
         knowledge_base = self._load_knowledge_base(knowledge_base_id)
+        if lock_course(self.session, knowledge_base.course_id) is None:
+            raise KnowledgeBaseNotFoundError("知识库所属课程不存在。")
+        self.session.refresh(knowledge_base)
         self._ensure_course_access(
             self._load_course(knowledge_base.course_id),
             _resolve_actor_id(teacher_id),

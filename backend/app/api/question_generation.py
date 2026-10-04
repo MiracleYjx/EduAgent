@@ -1353,6 +1353,14 @@ class QuestionGenerationService:
             normalized = _as_uuid(candidate_id)
         except ValueError as error:
             raise CandidateNotFoundError("候选题标识不合法。") from error
+        if for_update:
+            from backend.app.services.reference_lifecycle import lock_course
+
+            course_id = session.scalar(
+                select(Question.course_id).where(Question.id == normalized)
+            )
+            if course_id is None or lock_course(session, course_id) is None:
+                raise CandidateNotFoundError("候选题不存在。")
         question = (
             session.scalar(
                 select(Question)

@@ -948,3 +948,14 @@ scripts/demo_seed.py 先准备全部题目，仅将 Draft 送审；未全部 App
 本批无云调用，T146 AI辅助+开发者审查/独立教师0及T168整体质量not_met均保持；未宣称完整E4、性能、Docker M0或EXE通过。T170–T174范围完成，下一批可连续T175→T176→T177→T178，之后T179统一验收。
 
 2026-10-03T18:56:31Z已在零测试进程/零数据库连接后清理本批独占DB与Redis；临时UI进程和浏览器页也已关闭。原业务库仍0012_audit_logs，数据计数及两README、阅卷样本、.env原字节不变；未删除缓存和测试文件。最终清理与1860文件SHA收据一并保存。
+
+
+## T175 原子发布与全引用生命周期冻结（2026-10-04）
+
+旧考试metadata/add/remove/status入口统一Course首锁→Exam刷新，选题锁按UUID排序；最新Draft且无Submission/ExamResult历史才允许修改。迟到旧Session不能覆盖已发布/已归档状态；答卷创建Exam锁后刷新，关闭后不因缓存Published创建新答卷。旧接口冻结返回409/EXAM_PUBLISHED_IMMUTABLE，旧异常类型兼容。
+
+新增reference_lifecycle当前SQL保护，覆盖Published/Closed/Archived考试及独立Answer历史；Question/题图/父题/内容核对/候选审核统一Course→Question→关联/文件定位。受保护实际状态变化、解析/内容、题图集合/学生开关、来源追加及物理删除拒绝QUESTION_REFERENCED_IMMUTABLE；同状态幂等和I01 Approved内容守卫保留，difficulty/knowledge_points仍可维护，固定发布知识点不漂移。新派生可引用受保护父题；旧父题不能删。课程删除无法级联擦除保护，普通知识库删除继续保留真实SourceChunk快照/SET NULL，不新增删卷/删文档API。
+
+新增及聚焦验证：历史/题图/课程HTTP28 passed；root最终考试16 passed；考试接口/参加资格31 passed；T174发布直接回归所在批24 passed；内容/资产/来源/KB初轮123 passed/1 failed，消除代码中重复Course锁后相关45 passed，原锁序断言保持。计数有重叠，不当独立质量样本。全backend Mypy208文件和backend/tests Ruff通过。RED/GREEN、原口径问题和静态失败均保留于[evidence/t175-20261004/](evidence/t175-20261004/README.md)。
+
+T175完成的是现有入口的冻结与事务实现，整批全量回归另记，T179性能/端到端仍待执行。无云模型调用；原业务库和两README、开发者阅卷样本、.env未改。T146 AI辅助+开发者审查、独立教师0以及T168 not_met保持。继续T176。

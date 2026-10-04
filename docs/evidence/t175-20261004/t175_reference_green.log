@@ -1,0 +1,23 @@
+....................F..                                                  [100%]
+================================== FAILURES ===================================
+___ test_existing_protected_derived_question_cannot_receive_new_parent_edge ___
+
+database = (Engine(postgresql+psycopg://eduagent@127.0.0.1:5432/eduagent_e4_finish_3c487990ad44), {'actor': UUID('fe2c5767-4398-4...4f01-8847-92e50ed2686b'), UUID('01e43087-6977-421c-9169-7880769c8922'), UUID('2e239590-f066-4e61-b1ac-69b6c1d6d80c')]})
+
+    def test_existing_protected_derived_question_cannot_receive_new_parent_edge(database):
+        engine, info = database
+        with Session(engine) as session:
+            freeze(session, info)
+            service = QuestionAdaptationService(session)
+            snapshot = service.prepare(course_id=info["course"], actor_id=info["actor"], source_question_id=info["questions"][0], adaptation_type="rewrite")
+            service.lock_and_validate(snapshot, actor_id=info["actor"])
+            with pytest.raises(QuestionAdaptationError) as caught:
+                service.attach(snapshot, session.get(Question, info["questions"][1]), actor_id=info["actor"], stored_files=[])
+>           assert caught.value.code == "QUESTION_REFERENCED_IMMUTABLE"
+                   ^^^^^^^^^^^^^^^^^
+E           AttributeError: 'QuestionAdaptationError' object has no attribute 'code'
+
+tests\integration\test_reference_lifecycle.py:115: AttributeError
+=========================== short test summary info ===========================
+FAILED tests/integration/test_reference_lifecycle.py::test_existing_protected_derived_question_cannot_receive_new_parent_edge
+1 failed, 22 passed in 41.57s

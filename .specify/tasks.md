@@ -608,7 +608,7 @@ M0 工程骨架 + Benchmark
 
 - [X] T174 [HIGH] [E4] **实现 Rubric 换算与教师确认**：在考试评分服务/schema/API 与组卷 UI 实现本场标准准备、基准/有效满分、至少 28 位 Decimal 中间精度和 ROUND_HALF_UP；数值要点来自校验/教师核对，先乘后除仅末次量化。展示正负尾差并保存真实教师确认，定性/非加总标准核对对应语义，不正则替换数字、不自动分摊尾差；发布前缺依据/未确认明确拒绝。 依赖：T170、T173。per FR-049、exam-scoring、data-model §9.2（F041） (missing)
 
-- [ ] T175 [HIGH] [E4] **实现原子发布与全引用生命周期冻结**：在 `exam_service.py`、`question_service.py`、资产/父题服务及课程/考试/文档删除直接入口统一发布/修订/删除的事务检查与固定锁顺序；发布时固定四项本场依据，立即保护内容/解析/题图/来源，Closed/Archived 或答卷/评分/复核历史继续保护，不能通过级联删除或退回修订解冻。保留 I01 错误及元数据例外，受保护题另建派生候选，不引入完整快照。 依赖：T148、T154、T165、T170、T173、T174。per FR-018/049、exam-assembly 发布冻结、data-model §9.1（F042） (partial)
+- [X] T175 [HIGH] [E4] **实现原子发布与全引用生命周期冻结**：在 `exam_service.py`、`question_service.py`、资产/父题服务及课程/考试/文档删除直接入口统一发布/修订/删除的事务检查与固定锁顺序；发布时固定四项本场依据，立即保护内容/解析/题图/来源，Closed/Archived 或答卷/评分/复核历史继续保护，不能通过级联删除或退回修订解冻。保留 I01 错误及元数据例外，受保护题另建派生候选，不引入完整快照。 依赖：T148、T154、T165、T170、T173、T174。per FR-018/049、exam-assembly 发布冻结、data-model §9.1（F042） (partial)
 
 - [ ] T176 [HIGH] [E4] **贯通考试评分输入与身份**：在 `services/grading/grading_task_service.py` 的 DatabaseGradingSubmissionReader/SubmissionSnapshot、`schemas/grading.py`、Agent/Workflow 状态与仓储中传递 exam_question_id、本场分值/基准/标准、发布知识点及已核对图片；替换 v2 考试上下文直接读取 Question.score 的来源。新发布依据缺失明确报错，旧历史按 T171 兼容读取，幂等身份不跨场复用。 依赖：T164、T171、T175。per FR-043/049、exam-scoring ScoringInput、US3-v2/AC1–3（F043） (partial)
 

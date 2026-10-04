@@ -16,6 +16,7 @@ from backend.app.schemas.question_assets import AssetLinkRequest
 from backend.app.services.file_storage_service import StoredFile
 from backend.app.services.question_asset_service import QuestionAssetService
 from backend.app.services.question_scoring_invalidation import bump_question_validation
+from backend.app.services.reference_lifecycle import lock_course, question_is_protected
 
 AdaptationType = Literal["rewrite", "translate", "extend"]
 
@@ -54,9 +55,9 @@ def _context(question: Question) -> dict[str, Any]:
                 "id": str(asset.id),
                 "asset_type": asset.asset_type,
                 "file_id": asset.file_id,
-                "source_page_id": str(asset.source_page_id)
-                if asset.source_page_id
-                else None,
+                "source_page_id": (
+                    str(asset.source_page_id) if asset.source_page_id else None
+                ),
                 "region": deepcopy(asset.region),
                 "caption": asset.caption,
                 "width": asset.width,
@@ -73,17 +74,19 @@ def _context(question: Question) -> dict[str, Any]:
 def _business_context(context: dict[str, Any]) -> dict[str, Any]:
     # Storage migration/path changes do not change the actual question input.
     return {
-        key: [
-            {
-                name: value
-                for name, value in asset.items()
-                if name not in {"storage_path", "file_metadata"}
-            }
-            | {"sha256": (asset["file_metadata"] or {}).get("sha256")}
-            for asset in values
-        ]
-        if key == "assets"
-        else values
+        key: (
+            [
+                {
+                    name: value
+                    for name, value in asset.items()
+                    if name not in {"storage_path", "file_metadata"}
+                }
+                | {"sha256": (asset["file_metadata"] or {}).get("sha256")}
+                for asset in values
+            ]
+            if key == "assets"
+            else values
+        )
         for key, values in context.items()
     }
 
@@ -196,6 +199,39 @@ class QuestionAdaptationService:
         actor_id: UUID,
         stored_files: list[StoredFile],
     ) -> None:
+        from backend.app.domain.enums import QuestionStatus
+
+        course = lock_course(self.session, snapshot.course_id)
+        if course is None or course.created_by != actor_id:
+            raise QuestionAdaptationError(
+                "QUESTION_CANDIDATE_PERMISSION_DENIED", "无权改写父题来源。"
+            )
+        if question.course_id != course.id:
+            raise QuestionAdaptationError(
+                "QUESTION_ADAPTATION_PARENT_INVALID", "派生题必须属于当前课程。"
+            )
+        if question not in self.session.new:
+            locked = self.session.scalar(
+                select(Question)
+                .where(Question.id == question.id)
+                .with_for_update()
+                .execution_options(populate_existing=True)
+            )
+            if locked is None:
+                raise QuestionAdaptationError(
+                    "QUESTION_ADAPTATION_PARENT_INVALID", "派生题不存在。"
+                )
+            question = locked
+        if question_is_protected(self.session, question.id):
+            raise QuestionAdaptationError(
+                "QUESTION_REFERENCED_IMMUTABLE",
+                "发布或历史引用保护期间不能改变父题来源。",
+            )
+        if question.status in {QuestionStatus.APPROVED, QuestionStatus.PUBLISHED}:
+            raise QuestionAdaptationError(
+                "QUESTION_APPROVED_IMMUTABLE",
+                "已审核题须先合法退回修订再改变父题来源。",
+            )
         self.check_edge(
             course_id=snapshot.course_id,
             derived_question_id=question.id,
@@ -215,9 +251,11 @@ class QuestionAdaptationService:
                 file_id=source["file_id"],
                 asset_type=source["asset_type"],
                 source_page_id=source["source_page_id"],
-                region=PixelRegion.model_validate(source["region"])
-                if source["region"]
-                else None,
+                region=(
+                    PixelRegion.model_validate(source["region"])
+                    if source["region"]
+                    else None
+                ),
                 caption=source["caption"],
                 student_visible=False,
             )

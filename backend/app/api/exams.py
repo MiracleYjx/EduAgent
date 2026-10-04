@@ -31,6 +31,7 @@ from backend.app.services.exam_service import (
     ExamConflictError,
     ExamNotFoundError,
     ExamPermissionError,
+    ExamPublishedImmutableError,
     ExamService,
     ExamServiceError,
     ExamSummary,
@@ -206,6 +207,15 @@ def _exam_http_exception(error: BaseException) -> HTTPException:
 
     if isinstance(error, AssemblyError):
         return HTTPException(status_code=error.http_status, detail=error.as_detail())
+    if isinstance(error, ExamPublishedImmutableError):
+        return HTTPException(
+            status_code=409,
+            detail={
+                "code": error.code,
+                "message": str(error),
+                "current_status": error.current_status.value,
+            },
+        )
     if isinstance(error, ExamNotFoundError):
         code = status.HTTP_404_NOT_FOUND
     elif isinstance(error, ExamPermissionError):

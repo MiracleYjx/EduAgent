@@ -1195,7 +1195,9 @@ class SubmissionService:
             .where(Exam.id == normalized_id)
         )
         if for_update:
-            statement = statement.with_for_update()
+            statement = statement.with_for_update().execution_options(
+                populate_existing=True
+            )
         try:
             exam = self.session.scalar(statement)
         except SQLAlchemyError as exc:

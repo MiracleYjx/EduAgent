@@ -13,7 +13,6 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from backend.app.domain.enums import (
-    ExamStatus,
     ExtractedQuestionStatus,
     PaperImportStatus,
     QuestionStatus,
@@ -24,7 +23,6 @@ from backend.app.models import (
     Question,
     QuestionAsset,
     SourcePage,
-    Submission,
 )
 from backend.app.schemas.image_assessment import advance_image_context
 from backend.app.schemas.paper_import import PixelRegion, StagedAsset
@@ -49,6 +47,7 @@ from backend.app.services.question_asset_access import (
     visible_question_assets,
 )
 from backend.app.services.question_scoring_invalidation import bump_question_validation
+from backend.app.services.reference_lifecycle import lock_course, question_is_protected
 
 
 def actual_image(content: bytes) -> Image.Image:
@@ -87,11 +86,14 @@ class QuestionAssetService:
         record = self.session.get(Question, identity)
         if record is None:
             raise FileStorageError("FILE_NOT_FOUND", "正式题不存在。", http_status=404)
-        self._teacher(record.course_id, actor_id)
+        course = lock_course(self.session, record.course_id)
+        if course is None:
+            raise FileStorageError("FILE_NOT_FOUND", "正式题所属课程不存在。", http_status=404)
+        self._teacher(course.id, actor_id)
         record = self.session.scalars(select(Question).where(Question.id == identity).with_for_update().execution_options(populate_existing=True)).one()
         if writing:
-            if any(exam.status in {ExamStatus.PUBLISHED, ExamStatus.CLOSED, ExamStatus.ARCHIVED} or self.session.scalar(select(Submission.id).where(Submission.exam_id == exam.id).limit(1)) is not None for exam in record.exams):
-                raise FileStorageError("QUESTION_PUBLISHED_IMMUTABLE", "发布或历史引用保护期间不能修改题图。", current_status=record.status.value)
+            if question_is_protected(self.session, record.id):
+                raise FileStorageError("QUESTION_REFERENCED_IMMUTABLE", "发布或历史引用保护期间不能修改题图。", current_status=record.status.value)
             if record.status in {QuestionStatus.APPROVED, QuestionStatus.PUBLISHED}:
                 raise FileStorageError("QUESTION_APPROVED_IMMUTABLE", "已审核题须先合法退回修订再修改题图。", current_status=record.status.value)
         return record
@@ -266,8 +268,8 @@ class QuestionAssetService:
         return view
 
     def prepare_question_link(self, question_id: UUID | str, payload: AssetLinkRequest, *, actor_id: UUID) -> tuple[QuestionAssetView, StoredFile]:
-        content, image, operation = self._source(payload, actor_id)
         question = self._question(UUID(str(question_id)), actor_id, writing=True)
+        content, image, operation = self._source(payload, actor_id)
         if len(question.assets) >= 5:
             raise FileStorageError("QUESTION_ASSET_LIMIT", "每题最多关联五图。", http_status=422)
         if payload.source_page_id is not None:

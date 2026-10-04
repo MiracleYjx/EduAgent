@@ -17,6 +17,7 @@ from backend.app.services.course_service import (
     CourseConflictError,
     CourseNotFoundError,
     CoursePermissionError,
+    CourseReferencedImmutableError,
     CourseService,
     CourseServiceError,
     CourseSummary,
@@ -126,6 +127,11 @@ CourseDeleter = Annotated[
 def _course_http_exception(error: BaseException) -> HTTPException:
     """将课程服务异常转换为统一的中文 HTTP 错误。"""
 
+    if isinstance(error, CourseReferencedImmutableError):
+        return HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail={"code": error.code, "message": str(error), "current_status": None},
+        )
     if isinstance(error, CourseNotFoundError):
         code = status.HTTP_404_NOT_FOUND
     elif isinstance(error, CoursePermissionError):
