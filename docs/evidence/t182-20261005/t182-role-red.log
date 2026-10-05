@@ -1,0 +1,20 @@
+...F                                                                     [100%]
+================================== FAILURES ===================================
+___________ test_wrong_role_cannot_load_extended_teacher_statistics ___________
+
+    def test_wrong_role_cannot_load_extended_teacher_statistics():
+        from backend.app.ui import results_view as view
+        called=[]
+        view.configure_results_loaders(teacher_summary_loader=lambda *args: called.append(args) or {'eligible_count':99})
+        try:
+            values=view.refresh_teacher_panel('c','e',{'access_token':'token','roles':['Student'],'user_id':'s'})
+>           assert called==[] and '暂无考情' in values[16]
+E           AssertionError: assert ([('c', 'e', {...er_id': 's'})] == []
+E             
+E             Left contains one more item: ('c', 'e', {'access_token': 'token', 'roles': ['Student'], 'user_id': 's'})
+E             Use -v to get more diff)
+
+tests\unit\ui\test_results_analysis_view.py:125: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/unit/ui/test_results_analysis_view.py::test_wrong_role_cannot_load_extended_teacher_statistics
+1 failed, 3 passed in 7.04s

@@ -16,6 +16,15 @@ import gradio as gr
 from backend.app.domain.enums import UserRole
 from backend.app.domain.permissions import PermissionDeniedError, normalize_role
 from backend.app.ui.layout_view import empty_state, feedback, status_text
+from backend.app.ui.results_analysis import (
+    ANSWER_DETAIL_HEADERS,
+    ATTENTION_HEADERS,
+    DISTRIBUTION_HEADERS,
+    KNOWLEDGE_STAT_HEADERS,
+    QUESTION_STAT_HEADERS,
+    teacher_analysis_values,
+    teacher_answer_rows,
+)
 from backend.app.ui.results_diagnosis import (
     MASTERY_HEADERS,
     MASTERY_TABLE_DATATYPES,
@@ -91,6 +100,13 @@ class TeacherResultsView:
     review_context: gr.State
     review_button: gr.Button
     message: gr.Markdown
+    analysis_overview: gr.Markdown
+    score_distribution: gr.Dataframe
+    question_statistics: gr.Dataframe
+    knowledge_statistics: gr.Dataframe
+    attention_table: gr.Dataframe
+    attention_records: gr.State
+    answer_details: gr.Dataframe
 
 
 def _ensure_student(state: Mapping[str, Any]) -> None:
@@ -384,6 +400,8 @@ def _empty_teacher_panel_values() -> tuple[Any, ...]:
         None,
         gr.update(interactive=False),
         empty_state(TEACHER_UNAVAILABLE_MESSAGE),
+        *teacher_analysis_values(None),
+        [],
     )
 
 
@@ -483,6 +501,11 @@ def _load_teacher_summary(
 ) -> tuple[Any | None, str]:
     """读取服务端统计及其未就绪说明。"""
 
+    if state is not None:
+        try:
+            _ensure_teacher(state)
+        except PermissionDeniedError as error:
+            return None, feedback(str(error), "error")
     if _teacher_summary_loader is None:
         return None, empty_state(TEACHER_UNAVAILABLE_MESSAGE)
     try:
@@ -509,9 +532,10 @@ def refresh_teacher_panel(
     values[1] = list(records)
     values[2:6] = list(teacher_summary_values(summary))
     values[6] = gr.update(visible=not bool(records))
-    values[-1] = availability or summary_message
-    if not values[-1] and not records:
-        values[-1] = empty_state(TEACHER_STUDENT_EMPTY_MESSAGE)
+    values[15] = availability or summary_message
+    if not values[15] and not records:
+        values[15] = empty_state(TEACHER_STUDENT_EMPTY_MESSAGE)
+    values[16:22] = teacher_analysis_values(summary)
     return tuple(values)
 
 
@@ -545,8 +569,15 @@ def select_teacher_result(
             None,
             gr.update(interactive=False),
             feedback(str(error), "error"),
+            [],
         )
 
+    return _select_teacher_record(record, exam_id, state)
+
+
+def _select_teacher_record(
+    record: Any, exam_id: str | None, state: Mapping[str, Any] | None
+) -> tuple[Any, ...]:
     context = review_context_for_record(record)
     is_reviewable = _record_has_pending_review(record) and _has_review_context(context)
     student_name = _first_value(record, ("student_name", "student"), None)
@@ -581,6 +612,14 @@ def select_teacher_result(
             )
             diagnosis = f"{weak_points}\n\n{diagnosis_detail}"
 
+    details = None
+    if _teacher_submission_loader is not None:
+        try:
+            details = _teacher_submission_loader(
+                exam_id, _value(record, "submission_id"), student_id, state
+            )
+        except Exception:  # noqa: BLE001 - read failure remains unavailable
+            details = None
     return (
         f"**当前学生：** {_display_value(student_display)}",
         diagnosis,
@@ -596,7 +635,53 @@ def select_teacher_result(
             if is_reviewable
             else feedback("当前学生暂无可进入阅卷复核的完整待复核结果。", "info")
         ),
+        teacher_answer_rows(details),
     )
+
+
+def select_teacher_attention(
+    records: Sequence[Any],
+    attention: Sequence[Any],
+    exam_id: str | None,
+    state: Mapping[str, Any] | None,
+    event: gr.SelectData,
+) -> tuple[Any, ...]:
+    try:
+        _ensure_teacher(state or {})
+        index = (
+            event.index[0] if isinstance(event.index, (tuple, list)) else event.index
+        )
+        if (
+            not event.selected
+            or not isinstance(index, int)
+            or isinstance(index, bool)
+            or not 0 <= index < len(attention)
+        ):
+            raise ValueError("关注项选择已失效，请刷新。")
+        item = attention[index]
+        submission_id = _value(item, "submission_id")
+        record = next(
+            (
+                r
+                for r in records
+                if submission_id and _value(r, "submission_id") == submission_id
+            ),
+            None,
+        )
+        if record is None:
+            raise ValueError("该关注学生尚无可查看的答卷。")
+        return _select_teacher_record(record, exam_id, state)
+    except (PermissionDeniedError, TypeError, ValueError) as error:
+        return (
+            empty_state("尚未选择学生。"),
+            empty_state(TEACHER_DIAGNOSIS_EMPTY_MESSAGE),
+            [],
+            gr.update(visible=True),
+            None,
+            gr.update(interactive=False),
+            feedback(str(error), "error"),
+            [],
+        )
 
 
 def create_results_view(session_state: Any | None = None) -> ResultsView:
@@ -646,9 +731,7 @@ def create_results_view(session_state: Any | None = None) -> ResultsView:
             with gr.Tab("错题与诊断"), gr.Row(equal_height=False):
                 with gr.Column(scale=1):
                     gr.Markdown("### 薄弱知识点")
-                    weak_points = gr.Markdown(
-                        empty_state("暂无可展示的掌握度数据。")
-                    )
+                    weak_points = gr.Markdown(empty_state("暂无可展示的掌握度数据。"))
                     mastery_table = gr.Dataframe(
                         headers=list(MASTERY_HEADERS),
                         datatype=list(MASTERY_TABLE_DATATYPES),
@@ -747,6 +830,7 @@ _teacher_exams_loader: Any | None = None
 #: 教师考试统计与所选学生诊断接线点；统计由服务端产生，诊断只读持久化报告。
 _teacher_summary_loader: Any | None = None
 _teacher_diagnosis_loader: Any | None = None
+_teacher_submission_loader: Any | None = None
 
 #: 学生诊断接线点：返回已持久化诊断报告；只读，不触发生成与 LLM 调用。
 _student_diagnosis_loader: Any | None = None
@@ -764,6 +848,7 @@ def configure_results_loaders(
     teacher_loader: Any | None = None,
     teacher_summary_loader: Any | None = None,
     teacher_diagnosis_loader: Any | None = None,
+    teacher_submission_loader: Any | None = None,
 ) -> None:
     """注入结果查询接线点（传 ``None`` 表示恢复空态）。
 
@@ -776,7 +861,7 @@ def configure_results_loaders(
 
     global _student_result_loader, _student_diagnosis_loader
     global _teacher_courses_loader, _teacher_exams_loader, _teacher_results_loader
-    global _teacher_summary_loader, _teacher_diagnosis_loader
+    global _teacher_summary_loader, _teacher_diagnosis_loader, _teacher_submission_loader
     _student_result_loader = student_loader
     _student_diagnosis_loader = student_diagnosis_loader
     _teacher_courses_loader = teacher_courses_loader
@@ -784,13 +869,17 @@ def configure_results_loaders(
     _teacher_results_loader = teacher_loader
     _teacher_summary_loader = teacher_summary_loader
     _teacher_diagnosis_loader = teacher_diagnosis_loader
+    _teacher_submission_loader = teacher_submission_loader
 
 
 def student_result_rows(payload: Mapping[str, Any] | Any) -> list[list[str]]:
     """把服务返回的逐题 ``items`` 映射为四列表格行；总分统计不混入表格。"""
 
     items = _value(payload, "items", []) or []
-    mistakes = {str(answer_id) for answer_id in (_value(payload, "mistake_answer_ids", []) or [])}
+    mistakes = {
+        str(answer_id)
+        for answer_id in (_value(payload, "mistake_answer_ids", []) or [])
+    }
     rows: list[list[str]] = []
     for item in items:
         answer_id = str(_first_value(item, ("answer_id",), ""))
@@ -804,16 +893,20 @@ def student_result_rows(payload: Mapping[str, Any] | Any) -> list[list[str]]:
         if feedback_text in (None, ""):
             suggestions = _value(item, "suggestions", []) or []
             feedback_text = "；".join(str(value) for value in suggestions) or "未提供"
-        rows.append([
-            question,
-            result_status_text(status) if status is not None else "未提供",
-            _display_value(score, "未评分"),
-            _display_value(feedback_text),
-        ])
+        rows.append(
+            [
+                question,
+                result_status_text(status) if status is not None else "未提供",
+                _display_value(score, "未评分"),
+                _display_value(feedback_text),
+            ]
+        )
     return rows
 
 
-def student_summary_values(payload: Mapping[str, Any] | Any | None) -> tuple[str, str, str]:
+def student_summary_values(
+    payload: Mapping[str, Any] | Any | None,
+) -> tuple[str, str, str]:
     """把服务提供的总分、已评分题数和待复核题数映射到摘要区域。"""
 
     if payload is None:
@@ -822,9 +915,12 @@ def student_summary_values(payload: Mapping[str, Any] | Any | None) -> tuple[str
     total = _value(payload, "total_score", None)
     graded = _value(payload, "graded_answer_count", None)
     pending = _value(payload, "pending_review_count", None)
-    awaiting_review = _is_pending_review(_value(payload, "result_status", None)) or bool(pending)
+    awaiting_review = _is_pending_review(
+        _value(payload, "result_status", None)
+    ) or bool(pending)
     total_text = (
-        _display_value(total, "暂无最终成绩") if is_final
+        _display_value(total, "暂无最终成绩")
+        if is_final
         else "待复核，暂无最终总分" if awaiting_review else "暂无最终成绩"
     )
     return (
@@ -924,6 +1020,47 @@ def create_teacher_results_view(
                 elem_classes="teacher-summary",
             )
         gr.Markdown("平均分仅统计服务返回的最终成绩，待复核分数不计入。")
+        analysis_overview = gr.Markdown(teacher_analysis_values(None)[0])
+        with gr.Tabs():
+            with gr.Tab("最终分数分布"):
+                score_distribution = gr.Dataframe(
+                    headers=list(DISTRIBUTION_HEADERS),
+                    datatype=["str"] * len(DISTRIBUTION_HEADERS),
+                    interactive=False,
+                    label="最终分数分布",
+                    value=[],
+                )
+            with gr.Tab("逐题得分率"):
+                question_statistics = gr.Dataframe(
+                    headers=list(QUESTION_STAT_HEADERS),
+                    datatype=["str"] * len(QUESTION_STAT_HEADERS),
+                    interactive=False,
+                    label="逐题统计及真实分母",
+                    value=[],
+                    wrap=True,
+                )
+            with gr.Tab("发布知识点失分"):
+                knowledge_statistics = gr.Dataframe(
+                    headers=list(KNOWLEDGE_STAT_HEADERS),
+                    datatype=["str"] * len(KNOWLEDGE_STAT_HEADERS),
+                    interactive=False,
+                    label="整场知识点统计",
+                    value=[],
+                    wrap=True,
+                )
+            with gr.Tab("关注学生"):
+                gr.Markdown(
+                    "选中关注项可查看实际答卷；尚无答卷者明确说明，有待复核项时启用下方复核入口。"
+                )
+                attention_table = gr.Dataframe(
+                    headers=list(ATTENTION_HEADERS),
+                    datatype=["str"] * len(ATTENTION_HEADERS),
+                    interactive=False,
+                    label="关注学生与真实原因",
+                    value=[],
+                    wrap=True,
+                )
+                attention_records = gr.State([])
         result_records = gr.State([])
         review_context = gr.State(None)
         with gr.Row(equal_height=False, elem_classes="teacher-main"):
@@ -962,13 +1099,21 @@ def create_teacher_results_view(
                 selected_student = gr.Markdown(empty_state("尚未选择学生。"))
                 diagnosis = gr.Markdown(empty_state(TEACHER_DIAGNOSIS_EMPTY_MESSAGE))
                 gr.Markdown("诊断只展示服务返回的已确认结果；待复核结果不会生成诊断。")
+        answer_details = gr.Dataframe(
+            headers=list(ANSWER_DETAIL_HEADERS),
+            datatype=["str"] * len(ANSWER_DETAIL_HEADERS),
+            interactive=False,
+            label="所选实际答卷（未选择或读取不可用时为空）",
+            value=[],
+            wrap=True,
+        )
         with gr.Row(equal_height=False):
             with gr.Column(
                 scale=55,
                 min_width=0,
                 elem_classes="teacher-knowledge-column",
             ):
-                gr.Markdown("### 知识点分布图")
+                gr.Markdown("### 所选学生知识点掌握度")
                 knowledge_plot_empty = gr.Markdown(
                     empty_state(TEACHER_KNOWLEDGE_EMPTY_MESSAGE),
                     elem_classes="teacher-knowledge-empty",
@@ -979,7 +1124,7 @@ def create_teacher_results_view(
                     visible=False,
                 )
             with gr.Column(scale=45, min_width=0):
-                gr.Markdown("### 知识点分布数据")
+                gr.Markdown("### 所选学生掌握度数据")
                 knowledge_table = gr.Dataframe(
                     headers=list(KNOWLEDGE_POINT_HEADERS),
                     datatype=("str", "number"),
@@ -1008,7 +1153,30 @@ def create_teacher_results_view(
             review_context,
             review_button,
             message,
+            analysis_overview,
+            score_distribution,
+            question_statistics,
+            knowledge_statistics,
+            attention_table,
+            attention_records,
+            answer_details,
         ]
+        selection_outputs = [
+            selected_student,
+            diagnosis,
+            knowledge_table,
+            knowledge_table_empty,
+            review_context,
+            review_button,
+            message,
+            answer_details,
+        ]
+        attention_table.select(
+            select_teacher_attention,
+            inputs=[result_records, attention_records, exam, state],
+            outputs=selection_outputs,
+            show_progress="hidden",
+        )
         results_table.select(
             select_teacher_result,
             inputs=[result_records, exam, state],
@@ -1020,6 +1188,7 @@ def create_teacher_results_view(
                 review_context,
                 review_button,
                 message,
+                answer_details,
             ],
             show_progress="hidden",
         )
@@ -1061,6 +1230,13 @@ def create_teacher_results_view(
         review_context=review_context,
         review_button=review_button,
         message=message,
+        analysis_overview=analysis_overview,
+        score_distribution=score_distribution,
+        question_statistics=question_statistics,
+        knowledge_statistics=knowledge_statistics,
+        attention_table=attention_table,
+        attention_records=attention_records,
+        answer_details=answer_details,
     )
 
 

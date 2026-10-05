@@ -24,7 +24,7 @@ from backend.app.api.results import (
 from backend.app.api.reviews import DEFAULT_PAGE_SIZE, ReviewQueryService
 from backend.app.core.database import get_session_factory
 from backend.app.domain.enums import ReviewStatus
-from backend.app.models import User
+from backend.app.models import Answer, ExamQuestion, Submission, User
 from backend.app.schemas.grading import (
     DiagnosisReportDTO,
     StudentResultSummaryDTO,
@@ -213,6 +213,50 @@ def load_teacher_diagnosis(
     return report, bool(result.is_final)
 
 
+def load_teacher_submission(
+    exam_id: str | None,
+    submission_id: str | None,
+    student_id: str | None,
+    state: Mapping[str, Any] | None = None,
+) -> dict[str, Any] | None:
+    """Authorize the actual teacher/exam/submission before reading original answers."""
+    actor = state_user_id(state)
+    if not actor or not exam_id or not submission_id:
+        return None
+    result = build_production_results_query_service().get_teacher_student_result(
+        actor, exam_id, submission_id
+    )
+    if student_id and result.student_id != student_id:
+        return None
+    with get_session_factory()() as session:
+        submission = session.get(Submission, UUID(submission_id))
+        if submission is None or str(submission.exam_id) != exam_id:
+            return None
+        positions = {
+            str(qid): order
+            for qid, order in session.execute(
+                select(ExamQuestion.question_id, ExamQuestion.order_index).where(
+                    ExamQuestion.exam_id == submission.exam_id
+                )
+            )
+        }
+        answers = list(
+            session.scalars(select(Answer).where(Answer.submission_id == submission.id))
+        )
+        return {
+            "result": result,
+            "answers": {str(a.id): a.content for a in answers},
+            "answer_metadata": [
+                {
+                    "answer_id": str(a.id),
+                    "order": positions.get(str(a.question_id)),
+                    "status": a.status.value,
+                }
+                for a in answers
+            ],
+        }
+
+
 def _exam_belongs_to_course(
     teacher_id: str,
     course_id: str,
@@ -269,10 +313,7 @@ def _pending_review_contexts(
         )
         for item in page.items:
             submission_id = str(item.submission_id)
-            if (
-                submission_id not in pending_submissions
-                or submission_id in contexts
-            ):
+            if submission_id not in pending_submissions or submission_id in contexts:
                 continue
             detail = query.get_answer_detail(
                 teacher_id,
@@ -307,6 +348,7 @@ def configure_production_results_loaders() -> None:
         teacher_loader=load_teacher_results,
         teacher_summary_loader=load_teacher_summary,
         teacher_diagnosis_loader=load_teacher_diagnosis,
+        teacher_submission_loader=load_teacher_submission,
     )
 
 

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="4" time="7.033" timestamp="2026-10-05T12:56:07.008758+08:00" hostname="YJX"><testcase classname="tests.unit.ui.test_results_analysis_view" name="test_service_statistics_are_displayed_without_recounting" time="0.001" /><testcase classname="tests.unit.ui.test_results_analysis_view" name="test_zero_observation_stays_unknown_and_clears_tables" time="0.000" /><testcase classname="tests.unit.ui.test_results_analysis_view" name="test_actual_answers_keep_zero_and_unknown_without_computing_loss" time="0.001" /><testcase classname="tests.unit.ui.test_results_analysis_view" name="test_wrong_role_cannot_load_extended_teacher_statistics" time="6.559"><failure message="AssertionError: assert ([('c', 'e', {...er_id': 's'})] == []&#10;  &#10;  Left contains one more item: ('c', 'e', {'access_token': 'token', 'roles': ['Student'], 'user_id': 's'})&#10;  Use -v to get more diff)">def test_wrong_role_cannot_load_extended_teacher_statistics():
+        from backend.app.ui import results_view as view
+        called=[]
+        view.configure_results_loaders(teacher_summary_loader=lambda *args: called.append(args) or {'eligible_count':99})
+        try:
+            values=view.refresh_teacher_panel('c','e',{'access_token':'token','roles':['Student'],'user_id':'s'})
+&gt;           assert called==[] and '暂无考情' in values[16]
+E           AssertionError: assert ([('c', 'e', {...er_id': 's'})] == []
+E             
+E             Left contains one more item: ('c', 'e', {'access_token': 'token', 'roles': ['Student'], 'user_id': 's'})
+E             Use -v to get more diff)
+
+tests\unit\ui\test_results_analysis_view.py:125: AssertionError</failure></testcase></testsuite></testsuites>
