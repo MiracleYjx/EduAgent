@@ -14,6 +14,7 @@ from typing import Any, Literal, TypedDict, cast
 from uuid import UUID
 
 import gradio as gr
+from gradio.helpers import special_args
 from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -788,7 +789,9 @@ def _create_teacher_dashboard_view(
 
     state = session_state or gr.State(empty_login_state())
     initial_payload = _dashboard_unavailable_payload()
-    with gr.Column(visible=False, elem_classes="edu-teacher-dashboard") as panel:
+    with gr.Column(
+        visible=False, elem_classes=["edu-teacher-dashboard", "edu-business-page"]
+    ) as panel:
         gr.HTML(
             "<style>"
             ".edu-teacher-dashboard .dashboard-title-row {align-items:center;}"
@@ -1416,7 +1419,7 @@ def refresh_student_dashboard(
             submissions,
             None,
             course_names,
-            message="可参加考试和本人答卷数据已加载；成绩与诊断服务暂未就绪。",
+            message="可参加考试和本人答卷已加载；首页成绩摘要暂不可用，请进入“成绩与诊断”查看详细结果。",
         )
     except (
         PermissionDeniedError,
@@ -1528,7 +1531,9 @@ def _create_student_dashboard_view(
 
     state = session_state or gr.State(empty_login_state())
     initial_payload = _student_dashboard_unavailable_payload()
-    with gr.Column(visible=False, elem_classes="edu-student-dashboard") as panel:
+    with gr.Column(
+        visible=False, elem_classes=["edu-student-dashboard", "edu-business-page"]
+    ) as panel:
         gr.HTML(
             "<style>"
             ".edu-student-dashboard .student-dashboard-title-row {align-items:center;}"
@@ -2576,9 +2581,20 @@ def create_gradio_app() -> gr.Blocks:
         view_functions = list(demo.fns.values())
         for block_fn in view_functions:
             if block_fn.fn is not None and session_state in block_fn.inputs:
-                block_fn.fn = _guard_view_callback(
-                    block_fn.fn, block_fn.inputs.index(session_state)
+                # Gradio injects SelectData/Request/Progress before calling a
+                # callback; authenticate the state at its resulting position.
+                marker = object()
+                arguments: list[Any] = [None] * len(block_fn.inputs)
+                arguments[block_fn.inputs.index(session_state)] = marker
+                injected, _, _, _ = special_args(
+                    block_fn.fn,
+                    arguments,
+                    event_data=gr.EventData(None, {"index": 0, "value": None}),
                 )
+                state_index = next(
+                    index for index, value in enumerate(injected) if value is marker
+                )
+                block_fn.fn = _guard_view_callback(block_fn.fn, state_index)
 
         def transition_navigation(
             navigation: Mapping[str, Any] | None,

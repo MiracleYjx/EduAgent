@@ -413,7 +413,7 @@ def _knowledge_base_context(
         selected.id,
         selected.name,
         selected.description or "",
-        f"已选知识库：{escape(selected.name)}\n\n资料数量由文件摄取链路提供。",
+        f"已选知识库：{escape(selected.name)}\n\n简介：{escape(selected.description or "未填写")}\n\n资料数量由文件摄取链路提供。",
         [],
     )
 
@@ -455,6 +455,7 @@ def select_course_by_id(
             )
         detail = (
             f"已选课程：{escape(str(record.get('name', '')))}\n\n"
+            f"简介：{escape(str(record.get('description') or '未填写'))}\n\n"
             f"已绑定知识库：{record.get('knowledge_base_count', 0)} 个"
         )
         return (
@@ -711,7 +712,9 @@ def create_knowledge_base_view(session_state: Any | None = None) -> KnowledgeBas
     """创建课程管理和知识库工作区。"""
 
     state = session_state or gr.State(_empty_state())
-    with gr.Column(visible=False) as panel:
+    with gr.Column(
+        visible=False, elem_id="edu-knowledge", elem_classes="edu-business-page"
+    ) as panel:
         gr.Markdown("## 课程与知识库")
         course_records = gr.State([])
         selected_course_id = gr.Textbox(visible=False, container=False)
@@ -722,8 +725,20 @@ def create_knowledge_base_view(session_state: Any | None = None) -> KnowledgeBas
                 placeholder="按课程名称或简介搜索",
                 scale=2,
             )
-            refresh_button = gr.Button("刷新课程", variant="secondary", scale=0)
-            new_course_button = gr.Button("新建课程", variant="primary", scale=0)
+            refresh_button = gr.Button(
+                "刷新课程",
+                variant="secondary",
+                scale=0,
+                elem_id="edu-knowledge-refresh",
+                elem_classes="edu-icon",
+            )
+            new_course_button = gr.Button(
+                "新建课程",
+                variant="primary",
+                scale=0,
+                elem_id="edu-course-new",
+                elem_classes="edu-icon",
+            )
             course_picker = gr.Dropdown(
                 choices=[],
                 value=None,
@@ -751,29 +766,60 @@ def create_knowledge_base_view(session_state: Any | None = None) -> KnowledgeBas
                 )
             with gr.Column(scale=35, min_width=0):
                 gr.Markdown("### 课程详情")
-                course_name = gr.Textbox(label="课程名称")
-                course_description = gr.Textbox(label="课程简介", lines=4)
                 course_detail = gr.Markdown(empty_state("请先选择课程。"))
-                with gr.Row():
-                    create_course_button = gr.Button("保存为新课程", variant="primary")
-                    update_course_button = gr.Button("保存课程")
+                with gr.Accordion(
+                    "编辑课程", open=False, elem_id="edu-course-editor"
+                ) as course_editor:
+                    course_name = gr.Textbox(label="课程名称")
+                    course_description = gr.Textbox(label="课程简介", lines=4)
+                    with gr.Row():
+                        create_course_button = gr.Button(
+                            "保存为新课程",
+                            variant="primary",
+                            elem_id="edu-course-create",
+                            elem_classes="edu-icon",
+                        )
+                        update_course_button = gr.Button(
+                            "保存课程",
+                            elem_id="edu-course-save",
+                            elem_classes="edu-icon",
+                        )
+                        cancel_course_button = gr.Button(
+                            "取消课程编辑",
+                            elem_id="edu-course-cancel",
+                            elem_classes="edu-icon",
+                        )
                     delete_course_button = gr.Button("删除课程", variant="stop")
-
                 gr.Markdown("### 知识库详情")
-                knowledge_base_name = gr.Textbox(label="知识库名称")
-                knowledge_base_description = gr.Textbox(label="知识库简介", lines=3)
                 knowledge_base_detail = gr.Markdown(empty_state("请先选择知识库。"))
-                with gr.Row():
-                    create_knowledge_base_button = gr.Button(
-                        "新建知识库", variant="primary"
-                    )
-                    update_knowledge_base_button = gr.Button("保存知识库")
+                with gr.Accordion(
+                    "编辑 / 新建知识库", open=False, elem_id="edu-knowledge-editor"
+                ) as knowledge_editor:
+                    knowledge_base_name = gr.Textbox(label="知识库名称")
+                    knowledge_base_description = gr.Textbox(label="知识库简介", lines=3)
+                    with gr.Row():
+                        create_knowledge_base_button = gr.Button(
+                            "新建知识库",
+                            variant="primary",
+                            elem_id="edu-knowledge-new",
+                            elem_classes="edu-icon",
+                        )
+                        update_knowledge_base_button = gr.Button(
+                            "保存知识库",
+                            elem_id="edu-knowledge-save",
+                            elem_classes="edu-icon",
+                        )
+                        cancel_knowledge_button = gr.Button(
+                            "取消知识库编辑",
+                            elem_id="edu-knowledge-cancel",
+                            elem_classes="edu-icon",
+                        )
                     delete_knowledge_base_button = gr.Button(
                         "删除知识库", variant="stop"
                     )
 
         gr.Markdown("### 课程资料")
-        with gr.Row():
+        with gr.Accordion("上传教学资料", open=False), gr.Row():
             upload_file = gr.File(
                 label="上传资料（PDF / TXT / Markdown）",
                 file_types=[".pdf", ".txt", ".md"],
@@ -978,9 +1024,57 @@ def create_knowledge_base_view(session_state: Any | None = None) -> KnowledgeBas
             ],
         )
 
-        chapter_scope = create_chapter_scope_view(
-            selected_course_id, selected_knowledge_base_id, state
+        cancel_course_button.click(
+            select_course_by_id,
+            inputs=[selected_course_id, course_records, state],
+            outputs=[
+                selected_course_id,
+                course_picker,
+                course_name,
+                course_description,
+                course_detail,
+                knowledge_bases_dropdown,
+                selected_knowledge_base_id,
+                knowledge_base_name,
+                knowledge_base_description,
+                knowledge_base_detail,
+                documents_table,
+                message,
+            ],
+            show_progress="hidden",
+        ).then(
+            lambda: gr.update(open=False),
+            outputs=[course_editor],
+            show_progress="hidden",
         )
+        cancel_knowledge_button.click(
+            select_knowledge_base,
+            inputs=[selected_knowledge_base_id, selected_course_id, state],
+            outputs=[
+                knowledge_bases_dropdown,
+                selected_knowledge_base_id,
+                knowledge_base_name,
+                knowledge_base_description,
+                knowledge_base_detail,
+                documents_table,
+                message,
+            ],
+            show_progress="hidden",
+        ).then(
+            lambda: gr.update(open=False),
+            outputs=[knowledge_editor],
+            show_progress="hidden",
+        )
+        new_course_button.click(
+            lambda: gr.update(open=True),
+            outputs=[course_editor],
+            show_progress="hidden",
+        )
+
+        with gr.Accordion("章/节定位与片段标签", open=False):
+            chapter_scope = create_chapter_scope_view(
+                selected_course_id, selected_knowledge_base_id, state
+            )
 
     return KnowledgeBaseView(
         panel=panel,

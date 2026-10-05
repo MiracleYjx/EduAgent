@@ -808,7 +808,9 @@ def create_exam_view(session_state: Any | None = None) -> ExamView:
         TypeError,
         ValueError,
     )
-    with gr.Column(visible=False) as panel:
+    with gr.Column(
+        visible=False, elem_id="edu-exams", elem_classes="edu-business-page"
+    ) as panel:
         gr.Markdown("## 考试与组卷")
         exam_ids = gr.State([])
         selected_exam = gr.State(None)
@@ -826,8 +828,19 @@ def create_exam_view(session_state: Any | None = None) -> ExamView:
                 ),
                 value="",
             )
-            refresh_button = gr.Button("刷新考试", scale=0)
-            new_button = gr.Button("新建考试", variant="primary", scale=0)
+            refresh_button = gr.Button(
+                "刷新考试",
+                scale=0,
+                elem_id="edu-exams-refresh",
+                elem_classes="edu-icon",
+            )
+            new_button = gr.Button(
+                "新建考试",
+                variant="primary",
+                scale=0,
+                elem_id="edu-exams-new",
+                elem_classes="edu-icon",
+            )
         message = gr.Markdown(empty_state("暂无考试。"))
         exams_table = gr.Dataframe(
             headers=list(EXAM_TABLE_HEADERS),
@@ -841,25 +854,42 @@ def create_exam_view(session_state: Any | None = None) -> ExamView:
             exam_status = gr.Markdown()
             with gr.Tabs(selected="basic") as steps:
                 with gr.Tab("基本信息", id="basic"):
-                    with gr.Row():
-                        edit_course = gr.Dropdown(label="所属课程", choices=[])
-                        title = gr.Textbox(label="考试名称")
-                        duration = gr.Number(
-                            label="时长（分钟，可选）", value=60, minimum=1, precision=0
+                    basic_detail = gr.Markdown(empty_state("请选择考试或新建。"))
+                    with gr.Accordion(
+                        "编辑考试基本信息", open=False, elem_id="edu-exams-editor"
+                    ) as basic_editor:
+                        with gr.Row():
+                            edit_course = gr.Dropdown(label="所属课程", choices=[])
+                            title = gr.Textbox(label="考试名称")
+                            duration = gr.Number(
+                                label="时长（分钟，可选）",
+                                value=60,
+                                minimum=1,
+                                precision=0,
+                            )
+                        description = gr.Textbox(label="考试说明", lines=2)
+                        with gr.Row():
+                            starts_at = gr.DateTime(
+                                label=f"开放开始（{UI_TIMEZONE_LABEL}，可选）",
+                                type="datetime",
+                                timezone="Asia/Shanghai",
+                            )
+                            ends_at = gr.DateTime(
+                                label=f"开放结束（{UI_TIMEZONE_LABEL}，可选）",
+                                type="datetime",
+                                timezone="Asia/Shanghai",
+                            )
+                        save_button = gr.Button(
+                            "保存并选择题目",
+                            variant="primary",
+                            elem_id="edu-exams-save",
+                            elem_classes="edu-icon",
                         )
-                    description = gr.Textbox(label="考试说明", lines=2)
-                    with gr.Row():
-                        starts_at = gr.DateTime(
-                            label=f"开放开始（{UI_TIMEZONE_LABEL}，可选）",
-                            type="datetime",
-                            timezone="Asia/Shanghai",
+                        cancel_basic_button = gr.Button(
+                            "取消基本信息编辑",
+                            elem_id="edu-exams-cancel",
+                            elem_classes="edu-icon",
                         )
-                        ends_at = gr.DateTime(
-                            label=f"开放结束（{UI_TIMEZONE_LABEL}，可选）",
-                            type="datetime",
-                            timezone="Asia/Shanghai",
-                        )
-                    save_button = gr.Button("保存并选择题目", variant="primary")
                 with gr.Tab("选择题目", id="questions"):
                     with gr.Accordion("按条件组卷", open=False):
                         gr.Markdown(
@@ -1125,6 +1155,8 @@ def create_exam_view(session_state: Any | None = None) -> ExamView:
             exam_status,
             steps,
             *fields,
+            basic_detail,
+            basic_editor,
             save_button,
             question_message,
             available.table,
@@ -1230,6 +1262,8 @@ def create_exam_view(session_state: Any | None = None) -> ExamView:
                     candidate_id: None,
                     remove_id: "",
                     editor: gr.update(visible=False),
+                    basic_editor: gr.update(open=False),
+                    basic_detail: empty_state("请选择考试或新建。"),
                     available.table: [],
                     available.ids: [],
                     chosen.table: [],
@@ -1557,6 +1591,12 @@ def create_exam_view(session_state: Any | None = None) -> ExamView:
             result.update(
                 {
                     editor: gr.update(visible=True),
+                    basic_editor: gr.update(open=exam is None),
+                    basic_detail: (
+                        f"### {escape(exam.title)}\n\n{escape(exam.description or '未填写说明')}\n\n时长：{exam.duration_minutes or '未设置'} 分钟 · 开放时间：{exam_opening_label(exam)}"
+                        if exam
+                        else "填写基本信息后保存为草稿。"
+                    ),
                     steps: gr.update(selected=step),
                     selected_exam: exam.id if exam else None,
                     exam_status: (
@@ -1695,6 +1735,18 @@ def create_exam_view(session_state: Any | None = None) -> ExamView:
                 identifier = selected_question_id(event, ids)
                 exam, _ = read_exam(identifier, current_state)
                 return {**form(exam, current_state), message: ""}
+            except errors as error:
+                return {**clear(), message: _format_error(error)}
+
+        def cancel_basic(identifier, current_state):
+            try:
+                if not identifier:
+                    return {**clear(), message: feedback("已取消新建考试。", "info")}
+                exam, _ = read_exam(identifier, current_state)
+                return {
+                    **form(exam, current_state),
+                    message: feedback("已取消编辑，重新读取已保存的考试。", "info"),
+                }
             except errors as error:
                 return {**clear(), message: _format_error(error)}
 
@@ -2323,6 +2375,9 @@ def create_exam_view(session_state: Any | None = None) -> ExamView:
         new_button.click(new, inputs=[filter_course, state], **event_options)
         exams_table.select(select_row, inputs=[exam_ids, state], **event_options)
         save_button.click(save, inputs=[selected_exam, *fields, state], **event_options)
+        cancel_basic_button.click(
+            cancel_basic, inputs=[selected_exam, state], **event_options
+        )
         available.table.select(
             choose_candidate,
             inputs=[available.ids, selected_exam, state],

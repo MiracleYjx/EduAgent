@@ -848,11 +848,15 @@ def create_question_generation_view(
     """创建左条件、右候选与来源折叠区的 AI 出题面板。"""
 
     state = session_state or gr.State(_empty_state())
-    with gr.Column(visible=False, elem_classes="edu-question-generation") as panel:
+    with gr.Column(
+        visible=False,
+        elem_id="edu-generation",
+        elem_classes=["edu-question-generation", "edu-business-page"],
+    ) as panel:
         gr.Markdown("## AI 出题")
         current_course = gr.Markdown(empty_state("尚未选择课程。"))
         with gr.Row():
-            with gr.Column(scale=30, min_width=260):
+            with gr.Column(scale=30, min_width=260, elem_classes="edu-surface"):
                 course = gr.Dropdown(label="课程", choices=[])
                 knowledge_point = gr.Textbox(
                     label="知识点", placeholder="多个知识点用逗号分隔"
@@ -910,8 +914,18 @@ def create_question_generation_view(
                         label="结束小节序号", value=None, precision=0
                     )
                     scope_button = gr.Button("读取当前课程范围与父题")
-                refresh_button = gr.Button("刷新课程", variant="secondary")
-                generate_button = gr.Button("生成候选题", variant="primary")
+                refresh_button = gr.Button(
+                    "刷新课程",
+                    variant="secondary",
+                    elem_id="edu-generation-refresh",
+                    elem_classes="edu-icon",
+                )
+                generate_button = gr.Button(
+                    "生成候选题",
+                    variant="primary",
+                    elem_id="edu-generation-generate",
+                    elem_classes="edu-icon",
+                )
                 status_filter = gr.Dropdown(
                     label="候选状态",
                     choices=status_choices(
@@ -921,9 +935,14 @@ def create_question_generation_view(
                     ),
                     value="",
                 )
-                list_button = gr.Button("刷新候选列表", variant="secondary")
+                list_button = gr.Button(
+                    "刷新候选列表",
+                    variant="secondary",
+                    elem_id="edu-generation-list",
+                    elem_classes="edu-icon",
+                )
                 generation_state = gr.Markdown(empty_state("尚未生成候选题。"))
-            with gr.Column(scale=70, min_width=420):
+            with gr.Column(scale=70, min_width=420, elem_classes="edu-surface"):
                 candidates = gr.Dataframe(
                     headers=list(CANDIDATE_HEADERS),
                     datatype=["str"] * len(CANDIDATE_HEADERS),
@@ -1196,48 +1215,87 @@ def create_question_generation_view(
             ],
             show_progress="hidden",
         )
-        approve_button.click(
-            lambda selected, comment_value, course_value, status_value, current_state: (
-                submit_candidate_review_action(
-                    "approve",
-                    selected,
-                    comment_value,
-                    course_value,
-                    status_value,
-                    current_state,
+        review_outputs = list(
+            dict.fromkeys(
+                [
+                    message,
+                    candidates,
+                    candidate_items,
+                    candidate_preview,
+                    approve_button,
+                    revision_button,
+                    validate_button,
+                    *review_panel.outputs,
+                ]
+            )
+        )
+
+        def review_candidate_ui(
+            action, selected, comment_value, course_value, status_value, current_state
+        ):
+            values = submit_candidate_review_action(
+                action,
+                selected,
+                comment_value,
+                course_value,
+                status_value,
+                current_state,
+            )
+            result = dict(
+                zip(
+                    [
+                        message,
+                        candidates,
+                        candidate_items,
+                        candidate_preview,
+                        approve_button,
+                        revision_button,
+                    ],
+                    values,
+                    strict=True,
                 )
-            ),
+            )
+            refreshed = reload_selected(selected, current_state)
+            result.update(refreshed)
+            # Keep the actual write receipt unless the subsequent read failed.
+            if not refreshed.get(message):
+                result[message] = values[0]
+            return result
+
+        def approve_candidate_ui(
+            selected, comment_value, course_value, status_value, current_state
+        ):
+            return review_candidate_ui(
+                "approve",
+                selected,
+                comment_value,
+                course_value,
+                status_value,
+                current_state,
+            )
+
+        def revision_candidate_ui(
+            selected, comment_value, course_value, status_value, current_state
+        ):
+            return review_candidate_ui(
+                "request_revision",
+                selected,
+                comment_value,
+                course_value,
+                status_value,
+                current_state,
+            )
+
+        approve_button.click(
+            approve_candidate_ui,
             inputs=[selected_candidate, comment, course, status_filter, state],
-            outputs=[
-                message,
-                candidates,
-                candidate_items,
-                candidate_preview,
-                approve_button,
-                revision_button,
-            ],
+            outputs=review_outputs,
             show_progress="hidden",
         )
         revision_button.click(
-            lambda selected, comment_value, course_value, status_value, current_state: (
-                submit_candidate_review_action(
-                    "request_revision",
-                    selected,
-                    comment_value,
-                    course_value,
-                    status_value,
-                    current_state,
-                )
-            ),
+            revision_candidate_ui,
             inputs=[selected_candidate, comment, course, status_filter, state],
-            outputs=[
-                message,
-                candidates,
-                candidate_items,
-                candidate_preview,
-                approve_button,
-                revision_button,
-            ],
+            outputs=review_outputs,
             show_progress="hidden",
         )
 

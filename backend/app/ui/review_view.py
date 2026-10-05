@@ -378,6 +378,7 @@ def _detail_fields(item: Mapping[str, Any] | Any | None) -> tuple[Any, ...]:
     if correct:
         points_text += f"　**答对：** {'、'.join(str(point) for point in correct)}"
     score = _value(item, "score", None)
+    header += f"\n\n**当前评分：** {escape(str(score)) if score is not None else '未知'}\n\n**已保存评分理由：** {escape(str(_value(item, 'reason', '') or '未提供'))}"
     return (
         header,
         str(_value(item, "student_answer", "")),
@@ -545,6 +546,19 @@ def _render_detail_for(
     return _detail_render(item, message)
 
 
+def cancel_review_edit(selected, state):
+    """Discard local inputs and re-read current authorized review without a decision."""
+    try:
+        _ensure_teacher(state)
+    except PermissionDeniedError as error:
+        return _detail_render(None, _error_message(error))
+    if not selected:
+        return _detail_render(None, feedback(NO_SELECTION_MESSAGE, "warning"))
+    return _render_detail_for(
+        selected, state, selected_message="已取消修改，重新读取当前评分。"
+    )
+
+
 def next_review_item(
     selected: Mapping[str, Any] | None,
     queue_items: Sequence[Mapping[str, Any]] | None,
@@ -703,7 +717,11 @@ def create_review_view(session_state: Any | None = None) -> ReviewView:
     """创建教师阅卷复核工作台。"""
 
     state = session_state or gr.State(_empty_state())
-    with gr.Column(visible=False, elem_classes="edu-review") as panel:
+    with gr.Column(
+        visible=False,
+        elem_id="edu-review",
+        elem_classes=["edu-review", "edu-business-page"],
+    ) as panel:
         gr.HTML(
             "<style>.edu-review .review-actions {position:sticky;bottom:0;"
             "z-index:5;background:var(--background-fill-primary);padding:12px 0;}"
@@ -722,7 +740,12 @@ def create_review_view(session_state: Any | None = None) -> ReviewView:
                 label="复核状态",
                 value=ReviewStatus.PENDING_REVIEW.value,
             )
-            refresh = gr.Button("刷新队列", variant="primary")
+            refresh = gr.Button(
+                "刷新队列",
+                variant="primary",
+                elem_id="edu-review-refresh",
+                elem_classes="edu-icon",
+            )
         message = gr.Markdown(empty_state("暂无可复核的评分记录"))
         with gr.Row(equal_height=False):
             with gr.Column(scale=0, min_width=240, elem_classes="review-queue-column"):
@@ -747,13 +770,29 @@ def create_review_view(session_state: Any | None = None) -> ReviewView:
                             interactive=False,
                         )
                     with gr.Column(scale=55):
-                        score = gr.Textbox(
-                            label="分数（十进制）",
-                            value="",
-                            interactive=True,
-                            placeholder="例如 6.675，由服务按规则校验并舍入",
-                        )
-                        reason = gr.Textbox(label="评分理由", lines=5, interactive=True)
+                        with gr.Accordion(
+                            "修改评分", open=False, elem_id="edu-review-editor"
+                        ) as score_editor:
+                            score = gr.Textbox(
+                                label="分数（十进制）",
+                                value="",
+                                interactive=True,
+                                placeholder="例如 6.675，由服务按规则校验并舍入",
+                            )
+                            reason = gr.Textbox(
+                                label="评分理由", lines=5, interactive=True
+                            )
+                            save = gr.Button(
+                                "保存修改",
+                                interactive=False,
+                                elem_id="edu-review-save",
+                                elem_classes="edu-icon",
+                            )
+                            cancel = gr.Button(
+                                "取消评分修改",
+                                elem_id="edu-review-cancel",
+                                elem_classes="edu-icon",
+                            )
                         knowledge_points = gr.Markdown("**知识点：** 暂无")
                         reference_answer = gr.Markdown("**参考答案：** 暂无")
                         scoring_rubric = gr.Markdown("**评分标准：** 暂无")
@@ -763,10 +802,18 @@ def create_review_view(session_state: Any | None = None) -> ReviewView:
                     evidence = gr.Markdown(empty_state("暂无检索依据可展示"))
                 with gr.Row(elem_classes=["review-actions"]):
                     confirm = gr.Button(
-                        "确认评分", variant="primary", interactive=False
+                        "确认评分",
+                        variant="primary",
+                        interactive=False,
+                        elem_id="edu-review-confirm",
+                        elem_classes="edu-icon",
                     )
-                    save = gr.Button("保存修改", interactive=False)
-                    next_item = gr.Button("下一条", interactive=False)
+                    next_item = gr.Button(
+                        "下一条",
+                        interactive=False,
+                        elem_id="edu-review-next",
+                        elem_classes="edu-icon",
+                    )
 
         refresh.click(
             fn=refresh_review_queue,
@@ -796,6 +843,29 @@ def create_review_view(session_state: Any | None = None) -> ReviewView:
             fn=load_selected_review_images,
             inputs=[selected_item, state],
             outputs=[images],
+            show_progress="hidden",
+        )
+        cancel.click(
+            cancel_review_edit,
+            inputs=[selected_item, state],
+            outputs=[
+                detail_header,
+                answer,
+                score,
+                reason,
+                knowledge_points,
+                reference_answer,
+                scoring_rubric,
+                evidence,
+                selected_item,
+                confirm,
+                save,
+                message,
+            ],
+            show_progress="hidden",
+        ).then(
+            lambda: gr.update(open=False),
+            outputs=[score_editor],
             show_progress="hidden",
         )
         _action_outputs_list = [

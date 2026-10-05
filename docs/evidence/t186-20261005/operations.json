@@ -1,0 +1,41 @@
+{
+  "fixture_provenance": "Owned disposable PostgreSQL database; full production Gradio app; actual dev-account JWT/AuthService; synthetic developer execution fixtures; extraction/semantic agents controlled, cloud calls 0; original page actual paper_text.pdf; actual authorized image bytes.",
+  "database": "eduagent_e6accept_c56e592450ce",
+  "candidate": {
+    "id": "f275a712-8d06-4bf8-aed5-3bf3832689ae",
+    "status": "Approved"
+  },
+  "exam": {
+    "description": "T186实际界面保存的考试说明",
+    "question_count": 1
+  },
+  "review": {
+    "score": "7.00",
+    "reason": "T186界面人工复核合成夹具：说明保存数据但缺引用说明",
+    "records": [
+      {
+        "decision": "Modified",
+        "original_score": "6.00",
+        "final_score": "7.00",
+        "final_reason": "T186界面人工复核合成夹具：说明保存数据但缺引用说明"
+      }
+    ],
+    "workflow_status": [
+      "Completed"
+    ]
+  },
+  "extracted": [
+    {
+      "status": "Pending Correction",
+      "notes": "T186实际界面保存核对，答案与解析仍未知",
+      "answer": null,
+      "analysis": null
+    }
+  ],
+  "knowledge_descriptions": [
+    "T186知识库说明已保存",
+    null,
+    null,
+    null
+  ]
+}

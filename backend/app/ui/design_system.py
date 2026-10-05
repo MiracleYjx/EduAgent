@@ -57,6 +57,26 @@ _ACTION_ICONS = {
     "edu-paper-refresh": "refresh",
     "edu-paper-courses": "refresh",
     "edu-paper-upload": "plus",
+    "edu-knowledge-refresh": "refresh",
+    "edu-course-new": "plus",
+    "edu-course-create": "save",
+    "edu-course-save": "save",
+    "edu-course-cancel": "back",
+    "edu-knowledge-new": "plus",
+    "edu-knowledge-save": "save",
+    "edu-knowledge-cancel": "back",
+    "edu-generation-refresh": "refresh",
+    "edu-generation-generate": "sparkles",
+    "edu-generation-list": "refresh",
+    "edu-exams-refresh": "refresh",
+    "edu-exams-new": "plus",
+    "edu-exams-save": "save",
+    "edu-exams-cancel": "back",
+    "edu-review-refresh": "refresh",
+    "edu-review-confirm": "save",
+    "edu-review-save": "save",
+    "edu-review-cancel": "back",
+    "edu-review-next": "exam",
 }
 
 
@@ -248,6 +268,13 @@ DESIGN_SYSTEM_CSS += """
 #edu-root .edu-business-page .edu-status-table th { background: #fafbfc; color: #596579; font-size: 13px; }
 #edu-root .edu-business-page .edu-status-table td { font-size: 13px; line-height: 1.6; }
 #edu-root .edu-business-page .edu-status-table button { min-height: 0; font-size: 13px; }
+#edu-knowledge .block { min-width: 0 !important; }
+#edu-knowledge-refresh, #edu-course-new { flex: 0 0 auto; width: auto; min-width: 100px !important; }
+#edu-root .edu-business-page .gr-accordion > .label-wrap { box-sizing: border-box; }
+#edu-root .edu-business-page .gr-accordion > .label-wrap > .icon { width: 12px; height: 12px; min-width: 0; min-height: 0; }
+#edu-course-editor .row, #edu-knowledge-editor .row { flex-wrap: wrap; }
+#edu-course-editor .row > button, #edu-knowledge-editor .row > button {
+    flex: 0 0 auto; width: auto; min-width: 0 !important; }
 #edu-paper-import .edu-paper-columns { align-items: flex-start; }
 #edu-paper-import .edu-paper-columns > .column { min-width: 0 !important; flex-basis: 360px; }
 #edu-paper-import .edu-paper-preview { white-space: pre-wrap; overflow-wrap: anywhere; }

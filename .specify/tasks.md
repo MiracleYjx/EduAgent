@@ -634,7 +634,7 @@ M0 工程骨架 + Benchmark
 
 - [X] T185 [MEDIUM] [E6] **收敛公共 UI 并验收三页样板**：在 `ui/design_system.py`、`layout_view.py`、`gradio_app.py` 与既有视图复用已存在的主题/图标/列表详情编辑结构，统一字号/间距/按钮/六类业务状态和错误提示；按 spec 的 Ant Design Pro/考试星/Canvas 参考落实实际流程。在导入校正、教师题库或组卷、学生首页或诊断三类代表页保留运行截图/操作记录到 `docs/`，尊重未提交 UI 成果。 依赖：T159、T167、T178、T184。per spec 跨功能UI约束、SC-014、plan Gate 18（F052） (partial)
 
-- [ ] T186 [MEDIUM] [E6] **完成七类业务页面 UI 验收**：将样板规则应用到试卷导入与校正、知识库、AI 出题与审核、组卷与考试、阅卷、教师分析、学生首页与诊断七类页面，逐页验证列表/详情/显式编辑或对应查看操作、保存/取消、角色导航与真实状态，保存 `docs/v2.0-ui-acceptance.md` 及截图；仅补剩余差距，三页样板不代表全 UI 完成，不新增前端技术栈。 依赖：T185。per spec 跨功能UI约束、SC-014、plan Gate 18/19（F053） (partial)
+- [X] T186 [MEDIUM] [E6] **完成七类业务页面 UI 验收**：将样板规则应用到试卷导入与校正、知识库、AI 出题与审核、组卷与考试、阅卷、教师分析、学生首页与诊断七类页面，逐页验证列表/详情/显式编辑或对应查看操作、保存/取消、角色导航与真实状态，保存 `docs/v2.0-ui-acceptance.md` 及截图；仅补剩余差距，三页样板不代表全 UI 完成，不新增前端技术栈。 依赖：T185。per spec 跨功能UI约束、SC-014、plan Gate 18/19（F053） (partial)
 
 - [ ] T187 [HIGH] [E6] **实现 Windows 单机启动器**：新增 `scripts/launch_windows.py`（或 plan 目录约定的等价入口），复用配置、迁移和 readiness：检查用户持久目录/外置模型配置、PostgreSQL/pgvector、Redis及必要网络，确认迁移成功后启动本机 FastAPI/Gradio并在就绪后打开浏览器；失败显示真实步骤，退出仅停止自己启动的应用进程，Docker 原入口保留。 依赖：T147、T151、T170、T179。per FR-052、plan §14/Gate 17、SC-014（F054） (missing)
 
