@@ -1,0 +1,930 @@
+{
+  "api": {
+    "exam_id": "3e1ad55d-030e-4142-8e03-e5e86f6819ff",
+    "submitted_count": 5,
+    "final_count": 2,
+    "pending_review_count": 2,
+    "average_of_final_scores": "4.00",
+    "eligible_count": 6,
+    "participated_count": 5,
+    "draft_count": 0,
+    "not_participated_count": 1,
+    "pending_review_submission_count": 1,
+    "failed_submission_count": 1,
+    "insufficient_evidence_submission_count": 1,
+    "unfinished_submission_count": 0,
+    "participation_scope": "当前启用学生的分配资格人口，独立于当前考试开放时间窗；无分配记录按既有全体开放口径（含无角色旧账号）。已参加按真实答卷去重，保留历史停用/已撤销分配的观测。",
+    "distribution_denominator": 2,
+    "final_score_distribution": [
+      {
+        "score": "0.00",
+        "submission_count": 1
+      },
+      {
+        "score": "8.00",
+        "submission_count": 1
+      }
+    ],
+    "question_statistics": [
+      {
+        "exam_question_id": "a933da16-5d40-426c-8a0e-4001a60f877f",
+        "question_id": "2c277a87-9013-400e-a25f-413260913420",
+        "order": 1,
+        "published_knowledge_points": [
+          "一次函数"
+        ],
+        "max_score": "4.00",
+        "effective_submission_count": 2,
+        "excluded_final_submission_count": 0,
+        "awarded_score": "4.00",
+        "maximum_score": "8.00",
+        "lost_score": "4.00",
+        "score_rate": "0.5000",
+        "not_ready_reason": null
+      },
+      {
+        "exam_question_id": "5b87e943-74e5-407a-96b5-193068e945fc",
+        "question_id": "89498045-adcd-44f1-82ac-f052a04b1d43",
+        "order": 2,
+        "published_knowledge_points": [
+          "一次函数",
+          "表达与计算"
+        ],
+        "max_score": "6.00",
+        "effective_submission_count": 2,
+        "excluded_final_submission_count": 0,
+        "awarded_score": "4.00",
+        "maximum_score": "12.00",
+        "lost_score": "8.00",
+        "score_rate": "0.3333",
+        "not_ready_reason": null
+      }
+    ],
+    "knowledge_point_statistics": [
+      {
+        "knowledge_point": "一次函数",
+        "exam_question_ids": [
+          "a933da16-5d40-426c-8a0e-4001a60f877f",
+          "5b87e943-74e5-407a-96b5-193068e945fc"
+        ],
+        "effective_student_count": 2,
+        "effective_answer_count": 4,
+        "awarded_score": "8.00",
+        "maximum_score": "20.00",
+        "lost_score": "12.00",
+        "score_rate": "0.4000"
+      },
+      {
+        "knowledge_point": "表达与计算",
+        "exam_question_ids": [
+          "5b87e943-74e5-407a-96b5-193068e945fc"
+        ],
+        "effective_student_count": 2,
+        "effective_answer_count": 2,
+        "awarded_score": "4.00",
+        "maximum_score": "12.00",
+        "lost_score": "8.00",
+        "score_rate": "0.3333"
+      }
+    ],
+    "attention_students": [
+      {
+        "student_id": "cc8ca5c0-7027-4981-9db8-cdd4b3cc3612",
+        "submission_id": "90fd2f03-2ba7-4a91-808e-72627a4e637f",
+        "reasons": [
+          "存在已确认的最终失分；明细使用本场固定满分和发布知识点。"
+        ],
+        "answer_ids": [
+          "1a958d2e-5658-45d9-8ec9-feb6453a6b7b"
+        ],
+        "exam_question_ids": [
+          "5b87e943-74e5-407a-96b5-193068e945fc"
+        ],
+        "knowledge_points": [
+          "一次函数",
+          "表达与计算"
+        ],
+        "final_lost_score": "2.00",
+        "error_code": null
+      },
+      {
+        "student_id": "97a2f17b-496f-47a6-97da-3d15bbebf3ef",
+        "submission_id": "560e5353-2876-4c13-b223-932722db8a29",
+        "reasons": [
+          "存在已确认的最终失分；明细使用本场固定满分和发布知识点。"
+        ],
+        "answer_ids": [
+          "6cb2c1c4-7194-4bb9-964e-5c5eb247f853",
+          "5cd020d1-98ef-4ae3-9928-60f9802b11c2"
+        ],
+        "exam_question_ids": [
+          "a933da16-5d40-426c-8a0e-4001a60f877f",
+          "5b87e943-74e5-407a-96b5-193068e945fc"
+        ],
+        "knowledge_points": [
+          "一次函数",
+          "表达与计算"
+        ],
+        "final_lost_score": "10.00",
+        "error_code": null
+      },
+      {
+        "student_id": "a6e87ed1-059c-4603-81ec-0072c5743cb7",
+        "submission_id": "a651e4e0-e445-4f0b-8d55-229cbc08e0eb",
+        "reasons": [
+          "存在待人工复核题目，未形成最终成绩。"
+        ],
+        "answer_ids": [],
+        "exam_question_ids": [],
+        "knowledge_points": [],
+        "final_lost_score": null,
+        "error_code": null
+      },
+      {
+        "student_id": "737a2087-1a6f-447b-818c-9cabc1e70d4f",
+        "submission_id": "1a75df4f-0d29-42a2-bd4b-0095d19cf3a1",
+        "reasons": [
+          "阅卷失败，未记零分或推断知识盲点。"
+        ],
+        "answer_ids": [],
+        "exam_question_ids": [],
+        "knowledge_points": [],
+        "final_lost_score": null,
+        "error_code": "ProviderTimeout"
+      },
+      {
+        "student_id": "b8610647-96fe-4bee-a229-b02fa6bf9889",
+        "submission_id": "8e974d50-ec7f-4960-a017-7525a1540e82",
+        "reasons": [
+          "评分依据不足，未形成最终成绩。"
+        ],
+        "answer_ids": [],
+        "exam_question_ids": [],
+        "knowledge_points": [],
+        "final_lost_score": null,
+        "error_code": "EXAM_SCORING_BASIS_MISSING"
+      },
+      {
+        "student_id": "c7e73b37-f5a6-4ed8-b0dc-5855a3229c4f",
+        "submission_id": null,
+        "reasons": [
+          "当前有分配资格，但尚无开始答卷记录。"
+        ],
+        "answer_ids": [],
+        "exam_question_ids": [],
+        "knowledge_points": [],
+        "final_lost_score": null,
+        "error_code": null
+      }
+    ],
+    "knowledge_point_attribution": "多知识点题在各知识点完整归属；知识点行不可加总成整卷总分。",
+    "statistics_not_ready_reason": null,
+    "not_ready": true,
+    "not_ready_reason": "存在尚无成绩的答卷，统计仅覆盖已生成的结果。"
+  },
+  "checks": [
+    {
+      "metric": "eligible",
+      "state": "matched",
+      "expected": "6",
+      "actual": 6
+    },
+    {
+      "metric": "submitted",
+      "state": "matched",
+      "expected": "5",
+      "actual": 5
+    },
+    {
+      "metric": "valid_final",
+      "state": "matched",
+      "expected": "2",
+      "actual": 2
+    },
+    {
+      "metric": "pending_review",
+      "state": "matched",
+      "expected": "1",
+      "actual": 1
+    },
+    {
+      "metric": "failed",
+      "state": "matched",
+      "expected": "1",
+      "actual": 1
+    },
+    {
+      "metric": "insufficient_evidence",
+      "state": "matched",
+      "expected": "1",
+      "actual": 1
+    },
+    {
+      "metric": "no_submission",
+      "state": "matched",
+      "expected": "1",
+      "actual": 1
+    },
+    {
+      "metric": "participated",
+      "state": "unknown",
+      "expected": "",
+      "actual": null
+    },
+    {
+      "metric": "mean",
+      "state": "matched",
+      "expected": "4.00",
+      "actual": "4.00"
+    },
+    {
+      "metric": "exam_full_score",
+      "state": "matched",
+      "expected": "10.00",
+      "actual": "10.00"
+    },
+    {
+      "metric": "whole_exam_rate",
+      "state": "matched",
+      "expected": "0.4",
+      "actual": "0.4"
+    },
+    {
+      "metric": "question_shared-choice",
+      "state": "matched",
+      "expected": "0.5000",
+      "actual": "0.5000"
+    },
+    {
+      "metric": "question_shared-short",
+      "state": "matched",
+      "expected": "0.3333",
+      "actual": "0.3333"
+    },
+    {
+      "metric": "knowledge_一次函数",
+      "state": "matched",
+      "expected": "0.4000",
+      "actual": "0.4000"
+    },
+    {
+      "metric": "knowledge_表达与计算",
+      "state": "matched",
+      "expected": "0.3333",
+      "actual": "0.3333"
+    },
+    {
+      "metric": "question_loss_shared-choice",
+      "state": "matched",
+      "expected": "4.00",
+      "actual": "4.00"
+    },
+    {
+      "metric": "question_loss_shared-short",
+      "state": "matched",
+      "expected": "8.00",
+      "actual": "8.00"
+    },
+    {
+      "metric": "knowledge_loss_一次函数",
+      "state": "matched",
+      "expected": "12.00",
+      "actual": "12.00"
+    },
+    {
+      "metric": "knowledge_loss_表达与计算",
+      "state": "matched",
+      "expected": "8.00",
+      "actual": "8.00"
+    },
+    {
+      "metric": "distribution_0_to_below_60_percent",
+      "state": "matched",
+      "expected": "1",
+      "actual": 1
+    },
+    {
+      "metric": "distribution_60_to_below_80_percent",
+      "state": "matched",
+      "expected": "0",
+      "actual": 0
+    },
+    {
+      "metric": "distribution_80_to_100_percent",
+      "state": "matched",
+      "expected": "1",
+      "actual": 1
+    },
+    {
+      "metric": "raw_exact_score_distribution",
+      "state": "matched",
+      "expected": {
+        "0.00": 1,
+        "8.00": 1
+      },
+      "actual": {
+        "0.00": 1,
+        "8.00": 1
+      }
+    },
+    {
+      "metric": "whole_exam_lost_sum",
+      "state": "matched",
+      "expected": "12.00",
+      "actual": "12.00"
+    },
+    {
+      "metric": "knowledge_lost_sum_if_wrongly_added",
+      "state": "matched",
+      "expected": "20.00",
+      "actual": "20.00"
+    },
+    {
+      "metric": "duplicate_overlap_loss",
+      "state": "matched",
+      "expected": "8.00",
+      "actual": "8.00"
+    }
+  ],
+  "learning": {
+    "S1": {
+      "processing_status": "final",
+      "processing_error_code": null,
+      "processing_reason": null,
+      "submission_id": "90fd2f03-2ba7-4a91-808e-72627a4e637f",
+      "exam_id": "3e1ad55d-030e-4142-8e03-e5e86f6819ff",
+      "course_id": "1970e820-66ae-42ff-bd81-a97b9fabacb6",
+      "student_id": "cc8ca5c0-7027-4981-9db8-cdd4b3cc3612",
+      "is_final": true,
+      "source_exam_result_updated_at": "2026-10-05T07:05:05.271204Z",
+      "diagnosis": {
+        "exam_result_id": null,
+        "submission_id": "90fd2f03-2ba7-4a91-808e-72627a4e637f",
+        "student_id": "cc8ca5c0-7027-4981-9db8-cdd4b3cc3612",
+        "status": "Not Ready",
+        "mastery_by_knowledge_point": [],
+        "weak_knowledge_points": [],
+        "error_reasons": [],
+        "learning_suggestions": [],
+        "insufficient_evidence_answer_ids": [],
+        "generated_at": null,
+        "source_exam_result_updated_at": "2026-10-05T07:05:05.271204Z",
+        "error_code": "DIAGNOSIS_NOT_READY",
+        "retryable": false,
+        "source_code": null,
+        "attempt_count": null
+      },
+      "items": [
+        {
+          "answer_id": "68c4c639-0f74-45ff-b1c5-a990809da111",
+          "exam_question_id": "a933da16-5d40-426c-8a0e-4001a60f877f",
+          "question_id": "2c277a87-9013-400e-a25f-413260913420",
+          "order": 1,
+          "student_answer": "受控执行答案-S1-1",
+          "score": "4.00",
+          "max_score": "4.00",
+          "lost_score": "0.00",
+          "counted": true,
+          "grading_status": "Accepted",
+          "reason": "受控合成执行评分解释；非教师标注或模型实测。",
+          "published_knowledge_points": [
+            "一次函数"
+          ],
+          "assets": [],
+          "image_unavailable_reason": null
+        },
+        {
+          "answer_id": "1a958d2e-5658-45d9-8ec9-feb6453a6b7b",
+          "exam_question_id": "5b87e943-74e5-407a-96b5-193068e945fc",
+          "question_id": "89498045-adcd-44f1-82ac-f052a04b1d43",
+          "order": 2,
+          "student_answer": "受控执行答案-S1-2",
+          "score": "4.00",
+          "max_score": "6.00",
+          "lost_score": "2.00",
+          "counted": true,
+          "grading_status": "Accepted",
+          "reason": "受控合成执行评分解释；非教师标注或模型实测。",
+          "published_knowledge_points": [
+            "一次函数",
+            "表达与计算"
+          ],
+          "assets": [],
+          "image_unavailable_reason": null
+        }
+      ],
+      "mastery_by_knowledge_point": [
+        {
+          "knowledge_point": "一次函数",
+          "answered_count": 2,
+          "correct_count": 1,
+          "awarded_score": "8.00",
+          "max_score": "10.00",
+          "mastery": "0.80"
+        },
+        {
+          "knowledge_point": "表达与计算",
+          "answered_count": 1,
+          "correct_count": 0,
+          "awarded_score": "4.00",
+          "max_score": "6.00",
+          "mastery": "0.67"
+        }
+      ],
+      "weak_knowledge_points": [],
+      "recommendations": [
+        {
+          "knowledge_point": "一次函数",
+          "answer_ids": [
+            "1a958d2e-5658-45d9-8ec9-feb6453a6b7b"
+          ],
+          "exam_question_ids": [
+            "5b87e943-74e5-407a-96b5-193068e945fc"
+          ],
+          "awarded_score": "8.00",
+          "maximum_score": "10.00",
+          "lost_score": "2.00",
+          "materials": [],
+          "practices": [],
+          "material_not_ready_reason": "没有同课程、Ready 且已确认精确标签的复习片段。",
+          "practice_not_ready_reason": "没有当前已审核、来源完整且必要题图已开放的匹配练习；未知/待补全/未审核题不作补位。",
+          "selection_rule": "精确知识点匹配；按真实身份稳定排序，每类最多3项，无范围外补位。"
+        },
+        {
+          "knowledge_point": "表达与计算",
+          "answer_ids": [
+            "1a958d2e-5658-45d9-8ec9-feb6453a6b7b"
+          ],
+          "exam_question_ids": [
+            "5b87e943-74e5-407a-96b5-193068e945fc"
+          ],
+          "awarded_score": "4.00",
+          "maximum_score": "6.00",
+          "lost_score": "2.00",
+          "materials": [],
+          "practices": [],
+          "material_not_ready_reason": "没有同课程、Ready 且已确认精确标签的复习片段。",
+          "practice_not_ready_reason": "没有当前已审核、来源完整且必要题图已开放的匹配练习；未知/待补全/未审核题不作补位。",
+          "selection_rule": "精确知识点匹配；按真实身份稳定排序，每类最多3项，无范围外补位。"
+        }
+      ],
+      "insufficient_evidence_answer_ids": [],
+      "not_ready_reason": null,
+      "knowledge_point_attribution": "多标签题完整归属各知识点；各行不能加总成整场总分/失分。"
+    },
+    "S2": {
+      "processing_status": "final",
+      "processing_error_code": null,
+      "processing_reason": null,
+      "submission_id": "560e5353-2876-4c13-b223-932722db8a29",
+      "exam_id": "3e1ad55d-030e-4142-8e03-e5e86f6819ff",
+      "course_id": "1970e820-66ae-42ff-bd81-a97b9fabacb6",
+      "student_id": "97a2f17b-496f-47a6-97da-3d15bbebf3ef",
+      "is_final": true,
+      "source_exam_result_updated_at": "2026-10-05T07:05:05.319433Z",
+      "diagnosis": {
+        "exam_result_id": null,
+        "submission_id": "560e5353-2876-4c13-b223-932722db8a29",
+        "student_id": "97a2f17b-496f-47a6-97da-3d15bbebf3ef",
+        "status": "Not Ready",
+        "mastery_by_knowledge_point": [],
+        "weak_knowledge_points": [],
+        "error_reasons": [],
+        "learning_suggestions": [],
+        "insufficient_evidence_answer_ids": [],
+        "generated_at": null,
+        "source_exam_result_updated_at": "2026-10-05T07:05:05.319433Z",
+        "error_code": "DIAGNOSIS_NOT_READY",
+        "retryable": false,
+        "source_code": null,
+        "attempt_count": null
+      },
+      "items": [
+        {
+          "answer_id": "6cb2c1c4-7194-4bb9-964e-5c5eb247f853",
+          "exam_question_id": "a933da16-5d40-426c-8a0e-4001a60f877f",
+          "question_id": "2c277a87-9013-400e-a25f-413260913420",
+          "order": 1,
+          "student_answer": "受控执行答案-S2-1",
+          "score": "0.00",
+          "max_score": "4.00",
+          "lost_score": "4.00",
+          "counted": true,
+          "grading_status": "Accepted",
+          "reason": "受控合成执行评分解释；非教师标注或模型实测。",
+          "published_knowledge_points": [
+            "一次函数"
+          ],
+          "assets": [],
+          "image_unavailable_reason": null
+        },
+        {
+          "answer_id": "5cd020d1-98ef-4ae3-9928-60f9802b11c2",
+          "exam_question_id": "5b87e943-74e5-407a-96b5-193068e945fc",
+          "question_id": "89498045-adcd-44f1-82ac-f052a04b1d43",
+          "order": 2,
+          "student_answer": "受控执行答案-S2-2",
+          "score": "0.00",
+          "max_score": "6.00",
+          "lost_score": "6.00",
+          "counted": true,
+          "grading_status": "Accepted",
+          "reason": "受控合成执行评分解释；非教师标注或模型实测。",
+          "published_knowledge_points": [
+            "一次函数",
+            "表达与计算"
+          ],
+          "assets": [],
+          "image_unavailable_reason": null
+        }
+      ],
+      "mastery_by_knowledge_point": [
+        {
+          "knowledge_point": "一次函数",
+          "answered_count": 2,
+          "correct_count": 0,
+          "awarded_score": "0.00",
+          "max_score": "10.00",
+          "mastery": "0.00"
+        },
+        {
+          "knowledge_point": "表达与计算",
+          "answered_count": 1,
+          "correct_count": 0,
+          "awarded_score": "0.00",
+          "max_score": "6.00",
+          "mastery": "0.00"
+        }
+      ],
+      "weak_knowledge_points": [
+        {
+          "knowledge_point": "一次函数",
+          "reason": "掌握度 0.00 低于阈值 0.60（0.00/10.00）。",
+          "error_count": 2,
+          "awarded_score": "0.00",
+          "max_score": "10.00",
+          "mastery": "0.00"
+        },
+        {
+          "knowledge_point": "表达与计算",
+          "reason": "掌握度 0.00 低于阈值 0.60（0.00/6.00）。",
+          "error_count": 1,
+          "awarded_score": "0.00",
+          "max_score": "6.00",
+          "mastery": "0.00"
+        }
+      ],
+      "recommendations": [
+        {
+          "knowledge_point": "一次函数",
+          "answer_ids": [
+            "6cb2c1c4-7194-4bb9-964e-5c5eb247f853",
+            "5cd020d1-98ef-4ae3-9928-60f9802b11c2"
+          ],
+          "exam_question_ids": [
+            "a933da16-5d40-426c-8a0e-4001a60f877f",
+            "5b87e943-74e5-407a-96b5-193068e945fc"
+          ],
+          "awarded_score": "0",
+          "maximum_score": "10.00",
+          "lost_score": "10.00",
+          "materials": [],
+          "practices": [],
+          "material_not_ready_reason": "没有同课程、Ready 且已确认精确标签的复习片段。",
+          "practice_not_ready_reason": "没有当前已审核、来源完整且必要题图已开放的匹配练习；未知/待补全/未审核题不作补位。",
+          "selection_rule": "精确知识点匹配；按真实身份稳定排序，每类最多3项，无范围外补位。"
+        },
+        {
+          "knowledge_point": "表达与计算",
+          "answer_ids": [
+            "5cd020d1-98ef-4ae3-9928-60f9802b11c2"
+          ],
+          "exam_question_ids": [
+            "5b87e943-74e5-407a-96b5-193068e945fc"
+          ],
+          "awarded_score": "0",
+          "maximum_score": "6.00",
+          "lost_score": "6.00",
+          "materials": [],
+          "practices": [],
+          "material_not_ready_reason": "没有同课程、Ready 且已确认精确标签的复习片段。",
+          "practice_not_ready_reason": "没有当前已审核、来源完整且必要题图已开放的匹配练习；未知/待补全/未审核题不作补位。",
+          "selection_rule": "精确知识点匹配；按真实身份稳定排序，每类最多3项，无范围外补位。"
+        }
+      ],
+      "insufficient_evidence_answer_ids": [],
+      "not_ready_reason": null,
+      "knowledge_point_attribution": "多标签题完整归属各知识点；各行不能加总成整场总分/失分。"
+    },
+    "S3": {
+      "processing_status": "pending_review",
+      "processing_error_code": null,
+      "processing_reason": "存在待人工复核题目，未形成最终成绩。",
+      "submission_id": "a651e4e0-e445-4f0b-8d55-229cbc08e0eb",
+      "exam_id": "3e1ad55d-030e-4142-8e03-e5e86f6819ff",
+      "course_id": "1970e820-66ae-42ff-bd81-a97b9fabacb6",
+      "student_id": "a6e87ed1-059c-4603-81ec-0072c5743cb7",
+      "is_final": false,
+      "source_exam_result_updated_at": "2026-10-05T07:05:05.371694Z",
+      "diagnosis": {
+        "exam_result_id": null,
+        "submission_id": "a651e4e0-e445-4f0b-8d55-229cbc08e0eb",
+        "student_id": "a6e87ed1-059c-4603-81ec-0072c5743cb7",
+        "status": "Not Ready",
+        "mastery_by_knowledge_point": [],
+        "weak_knowledge_points": [],
+        "error_reasons": [],
+        "learning_suggestions": [],
+        "insufficient_evidence_answer_ids": [],
+        "generated_at": null,
+        "source_exam_result_updated_at": "2026-10-05T07:05:05.371694Z",
+        "error_code": "DIAGNOSIS_NOT_READY",
+        "retryable": false,
+        "source_code": null,
+        "attempt_count": null
+      },
+      "items": [],
+      "mastery_by_knowledge_point": [],
+      "weak_knowledge_points": [],
+      "recommendations": [],
+      "insufficient_evidence_answer_ids": [],
+      "not_ready_reason": "存在待人工复核题目，未形成最终成绩。",
+      "knowledge_point_attribution": "多标签题完整归属各知识点；各行不能加总成整场总分/失分。"
+    },
+    "S4": {
+      "processing_status": "failed",
+      "processing_error_code": "ProviderTimeout",
+      "processing_reason": "阅卷失败，未记零分或推断知识盲点。",
+      "submission_id": "1a75df4f-0d29-42a2-bd4b-0095d19cf3a1",
+      "exam_id": "3e1ad55d-030e-4142-8e03-e5e86f6819ff",
+      "course_id": "1970e820-66ae-42ff-bd81-a97b9fabacb6",
+      "student_id": "737a2087-1a6f-447b-818c-9cabc1e70d4f",
+      "is_final": false,
+      "source_exam_result_updated_at": null,
+      "diagnosis": {
+        "exam_result_id": null,
+        "submission_id": "1a75df4f-0d29-42a2-bd4b-0095d19cf3a1",
+        "student_id": "737a2087-1a6f-447b-818c-9cabc1e70d4f",
+        "status": "Not Ready",
+        "mastery_by_knowledge_point": [],
+        "weak_knowledge_points": [],
+        "error_reasons": [],
+        "learning_suggestions": [],
+        "insufficient_evidence_answer_ids": [],
+        "generated_at": null,
+        "source_exam_result_updated_at": null,
+        "error_code": "DIAGNOSIS_NOT_READY",
+        "retryable": false,
+        "source_code": null,
+        "attempt_count": null
+      },
+      "items": [],
+      "mastery_by_knowledge_point": [],
+      "weak_knowledge_points": [],
+      "recommendations": [],
+      "insufficient_evidence_answer_ids": [],
+      "not_ready_reason": "阅卷失败，未记零分或推断知识盲点。",
+      "knowledge_point_attribution": "多标签题完整归属各知识点；各行不能加总成整场总分/失分。"
+    },
+    "S5": {
+      "processing_status": "insufficient_evidence",
+      "processing_error_code": "EXAM_SCORING_BASIS_MISSING",
+      "processing_reason": "评分依据不足，未形成最终成绩。",
+      "submission_id": "8e974d50-ec7f-4960-a017-7525a1540e82",
+      "exam_id": "3e1ad55d-030e-4142-8e03-e5e86f6819ff",
+      "course_id": "1970e820-66ae-42ff-bd81-a97b9fabacb6",
+      "student_id": "b8610647-96fe-4bee-a229-b02fa6bf9889",
+      "is_final": false,
+      "source_exam_result_updated_at": null,
+      "diagnosis": {
+        "exam_result_id": null,
+        "submission_id": "8e974d50-ec7f-4960-a017-7525a1540e82",
+        "student_id": "b8610647-96fe-4bee-a229-b02fa6bf9889",
+        "status": "Not Ready",
+        "mastery_by_knowledge_point": [],
+        "weak_knowledge_points": [],
+        "error_reasons": [],
+        "learning_suggestions": [],
+        "insufficient_evidence_answer_ids": [],
+        "generated_at": null,
+        "source_exam_result_updated_at": null,
+        "error_code": "DIAGNOSIS_NOT_READY",
+        "retryable": false,
+        "source_code": null,
+        "attempt_count": null
+      },
+      "items": [],
+      "mastery_by_knowledge_point": [],
+      "weak_knowledge_points": [],
+      "recommendations": [],
+      "insufficient_evidence_answer_ids": [],
+      "not_ready_reason": "评分依据不足，未形成最终成绩。",
+      "knowledge_point_attribution": "多标签题完整归属各知识点；各行不能加总成整场总分/失分。"
+    }
+  },
+  "ui_projection": [
+    "可参加：6 · 已参加：5 · 草稿：0 · 未开始：1 · 最终答卷：2 · 待复核答卷：1 · 处理失败：1 · 依据不足：1 · 尚未完成：0\n\n分布与逐题统计只使用当前最终答卷；得分率的真实分子/分母列在下表。多标签知识点不能加总成整卷失分；依据不足可与最终历史答卷重叠。",
+    [
+      [
+        "0.00",
+        "1"
+      ],
+      [
+        "8.00",
+        "1"
+      ]
+    ],
+    [
+      [
+        "1",
+        "a933da16-5d40-426c-8a0e-4001a60f877f",
+        "4.00",
+        "一次函数",
+        "2",
+        "0",
+        "4.00",
+        "8.00",
+        "4.00",
+        "0.5000",
+        "已有最终观测"
+      ],
+      [
+        "2",
+        "5b87e943-74e5-407a-96b5-193068e945fc",
+        "6.00",
+        "一次函数、表达与计算",
+        "2",
+        "0",
+        "4.00",
+        "12.00",
+        "8.00",
+        "0.3333",
+        "已有最终观测"
+      ]
+    ],
+    [
+      [
+        "一次函数",
+        "a933da16-5d40-426c-8a0e-4001a60f877f、5b87e943-74e5-407a-96b5-193068e945fc",
+        "2",
+        "4",
+        "8.00",
+        "20.00",
+        "12.00",
+        "0.4000"
+      ],
+      [
+        "表达与计算",
+        "5b87e943-74e5-407a-96b5-193068e945fc",
+        "2",
+        "2",
+        "4.00",
+        "12.00",
+        "8.00",
+        "0.3333"
+      ]
+    ],
+    [
+      [
+        "cc8ca5c0-7027-4981-9db8-cdd4b3cc3612",
+        "90fd2f03-2ba7-4a91-808e-72627a4e637f",
+        "存在已确认的最终失分；明细使用本场固定满分和发布知识点。",
+        "2.00",
+        "无",
+        "1a958d2e-5658-45d9-8ec9-feb6453a6b7b"
+      ],
+      [
+        "97a2f17b-496f-47a6-97da-3d15bbebf3ef",
+        "560e5353-2876-4c13-b223-932722db8a29",
+        "存在已确认的最终失分；明细使用本场固定满分和发布知识点。",
+        "10.00",
+        "无",
+        "6cb2c1c4-7194-4bb9-964e-5c5eb247f853、5cd020d1-98ef-4ae3-9928-60f9802b11c2"
+      ],
+      [
+        "a6e87ed1-059c-4603-81ec-0072c5743cb7",
+        "a651e4e0-e445-4f0b-8d55-229cbc08e0eb",
+        "存在待人工复核题目，未形成最终成绩。",
+        "暂无最终失分",
+        "无",
+        "未标注"
+      ],
+      [
+        "737a2087-1a6f-447b-818c-9cabc1e70d4f",
+        "1a75df4f-0d29-42a2-bd4b-0095d19cf3a1",
+        "阅卷失败，未记零分或推断知识盲点。",
+        "暂无最终失分",
+        "ProviderTimeout",
+        "未标注"
+      ],
+      [
+        "b8610647-96fe-4bee-a229-b02fa6bf9889",
+        "8e974d50-ec7f-4960-a017-7525a1540e82",
+        "评分依据不足，未形成最终成绩。",
+        "暂无最终失分",
+        "EXAM_SCORING_BASIS_MISSING",
+        "未标注"
+      ],
+      [
+        "c7e73b37-f5a6-4ed8-b0dc-5855a3229c4f",
+        "尚无答卷",
+        "当前有分配资格，但尚无开始答卷记录。",
+        "暂无最终失分",
+        "无",
+        "未标注"
+      ]
+    ],
+    [
+      {
+        "student_id": "cc8ca5c0-7027-4981-9db8-cdd4b3cc3612",
+        "submission_id": "90fd2f03-2ba7-4a91-808e-72627a4e637f",
+        "reasons": [
+          "存在已确认的最终失分；明细使用本场固定满分和发布知识点。"
+        ],
+        "answer_ids": [
+          "1a958d2e-5658-45d9-8ec9-feb6453a6b7b"
+        ],
+        "exam_question_ids": [
+          "5b87e943-74e5-407a-96b5-193068e945fc"
+        ],
+        "knowledge_points": [
+          "一次函数",
+          "表达与计算"
+        ],
+        "final_lost_score": "2.00",
+        "error_code": null
+      },
+      {
+        "student_id": "97a2f17b-496f-47a6-97da-3d15bbebf3ef",
+        "submission_id": "560e5353-2876-4c13-b223-932722db8a29",
+        "reasons": [
+          "存在已确认的最终失分；明细使用本场固定满分和发布知识点。"
+        ],
+        "answer_ids": [
+          "6cb2c1c4-7194-4bb9-964e-5c5eb247f853",
+          "5cd020d1-98ef-4ae3-9928-60f9802b11c2"
+        ],
+        "exam_question_ids": [
+          "a933da16-5d40-426c-8a0e-4001a60f877f",
+          "5b87e943-74e5-407a-96b5-193068e945fc"
+        ],
+        "knowledge_points": [
+          "一次函数",
+          "表达与计算"
+        ],
+        "final_lost_score": "10.00",
+        "error_code": null
+      },
+      {
+        "student_id": "a6e87ed1-059c-4603-81ec-0072c5743cb7",
+        "submission_id": "a651e4e0-e445-4f0b-8d55-229cbc08e0eb",
+        "reasons": [
+          "存在待人工复核题目，未形成最终成绩。"
+        ],
+        "answer_ids": [],
+        "exam_question_ids": [],
+        "knowledge_points": [],
+        "final_lost_score": null,
+        "error_code": null
+      },
+      {
+        "student_id": "737a2087-1a6f-447b-818c-9cabc1e70d4f",
+        "submission_id": "1a75df4f-0d29-42a2-bd4b-0095d19cf3a1",
+        "reasons": [
+          "阅卷失败，未记零分或推断知识盲点。"
+        ],
+        "answer_ids": [],
+        "exam_question_ids": [],
+        "knowledge_points": [],
+        "final_lost_score": null,
+        "error_code": "ProviderTimeout"
+      },
+      {
+        "student_id": "b8610647-96fe-4bee-a229-b02fa6bf9889",
+        "submission_id": "8e974d50-ec7f-4960-a017-7525a1540e82",
+        "reasons": [
+          "评分依据不足，未形成最终成绩。"
+        ],
+        "answer_ids": [],
+        "exam_question_ids": [],
+        "knowledge_points": [],
+        "final_lost_score": null,
+        "error_code": "EXAM_SCORING_BASIS_MISSING"
+      },
+      {
+        "student_id": "c7e73b37-f5a6-4ed8-b0dc-5855a3229c4f",
+        "submission_id": null,
+        "reasons": [
+          "当前有分配资格，但尚无开始答卷记录。"
+        ],
+        "answer_ids": [],
+        "exam_question_ids": [],
+        "knowledge_points": [],
+        "final_lost_score": null,
+        "error_code": null
+      }
+    ]
+  ],
+  "origin": "AI辅助＋开发者审查冻结参考；受控合成执行；独立教师覆盖0",
+  "selected_view": false
+}

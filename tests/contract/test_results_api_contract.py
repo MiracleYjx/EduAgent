@@ -670,3 +670,107 @@ def test_diagnosis_returns_stale_after_new_aggregation(
     assert response.json()["status"] == "Stale"
     with Session(session.get_bind()) as check:
         assert len(list(check.scalars(select(DiagnosisReport)))) == 1
+
+
+@pytest.fixture
+def t184_pg_session():
+    """TCR §39: real isolated PostgreSQL; no SQLite acceptance substitution."""
+    from sqlalchemy.orm import Session
+
+    from tests.postgres_helpers import isolated_postgres_engine
+
+    with isolated_postgres_engine() as engine, Session(engine) as session:
+        yield session
+
+
+@pytest.fixture
+def t184_client_factory(t184_pg_session):
+    yield from client_factory.__wrapped__(t184_pg_session)
+
+
+@pytest.mark.parametrize("case_id", ["STATS-MIXED", "STATS-EMPTY", "STATS-STARTED"])
+def test_t184_frozen_statistics_and_learning_reference(
+    t184_pg_session, t184_client_factory, case_id
+):
+    from backend.app.ui.results_analysis import teacher_analysis_values
+    from backend.app.ui.results_learning import learning_rows
+    from tests.support.t184_statistics import compare, frozen_exam, save_evidence, seed
+
+    session = t184_pg_session
+    for s in seed(session, case_id):
+        client = t184_client_factory(s["service"])
+        response = client.get(
+            f"/api/results/exams/{s['exam'].id}/summary",
+            headers=headers(s["teacher"], UserRole.TEACHER),
+        )
+        assert response.status_code == 200, response.text
+        body = response.json()
+        checks = compare(body, case_id, s["fixture_id"])
+        expected = frozen_exam(case_id, s["fixture_id"])
+        projection = teacher_analysis_values(body)
+        assert projection[1] == [
+            [x["score"], str(x["submission_count"])]
+            for x in body["final_score_distribution"]
+        ]
+        for q, row in zip(body["question_statistics"], projection[2], strict=True):
+            assert row[6:10] == [
+                str(q[k]) if q[k] is not None else "暂无数据"
+                for k in ["awarded_score", "maximum_score", "lost_score", "score_rate"]
+            ]
+        learning = {}
+        for record in expected["final_student_details"]:
+            sid = record["student_fixture_id"]
+            sub = s["submissions"][sid]
+            student = s["students"][int(sid[1:]) - 1]
+            result = client.get(
+                f"/api/results/me/submissions/{sub.id}/learning",
+                headers=headers(student, UserRole.STUDENT),
+            )
+            assert result.status_code == 200
+            fb = result.json()
+            assert fb["is_final"]
+            rows = learning_rows(fb)
+            for i, name in enumerate(["shared-choice", "shared-short"]):
+                assert Decimal(fb["items"][i]["lost_score"]) == Decimal(
+                    record["question_losses"][name]
+                )
+                assert rows[i][5] == fb["items"][i]["lost_score"]
+                assert rows[i][1] == f"受控执行答案-{sid}-{i+1}"
+            groups = {g["knowledge_point"]: g for g in fb["recommendations"]}
+            for name, loss in record["knowledge_losses"].items():
+                assert Decimal(groups[name]["lost_score"]) == Decimal(loss)
+                assert (
+                    groups[name]["materials"] == []
+                    and groups[name]["material_not_ready_reason"]
+                )
+                assert (
+                    groups[name]["practices"] == []
+                    and groups[name]["practice_not_ready_reason"]
+                )
+            learning[sid] = fb
+        for sid in ["S3", "S4", "S5"]:
+            sub = s["submissions"][sid]
+            student = s["students"][int(sid[1:]) - 1]
+            fb = client.get(
+                f"/api/results/me/submissions/{sub.id}/learning",
+                headers=headers(student, UserRole.STUDENT),
+            ).json()
+            assert (
+                not fb["is_final"]
+                and not fb["recommendations"]
+                and not fb["weak_knowledge_points"]
+            )
+            assert all(item["lost_score"] is None for item in fb["items"])
+            learning[sid] = fb
+        save_evidence(
+            f"{case_id}-{s['fixture_id']}",
+            {
+                "api": body,
+                "checks": checks,
+                "learning": learning,
+                "ui_projection": projection,
+                "origin": "AI辅助＋开发者审查冻结参考；受控合成执行；独立教师覆盖0",
+                "selected_view": case_id == "STATS-EMPTY",
+            },
+        )
+        assert all(c["state"] != "mismatch" for c in checks), checks

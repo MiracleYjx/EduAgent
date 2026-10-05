@@ -1,0 +1,6 @@
+{
+  "benchmark/corpus/t146-ai-authorized-20261003/statistics_reference.csv": "ab2d18410e3b085f7854646017dba69ebe111ed043c35018930ae99bcc931df9",
+  "benchmark/corpus/t146-ai-authorized-20261003/statistics_annotations.json": "2771f31d0a87a813a7436b64864eb0bc2bc35f4b85eb9fb46bb44660b59b4c53",
+  "benchmark/corpus/t146-ai-authorized-20261003/statistics_controls.json": "ec59ca7acc3a6d0c497af6380dbcdd29263a6e762dd50aeea45a55a1c56e166c",
+  "benchmark/corpus/v2-draft-20261001/statistics_cases.json": "42cf192cec650d71c263bcd0625320679598738d6844222fb60891e684fb55b8"
+}
