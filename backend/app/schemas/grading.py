@@ -671,6 +671,60 @@ class SubmissionResultDTO(BaseModel):
     )
 
 
+class FinalScoreFrequencyDTO(BaseModel):
+    """实际最终分值频数；没有人为分段或及格阈值。"""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    score: DecimalScore
+    submission_count: int = Field(ge=1)
+
+
+class QuestionScoreStatisticsDTO(BaseModel):
+    """只用最终答卷的本场关联统计；零观测的金额/比例均为空。"""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    exam_question_id: NonEmptyText
+    question_id: NonEmptyText
+    order: int = Field(ge=1)
+    published_knowledge_points: list[str] | None
+    max_score: PositiveDecimalScore | None
+    effective_submission_count: int = Field(ge=0)
+    excluded_final_submission_count: int = Field(ge=0)
+    awarded_score: DecimalScore | None
+    maximum_score: PositiveDecimalScore | None
+    lost_score: DecimalScore | None
+    score_rate: MasteryRatio | None
+    not_ready_reason: str | None = None
+
+
+class KnowledgePointStatisticsDTO(BaseModel):
+    """多标签题在每个知识点完整归属；本表不能加总成整卷总分。"""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    knowledge_point: NonEmptyText
+    exam_question_ids: list[str]
+    effective_student_count: int = Field(ge=0)
+    effective_answer_count: int = Field(ge=0)
+    awarded_score: DecimalScore | None
+    maximum_score: PositiveDecimalScore | None
+    lost_score: DecimalScore | None
+    score_rate: MasteryRatio | None
+
+
+class StudentAttentionDTO(BaseModel):
+    """可回溯的实际失分或未完成事项；没有风险预测或未完成零分。"""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    student_id: NonEmptyText
+    submission_id: str | None
+    reasons: list[NonEmptyText]
+    answer_ids: list[str] = Field(default_factory=list)
+    exam_question_ids: list[str] = Field(default_factory=list)
+    knowledge_points: list[str] = Field(default_factory=list)
+    final_lost_score: DecimalScore | None = None
+    error_code: str | None = None
+
+
 class TeacherExamResultSummaryDTO(BaseModel):
     """教师考试结果摘要；平均分只统计最终成绩。"""
 
@@ -685,6 +739,26 @@ class TeacherExamResultSummaryDTO(BaseModel):
     average_of_final_scores: DecimalScore | None = Field(
         default=None, description="仅基于最终成绩的平均分；无最终成绩时为 None。"
     )
+    eligible_count: int = Field(default=0, ge=0)
+    participated_count: int = Field(default=0, ge=0)
+    draft_count: int = Field(default=0, ge=0)
+    not_participated_count: int = Field(default=0, ge=0)
+    pending_review_submission_count: int = Field(default=0, ge=0)
+    failed_submission_count: int = Field(default=0, ge=0)
+    insufficient_evidence_submission_count: int = Field(default=0, ge=0)
+    unfinished_submission_count: int = Field(default=0, ge=0)
+    participation_scope: str | None = None
+    distribution_denominator: int = Field(default=0, ge=0)
+    final_score_distribution: list[FinalScoreFrequencyDTO] = Field(default_factory=list)
+    question_statistics: list[QuestionScoreStatisticsDTO] = Field(default_factory=list)
+    knowledge_point_statistics: list[KnowledgePointStatisticsDTO] = Field(
+        default_factory=list
+    )
+    attention_students: list[StudentAttentionDTO] = Field(default_factory=list)
+    knowledge_point_attribution: str = (
+        "多知识点题在各知识点完整归属；知识点行不可加总成整卷总分。"
+    )
+    statistics_not_ready_reason: str | None = None
     not_ready: bool = Field(
         default=False, description="是否存在尚无结果的答卷或依赖未接通。"
     )

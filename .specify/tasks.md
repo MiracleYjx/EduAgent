@@ -620,7 +620,7 @@ M0 工程骨架 + Benchmark
 
 ### E5：两类分析页面
 
-- [ ] T180 [HIGH] [E5] **扩展教师考情统计服务**：在 `api/results.py` 的 ResultsQueryService、`schemas/grading.py` 与现有汇总边界增加可参加/已参加/提交、最终分布/平均、逐题得分率、发布知识点失分和关注名单；实际最终答卷为分母，失败/待复核/缺依据单列，多知识点不重复累计总分，无观测为暂无数据。复用现有最终成绩存储，不让模型生成统计。 依赖：T177、T179。per FR-050/039、exam-scoring 汇总、SC-013（F047） (partial)
+- [X] T180 [HIGH] [E5] **扩展教师考情统计服务**：在 `api/results.py` 的 ResultsQueryService、`schemas/grading.py` 与现有汇总边界增加可参加/已参加/提交、最终分布/平均、逐题得分率、发布知识点失分和关注名单；实际最终答卷为分母，失败/待复核/缺依据单列，多知识点不重复累计总分，无观测为暂无数据。复用现有最终成绩存储，不让模型生成统计。 依赖：T177、T179。per FR-050/039、exam-scoring 汇总、SC-013（F047） (partial)
 
 - [ ] T181 [HIGH] [E5] **扩展学生诊断和来源推荐**：在 `services/diagnosis_service.py`、`api/results.py`、相关 schema/检索/题库查询中基于本人最终失分与发布知识点，返回可访问同课程资料和已审核练习、真实出处/知识点/理由及原题图；缺资料/题目明确返回不足，不用未审核/待补全候选补位，保留报告与当前最终结果对应关系。 依赖：T162、T177、T179。per FR-051/040、exam-scoring 学生反馈、SC-013（F048） (partial)
 

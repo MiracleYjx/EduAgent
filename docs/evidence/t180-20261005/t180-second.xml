@@ -1,0 +1,793 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="11" failures="0" skipped="0" tests="25" time="29.399" timestamp="2026-10-05T11:30:00.035295+08:00" hostname="YJX"><testcase classname="tests.contract.test_results_analysis_api" name="test_final_statistics_and_participation_are_real_facts" time="0.792"><error message="failed on setup with &quot;TypeError: DatabaseGradingRepository.__init__() got an unexpected keyword argument 'session'&quot;">session = &lt;sqlalchemy.orm.session.Session object at 0x000002613408B0E0&gt;
+
+    @pytest.fixture
+    def analysis_scenario(session):
+        teacher = add_teacher(session)
+        course = Course(name="考情夹具", created_by=teacher.id)
+        session.add(course)
+        session.flush()
+        questions = [
+            Question(
+                course_id=course.id,
+                created_by=teacher.id,
+                type=QuestionType.SINGLE_CHOICE,
+                content=f"原题{i}",
+                reference_answer="A",
+                score=Decimal("99.00"),
+                status=QuestionStatus.APPROVED,
+                knowledge_points=["当前题库标签"],
+            )
+            for i in range(2)
+        ]
+        session.add_all(questions)
+        session.flush()
+        exam = Exam(
+            course_id=course.id,
+            created_by=teacher.id,
+            title="固定分值考试",
+            status=ExamStatus.PUBLISHED,
+        )
+        exam.exam_question_links = [
+            ExamQuestion(
+                question=q,
+                order_index=i + 1,
+                score=Decimal(score),
+                base_score=Decimal("99.00"),
+                published_knowledge_points=tags,
+            )
+            for i, (q, score, tags) in enumerate(
+                zip(questions, ["2.00", "3.00"], [["一次函数"], ["一次函数", "表达与计算"]])
+            )
+        ]
+        session.add(exam)
+        session.commit()
+        students = [add_student(session, username=f"s{i}") for i in range(7)]
+        session.add_all(
+            ExamParticipant(exam_id=exam.id, student_id=student.id) for student in students
+        )
+        submissions = []
+        for i, student in enumerate(students[:6]):
+            sub = Submission(
+                exam_id=exam.id,
+                student_id=student.id,
+                status=SubmissionStatus.DRAFT if i == 5 else SubmissionStatus.SUBMITTED,
+                submitted_at=None if i == 5 else datetime.now(UTC),
+            )
+            session.add(sub)
+            session.flush()
+            session.add_all(
+                Answer(
+                    submission_id=sub.id,
+                    question_id=q.id,
+                    content="B",
+                    status=AnswerStatus.SUBMITTED,
+                )
+                for q in questions
+            )
+            submissions.append(sub)
+        session.commit()
+&gt;       repository = DatabaseGradingRepository(session=session)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: DatabaseGradingRepository.__init__() got an unexpected keyword argument 'session'
+
+tests\contract\test_results_analysis_api.py:118: TypeError</error></testcase><testcase classname="tests.contract.test_results_analysis_api" name="test_zero_observation_returns_null_not_zero_rates" time="0.569"><error message="failed on setup with &quot;TypeError: DatabaseGradingRepository.__init__() got an unexpected keyword argument 'session'&quot;">session = &lt;sqlalchemy.orm.session.Session object at 0x000002613544DA90&gt;
+
+    @pytest.fixture
+    def analysis_scenario(session):
+        teacher = add_teacher(session)
+        course = Course(name="考情夹具", created_by=teacher.id)
+        session.add(course)
+        session.flush()
+        questions = [
+            Question(
+                course_id=course.id,
+                created_by=teacher.id,
+                type=QuestionType.SINGLE_CHOICE,
+                content=f"原题{i}",
+                reference_answer="A",
+                score=Decimal("99.00"),
+                status=QuestionStatus.APPROVED,
+                knowledge_points=["当前题库标签"],
+            )
+            for i in range(2)
+        ]
+        session.add_all(questions)
+        session.flush()
+        exam = Exam(
+            course_id=course.id,
+            created_by=teacher.id,
+            title="固定分值考试",
+            status=ExamStatus.PUBLISHED,
+        )
+        exam.exam_question_links = [
+            ExamQuestion(
+                question=q,
+                order_index=i + 1,
+                score=Decimal(score),
+                base_score=Decimal("99.00"),
+                published_knowledge_points=tags,
+            )
+            for i, (q, score, tags) in enumerate(
+                zip(questions, ["2.00", "3.00"], [["一次函数"], ["一次函数", "表达与计算"]])
+            )
+        ]
+        session.add(exam)
+        session.commit()
+        students = [add_student(session, username=f"s{i}") for i in range(7)]
+        session.add_all(
+            ExamParticipant(exam_id=exam.id, student_id=student.id) for student in students
+        )
+        submissions = []
+        for i, student in enumerate(students[:6]):
+            sub = Submission(
+                exam_id=exam.id,
+                student_id=student.id,
+                status=SubmissionStatus.DRAFT if i == 5 else SubmissionStatus.SUBMITTED,
+                submitted_at=None if i == 5 else datetime.now(UTC),
+            )
+            session.add(sub)
+            session.flush()
+            session.add_all(
+                Answer(
+                    submission_id=sub.id,
+                    question_id=q.id,
+                    content="B",
+                    status=AnswerStatus.SUBMITTED,
+                )
+                for q in questions
+            )
+            submissions.append(sub)
+        session.commit()
+&gt;       repository = DatabaseGradingRepository(session=session)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: DatabaseGradingRepository.__init__() got an unexpected keyword argument 'session'
+
+tests\contract\test_results_analysis_api.py:118: TypeError</error></testcase><testcase classname="tests.contract.test_results_analysis_api" name="test_unknown_historical_association_keeps_total_but_excludes_attribution" time="0.570"><error message="failed on setup with &quot;TypeError: DatabaseGradingRepository.__init__() got an unexpected keyword argument 'session'&quot;">session = &lt;sqlalchemy.orm.session.Session object at 0x000002613544ED50&gt;
+
+    @pytest.fixture
+    def analysis_scenario(session):
+        teacher = add_teacher(session)
+        course = Course(name="考情夹具", created_by=teacher.id)
+        session.add(course)
+        session.flush()
+        questions = [
+            Question(
+                course_id=course.id,
+                created_by=teacher.id,
+                type=QuestionType.SINGLE_CHOICE,
+                content=f"原题{i}",
+                reference_answer="A",
+                score=Decimal("99.00"),
+                status=QuestionStatus.APPROVED,
+                knowledge_points=["当前题库标签"],
+            )
+            for i in range(2)
+        ]
+        session.add_all(questions)
+        session.flush()
+        exam = Exam(
+            course_id=course.id,
+            created_by=teacher.id,
+            title="固定分值考试",
+            status=ExamStatus.PUBLISHED,
+        )
+        exam.exam_question_links = [
+            ExamQuestion(
+                question=q,
+                order_index=i + 1,
+                score=Decimal(score),
+                base_score=Decimal("99.00"),
+                published_knowledge_points=tags,
+            )
+            for i, (q, score, tags) in enumerate(
+                zip(questions, ["2.00", "3.00"], [["一次函数"], ["一次函数", "表达与计算"]])
+            )
+        ]
+        session.add(exam)
+        session.commit()
+        students = [add_student(session, username=f"s{i}") for i in range(7)]
+        session.add_all(
+            ExamParticipant(exam_id=exam.id, student_id=student.id) for student in students
+        )
+        submissions = []
+        for i, student in enumerate(students[:6]):
+            sub = Submission(
+                exam_id=exam.id,
+                student_id=student.id,
+                status=SubmissionStatus.DRAFT if i == 5 else SubmissionStatus.SUBMITTED,
+                submitted_at=None if i == 5 else datetime.now(UTC),
+            )
+            session.add(sub)
+            session.flush()
+            session.add_all(
+                Answer(
+                    submission_id=sub.id,
+                    question_id=q.id,
+                    content="B",
+                    status=AnswerStatus.SUBMITTED,
+                )
+                for q in questions
+            )
+            submissions.append(sub)
+        session.commit()
+&gt;       repository = DatabaseGradingRepository(session=session)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: DatabaseGradingRepository.__init__() got an unexpected keyword argument 'session'
+
+tests\contract\test_results_analysis_api.py:118: TypeError</error></testcase><testcase classname="tests.contract.test_results_analysis_api" name="test_current_eligibility_does_not_erase_historical_participation" time="0.574"><error message="failed on setup with &quot;TypeError: DatabaseGradingRepository.__init__() got an unexpected keyword argument 'session'&quot;">session = &lt;sqlalchemy.orm.session.Session object at 0x0000026135446FD0&gt;
+
+    @pytest.fixture
+    def analysis_scenario(session):
+        teacher = add_teacher(session)
+        course = Course(name="考情夹具", created_by=teacher.id)
+        session.add(course)
+        session.flush()
+        questions = [
+            Question(
+                course_id=course.id,
+                created_by=teacher.id,
+                type=QuestionType.SINGLE_CHOICE,
+                content=f"原题{i}",
+                reference_answer="A",
+                score=Decimal("99.00"),
+                status=QuestionStatus.APPROVED,
+                knowledge_points=["当前题库标签"],
+            )
+            for i in range(2)
+        ]
+        session.add_all(questions)
+        session.flush()
+        exam = Exam(
+            course_id=course.id,
+            created_by=teacher.id,
+            title="固定分值考试",
+            status=ExamStatus.PUBLISHED,
+        )
+        exam.exam_question_links = [
+            ExamQuestion(
+                question=q,
+                order_index=i + 1,
+                score=Decimal(score),
+                base_score=Decimal("99.00"),
+                published_knowledge_points=tags,
+            )
+            for i, (q, score, tags) in enumerate(
+                zip(questions, ["2.00", "3.00"], [["一次函数"], ["一次函数", "表达与计算"]])
+            )
+        ]
+        session.add(exam)
+        session.commit()
+        students = [add_student(session, username=f"s{i}") for i in range(7)]
+        session.add_all(
+            ExamParticipant(exam_id=exam.id, student_id=student.id) for student in students
+        )
+        submissions = []
+        for i, student in enumerate(students[:6]):
+            sub = Submission(
+                exam_id=exam.id,
+                student_id=student.id,
+                status=SubmissionStatus.DRAFT if i == 5 else SubmissionStatus.SUBMITTED,
+                submitted_at=None if i == 5 else datetime.now(UTC),
+            )
+            session.add(sub)
+            session.flush()
+            session.add_all(
+                Answer(
+                    submission_id=sub.id,
+                    question_id=q.id,
+                    content="B",
+                    status=AnswerStatus.SUBMITTED,
+                )
+                for q in questions
+            )
+            submissions.append(sub)
+        session.commit()
+&gt;       repository = DatabaseGradingRepository(session=session)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: DatabaseGradingRepository.__init__() got an unexpected keyword argument 'session'
+
+tests\contract\test_results_analysis_api.py:118: TypeError</error></testcase><testcase classname="tests.contract.test_results_analysis_api" name="test_no_assignment_uses_legacy_whole_student_population" time="0.564"><error message="failed on setup with &quot;TypeError: DatabaseGradingRepository.__init__() got an unexpected keyword argument 'session'&quot;">session = &lt;sqlalchemy.orm.session.Session object at 0x00000261356CC2B0&gt;
+
+    @pytest.fixture
+    def analysis_scenario(session):
+        teacher = add_teacher(session)
+        course = Course(name="考情夹具", created_by=teacher.id)
+        session.add(course)
+        session.flush()
+        questions = [
+            Question(
+                course_id=course.id,
+                created_by=teacher.id,
+                type=QuestionType.SINGLE_CHOICE,
+                content=f"原题{i}",
+                reference_answer="A",
+                score=Decimal("99.00"),
+                status=QuestionStatus.APPROVED,
+                knowledge_points=["当前题库标签"],
+            )
+            for i in range(2)
+        ]
+        session.add_all(questions)
+        session.flush()
+        exam = Exam(
+            course_id=course.id,
+            created_by=teacher.id,
+            title="固定分值考试",
+            status=ExamStatus.PUBLISHED,
+        )
+        exam.exam_question_links = [
+            ExamQuestion(
+                question=q,
+                order_index=i + 1,
+                score=Decimal(score),
+                base_score=Decimal("99.00"),
+                published_knowledge_points=tags,
+            )
+            for i, (q, score, tags) in enumerate(
+                zip(questions, ["2.00", "3.00"], [["一次函数"], ["一次函数", "表达与计算"]])
+            )
+        ]
+        session.add(exam)
+        session.commit()
+        students = [add_student(session, username=f"s{i}") for i in range(7)]
+        session.add_all(
+            ExamParticipant(exam_id=exam.id, student_id=student.id) for student in students
+        )
+        submissions = []
+        for i, student in enumerate(students[:6]):
+            sub = Submission(
+                exam_id=exam.id,
+                student_id=student.id,
+                status=SubmissionStatus.DRAFT if i == 5 else SubmissionStatus.SUBMITTED,
+                submitted_at=None if i == 5 else datetime.now(UTC),
+            )
+            session.add(sub)
+            session.flush()
+            session.add_all(
+                Answer(
+                    submission_id=sub.id,
+                    question_id=q.id,
+                    content="B",
+                    status=AnswerStatus.SUBMITTED,
+                )
+                for q in questions
+            )
+            submissions.append(sub)
+        session.commit()
+&gt;       repository = DatabaseGradingRepository(session=session)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: DatabaseGradingRepository.__init__() got an unexpected keyword argument 'session'
+
+tests\contract\test_results_analysis_api.py:118: TypeError</error></testcase><testcase classname="tests.contract.test_results_analysis_api" name="test_recovered_final_is_not_marked_by_an_old_failed_workflow" time="0.578"><error message="failed on setup with &quot;TypeError: DatabaseGradingRepository.__init__() got an unexpected keyword argument 'session'&quot;">session = &lt;sqlalchemy.orm.session.Session object at 0x000002613567DA30&gt;
+
+    @pytest.fixture
+    def analysis_scenario(session):
+        teacher = add_teacher(session)
+        course = Course(name="考情夹具", created_by=teacher.id)
+        session.add(course)
+        session.flush()
+        questions = [
+            Question(
+                course_id=course.id,
+                created_by=teacher.id,
+                type=QuestionType.SINGLE_CHOICE,
+                content=f"原题{i}",
+                reference_answer="A",
+                score=Decimal("99.00"),
+                status=QuestionStatus.APPROVED,
+                knowledge_points=["当前题库标签"],
+            )
+            for i in range(2)
+        ]
+        session.add_all(questions)
+        session.flush()
+        exam = Exam(
+            course_id=course.id,
+            created_by=teacher.id,
+            title="固定分值考试",
+            status=ExamStatus.PUBLISHED,
+        )
+        exam.exam_question_links = [
+            ExamQuestion(
+                question=q,
+                order_index=i + 1,
+                score=Decimal(score),
+                base_score=Decimal("99.00"),
+                published_knowledge_points=tags,
+            )
+            for i, (q, score, tags) in enumerate(
+                zip(questions, ["2.00", "3.00"], [["一次函数"], ["一次函数", "表达与计算"]])
+            )
+        ]
+        session.add(exam)
+        session.commit()
+        students = [add_student(session, username=f"s{i}") for i in range(7)]
+        session.add_all(
+            ExamParticipant(exam_id=exam.id, student_id=student.id) for student in students
+        )
+        submissions = []
+        for i, student in enumerate(students[:6]):
+            sub = Submission(
+                exam_id=exam.id,
+                student_id=student.id,
+                status=SubmissionStatus.DRAFT if i == 5 else SubmissionStatus.SUBMITTED,
+                submitted_at=None if i == 5 else datetime.now(UTC),
+            )
+            session.add(sub)
+            session.flush()
+            session.add_all(
+                Answer(
+                    submission_id=sub.id,
+                    question_id=q.id,
+                    content="B",
+                    status=AnswerStatus.SUBMITTED,
+                )
+                for q in questions
+            )
+            submissions.append(sub)
+        session.commit()
+&gt;       repository = DatabaseGradingRepository(session=session)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: DatabaseGradingRepository.__init__() got an unexpected keyword argument 'session'
+
+tests\contract\test_results_analysis_api.py:118: TypeError</error></testcase><testcase classname="tests.contract.test_results_analysis_api" name="test_new_statistics_keep_role_and_course_boundary[Student]" time="0.571"><error message="failed on setup with &quot;TypeError: DatabaseGradingRepository.__init__() got an unexpected keyword argument 'session'&quot;">session = &lt;sqlalchemy.orm.session.Session object at 0x00000261354AD8C0&gt;
+
+    @pytest.fixture
+    def analysis_scenario(session):
+        teacher = add_teacher(session)
+        course = Course(name="考情夹具", created_by=teacher.id)
+        session.add(course)
+        session.flush()
+        questions = [
+            Question(
+                course_id=course.id,
+                created_by=teacher.id,
+                type=QuestionType.SINGLE_CHOICE,
+                content=f"原题{i}",
+                reference_answer="A",
+                score=Decimal("99.00"),
+                status=QuestionStatus.APPROVED,
+                knowledge_points=["当前题库标签"],
+            )
+            for i in range(2)
+        ]
+        session.add_all(questions)
+        session.flush()
+        exam = Exam(
+            course_id=course.id,
+            created_by=teacher.id,
+            title="固定分值考试",
+            status=ExamStatus.PUBLISHED,
+        )
+        exam.exam_question_links = [
+            ExamQuestion(
+                question=q,
+                order_index=i + 1,
+                score=Decimal(score),
+                base_score=Decimal("99.00"),
+                published_knowledge_points=tags,
+            )
+            for i, (q, score, tags) in enumerate(
+                zip(questions, ["2.00", "3.00"], [["一次函数"], ["一次函数", "表达与计算"]])
+            )
+        ]
+        session.add(exam)
+        session.commit()
+        students = [add_student(session, username=f"s{i}") for i in range(7)]
+        session.add_all(
+            ExamParticipant(exam_id=exam.id, student_id=student.id) for student in students
+        )
+        submissions = []
+        for i, student in enumerate(students[:6]):
+            sub = Submission(
+                exam_id=exam.id,
+                student_id=student.id,
+                status=SubmissionStatus.DRAFT if i == 5 else SubmissionStatus.SUBMITTED,
+                submitted_at=None if i == 5 else datetime.now(UTC),
+            )
+            session.add(sub)
+            session.flush()
+            session.add_all(
+                Answer(
+                    submission_id=sub.id,
+                    question_id=q.id,
+                    content="B",
+                    status=AnswerStatus.SUBMITTED,
+                )
+                for q in questions
+            )
+            submissions.append(sub)
+        session.commit()
+&gt;       repository = DatabaseGradingRepository(session=session)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: DatabaseGradingRepository.__init__() got an unexpected keyword argument 'session'
+
+tests\contract\test_results_analysis_api.py:118: TypeError</error></testcase><testcase classname="tests.contract.test_results_analysis_api" name="test_new_statistics_keep_role_and_course_boundary[Admin]" time="0.566"><error message="failed on setup with &quot;TypeError: DatabaseGradingRepository.__init__() got an unexpected keyword argument 'session'&quot;">session = &lt;sqlalchemy.orm.session.Session object at 0x00000261354AE7A0&gt;
+
+    @pytest.fixture
+    def analysis_scenario(session):
+        teacher = add_teacher(session)
+        course = Course(name="考情夹具", created_by=teacher.id)
+        session.add(course)
+        session.flush()
+        questions = [
+            Question(
+                course_id=course.id,
+                created_by=teacher.id,
+                type=QuestionType.SINGLE_CHOICE,
+                content=f"原题{i}",
+                reference_answer="A",
+                score=Decimal("99.00"),
+                status=QuestionStatus.APPROVED,
+                knowledge_points=["当前题库标签"],
+            )
+            for i in range(2)
+        ]
+        session.add_all(questions)
+        session.flush()
+        exam = Exam(
+            course_id=course.id,
+            created_by=teacher.id,
+            title="固定分值考试",
+            status=ExamStatus.PUBLISHED,
+        )
+        exam.exam_question_links = [
+            ExamQuestion(
+                question=q,
+                order_index=i + 1,
+                score=Decimal(score),
+                base_score=Decimal("99.00"),
+                published_knowledge_points=tags,
+            )
+            for i, (q, score, tags) in enumerate(
+                zip(questions, ["2.00", "3.00"], [["一次函数"], ["一次函数", "表达与计算"]])
+            )
+        ]
+        session.add(exam)
+        session.commit()
+        students = [add_student(session, username=f"s{i}") for i in range(7)]
+        session.add_all(
+            ExamParticipant(exam_id=exam.id, student_id=student.id) for student in students
+        )
+        submissions = []
+        for i, student in enumerate(students[:6]):
+            sub = Submission(
+                exam_id=exam.id,
+                student_id=student.id,
+                status=SubmissionStatus.DRAFT if i == 5 else SubmissionStatus.SUBMITTED,
+                submitted_at=None if i == 5 else datetime.now(UTC),
+            )
+            session.add(sub)
+            session.flush()
+            session.add_all(
+                Answer(
+                    submission_id=sub.id,
+                    question_id=q.id,
+                    content="B",
+                    status=AnswerStatus.SUBMITTED,
+                )
+                for q in questions
+            )
+            submissions.append(sub)
+        session.commit()
+&gt;       repository = DatabaseGradingRepository(session=session)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: DatabaseGradingRepository.__init__() got an unexpected keyword argument 'session'
+
+tests\contract\test_results_analysis_api.py:118: TypeError</error></testcase><testcase classname="tests.contract.test_results_analysis_api" name="test_new_statistics_keep_role_and_course_boundary[Teacher]" time="0.565"><error message="failed on setup with &quot;TypeError: DatabaseGradingRepository.__init__() got an unexpected keyword argument 'session'&quot;">session = &lt;sqlalchemy.orm.session.Session object at 0x00000261357D4A50&gt;
+
+    @pytest.fixture
+    def analysis_scenario(session):
+        teacher = add_teacher(session)
+        course = Course(name="考情夹具", created_by=teacher.id)
+        session.add(course)
+        session.flush()
+        questions = [
+            Question(
+                course_id=course.id,
+                created_by=teacher.id,
+                type=QuestionType.SINGLE_CHOICE,
+                content=f"原题{i}",
+                reference_answer="A",
+                score=Decimal("99.00"),
+                status=QuestionStatus.APPROVED,
+                knowledge_points=["当前题库标签"],
+            )
+            for i in range(2)
+        ]
+        session.add_all(questions)
+        session.flush()
+        exam = Exam(
+            course_id=course.id,
+            created_by=teacher.id,
+            title="固定分值考试",
+            status=ExamStatus.PUBLISHED,
+        )
+        exam.exam_question_links = [
+            ExamQuestion(
+                question=q,
+                order_index=i + 1,
+                score=Decimal(score),
+                base_score=Decimal("99.00"),
+                published_knowledge_points=tags,
+            )
+            for i, (q, score, tags) in enumerate(
+                zip(questions, ["2.00", "3.00"], [["一次函数"], ["一次函数", "表达与计算"]])
+            )
+        ]
+        session.add(exam)
+        session.commit()
+        students = [add_student(session, username=f"s{i}") for i in range(7)]
+        session.add_all(
+            ExamParticipant(exam_id=exam.id, student_id=student.id) for student in students
+        )
+        submissions = []
+        for i, student in enumerate(students[:6]):
+            sub = Submission(
+                exam_id=exam.id,
+                student_id=student.id,
+                status=SubmissionStatus.DRAFT if i == 5 else SubmissionStatus.SUBMITTED,
+                submitted_at=None if i == 5 else datetime.now(UTC),
+            )
+            session.add(sub)
+            session.flush()
+            session.add_all(
+                Answer(
+                    submission_id=sub.id,
+                    question_id=q.id,
+                    content="B",
+                    status=AnswerStatus.SUBMITTED,
+                )
+                for q in questions
+            )
+            submissions.append(sub)
+        session.commit()
+&gt;       repository = DatabaseGradingRepository(session=session)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: DatabaseGradingRepository.__init__() got an unexpected keyword argument 'session'
+
+tests\contract\test_results_analysis_api.py:118: TypeError</error></testcase><testcase classname="tests.contract.test_results_analysis_api" name="test_shared_questions_use_each_exam_maximum" time="0.581"><error message="failed on setup with &quot;TypeError: DatabaseGradingRepository.__init__() got an unexpected keyword argument 'session'&quot;">session = &lt;sqlalchemy.orm.session.Session object at 0x00000261358A8250&gt;
+
+    @pytest.fixture
+    def analysis_scenario(session):
+        teacher = add_teacher(session)
+        course = Course(name="考情夹具", created_by=teacher.id)
+        session.add(course)
+        session.flush()
+        questions = [
+            Question(
+                course_id=course.id,
+                created_by=teacher.id,
+                type=QuestionType.SINGLE_CHOICE,
+                content=f"原题{i}",
+                reference_answer="A",
+                score=Decimal("99.00"),
+                status=QuestionStatus.APPROVED,
+                knowledge_points=["当前题库标签"],
+            )
+            for i in range(2)
+        ]
+        session.add_all(questions)
+        session.flush()
+        exam = Exam(
+            course_id=course.id,
+            created_by=teacher.id,
+            title="固定分值考试",
+            status=ExamStatus.PUBLISHED,
+        )
+        exam.exam_question_links = [
+            ExamQuestion(
+                question=q,
+                order_index=i + 1,
+                score=Decimal(score),
+                base_score=Decimal("99.00"),
+                published_knowledge_points=tags,
+            )
+            for i, (q, score, tags) in enumerate(
+                zip(questions, ["2.00", "3.00"], [["一次函数"], ["一次函数", "表达与计算"]])
+            )
+        ]
+        session.add(exam)
+        session.commit()
+        students = [add_student(session, username=f"s{i}") for i in range(7)]
+        session.add_all(
+            ExamParticipant(exam_id=exam.id, student_id=student.id) for student in students
+        )
+        submissions = []
+        for i, student in enumerate(students[:6]):
+            sub = Submission(
+                exam_id=exam.id,
+                student_id=student.id,
+                status=SubmissionStatus.DRAFT if i == 5 else SubmissionStatus.SUBMITTED,
+                submitted_at=None if i == 5 else datetime.now(UTC),
+            )
+            session.add(sub)
+            session.flush()
+            session.add_all(
+                Answer(
+                    submission_id=sub.id,
+                    question_id=q.id,
+                    content="B",
+                    status=AnswerStatus.SUBMITTED,
+                )
+                for q in questions
+            )
+            submissions.append(sub)
+        session.commit()
+&gt;       repository = DatabaseGradingRepository(session=session)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: DatabaseGradingRepository.__init__() got an unexpected keyword argument 'session'
+
+tests\contract\test_results_analysis_api.py:118: TypeError</error></testcase><testcase classname="tests.contract.test_results_analysis_api" name="test_regrading_pending_excludes_previous_final_from_all_aggregates" time="0.605"><error message="failed on setup with &quot;TypeError: DatabaseGradingRepository.__init__() got an unexpected keyword argument 'session'&quot;">session = &lt;sqlalchemy.orm.session.Session object at 0x000002613584FF20&gt;
+
+    @pytest.fixture
+    def analysis_scenario(session):
+        teacher = add_teacher(session)
+        course = Course(name="考情夹具", created_by=teacher.id)
+        session.add(course)
+        session.flush()
+        questions = [
+            Question(
+                course_id=course.id,
+                created_by=teacher.id,
+                type=QuestionType.SINGLE_CHOICE,
+                content=f"原题{i}",
+                reference_answer="A",
+                score=Decimal("99.00"),
+                status=QuestionStatus.APPROVED,
+                knowledge_points=["当前题库标签"],
+            )
+            for i in range(2)
+        ]
+        session.add_all(questions)
+        session.flush()
+        exam = Exam(
+            course_id=course.id,
+            created_by=teacher.id,
+            title="固定分值考试",
+            status=ExamStatus.PUBLISHED,
+        )
+        exam.exam_question_links = [
+            ExamQuestion(
+                question=q,
+                order_index=i + 1,
+                score=Decimal(score),
+                base_score=Decimal("99.00"),
+                published_knowledge_points=tags,
+            )
+            for i, (q, score, tags) in enumerate(
+                zip(questions, ["2.00", "3.00"], [["一次函数"], ["一次函数", "表达与计算"]])
+            )
+        ]
+        session.add(exam)
+        session.commit()
+        students = [add_student(session, username=f"s{i}") for i in range(7)]
+        session.add_all(
+            ExamParticipant(exam_id=exam.id, student_id=student.id) for student in students
+        )
+        submissions = []
+        for i, student in enumerate(students[:6]):
+            sub = Submission(
+                exam_id=exam.id,
+                student_id=student.id,
+                status=SubmissionStatus.DRAFT if i == 5 else SubmissionStatus.SUBMITTED,
+                submitted_at=None if i == 5 else datetime.now(UTC),
+            )
+            session.add(sub)
+            session.flush()
+            session.add_all(
+                Answer(
+                    submission_id=sub.id,
+                    question_id=q.id,
+                    content="B",
+                    status=AnswerStatus.SUBMITTED,
+                )
+                for q in questions
+            )
+            submissions.append(sub)
+        session.commit()
+&gt;       repository = DatabaseGradingRepository(session=session)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: DatabaseGradingRepository.__init__() got an unexpected keyword argument 'session'
+
+tests\contract\test_results_analysis_api.py:118: TypeError</error></testcase><testcase classname="tests.contract.test_results_api_contract" name="test_student_without_stored_result_sees_explicit_empty_state" time="0.930" /><testcase classname="tests.contract.test_results_api_contract" name="test_student_result_detail_reports_final_total_and_confirmed_items" time="0.810" /><testcase classname="tests.contract.test_results_api_contract" name="test_student_cannot_read_another_student_submission" time="0.788" /><testcase classname="tests.contract.test_results_api_contract" name="test_teacher_results_do_not_fake_zero_average" time="1.039" /><testcase classname="tests.contract.test_results_api_contract" name="test_teacher_summary_excludes_drafts_from_submitted_statistics[Submitted]" time="0.836" /><testcase classname="tests.contract.test_results_api_contract" name="test_teacher_summary_excludes_drafts_from_submitted_statistics[Graded]" time="0.829" /><testcase classname="tests.contract.test_results_api_contract" name="test_teacher_summary_excludes_drafts_from_submitted_statistics[Reviewed]" time="0.819" /><testcase classname="tests.contract.test_results_api_contract" name="test_teacher_summary_averages_only_final_scores" time="0.857" /><testcase classname="tests.contract.test_results_api_contract" name="test_result_endpoints_enforce_role_and_course_boundaries" time="1.296" /><testcase classname="tests.contract.test_results_api_contract" name="test_results_endpoints_report_store_not_ready" time="0.798" /><testcase classname="tests.contract.test_results_api_contract" name="test_teacher_detail_reports_unmigrated_result_store_as_503" time="0.796" /><testcase classname="tests.contract.test_results_api_contract" name="test_diagnosis_store_unavailable_maps_to_503_with_source_code" time="0.812" /><testcase classname="tests.contract.test_results_api_contract" name="test_student_result_reads_from_database_and_diagnosis_is_read_only" time="1.268" /><testcase classname="tests.contract.test_results_api_contract" name="test_diagnosis_returns_stale_after_new_aggregation" time="0.799" /></testsuite></testsuites>

@@ -61,6 +61,7 @@ from backend.app.services.grading.grading_task_service import (
     GradingSubmissionNotFoundError,
     GradingTaskError,
 )
+from backend.app.services.result_analysis import build_teacher_statistics
 
 router = APIRouter(prefix="/api/results", tags=["成绩与诊断"])
 
@@ -168,13 +169,10 @@ class ResultsQueryService:
         with self._use_session() as session:
             exam = self._require_owned_exam(session, exam_id, teacher_id)
             submissions = list(
-                session.scalars(
-                    select(Submission).where(Submission.exam_id == exam.id)
-                )
+                session.scalars(select(Submission).where(Submission.exam_id == exam.id))
             )
             return [
-                self._summary(session, item, with_student=True)
-                for item in submissions
+                self._summary(session, item, with_student=True) for item in submissions
             ]
 
     def get_exam_summary(
@@ -191,21 +189,21 @@ class ResultsQueryService:
                 session.scalars(
                     select(Submission).where(
                         Submission.exam_id == exam.id,
-                        Submission.status.in_(
-                            (
-                                SubmissionStatus.SUBMITTED,
-                                SubmissionStatus.GRADED,
-                                SubmissionStatus.REVIEWED,
-                            )
-                        ),
                     )
                 )
             )
+            results = {
+                str(item.id): self._repository.get_exam_result(str(item.id))
+                for item in submissions
+            }
+            submitted = [
+                item for item in submissions if item.status != SubmissionStatus.DRAFT
+            ]
             finals: list[Decimal] = []
             pending_total = 0
             not_ready = False
-            for submission in submissions:
-                result = self._repository.get_exam_result(str(submission.id))
+            for submission in submitted:
+                result = results[str(submission.id)]
                 if result is None:
                     not_ready = True
                     continue
@@ -219,10 +217,11 @@ class ResultsQueryService:
                 )
             return TeacherExamResultSummaryDTO(
                 exam_id=str(exam.id),
-                submitted_count=len(submissions),
+                submitted_count=len(submitted),
                 final_count=len(finals),
                 pending_review_count=pending_total,
                 average_of_final_scores=average,
+                **build_teacher_statistics(session, exam, submissions, results),
                 not_ready=not_ready,
                 not_ready_reason=TEACHER_NOT_READY_REASON if not_ready else None,
             )
@@ -240,9 +239,7 @@ class ResultsQueryService:
             exam = self._require_owned_exam(session, exam_id, teacher_id)
             submission = self._require_submission(session, submission_id)
             if submission.exam_id != exam.id:
-                raise GradingSubmissionNotFoundError(
-                    "该答卷不属于指定考试。"
-                )
+                raise GradingSubmissionNotFoundError("该答卷不属于指定考试。")
             return self._detail(session, submission, include_unconfirmed=True)
 
     # ------------------------------------------------------------------ 内部
@@ -261,9 +258,7 @@ class ResultsQueryService:
         )
 
     def _require_submission(self, session: Session, submission_id: str) -> Submission:
-        submission = session.get(
-            Submission, _as_uuid(submission_id, "答卷标识")
-        )
+        submission = session.get(Submission, _as_uuid(submission_id, "答卷标识"))
         if submission is None:
             raise GradingSubmissionNotFoundError(f"答卷 {submission_id} 不存在。")
         return submission
@@ -311,9 +306,7 @@ class ResultsQueryService:
             pending_review_count=(
                 result.pending_review_answer_count if result is not None else None
             ),
-            not_ready_reason=(
-                None if result is not None else RESULT_NOT_READY_REASON
-            ),
+            not_ready_reason=(None if result is not None else RESULT_NOT_READY_REASON),
         )
 
     def _detail(
@@ -517,9 +510,7 @@ def get_exam_student_result(
     """教师面单份结果；包含待复核条目并标注临时状态。"""
 
     try:
-        return service.get_teacher_student_result(
-            str(user.id), exam_id, submission_id
-        )
+        return service.get_teacher_student_result(str(user.id), exam_id, submission_id)
     except GradingTaskError as error:
         raise _results_http_exception(error) from None
 

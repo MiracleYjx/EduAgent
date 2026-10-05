@@ -1,0 +1,94 @@
+EEEEEEEEE..............                                                  [100%]
+=================================== ERRORS ====================================
+__ ERROR at setup of test_final_statistics_and_participation_are_real_facts ___
+file D:\YJX\MyCode\EduAgent\tests\contract\test_results_analysis_api.py, line 207
+  def test_final_statistics_and_participation_are_real_facts(
+E       fixture 'session' not found
+>       available fixtures: analysis_scenario, anyio_backend, anyio_backend_name, anyio_backend_options, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, capteesys, doctest_namespace, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, monkeypatch, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, subtests, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+D:\YJX\MyCode\EduAgent\tests\contract\test_results_analysis_api.py:207
+_____ ERROR at setup of test_zero_observation_returns_null_not_zero_rates _____
+file D:\YJX\MyCode\EduAgent\tests\contract\test_results_analysis_api.py, line 283
+  def test_zero_observation_returns_null_not_zero_rates(session, analysis_scenario):
+E       fixture 'session' not found
+>       available fixtures: analysis_scenario, anyio_backend, anyio_backend_name, anyio_backend_options, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, capteesys, doctest_namespace, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, monkeypatch, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, subtests, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+D:\YJX\MyCode\EduAgent\tests\contract\test_results_analysis_api.py:283
+_ ERROR at setup of test_unknown_historical_association_keeps_total_but_excludes_attribution _
+file D:\YJX\MyCode\EduAgent\tests\contract\test_results_analysis_api.py, line 298
+  def test_unknown_historical_association_keeps_total_but_excludes_attribution(
+E       fixture 'session' not found
+>       available fixtures: analysis_scenario, anyio_backend, anyio_backend_name, anyio_backend_options, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, capteesys, doctest_namespace, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, monkeypatch, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, subtests, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+D:\YJX\MyCode\EduAgent\tests\contract\test_results_analysis_api.py:298
+_ ERROR at setup of test_current_eligibility_does_not_erase_historical_participation _
+file D:\YJX\MyCode\EduAgent\tests\contract\test_results_analysis_api.py, line 316
+  def test_current_eligibility_does_not_erase_historical_participation(
+E       fixture 'session' not found
+>       available fixtures: analysis_scenario, anyio_backend, anyio_backend_name, anyio_backend_options, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, capteesys, doctest_namespace, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, monkeypatch, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, subtests, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+D:\YJX\MyCode\EduAgent\tests\contract\test_results_analysis_api.py:316
+__ ERROR at setup of test_no_assignment_uses_legacy_whole_student_population __
+file D:\YJX\MyCode\EduAgent\tests\contract\test_results_analysis_api.py, line 332
+  def test_no_assignment_uses_legacy_whole_student_population(session, analysis_scenario):
+E       fixture 'session' not found
+>       available fixtures: analysis_scenario, anyio_backend, anyio_backend_name, anyio_backend_options, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, capteesys, doctest_namespace, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, monkeypatch, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, subtests, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+D:\YJX\MyCode\EduAgent\tests\contract\test_results_analysis_api.py:332
+_ ERROR at setup of test_recovered_final_is_not_marked_by_an_old_failed_workflow _
+file D:\YJX\MyCode\EduAgent\tests\contract\test_results_analysis_api.py, line 341
+  def test_recovered_final_is_not_marked_by_an_old_failed_workflow(
+E       fixture 'session' not found
+>       available fixtures: analysis_scenario, anyio_backend, anyio_backend_name, anyio_backend_options, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, capteesys, doctest_namespace, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, monkeypatch, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, subtests, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+D:\YJX\MyCode\EduAgent\tests\contract\test_results_analysis_api.py:341
+_ ERROR at setup of test_new_statistics_keep_role_and_course_boundary[Student] _
+file D:\YJX\MyCode\EduAgent\tests\contract\test_results_analysis_api.py, line 352
+  @pytest.mark.parametrize("role", [UserRole.STUDENT, UserRole.ADMIN, UserRole.TEACHER])
+  def test_new_statistics_keep_role_and_course_boundary(
+E       fixture 'session' not found
+>       available fixtures: analysis_scenario, anyio_backend, anyio_backend_name, anyio_backend_options, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, capteesys, doctest_namespace, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, monkeypatch, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, subtests, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+D:\YJX\MyCode\EduAgent\tests\contract\test_results_analysis_api.py:352
+_ ERROR at setup of test_new_statistics_keep_role_and_course_boundary[Admin] __
+file D:\YJX\MyCode\EduAgent\tests\contract\test_results_analysis_api.py, line 352
+  @pytest.mark.parametrize("role", [UserRole.STUDENT, UserRole.ADMIN, UserRole.TEACHER])
+  def test_new_statistics_keep_role_and_course_boundary(
+E       fixture 'session' not found
+>       available fixtures: analysis_scenario, anyio_backend, anyio_backend_name, anyio_backend_options, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, capteesys, doctest_namespace, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, monkeypatch, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, subtests, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+D:\YJX\MyCode\EduAgent\tests\contract\test_results_analysis_api.py:352
+_ ERROR at setup of test_new_statistics_keep_role_and_course_boundary[Teacher] _
+file D:\YJX\MyCode\EduAgent\tests\contract\test_results_analysis_api.py, line 352
+  @pytest.mark.parametrize("role", [UserRole.STUDENT, UserRole.ADMIN, UserRole.TEACHER])
+  def test_new_statistics_keep_role_and_course_boundary(
+E       fixture 'session' not found
+>       available fixtures: analysis_scenario, anyio_backend, anyio_backend_name, anyio_backend_options, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, capteesys, doctest_namespace, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, monkeypatch, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, subtests, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+D:\YJX\MyCode\EduAgent\tests\contract\test_results_analysis_api.py:352
+============================== warnings summary ===============================
+..\..\..\develop\Python\Lib\site-packages\fastapi\testclient.py:1
+  D:\develop\Python\Lib\site-packages\fastapi\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+ERROR tests/contract/test_results_analysis_api.py::test_final_statistics_and_participation_are_real_facts
+ERROR tests/contract/test_results_analysis_api.py::test_zero_observation_returns_null_not_zero_rates
+ERROR tests/contract/test_results_analysis_api.py::test_unknown_historical_association_keeps_total_but_excludes_attribution
+ERROR tests/contract/test_results_analysis_api.py::test_current_eligibility_does_not_erase_historical_participation
+ERROR tests/contract/test_results_analysis_api.py::test_no_assignment_uses_legacy_whole_student_population
+ERROR tests/contract/test_results_analysis_api.py::test_recovered_final_is_not_marked_by_an_old_failed_workflow
+ERROR tests/contract/test_results_analysis_api.py::test_new_statistics_keep_role_and_course_boundary[Student]
+ERROR tests/contract/test_results_analysis_api.py::test_new_statistics_keep_role_and_course_boundary[Admin]
+ERROR tests/contract/test_results_analysis_api.py::test_new_statistics_keep_role_and_course_boundary[Teacher]
+14 passed, 1 warning, 9 errors in 24.21s

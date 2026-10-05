@@ -1,0 +1,10 @@
+{
+  "run_at": "2026-10-05T03:40:50.414040+00:00",
+  "task": "T180",
+  "tests": 118,
+  "cloud_requests": 0,
+  "provenance": "合成受控输入；AI 辅助 + 开发者审查，不是独立教师质量验收",
+  "protected_files_unchanged": true,
+  "initial_failures": "fixture 导入被 lint 删除；新增 fixture 错用 session 构造，均修正为既有合同；保留原始记录",
+  "type_and_lint": "passed"
+}
