@@ -626,7 +626,7 @@ M0 工程骨架 + Benchmark
 
 - [X] T182 [HIGH] [E5] **实现教师考情分析页面**：扩展 `ui/results_view.py`、`results_loaders.py` 的教师视图，提供统计概览、分布、逐题/知识点明细、分母及关注学生详情，联动实际答卷与复核入口；空数据、未完成与失败分别展示，数值只读服务事实。 依赖：T180。per FR-050、US3-v2/AC4、SC-013（F049） (partial)
 
-- [ ] T183 [HIGH] [E5] **实现学生知识点反馈页面**：扩展 `ui/results_view.py`、`results_diagnosis.py` 及加载器，展示本人逐题答案/图片/评分解释/失分与薄弱知识点、资料/练习来源入口；待复核、失败、依据不足分别显示，授权后打开文件，不把无结果解释为零分或确定弱点。 依赖：T181。per FR-051、US2-v2/AC2–3、SC-013（F050） (partial)
+- [X] T183 [HIGH] [E5] **实现学生知识点反馈页面**：扩展 `ui/results_view.py`、`results_diagnosis.py` 及加载器，展示本人逐题答案/图片/评分解释/失分与薄弱知识点、资料/练习来源入口；待复核、失败、依据不足分别显示，授权后打开文件，不把无结果解释为零分或确定弱点。 依赖：T181。per FR-051、US2-v2/AC2–3、SC-013（F050） (partial)
 
 - [ ] T184 [HIGH] [E5] **核对两类分析与独立统计基准**：按 T145 在 `tests/contract/test_results_api_contract.py`、`tests/integration/`、`tests/unit/ui/` 对照 T146 的教师独立核算，覆盖多知识点、多场分值、复核前后、失败/缺依据/零样本和推荐越权/缺资料/未审核题；保存 UI 关键操作与真实答卷证据到 `docs/validation-report.md`，100% 样本统计一致才报告 SC-013 通过。 依赖：T145、T146、T180、T181、T182、T183。per FR-050/051、SC-013、plan Gate 19（F051） (partial)
 

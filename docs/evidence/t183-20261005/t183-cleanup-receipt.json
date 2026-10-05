@@ -1,0 +1,17 @@
+{
+  "closed_at": "2026-10-05T05:34:44.287899+00:00",
+  "owned_database": "eduagent_e5ui_81381179e9e8",
+  "owned_revision": "0023_grading_exam_question",
+  "connections_before_drop": 0,
+  "remaining_test_schemas": 0,
+  "owned_database_dropped": true,
+  "student_port_closed": 13449,
+  "original_database_targeted": false,
+  "protected_file_bytes_unchanged": {
+    "README.md": true,
+    "README.zh-CN.md": true,
+    "benchmark/corpus/grading_samples.json": true,
+    ".env": true
+  },
+  "cloud_calls": 0
+}

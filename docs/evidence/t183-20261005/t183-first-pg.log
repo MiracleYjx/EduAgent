@@ -1,0 +1,236 @@
+FFF................                                                      [100%]
+================================== FAILURES ===================================
+________________ test_current_final_page_and_material_details _________________
+
+session = <sqlalchemy.orm.session.Session object at 0x000001816B794830>
+feedback_scenario = {'teacher': <backend.app.models.user.User object at 0x000001816B3A3A10>, 'course': <backend.app.models.course.Course o...tion.Question object at 0x000001816CD547D0>], 'exam': <backend.app.models.exam.Exam object at 0x000001816B795D30>, ...}
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001816B7063F0>
+
+    def test_current_final_page_and_material_details(
+        session, feedback_scenario, monkeypatch
+    ):
+        s = feedback_scenario
+        chunk = source.material(session, s)
+        env = make_ui(s, session, monkeypatch)
+        _, view, _, state = env
+        try:
+>           values = process(env, "refresh_student_learning", [str(s["exam"].id), None])
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\integration\test_student_learning_ui.py:62: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\integration\test_student_learning_ui.py:41: in process
+    response = asyncio.run(app.process_api(fn, inputs, state=state, event_data=event))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\asyncio\runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\asyncio\runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\asyncio\base_events.py:725: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\gradio\blocks.py:2324: in process_api
+    inputs = await self.preprocess_data(
+D:\develop\Python\Lib\site-packages\gradio\blocks.py:1908: in preprocess_data
+    processed_value = await anyio.to_thread.run_sync(
+D:\develop\Python\Lib\site-packages\anyio\to_thread.py:63: in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+D:\develop\Python\Lib\site-packages\anyio\_backends\_asyncio.py:2518: in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\anyio\_backends\_asyncio.py:1002: in run
+    result = context.run(func, *args)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <gradio.components.dropdown.Dropdown object at 0x000001816CE7D940>
+payload = '9200a708-7eea-4c3a-911e-5144e7ae3d52'
+
+    def preprocess(
+        self, payload: str | int | float | list[str | int | float] | None
+    ) -> str | int | float | list[str | int | float] | list[int | None] | None:
+        """
+        Parameters:
+            payload: the value of the selected dropdown choice(s)
+        Returns:
+            Passes the value of the selected dropdown choice as a `str | int | float` or its index as an `int` into the function, depending on `type`. Or, if `multiselect` is True, passes the values of the selected dropdown choices as a list of corresponding values/indices instead.
+        """
+        if payload is None:
+            return None
+    
+        choice_values = [value for _, value in self.choices]
+        if not self.allow_custom_value:
+            if isinstance(payload, list):
+                for value in payload:
+                    if value not in choice_values:
+                        raise Error(
+                            f"Value: {value!r} (type: {type(value)}) is not in the list of choices: {choice_values}"
+                        )
+            elif payload not in choice_values:
+>               raise Error(
+                    f"Value: {payload} is not in the list of choices: {choice_values}"
+                )
+E               gradio.exceptions.Error: 'Value: 9200a708-7eea-4c3a-911e-5144e7ae3d52 is not in the list of choices: []'
+
+D:\develop\Python\Lib\site-packages\gradio\components\dropdown.py:211: Error
+_______________ test_practice_image_and_original_options_order ________________
+
+session = <sqlalchemy.orm.session.Session object at 0x000001816CD55A90>
+feedback_scenario = {'teacher': <backend.app.models.user.User object at 0x000001816CE34350>, 'course': <backend.app.models.course.Course o...tion.Question object at 0x000001816D4F68D0>], 'exam': <backend.app.models.exam.Exam object at 0x000001816D179310>, ...}
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001816CFB8D60>
+
+    def test_practice_image_and_original_options_order(
+        session, feedback_scenario, monkeypatch
+    ):
+        s = feedback_scenario
+        q, asset, path, data = source.practice(session, s, image=True)
+        env = make_ui(s, session, monkeypatch)
+        _, view, _, state = env
+        try:
+>           process(env, "refresh_student_learning", [str(s["exam"].id), None])
+
+tests\integration\test_student_learning_ui.py:92: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\integration\test_student_learning_ui.py:41: in process
+    response = asyncio.run(app.process_api(fn, inputs, state=state, event_data=event))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\asyncio\runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\asyncio\runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\asyncio\base_events.py:725: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\gradio\blocks.py:2324: in process_api
+    inputs = await self.preprocess_data(
+D:\develop\Python\Lib\site-packages\gradio\blocks.py:1908: in preprocess_data
+    processed_value = await anyio.to_thread.run_sync(
+D:\develop\Python\Lib\site-packages\anyio\to_thread.py:63: in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+D:\develop\Python\Lib\site-packages\anyio\_backends\_asyncio.py:2518: in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\anyio\_backends\_asyncio.py:1002: in run
+    result = context.run(func, *args)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <gradio.components.dropdown.Dropdown object at 0x000001816DA07250>
+payload = 'cdd98360-3c51-426d-8431-84905d2275ae'
+
+    def preprocess(
+        self, payload: str | int | float | list[str | int | float] | None
+    ) -> str | int | float | list[str | int | float] | list[int | None] | None:
+        """
+        Parameters:
+            payload: the value of the selected dropdown choice(s)
+        Returns:
+            Passes the value of the selected dropdown choice as a `str | int | float` or its index as an `int` into the function, depending on `type`. Or, if `multiselect` is True, passes the values of the selected dropdown choices as a list of corresponding values/indices instead.
+        """
+        if payload is None:
+            return None
+    
+        choice_values = [value for _, value in self.choices]
+        if not self.allow_custom_value:
+            if isinstance(payload, list):
+                for value in payload:
+                    if value not in choice_values:
+                        raise Error(
+                            f"Value: {value!r} (type: {type(value)}) is not in the list of choices: {choice_values}"
+                        )
+            elif payload not in choice_values:
+>               raise Error(
+                    f"Value: {payload} is not in the list of choices: {choice_values}"
+                )
+E               gradio.exceptions.Error: 'Value: cdd98360-3c51-426d-8431-84905d2275ae is not in the list of choices: []'
+
+D:\develop\Python\Lib\site-packages\gradio\components\dropdown.py:211: Error
+__________ test_regrading_clears_resources_and_rejects_old_selection __________
+
+session = <sqlalchemy.orm.session.Session object at 0x000001816D1C5FD0>
+feedback_scenario = {'teacher': <backend.app.models.user.User object at 0x000001816B693890>, 'course': <backend.app.models.course.Course o...tion.Question object at 0x000001816D5A8750>], 'exam': <backend.app.models.exam.Exam object at 0x000001816DE61BD0>, ...}
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001816D4F7D10>
+
+    def test_regrading_clears_resources_and_rejects_old_selection(
+        session, feedback_scenario, monkeypatch
+    ):
+        s = feedback_scenario
+        source.material(session, s)
+        env = make_ui(s, session, monkeypatch)
+        _, view, _, state = env
+        try:
+>           process(env, "refresh_student_learning", [str(s["exam"].id), None])
+
+tests\integration\test_student_learning_ui.py:126: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\integration\test_student_learning_ui.py:41: in process
+    response = asyncio.run(app.process_api(fn, inputs, state=state, event_data=event))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\asyncio\runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\asyncio\runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\asyncio\base_events.py:725: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\gradio\blocks.py:2324: in process_api
+    inputs = await self.preprocess_data(
+D:\develop\Python\Lib\site-packages\gradio\blocks.py:1908: in preprocess_data
+    processed_value = await anyio.to_thread.run_sync(
+D:\develop\Python\Lib\site-packages\anyio\to_thread.py:63: in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+D:\develop\Python\Lib\site-packages\anyio\_backends\_asyncio.py:2518: in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+D:\develop\Python\Lib\site-packages\anyio\_backends\_asyncio.py:1002: in run
+    result = context.run(func, *args)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <gradio.components.dropdown.Dropdown object at 0x000001816E2674D0>
+payload = '4b963a06-bc7b-4e1e-a9d6-c4ceb8c397a9'
+
+    def preprocess(
+        self, payload: str | int | float | list[str | int | float] | None
+    ) -> str | int | float | list[str | int | float] | list[int | None] | None:
+        """
+        Parameters:
+            payload: the value of the selected dropdown choice(s)
+        Returns:
+            Passes the value of the selected dropdown choice as a `str | int | float` or its index as an `int` into the function, depending on `type`. Or, if `multiselect` is True, passes the values of the selected dropdown choices as a list of corresponding values/indices instead.
+        """
+        if payload is None:
+            return None
+    
+        choice_values = [value for _, value in self.choices]
+        if not self.allow_custom_value:
+            if isinstance(payload, list):
+                for value in payload:
+                    if value not in choice_values:
+                        raise Error(
+                            f"Value: {value!r} (type: {type(value)}) is not in the list of choices: {choice_values}"
+                        )
+            elif payload not in choice_values:
+>               raise Error(
+                    f"Value: {payload} is not in the list of choices: {choice_values}"
+                )
+E               gradio.exceptions.Error: 'Value: 4b963a06-bc7b-4e1e-a9d6-c4ceb8c397a9 is not in the list of choices: []'
+
+D:\develop\Python\Lib\site-packages\gradio\components\dropdown.py:211: Error
+============================== warnings summary ===============================
+..\..\..\develop\Python\Lib\site-packages\fastapi\testclient.py:1
+  D:\develop\Python\Lib\site-packages\fastapi\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/integration/test_student_learning_ui.py::test_current_final_page_and_material_details
+FAILED tests/integration/test_student_learning_ui.py::test_practice_image_and_original_options_order
+FAILED tests/integration/test_student_learning_ui.py::test_regrading_clears_resources_and_rejects_old_selection
+3 failed, 16 passed, 1 warning in 57.96s

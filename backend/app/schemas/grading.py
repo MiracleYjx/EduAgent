@@ -874,6 +874,9 @@ class StudentQuestionFeedbackDTO(BaseModel):
 
 class StudentLearningFeedbackDTO(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
+    processing_status: str = "unfinished"
+    processing_error_code: str | None = None
+    processing_reason: str | None = None
     submission_id: NonEmptyText
     exam_id: NonEmptyText
     course_id: NonEmptyText

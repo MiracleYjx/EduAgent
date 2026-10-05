@@ -28,7 +28,16 @@ from backend.app.ui.results_analysis import (
 from backend.app.ui.results_diagnosis import (
     MASTERY_HEADERS,
     MASTERY_TABLE_DATATYPES,
+    current_learning_sections,
     diagnosis_sections,
+)
+from backend.app.ui.results_learning import (
+    LEARNING_HEADERS,
+    RECOMMENDATION_HEADERS,
+    error_html,
+    learning_message,
+    learning_rows,
+    recommendation_rows,
 )
 
 RESULT_HEADERS = ("题号", "状态", "得分", "反馈")
@@ -75,6 +84,14 @@ class ResultsView:
     diagnosis: gr.Markdown
     mastery_table: gr.Dataframe
     message: gr.Markdown
+    exam: gr.Dropdown
+    learning_message: gr.Markdown
+    feedback_table: gr.Dataframe
+    learning_records: gr.State
+    recommendation_table: gr.Dataframe
+    recommendation_records: gr.State
+    question_detail: gr.HTML
+    resource_detail: gr.HTML
 
 
 @dataclass(frozen=True)
@@ -684,21 +701,201 @@ def select_teacher_attention(
         )
 
 
-def create_results_view(session_state: Any | None = None) -> ResultsView:
-    """创建考试选择、结果摘要、逐题结果和诊断区域。"""
+def refresh_student_exams(
+    state: Mapping[str, Any] | None, selected: str | None = None
+) -> Any:
+    """考试选项只来自本人真实答卷，不枚举教师考试。"""
+    try:
+        _ensure_student(state or {})
+        if _student_exams_loader is None:
+            raise RuntimeError("学生考试加载器未接线。")
+        records = _student_exams_loader(state)
+        choices = [
+            (str(_value(r, "exam_title", "本人考试")), str(_value(r, "exam_id")))
+            for r in records
+        ]
+        identities = {identity for _, identity in choices}
+        return gr.update(
+            choices=choices,
+            value=(
+                selected
+                if selected in identities
+                else choices[0][1] if choices else None
+            ),
+        )
+    except Exception:  # noqa: BLE001 - 不保留失效账户的旧选项
+        return gr.update(choices=[], value=None)
 
+
+def refresh_student_learning(
+    exam_id: str | None, state: Mapping[str, Any] | None
+) -> tuple[Any, ...]:
+    """读取当前本人反馈；刷新始终清除旧详情和选择身份。"""
+    try:
+        _ensure_student(state or {})
+        if _student_learning_loader is None:
+            raise RuntimeError("学生学习反馈加载器未接线。")
+        payload = _student_learning_loader(exam_id, state)
+        rows, resources = recommendation_rows(payload)
+        weak, diagnosis, mastery = current_learning_sections(payload)
+        records = (
+            {
+                "submission_id": str(_value(payload, "submission_id")),
+                "answer_ids": [
+                    str(_value(item, "answer_id"))
+                    for item in _value(payload, "items", [])
+                ],
+            }
+            if payload is not None
+            else None
+        )
+        return (
+            learning_message(payload),
+            learning_rows(payload),
+            records,
+            rows,
+            resources,
+            "",
+            "",
+            weak,
+            diagnosis,
+            mastery,
+            "",
+        )
+    except Exception as error:  # noqa: BLE001 - 真实失败清除旧内容，不能伪装成功
+        return (
+            error_html(error),
+            [],
+            None,
+            [],
+            [],
+            "",
+            "",
+            empty_state("当前学习反馈不可用，不能确定薄弱点。"),
+            empty_state("当前诊断不可用，请刷新后重试。"),
+            [],
+            "",
+        )
+
+
+def _selected_index(event: gr.SelectData, count: int) -> int:
+    index = event.index[0] if isinstance(event.index, (tuple, list)) else event.index
+    if (
+        not event.selected
+        or isinstance(index, bool)
+        or not isinstance(index, int)
+        or not 0 <= index < count
+    ):
+        raise ValueError("选择入口已失效，请刷新后重选。")
+    return index
+
+
+def select_student_question(
+    records: Mapping[str, Any] | None,
+    state: Mapping[str, Any] | None,
+    event: gr.SelectData,
+) -> str:
+    try:
+        _ensure_student(state or {})
+        if records is None or _student_question_loader is None:
+            raise ValueError("答案入口已失效。")
+        answer = records["answer_ids"][
+            _selected_index(event, len(records["answer_ids"]))
+        ]
+        return str(_student_question_loader(records["submission_id"], answer, state))
+    except Exception as error:  # noqa: BLE001 - 拒绝时替换旧详情
+        return error_html(error)
+
+
+def select_student_resource(
+    records: Sequence[Mapping[str, Any]] | None,
+    state: Mapping[str, Any] | None,
+    event: gr.SelectData,
+) -> str:
+    try:
+        _ensure_student(state or {})
+        if records is None or _student_resource_loader is None:
+            raise ValueError("来源入口已失效。")
+        record = records[_selected_index(event, len(records))]
+        return str(_student_resource_loader(record, state))
+    except Exception as error:  # noqa: BLE001 - 服务重新授权失败不保留旧资料
+        return error_html(error)
+
+
+def student_learning_outputs(view: ResultsView) -> list[Any]:
+    return [
+        view.learning_message,
+        view.feedback_table,
+        view.learning_records,
+        view.recommendation_table,
+        view.recommendation_records,
+        view.question_detail,
+        view.resource_detail,
+        view.weak_points,
+        view.diagnosis,
+        view.mastery_table,
+        view.message,
+    ]
+
+
+def student_panel_updates_components(view: ResultsView) -> list[Any]:
+    return list(
+        dict.fromkeys(
+            [
+                view.results_table,
+                view.total_score,
+                view.graded_count,
+                view.pending_count,
+                view.weak_points,
+                view.diagnosis,
+                view.mastery_table,
+                view.message,
+                *student_learning_outputs(view),
+            ]
+        )
+    )
+
+
+def student_panel_updates(
+    view: ResultsView, exam_id: str | None, state: Mapping[str, Any] | None
+) -> dict[Any, Any]:
+    outputs = [
+        view.results_table,
+        view.total_score,
+        view.graded_count,
+        view.pending_count,
+        view.weak_points,
+        view.diagnosis,
+        view.mastery_table,
+        view.message,
+    ]
+    updates = dict(zip(outputs, refresh_student_panel(exam_id, state), strict=True))
+    updates.update(
+        zip(
+            student_learning_outputs(view),
+            refresh_student_learning(exam_id, state),
+            strict=True,
+        )
+    )
+    return updates
+
+
+def create_results_view(session_state: Any | None = None) -> ResultsView:
+    """本人考试、最终结果与受答卷上下文授权的学习反馈。"""
     state = session_state or gr.State({"access_token": "", "roles": []})
     with gr.Column(visible=False, elem_classes="edu-results") as panel:
         gr.HTML(
-            "<style>.edu-results .result-summary {min-height:74px;}"
-            ".edu-results .result-tabs {min-height:320px;}"
-            "@media(max-width:767px){.edu-results .result-summary-row{flex-wrap:wrap;}}</style>"
+            "<style>.edu-results .result-summary{min-height:74px;} .edu-results .result-tabs{min-height:320px;} @media(max-width:767px){.edu-results .result-summary-row{flex-wrap:wrap;}}</style>"
         )
         gr.Markdown("## 成绩与诊断")
         with gr.Row():
-            exam = gr.Dropdown(label="考试", choices=[], value=None)
+            exam = gr.Dropdown(
+                label="考试",
+                choices=[],
+                value=None,
+                info="点击刷新加载本人已有答卷的考试。",
+            )
             refresh = gr.Button("刷新结果", variant="primary")
-        gr.Markdown(empty_state(UNAVAILABLE_MESSAGE))
         with gr.Row(elem_classes="result-summary-row"):
             total_score = gr.Textbox(
                 label="总分",
@@ -718,6 +915,7 @@ def create_results_view(session_state: Any | None = None) -> ResultsView:
                 interactive=False,
                 elem_classes="result-summary",
             )
+        learning_status = gr.Markdown(learning_message(None))
         with gr.Tabs(elem_classes="result-tabs"):
             with gr.Tab("逐题结果"):
                 results_table = gr.Dataframe(
@@ -727,7 +925,16 @@ def create_results_view(session_state: Any | None = None) -> ResultsView:
                     interactive=False,
                     label="逐题结果",
                 )
-                gr.Markdown(empty_state("暂无逐题结果可展示。"))
+                feedback_table = gr.Dataframe(
+                    headers=list(LEARNING_HEADERS),
+                    datatype=["str"] * len(LEARNING_HEADERS),
+                    value=[],
+                    interactive=False,
+                    label="本人答案、最终失分与评分解释（选中查看原图）",
+                    wrap=True,
+                )
+                learning_records = gr.State(None)
+                question_detail = gr.HTML("", elem_id="edu-student-question-detail")
             with gr.Tab("错题与诊断"), gr.Row(equal_height=False):
                 with gr.Column(scale=1):
                     gr.Markdown("### 薄弱知识点")
@@ -742,8 +949,46 @@ def create_results_view(session_state: Any | None = None) -> ResultsView:
                 with gr.Column(scale=1):
                     gr.Markdown("### 错误原因与学习建议")
                     diagnosis = gr.Markdown(empty_state("诊断报告尚未生成"))
-        message = gr.Markdown(empty_state("暂无可展示的诊断"))
+            with gr.Tab("复习资料与练习"):
+                gr.Markdown(
+                    "只展示当前最终答卷失分知识点的授权片段和已审核练习。选中后重新核对权限；资料原文件沿用教师权限。"
+                )
+                recommendation_table = gr.Dataframe(
+                    headers=list(RECOMMENDATION_HEADERS),
+                    datatype=["str"] * len(RECOMMENDATION_HEADERS),
+                    value=[],
+                    interactive=False,
+                    label="关联来源与推荐理由（选中查看）",
+                    wrap=True,
+                )
+                recommendation_records = gr.State([])
+                resource_detail = gr.HTML("", elem_id="edu-student-resource-detail")
+        message = gr.Markdown(empty_state("请选择本人已有答卷的考试。"))
+        view = ResultsView(
+            panel,
+            results_table,
+            total_score,
+            graded_count,
+            pending_count,
+            weak_points,
+            diagnosis,
+            mastery_table,
+            message,
+            exam,
+            learning_status,
+            feedback_table,
+            learning_records,
+            recommendation_table,
+            recommendation_records,
+            question_detail,
+            resource_detail,
+        )
         refresh.click(
+            refresh_student_exams,
+            inputs=[state, exam],
+            outputs=[exam],
+            show_progress="hidden",
+        ).then(
             refresh_student_panel,
             inputs=[exam, state],
             outputs=[
@@ -757,18 +1002,37 @@ def create_results_view(session_state: Any | None = None) -> ResultsView:
                 message,
             ],
             show_progress="hidden",
+        ).then(
+            refresh_student_learning,
+            inputs=[exam, state],
+            outputs=student_learning_outputs(view),
+            show_progress="hidden",
         )
-    return ResultsView(
-        panel=panel,
-        results_table=results_table,
-        total_score=total_score,
-        graded_count=graded_count,
-        pending_count=pending_count,
-        weak_points=weak_points,
-        diagnosis=diagnosis,
-        mastery_table=mastery_table,
-        message=message,
-    )
+        feedback_table.select(
+            select_student_question,
+            inputs=[learning_records, state],
+            outputs=[question_detail],
+            show_progress="hidden",
+        )
+        recommendation_table.select(
+            select_student_resource,
+            inputs=[recommendation_records, state],
+            outputs=[resource_detail],
+            show_progress="hidden",
+        )
+
+        def change_student_exam(
+            identity: str | None, current: Mapping[str, Any] | None
+        ) -> dict[Any, Any]:
+            return student_panel_updates(view, identity, current)
+
+        exam.input(
+            change_student_exam,
+            inputs=[exam, state],
+            outputs=student_panel_updates_components(view),
+            show_progress="hidden",
+        )
+    return view
 
 
 def _ensure_teacher(state: Mapping[str, Any]) -> None:
@@ -834,6 +1098,10 @@ _teacher_submission_loader: Any | None = None
 
 #: 学生诊断接线点：返回已持久化诊断报告；只读，不触发生成与 LLM 调用。
 _student_diagnosis_loader: Any | None = None
+_student_learning_loader: Any | None = None
+_student_question_loader: Any | None = None
+_student_resource_loader: Any | None = None
+_student_exams_loader: Any | None = None
 
 #: 待复核结果提示文案；待复核不得伪装成最终成绩。
 PENDING_REVIEW_MESSAGE = "成绩待人工复核：待复核题目不计入最终总分。"
@@ -843,6 +1111,10 @@ def configure_results_loaders(
     *,
     student_loader: Any | None = None,
     student_diagnosis_loader: Any | None = None,
+    student_learning_loader: Any | None = None,
+    student_question_loader: Any | None = None,
+    student_resource_loader: Any | None = None,
+    student_exams_loader: Any | None = None,
     teacher_courses_loader: Any | None = None,
     teacher_exams_loader: Any | None = None,
     teacher_loader: Any | None = None,
@@ -860,10 +1132,16 @@ def configure_results_loaders(
     """
 
     global _student_result_loader, _student_diagnosis_loader
+    global _student_learning_loader, _student_question_loader
+    global _student_resource_loader, _student_exams_loader
     global _teacher_courses_loader, _teacher_exams_loader, _teacher_results_loader
     global _teacher_summary_loader, _teacher_diagnosis_loader, _teacher_submission_loader
     _student_result_loader = student_loader
     _student_diagnosis_loader = student_diagnosis_loader
+    _student_learning_loader = student_learning_loader
+    _student_question_loader = student_question_loader
+    _student_resource_loader = student_resource_loader
+    _student_exams_loader = student_exams_loader
     _teacher_courses_loader = teacher_courses_loader
     _teacher_exams_loader = teacher_exams_loader
     _teacher_results_loader = teacher_loader

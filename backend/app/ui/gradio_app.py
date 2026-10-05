@@ -79,9 +79,9 @@ from backend.app.ui.results_view import (
     TeacherResultsView,
     create_results_view,
     create_teacher_results_view,
-    refresh_student_results,
     result_status_text,
     review_context_is_complete,
+    student_panel_updates,
 )
 from backend.app.ui.review_view import ReviewView, create_review_view
 from backend.app.ui.student_exam_view import (
@@ -312,9 +312,7 @@ def _loaded_todo_messages(
             target = (
                 "teacher.review"
                 if "复核" in row_text
-                else "teacher.questions"
-                if "审核" in row_text
-                else "teacher.home"
+                else "teacher.questions" if "审核" in row_text else "teacher.home"
             )
             records.append(
                 {
@@ -1978,9 +1976,9 @@ def login_user(
         )
 
 
-def logout_user() -> tuple[
-    LoginState, str, dict[str, Any], dict[str, Any], str, dict[str, Any], str
-]:
+def logout_user() -> (
+    tuple[LoginState, str, dict[str, Any], dict[str, Any], str, dict[str, Any], str]
+):
     """清理当前 Gradio 会话并回到登录面板。"""
 
     return (
@@ -3116,9 +3114,11 @@ def create_gradio_app() -> gr.Blocks:
                 message_button: _message_button_label(next_nav["messages"]),
                 message_table: _message_rows(next_nav["messages"], current_state),
                 message_empty: gr.update(
-                    value=empty_state("暂无本次会话消息。")
-                    if not next_nav["messages"]
-                    else "",
+                    value=(
+                        empty_state("暂无本次会话消息。")
+                        if not next_nav["messages"]
+                        else ""
+                    ),
                 ),
             }
 
@@ -3564,12 +3564,7 @@ def create_gradio_app() -> gr.Blocks:
                 detail="已按当前学生答卷归属打开结果页。",
             )
             result = render_workspace(current, next_nav, "student.results")
-            result_rows, result_message = refresh_student_results(
-                exam_id or None,
-                current,
-            )
-            result[results_view.results_table] = result_rows
-            result[results_view.message] = result_message
+            result.update(student_panel_updates(results_view, exam_id or None, current))
             if student_results_exam is not None and exam_id:
                 result[student_results_exam] = gr.update(
                     value=exam_id,

@@ -1,0 +1,90 @@
+.........F.............................................................. [ 68%]
+.................................                                        [100%]
+================================== FAILURES ===================================
+_______ test_homepage_opens_all_feedback_and_logout_resets_new_details ________
+
+session = <sqlalchemy.orm.session.Session object at 0x0000018CEF5FC750>
+feedback_scenario = {'teacher': <backend.app.models.user.User object at 0x0000018CEF852DF0>, 'course': <backend.app.models.course.Course o...tion.Question object at 0x0000018CEF4FDE10>], 'exam': <backend.app.models.exam.Exam object at 0x0000018CEF550950>, ...}
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x0000018CEEFFF850>
+
+    def test_homepage_opens_all_feedback_and_logout_resets_new_details(
+        session, feedback_scenario, monkeypatch
+    ):
+        from backend.app.ui import gradio_app
+    
+        s = feedback_scenario
+        source.material(session, s)
+        factory = lambda: Session(session.get_bind())
+        for module in (results_loaders, results_api, gradio_app):
+            monkeypatch.setattr(module, "get_session_factory", lambda: factory)
+        token = create_access_token(
+            s["students"][0].id,
+            secret_key=get_settings().JWT_SECRET_KEY,
+            roles=[UserRole.STUDENT],
+        )
+        current = gradio_app._authenticated_state({"access_token": token})
+        app = gradio_app.create_gradio_app()
+        fn = next(
+            f
+            for f in app.fns.values()
+            if getattr(f.fn, "__name__", "") == "open_student_result_from_dashboard"
+        )
+        sub = s["submissions"][0]
+        records = [
+            {
+                "id": str(sub.id),
+                "submission_id": str(sub.id),
+                "exam_id": str(s["exam"].id),
+                "exam_title": s["exam"].title,
+                "result_status": "Final",
+            }
+        ]
+        try:
+            updates = fn.fn(records, str(sub.id), current, {})
+            table = next(
+                b
+                for b in app.blocks.values()
+                if getattr(b, "label", "") == "本人答案、最终失分与评分解释（选中查看原图）"
+            )
+            assert updates[table][1][5] == "1.00"
+            assert any(
+                isinstance(component, gr.State)
+                and isinstance(v, list)
+                and v
+                and isinstance(v[0], dict)
+                and v[0].get("kind") == "material"
+                for component, v in updates.items()
+            )
+            reset = next(
+                f.fn
+                for f in app.fns.values()
+                if getattr(f.fn, "__name__", "") == "clear_workspace"
+            )()
+            for identity in ["edu-student-question-detail", "edu-student-resource-detail"]:
+                component = next(b for b in app.blocks.values() if b.elem_id == identity)
+                assert reset[component]["value"] == ""
+>           assert reset[table]["value"] == []
+E           AssertionError: assert {'headers': [...tadata': None} == []
+E             
+E             Use -v to get more diff
+
+tests\integration\test_student_learning_ui.py:305: AssertionError
+============================== warnings summary ===============================
+..\..\..\develop\Python\Lib\site-packages\fastapi\testclient.py:1
+  D:\develop\Python\Lib\site-packages\fastapi\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+tests/integration/test_student_learning_ui.py::test_homepage_opens_all_feedback_and_logout_resets_new_details
+tests/unit/ui/test_gradio_app.py::test_create_gradio_app_builds_login_shell
+  D:\develop\Python\Lib\site-packages\gradio\components\dataframe.py:197: UserWarning: The `column_limits` parameter is not yet implemented.
+    warnings.warn(
+
+tests/integration/test_student_learning_ui.py::test_homepage_opens_all_feedback_and_logout_resets_new_details
+tests/unit/ui/test_gradio_app.py::test_create_gradio_app_builds_login_shell
+  D:\develop\Python\Lib\site-packages\gradio\components\dataframe.py:183: UserWarning: The `row_limits` parameter is not yet implemented.
+    warnings.warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/integration/test_student_learning_ui.py::test_homepage_opens_all_feedback_and_logout_resets_new_details
+1 failed, 104 passed, 5 warnings in 96.82s (0:01:36)

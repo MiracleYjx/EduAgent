@@ -109,6 +109,22 @@ def _workflow_error(run: WorkflowRun | None) -> str | None:
     return code if isinstance(code, str) else None
 
 
+def nonfinal_processing_state(
+    result: ExamResultDTO | None, run: WorkflowRun | None
+) -> tuple[str, str, str | None]:
+    """Shared current nonfinal classification; called only after checking whole finality."""
+    code = _workflow_error(run)
+    if code in INSUFFICIENT_CODES:
+        return "insufficient_evidence", "评分依据不足，未形成最终成绩。", code
+    if (result is not None and result.result_status == ExamResultStatus.FAILED) or (
+        run is not None and run.status == WorkflowStatus.FAILED
+    ):
+        return "failed", "阅卷失败，未记零分或推断知识盲点。", code
+    if result is not None and result.pending_review_answer_count:
+        return "pending_review", "存在待人工复核题目，未形成最终成绩。", code
+    return "unfinished", "阅卷尚未完成或尚无结果。", code
+
+
 def build_teacher_statistics(
     session: Session,
     exam: Exam,
@@ -159,7 +175,6 @@ def build_teacher_statistics(
             )
             continue
         run = runs.get(sid)
-        code = _workflow_error(run)
         if (
             result is not None
             and result.is_final
@@ -206,25 +221,8 @@ def build_teacher_statistics(
                     )
                 )
             continue
-        if code in INSUFFICIENT_CODES:
-            key, reason = (
-                "insufficient_evidence_submission_count",
-                "评分依据不足，未形成最终成绩。",
-            )
-        elif (
-            result is not None and result.result_status == ExamResultStatus.FAILED
-        ) or (run is not None and run.status == WorkflowStatus.FAILED):
-            key, reason = (
-                "failed_submission_count",
-                "阅卷失败，未记零分或推断知识盲点。",
-            )
-        elif result is not None and result.pending_review_answer_count:
-            key, reason = (
-                "pending_review_submission_count",
-                "存在待人工复核题目，未形成最终成绩。",
-            )
-        else:
-            key, reason = "unfinished_submission_count", "阅卷尚未完成或尚无结果。"
+        processing, reason, code = nonfinal_processing_state(result, run)
+        key = f"{processing}_submission_count"
         counts[key] += 1
         attention.append(
             StudentAttentionDTO(

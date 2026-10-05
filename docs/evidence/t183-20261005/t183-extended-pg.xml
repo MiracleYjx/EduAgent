@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="2" skipped="0" tests="10" time="31.686" timestamp="2026-10-05T13:22:16.808083+08:00" hostname="YJX"><testcase classname="tests.integration.test_student_learning_ui" name="test_current_final_page_and_material_details" time="2.337" /><testcase classname="tests.integration.test_student_learning_ui" name="test_practice_image_and_original_options_order" time="2.627" /><testcase classname="tests.integration.test_student_learning_ui" name="test_regrading_clears_resources_and_rejects_old_selection" time="2.140" /><testcase classname="tests.integration.test_student_learning_ui" name="test_current_processing_facts_are_shown_without_inferred_weakness[1-unfinished-None]" time="1.900" /><testcase classname="tests.integration.test_student_learning_ui" name="test_current_processing_facts_are_shown_without_inferred_weakness[2-pending_review-None]" time="1.931" /><testcase classname="tests.integration.test_student_learning_ui" name="test_current_processing_facts_are_shown_without_inferred_weakness[3-failed-ProviderTimeout]" time="1.899" /><testcase classname="tests.integration.test_student_learning_ui" name="test_current_processing_facts_are_shown_without_inferred_weakness[4-insufficient_evidence-EXAM_SCORING_BASIS_MISSING]" time="1.903" /><testcase classname="tests.integration.test_student_learning_ui" name="test_final_result_ignores_old_failure_and_question_image_failure_keeps_grade" time="2.309" /><testcase classname="tests.integration.test_student_learning_ui" name="test_changed_owner_or_role_cannot_read_prior_selected_content" time="2.120"><failure message="assert ('无权访问' in '&lt;p role=&quot;alert&quot;&gt;LEARNING_READ_FAILED：当前内容读取失败，请刷新后重试。&lt;/p&gt;')">session = &lt;sqlalchemy.orm.session.Session object at 0x0000022868C68E50&gt;
+feedback_scenario = {'teacher': &lt;backend.app.models.user.User object at 0x0000022867747ED0&gt;, 'course': &lt;backend.app.models.course.Course o...tion.Question object at 0x0000022868BD3CE0&gt;], 'exam': &lt;backend.app.models.exam.Exam object at 0x00000228686E2510&gt;, ...}
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x00000228689D5130&gt;
+
+    def test_changed_owner_or_role_cannot_read_prior_selected_content(
+        session, feedback_scenario, monkeypatch
+    ):
+        s = feedback_scenario
+        chunk = source.material(session, s)
+        env = make_ui(s, session, monkeypatch)
+        _, view, user, state = env
+        try:
+            process(env, "refresh_student_learning", [str(s["exam"].id), None])
+            state[user._id] = {**user.value, "user_id": str(s["students"][1].id)}
+            html = select(env, "select_student_resource", [None, None], 0)[
+                view.resource_detail._id
+            ]
+            assert "GRADING_PERMISSION_DENIED" in html and chunk.content not in html
+            state[user._id] = {**user.value, "roles": ["Teacher"]}
+            html = select(env, "select_student_resource", [None, None], 0)[
+                view.resource_detail._id
+            ]
+&gt;           assert "无权访问" in html and chunk.content not in html
+E           assert ('无权访问' in '&lt;p role="alert"&gt;LEARNING_READ_FAILED：当前内容读取失败，请刷新后重试。&lt;/p&gt;')
+
+tests\integration\test_student_learning_ui.py:245: AssertionError</failure></testcase><testcase classname="tests.integration.test_student_learning_ui" name="test_homepage_opens_all_feedback_and_logout_resets_new_details" time="2.765"><failure message="TypeError: string indices must be integers, not 'str'">session = &lt;sqlalchemy.orm.session.Session object at 0x0000022868D32950&gt;
+feedback_scenario = {'teacher': &lt;backend.app.models.user.User object at 0x00000228686F1A90&gt;, 'course': &lt;backend.app.models.course.Course o...tion.Question object at 0x00000228691628B0&gt;], 'exam': &lt;backend.app.models.exam.Exam object at 0x0000022868C06E10&gt;, ...}
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x0000022868A011D0&gt;
+
+    def test_homepage_opens_all_feedback_and_logout_resets_new_details(
+        session, feedback_scenario, monkeypatch
+    ):
+        from backend.app.ui import gradio_app
+    
+        s = feedback_scenario
+        source.material(session, s)
+        factory = lambda: Session(session.get_bind())
+        for module in (results_loaders, results_api, gradio_app):
+            monkeypatch.setattr(module, "get_session_factory", lambda: factory)
+        token = create_access_token(
+            s["students"][0].id,
+            secret_key=get_settings().JWT_SECRET_KEY,
+            roles=[UserRole.STUDENT],
+        )
+        current = gradio_app._authenticated_state({"access_token": token})
+        app = gradio_app.create_gradio_app()
+        fn = next(
+            f
+            for f in app.fns.values()
+            if getattr(f.fn, "__name__", "") == "open_student_result_from_dashboard"
+        )
+        sub = s["submissions"][0]
+        records = [
+            {
+                "id": str(sub.id),
+                "submission_id": str(sub.id),
+                "exam_id": str(s["exam"].id),
+                "exam_title": s["exam"].title,
+                "result_status": "Final",
+            }
+        ]
+        try:
+            updates = fn.fn(records, str(sub.id), current, {})
+            table = next(
+                b
+                for b in app.blocks.values()
+                if getattr(b, "label", "") == "本人答案、最终失分与评分解释（选中查看原图）"
+            )
+            assert updates[table][1][5] == "1.00"
+            assert any(
+                isinstance(component, gr.State)
+                and isinstance(v, list)
+                and v
+                and isinstance(v[0], dict)
+                and v[0].get("kind") == "material"
+                for component, v in updates.items()
+            )
+            reset = next(
+                f.fn
+                for f in app.fns.values()
+                if getattr(f.fn, "__name__", "") == "clear_workspace"
+            )()
+            for component in updates:
+                if isinstance(component, gr.HTML):
+&gt;                   assert reset[component]["value"] == ""
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^
+E                   TypeError: string indices must be integers, not 'str'
+
+tests\integration\test_student_learning_ui.py:305: TypeError</failure></testcase></testsuite></testsuites>

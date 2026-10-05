@@ -33,6 +33,14 @@ from backend.app.schemas.grading import (
 )
 from backend.app.services.course_service import CourseService, CourseSummary
 from backend.app.services.exam_service import ExamService, ExamSummary
+from backend.app.services.grading.grading_task_service import GradingPermissionError
+from backend.app.ui.results_learning import (
+    error_html,
+    image_html,
+    material_html,
+    practice_html,
+    question_html,
+)
 from backend.app.ui.results_view import configure_results_loaders
 
 
@@ -337,12 +345,99 @@ def _pending_review_contexts(
     return contexts
 
 
+def load_student_exams(
+    state: Mapping[str, Any] | None = None,
+) -> list[StudentResultSummaryDTO]:
+    actor = state_user_id(state)
+    return (
+        build_production_results_query_service().list_student_results(actor)
+        if actor
+        else []
+    )
+
+
+def load_student_learning(
+    exam_id: str | None = None, state: Mapping[str, Any] | None = None
+) -> Any | None:
+    actor = state_user_id(state)
+    if not actor:
+        return None
+    service = build_production_results_query_service()
+    submission = resolve_student_submission_id(service, actor, exam_id)
+    return (
+        service.get_student_learning_feedback(actor, submission) if submission else None
+    )
+
+
+def _learning_images(
+    service: ResultsQueryService,
+    actor: str,
+    submission: str,
+    assets: Any,
+    practice: str | None = None,
+) -> str:
+    fragments = []
+    for asset in assets:
+        try:
+            data, mime = service.get_student_learning_asset(
+                actor, submission, asset.asset_id, practice_id=practice
+            )
+            fragments.append(image_html(data, mime, asset.caption or "本题原图"))
+        except Exception as error:  # noqa: BLE001 - preserve per-image original failure
+            fragments.append(error_html(error))
+    return "".join(fragments)
+
+
+def load_student_question(
+    submission_id: str, answer_id: str, state: Mapping[str, Any] | None = None
+) -> str:
+    actor = state_user_id(state)
+    if not actor:
+        raise GradingPermissionError("请先登录学生账号。")
+    service = build_production_results_query_service()
+    feedback = service.get_student_learning_feedback(actor, submission_id)
+    item = next((i for i in feedback.items if i.answer_id == answer_id), None)
+    if item is None:
+        raise GradingPermissionError("该答案不在当前本人可展示结果中，请刷新。")
+    return question_html(
+        item, _learning_images(service, actor, submission_id, item.assets)
+    )
+
+
+def load_student_resource(
+    record: Mapping[str, Any], state: Mapping[str, Any] | None = None
+) -> str:
+    actor = state_user_id(state)
+    if not actor:
+        raise GradingPermissionError("请先登录学生账号。")
+    service = build_production_results_query_service()
+    submission = str(record["submission_id"])
+    identity = str(record["resource_id"])
+    if record["kind"] == "material":
+        return material_html(
+            service.get_student_learning_material(actor, submission, identity)
+        )
+    if record["kind"] == "practice":
+        detail = service.get_student_learning_practice(actor, submission, identity)
+        return practice_html(
+            detail,
+            _learning_images(
+                service, actor, submission, detail.recommendation.assets, identity
+            ),
+        )
+    raise GradingPermissionError("资料入口类型已失效，请刷新。")
+
+
 def configure_production_results_loaders() -> None:
     """把生产加载器注入结果视图；应用装配期间调用一次。"""
 
     configure_results_loaders(
         student_loader=load_student_result,
         student_diagnosis_loader=load_student_diagnosis,
+        student_learning_loader=load_student_learning,
+        student_question_loader=load_student_question,
+        student_resource_loader=load_student_resource,
+        student_exams_loader=load_student_exams,
         teacher_courses_loader=load_teacher_courses,
         teacher_exams_loader=load_teacher_exams,
         teacher_loader=load_teacher_results,

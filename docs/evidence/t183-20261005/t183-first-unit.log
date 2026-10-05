@@ -1,0 +1,63 @@
+.............................F                                           [100%]
+================================== FAILURES ===================================
+______________ test_production_configuration_drives_view_outputs ______________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001FF29FF83B0>
+
+    def test_production_configuration_drives_view_outputs(
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """按应用装配注入后，视图输出随真实读模型变化。"""
+    
+        service = StubResultsService(
+            summaries=(_summary("submission-a", "exam-a"),),
+            result={"submission_id": "submission-a", "is_final": False, "items": []},
+            report={
+                "status": "Ready",
+                "mastery_by_knowledge_point": [
+                    {
+                        "knowledge_point": "变量",
+                        "answered_count": 1,
+                        "correct_count": 0,
+                        "awarded_score": "5.00",
+                        "max_score": "10.00",
+                        "mastery": "0.50",
+                    }
+                ],
+                "weak_knowledge_points": [],
+                "error_reasons": ["question-1：未得满分。"],
+                "learning_suggestions": ["复习变量作用域。"],
+            },
+        )
+        monkeypatch.setattr(
+            results_loaders, "build_production_results_query_service", lambda: service
+        )
+    
+>       results_loaders.configure_production_results_loaders()
+
+tests\unit\ui\test_results_loaders.py:176: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    def configure_production_results_loaders() -> None:
+        """把生产加载器注入结果视图；应用装配期间调用一次。"""
+    
+>       configure_results_loaders(
+            student_loader=load_student_result,
+            student_diagnosis_loader=load_student_diagnosis,
+            student_learning_loader=load_student_learning,
+            student_question_loader=load_student_question,
+            student_resource_loader=load_student_resource,
+            student_exams_loader=load_student_exams,
+            teacher_courses_loader=load_teacher_courses,
+            teacher_exams_loader=load_teacher_exams,
+            teacher_loader=load_teacher_results,
+            teacher_summary_loader=load_teacher_summary,
+            teacher_diagnosis_loader=load_teacher_diagnosis,
+            teacher_submission_loader=load_teacher_submission,
+        )
+E       TypeError: configure_results_loaders() got an unexpected keyword argument 'student_learning_loader'. Did you mean 'student_diagnosis_loader'?
+
+backend\app\ui\results_loaders.py:434: TypeError
+=========================== short test summary info ===========================
+FAILED tests/unit/ui/test_results_loaders.py::test_production_configuration_drives_view_outputs
+1 failed, 29 passed in 9.60s

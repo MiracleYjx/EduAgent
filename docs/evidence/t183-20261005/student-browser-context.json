@@ -1,0 +1,11 @@
+{
+  "pid": 104036,
+  "port": 13449,
+  "url": "http://127.0.0.1:13449",
+  "provenance": "isolated PostgreSQL test schema; actual production results loaders, repository and Gradio; synthetic student session, developer test fixtures, cloud calls 0",
+  "submission_id": "59160b3e-e4ce-4815-b21b-0151ea3109c1",
+  "material_chunk": "62c27e2f-1b69-40a6-8ed7-d87a734a6ae0",
+  "practice_id": "3713cb5f-3400-4261-b65e-653b82f6bed5",
+  "asset_id": "631834da-7de6-4fe2-83dc-ae0a48f096bf",
+  "source_file": "真实学习片段.txt"
+}

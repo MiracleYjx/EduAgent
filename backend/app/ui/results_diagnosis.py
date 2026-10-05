@@ -41,7 +41,9 @@ DIAGNOSIS_NOT_READY_MESSAGE = "诊断报告尚未生成：成绩最终确认后�
 #: 诊断已过期时的说明。
 DIAGNOSIS_STALE_MESSAGE = "诊断报告已过期：该报告生成后成绩已更新，请以最新成绩为准。"
 #: 待复核时不得把未确认结果当作最终结论。
-PENDING_FINAL_MESSAGE = "成绩待人工复核：待复核题目不计入最终成绩，诊断仅覆盖已确认部分。"
+PENDING_FINAL_MESSAGE = (
+    "成绩待人工复核：待复核题目不计入最终成绩，诊断仅覆盖已确认部分。"
+)
 
 
 def _value(item: Mapping[str, Any] | Any, name: str, default: Any = "") -> Any:
@@ -178,3 +180,35 @@ __all__ = [
     "mastery_rows",
     "weak_knowledge_points_text",
 ]
+
+
+def current_learning_sections(
+    feedback: Mapping[str, Any] | Any | None,
+) -> tuple[str, str, list[list[str]]]:
+    """Current verified final facts are distinct from the persisted suggestion report."""
+    if feedback is None:
+        return (
+            empty_state("暂无当前学习反馈。"),
+            empty_state(DIAGNOSIS_NOT_READY_MESSAGE),
+            [],
+        )
+    final = bool(_value(feedback, "is_final", False))
+    report = _value(feedback, "diagnosis", None)
+    report_text = diagnosis_text(report, is_final=final)
+    if not final:
+        reason = _value(feedback, "processing_reason", None) or _value(
+            feedback, "not_ready_reason", "尚未形成最终成绩。"
+        )
+        return empty_state(str(reason)), report_text, []
+    weak = weak_knowledge_points_text(feedback)
+    if not _value(feedback, "weak_knowledge_points", []) and _value(
+        feedback, "insufficient_evidence_answer_ids", []
+    ):
+        weak = empty_state(
+            "部分发布标签或评分归因依据不足，暂无可确定的薄弱点；未知项目不能判作掌握。"
+        )
+    return (
+        "基于当前最终结果的已知发布标签：\n\n" + weak,
+        report_text,
+        mastery_rows(feedback),
+    )

@@ -44,6 +44,7 @@ from backend.app.models import (
     QuestionAsset,
     Submission,
     User,
+    WorkflowRun,
 )
 from backend.app.schemas.grading import (
     DiagnosisReportDTO,
@@ -85,6 +86,7 @@ from backend.app.services.learning_recommendation_service import (
 from backend.app.services.result_analysis import (
     SUBMITTED_STATUSES,
     build_teacher_statistics,
+    nonfinal_processing_state,
     published_result_items,
 )
 
@@ -204,6 +206,20 @@ class ResultsQueryService:
             and result.is_final
             and submission.status in SUBMITTED_STATUSES
         )
+        processing_reason: str | None
+        processing_code: str | None
+        if final:
+            processing, processing_reason, processing_code = "final", None, None
+        else:
+            run = session.scalar(
+                select(WorkflowRun)
+                .where(WorkflowRun.submission_id == submission.id)
+                .order_by(WorkflowRun.created_at.desc(), WorkflowRun.id.desc())
+                .limit(1)
+            )
+            processing, processing_reason, processing_code = nonfinal_processing_state(
+                result, run
+            )
         diagnosis = self._diagnosis_for_result(submission, result)
         learning = LearningRecommendationService(session, root=self._learning_root)
         valid, insufficient = (
@@ -279,6 +295,9 @@ class ResultsQueryService:
             else ([], [], [])
         )
         return StudentLearningFeedbackDTO(
+            processing_status=processing,
+            processing_error_code=processing_code,
+            processing_reason=processing_reason,
             submission_id=str(submission.id),
             exam_id=str(exam.id),
             course_id=str(exam.course_id),
@@ -297,11 +316,7 @@ class ResultsQueryService:
             insufficient_evidence_answer_ids=list(
                 dict.fromkeys(insufficient + untagged)
             ),
-            not_ready_reason=(
-                None
-                if final
-                else "尚未形成当前最终成绩；待复核、失败或未完成结果不推断薄弱知识点，也不生成复习推荐。"
-            ),
+            not_ready_reason=(None if final else processing_reason),
         )
 
     def _learning_context(
