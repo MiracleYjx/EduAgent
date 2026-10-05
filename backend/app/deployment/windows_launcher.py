@@ -11,6 +11,7 @@ import subprocess
 import sys
 import tempfile
 import time
+import traceback
 import webbrowser
 from pathlib import Path
 from urllib.parse import urlsplit
@@ -376,6 +377,11 @@ def main(argv: list[str] | None = None) -> int:
         print(f"启动失败：{exc}", file=sys.stderr, flush=True)
         return 1
     except Exception as exc:  # noqa: BLE001 - CLI boundary must redact credentials
+        # Keep the actual child failure location without logging exception values/credentials.
+        if args.child:
+            traceback.print_tb(exc.__traceback__, file=sys.stderr)
+        if isinstance(exc, OSError) and exc.filename:
+            print(f"失败资源：{exc.filename}", file=sys.stderr, flush=True)
         print(
             f"启动失败：[启动器] {type(exc).__name__}；检查外置配置、持久目录与应用日志。",
             file=sys.stderr,

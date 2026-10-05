@@ -30,6 +30,9 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+packaging = [
+    "pyinstaller==6.22.3",
+]
 # T155 已确认的本地 CPU OCR；模型另行预置，基础安装不加载此 SDK。
 ocr = [
     "rapidocr==3.9.2",

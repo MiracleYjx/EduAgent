@@ -53,3 +53,7 @@ env/
 
 # Persistent application files and operation receipts
 /storage/
+
+# Windows build outputs
+/dist/
+/build/

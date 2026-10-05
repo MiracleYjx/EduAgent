@@ -15,3 +15,11 @@ EXE默认业务数据在 `%LOCALAPPDATA%/EduAgent/storage`。配置和数据不�
 [evidence/t187-20261006](evidence/t187-20261006/t187-runtime.json)：Windows/Python3.13，独立空数据库迁移到 `0023_grading_exam_question`，生产 FastAPI挂载Gradio的两端点200，返回码0，持有的真实应用进程退出。约19.876秒是单次源码辅助演练总耗时，不能当作冷暖启动指标。模型网络为明确受控本地TCP端点，未调用云模型；此运行使用--no-browser，自动打开晚于就绪由必要单元用例验证。35项配置/数据库/Redis/启动器聚焦测试通过，新增8项、旧用例未修改；静态检查通过。测量脚本曾缺psutil及错误预期缩写修订号，已如实保留说明并按Popen句柄和实际完整修订号核对，不伪造迁移版本。
 
 T188构建包与T189真实Windows重复启动/故障/资源预算另验；本页不宣称SC-014交付已通过。
+
+## T188 实际构建包
+
+运行 `scripts/build_exe.ps1 -Python <Python路径>`，独立环境按 packaging/requirements-windows.txt 固定依赖；默认输出 .cache/exe-build/dist/EduAgent。当前实际完整执行的输出是 `.cache/t186-t188-20261005/final-build/dist/EduAgent`，整目录交付，EXE与_internal同在。构建清单收集Gradio静态与运行所读组件源码、safehttpx/groovy版本数据、动态后端/Agent模块、Alembic、pypdfium2，以及RapidOCR/ONNX CPU库和字典；移除SDK默认权重，使用已确认外置PP-OCRv5。
+
+[实际构建与运行证据](evidence/t188-20261006/README.md)：PyInstaller6.22.3、Python3.13.13，初始约367MiB，Gradio生成组件存根后的最终目录约369MiB；包内空库迁移/API/UI/静态资源及PDF/扫描OCR/授权PNG读取通过。受控空题目输出仍Failed，不宣称成功导入或真实模型质量。默认包选择云Embedding+LLM重排与可选CPU OCR，降低依赖体积；本地Embedding/Cross Encoder需-WithLocalModels额外构建并实测，运行时不会偷偷切换Provider。
+
+缺配置测试返回1，参数帮助返回0。构建号/哈希仅追溯，实际源文件哈希及dirty状态记录于build-receipt.json，不要求远端组件/数据库与源码提交号相等。资源冒烟退出使用辅助工具按确切归属停止子进程，正常冻结程序Ctrl+C/关闭控制台由T189验证；尚无完整冷暖/内存测量，SC-014交付未宣告通过。

@@ -1,0 +1,20 @@
+[
+  {
+    "args": [
+      "--help"
+    ],
+    "exit_code": 0,
+    "output": "usage: EduAgent.exe [-h] [--config CONFIG] [--port PORT]\n                    [--startup-timeout STARTUP_TIMEOUT] [--no-browser]\n\nEduAgent Windows 单机启动器；退出只停止所属应用进程\n\noptions:\n  -h, --help            show this help message and exit\n  --config CONFIG\n  --port PORT\n  --startup-timeout STARTUP_TIMEOUT\n  --no-browser\n",
+    "error": ""
+  },
+  {
+    "args": [
+      "--config",
+      "D:\\YJX\\MyCode\\EduAgent\\.cache\\t186-t188-20261005\\nonexistent-final.env",
+      "--no-browser"
+    ],
+    "exit_code": 1,
+    "output": "启动失败，请按上面的步骤修正。按回车退出…",
+    "error": "启动失败：[外置配置] 未找到 D:\\YJX\\MyCode\\EduAgent\\.cache\\t186-t188-20261005\\nonexistent-final.env；下一步：复制 config.env.example 到该路径，填写实际配置后重启\n"
+  }
+]

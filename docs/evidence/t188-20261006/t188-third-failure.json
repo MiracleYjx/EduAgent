@@ -1,0 +1,12 @@
+{
+  "database": "eduagent_e6bundle_cf07376fc03f",
+  "original_database": "eduagent",
+  "model_output": "controlled empty extraction batch, not model quality or teacher truth; cloud calls 0",
+  "exe": "D:\\YJX\\MyCode\\EduAgent\\.cache\\t186-t188-20261005\\dist\\EduAgent\\EduAgent.exe",
+  "ocr_external_weights": true,
+  "passed": false,
+  "failure": "EXE parent exited: 1; see t188-parent.log",
+  "parent_exit_code": 1,
+  "db_connections_after_cleanup": 0,
+  "isolated_db_removed": true
+}
