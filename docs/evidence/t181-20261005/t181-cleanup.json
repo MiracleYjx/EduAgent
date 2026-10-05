@@ -1,0 +1,19 @@
+{
+  "captured_at": "2026-10-05T04:09:28.440281+00:00",
+  "owned_database": "eduagent_e5_98b4dfc48b1c",
+  "original_database_untouched_by_tool": "eduagent",
+  "migration_head": [
+    "0023_grading_exam_question"
+  ],
+  "residual_test_schemas": 0,
+  "active_owned_connections_before_drop": 0,
+  "owned_database_remaining": 0,
+  "shared_postgresql_preserved": true,
+  "protected_file_bytes_unchanged": {
+    "README.md": true,
+    "README.zh-CN.md": true,
+    "benchmark/corpus/grading_samples.json": true,
+    ".env": true
+  },
+  "cloud_calls": 0
+}

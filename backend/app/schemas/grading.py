@@ -787,3 +787,123 @@ __all__ = [
     "TeacherExamResultSummaryDTO",
     "WeakKnowledgePointDTO",
 ]
+
+
+class FeedbackAssetDTO(BaseModel):
+    """授权上下文中的原图标识；不公开原页坐标、服务器路径或凭据。"""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    asset_id: NonEmptyText
+    asset_type: NonEmptyText
+    width: int = Field(gt=0)
+    height: int = Field(gt=0)
+    order: int = Field(ge=1)
+    caption: str | None = None
+    url: NonEmptyText
+
+
+class LearningSourceDTO(BaseModel):
+    """真实教学出处；已保存快照和当前片段明确区分。"""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    kind: str
+    source_id: NonEmptyText
+    course_id: NonEmptyText
+    document_id: NonEmptyText
+    chunk_id: NonEmptyText
+    source_file: NonEmptyText
+    chapter_id: str | None = None
+    section_order: int | None = None
+    chunk_index: int | None = None
+
+
+class MaterialRecommendationDTO(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    chunk_id: NonEmptyText
+    knowledge_points: list[str]
+    source: LearningSourceDTO
+    reason: NonEmptyText
+    url: NonEmptyText
+
+
+class PracticeRecommendationDTO(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    question_id: NonEmptyText
+    knowledge_points: list[str]
+    sources: list[LearningSourceDTO]
+    reason: NonEmptyText
+    url: NonEmptyText
+    assets: list[FeedbackAssetDTO] = Field(default_factory=list)
+    image_unavailable_reason: str | None = None
+
+
+class KnowledgePointRecommendationDTO(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    knowledge_point: NonEmptyText
+    answer_ids: list[str]
+    exam_question_ids: list[str]
+    awarded_score: DecimalScore
+    maximum_score: PositiveDecimalScore
+    lost_score: DecimalScore
+    materials: list[MaterialRecommendationDTO] = Field(default_factory=list)
+    practices: list[PracticeRecommendationDTO] = Field(default_factory=list)
+    material_not_ready_reason: str | None = None
+    practice_not_ready_reason: str | None = None
+    selection_rule: str = (
+        "精确知识点匹配；按真实身份稳定排序，每类最多3项，无范围外补位。"
+    )
+
+
+class StudentQuestionFeedbackDTO(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    answer_id: NonEmptyText
+    exam_question_id: str | None
+    question_id: NonEmptyText
+    order: int = Field(ge=1)
+    student_answer: str | list[str] | dict[str, str] | None
+    score: DecimalScore | None
+    max_score: PositiveDecimalScore
+    lost_score: DecimalScore | None
+    counted: bool
+    grading_status: NonEmptyText
+    reason: str | None
+    published_knowledge_points: list[str] | None
+    assets: list[FeedbackAssetDTO] = Field(default_factory=list)
+    image_unavailable_reason: str | None = None
+
+
+class StudentLearningFeedbackDTO(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    submission_id: NonEmptyText
+    exam_id: NonEmptyText
+    course_id: NonEmptyText
+    student_id: NonEmptyText
+    is_final: bool
+    source_exam_result_updated_at: datetime | None
+    diagnosis: DiagnosisReportDTO
+    items: list[StudentQuestionFeedbackDTO] = Field(default_factory=list)
+    mastery_by_knowledge_point: list[MasteryByKnowledgePointDTO] = Field(
+        default_factory=list
+    )
+    weak_knowledge_points: list[WeakKnowledgePointDTO] = Field(default_factory=list)
+    recommendations: list[KnowledgePointRecommendationDTO] = Field(default_factory=list)
+    insufficient_evidence_answer_ids: list[str] = Field(default_factory=list)
+    not_ready_reason: str | None = None
+    knowledge_point_attribution: str = (
+        "多标签题完整归属各知识点；各行不能加总成整场总分/失分。"
+    )
+
+
+class LearningMaterialDetailDTO(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    recommendation: MaterialRecommendationDTO
+    content: NonEmptyText
+
+
+class LearningPracticeDetailDTO(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    recommendation: PracticeRecommendationDTO
+    question_type: QuestionType
+    content: NonEmptyText
+    options: dict[str, JsonValue] | list[JsonValue] | None
+    order_preserved: bool

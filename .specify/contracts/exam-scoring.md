@@ -178,3 +178,13 @@ ScoringInput 使用 Pydantic 结构，包含以下真实输入；业务标识由
 - 逐题统计仅使用整卷最终条目，并核对真实 exam_question_id、题序、固定满分及发布知识点一致；旧身份/固定依据未知不从当前题库补造，最终历史总分保持原证据，归因排除数可见。得分率按实际分子/满分分母计算，输出四位小数；无观测的金额/比例为 null。多标签题在每标签完整归属，显示实际题目、去重有效学生及有效答案数，知识点各行不可加总成整场得分/失分。
 - 待复核、失败、缺依据与尚未完成按当前真实结果/最新执行错误单列；失败不变零分。`insufficient_evidence_submission_count` 也包含最终历史答卷无法完整归因的数量，可能与 final_count 重叠，不能把这些字段相加冒充互斥总人数。成功最终结果不被旧失败执行记录覆盖。关注名单只描述真实最终失分、缺依据、未提交/未开始或待处理原因，并携带学生/答卷/答案/本场关联身份，缺最终结果时 final_lost_score=null。
 - 查询不写库、不调用模型；师生分析页面接线和完整 SC-013 对照分别留至 T182–T184。
+
+
+### 本人最终失分与来源推荐（T181 实施）
+
+- 新增 `GET /api/results/me/submissions/{submission_id}/learning`，沿用 VIEW_OWN_RESULTS 并核对真实 Submission.student_id。逐题读实际本人答案、已确认评分理由、本场满分及安全原图投影；只有整卷当前最终且为已提交生命周期时计算失分/掌握度/薄弱点和推荐。未最终返回明确 not_ready_reason，不把部分成功、失败或待复核认作零分/确定弱点。历史未知固定身份或发布标签单列 insufficient_evidence_answer_ids，不从当前题库补造；多知识点归属不能相加成整卷失分。掌握度复用现有确定性计算和0.60薄弱阈值，所有真实失分标签均可获得推荐，不只限低于阈值者。
+- 用户确认的授权来源为“本人当前最终答卷”：同课程、Ready、knowledge_base用途、已确认知识点标签的教学片段，以及同课程当前 Approved、最新语义报告 passed 且 input_revision 等于当前修订、有真实教学来源且必要题图可读的练习。片段复用 T162 PostgreSQL JSONB 精确成员匹配和确认过滤；练习按当前真实标签精确匹配，未知、待补全、未审核、来源失配及核对过期候选不能补位。保存的 QuestionSourceChunk 展示为真实历史引用，不冒充当前文档或新检索结果。
+- 每个失分标签显示真实答案/本场关联、分子/分母、出处及理由；按真实身份稳定排序，每类最多3项，不调用模型、不建授权表、不持久写入推荐。无匹配内容分别返回 material_not_ready_reason / practice_not_ready_reason；不得生成无来源占位内容。
+- `GET .../learning/materials/{chunk_id}` 只返回当前被推荐片段正文；`GET .../learning/practices/{question_id}` 只返回当前被推荐练习题干、原 options JSON 形状/顺序和历史 order_preserved。练习投影不含答案/解析/Rubric。每次读取重新核对本人上下文和当前资格，不能用同课程任意ID扩大范围；重评未最终、标签或审批改变后旧推荐URL失效（403）。原文档下载仍执行教师文件权限，不因此公开源文件。
+- `GET .../learning/assets/{asset_id}` 和 `GET .../learning/practices/{question_id}/assets/{asset_id}` 只读本次已授权原图，执行既有 student_visible 及源卷/含答案整页永久私有规则。未知历史图序不伪造；被过滤的答卷附件明确说明。原图返回原件 bytes，核对登记字节/尺寸，PNG/JPEG媒体类型来自已校验的实际原件；缺失/变更/不可读保留 FILE_* 真实错误，不补零分或替换图。响应 private, no-store；JSON不含本机路径、源页定位或凭据。
+- 当前最终结果及真实聚合时间随响应返回，持久诊断继续走既有 current/stale 判定；未生成/失败/过期报告不被此只读入口改写。完整页面与 SC-013 对照仍由 T182–T184 承接。

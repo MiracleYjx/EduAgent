@@ -204,6 +204,24 @@ class DiagnosisService:
             and report.source_exam_result_updated_at == exam_result.aggregated_at
         )
 
+    def final_learning_observations(
+        self,
+        exam_result: ExamResultDTO,
+        verified_items: list[QuestionResultDTO],
+    ) -> tuple[
+        list[MasteryByKnowledgePointDTO], list[WeakKnowledgePointDTO], list[str]
+    ]:
+        """T181 read-only projection of already verified published facts; never calls a model.
+
+        The caller verifies own submission and fixed exam links. Whole-exam finality
+        is required even when some provisional answers have already been accepted.
+        """
+        if not exam_result.is_final:
+            return [], [], []
+        projected = exam_result.model_copy(update={"items": verified_items})
+        entries, weak, _reasons, insufficient = self._compute_platform_fields(projected)
+        return entries, weak, insufficient
+
     async def generate(self, exam_result: ExamResultDTO) -> DiagnosisReportDTO:
         """生成诊断报告；未就绪时不调用 LLM，失败时不伪造成功。"""
 
@@ -372,7 +390,9 @@ class DiagnosisService:
         except Exception:  # noqa: BLE001 - 统一收敛为脱敏失败
             raise SuggestionGenerationError("诊断建议生成失败。") from None
         if not isinstance(payload, LearningSuggestions):
-            raise SuggestionGenerationError("诊断建议 Provider 未返回约定的结构化结果。")
+            raise SuggestionGenerationError(
+                "诊断建议 Provider 未返回约定的结构化结果。"
+            )
         return list(payload.suggestions)
 
 

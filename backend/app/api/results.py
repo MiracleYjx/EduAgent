@@ -21,27 +21,45 @@ from __future__ import annotations
 from collections.abc import Callable, Iterator
 from contextlib import contextmanager
 from decimal import ROUND_HALF_UP, Decimal
+from pathlib import Path
 from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi.responses import Response
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from backend.app.ai.retrieval.base import RetrievalError
 from backend.app.core.database import get_session_factory
 from backend.app.core.security import require_permission
 from backend.app.domain.enums import SubmissionStatus
 from backend.app.domain.permissions import Permission
-from backend.app.models import Course, Exam, Submission, User
+from backend.app.models import (
+    Answer,
+    Course,
+    DocumentChunk,
+    Exam,
+    Question,
+    QuestionAsset,
+    Submission,
+    User,
+)
 from backend.app.schemas.grading import (
     DiagnosisReportDTO,
     DiagnosisStatus,
+    ExamResultDTO,
+    LearningMaterialDetailDTO,
+    LearningPracticeDetailDTO,
     QuestionResultDTO,
+    StudentLearningFeedbackDTO,
+    StudentQuestionFeedbackDTO,
     StudentResultSummaryDTO,
     SubmissionResultDTO,
     TeacherExamResultSummaryDTO,
 )
-from backend.app.services.diagnosis_service import DIAGNOSIS_NOT_READY
+from backend.app.services.diagnosis_service import DIAGNOSIS_NOT_READY, DiagnosisService
+from backend.app.services.file_storage_service import FileStorageError
 from backend.app.services.grading.diagnosis_report_store import (
     DIAGNOSIS_STORE_NOT_READY,
     DiagnosisReportStore,
@@ -61,7 +79,14 @@ from backend.app.services.grading.grading_task_service import (
     GradingSubmissionNotFoundError,
     GradingTaskError,
 )
-from backend.app.services.result_analysis import build_teacher_statistics
+from backend.app.services.learning_recommendation_service import (
+    LearningRecommendationService,
+)
+from backend.app.services.result_analysis import (
+    SUBMITTED_STATUSES,
+    build_teacher_statistics,
+    published_result_items,
+)
 
 router = APIRouter(prefix="/api/results", tags=["成绩与诊断"])
 
@@ -100,6 +125,7 @@ class ResultsQueryService:
         session: Session | None = None,
         session_factory: Callable[[], Session] | None = None,
         diagnosis_store: DiagnosisReportStore | None = None,
+        learning_root: Path | None = None,
     ) -> None:
         if session is None and session_factory is None:
             raise ValueError("必须提供 session 或 session_factory。")
@@ -107,6 +133,7 @@ class ResultsQueryService:
         self._session = session
         self._session_factory = session_factory
         self._diagnosis_store = diagnosis_store
+        self._learning_root = learning_root
 
     @contextmanager
     def _use_session(self) -> Iterator[Session]:
@@ -155,6 +182,218 @@ class ResultsQueryService:
             submission = self._require_submission(session, submission_id)
             self._ensure_student_owner(submission, student_id)
             return self._diagnosis(submission)
+
+    def get_student_learning_feedback(
+        self, student_id: str, submission_id: str
+    ) -> StudentLearningFeedbackDTO:
+        self._repository.ensure_ready()
+        with self._use_session() as session:
+            submission = self._require_submission(session, submission_id)
+            self._ensure_student_owner(submission, student_id)
+            return self._learning_feedback(session, submission)
+
+    def _learning_feedback(
+        self, session: Session, submission: Submission
+    ) -> StudentLearningFeedbackDTO:
+        exam = session.get(Exam, submission.exam_id)
+        if exam is None:
+            raise GradingSubmissionNotFoundError("答卷所属考试不存在。")
+        result = self._repository.get_exam_result(str(submission.id))
+        final = (
+            result is not None
+            and result.is_final
+            and submission.status in SUBMITTED_STATUSES
+        )
+        diagnosis = self._diagnosis_for_result(submission, result)
+        learning = LearningRecommendationService(session, root=self._learning_root)
+        valid, insufficient = (
+            published_result_items(exam, result)
+            if final and result is not None
+            else ([], [])
+        )
+        answers = {
+            str(answer.id): answer
+            for answer in session.scalars(
+                select(Answer).where(Answer.submission_id == submission.id)
+            )
+        }
+        valid = [
+            item
+            for item in valid
+            if item.answer_id in answers
+            and str(answers[item.answer_id].question_id) == item.question_id
+        ]
+        rows = []
+        valid_ids = {item.answer_id for item in valid}
+        if result is not None:
+            for item in result.items:
+                answer = answers.get(item.answer_id)
+                if (
+                    not item.counted
+                    or answer is None
+                    or str(answer.question_id) != item.question_id
+                ):
+                    if final and item.answer_id not in insufficient:
+                        insufficient.append(item.answer_id)
+                    continue
+                assert item.effective_score is not None
+                question = session.get(Question, answer.question_id)
+                verified = item.answer_id in valid_ids
+                assets = (
+                    learning.asset_views(
+                        question,
+                        f"/api/results/me/submissions/{submission.id}/learning/assets",
+                    )
+                    if question
+                    else []
+                )
+                rows.append(
+                    StudentQuestionFeedbackDTO(
+                        answer_id=item.answer_id,
+                        exam_question_id=item.exam_question_id,
+                        question_id=item.question_id,
+                        order=item.order,
+                        student_answer=answer.content,
+                        score=item.effective_score,
+                        max_score=item.max_score,
+                        lost_score=(
+                            item.max_score - item.effective_score if final else None
+                        ),
+                        counted=item.counted,
+                        grading_status=item.grading_status,
+                        reason=item.reason,
+                        published_knowledge_points=(
+                            item.knowledge_points if verified else None
+                        ),
+                        assets=assets,
+                        image_unavailable_reason=(
+                            "部分原图未开放或历史题序未知，仅展示可授权原图。"
+                            if question and len(assets) != len(question.assets)
+                            else None
+                        ),
+                    )
+                )
+        entries, weak, untagged = (
+            DiagnosisService().final_learning_observations(result, valid)
+            if final and result is not None
+            else ([], [], [])
+        )
+        return StudentLearningFeedbackDTO(
+            submission_id=str(submission.id),
+            exam_id=str(exam.id),
+            course_id=str(exam.course_id),
+            student_id=str(submission.student_id),
+            is_final=final,
+            source_exam_result_updated_at=result.aggregated_at if result else None,
+            diagnosis=diagnosis,
+            items=rows,
+            mastery_by_knowledge_point=entries,
+            weak_knowledge_points=weak,
+            recommendations=(
+                learning.recommendations(exam.course_id, str(submission.id), valid)
+                if final
+                else []
+            ),
+            insufficient_evidence_answer_ids=list(
+                dict.fromkeys(insufficient + untagged)
+            ),
+            not_ready_reason=(
+                None
+                if final
+                else "尚未形成当前最终成绩；待复核、失败或未完成结果不推断薄弱知识点，也不生成复习推荐。"
+            ),
+        )
+
+    def _learning_context(
+        self, session: Session, student_id: str, submission_id: str
+    ) -> StudentLearningFeedbackDTO:
+        submission = self._require_submission(session, submission_id)
+        self._ensure_student_owner(submission, student_id)
+        return self._learning_feedback(session, submission)
+
+    def get_student_learning_material(
+        self, student_id: str, submission_id: str, chunk_id: str
+    ) -> LearningMaterialDetailDTO:
+        self._repository.ensure_ready()
+        with self._use_session() as session:
+            feedback = self._learning_context(session, student_id, submission_id)
+            recommendation = next(
+                (
+                    item
+                    for group in feedback.recommendations
+                    for item in group.materials
+                    if item.chunk_id == chunk_id
+                ),
+                None,
+            )
+            if recommendation is None:
+                raise GradingPermissionError("该片段不在当前本人最终答卷的授权推荐中。")
+            chunk = session.get(DocumentChunk, _as_uuid(chunk_id, "片段标识"))
+            if chunk is None:
+                raise GradingSubmissionNotFoundError("推荐片段已不存在。")
+            return LearningMaterialDetailDTO(
+                recommendation=recommendation, content=chunk.content
+            )
+
+    def get_student_learning_practice(
+        self, student_id: str, submission_id: str, question_id: str
+    ) -> LearningPracticeDetailDTO:
+        self._repository.ensure_ready()
+        with self._use_session() as session:
+            feedback = self._learning_context(session, student_id, submission_id)
+            recommendation = next(
+                (
+                    item
+                    for group in feedback.recommendations
+                    for item in group.practices
+                    if item.question_id == question_id
+                ),
+                None,
+            )
+            if recommendation is None:
+                raise GradingPermissionError("该题目不在当前本人最终答卷的授权练习中。")
+            question = session.get(Question, _as_uuid(question_id, "题目标识"))
+            if question is None:
+                raise GradingSubmissionNotFoundError("推荐题目已不存在。")
+            return LearningPracticeDetailDTO(
+                recommendation=recommendation,
+                question_type=question.type,
+                content=question.content,
+                options=question.options,
+                order_preserved=question.order_preserved,
+            )
+
+    def get_student_learning_asset(
+        self,
+        student_id: str,
+        submission_id: str,
+        asset_id: str,
+        *,
+        practice_id: str | None = None,
+    ) -> tuple[bytes, str]:
+        self._repository.ensure_ready()
+        with self._use_session() as session:
+            feedback = self._learning_context(session, student_id, submission_id)
+            if practice_id is None:
+                allowed = {a.asset_id for item in feedback.items for a in item.assets}
+            else:
+                allowed = {
+                    a.asset_id
+                    for group in feedback.recommendations
+                    for item in group.practices
+                    if item.question_id == practice_id
+                    for a in item.assets
+                }
+            if asset_id not in allowed:
+                raise GradingPermissionError(
+                    "该原图不在当前本人答卷或练习的授权范围中。"
+                )
+            asset = session.get(QuestionAsset, _as_uuid(asset_id, "题图标识"))
+            if asset is None:
+                raise GradingSubmissionNotFoundError("题图已不存在。")
+            return LearningRecommendationService(
+                session, root=self._learning_root
+            ).read_asset(asset)
 
     # ------------------------------------------------------------------ 教师面
 
@@ -361,6 +600,11 @@ class ResultsQueryService:
         """
 
         result = self._repository.get_exam_result(str(submission.id))
+        return self._diagnosis_for_result(submission, result)
+
+    def _diagnosis_for_result(
+        self, submission: Submission, result: ExamResultDTO | None
+    ) -> DiagnosisReportDTO:
         if self._diagnosis_store is None:
             return DiagnosisReportDTO(
                 submission_id=str(submission.id),
@@ -532,3 +776,124 @@ __all__ = [
     "get_results_query_service",
     "router",
 ]
+
+
+def _learning_http_error(
+    error: GradingTaskError | FileStorageError | RetrievalError,
+) -> HTTPException:
+    if isinstance(error, FileStorageError):
+        return HTTPException(
+            status_code=error.http_status,
+            detail={
+                "error_code": error.code,
+                "message": str(error),
+                "retryable": False,
+            },
+        )
+    if isinstance(error, RetrievalError):
+        return HTTPException(
+            status_code=503,
+            detail={
+                "error_code": error.error_code,
+                "message": error.detail,
+                "retryable": False,
+            },
+        )
+    return _results_http_exception(error)
+
+
+@router.get(
+    "/me/submissions/{submission_id}/learning", summary="读取本人最终失分与来源推荐"
+)
+def get_my_learning(
+    submission_id: str,
+    user: Annotated[User, Depends(require_permission(Permission.VIEW_OWN_RESULTS))],
+    service: Annotated[ResultsQueryService, Depends(get_results_query_service)],
+) -> StudentLearningFeedbackDTO:
+    try:
+        return service.get_student_learning_feedback(str(user.id), submission_id)
+    except (GradingTaskError, FileStorageError, RetrievalError) as error:
+        raise _learning_http_error(error) from None
+
+
+@router.get(
+    "/me/submissions/{submission_id}/learning/materials/{chunk_id}",
+    summary="读取当前授权复习片段",
+)
+def get_my_learning_material(
+    submission_id: str,
+    chunk_id: str,
+    user: Annotated[User, Depends(require_permission(Permission.VIEW_OWN_RESULTS))],
+    service: Annotated[ResultsQueryService, Depends(get_results_query_service)],
+) -> LearningMaterialDetailDTO:
+    try:
+        return service.get_student_learning_material(
+            str(user.id), submission_id, chunk_id
+        )
+    except (GradingTaskError, FileStorageError, RetrievalError) as error:
+        raise _learning_http_error(error) from None
+
+
+@router.get(
+    "/me/submissions/{submission_id}/learning/practices/{question_id}",
+    summary="读取当前授权已审核练习",
+)
+def get_my_learning_practice(
+    submission_id: str,
+    question_id: str,
+    user: Annotated[User, Depends(require_permission(Permission.VIEW_OWN_RESULTS))],
+    service: Annotated[ResultsQueryService, Depends(get_results_query_service)],
+) -> LearningPracticeDetailDTO:
+    try:
+        return service.get_student_learning_practice(
+            str(user.id), submission_id, question_id
+        )
+    except (GradingTaskError, FileStorageError, RetrievalError) as error:
+        raise _learning_http_error(error) from None
+
+
+@router.get(
+    "/me/submissions/{submission_id}/learning/assets/{asset_id}",
+    summary="读取本人结果授权原图",
+)
+def get_my_feedback_asset(
+    submission_id: str,
+    asset_id: str,
+    user: Annotated[User, Depends(require_permission(Permission.VIEW_OWN_RESULTS))],
+    service: Annotated[ResultsQueryService, Depends(get_results_query_service)],
+) -> Response:
+    try:
+        data, mime = service.get_student_learning_asset(
+            str(user.id), submission_id, asset_id
+        )
+        return Response(
+            content=data,
+            media_type=mime,
+            headers={"Cache-Control": "private, no-store"},
+        )
+    except (GradingTaskError, FileStorageError, RetrievalError) as error:
+        raise _learning_http_error(error) from None
+
+
+@router.get(
+    "/me/submissions/{submission_id}/learning/practices/{question_id}/assets/{asset_id}",
+    summary="读取当前授权练习原图",
+)
+def get_my_practice_asset(
+    submission_id: str,
+    question_id: str,
+    asset_id: str,
+    user: Annotated[User, Depends(require_permission(Permission.VIEW_OWN_RESULTS))],
+    service: Annotated[ResultsQueryService, Depends(get_results_query_service)],
+) -> Response:
+    try:
+        data, mime = service.get_student_learning_asset(
+            str(user.id), submission_id, asset_id, practice_id=question_id
+        )
+        return Response(
+            content=data,
+            media_type=mime,
+            headers={"Cache-Control": "private, no-store"},
+        )
+    except (GradingTaskError, FileStorageError, RetrievalError) as error:
+        raise _learning_http_error(error) from None

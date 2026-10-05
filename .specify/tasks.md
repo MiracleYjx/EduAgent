@@ -622,7 +622,7 @@ M0 工程骨架 + Benchmark
 
 - [X] T180 [HIGH] [E5] **扩展教师考情统计服务**：在 `api/results.py` 的 ResultsQueryService、`schemas/grading.py` 与现有汇总边界增加可参加/已参加/提交、最终分布/平均、逐题得分率、发布知识点失分和关注名单；实际最终答卷为分母，失败/待复核/缺依据单列，多知识点不重复累计总分，无观测为暂无数据。复用现有最终成绩存储，不让模型生成统计。 依赖：T177、T179。per FR-050/039、exam-scoring 汇总、SC-013（F047） (partial)
 
-- [ ] T181 [HIGH] [E5] **扩展学生诊断和来源推荐**：在 `services/diagnosis_service.py`、`api/results.py`、相关 schema/检索/题库查询中基于本人最终失分与发布知识点，返回可访问同课程资料和已审核练习、真实出处/知识点/理由及原题图；缺资料/题目明确返回不足，不用未审核/待补全候选补位，保留报告与当前最终结果对应关系。 依赖：T162、T177、T179。per FR-051/040、exam-scoring 学生反馈、SC-013（F048） (partial)
+- [X] T181 [HIGH] [E5] **扩展学生诊断和来源推荐**：在 `services/diagnosis_service.py`、`api/results.py`、相关 schema/检索/题库查询中基于本人最终失分与发布知识点，返回可访问同课程资料和已审核练习、真实出处/知识点/理由及原题图；缺资料/题目明确返回不足，不用未审核/待补全候选补位，保留报告与当前最终结果对应关系。 依赖：T162、T177、T179。per FR-051/040、exam-scoring 学生反馈、SC-013（F048） (partial)
 
 - [ ] T182 [HIGH] [E5] **实现教师考情分析页面**：扩展 `ui/results_view.py`、`results_loaders.py` 的教师视图，提供统计概览、分布、逐题/知识点明细、分母及关注学生详情，联动实际答卷与复核入口；空数据、未完成与失败分别展示，数值只读服务事实。 依赖：T180。per FR-050、US3-v2/AC4、SC-013（F049） (partial)
 

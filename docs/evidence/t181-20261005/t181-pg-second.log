@@ -1,0 +1,164 @@
+...FF...F....                                                            [100%]
+================================== FAILURES ===================================
+___________ test_regrading_revokes_old_links_and_keeps_report_stale ___________
+
+session = <sqlalchemy.orm.session.Session object at 0x000002121D6D3450>
+feedback_scenario = {'teacher': <backend.app.models.user.User object at 0x000002121CF1A0D0>, 'course': <backend.app.models.course.Course o...tion.Question object at 0x000002121D610EF0>], 'exam': <backend.app.models.exam.Exam object at 0x000002127A2FBE30>, ...}
+client_factory = <function client_factory.<locals>.factory at 0x000002121DC91620>
+
+    def test_regrading_revokes_old_links_and_keeps_report_stale(
+        session, feedback_scenario, client_factory
+    ):
+        s = feedback_scenario
+        material(session, s)
+        practice(session, s)
+        store = s["service"]._diagnosis_store
+>       store.save(
+            DiagnosisReportDTO(
+                submission_id=str(s["submissions"][0].id),
+                student_id=str(s["students"][0].id),
+                status=DiagnosisStatus.READY,
+                generated_at=datetime.now(UTC),
+                source_exam_result_updated_at=s["final"].aggregated_at,
+            )
+        )
+
+tests\integration\test_learning_feedback.py:259: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <backend.app.services.grading.diagnosis_report_store.DiagnosisReportStore object at 0x000002121D9AF550>
+report = DiagnosisReportDTO(exam_result_id=None, submission_id='f085131c-8f71-4990-9682-65d778599cc0', student_id='f99ee575-97d..., 57, 14, 109285, tzinfo=datetime.timezone.utc), error_code=None, retryable=None, source_code=None, attempt_count=None)
+
+    def save(self, report: DiagnosisReportDTO) -> DiagnosisReportDTO:
+        """写入 ``Ready``/``Failed`` 报告；来源过期时拒绝覆盖新结果。
+    
+        报告中由 :class:`DiagnosisService` 填写的应用层 ``exam_result_id`` 在此替换为真实
+        主键；锁定该成绩行直至报告提交，最终状态与来源时间均在锁内校验。
+        来源过期时不写入，返回当前报告或 ``Stale`` 状态。
+        """
+    
+        if report.status not in STORABLE_STATUSES:
+            raise DiagnosisReportStateError(
+                f"诊断状态 {report.status} 不可落库（Not Ready 没有最终结果）。"
+            )
+        try:
+            with self._use_session() as session, session.begin():
+                submission_uuid = _as_uuid(report.submission_id)
+                current = session.scalars(
+                    select(ExamResult)
+                    .where(ExamResult.submission_id == submission_uuid)
+                    .with_for_update()
+                ).one_or_none()
+                if current is None:
+                    raise GradingSubmissionNotFoundError(
+                        f"答卷 {report.submission_id} 尚无整卷结果，拒绝写入诊断报告。"
+                    )
+                if report.exam_result_id not in {
+                    str(current.id), f"exam-result:{report.submission_id}",
+                }:
+>                   raise DiagnosisReportStateError("报告与当前整卷结果主键不一致，拒绝写入。")
+E                   backend.app.services.grading.diagnosis_report_store.DiagnosisReportStateError: DIAGNOSIS_REPORT_STATE_NOT_STORABLE：报告与当前整卷结果主键不一致，拒绝写入。
+
+backend\app\services\grading\diagnosis_report_store.py:164: DiagnosisReportStateError
+________ test_get_is_read_only_and_preserves_current_final_report_link ________
+
+session = <sqlalchemy.orm.session.Session object at 0x000002121D5B5150>
+feedback_scenario = {'teacher': <backend.app.models.user.User object at 0x000002121D7280F0>, 'course': <backend.app.models.course.Course o...tion.Question object at 0x000002121DEA0050>], 'exam': <backend.app.models.exam.Exam object at 0x000002121DE6BE70>, ...}
+client_factory = <function client_factory.<locals>.factory at 0x000002121DEB4D60>
+
+    def test_get_is_read_only_and_preserves_current_final_report_link(
+        session, feedback_scenario, client_factory
+    ):
+        s = feedback_scenario
+        material(session, s)
+        practice(session, s)
+        store = s["service"]._diagnosis_store
+>       saved = store.save(
+            DiagnosisReportDTO(
+                submission_id=str(s["submissions"][0].id),
+                student_id=str(s["students"][0].id),
+                status=DiagnosisStatus.READY,
+                generated_at=datetime.now(UTC),
+                source_exam_result_updated_at=s["final"].aggregated_at,
+            )
+        )
+
+tests\integration\test_learning_feedback.py:290: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <backend.app.services.grading.diagnosis_report_store.DiagnosisReportStore object at 0x000002121C873C50>
+report = DiagnosisReportDTO(exam_result_id=None, submission_id='56051b29-626a-49f8-bfc5-bda032fd6738', student_id='d12c8707-fd2..., 57, 16, 857461, tzinfo=datetime.timezone.utc), error_code=None, retryable=None, source_code=None, attempt_count=None)
+
+    def save(self, report: DiagnosisReportDTO) -> DiagnosisReportDTO:
+        """写入 ``Ready``/``Failed`` 报告；来源过期时拒绝覆盖新结果。
+    
+        报告中由 :class:`DiagnosisService` 填写的应用层 ``exam_result_id`` 在此替换为真实
+        主键；锁定该成绩行直至报告提交，最终状态与来源时间均在锁内校验。
+        来源过期时不写入，返回当前报告或 ``Stale`` 状态。
+        """
+    
+        if report.status not in STORABLE_STATUSES:
+            raise DiagnosisReportStateError(
+                f"诊断状态 {report.status} 不可落库（Not Ready 没有最终结果）。"
+            )
+        try:
+            with self._use_session() as session, session.begin():
+                submission_uuid = _as_uuid(report.submission_id)
+                current = session.scalars(
+                    select(ExamResult)
+                    .where(ExamResult.submission_id == submission_uuid)
+                    .with_for_update()
+                ).one_or_none()
+                if current is None:
+                    raise GradingSubmissionNotFoundError(
+                        f"答卷 {report.submission_id} 尚无整卷结果，拒绝写入诊断报告。"
+                    )
+                if report.exam_result_id not in {
+                    str(current.id), f"exam-result:{report.submission_id}",
+                }:
+>                   raise DiagnosisReportStateError("报告与当前整卷结果主键不一致，拒绝写入。")
+E                   backend.app.services.grading.diagnosis_report_store.DiagnosisReportStateError: DIAGNOSIS_REPORT_STATE_NOT_STORABLE：报告与当前整卷结果主键不一致，拒绝写入。
+
+backend\app\services\grading\diagnosis_report_store.py:164: DiagnosisReportStateError
+____________ test_practice_original_image_is_authorized_and_exact _____________
+
+session = <sqlalchemy.orm.session.Session object at 0x000002121DC89A50>
+feedback_scenario = {'teacher': <backend.app.models.user.User object at 0x000002121DCFF4D0>, 'course': <backend.app.models.course.Course o...tion.Question object at 0x000002121FD58950>], 'exam': <backend.app.models.exam.Exam object at 0x000002121F628C50>, ...}
+client_factory = <function client_factory.<locals>.factory at 0x000002121FDBE2A0>
+
+    def test_practice_original_image_is_authorized_and_exact(
+        session, feedback_scenario, client_factory
+    ):
+        s = feedback_scenario
+        _q, asset, path, data = practice(session, s, image=True)
+        client = client_factory(s["service"])
+        b = read(client, s)
+        recommended = b["recommendations"][0]["practices"][0]
+        response = client.get(recommended["assets"][0]["url"], headers=s["headers"])
+>       assert (
+            response.status_code == 200
+            and response.content == data
+            and response.headers["content-type"] == "image/png"
+        )
+E       AssertionError: assert (200 == 200 and b'\x89PNG\r\n...END\xaeB`\x82' == b'\x89PNG\r\n...END\xaeB`\x82'
+E        +  where 200 = <Response [200 OK]>.status_code
+E         
+E         Use -v to get more diff and 'image/jpeg' == 'image/png'
+E         
+E         - image/png
+E         ?        ^
+E         + image/jpeg
+E         ?       + ^)
+
+tests\integration\test_learning_feedback.py:339: AssertionError
+============================== warnings summary ===============================
+..\..\..\develop\Python\Lib\site-packages\fastapi\testclient.py:1
+  D:\develop\Python\Lib\site-packages\fastapi\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/integration/test_learning_feedback.py::test_regrading_revokes_old_links_and_keeps_report_stale
+FAILED tests/integration/test_learning_feedback.py::test_get_is_read_only_and_preserves_current_final_report_link
+FAILED tests/integration/test_learning_feedback.py::test_practice_original_image_is_authorized_and_exact
+3 failed, 10 passed, 1 warning in 41.08s
