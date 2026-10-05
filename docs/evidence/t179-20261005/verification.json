@@ -1,0 +1,23 @@
+{
+  "source_checks": {
+    "ruff": "passed all 5 changed/new backend/test files and benchmark/t179",
+    "black": "passed target py312",
+    "mypy": "passed all209 backend source files"
+  },
+  "test_evidence": [
+    "t179_final_focused.xml:378 passed",
+    "t179_compatibility_final.xml:58 passed (overlap)"
+  ],
+  "business": "12/12 final source",
+  "performance": "v6 54/54 actions, 48/48 official correct response / latency / complete resource / budget; warmup6 excluded from official denominator",
+  "changed_python": [
+    "backend/app/services/content_validation_service.py",
+    "backend/app/services/exam_assembly_service.py",
+    "backend/app/services/question_service.py",
+    "backend/app/ui/exam_view.py",
+    "tests/integration/test_t179_publication_races.py"
+  ],
+  "original_database_and_user_files": "verified identical",
+  "temporary_resources": "guarded cleanup receipt recorded",
+  "quality": "T146 AI assisted + developer review and T168 not_met retained"
+}

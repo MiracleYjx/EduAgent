@@ -1,0 +1,260 @@
+{
+  "started_at": "2026-10-05T02:14:26.514512+00:00",
+  "source_commit": "615319ec4194c4e690560d93a286db228db26a0f",
+  "sample_hashes": {
+    "question_pool.json": "c3b494b56cb2f34a88107568e0329ccfdf8f73ebb4b144f2ed95286b1bf99087",
+    "assembly_cases.json": "cd0ad9a0f7d4f4b3e27409b9ed4b1ab04c61b8fc7fc90f6945b5b75909c2ef2f",
+    "scoring_cases.json": "005d8e5dfd0c3b3ff9cd89c03a42ad1bb68cfb7d92eb1e6c35f356d616ceec70",
+    "teaching_basis.md": "f2d176cda52aff08d811f6c0c70dc10b2799f4b3b20174dd5860b5353ba623c7",
+    "assets/diagram.png": "44bbbce885cdf7f8965364579d2007b375c069a904d79f487ac64518ae602b97"
+  },
+  "planned": [
+    {
+      "case": {
+        "case_id": "ASM-1-SAT",
+        "request": {
+          "course_id": "cf99a4d9-dfa1-5bb3-9d6d-2ea11d1d6820",
+          "question_count": 1,
+          "type_distribution": [
+            {
+              "question_type": "SINGLE_CHOICE",
+              "count": 1
+            }
+          ],
+          "knowledge_coverage": [
+            {
+              "knowledge_point": "一次函数",
+              "min_questions": 1
+            }
+          ],
+          "total_score": "1.00",
+          "score_overrides": []
+        },
+        "draft_witness": [
+          "170002c8-1870-54cb-b8ad-494ee15697ad"
+        ],
+        "draft_unsatisfiable_reason": null,
+        "teacher_checked": false
+      },
+      "kind": "pilot",
+      "indices": [
+        0
+      ],
+      "worker_run": "ASM-1-SAT-pilot-0"
+    },
+    {
+      "case": {
+        "case_id": "ASM-25-SAT",
+        "request": {
+          "course_id": "cf99a4d9-dfa1-5bb3-9d6d-2ea11d1d6820",
+          "question_count": 25,
+          "type_distribution": [
+            {
+              "question_type": "SINGLE_CHOICE",
+              "count": 9
+            },
+            {
+              "question_type": "TRUE_FALSE",
+              "count": 8
+            },
+            {
+              "question_type": "SHORT_ANSWER",
+              "count": 8
+            }
+          ],
+          "knowledge_coverage": [
+            {
+              "knowledge_point": "一次函数",
+              "min_questions": 1
+            }
+          ],
+          "total_score": "25.00",
+          "score_overrides": []
+        },
+        "draft_witness": [
+          "170002c8-1870-54cb-b8ad-494ee15697ad",
+          "fb2aad97-03ba-5704-854c-95453444ad65",
+          "38459e84-ef20-5cae-bdf4-0407061a6997",
+          "9bb36ece-ac8b-5a8d-a57b-ac093d050f60",
+          "1ac55ca1-b2c6-516c-ab5b-20d6ba9fe945",
+          "55506688-8029-54d2-aa94-7b2a44463f7d",
+          "2e47e877-369a-5c42-983c-b2c94f9cc8cb",
+          "d3c3d04b-8e0b-57d7-b159-755cf2ee84d8",
+          "afdb6c69-a066-5d48-927f-b2addbd39108",
+          "8b6ca584-ecac-5d56-8a31-3f21e1bce6c4",
+          "fb8957c9-73bf-5116-8c0c-4d102ff9dd12",
+          "05ef4e67-2b08-5fd4-b0de-a655a1b84083",
+          "2be74d73-07db-5876-bc35-329d1cbc0a03",
+          "24927879-0294-5076-92c8-39f9e14c3a35",
+          "a1e1cade-ec52-519a-89a8-a0d3a7d3f87a",
+          "9c975da4-f83a-5749-8a3d-5b3057ae6274",
+          "8b5cf761-a018-5966-ad61-5d2a6c879173",
+          "e75d38cc-9cda-57e0-a135-02d09861ba57",
+          "73cbbe37-f60c-5c22-9b51-9e404bffb664",
+          "c3ca3e92-be2c-5c39-834e-10363dbc6964",
+          "7ba10839-baff-50c7-910c-968d7a5b78f3",
+          "939900ec-ea55-5386-b7a7-63ca6bdd3d8b",
+          "57967ae1-d68d-5310-9ee5-42b7fb9b1d70",
+          "bbb585e7-892d-5d64-a951-3adc8965e9de",
+          "57553c76-ec58-5e5d-9180-372324a4ea67"
+        ],
+        "draft_unsatisfiable_reason": null,
+        "teacher_checked": false
+      },
+      "kind": "pilot",
+      "indices": [
+        0
+      ],
+      "worker_run": "ASM-25-SAT-pilot-0"
+    },
+    {
+      "case": {
+        "case_id": "ASM-100-SAT",
+        "request": {
+          "course_id": "cf99a4d9-dfa1-5bb3-9d6d-2ea11d1d6820",
+          "question_count": 100,
+          "type_distribution": [
+            {
+              "question_type": "SINGLE_CHOICE",
+              "count": 34
+            },
+            {
+              "question_type": "TRUE_FALSE",
+              "count": 33
+            },
+            {
+              "question_type": "SHORT_ANSWER",
+              "count": 33
+            }
+          ],
+          "knowledge_coverage": [
+            {
+              "knowledge_point": "一次函数",
+              "min_questions": 1
+            }
+          ],
+          "total_score": "100.00",
+          "score_overrides": []
+        },
+        "draft_witness": [
+          "170002c8-1870-54cb-b8ad-494ee15697ad",
+          "fb2aad97-03ba-5704-854c-95453444ad65",
+          "38459e84-ef20-5cae-bdf4-0407061a6997",
+          "9bb36ece-ac8b-5a8d-a57b-ac093d050f60",
+          "1ac55ca1-b2c6-516c-ab5b-20d6ba9fe945",
+          "55506688-8029-54d2-aa94-7b2a44463f7d",
+          "2e47e877-369a-5c42-983c-b2c94f9cc8cb",
+          "d3c3d04b-8e0b-57d7-b159-755cf2ee84d8",
+          "afdb6c69-a066-5d48-927f-b2addbd39108",
+          "8b6ca584-ecac-5d56-8a31-3f21e1bce6c4",
+          "fb8957c9-73bf-5116-8c0c-4d102ff9dd12",
+          "05ef4e67-2b08-5fd4-b0de-a655a1b84083",
+          "2be74d73-07db-5876-bc35-329d1cbc0a03",
+          "24927879-0294-5076-92c8-39f9e14c3a35",
+          "a1e1cade-ec52-519a-89a8-a0d3a7d3f87a",
+          "9c975da4-f83a-5749-8a3d-5b3057ae6274",
+          "8b5cf761-a018-5966-ad61-5d2a6c879173",
+          "e75d38cc-9cda-57e0-a135-02d09861ba57",
+          "73cbbe37-f60c-5c22-9b51-9e404bffb664",
+          "c3ca3e92-be2c-5c39-834e-10363dbc6964",
+          "7ba10839-baff-50c7-910c-968d7a5b78f3",
+          "939900ec-ea55-5386-b7a7-63ca6bdd3d8b",
+          "57967ae1-d68d-5310-9ee5-42b7fb9b1d70",
+          "bbb585e7-892d-5d64-a951-3adc8965e9de",
+          "57553c76-ec58-5e5d-9180-372324a4ea67",
+          "c8d6b6fb-9934-545c-96b4-4e055777fca6",
+          "645405c1-7174-5e06-939d-3c97ad7c851d",
+          "87b85e7d-ebf3-566b-85c4-8ee432fb301b",
+          "0ae96050-23df-57ee-a0a0-15c7e32a7580",
+          "1e9a2a38-6450-5100-ad83-c13e15028129",
+          "bcbd60a8-7111-584d-93a6-ff7d0fd66383",
+          "a3be1c18-c266-56d4-a894-0b250b867b08",
+          "bafb6edf-024d-55aa-98a7-86d784f88645",
+          "6f915c84-811b-55cb-9031-cff7d8c24f3f",
+          "e9bb8e41-22ea-5af1-a61a-92caf3ac8c72",
+          "2f98c970-f0bf-5587-a36a-91cdedfe6dd7",
+          "b0bf9f97-6080-5559-8c8c-735a68fa911f",
+          "087fcb43-b801-5a12-b5b0-aeb3fd1c97bf",
+          "320c3dfd-eb8e-544a-ad4c-e49e6b6a2130",
+          "68f04409-231a-582c-8e71-684c5f248538",
+          "80582712-3ef1-50a5-bcdc-fa9fd79c01f7",
+          "eb09c601-0305-5810-a787-b8847c76863e",
+          "42e91c74-04d3-5e02-8008-af50cf059768",
+          "b43b2f39-e024-5fe1-a988-8ebece7dc6bd",
+          "0dd223ca-d7ec-58b9-9781-3003471f0d86",
+          "60df02b5-92a9-5a71-acbb-facbabbf6409",
+          "d544ccb8-ab47-5a8e-b365-28f5eebaa4f6",
+          "933af493-2eb2-5e94-8ed8-4f8dc19ba679",
+          "3a264ba1-cb57-50e6-b761-7ed7bac79940",
+          "5ef8c7c3-d4ce-516a-9203-bdb58c419b29",
+          "c2e53ce4-01f2-5ed6-ae0b-051d36cd71fe",
+          "3c168200-ed53-5926-ab0b-333fe55928fd",
+          "1f9fb18d-6502-588f-9a27-7b101e3288e9",
+          "f5b08a77-385d-5a77-ae26-da730af40438",
+          "2ebb6c30-600e-5028-abb8-dcb1212127dd",
+          "b8a07672-2954-57ea-9c0a-15caff253ce2",
+          "1770b3e2-bc28-57cc-8112-87ba71f5d075",
+          "bbc0df68-b0b5-5415-ae5b-e3f6a081f7c5",
+          "a11bf13b-8683-5c62-9202-7177bba657f3",
+          "e9ae7984-560e-5ede-99e8-11b262203c6d",
+          "2b481a71-6cea-5094-b219-9796002360f1",
+          "0976c47c-4882-5a20-8810-129ef5514bd7",
+          "5ceee68f-0fb5-5ea4-9455-f7124e00e441",
+          "e42db29c-d03b-5b20-aee4-edd3050bb7b9",
+          "014359f3-7f00-5790-b614-78de7b0d62bc",
+          "931ef058-6e1e-5f56-b383-66c91376b889",
+          "b911191d-bfa4-5ba4-ad9d-4d082b5f51f3",
+          "9c6aef11-b84c-5d15-8f5d-ee23226a190d",
+          "e7f9e923-0822-512b-879e-8c2ebdfa44ea",
+          "f49577da-f879-52e3-8b9f-acc98c6c1376",
+          "97913488-029c-5789-aa00-b85f3ad41cc9",
+          "80045489-5b92-561d-a0af-14bb4b67d20b",
+          "dfbc7a3e-c9ce-5962-bc7f-52b2706ee412",
+          "9e877712-1618-5f71-a414-1b150696fe4e",
+          "ac6d6d05-9e5e-5584-9bd6-5a0b62117b60",
+          "4f641727-48fa-51d6-84b6-762830922e49",
+          "02b42c36-04fa-5461-baf0-abd0ece47a73",
+          "9d333f0a-1a15-55ab-8a72-2dd5f004730a",
+          "e9a61b26-de93-57c3-ab7f-08ca999b6c5c",
+          "2ab3835b-76a9-5dc5-959a-03d973a6e158",
+          "4985f25e-1a2d-53be-9906-de50c87c6eb6",
+          "d9d59ad9-de9d-5664-a134-dd428fd4d433",
+          "8928429a-a124-5ff0-87ab-e639861085ee",
+          "e4089ad1-73bf-5fa3-abf1-5e20e1dd9f9f",
+          "79b03364-81ab-552b-9cd0-eac8d7ff369f",
+          "c88efbce-daa9-5ac2-9414-dec6b36d0cf6",
+          "04a551de-3217-5c68-9e5b-cd578493a1a5",
+          "6436f22e-c809-5229-af08-d29a3d030183",
+          "384b6c7f-314c-55dc-9e55-705006ab6c87",
+          "375b12fb-866b-5c86-a779-0a52ad8a8773",
+          "829a5a92-797e-59c8-9c86-13f484d0982f",
+          "48aa784f-ac05-5cb1-826d-2451e96b0431",
+          "79e66ed1-5c61-56fb-93a1-a4a3b02556bb",
+          "d403bcce-6957-5746-a1da-2b2b69ac861f",
+          "a825a4b4-65bd-5a48-abe8-c54c2976011f",
+          "afe365fa-d77d-57b3-9b9e-068b645a2696",
+          "07b0d604-9be8-5a29-9edd-6180354e7147",
+          "f7960160-7085-520b-a9c1-0b9a0a1b47e4",
+          "3499ee05-40ce-5dfe-b833-53296830179b",
+          "5ca5f267-dbba-5e2a-8467-2d52104c045d"
+        ],
+        "draft_unsatisfiable_reason": null,
+        "teacher_checked": false
+      },
+      "kind": "pilot",
+      "indices": [
+        0
+      ],
+      "worker_run": "ASM-100-SAT-pilot-0"
+    }
+  ],
+  "timed_planned": 3,
+  "total_actions_planned": 3,
+  "candidate_count": 300,
+  "concurrency": 1,
+  "cloud_calls": 0,
+  "annotation": "AI assisted + developer review; independent teacher=0",
+  "cold": "new actual application worker per action; ready DB/Redis reused; OS disk cache not cleared",
+  "warm": "one same-size preheat plus five fresh drafts in same worker",
+  "timing": "actual browser click to full preview or genuine unsatisfied diagnostic including rendered actual images; no generated questions"
+}

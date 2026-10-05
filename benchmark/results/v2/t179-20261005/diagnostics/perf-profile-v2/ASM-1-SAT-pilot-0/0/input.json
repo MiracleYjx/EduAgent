@@ -1,0 +1,15 @@
+{
+  "run_id": "ASM-1-SAT-pilot-0-55fbb5a4",
+  "case_id": "ASM-1-SAT",
+  "url": "http://127.0.0.1:18762",
+  "title": "T179 ASM-1-SAT-pilot-0-55fbb5a4",
+  "sat": true,
+  "count": 1,
+  "counts": {
+    "SINGLE_CHOICE": 1
+  },
+  "total": "1.00",
+  "label": "一次函数",
+  "output": "D:\\YJX\\MyCode\\EduAgent\\.cache\\t179-20261005\\perf-profile-v2\\ASM-1-SAT-pilot-0\\0\\browser.json",
+  "screenshot": "D:\\YJX\\MyCode\\EduAgent\\.cache\\t179-20261005\\perf-profile-v2\\ASM-1-SAT-pilot-0\\0\\browser.png"
+}

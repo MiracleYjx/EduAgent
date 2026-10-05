@@ -1,0 +1,15 @@
+{
+  "run_id": "ASM-1-UNSAT-warm-0-25234dc1",
+  "case_id": "ASM-1-UNSAT",
+  "url": "http://127.0.0.1:18762",
+  "title": "T179 ASM-1-UNSAT-warm-0-25234dc1",
+  "sat": false,
+  "count": 1,
+  "counts": {
+    "SINGLE_CHOICE": 1
+  },
+  "total": "1.00",
+  "label": "未收录知识点",
+  "output": "D:\\YJX\\MyCode\\EduAgent\\.cache\\t179-20261005\\perf-formal-v6\\ASM-1-UNSAT-warm-0\\0\\browser.json",
+  "screenshot": "D:\\YJX\\MyCode\\EduAgent\\.cache\\t179-20261005\\perf-formal-v6\\ASM-1-UNSAT-warm-0\\0\\browser.png"
+}

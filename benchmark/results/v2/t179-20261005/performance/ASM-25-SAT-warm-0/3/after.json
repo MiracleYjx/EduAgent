@@ -1,0 +1,830 @@
+{
+  "exam_id": "f7e688a5-a315-4718-912f-fbc9ead3d9f3",
+  "current_status": "Draft",
+  "exam_questions": [
+    {
+      "id": "9fe1d630-6187-4d67-ad83-137f712d464f",
+      "exam_id": "f7e688a5-a315-4718-912f-fbc9ead3d9f3",
+      "question_id": "004c9da2-2d2c-5e93-901b-0c61c7d8fb76",
+      "order_index": 1,
+      "score": "1.00",
+      "effective_score": "1.00",
+      "base_score": null,
+      "published_knowledge_points": null,
+      "scoring_basis": null,
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 297 + 1。",
+      "options": null,
+      "reference_answer": "595",
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。",
+      "analysis": null,
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "assets": []
+    },
+    {
+      "id": "ab4ba1a0-8177-4d89-950d-ec7967f08054",
+      "exam_id": "f7e688a5-a315-4718-912f-fbc9ead3d9f3",
+      "question_id": "025762a5-f1b9-5cdd-963f-53438de6ac36",
+      "order_index": 2,
+      "score": "1.00",
+      "effective_score": "1.00",
+      "base_score": null,
+      "published_knowledge_points": null,
+      "scoring_basis": null,
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 156 + 1。",
+      "options": null,
+      "reference_answer": "313",
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。",
+      "analysis": null,
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "assets": []
+    },
+    {
+      "id": "3d6ed160-408c-4109-a49b-eda3ce3aaac2",
+      "exam_id": "f7e688a5-a315-4718-912f-fbc9ead3d9f3",
+      "question_id": "04a312a5-101a-5a62-b2a9-b394a2bbc50f",
+      "order_index": 3,
+      "score": "1.00",
+      "effective_score": "1.00",
+      "base_score": null,
+      "published_knowledge_points": null,
+      "scoring_basis": null,
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 120 + 1。",
+      "options": null,
+      "reference_answer": "241",
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。",
+      "analysis": null,
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "assets": []
+    },
+    {
+      "id": "68e5f453-daa4-4a33-bdf4-e492ed2aaa73",
+      "exam_id": "f7e688a5-a315-4718-912f-fbc9ead3d9f3",
+      "question_id": "04a551de-3217-5c68-9e5b-cd578493a1a5",
+      "order_index": 4,
+      "score": "1.00",
+      "effective_score": "1.00",
+      "base_score": null,
+      "published_knowledge_points": null,
+      "scoring_basis": null,
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 87 + 1。",
+      "options": null,
+      "reference_answer": "175",
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。",
+      "analysis": null,
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "assets": []
+    },
+    {
+      "id": "d78fee88-aee3-48ef-85fb-e5dcf5d867eb",
+      "exam_id": "f7e688a5-a315-4718-912f-fbc9ead3d9f3",
+      "question_id": "05ef4e67-2b08-5fd4-b0de-a655a1b84083",
+      "order_index": 5,
+      "score": "1.00",
+      "effective_score": "1.00",
+      "base_score": null,
+      "published_knowledge_points": null,
+      "scoring_basis": null,
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 12 + 1。",
+      "options": null,
+      "reference_answer": "25",
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。",
+      "analysis": null,
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "assets": []
+    },
+    {
+      "id": "ce6c5a48-2bc4-49e7-89e6-6f9c7de31f3a",
+      "exam_id": "f7e688a5-a315-4718-912f-fbc9ead3d9f3",
+      "question_id": "0888c616-b1fc-5e50-9ca9-0b237d6b0691",
+      "order_index": 6,
+      "score": "1.00",
+      "effective_score": "1.00",
+      "base_score": null,
+      "published_knowledge_points": null,
+      "scoring_basis": null,
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 219 + 1。",
+      "options": null,
+      "reference_answer": "439",
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。",
+      "analysis": null,
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "assets": []
+    },
+    {
+      "id": "8a2799ac-d1ec-40ed-938c-1b810ab84896",
+      "exam_id": "f7e688a5-a315-4718-912f-fbc9ead3d9f3",
+      "question_id": "09b52594-abab-5df9-9ee7-8ac140018350",
+      "order_index": 7,
+      "score": "1.00",
+      "effective_score": "1.00",
+      "base_score": null,
+      "published_knowledge_points": null,
+      "scoring_basis": null,
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 162 + 1。",
+      "options": null,
+      "reference_answer": "325",
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。",
+      "analysis": null,
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "assets": []
+    },
+    {
+      "id": "8c404919-e43f-49f2-91cf-19d9decdea39",
+      "exam_id": "f7e688a5-a315-4718-912f-fbc9ead3d9f3",
+      "question_id": "0d7bb191-04da-5fcc-b10d-a89270506ab2",
+      "order_index": 8,
+      "score": "1.00",
+      "effective_score": "1.00",
+      "base_score": null,
+      "published_knowledge_points": null,
+      "scoring_basis": null,
+      "question_type": "SHORT_ANSWER",
+      "content": "计算 2 × 150 + 1。",
+      "options": null,
+      "reference_answer": "301",
+      "scoring_rubric": "代入过程 0.50 分；正确计算结果 0.50 分，总分 1.00。",
+      "analysis": null,
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "assets": []
+    },
+    {
+      "id": "269d7cb1-3a61-4d35-a46c-74e89de0fd3e",
+      "exam_id": "f7e688a5-a315-4718-912f-fbc9ead3d9f3",
+      "question_id": "0247c2ac-153e-5b4d-ab3b-77771336b56d",
+      "order_index": 9,
+      "score": "1.00",
+      "effective_score": "1.00",
+      "base_score": null,
+      "published_knowledge_points": null,
+      "scoring_basis": null,
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=145 时，y=2x+1 的值是？",
+      "options": {
+        "A": "291",
+        "B": "292",
+        "C": "290",
+        "D": "293"
+      },
+      "reference_answer": "A",
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。",
+      "analysis": null,
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "assets": []
+    },
+    {
+      "id": "8cca4899-2804-44f7-9e87-23bd27d3eb45",
+      "exam_id": "f7e688a5-a315-4718-912f-fbc9ead3d9f3",
+      "question_id": "07b0d604-9be8-5a29-9edd-6180354e7147",
+      "order_index": 10,
+      "score": "1.00",
+      "effective_score": "1.00",
+      "base_score": null,
+      "published_knowledge_points": null,
+      "scoring_basis": null,
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=97 时，y=2x+1 的值是？",
+      "options": {
+        "A": "195",
+        "B": "196",
+        "C": "194",
+        "D": "197"
+      },
+      "reference_answer": "A",
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。",
+      "analysis": null,
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "assets": []
+    },
+    {
+      "id": "65ab079e-fda3-4a7f-ad3a-0de67ae8d43a",
+      "exam_id": "f7e688a5-a315-4718-912f-fbc9ead3d9f3",
+      "question_id": "0925620b-9e20-52b5-8be8-4009c1336ea1",
+      "order_index": 11,
+      "score": "1.00",
+      "effective_score": "1.00",
+      "base_score": null,
+      "published_knowledge_points": null,
+      "scoring_basis": null,
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=157 时，y=2x+1 的值是？",
+      "options": {
+        "A": "315",
+        "B": "316",
+        "C": "314",
+        "D": "317"
+      },
+      "reference_answer": "A",
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。",
+      "analysis": null,
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "assets": []
+    },
+    {
+      "id": "f5cb1abb-dff6-4686-9c59-a78ae6a36d24",
+      "exam_id": "f7e688a5-a315-4718-912f-fbc9ead3d9f3",
+      "question_id": "170002c8-1870-54cb-b8ad-494ee15697ad",
+      "order_index": 12,
+      "score": "1.00",
+      "effective_score": "1.00",
+      "base_score": null,
+      "published_knowledge_points": null,
+      "scoring_basis": null,
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=1 时，y=2x+1 的值是？",
+      "options": {
+        "A": "3",
+        "B": "4",
+        "C": "2",
+        "D": "5"
+      },
+      "reference_answer": "A",
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。",
+      "analysis": null,
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "assets": [
+        {
+          "id": "b539bb13-d196-4e9e-ba2f-d0336b2cbd12",
+          "question_id": "170002c8-1870-54cb-b8ad-494ee15697ad",
+          "file_id": "a_b539bb13d1964e9eba2fd0336b2cbd12",
+          "asset_type": "diagram",
+          "width": 640,
+          "height": 400,
+          "caption": "Original T146 synthetic diagram",
+          "source_page_id": null,
+          "region": null,
+          "order_index": 1,
+          "student_visible": true
+        }
+      ]
+    },
+    {
+      "id": "1b355e91-3584-435c-91c6-800f88af7dde",
+      "exam_id": "f7e688a5-a315-4718-912f-fbc9ead3d9f3",
+      "question_id": "1dbd73cf-7335-577a-b321-64df8e0cbcff",
+      "order_index": 13,
+      "score": "1.00",
+      "effective_score": "1.00",
+      "base_score": null,
+      "published_knowledge_points": null,
+      "scoring_basis": null,
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=115 时，y=2x+1 的值是？",
+      "options": {
+        "A": "231",
+        "B": "232",
+        "C": "230",
+        "D": "233"
+      },
+      "reference_answer": "A",
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。",
+      "analysis": null,
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "assets": []
+    },
+    {
+      "id": "f87b2c93-5354-4839-bd39-20450ae53c9a",
+      "exam_id": "f7e688a5-a315-4718-912f-fbc9ead3d9f3",
+      "question_id": "1e8ede5a-c15c-55c1-ad04-b2b1216731d4",
+      "order_index": 14,
+      "score": "1.00",
+      "effective_score": "1.00",
+      "base_score": null,
+      "published_knowledge_points": null,
+      "scoring_basis": null,
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=259 时，y=2x+1 的值是？",
+      "options": {
+        "A": "519",
+        "B": "520",
+        "C": "518",
+        "D": "521"
+      },
+      "reference_answer": "A",
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。",
+      "analysis": null,
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "assets": []
+    },
+    {
+      "id": "dd02dd60-9c14-446a-8a10-1cc8a641f35c",
+      "exam_id": "f7e688a5-a315-4718-912f-fbc9ead3d9f3",
+      "question_id": "24928d28-61c1-5409-907a-bc33d28cf5bd",
+      "order_index": 15,
+      "score": "1.00",
+      "effective_score": "1.00",
+      "base_score": null,
+      "published_knowledge_points": null,
+      "scoring_basis": null,
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=226 时，y=2x+1 的值是？",
+      "options": {
+        "A": "453",
+        "B": "454",
+        "C": "452",
+        "D": "455"
+      },
+      "reference_answer": "A",
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。",
+      "analysis": null,
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "assets": []
+    },
+    {
+      "id": "ef62ec5b-9a89-43e5-b187-3ce61d7b17c8",
+      "exam_id": "f7e688a5-a315-4718-912f-fbc9ead3d9f3",
+      "question_id": "27c392b2-9bd3-5b51-ba8b-641d230c8c71",
+      "order_index": 16,
+      "score": "1.00",
+      "effective_score": "1.00",
+      "base_score": null,
+      "published_knowledge_points": null,
+      "scoring_basis": null,
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=253 时，y=2x+1 的值是？",
+      "options": {
+        "A": "507",
+        "B": "508",
+        "C": "506",
+        "D": "509"
+      },
+      "reference_answer": "A",
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。",
+      "analysis": null,
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "assets": []
+    },
+    {
+      "id": "f6831d74-6c54-4e3d-b40b-ca9ebecb1637",
+      "exam_id": "f7e688a5-a315-4718-912f-fbc9ead3d9f3",
+      "question_id": "29f16fa6-dfa5-5c11-9468-991e3f1cfcf0",
+      "order_index": 17,
+      "score": "1.00",
+      "effective_score": "1.00",
+      "base_score": null,
+      "published_knowledge_points": null,
+      "scoring_basis": null,
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=244 时，y=2x+1 的值是？",
+      "options": {
+        "A": "489",
+        "B": "490",
+        "C": "488",
+        "D": "491"
+      },
+      "reference_answer": "A",
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。",
+      "analysis": null,
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "assets": []
+    },
+    {
+      "id": "df8d7a9a-6580-4883-a1ef-973a7dfc9b66",
+      "exam_id": "f7e688a5-a315-4718-912f-fbc9ead3d9f3",
+      "question_id": "014359f3-7f00-5790-b614-78de7b0d62bc",
+      "order_index": 18,
+      "score": "1.00",
+      "effective_score": "1.00",
+      "base_score": null,
+      "published_knowledge_points": null,
+      "scoring_basis": null,
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=65 时，2x+1=131，判断正确或错误。",
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "reference_answer": "正确",
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。",
+      "analysis": null,
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "assets": []
+    },
+    {
+      "id": "812d935b-e5eb-4d3d-8a17-f2b976fe9bb9",
+      "exam_id": "f7e688a5-a315-4718-912f-fbc9ead3d9f3",
+      "question_id": "02b42c36-04fa-5461-baf0-abd0ece47a73",
+      "order_index": 19,
+      "score": "1.00",
+      "effective_score": "1.00",
+      "base_score": null,
+      "published_knowledge_points": null,
+      "scoring_basis": null,
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=77 时，2x+1=155，判断正确或错误。",
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "reference_answer": "正确",
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。",
+      "analysis": null,
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "assets": []
+    },
+    {
+      "id": "a9dcbc67-50a8-43a3-88e0-1c2100b3d9ba",
+      "exam_id": "f7e688a5-a315-4718-912f-fbc9ead3d9f3",
+      "question_id": "054ca4bf-f06b-5abe-aae9-44bc3aa19c5a",
+      "order_index": 20,
+      "score": "1.00",
+      "effective_score": "1.00",
+      "base_score": null,
+      "published_knowledge_points": null,
+      "scoring_basis": null,
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=113 时，2x+1=227，判断正确或错误。",
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "reference_answer": "正确",
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。",
+      "analysis": null,
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "assets": []
+    },
+    {
+      "id": "95d5533c-1714-4aff-bbdb-7b411aac531d",
+      "exam_id": "f7e688a5-a315-4718-912f-fbc9ead3d9f3",
+      "question_id": "087fcb43-b801-5a12-b5b0-aeb3fd1c97bf",
+      "order_index": 21,
+      "score": "1.00",
+      "effective_score": "1.00",
+      "base_score": null,
+      "published_knowledge_points": null,
+      "scoring_basis": null,
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=38 时，2x+1=77，判断正确或错误。",
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "reference_answer": "正确",
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。",
+      "analysis": null,
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "assets": []
+    },
+    {
+      "id": "1938c2fd-bf3a-40c7-b9bc-3227bdbe4624",
+      "exam_id": "f7e688a5-a315-4718-912f-fbc9ead3d9f3",
+      "question_id": "0976c47c-4882-5a20-8810-129ef5514bd7",
+      "order_index": 22,
+      "score": "1.00",
+      "effective_score": "1.00",
+      "base_score": null,
+      "published_knowledge_points": null,
+      "scoring_basis": null,
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=62 时，2x+1=125，判断正确或错误。",
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "reference_answer": "正确",
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。",
+      "analysis": null,
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "assets": []
+    },
+    {
+      "id": "6175a7ed-f56f-4d8b-8716-175aeaf7e067",
+      "exam_id": "f7e688a5-a315-4718-912f-fbc9ead3d9f3",
+      "question_id": "09d335cf-f93e-510a-b642-00981c734c07",
+      "order_index": 23,
+      "score": "1.00",
+      "effective_score": "1.00",
+      "base_score": null,
+      "published_knowledge_points": null,
+      "scoring_basis": null,
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=182 时，2x+1=365，判断正确或错误。",
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "reference_answer": "正确",
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。",
+      "analysis": null,
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "assets": []
+    },
+    {
+      "id": "7f78991a-e047-455f-9dee-3a80b3c2413a",
+      "exam_id": "f7e688a5-a315-4718-912f-fbc9ead3d9f3",
+      "question_id": "0a01eeb4-163c-597f-9f31-189e74b3669f",
+      "order_index": 24,
+      "score": "1.00",
+      "effective_score": "1.00",
+      "base_score": null,
+      "published_knowledge_points": null,
+      "scoring_basis": null,
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=248 时，2x+1=497，判断正确或错误。",
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "reference_answer": "正确",
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。",
+      "analysis": null,
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "assets": []
+    },
+    {
+      "id": "54e47bb7-3667-4691-b427-9aaa172892d3",
+      "exam_id": "f7e688a5-a315-4718-912f-fbc9ead3d9f3",
+      "question_id": "0ae96050-23df-57ee-a0a0-15c7e32a7580",
+      "order_index": 25,
+      "score": "1.00",
+      "effective_score": "1.00",
+      "base_score": null,
+      "published_knowledge_points": null,
+      "scoring_basis": null,
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=29 时，2x+1=59，判断正确或错误。",
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "reference_answer": "正确",
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。",
+      "analysis": null,
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "assets": []
+    }
+  ],
+  "conditions": [
+    {
+      "kind": "count",
+      "target": 25,
+      "actual": 25,
+      "satisfied": true,
+      "reason": null
+    },
+    {
+      "kind": "type:SINGLE_CHOICE",
+      "target": 9,
+      "actual": 9,
+      "satisfied": true,
+      "reason": null
+    },
+    {
+      "kind": "type:TRUE_FALSE",
+      "target": 8,
+      "actual": 8,
+      "satisfied": true,
+      "reason": null
+    },
+    {
+      "kind": "type:SHORT_ANSWER",
+      "target": 8,
+      "actual": 8,
+      "satisfied": true,
+      "reason": null
+    },
+    {
+      "kind": "knowledge:一次函数",
+      "target": 1,
+      "actual": 25,
+      "satisfied": true,
+      "reason": null
+    },
+    {
+      "kind": "total_score",
+      "target": "25.00",
+      "actual": "25.00",
+      "satisfied": true,
+      "reason": null
+    }
+  ],
+  "total_score": "25.00",
+  "publication_checks": [
+    {
+      "code": "EXAM_SCORING_BASIS_MISSING",
+      "message": "请先准备并核对本场评分依据。",
+      "question_id": "004c9da2-2d2c-5e93-901b-0c61c7d8fb76"
+    },
+    {
+      "code": "EXAM_SCORING_BASIS_MISSING",
+      "message": "请先准备并核对本场评分依据。",
+      "question_id": "025762a5-f1b9-5cdd-963f-53438de6ac36"
+    },
+    {
+      "code": "EXAM_SCORING_BASIS_MISSING",
+      "message": "请先准备并核对本场评分依据。",
+      "question_id": "04a312a5-101a-5a62-b2a9-b394a2bbc50f"
+    },
+    {
+      "code": "EXAM_SCORING_BASIS_MISSING",
+      "message": "请先准备并核对本场评分依据。",
+      "question_id": "04a551de-3217-5c68-9e5b-cd578493a1a5"
+    },
+    {
+      "code": "EXAM_SCORING_BASIS_MISSING",
+      "message": "请先准备并核对本场评分依据。",
+      "question_id": "05ef4e67-2b08-5fd4-b0de-a655a1b84083"
+    },
+    {
+      "code": "EXAM_SCORING_BASIS_MISSING",
+      "message": "请先准备并核对本场评分依据。",
+      "question_id": "0888c616-b1fc-5e50-9ca9-0b237d6b0691"
+    },
+    {
+      "code": "EXAM_SCORING_BASIS_MISSING",
+      "message": "请先准备并核对本场评分依据。",
+      "question_id": "09b52594-abab-5df9-9ee7-8ac140018350"
+    },
+    {
+      "code": "EXAM_SCORING_BASIS_MISSING",
+      "message": "请先准备并核对本场评分依据。",
+      "question_id": "0d7bb191-04da-5fcc-b10d-a89270506ab2"
+    },
+    {
+      "code": "EXAM_SCORING_BASIS_MISSING",
+      "message": "请先准备并核对本场评分依据。",
+      "question_id": "0247c2ac-153e-5b4d-ab3b-77771336b56d"
+    },
+    {
+      "code": "EXAM_SCORING_BASIS_MISSING",
+      "message": "请先准备并核对本场评分依据。",
+      "question_id": "07b0d604-9be8-5a29-9edd-6180354e7147"
+    },
+    {
+      "code": "EXAM_SCORING_BASIS_MISSING",
+      "message": "请先准备并核对本场评分依据。",
+      "question_id": "0925620b-9e20-52b5-8be8-4009c1336ea1"
+    },
+    {
+      "code": "EXAM_SCORING_BASIS_MISSING",
+      "message": "请先准备并核对本场评分依据。",
+      "question_id": "170002c8-1870-54cb-b8ad-494ee15697ad"
+    },
+    {
+      "code": "EXAM_SCORING_BASIS_MISSING",
+      "message": "请先准备并核对本场评分依据。",
+      "question_id": "1dbd73cf-7335-577a-b321-64df8e0cbcff"
+    },
+    {
+      "code": "EXAM_SCORING_BASIS_MISSING",
+      "message": "请先准备并核对本场评分依据。",
+      "question_id": "1e8ede5a-c15c-55c1-ad04-b2b1216731d4"
+    },
+    {
+      "code": "EXAM_SCORING_BASIS_MISSING",
+      "message": "请先准备并核对本场评分依据。",
+      "question_id": "24928d28-61c1-5409-907a-bc33d28cf5bd"
+    },
+    {
+      "code": "EXAM_SCORING_BASIS_MISSING",
+      "message": "请先准备并核对本场评分依据。",
+      "question_id": "27c392b2-9bd3-5b51-ba8b-641d230c8c71"
+    },
+    {
+      "code": "EXAM_SCORING_BASIS_MISSING",
+      "message": "请先准备并核对本场评分依据。",
+      "question_id": "29f16fa6-dfa5-5c11-9468-991e3f1cfcf0"
+    },
+    {
+      "code": "EXAM_SCORING_BASIS_MISSING",
+      "message": "请先准备并核对本场评分依据。",
+      "question_id": "014359f3-7f00-5790-b614-78de7b0d62bc"
+    },
+    {
+      "code": "EXAM_SCORING_BASIS_MISSING",
+      "message": "请先准备并核对本场评分依据。",
+      "question_id": "02b42c36-04fa-5461-baf0-abd0ece47a73"
+    },
+    {
+      "code": "EXAM_SCORING_BASIS_MISSING",
+      "message": "请先准备并核对本场评分依据。",
+      "question_id": "054ca4bf-f06b-5abe-aae9-44bc3aa19c5a"
+    },
+    {
+      "code": "EXAM_SCORING_BASIS_MISSING",
+      "message": "请先准备并核对本场评分依据。",
+      "question_id": "087fcb43-b801-5a12-b5b0-aeb3fd1c97bf"
+    },
+    {
+      "code": "EXAM_SCORING_BASIS_MISSING",
+      "message": "请先准备并核对本场评分依据。",
+      "question_id": "0976c47c-4882-5a20-8810-129ef5514bd7"
+    },
+    {
+      "code": "EXAM_SCORING_BASIS_MISSING",
+      "message": "请先准备并核对本场评分依据。",
+      "question_id": "09d335cf-f93e-510a-b642-00981c734c07"
+    },
+    {
+      "code": "EXAM_SCORING_BASIS_MISSING",
+      "message": "请先准备并核对本场评分依据。",
+      "question_id": "0a01eeb4-163c-597f-9f31-189e74b3669f"
+    },
+    {
+      "code": "EXAM_SCORING_BASIS_MISSING",
+      "message": "请先准备并核对本场评分依据。",
+      "question_id": "0ae96050-23df-57ee-a0a0-15c7e32a7580"
+    }
+  ],
+  "assembly_constraints": {
+    "request": {
+      "course_id": "cf99a4d9-dfa1-5bb3-9d6d-2ea11d1d6820",
+      "question_count": 25,
+      "type_distribution": [
+        {
+          "question_type": "SINGLE_CHOICE",
+          "count": 9
+        },
+        {
+          "question_type": "TRUE_FALSE",
+          "count": 8
+        },
+        {
+          "question_type": "SHORT_ANSWER",
+          "count": 8
+        }
+      ],
+      "knowledge_coverage": [
+        {
+          "knowledge_point": "一次函数",
+          "min_questions": 1
+        }
+      ],
+      "total_score": "25.00",
+      "score_overrides": []
+    },
+    "recorded_by": "75bf577f-5ad8-4e27-8650-37d62c806e60",
+    "recorded_at": "2026-10-05T02:41:31.023091Z"
+  }
+}

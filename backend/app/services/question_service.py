@@ -380,6 +380,7 @@ class QuestionService:
         *,
         created_by: UUID | str | None = None,
         question_status: QuestionStatus | str | None = None,
+        question_ids: Sequence[UUID | str] | None = None,
     ) -> list[QuestionSummary]:
         """列出题目；传入教师或课程标识时限制查询范围。"""
 
@@ -399,6 +400,11 @@ class QuestionService:
             statement = statement.where(Course.created_by == actor_id)
         if normalized_status is not None:
             statement = statement.where(Question.status == normalized_status)
+        if question_ids is not None:
+            identities = [
+                _normalize_uuid(identity, "题目标识") for identity in question_ids
+            ]
+            statement = statement.where(Question.id.in_(identities))
         statement = statement.order_by(Question.created_at, Question.id)
         try:
             questions = self.session.scalars(statement).all()

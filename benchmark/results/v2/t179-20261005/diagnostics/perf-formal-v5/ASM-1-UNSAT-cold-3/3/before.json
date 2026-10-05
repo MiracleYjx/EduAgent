@@ -1,0 +1,86 @@
+{
+  "exam_id": "f8f2c1e7-e525-4f13-8c54-d79b24e53d5f",
+  "current_status": "Draft",
+  "exam_questions": [
+    {
+      "id": "6fcaee32-fad1-4b13-96b1-b4d55ba1f2a6",
+      "exam_id": "f8f2c1e7-e525-4f13-8c54-d79b24e53d5f",
+      "question_id": "170002c8-1870-54cb-b8ad-494ee15697ad",
+      "order_index": 1,
+      "score": null,
+      "effective_score": "1.00",
+      "base_score": null,
+      "published_knowledge_points": null,
+      "scoring_basis": null,
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=1 时，y=2x+1 的值是？",
+      "options": {
+        "A": "3",
+        "B": "4",
+        "C": "2",
+        "D": "5"
+      },
+      "reference_answer": "A",
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。",
+      "analysis": null,
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "assets": [
+        {
+          "id": "b539bb13-d196-4e9e-ba2f-d0336b2cbd12",
+          "question_id": "170002c8-1870-54cb-b8ad-494ee15697ad",
+          "file_id": "a_b539bb13d1964e9eba2fd0336b2cbd12",
+          "asset_type": "diagram",
+          "width": 640,
+          "height": 400,
+          "caption": "Original T146 synthetic diagram",
+          "source_page_id": null,
+          "region": null,
+          "order_index": 1,
+          "student_visible": true
+        }
+      ]
+    },
+    {
+      "id": "af96ee46-dbd4-43ca-ac39-56e2166fe657",
+      "exam_id": "f8f2c1e7-e525-4f13-8c54-d79b24e53d5f",
+      "question_id": "fb2aad97-03ba-5704-854c-95453444ad65",
+      "order_index": 2,
+      "score": null,
+      "effective_score": "1.00",
+      "base_score": null,
+      "published_knowledge_points": null,
+      "scoring_basis": null,
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=2 时，2x+1=5，判断正确或错误。",
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "reference_answer": "正确",
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。",
+      "analysis": null,
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "assets": []
+    }
+  ],
+  "conditions": [],
+  "total_score": "2.00",
+  "publication_checks": [
+    {
+      "code": "EXAM_SCORING_BASIS_MISSING",
+      "message": "请先准备并核对本场评分依据。",
+      "question_id": "170002c8-1870-54cb-b8ad-494ee15697ad"
+    },
+    {
+      "code": "EXAM_SCORING_BASIS_MISSING",
+      "message": "请先准备并核对本场评分依据。",
+      "question_id": "fb2aad97-03ba-5704-854c-95453444ad65"
+    }
+  ],
+  "assembly_constraints": null
+}

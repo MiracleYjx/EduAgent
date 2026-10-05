@@ -1,0 +1,29 @@
+........................................................................ [ 23%]
+........................................................................ [ 47%]
+........................................................................ [ 71%]
+........................................................................ [ 95%]
+..............                                                           [100%]
+============================== warnings summary ===============================
+..\..\..\develop\Python\Lib\site-packages\fastapi\testclient.py:1
+  D:\develop\Python\Lib\site-packages\fastapi\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+tests/integration/test_exam_question_migration.py::test_upgrade_preserves_pairs_real_order_and_unknown_historical_basis
+tests/integration/test_exam_question_migration.py::test_upgrade_preserves_pairs_real_order_and_unknown_historical_basis
+tests/integration/test_exam_question_migration.py::test_upgrade_preserves_pairs_real_order_and_unknown_historical_basis
+tests/integration/test_exam_question_migration.py::test_upgrade_preserves_pairs_real_order_and_unknown_historical_basis
+tests/integration/test_exam_question_migration.py::test_upgrade_preserves_pairs_real_order_and_unknown_historical_basis
+tests/integration/test_grading_exam_question_migration.py::test_upgrade_preserves_result_pk_score_unknown_link_and_real_restrict_fk
+tests/integration/test_grading_exam_question_migration.py::test_upgrade_preserves_result_pk_score_unknown_link_and_real_restrict_fk
+tests/integration/test_grading_exam_question_migration.py::test_upgrade_preserves_result_pk_score_unknown_link_and_real_restrict_fk
+tests/integration/test_grading_exam_question_migration.py::test_upgrade_preserves_result_pk_score_unknown_link_and_real_restrict_fk
+  D:\develop\Python\Lib\site-packages\alembic\config.py:604: DeprecationWarning: No path_separator found in configuration; falling back to legacy splitting on spaces, commas, and colons for prepend_sys_path.  Consider adding path_separator=os to Alembic config.
+    util.warn_deprecated(
+
+tests/unit/ui/test_exam_assembly_view.py::test_new_write_controls_exist_and_failure_clears_previous_confirmations
+tests/unit/ui/test_exam_scoring_view.py::test_panel_uses_text_amounts_readonly_source_and_explicit_teacher_actions
+  D:\develop\Python\Lib\site-packages\gradio\components\dataframe.py:183: UserWarning: The `row_limits` parameter is not yet implemented.
+    warnings.warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+302 passed, 12 warnings in 348.84s (0:05:48)

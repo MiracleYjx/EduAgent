@@ -1,0 +1,141 @@
+{
+  "exam_id": "9e81c84e-dc88-4f05-a5ca-27f2706d7169",
+  "current_status": "Draft",
+  "exam_questions": [
+    {
+      "id": "dc382a54-6021-4222-81b0-cd087fd7509b",
+      "exam_id": "9e81c84e-dc88-4f05-a5ca-27f2706d7169",
+      "question_id": "170002c8-1870-54cb-b8ad-494ee15697ad",
+      "order_index": 1,
+      "score": null,
+      "effective_score": "1.00",
+      "base_score": null,
+      "published_knowledge_points": null,
+      "scoring_basis": null,
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=1 时，y=2x+1 的值是？",
+      "options": {
+        "A": "3",
+        "B": "4",
+        "C": "2",
+        "D": "5"
+      },
+      "reference_answer": "A",
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。",
+      "analysis": null,
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "assets": [
+        {
+          "id": "b539bb13-d196-4e9e-ba2f-d0336b2cbd12",
+          "question_id": "170002c8-1870-54cb-b8ad-494ee15697ad",
+          "file_id": "a_b539bb13d1964e9eba2fd0336b2cbd12",
+          "asset_type": "diagram",
+          "width": 640,
+          "height": 400,
+          "caption": "Original T146 synthetic diagram",
+          "source_page_id": null,
+          "region": null,
+          "order_index": 1,
+          "student_visible": true
+        }
+      ]
+    },
+    {
+      "id": "e4634574-12d4-422b-9b24-b0b7d9cbd7b6",
+      "exam_id": "9e81c84e-dc88-4f05-a5ca-27f2706d7169",
+      "question_id": "fb2aad97-03ba-5704-854c-95453444ad65",
+      "order_index": 2,
+      "score": null,
+      "effective_score": "1.00",
+      "base_score": null,
+      "published_knowledge_points": null,
+      "scoring_basis": null,
+      "question_type": "TRUE_FALSE",
+      "content": "当 x=2 时，2x+1=5，判断正确或错误。",
+      "options": [
+        "正确",
+        "错误"
+      ],
+      "reference_answer": "正确",
+      "scoring_rubric": "判断正确得 1.00 分，否则 0.00 分。",
+      "analysis": null,
+      "knowledge_points": [
+        "一次函数"
+      ],
+      "assets": []
+    }
+  ],
+  "conditions": [
+    {
+      "kind": "count",
+      "target": 1,
+      "actual": 2,
+      "satisfied": false,
+      "reason": null
+    },
+    {
+      "kind": "type:SINGLE_CHOICE",
+      "target": 1,
+      "actual": 1,
+      "satisfied": true,
+      "reason": null
+    },
+    {
+      "kind": "knowledge:未收录知识点",
+      "target": 1,
+      "actual": 0,
+      "satisfied": false,
+      "reason": null
+    },
+    {
+      "kind": "total_score",
+      "target": "1.00",
+      "actual": "2.00",
+      "satisfied": false,
+      "reason": null
+    }
+  ],
+  "total_score": "2.00",
+  "publication_checks": [
+    {
+      "code": "EXAM_SCORING_BASIS_MISSING",
+      "message": "请先准备并核对本场评分依据。",
+      "question_id": "170002c8-1870-54cb-b8ad-494ee15697ad"
+    },
+    {
+      "code": "EXAM_SCORING_BASIS_MISSING",
+      "message": "请先准备并核对本场评分依据。",
+      "question_id": "fb2aad97-03ba-5704-854c-95453444ad65"
+    },
+    {
+      "code": "EXAM_ASSEMBLY_UNSATISFIED",
+      "message": "当前试卷仍有未满足的已保存组卷要求。",
+      "question_id": null
+    }
+  ],
+  "assembly_constraints": {
+    "request": {
+      "course_id": "cf99a4d9-dfa1-5bb3-9d6d-2ea11d1d6820",
+      "question_count": 1,
+      "type_distribution": [
+        {
+          "question_type": "SINGLE_CHOICE",
+          "count": 1
+        }
+      ],
+      "knowledge_coverage": [
+        {
+          "knowledge_point": "未收录知识点",
+          "min_questions": 1
+        }
+      ],
+      "total_score": "1.00",
+      "score_overrides": []
+    },
+    "recorded_by": "75bf577f-5ad8-4e27-8650-37d62c806e60",
+    "recorded_at": "2026-10-05T02:29:38.315967Z"
+  }
+}

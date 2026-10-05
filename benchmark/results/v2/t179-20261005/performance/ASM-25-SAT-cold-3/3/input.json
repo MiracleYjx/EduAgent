@@ -1,0 +1,17 @@
+{
+  "run_id": "ASM-25-SAT-cold-3-d25ce82e",
+  "case_id": "ASM-25-SAT",
+  "url": "http://127.0.0.1:18762",
+  "title": "T179 ASM-25-SAT-cold-3-d25ce82e",
+  "sat": true,
+  "count": 25,
+  "counts": {
+    "SINGLE_CHOICE": 9,
+    "TRUE_FALSE": 8,
+    "SHORT_ANSWER": 8
+  },
+  "total": "25.00",
+  "label": "一次函数",
+  "output": "D:\\YJX\\MyCode\\EduAgent\\.cache\\t179-20261005\\perf-formal-v6\\ASM-25-SAT-cold-3\\3\\browser.json",
+  "screenshot": "D:\\YJX\\MyCode\\EduAgent\\.cache\\t179-20261005\\perf-formal-v6\\ASM-25-SAT-cold-3\\3\\browser.png"
+}

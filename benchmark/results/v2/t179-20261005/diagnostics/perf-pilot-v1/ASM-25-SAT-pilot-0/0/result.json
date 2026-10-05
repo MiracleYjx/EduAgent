@@ -1,0 +1,80 @@
+{
+  "run_id": "ASM-25-SAT-pilot-0-5cf638fc",
+  "case_id": "ASM-25-SAT",
+  "kind": "pilot",
+  "index": 0,
+  "worker_pid": 100636,
+  "exam_id": "2e063545-cda6-4afc-95d5-91b6d5c40436",
+  "browser": {
+    "case_id": "ASM-25-SAT",
+    "run_id": "ASM-25-SAT-pilot-0-5cf638fc",
+    "passed": false,
+    "timeout_limit_ms": 60000,
+    "error": {
+      "type": "TimeoutError",
+      "message": "locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#t179-exams .virtual-body .body-cell').filter({ hasText: 'T179 ASM-25-SAT-pilot-0-5cf638fc' }).first()\u001b[22m\n"
+    },
+    "observed_at": "2026-10-05T02:06:29.713Z",
+    "elapsed_ms": null,
+    "browser_errors": [],
+    "browser_version": "154.0.4258.53",
+    "start_event": "actual teacher assembly button click",
+    "end_event": "full actual preview/unsatisfied diagnostic, images decoded, two animation frames",
+    "measurement_source": "same browser monotonic performance.now; startup/login/form entry outside timing"
+  },
+  "resources": {
+    "complete_at_requested_sampling_resolution": false,
+    "peaks": {}
+  },
+  "memory_budget": {
+    "protocol": "plan-v2-memory-soft-upper-budgets",
+    "unit_policy": "GB=1000000000 bytes; MB=1000000 bytes; display MiB=1048576 bytes",
+    "limits_bytes": {
+      "app_working_set_bytes": 4000000000,
+      "postgres_container_process_rss_bytes": 1500000000,
+      "redis_container_process_rss_bytes": 512000000,
+      "simultaneous_observed_sum_bytes": 6000000000
+    },
+    "limits_mib": {
+      "app_working_set_bytes": 3814.697265625,
+      "postgres_container_process_rss_bytes": 1430.511474609375,
+      "redis_container_process_rss_bytes": 488.28125,
+      "simultaneous_observed_sum_bytes": 5722.0458984375
+    },
+    "observed_peaks_bytes": {
+      "app_working_set_bytes": null,
+      "postgres_container_process_rss_bytes": null,
+      "redis_container_process_rss_bytes": null,
+      "simultaneous_observed_sum_bytes": null
+    },
+    "observed_peaks_mib": {
+      "app_working_set_bytes": null,
+      "postgres_container_process_rss_bytes": null,
+      "redis_container_process_rss_bytes": null,
+      "simultaneous_observed_sum_bytes": null
+    },
+    "observed_over_budget": {
+      "app_working_set_bytes": null,
+      "postgres_container_process_rss_bytes": null,
+      "redis_container_process_rss_bytes": null,
+      "simultaneous_observed_sum_bytes": null
+    },
+    "resource_complete": false,
+    "component_pass": {
+      "app_working_set_bytes": null,
+      "postgres_container_process_rss_bytes": null,
+      "redis_container_process_rss_bytes": null,
+      "simultaneous_observed_sum_bytes": null
+    },
+    "budget_pass": null,
+    "scope": "Observed application subtree working set plus PostgreSQL/Redis process RSS. Shared pages may be counted repeatedly; not unique physical memory or EXE acceptance."
+  },
+  "controller_window": "start IPC receipt through browser result/screenshot and process exit; exact browser latency is separate",
+  "node_exit": 1,
+  "passed": false,
+  "business_error": {
+    "type": "AssertionError",
+    "message": ""
+  },
+  "latency_target_pass": false
+}

@@ -1,0 +1,93 @@
+{
+  "exam_id": "654d609a-c925-449f-bea5-417cb52a859a",
+  "current_status": "Draft",
+  "exam_questions": [
+    {
+      "id": "e767cf5f-ef44-495a-9d03-5c7cf9fcec03",
+      "exam_id": "654d609a-c925-449f-bea5-417cb52a859a",
+      "question_id": "0247c2ac-153e-5b4d-ab3b-77771336b56d",
+      "order_index": 1,
+      "score": "1.00",
+      "effective_score": "1.00",
+      "base_score": null,
+      "published_knowledge_points": null,
+      "scoring_basis": null,
+      "question_type": "SINGLE_CHOICE",
+      "content": "当 x=145 时，y=2x+1 的值是？",
+      "options": {
+        "A": "291",
+        "B": "292",
+        "C": "290",
+        "D": "293"
+      },
+      "reference_answer": "A",
+      "scoring_rubric": "选 A 得 1.00 分，否则 0.00 分。",
+      "analysis": null,
+      "knowledge_points": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "assets": []
+    }
+  ],
+  "conditions": [
+    {
+      "kind": "count",
+      "target": 1,
+      "actual": 1,
+      "satisfied": true,
+      "reason": null
+    },
+    {
+      "kind": "type:SINGLE_CHOICE",
+      "target": 1,
+      "actual": 1,
+      "satisfied": true,
+      "reason": null
+    },
+    {
+      "kind": "knowledge:一次函数",
+      "target": 1,
+      "actual": 1,
+      "satisfied": true,
+      "reason": null
+    },
+    {
+      "kind": "total_score",
+      "target": "1.00",
+      "actual": "1.00",
+      "satisfied": true,
+      "reason": null
+    }
+  ],
+  "total_score": "1.00",
+  "publication_checks": [
+    {
+      "code": "EXAM_SCORING_BASIS_MISSING",
+      "message": "请先准备并核对本场评分依据。",
+      "question_id": "0247c2ac-153e-5b4d-ab3b-77771336b56d"
+    }
+  ],
+  "assembly_constraints": {
+    "request": {
+      "course_id": "cf99a4d9-dfa1-5bb3-9d6d-2ea11d1d6820",
+      "question_count": 1,
+      "type_distribution": [
+        {
+          "question_type": "SINGLE_CHOICE",
+          "count": 1
+        }
+      ],
+      "knowledge_coverage": [
+        {
+          "knowledge_point": "一次函数",
+          "min_questions": 1
+        }
+      ],
+      "total_score": "1.00",
+      "score_overrides": []
+    },
+    "recorded_by": "75bf577f-5ad8-4e27-8650-37d62c806e60",
+    "recorded_at": "2026-10-05T02:28:50.055343Z"
+  }
+}

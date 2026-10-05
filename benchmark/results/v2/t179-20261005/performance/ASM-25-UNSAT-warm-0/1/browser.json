@@ -1,0 +1,25 @@
+{
+  "case_id": "ASM-25-UNSAT",
+  "run_id": "ASM-25-UNSAT-warm-1-367bca56",
+  "passed": true,
+  "timeout_limit_ms": 60000,
+  "start": 2602.099999964237,
+  "started_at": "2026-10-05T02:43:00.775Z",
+  "completed_at": "2026-10-05T02:43:01.632Z",
+  "elapsed_ms": 856.8000000119209,
+  "status": "⚠待人工复核\n现有可用题目不满足要求，请调整条件或补充已审核题。 本次要求已保存，可调整后重试。 未收录知识点：要求 1，可用 0，缺少 1。",
+  "article_count": 2,
+  "preview": "教师完整预览 · 总分 2.00\n第 1 题 · 单选题 · 本场满分 1.00\n\n显式分值：未知（待核对）；基准满分：未知（待核对）\n\n当 x=1 时，y=2x+1 的值是？\nA · 3\nB · 4\nC · 2\nD · 5\nOriginal T146 synthetic diagram · 学生可见：是\n\n参考答案\n\nA\n\n原始评分标准\n\n选 A 得 1.00 分，否则 0.00 分。\n\n解析\n\n未知（待核对）\n\n知识点\n\n一次函数、表达与计算\n第 2 题 · 判断题 · 本场满分 1.00\n\n显式分值：未知（待核对）；基准满分：未知（待核对）\n\n当 x=2 时，2x+1=5，判断正确或错误。\n1 · 正确\n2 · 错误\n\n参考答案\n\n正确\n\n原始评分标准\n\n判断正确得 1.00 分，否则 0.00 分。\n\n解析\n\n未知（待核对）\n\n知识点\n\n一次函数",
+  "images": [
+    {
+      "complete": true,
+      "width": 640,
+      "height": 400
+    }
+  ],
+  "browser_errors": [],
+  "browser_version": "154.0.4258.53",
+  "start_event": "actual teacher assembly button click",
+  "end_event": "full actual preview/unsatisfied diagnostic, images decoded, two animation frames",
+  "measurement_source": "same browser monotonic performance.now; startup/login/form entry outside timing"
+}

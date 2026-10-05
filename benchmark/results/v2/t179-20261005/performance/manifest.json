@@ -1,0 +1,1800 @@
+{
+  "started_at": "2026-10-05T02:36:50.034129+00:00",
+  "source_files_sha256": {
+    "backend/main.py": "2244888dc21975bf3db2a64e861a43d1e256bd34ace45d52e84cc968ddd7c38d",
+    "backend/__init__.py": "a7ffdbf930e2c34bb95ce7824fffaef6a993a0ae064531f0ac31c2428019d369",
+    "backend/app/__init__.py": "01fedc22f12a680534e37cb3c0ae5a89deb7af5a30514170ec7b7a193a7a121c",
+    "backend/app/ai/semantic_validation.py": "9ee1404ec3ca84441131ce87715c20b16ffe8d22489a5919f2d9646cbf522ade",
+    "backend/app/ai/__init__.py": "a5cdb0b7b6bc56e77440d4cf657706b5202be5c8a8d11f0fe79b68e9c4862bf4",
+    "backend/app/api/admin.py": "f029cc0c5177b156aed8a9cb2f3aebd569e52b291dae99f63bf6f611a474a545",
+    "backend/app/api/auth.py": "fc0f79b8757555eae2306c757c7c4282d4dffd42a9a43c182ad830df4bf6ab79",
+    "backend/app/api/content_validation.py": "51bab7d600bdb2051c974e78e3a4c78d5da80e177337d659e2cfc49235625b12",
+    "backend/app/api/courses.py": "e6cb26827be025d56a07d585c4e29bb12b33f0d8b3eb46d49879d4c7f5dfe4a8",
+    "backend/app/api/exams.py": "3d786a4670bb59eb093f05177f8d6946a2d04cf65abac5cd0c0b51d858fbf8c9",
+    "backend/app/api/file_storage.py": "da6d1f7431fd1e6dc30c006991a212a01a59a5f4269127a54c7db40e9d662e79",
+    "backend/app/api/grading.py": "ca237032028abc0fba79a51baf8dad617893ae02bcf352be436d76730448836b",
+    "backend/app/api/image_understanding.py": "4c992b42d42db4c359b82e7407e1d33ef7c580f255c187ee177533e1e569e6a0",
+    "backend/app/api/knowledge_bases.py": "6b5a60c6ac296d8c045681c12b8ca723bd446e12b9f960bfa6d88cc7ecb1c133",
+    "backend/app/api/paper_import.py": "7bc5e7016da660211804e2a046249972c73fcf94d78fe11a4417ebf8d7669229",
+    "backend/app/api/questions.py": "589c477090759fee7a7fef8cb6d8bc4856d947daf16a6f55442a9618f4f04c50",
+    "backend/app/api/question_assets.py": "23e4c210623f40e61fc45131a21edc3add500ba0d39b17ecc56da3db01036fbd",
+    "backend/app/api/question_generation.py": "feaae60d5999986aecaf445b18e1892e9b86f4b2c197a6d46ef6476e561c57af",
+    "backend/app/api/results.py": "da942de04187f277ea380922e0d245e02aa199ffc46cb431f284cdc2e5e9bcf6",
+    "backend/app/api/reviews.py": "af5f3cbf2b798d3a65fbd04d6de77475a09902cc8d55d9a7ce2cb3b503d4d693",
+    "backend/app/api/submissions.py": "d491941553591ca4bed5e2080e1bded6b9cc88cd81f69629c1918acefcd028d6",
+    "backend/app/api/traces.py": "d7cc1fe59d05d5f6cf123f723131dea22792e8dca786a15d76ac7e538b6ac059",
+    "backend/app/api/workflow.py": "ff82f401e126d848bfcda8b6bdc503f2e127902e155530bd6a53e0385beec067",
+    "backend/app/api/__init__.py": "c470d802751333ed87c9ba2be1fdd0b58aa17632175f4271b1bc94067b2880c1",
+    "backend/app/core/app.py": "f63281e2666cd98b9b8ae8afc248af681b99dfce73eeb36c9acf2f004b7282c1",
+    "backend/app/core/config.py": "fd862a32b26d17e1cfc8fd7867319276f612d57a88ecb6c453fc1737c7d47291",
+    "backend/app/core/database.py": "ad7c37b8ab2392c308436a1fb6661366dfce02563f3305939cd6aafa28a5ac50",
+    "backend/app/core/maintenance.py": "5dd209fca178da9be418b51b8fd17b7fa0ea6dc31bd3766f4ba3c244dc6fe1fa",
+    "backend/app/core/redis.py": "adadf6e8f1287a99275a640c4acb586ee9cdf2e69923ab4445f6512283f3a71b",
+    "backend/app/core/retry_policy.py": "636b053bc6d95c9b70e916bd7aa9c77aaff8b4306c4a2c5221c0c9272b485f8e",
+    "backend/app/core/security.py": "db47c4d095682c043033e7b936cf356af836143e318abc062db8aa98ae5ec462",
+    "backend/app/core/__init__.py": "ad060b53557881a6165bf4c18e8f33ac3feef613ea5cbadf21e3a9bf1b2765e9",
+    "backend/app/domain/enums.py": "68775b44656b79829b35133b7927ed6ee95fdc0c71e50c3a6f0c33724adfc2b2",
+    "backend/app/domain/permissions.py": "d857722e2c8b107bf3dfd8b7f7756a5d9b7eb8278ce45d78b232530ad18c4572",
+    "backend/app/domain/question_options.py": "2b85b3264eccbc690fe86b01e8fbf7a2904a1ecd660e15e5aaa1d6b6365920c1",
+    "backend/app/domain/__init__.py": "5235128c77e3c139feb022f78bafefd235632866cdf4aa76a872257a20da8de3",
+    "backend/app/mcp/registry.py": "45598fa15d5cf7363a2c95dfc935ff0fa2a4a7cdfd8b4fb16d4670f193336d80",
+    "backend/app/mcp/server.py": "7fbe77b2a89d98800ca094e5309c122189d54889fe115c9cc012f521091d66fe",
+    "backend/app/mcp/__init__.py": "bb3258f0b09438d9b3c4df82838c79b5c986d27d2d46b1632ea82a1540f7e61c",
+    "backend/app/models/agent_run.py": "9ff8d0f85a986905836af61a9aed9b0328e7697bfa0c5935b221e31fba43c29e",
+    "backend/app/models/answer.py": "da3962d37ccef415e2d237cb440f783899d20c8331efe22cf16cd2d888b37f0c",
+    "backend/app/models/associations.py": "351272525bfb17f87ce489d85d0c3d48f8a4bce92d921b965998c40510722e05",
+    "backend/app/models/audit_log.py": "9af0292e8e00340ba14559baa4cdd014d7bdfa265c6c457b673b18437342aeb5",
+    "backend/app/models/base.py": "dc98e655f1c6c86cc2e96fd088589a5254ef5f2a6fa7a0e4908e454f480c3e81",
+    "backend/app/models/chapter.py": "00057ec9e2a29e7518e49caf62ee386d07f5fc030eefa838c361ee01f55eba13",
+    "backend/app/models/course.py": "418a80c6c13e5ccb92c4459316443d6de20c560fcd5cb46231ecedfe18ae099c",
+    "backend/app/models/diagnosis_report.py": "974ebba43a882ca24ce8d6c27614b8f884d18516e1320e86d315b78ab4952fcf",
+    "backend/app/models/document.py": "6713f46693152fde43997624e4f48d360e8292f89a5c299ba2eb51c1205e69b6",
+    "backend/app/models/document_chunk.py": "19c2c39df9bb6a1bc90cadaeeff4fe5ba60f737a57498cb2a5910c7bf84a1f5b",
+    "backend/app/models/exam.py": "a5f61c6b31ac8039b886c95819f146f6b836fc6f5465fb0b7ead195d94fd07fa",
+    "backend/app/models/exam_participant.py": "4c0a93ea3a55baeaeb45d3c696c8f66295f603737ffa1134f96bba5aef29d1d3",
+    "backend/app/models/exam_question.py": "1773147ac0d682b195468e7ac319d77fead31d098df318bed9e52bd36518dca5",
+    "backend/app/models/exam_result.py": "27c185cf81694430b29aab50cdefc8887fa71ff9ffb019bcc4e61c7e39ec54c4",
+    "backend/app/models/export_file.py": "dcd9a2c3903dc7cf12faecba6b84819387ac99a72b9b7af006ffb00e97527dc1",
+    "backend/app/models/extracted_question.py": "283f694bacf93e98d9d3faef69c8a1ff754c15359bafd17d7bf8f939b493bdff",
+    "backend/app/models/grading_result.py": "74be469c7561ac69b75d538048ff76174eb8388fd7c9ecc20baa75a7e7e5146a",
+    "backend/app/models/knowledge_base.py": "9ba8c423efbd4becd439dba7cbf164d60b4cc63f2cbe4f460c6aa79f17e82a65",
+    "backend/app/models/paper_import.py": "fe74c806ffd2b11b2ab4959c7cf1536ef30a21cae85d2914b0383599bbbc0ff7",
+    "backend/app/models/question.py": "b3744250e9e8da12814170d882b89d487443b5acd575704af1b2e795702b9c3c",
+    "backend/app/models/question_asset.py": "dd0fddd0b51752524a91feaaf8ed1544a6f84d7d166f12e59c3e223b150cb15a",
+    "backend/app/models/question_generation_metadata.py": "0882728552a2296b5b984e78b540af21fb16a7ddfd18a1771002a6bb107f3025",
+    "backend/app/models/question_revision_comment.py": "898f40573f66f342c5f8a3e726cd441a66f4bd0a1dee4ebf68a998d0da93d853",
+    "backend/app/models/question_source_chunk.py": "105edfff636db96521f2bb24ca35acd2579efe8e7b9bee1efb0732def55d4104",
+    "backend/app/models/question_source_paper.py": "0c698d3df97096e4acc63603a35cf9b43475eed4d404e765a97bf2793939df4b",
+    "backend/app/models/question_validation_result.py": "c8d6017f2a1256b06abb15f8c7204496a13d8a5d67c9c96a6ef09e2b35a55c73",
+    "backend/app/models/review_record.py": "1b4697db52b39e230bf879bac5e5428e7c83de73119c22d4fa437a32aa275d7a",
+    "backend/app/models/role.py": "1627c0ff9151b9ec2fc31a99a98266a405313d3e1ff94fef96f15fd617b146ca",
+    "backend/app/models/source_page.py": "6062c09a158d90c0abfc1f7bce2fe57a2178d2f26210f4232f874a18cc0c3bf1",
+    "backend/app/models/submission.py": "4431ba6bc78681ea40347adeaebca5ed24141fa3c6463065aefd37d80cbacf0b",
+    "backend/app/models/user.py": "53da43c2813a2a38efb70d7edd0a440eaa1f32888418db4b9707d11fdbe0e95d",
+    "backend/app/models/workflow_run.py": "48d23cc54cd18fdf188935c43b020adbf587e3d785da2692098027108efa2ced",
+    "backend/app/models/__init__.py": "bb51d43a3bdf33b2b2500f7aa3f018473c3ab2bd9481bc1d6d071758b71b04be",
+    "backend/app/repositories/__init__.py": "e0f07c6402d2119a65fa9463d3e2bd6b0ce6340603334df8ce205e5bbc1c8480",
+    "backend/app/schemas/ai.py": "500b9d9c08cbbcfda671afe9d024cedd7572be192bdc39f5bcf34ee4c3f43efa",
+    "backend/app/schemas/chapter_scope.py": "6a3d5629283ffb5d2ecbc662af8d82ebaa7f19f34b58e4e7ffddc427f44b49d1",
+    "backend/app/schemas/content_validation.py": "cf88ab85f9be66aee418a9ec9d892b775c8139cc25f8e06fcd2198047dcc7816",
+    "backend/app/schemas/exam_assembly.py": "b29ea6309305506db2e611f74267dc01d17221ae68de8d34e51438f425cbf1de",
+    "backend/app/schemas/exam_scoring.py": "4ff832e43944526744dddafd463536d3acb2692e3396fea373f198bdb00ce214",
+    "backend/app/schemas/file_storage.py": "7f9a1855acf66a45cc70f4f3401d166fa85970dbd89be78ab43235546567a0b6",
+    "backend/app/schemas/grading.py": "891add92522d04ab312e23a0d34f825c41009c299b202f47dffd7a8485fb807c",
+    "backend/app/schemas/image_assessment.py": "c1036f592661f02136a1383d82d38bc67463132005b548385533df962149a1a3",
+    "backend/app/schemas/paper_import.py": "44ca3feec02d5c0eb8c6d8ccf04f1cf70653e8851b16be934137ce2c1292624b",
+    "backend/app/schemas/question_assets.py": "9f9afdfca7e8365d9b845a74f4e3830e648e398d2d4bf46491b373181f9ee8e0",
+    "backend/app/schemas/retrieval_scope.py": "5a92a9504829286346a46f8aed8e7ca5212703b1d5c07eacebd2eea3775917a1",
+    "backend/app/schemas/storage_maintenance.py": "ff06265728b7c921414f7561ad327e4282fd323d0e2109d83dbcbc53223d21c4",
+    "backend/app/schemas/__init__.py": "132f341a810f96cab7121fef249302671875f28c69539c2fd66f53a5c8b0c835",
+    "backend/app/services/admin_service.py": "c8f32208c2ab5155484a8c8abdd7c9f8fda8bf02cbe532f72aa19711461d3376",
+    "backend/app/services/audit_service.py": "12781c3ce33b410e717bb6c1ccade9732bd5c63f19f062a1f4609d01602f6689",
+    "backend/app/services/auth_service.py": "545b9966a7ea359e9141c749a3ba6df973c6583cbe1be0f7ffde20d66d205db0",
+    "backend/app/services/backup_restore_service.py": "e6396815870235ba50d3deffd2e8ebe4b3c2f45f7e38f2426ecf9f55d6347979",
+    "backend/app/services/content_validation_service.py": "0e9edaf50997b1dcb593d8d87c3d1885f3d3a44208d424b88d986286376dcda5",
+    "backend/app/services/course_service.py": "bfb6585ca5698f04bb8ac82d3afce398fa6786f75f137d0c75230236cdbff906",
+    "backend/app/services/diagnosis_service.py": "3b8a93923ab1fb1470cb2086f824acb2630235487550ce4b0b4e0928e8213538",
+    "backend/app/services/evaluation_service.py": "96ddbb125f433a13d769f7706b1da5f761c303f3285f1a3af9a390587fdc869c",
+    "backend/app/services/exam_assembly_service.py": "f2f7eb42defb6afd790a4367bce197ca5fd391c98a9c7822aab6ce1b9714cd94",
+    "backend/app/services/exam_history_service.py": "d8444df3f5dc8c0b5bb7876d039d76098e76e86e2b0a95c8eb24f76421008610",
+    "backend/app/services/exam_scoring_rules.py": "29a9f4b1297e6abbdcfb1457aa173dcc59b27e61403ebb5e9ea6e443f1eb29f9",
+    "backend/app/services/exam_scoring_service.py": "efee636a6fd9159acecd5be43698ddecd08ae8fdad47657cf489952190cab97e",
+    "backend/app/services/exam_service.py": "a3035975297cb8d7430a3eaa10e6cd07411aafe3fe117a64c70974ab26b8df7f",
+    "backend/app/services/file_resources.py": "e9e90a399831cf2ce71db43a4746b3453eaf0a5d6a4220769a12883209de6d0c",
+    "backend/app/services/file_storage_service.py": "d5596f94009d2086e667b93621ee25b1c31689f33d0ecaa627026cb1a44165e6",
+    "backend/app/services/image_understanding_service.py": "054c76333acb44a48a17f96f9c98e6c9bf392e0032c516161706a42476fae318",
+    "backend/app/services/knowledge_base_service.py": "df0292ba69fd3ca1e4a5a36d12f83188368a7696f10cc268801f1c3cbd08cf05",
+    "backend/app/services/paper_import_service.py": "b3dd30391c020e024d5d34398e1f9acdd5d380ffc8b565f95b9f4ccfc4a2c359",
+    "backend/app/services/postgres_backup.py": "b80c5251e200c24640605675cfae40912d6d0ba84d0e386cc811ee8a70e940d1",
+    "backend/app/services/question_adaptation_service.py": "3102fd3abaa6903ec4212bd35d1c6545a907453cbeb84098356dd25c116d1f92",
+    "backend/app/services/question_asset_access.py": "858976b47f1b56e5e37675e02723fab49ec51b392030b1ddd1d8095958146b0f",
+    "backend/app/services/question_asset_service.py": "e715b2f4e02a26d59d86325df571baa642096611363d9340b0a1bf1b043d5168",
+    "backend/app/services/question_correction_service.py": "5f5c163f5378b61c8191db9c54473d334f098832d363bc545e706387c02c0726",
+    "backend/app/services/question_scoring_invalidation.py": "185a34995474c5444302d9ba580081a363cca0d85f39c62b7fc8968a5f5f1455",
+    "backend/app/services/question_service.py": "a1e3ae84ccc478015e0f4703e0466aca47c1e48dd80c7d987006a4906761037c",
+    "backend/app/services/question_validator.py": "a29d79b926d4aa92bf23108f96ab5aedd81f2ad986bed6281ba47d17fc49a33c",
+    "backend/app/services/reference_lifecycle.py": "561fabaa04b423369475b880c21d01341dbc6d00c8cc80f0cf024b48b702e8ac",
+    "backend/app/services/review_service.py": "d806663ed3e915cb07157a93cd92756e069927b4bc4fe450cb2fe8b3d101bb0f",
+    "backend/app/services/storage_migration_service.py": "14ba456bbd3038ebcfbdd0c43cb4fc9dd388fc271b0f132ea7ca39da32d739bb",
+    "backend/app/services/submission_service.py": "ae0b4742dbac67f58e4789c07aa08bfbc69f2bc11cd19b7cf328542033bd90b0",
+    "backend/app/services/trace_service.py": "48cd5f02b19c0810061636fadef39452f4894a246223468e86dffbacd9748579",
+    "backend/app/services/workflow_checkpoint.py": "2a9c668119dfd965112da5a54c720dcf8f4a767e720f1f186f13534ddfc08b25",
+    "backend/app/services/__init__.py": "8ead370fe249ce8460c1bfef38cc1e18ed0cd9abfe1f741dd3e819b6c6a15d96",
+    "backend/app/ui/admin_view.py": "26fae7ddca023c7300185fdd1b9c8eab01db1af0a7c3e02dcf6121bcd89c8264",
+    "backend/app/ui/chapter_scope_loaders.py": "53fdbeaa1eaf9082dee9175ec175b43db428cb723bee8cf782e6ee0fe47b1b92",
+    "backend/app/ui/chapter_scope_view.py": "f42bbebdf88b8f9a2d805adcf958f08734f41887f9e31dc9e887a7d679107e6c",
+    "backend/app/ui/design_system.py": "5f65a505e76f201109e93b27e0685a61b57a8a4011d31f1252de76e86cab4b95",
+    "backend/app/ui/evaluation_dashboard.py": "3dc6913a00fcba5b392d35741ed85006b6ca840d2d898bb7262799f2afcdd2aa",
+    "backend/app/ui/exam_view.py": "e61203d8f58ca54a94098b7fe0b9c7b1f3cd5e9b437ced58f39ad746e51d86c2",
+    "backend/app/ui/gradio_app.py": "14370441d6d5e33e312e4938ab2752a012dacf7766b0da912f9762b95d98215c",
+    "backend/app/ui/knowledge_base_view.py": "050af1464fce0c9523fd66753865078d163cbdad72761a9e6929848e8fc1fc4f",
+    "backend/app/ui/layout_view.py": "ae1dd687c2cd59483546e3ea9a9750f2563dee2560f0429bc8e07fde2d3747d2",
+    "backend/app/ui/paper_correction_view.py": "81f066eea3e26f0640ee2fa72f4c816150160af130aded4094073b104e38d776",
+    "backend/app/ui/paper_image_review_view.py": "a9a7ec202e9e2bafaa25614c83c2b859623bab64ccfd2632ea07e98ee2bc2a38",
+    "backend/app/ui/paper_import_loaders.py": "6bcbbe209457f5d21586ea49b9e1ce9465c2c0e671d3a30b42194a5baa24ef50",
+    "backend/app/ui/paper_import_view.py": "1807d18b0bcc03860477cc32f8abdbfb1a923aee32a34b85f82c193f3ddd8adb",
+    "backend/app/ui/question_generation_loaders.py": "b0579d3a1f9409ce579887642483dc53acbc1e90326468389b94b49eec7d68a2",
+    "backend/app/ui/question_generation_view.py": "919247cd22b483640dc6a59b77cee42e9a815150faf269a57d8aadbe152bcd7f",
+    "backend/app/ui/question_review_loaders.py": "96336da5d677b26af708eac5964c0bd606bb5bb2aeb97a17e728ed712f1c8a30",
+    "backend/app/ui/question_review_view.py": "2582ad6e291963932fba850aace78feb3cb490205681df46ab95ff1339aeb1e2",
+    "backend/app/ui/question_view.py": "d81b1806698384b5855a816c8046327fd1a6e9ae9e249b4d70c668335e63a53c",
+    "backend/app/ui/results_diagnosis.py": "bbfaae4fc2bdaa7a107ced005b3ed733d47b46ac7bd7b407820e5699f2d82a9f",
+    "backend/app/ui/results_loaders.py": "bbfe2d74c80386aea4cfdd73b0b683c0a77ca20fcc43f6bb845af2ce18938389",
+    "backend/app/ui/results_view.py": "11b1298e0a0b7f85898c8791816595419e00669da780aeb9f71b9279dfd74bf5",
+    "backend/app/ui/review_loaders.py": "3343b3b9de0d4dcbc0806e01e0cdb2f583c5936c89f97869fc44a020c2299e78",
+    "backend/app/ui/review_view.py": "c94fe2f846f9095b99772ab3485bbc171a53802fb1c39455d812e5926b30fe8d",
+    "backend/app/ui/student_exam_view.py": "96e9e0d7f41744e1acda8aa28d239ca823a517db374fd60d8bce32496cb3a585",
+    "backend/app/ui/__init__.py": "ac9d70c8072fd100e4c0d89c6328a81107957d70f485b9773686332e6fbbdf61",
+    "backend/app/services/grading/confidence_mapping.py": "cf8600b784a220d6d01ecf534f75eac699379610c8ad234f2bc1f3d585faf01f",
+    "backend/app/services/grading/confidence_policy.py": "63a10a68c002be0b6f35f573f74437cc458e4aa84c359fa4495922aaaea429c2",
+    "backend/app/services/grading/diagnosis_report_store.py": "2368074c2badda25678ec5f8fe4ae36a51d250c8219ac01108117285a1be0e28",
+    "backend/app/services/grading/grading_context.py": "b4d8844e7afc7c24f51b8f0bea00f15a74d679966aa55f69b88d235b4592a31d",
+    "backend/app/services/grading/grading_repository.py": "32793d5efce02a5495c3dc772837d053692974e6b3bf10f1da18931dc94d5c68",
+    "backend/app/services/grading/grading_task_service.py": "df35d881f09225079cb43b13f29f8d2ff405058412e65b1caeca4bd1bf247b16",
+    "backend/app/services/grading/objective_grader.py": "6e37184d9f568670a70ecb324d2cb8ebbddc809982c756a468627dc7d2d943e7",
+    "backend/app/services/grading/question_router.py": "1574bc47a6f82f15843def77690e11833c94d8b8548c3b11ccfc16e25302dbc1",
+    "backend/app/services/grading/result_aggregator.py": "d1b3f60888a4e117ebf255aa41e5b92b54807175055a4e9481623c3237f449be",
+    "backend/app/services/grading/scoring_images.py": "bc094cd2ca2aec30a2d5d2ecc98fcac5c37dcc142f21f9ef1e9f0c8a391ac206",
+    "backend/app/services/grading/subjective_grader.py": "ede3b5f9f2d2c3c715d7ca64f191f90650bc6e959d7ca978ca5ce659bb52b07f",
+    "backend/app/services/grading/subjective_pipeline.py": "b30e61d2c774eeab59ffa4f57f703991309c9a61b2fcd7c35bb4eb9e3ed8894b",
+    "backend/app/services/grading/__init__.py": "986c47aa005d2f870cf47a1c64065fb5df93241edea6c3d3343a2fea744246cc",
+    "backend/app/mcp/tools/email_tool.py": "3947fae8139084c72f804a3c92ce4ab5e93367b550615f84196c4e15e83d7a9d",
+    "backend/app/mcp/tools/knowledge_tools.py": "154cc171510ad68df08a481fcd2f97f70272e19bb0522c3ed7070aa5d4e148de",
+    "backend/app/mcp/tools/report_tools.py": "a736337b489ad77e0626e03f788b6bbca5d6253464f26db07a12b6143772d9e6",
+    "backend/app/mcp/tools/__init__.py": "997121ce80f945bfb2e76c8b176066f65b037adaa28c58d92f8b517f8539fde1",
+    "backend/app/ai/agents/grading_agent.py": "6f2e04e3d66b5eb1e1886563d3af57ef5247ad2ad9d4f66ae414a9145cf3003d",
+    "backend/app/ai/agents/invocation.py": "75482b675f5b3e17afcaeea074f37858c4b6c4560cfb244704a5fa4359cf8253",
+    "backend/app/ai/agents/question_agent.py": "69f18f0cc021123134b75dfa613f750ef0a3ccc93ef95fd71919784e17bab296",
+    "backend/app/ai/agents/reviewer_agent.py": "fec6c51ded088ca60ee98bd4e7155bd7e7b0a7fc7e32270907e5a6df85e5567b",
+    "backend/app/ai/agents/state.py": "08688721e3c2a253050e62e9d156f05a86182e398ed24488775fc0b8148c7194",
+    "backend/app/ai/agents/supervisor.py": "fc1f555ee3a5b0477c7e69eb3aa663960900b4a26f835ba891819a662a887934",
+    "backend/app/ai/agents/__init__.py": "8efb2dd101cf8c248af9f600bc3e1f332e854448d1b124e532860661a2fc63e3",
+    "backend/app/ai/embedding/base.py": "fcd70045ef4a7cae595e05bc62cab3dd2483054d88da2ca09e7e2c9cbac79717",
+    "backend/app/ai/embedding/factory.py": "ec004b6280a118c29d2f47fa209fbee8a79482e1224ef48920ea102e5251e2da",
+    "backend/app/ai/embedding/__init__.py": "a46cede1c8c7ef6ef7003f279f84e855aaba4d6798b0a2295f8e8dc9be8eaae1",
+    "backend/app/ai/evaluation/__init__.py": "20cf8c8ba0bd0276f60d1dbbe36090947735abfef2cd61b5066bc15234d49035",
+    "backend/app/ai/ingestion/chunking.py": "ab70ea0947f180ba4c7fd9769cce28429532501088c7de704d3acd13abd1597e",
+    "backend/app/ai/ingestion/cleaning.py": "542c16e24ab67e50b2647c210888feebe50f63a0f8463c1de88dbcbc9138a07b",
+    "backend/app/ai/ingestion/paper_pipeline.py": "de839dafb2c6e395fa13c5d225452bcadea9f38fe6f2510a1c376136302c22ac",
+    "backend/app/ai/ingestion/parsers.py": "0b3fc011084c0849c30f999cfec478d8c518cf9c90be16d3124eff21575c5d1e",
+    "backend/app/ai/ingestion/service.py": "43b626c19b1168069dce7a68bf534063bbabbb0fcd0e131b580c6b0aeb74e003",
+    "backend/app/ai/ingestion/__init__.py": "4a6fb7b67684e73310bc659d26e89ff3d2e0e9b8873d4117972eff7420b848b1",
+    "backend/app/ai/llm/base.py": "2871bb974622269a7da6a95788afccc4f64ce2aa6f2430d8fcfec9af6f98855c",
+    "backend/app/ai/llm/deepseek.py": "438c1f921eddf01fb097ec63daa099037df02a41b3324f6fe3ee2815bdafef80",
+    "backend/app/ai/llm/factory.py": "90d75ad3994d7c62f89c94d03e8bd4b619da65e1a11f5c24b94c9d34e63f72fc",
+    "backend/app/ai/llm/__init__.py": "eab4431e253c92c9beb1862368ceed4de115a2c289da64912b7ab9a9d9205be9",
+    "backend/app/ai/paper_extraction/schemas.py": "91872610f8bec3cef78b7fb4bc22c8548379c1939f62b53873c2958c99d28cff",
+    "backend/app/ai/paper_extraction/service.py": "bf6146d7a3de9a75d7069c95765d057a5149d1c7aab047e056ae4eb1d061a3ac",
+    "backend/app/ai/paper_extraction/__init__.py": "6c76a4c97caba4392f89ad077d72e446ed47bf846601b4803a6b2d930070f389",
+    "backend/app/ai/prompts/__init__.py": "42f340ee333cd8a27c5d4c181a2b1cf079b9d3a81d3fd0ed2d7c5e1313ae5c77",
+    "backend/app/ai/retrieval/base.py": "5cf7f6356da699abaf185f108e50d58ff1775b9be98ed993f28305bdc07509aa",
+    "backend/app/ai/retrieval/hybrid_search.py": "10daa16e60043e0a3e266412dba57e13c74a96c8459d184a3e4ffa6ba0eb9dd0",
+    "backend/app/ai/retrieval/keyword_search.py": "403e336a979a6acb85010d58fd948e19853f211daa050b9ffd63706a66b6c359",
+    "backend/app/ai/retrieval/reranker.py": "0fbc8b6ef1279769c88cfeecc2ac875b2e5d68db2132828df7640431fc36c398",
+    "backend/app/ai/retrieval/vector_search.py": "b68d17048bd535f9c9b8eae7f36fbcd32465881bb6b0bcb41df1a76a680d145b",
+    "backend/app/ai/retrieval/_filters.py": "2cb9bc6a9cf3d9249d669e330e436897b25db7d02f691f3b60a7222f62dfc915",
+    "backend/app/ai/retrieval/__init__.py": "688e1f494e337180491049f5d0122b85e623d791f641914bcf139112a7983bc2",
+    "backend/app/ai/vision/base.py": "9a79fa8542e30de34d2566715fa1d8b02a111cbd583b6e997f8add89593c76b8",
+    "backend/app/ai/vision/provider.py": "f92a8c4c9b70eb9ba0b75dc861d3d1695164a913fe9743cf48a2f0404915f9d8",
+    "backend/app/ai/vision/__init__.py": "98943d75f7d1ff3bdae8af3789f274fb9a0224e6dd06e9b0e85f743e61c097d4",
+    "backend/app/ai/workflows/grading_handoff.py": "3acbf27b843c2fbc042e5b92233d941084c924d29107904389883ec2696924e6",
+    "backend/app/ai/workflows/grading_workflow.py": "4b6905a0fd506be9d1ee440fad266877de1d2b28d9dd69e73a7b019ebcdc8f89",
+    "backend/app/ai/workflows/state.py": "2d1299dfeb0f4eddd6cd97303ddda537e9ab45df322185c94a19df1ef5e61cfa",
+    "backend/app/ai/workflows/__init__.py": "661b00b9b6a293f8b90b868e6b261633006d4293a788fbb6112edd9fa0a3e2f9",
+    "backend/app/ai/ingestion/ocr/base.py": "c414cc3efe215cc75417a217b337faaee4956a75eb88bb95dab657dd91fce3b4",
+    "backend/app/ai/ingestion/ocr/factory.py": "07466c3e0b263a2a46ba2bba5aebb855c8c6ac8d44a47899e4b9aa7da2fa16c0",
+    "backend/app/ai/ingestion/ocr/rapidocr.py": "13fcaad2cf5c44cb50d6b696ad902e15d080703f3c335cca97a32d9f918b37c9",
+    "backend/app/ai/ingestion/ocr/schemas.py": "1c60b8ab1497ff40f2d263c423a5ac71176b4ab208343c17794b1c3b5ee27120",
+    "backend/app/ai/ingestion/ocr/__init__.py": "00bb8e4436746d76e8d24695cb31fb2f2be54dda4e4978d525ee4cd762f32d9d",
+    "backend/app/ai/embedding/providers/bge.py": "c7073f220c494a3469979ed2812edc3dc0d06371f1fd9974657b5d332e0f2703",
+    "backend/app/ai/embedding/providers/local.py": "9b6e3589c3984eb41e6edc3980d616ef5491b6799aa44429b1a6b40024e4611c",
+    "backend/app/ai/embedding/providers/openai_compatible.py": "47943806e3849fa2e7108b89d25deedb4f466cd2d6df2e8383e74d2d73d53e1f",
+    "backend/app/ai/embedding/providers/__init__.py": "59b3bff559f66014c6d4c2c43919cdecc3276aa04f18e870d8d680261ac3fc1e",
+    "benchmark/t179/browser_runner.cjs": "1a34a5fc1abca254501b67de68f10a2d7d60694932e239604e26deadf23b99ee",
+    "benchmark/t179/business_acceptance.py": "a6ad8409921a1235eb3376fe54d519359e6e3d3d7b3e4c34dc2e44c7ca3301a8",
+    "benchmark/t179/fixtures.py": "ddefece097f2d78787989d5aefb656a0305e60d81c5b1a86a5bc4102164dd51d",
+    "benchmark/t179/performance.py": "d4a90397c315c722d070cff01133ffa75cd9f3272e4331e637a1025b311f0a16",
+    "benchmark/t179/performance_app.py": "1bd6ef2529ffb631745949ed69f0410712491a349b7aae3263ca9e98b854ad85"
+  },
+  "environment": {
+    "cpu": {
+      "Name": "AMD Ryzen 5 4600H with Radeon Graphics         ",
+      "NumberOfCores": 6,
+      "NumberOfLogicalProcessors": 12
+    },
+    "os": {
+      "Caption": "Microsoft Windows 11 家庭版 中文版",
+      "Version": "10.0.26200",
+      "TotalVisibleMemorySize": 16119108
+    },
+    "disk": {
+      "FriendlyName": "SAMSUNG MZVLB512HBJQ-000L2",
+      "MediaType": "SSD",
+      "Size": 512110190592
+    },
+    "python": "3.13.13",
+    "packages": {
+      "gradio": "6.26.0",
+      "SQLAlchemy": "2.0.50",
+      "psycopg": "3.3.5",
+      "fastapi": "0.141.1"
+    },
+    "network": "localhost UI; PostgreSQL/Redis in Docker Desktop; no cloud requests",
+    "machine_scope": "actual host, not restricted to plan 2-4 vCPU; no EXE acceptance",
+    "postgres": {
+      "version": "16.15 (Debian 16.15-1.pgdg12+2)",
+      "pgvector": "0.8.6",
+      "scope": "shared Docker PostgreSQL; all postgres process RSS sampled; only own DB used for writes"
+    },
+    "redis": {
+      "version": "7.4.11",
+      "scope": "own validation container"
+    },
+    "edge": "154.0.4258.53",
+    "playwright": "1.62.1"
+  },
+  "source_commit": "615319ec4194c4e690560d93a286db228db26a0f",
+  "sample_hashes": {
+    "question_pool.json": "c3b494b56cb2f34a88107568e0329ccfdf8f73ebb4b144f2ed95286b1bf99087",
+    "assembly_cases.json": "cd0ad9a0f7d4f4b3e27409b9ed4b1ab04c61b8fc7fc90f6945b5b75909c2ef2f",
+    "scoring_cases.json": "005d8e5dfd0c3b3ff9cd89c03a42ad1bb68cfb7d92eb1e6c35f356d616ceec70",
+    "teaching_basis.md": "f2d176cda52aff08d811f6c0c70dc10b2799f4b3b20174dd5860b5353ba623c7",
+    "assets/diagram.png": "44bbbce885cdf7f8965364579d2007b375c069a904d79f487ac64518ae602b97"
+  },
+  "planned": [
+    {
+      "case": {
+        "case_id": "ASM-1-SAT",
+        "request": {
+          "course_id": "cf99a4d9-dfa1-5bb3-9d6d-2ea11d1d6820",
+          "question_count": 1,
+          "type_distribution": [
+            {
+              "question_type": "SINGLE_CHOICE",
+              "count": 1
+            }
+          ],
+          "knowledge_coverage": [
+            {
+              "knowledge_point": "一次函数",
+              "min_questions": 1
+            }
+          ],
+          "total_score": "1.00",
+          "score_overrides": []
+        },
+        "draft_witness": [
+          "170002c8-1870-54cb-b8ad-494ee15697ad"
+        ],
+        "draft_unsatisfiable_reason": null,
+        "teacher_checked": false
+      },
+      "kind": "cold",
+      "indices": [
+        1
+      ],
+      "worker_run": "ASM-1-SAT-cold-1",
+      "action_run_ids": {
+        "1": "ASM-1-SAT-cold-1-e4ac07c5"
+      }
+    },
+    {
+      "case": {
+        "case_id": "ASM-1-SAT",
+        "request": {
+          "course_id": "cf99a4d9-dfa1-5bb3-9d6d-2ea11d1d6820",
+          "question_count": 1,
+          "type_distribution": [
+            {
+              "question_type": "SINGLE_CHOICE",
+              "count": 1
+            }
+          ],
+          "knowledge_coverage": [
+            {
+              "knowledge_point": "一次函数",
+              "min_questions": 1
+            }
+          ],
+          "total_score": "1.00",
+          "score_overrides": []
+        },
+        "draft_witness": [
+          "170002c8-1870-54cb-b8ad-494ee15697ad"
+        ],
+        "draft_unsatisfiable_reason": null,
+        "teacher_checked": false
+      },
+      "kind": "cold",
+      "indices": [
+        2
+      ],
+      "worker_run": "ASM-1-SAT-cold-2",
+      "action_run_ids": {
+        "2": "ASM-1-SAT-cold-2-208b5537"
+      }
+    },
+    {
+      "case": {
+        "case_id": "ASM-1-SAT",
+        "request": {
+          "course_id": "cf99a4d9-dfa1-5bb3-9d6d-2ea11d1d6820",
+          "question_count": 1,
+          "type_distribution": [
+            {
+              "question_type": "SINGLE_CHOICE",
+              "count": 1
+            }
+          ],
+          "knowledge_coverage": [
+            {
+              "knowledge_point": "一次函数",
+              "min_questions": 1
+            }
+          ],
+          "total_score": "1.00",
+          "score_overrides": []
+        },
+        "draft_witness": [
+          "170002c8-1870-54cb-b8ad-494ee15697ad"
+        ],
+        "draft_unsatisfiable_reason": null,
+        "teacher_checked": false
+      },
+      "kind": "cold",
+      "indices": [
+        3
+      ],
+      "worker_run": "ASM-1-SAT-cold-3",
+      "action_run_ids": {
+        "3": "ASM-1-SAT-cold-3-0c93123d"
+      }
+    },
+    {
+      "case": {
+        "case_id": "ASM-1-SAT",
+        "request": {
+          "course_id": "cf99a4d9-dfa1-5bb3-9d6d-2ea11d1d6820",
+          "question_count": 1,
+          "type_distribution": [
+            {
+              "question_type": "SINGLE_CHOICE",
+              "count": 1
+            }
+          ],
+          "knowledge_coverage": [
+            {
+              "knowledge_point": "一次函数",
+              "min_questions": 1
+            }
+          ],
+          "total_score": "1.00",
+          "score_overrides": []
+        },
+        "draft_witness": [
+          "170002c8-1870-54cb-b8ad-494ee15697ad"
+        ],
+        "draft_unsatisfiable_reason": null,
+        "teacher_checked": false
+      },
+      "kind": "warm",
+      "indices": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "worker_run": "ASM-1-SAT-warm-0",
+      "action_run_ids": {
+        "0": "ASM-1-SAT-warm-0-775beb0f",
+        "1": "ASM-1-SAT-warm-1-c3fc5cda",
+        "2": "ASM-1-SAT-warm-2-8562cd1a",
+        "3": "ASM-1-SAT-warm-3-9a12b98f",
+        "4": "ASM-1-SAT-warm-4-014748b7",
+        "5": "ASM-1-SAT-warm-5-ebb380f3"
+      }
+    },
+    {
+      "case": {
+        "case_id": "ASM-1-UNSAT",
+        "request": {
+          "course_id": "cf99a4d9-dfa1-5bb3-9d6d-2ea11d1d6820",
+          "question_count": 1,
+          "type_distribution": [
+            {
+              "question_type": "SINGLE_CHOICE",
+              "count": 1
+            }
+          ],
+          "knowledge_coverage": [
+            {
+              "knowledge_point": "未收录知识点",
+              "min_questions": 1
+            }
+          ],
+          "total_score": "1.00",
+          "score_overrides": []
+        },
+        "draft_witness": null,
+        "draft_unsatisfiable_reason": "全部 300 个候选的标签集合没有未收录知识点",
+        "teacher_checked": false
+      },
+      "kind": "cold",
+      "indices": [
+        1
+      ],
+      "worker_run": "ASM-1-UNSAT-cold-1",
+      "action_run_ids": {
+        "1": "ASM-1-UNSAT-cold-1-b55c6539"
+      }
+    },
+    {
+      "case": {
+        "case_id": "ASM-1-UNSAT",
+        "request": {
+          "course_id": "cf99a4d9-dfa1-5bb3-9d6d-2ea11d1d6820",
+          "question_count": 1,
+          "type_distribution": [
+            {
+              "question_type": "SINGLE_CHOICE",
+              "count": 1
+            }
+          ],
+          "knowledge_coverage": [
+            {
+              "knowledge_point": "未收录知识点",
+              "min_questions": 1
+            }
+          ],
+          "total_score": "1.00",
+          "score_overrides": []
+        },
+        "draft_witness": null,
+        "draft_unsatisfiable_reason": "全部 300 个候选的标签集合没有未收录知识点",
+        "teacher_checked": false
+      },
+      "kind": "cold",
+      "indices": [
+        2
+      ],
+      "worker_run": "ASM-1-UNSAT-cold-2",
+      "action_run_ids": {
+        "2": "ASM-1-UNSAT-cold-2-cc2a8dda"
+      }
+    },
+    {
+      "case": {
+        "case_id": "ASM-1-UNSAT",
+        "request": {
+          "course_id": "cf99a4d9-dfa1-5bb3-9d6d-2ea11d1d6820",
+          "question_count": 1,
+          "type_distribution": [
+            {
+              "question_type": "SINGLE_CHOICE",
+              "count": 1
+            }
+          ],
+          "knowledge_coverage": [
+            {
+              "knowledge_point": "未收录知识点",
+              "min_questions": 1
+            }
+          ],
+          "total_score": "1.00",
+          "score_overrides": []
+        },
+        "draft_witness": null,
+        "draft_unsatisfiable_reason": "全部 300 个候选的标签集合没有未收录知识点",
+        "teacher_checked": false
+      },
+      "kind": "cold",
+      "indices": [
+        3
+      ],
+      "worker_run": "ASM-1-UNSAT-cold-3",
+      "action_run_ids": {
+        "3": "ASM-1-UNSAT-cold-3-29ec25ea"
+      }
+    },
+    {
+      "case": {
+        "case_id": "ASM-1-UNSAT",
+        "request": {
+          "course_id": "cf99a4d9-dfa1-5bb3-9d6d-2ea11d1d6820",
+          "question_count": 1,
+          "type_distribution": [
+            {
+              "question_type": "SINGLE_CHOICE",
+              "count": 1
+            }
+          ],
+          "knowledge_coverage": [
+            {
+              "knowledge_point": "未收录知识点",
+              "min_questions": 1
+            }
+          ],
+          "total_score": "1.00",
+          "score_overrides": []
+        },
+        "draft_witness": null,
+        "draft_unsatisfiable_reason": "全部 300 个候选的标签集合没有未收录知识点",
+        "teacher_checked": false
+      },
+      "kind": "warm",
+      "indices": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "worker_run": "ASM-1-UNSAT-warm-0",
+      "action_run_ids": {
+        "0": "ASM-1-UNSAT-warm-0-25234dc1",
+        "1": "ASM-1-UNSAT-warm-1-521fe48e",
+        "2": "ASM-1-UNSAT-warm-2-0d9c7944",
+        "3": "ASM-1-UNSAT-warm-3-4ed3dc60",
+        "4": "ASM-1-UNSAT-warm-4-b9d864ea",
+        "5": "ASM-1-UNSAT-warm-5-cda3de52"
+      }
+    },
+    {
+      "case": {
+        "case_id": "ASM-25-SAT",
+        "request": {
+          "course_id": "cf99a4d9-dfa1-5bb3-9d6d-2ea11d1d6820",
+          "question_count": 25,
+          "type_distribution": [
+            {
+              "question_type": "SINGLE_CHOICE",
+              "count": 9
+            },
+            {
+              "question_type": "TRUE_FALSE",
+              "count": 8
+            },
+            {
+              "question_type": "SHORT_ANSWER",
+              "count": 8
+            }
+          ],
+          "knowledge_coverage": [
+            {
+              "knowledge_point": "一次函数",
+              "min_questions": 1
+            }
+          ],
+          "total_score": "25.00",
+          "score_overrides": []
+        },
+        "draft_witness": [
+          "170002c8-1870-54cb-b8ad-494ee15697ad",
+          "fb2aad97-03ba-5704-854c-95453444ad65",
+          "38459e84-ef20-5cae-bdf4-0407061a6997",
+          "9bb36ece-ac8b-5a8d-a57b-ac093d050f60",
+          "1ac55ca1-b2c6-516c-ab5b-20d6ba9fe945",
+          "55506688-8029-54d2-aa94-7b2a44463f7d",
+          "2e47e877-369a-5c42-983c-b2c94f9cc8cb",
+          "d3c3d04b-8e0b-57d7-b159-755cf2ee84d8",
+          "afdb6c69-a066-5d48-927f-b2addbd39108",
+          "8b6ca584-ecac-5d56-8a31-3f21e1bce6c4",
+          "fb8957c9-73bf-5116-8c0c-4d102ff9dd12",
+          "05ef4e67-2b08-5fd4-b0de-a655a1b84083",
+          "2be74d73-07db-5876-bc35-329d1cbc0a03",
+          "24927879-0294-5076-92c8-39f9e14c3a35",
+          "a1e1cade-ec52-519a-89a8-a0d3a7d3f87a",
+          "9c975da4-f83a-5749-8a3d-5b3057ae6274",
+          "8b5cf761-a018-5966-ad61-5d2a6c879173",
+          "e75d38cc-9cda-57e0-a135-02d09861ba57",
+          "73cbbe37-f60c-5c22-9b51-9e404bffb664",
+          "c3ca3e92-be2c-5c39-834e-10363dbc6964",
+          "7ba10839-baff-50c7-910c-968d7a5b78f3",
+          "939900ec-ea55-5386-b7a7-63ca6bdd3d8b",
+          "57967ae1-d68d-5310-9ee5-42b7fb9b1d70",
+          "bbb585e7-892d-5d64-a951-3adc8965e9de",
+          "57553c76-ec58-5e5d-9180-372324a4ea67"
+        ],
+        "draft_unsatisfiable_reason": null,
+        "teacher_checked": false
+      },
+      "kind": "cold",
+      "indices": [
+        1
+      ],
+      "worker_run": "ASM-25-SAT-cold-1",
+      "action_run_ids": {
+        "1": "ASM-25-SAT-cold-1-79ffd0e5"
+      }
+    },
+    {
+      "case": {
+        "case_id": "ASM-25-SAT",
+        "request": {
+          "course_id": "cf99a4d9-dfa1-5bb3-9d6d-2ea11d1d6820",
+          "question_count": 25,
+          "type_distribution": [
+            {
+              "question_type": "SINGLE_CHOICE",
+              "count": 9
+            },
+            {
+              "question_type": "TRUE_FALSE",
+              "count": 8
+            },
+            {
+              "question_type": "SHORT_ANSWER",
+              "count": 8
+            }
+          ],
+          "knowledge_coverage": [
+            {
+              "knowledge_point": "一次函数",
+              "min_questions": 1
+            }
+          ],
+          "total_score": "25.00",
+          "score_overrides": []
+        },
+        "draft_witness": [
+          "170002c8-1870-54cb-b8ad-494ee15697ad",
+          "fb2aad97-03ba-5704-854c-95453444ad65",
+          "38459e84-ef20-5cae-bdf4-0407061a6997",
+          "9bb36ece-ac8b-5a8d-a57b-ac093d050f60",
+          "1ac55ca1-b2c6-516c-ab5b-20d6ba9fe945",
+          "55506688-8029-54d2-aa94-7b2a44463f7d",
+          "2e47e877-369a-5c42-983c-b2c94f9cc8cb",
+          "d3c3d04b-8e0b-57d7-b159-755cf2ee84d8",
+          "afdb6c69-a066-5d48-927f-b2addbd39108",
+          "8b6ca584-ecac-5d56-8a31-3f21e1bce6c4",
+          "fb8957c9-73bf-5116-8c0c-4d102ff9dd12",
+          "05ef4e67-2b08-5fd4-b0de-a655a1b84083",
+          "2be74d73-07db-5876-bc35-329d1cbc0a03",
+          "24927879-0294-5076-92c8-39f9e14c3a35",
+          "a1e1cade-ec52-519a-89a8-a0d3a7d3f87a",
+          "9c975da4-f83a-5749-8a3d-5b3057ae6274",
+          "8b5cf761-a018-5966-ad61-5d2a6c879173",
+          "e75d38cc-9cda-57e0-a135-02d09861ba57",
+          "73cbbe37-f60c-5c22-9b51-9e404bffb664",
+          "c3ca3e92-be2c-5c39-834e-10363dbc6964",
+          "7ba10839-baff-50c7-910c-968d7a5b78f3",
+          "939900ec-ea55-5386-b7a7-63ca6bdd3d8b",
+          "57967ae1-d68d-5310-9ee5-42b7fb9b1d70",
+          "bbb585e7-892d-5d64-a951-3adc8965e9de",
+          "57553c76-ec58-5e5d-9180-372324a4ea67"
+        ],
+        "draft_unsatisfiable_reason": null,
+        "teacher_checked": false
+      },
+      "kind": "cold",
+      "indices": [
+        2
+      ],
+      "worker_run": "ASM-25-SAT-cold-2",
+      "action_run_ids": {
+        "2": "ASM-25-SAT-cold-2-b834e5bb"
+      }
+    },
+    {
+      "case": {
+        "case_id": "ASM-25-SAT",
+        "request": {
+          "course_id": "cf99a4d9-dfa1-5bb3-9d6d-2ea11d1d6820",
+          "question_count": 25,
+          "type_distribution": [
+            {
+              "question_type": "SINGLE_CHOICE",
+              "count": 9
+            },
+            {
+              "question_type": "TRUE_FALSE",
+              "count": 8
+            },
+            {
+              "question_type": "SHORT_ANSWER",
+              "count": 8
+            }
+          ],
+          "knowledge_coverage": [
+            {
+              "knowledge_point": "一次函数",
+              "min_questions": 1
+            }
+          ],
+          "total_score": "25.00",
+          "score_overrides": []
+        },
+        "draft_witness": [
+          "170002c8-1870-54cb-b8ad-494ee15697ad",
+          "fb2aad97-03ba-5704-854c-95453444ad65",
+          "38459e84-ef20-5cae-bdf4-0407061a6997",
+          "9bb36ece-ac8b-5a8d-a57b-ac093d050f60",
+          "1ac55ca1-b2c6-516c-ab5b-20d6ba9fe945",
+          "55506688-8029-54d2-aa94-7b2a44463f7d",
+          "2e47e877-369a-5c42-983c-b2c94f9cc8cb",
+          "d3c3d04b-8e0b-57d7-b159-755cf2ee84d8",
+          "afdb6c69-a066-5d48-927f-b2addbd39108",
+          "8b6ca584-ecac-5d56-8a31-3f21e1bce6c4",
+          "fb8957c9-73bf-5116-8c0c-4d102ff9dd12",
+          "05ef4e67-2b08-5fd4-b0de-a655a1b84083",
+          "2be74d73-07db-5876-bc35-329d1cbc0a03",
+          "24927879-0294-5076-92c8-39f9e14c3a35",
+          "a1e1cade-ec52-519a-89a8-a0d3a7d3f87a",
+          "9c975da4-f83a-5749-8a3d-5b3057ae6274",
+          "8b5cf761-a018-5966-ad61-5d2a6c879173",
+          "e75d38cc-9cda-57e0-a135-02d09861ba57",
+          "73cbbe37-f60c-5c22-9b51-9e404bffb664",
+          "c3ca3e92-be2c-5c39-834e-10363dbc6964",
+          "7ba10839-baff-50c7-910c-968d7a5b78f3",
+          "939900ec-ea55-5386-b7a7-63ca6bdd3d8b",
+          "57967ae1-d68d-5310-9ee5-42b7fb9b1d70",
+          "bbb585e7-892d-5d64-a951-3adc8965e9de",
+          "57553c76-ec58-5e5d-9180-372324a4ea67"
+        ],
+        "draft_unsatisfiable_reason": null,
+        "teacher_checked": false
+      },
+      "kind": "cold",
+      "indices": [
+        3
+      ],
+      "worker_run": "ASM-25-SAT-cold-3",
+      "action_run_ids": {
+        "3": "ASM-25-SAT-cold-3-d25ce82e"
+      }
+    },
+    {
+      "case": {
+        "case_id": "ASM-25-SAT",
+        "request": {
+          "course_id": "cf99a4d9-dfa1-5bb3-9d6d-2ea11d1d6820",
+          "question_count": 25,
+          "type_distribution": [
+            {
+              "question_type": "SINGLE_CHOICE",
+              "count": 9
+            },
+            {
+              "question_type": "TRUE_FALSE",
+              "count": 8
+            },
+            {
+              "question_type": "SHORT_ANSWER",
+              "count": 8
+            }
+          ],
+          "knowledge_coverage": [
+            {
+              "knowledge_point": "一次函数",
+              "min_questions": 1
+            }
+          ],
+          "total_score": "25.00",
+          "score_overrides": []
+        },
+        "draft_witness": [
+          "170002c8-1870-54cb-b8ad-494ee15697ad",
+          "fb2aad97-03ba-5704-854c-95453444ad65",
+          "38459e84-ef20-5cae-bdf4-0407061a6997",
+          "9bb36ece-ac8b-5a8d-a57b-ac093d050f60",
+          "1ac55ca1-b2c6-516c-ab5b-20d6ba9fe945",
+          "55506688-8029-54d2-aa94-7b2a44463f7d",
+          "2e47e877-369a-5c42-983c-b2c94f9cc8cb",
+          "d3c3d04b-8e0b-57d7-b159-755cf2ee84d8",
+          "afdb6c69-a066-5d48-927f-b2addbd39108",
+          "8b6ca584-ecac-5d56-8a31-3f21e1bce6c4",
+          "fb8957c9-73bf-5116-8c0c-4d102ff9dd12",
+          "05ef4e67-2b08-5fd4-b0de-a655a1b84083",
+          "2be74d73-07db-5876-bc35-329d1cbc0a03",
+          "24927879-0294-5076-92c8-39f9e14c3a35",
+          "a1e1cade-ec52-519a-89a8-a0d3a7d3f87a",
+          "9c975da4-f83a-5749-8a3d-5b3057ae6274",
+          "8b5cf761-a018-5966-ad61-5d2a6c879173",
+          "e75d38cc-9cda-57e0-a135-02d09861ba57",
+          "73cbbe37-f60c-5c22-9b51-9e404bffb664",
+          "c3ca3e92-be2c-5c39-834e-10363dbc6964",
+          "7ba10839-baff-50c7-910c-968d7a5b78f3",
+          "939900ec-ea55-5386-b7a7-63ca6bdd3d8b",
+          "57967ae1-d68d-5310-9ee5-42b7fb9b1d70",
+          "bbb585e7-892d-5d64-a951-3adc8965e9de",
+          "57553c76-ec58-5e5d-9180-372324a4ea67"
+        ],
+        "draft_unsatisfiable_reason": null,
+        "teacher_checked": false
+      },
+      "kind": "warm",
+      "indices": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "worker_run": "ASM-25-SAT-warm-0",
+      "action_run_ids": {
+        "0": "ASM-25-SAT-warm-0-280ebd2c",
+        "1": "ASM-25-SAT-warm-1-247895b1",
+        "2": "ASM-25-SAT-warm-2-0293810e",
+        "3": "ASM-25-SAT-warm-3-79d2b515",
+        "4": "ASM-25-SAT-warm-4-ec5ab548",
+        "5": "ASM-25-SAT-warm-5-65e87dbc"
+      }
+    },
+    {
+      "case": {
+        "case_id": "ASM-25-UNSAT",
+        "request": {
+          "course_id": "cf99a4d9-dfa1-5bb3-9d6d-2ea11d1d6820",
+          "question_count": 25,
+          "type_distribution": [
+            {
+              "question_type": "SINGLE_CHOICE",
+              "count": 9
+            },
+            {
+              "question_type": "TRUE_FALSE",
+              "count": 8
+            },
+            {
+              "question_type": "SHORT_ANSWER",
+              "count": 8
+            }
+          ],
+          "knowledge_coverage": [
+            {
+              "knowledge_point": "未收录知识点",
+              "min_questions": 1
+            }
+          ],
+          "total_score": "25.00",
+          "score_overrides": []
+        },
+        "draft_witness": null,
+        "draft_unsatisfiable_reason": "全部 300 个候选的标签集合没有未收录知识点",
+        "teacher_checked": false
+      },
+      "kind": "cold",
+      "indices": [
+        1
+      ],
+      "worker_run": "ASM-25-UNSAT-cold-1",
+      "action_run_ids": {
+        "1": "ASM-25-UNSAT-cold-1-cd826b17"
+      }
+    },
+    {
+      "case": {
+        "case_id": "ASM-25-UNSAT",
+        "request": {
+          "course_id": "cf99a4d9-dfa1-5bb3-9d6d-2ea11d1d6820",
+          "question_count": 25,
+          "type_distribution": [
+            {
+              "question_type": "SINGLE_CHOICE",
+              "count": 9
+            },
+            {
+              "question_type": "TRUE_FALSE",
+              "count": 8
+            },
+            {
+              "question_type": "SHORT_ANSWER",
+              "count": 8
+            }
+          ],
+          "knowledge_coverage": [
+            {
+              "knowledge_point": "未收录知识点",
+              "min_questions": 1
+            }
+          ],
+          "total_score": "25.00",
+          "score_overrides": []
+        },
+        "draft_witness": null,
+        "draft_unsatisfiable_reason": "全部 300 个候选的标签集合没有未收录知识点",
+        "teacher_checked": false
+      },
+      "kind": "cold",
+      "indices": [
+        2
+      ],
+      "worker_run": "ASM-25-UNSAT-cold-2",
+      "action_run_ids": {
+        "2": "ASM-25-UNSAT-cold-2-ed924bce"
+      }
+    },
+    {
+      "case": {
+        "case_id": "ASM-25-UNSAT",
+        "request": {
+          "course_id": "cf99a4d9-dfa1-5bb3-9d6d-2ea11d1d6820",
+          "question_count": 25,
+          "type_distribution": [
+            {
+              "question_type": "SINGLE_CHOICE",
+              "count": 9
+            },
+            {
+              "question_type": "TRUE_FALSE",
+              "count": 8
+            },
+            {
+              "question_type": "SHORT_ANSWER",
+              "count": 8
+            }
+          ],
+          "knowledge_coverage": [
+            {
+              "knowledge_point": "未收录知识点",
+              "min_questions": 1
+            }
+          ],
+          "total_score": "25.00",
+          "score_overrides": []
+        },
+        "draft_witness": null,
+        "draft_unsatisfiable_reason": "全部 300 个候选的标签集合没有未收录知识点",
+        "teacher_checked": false
+      },
+      "kind": "cold",
+      "indices": [
+        3
+      ],
+      "worker_run": "ASM-25-UNSAT-cold-3",
+      "action_run_ids": {
+        "3": "ASM-25-UNSAT-cold-3-87dfad9f"
+      }
+    },
+    {
+      "case": {
+        "case_id": "ASM-25-UNSAT",
+        "request": {
+          "course_id": "cf99a4d9-dfa1-5bb3-9d6d-2ea11d1d6820",
+          "question_count": 25,
+          "type_distribution": [
+            {
+              "question_type": "SINGLE_CHOICE",
+              "count": 9
+            },
+            {
+              "question_type": "TRUE_FALSE",
+              "count": 8
+            },
+            {
+              "question_type": "SHORT_ANSWER",
+              "count": 8
+            }
+          ],
+          "knowledge_coverage": [
+            {
+              "knowledge_point": "未收录知识点",
+              "min_questions": 1
+            }
+          ],
+          "total_score": "25.00",
+          "score_overrides": []
+        },
+        "draft_witness": null,
+        "draft_unsatisfiable_reason": "全部 300 个候选的标签集合没有未收录知识点",
+        "teacher_checked": false
+      },
+      "kind": "warm",
+      "indices": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "worker_run": "ASM-25-UNSAT-warm-0",
+      "action_run_ids": {
+        "0": "ASM-25-UNSAT-warm-0-b44e21fc",
+        "1": "ASM-25-UNSAT-warm-1-367bca56",
+        "2": "ASM-25-UNSAT-warm-2-68d9a8d3",
+        "3": "ASM-25-UNSAT-warm-3-6e50b4ed",
+        "4": "ASM-25-UNSAT-warm-4-b04f108f",
+        "5": "ASM-25-UNSAT-warm-5-23b32b13"
+      }
+    },
+    {
+      "case": {
+        "case_id": "ASM-100-SAT",
+        "request": {
+          "course_id": "cf99a4d9-dfa1-5bb3-9d6d-2ea11d1d6820",
+          "question_count": 100,
+          "type_distribution": [
+            {
+              "question_type": "SINGLE_CHOICE",
+              "count": 34
+            },
+            {
+              "question_type": "TRUE_FALSE",
+              "count": 33
+            },
+            {
+              "question_type": "SHORT_ANSWER",
+              "count": 33
+            }
+          ],
+          "knowledge_coverage": [
+            {
+              "knowledge_point": "一次函数",
+              "min_questions": 1
+            }
+          ],
+          "total_score": "100.00",
+          "score_overrides": []
+        },
+        "draft_witness": [
+          "170002c8-1870-54cb-b8ad-494ee15697ad",
+          "fb2aad97-03ba-5704-854c-95453444ad65",
+          "38459e84-ef20-5cae-bdf4-0407061a6997",
+          "9bb36ece-ac8b-5a8d-a57b-ac093d050f60",
+          "1ac55ca1-b2c6-516c-ab5b-20d6ba9fe945",
+          "55506688-8029-54d2-aa94-7b2a44463f7d",
+          "2e47e877-369a-5c42-983c-b2c94f9cc8cb",
+          "d3c3d04b-8e0b-57d7-b159-755cf2ee84d8",
+          "afdb6c69-a066-5d48-927f-b2addbd39108",
+          "8b6ca584-ecac-5d56-8a31-3f21e1bce6c4",
+          "fb8957c9-73bf-5116-8c0c-4d102ff9dd12",
+          "05ef4e67-2b08-5fd4-b0de-a655a1b84083",
+          "2be74d73-07db-5876-bc35-329d1cbc0a03",
+          "24927879-0294-5076-92c8-39f9e14c3a35",
+          "a1e1cade-ec52-519a-89a8-a0d3a7d3f87a",
+          "9c975da4-f83a-5749-8a3d-5b3057ae6274",
+          "8b5cf761-a018-5966-ad61-5d2a6c879173",
+          "e75d38cc-9cda-57e0-a135-02d09861ba57",
+          "73cbbe37-f60c-5c22-9b51-9e404bffb664",
+          "c3ca3e92-be2c-5c39-834e-10363dbc6964",
+          "7ba10839-baff-50c7-910c-968d7a5b78f3",
+          "939900ec-ea55-5386-b7a7-63ca6bdd3d8b",
+          "57967ae1-d68d-5310-9ee5-42b7fb9b1d70",
+          "bbb585e7-892d-5d64-a951-3adc8965e9de",
+          "57553c76-ec58-5e5d-9180-372324a4ea67",
+          "c8d6b6fb-9934-545c-96b4-4e055777fca6",
+          "645405c1-7174-5e06-939d-3c97ad7c851d",
+          "87b85e7d-ebf3-566b-85c4-8ee432fb301b",
+          "0ae96050-23df-57ee-a0a0-15c7e32a7580",
+          "1e9a2a38-6450-5100-ad83-c13e15028129",
+          "bcbd60a8-7111-584d-93a6-ff7d0fd66383",
+          "a3be1c18-c266-56d4-a894-0b250b867b08",
+          "bafb6edf-024d-55aa-98a7-86d784f88645",
+          "6f915c84-811b-55cb-9031-cff7d8c24f3f",
+          "e9bb8e41-22ea-5af1-a61a-92caf3ac8c72",
+          "2f98c970-f0bf-5587-a36a-91cdedfe6dd7",
+          "b0bf9f97-6080-5559-8c8c-735a68fa911f",
+          "087fcb43-b801-5a12-b5b0-aeb3fd1c97bf",
+          "320c3dfd-eb8e-544a-ad4c-e49e6b6a2130",
+          "68f04409-231a-582c-8e71-684c5f248538",
+          "80582712-3ef1-50a5-bcdc-fa9fd79c01f7",
+          "eb09c601-0305-5810-a787-b8847c76863e",
+          "42e91c74-04d3-5e02-8008-af50cf059768",
+          "b43b2f39-e024-5fe1-a988-8ebece7dc6bd",
+          "0dd223ca-d7ec-58b9-9781-3003471f0d86",
+          "60df02b5-92a9-5a71-acbb-facbabbf6409",
+          "d544ccb8-ab47-5a8e-b365-28f5eebaa4f6",
+          "933af493-2eb2-5e94-8ed8-4f8dc19ba679",
+          "3a264ba1-cb57-50e6-b761-7ed7bac79940",
+          "5ef8c7c3-d4ce-516a-9203-bdb58c419b29",
+          "c2e53ce4-01f2-5ed6-ae0b-051d36cd71fe",
+          "3c168200-ed53-5926-ab0b-333fe55928fd",
+          "1f9fb18d-6502-588f-9a27-7b101e3288e9",
+          "f5b08a77-385d-5a77-ae26-da730af40438",
+          "2ebb6c30-600e-5028-abb8-dcb1212127dd",
+          "b8a07672-2954-57ea-9c0a-15caff253ce2",
+          "1770b3e2-bc28-57cc-8112-87ba71f5d075",
+          "bbc0df68-b0b5-5415-ae5b-e3f6a081f7c5",
+          "a11bf13b-8683-5c62-9202-7177bba657f3",
+          "e9ae7984-560e-5ede-99e8-11b262203c6d",
+          "2b481a71-6cea-5094-b219-9796002360f1",
+          "0976c47c-4882-5a20-8810-129ef5514bd7",
+          "5ceee68f-0fb5-5ea4-9455-f7124e00e441",
+          "e42db29c-d03b-5b20-aee4-edd3050bb7b9",
+          "014359f3-7f00-5790-b614-78de7b0d62bc",
+          "931ef058-6e1e-5f56-b383-66c91376b889",
+          "b911191d-bfa4-5ba4-ad9d-4d082b5f51f3",
+          "9c6aef11-b84c-5d15-8f5d-ee23226a190d",
+          "e7f9e923-0822-512b-879e-8c2ebdfa44ea",
+          "f49577da-f879-52e3-8b9f-acc98c6c1376",
+          "97913488-029c-5789-aa00-b85f3ad41cc9",
+          "80045489-5b92-561d-a0af-14bb4b67d20b",
+          "dfbc7a3e-c9ce-5962-bc7f-52b2706ee412",
+          "9e877712-1618-5f71-a414-1b150696fe4e",
+          "ac6d6d05-9e5e-5584-9bd6-5a0b62117b60",
+          "4f641727-48fa-51d6-84b6-762830922e49",
+          "02b42c36-04fa-5461-baf0-abd0ece47a73",
+          "9d333f0a-1a15-55ab-8a72-2dd5f004730a",
+          "e9a61b26-de93-57c3-ab7f-08ca999b6c5c",
+          "2ab3835b-76a9-5dc5-959a-03d973a6e158",
+          "4985f25e-1a2d-53be-9906-de50c87c6eb6",
+          "d9d59ad9-de9d-5664-a134-dd428fd4d433",
+          "8928429a-a124-5ff0-87ab-e639861085ee",
+          "e4089ad1-73bf-5fa3-abf1-5e20e1dd9f9f",
+          "79b03364-81ab-552b-9cd0-eac8d7ff369f",
+          "c88efbce-daa9-5ac2-9414-dec6b36d0cf6",
+          "04a551de-3217-5c68-9e5b-cd578493a1a5",
+          "6436f22e-c809-5229-af08-d29a3d030183",
+          "384b6c7f-314c-55dc-9e55-705006ab6c87",
+          "375b12fb-866b-5c86-a779-0a52ad8a8773",
+          "829a5a92-797e-59c8-9c86-13f484d0982f",
+          "48aa784f-ac05-5cb1-826d-2451e96b0431",
+          "79e66ed1-5c61-56fb-93a1-a4a3b02556bb",
+          "d403bcce-6957-5746-a1da-2b2b69ac861f",
+          "a825a4b4-65bd-5a48-abe8-c54c2976011f",
+          "afe365fa-d77d-57b3-9b9e-068b645a2696",
+          "07b0d604-9be8-5a29-9edd-6180354e7147",
+          "f7960160-7085-520b-a9c1-0b9a0a1b47e4",
+          "3499ee05-40ce-5dfe-b833-53296830179b",
+          "5ca5f267-dbba-5e2a-8467-2d52104c045d"
+        ],
+        "draft_unsatisfiable_reason": null,
+        "teacher_checked": false
+      },
+      "kind": "cold",
+      "indices": [
+        1
+      ],
+      "worker_run": "ASM-100-SAT-cold-1",
+      "action_run_ids": {
+        "1": "ASM-100-SAT-cold-1-c94ab2cd"
+      }
+    },
+    {
+      "case": {
+        "case_id": "ASM-100-SAT",
+        "request": {
+          "course_id": "cf99a4d9-dfa1-5bb3-9d6d-2ea11d1d6820",
+          "question_count": 100,
+          "type_distribution": [
+            {
+              "question_type": "SINGLE_CHOICE",
+              "count": 34
+            },
+            {
+              "question_type": "TRUE_FALSE",
+              "count": 33
+            },
+            {
+              "question_type": "SHORT_ANSWER",
+              "count": 33
+            }
+          ],
+          "knowledge_coverage": [
+            {
+              "knowledge_point": "一次函数",
+              "min_questions": 1
+            }
+          ],
+          "total_score": "100.00",
+          "score_overrides": []
+        },
+        "draft_witness": [
+          "170002c8-1870-54cb-b8ad-494ee15697ad",
+          "fb2aad97-03ba-5704-854c-95453444ad65",
+          "38459e84-ef20-5cae-bdf4-0407061a6997",
+          "9bb36ece-ac8b-5a8d-a57b-ac093d050f60",
+          "1ac55ca1-b2c6-516c-ab5b-20d6ba9fe945",
+          "55506688-8029-54d2-aa94-7b2a44463f7d",
+          "2e47e877-369a-5c42-983c-b2c94f9cc8cb",
+          "d3c3d04b-8e0b-57d7-b159-755cf2ee84d8",
+          "afdb6c69-a066-5d48-927f-b2addbd39108",
+          "8b6ca584-ecac-5d56-8a31-3f21e1bce6c4",
+          "fb8957c9-73bf-5116-8c0c-4d102ff9dd12",
+          "05ef4e67-2b08-5fd4-b0de-a655a1b84083",
+          "2be74d73-07db-5876-bc35-329d1cbc0a03",
+          "24927879-0294-5076-92c8-39f9e14c3a35",
+          "a1e1cade-ec52-519a-89a8-a0d3a7d3f87a",
+          "9c975da4-f83a-5749-8a3d-5b3057ae6274",
+          "8b5cf761-a018-5966-ad61-5d2a6c879173",
+          "e75d38cc-9cda-57e0-a135-02d09861ba57",
+          "73cbbe37-f60c-5c22-9b51-9e404bffb664",
+          "c3ca3e92-be2c-5c39-834e-10363dbc6964",
+          "7ba10839-baff-50c7-910c-968d7a5b78f3",
+          "939900ec-ea55-5386-b7a7-63ca6bdd3d8b",
+          "57967ae1-d68d-5310-9ee5-42b7fb9b1d70",
+          "bbb585e7-892d-5d64-a951-3adc8965e9de",
+          "57553c76-ec58-5e5d-9180-372324a4ea67",
+          "c8d6b6fb-9934-545c-96b4-4e055777fca6",
+          "645405c1-7174-5e06-939d-3c97ad7c851d",
+          "87b85e7d-ebf3-566b-85c4-8ee432fb301b",
+          "0ae96050-23df-57ee-a0a0-15c7e32a7580",
+          "1e9a2a38-6450-5100-ad83-c13e15028129",
+          "bcbd60a8-7111-584d-93a6-ff7d0fd66383",
+          "a3be1c18-c266-56d4-a894-0b250b867b08",
+          "bafb6edf-024d-55aa-98a7-86d784f88645",
+          "6f915c84-811b-55cb-9031-cff7d8c24f3f",
+          "e9bb8e41-22ea-5af1-a61a-92caf3ac8c72",
+          "2f98c970-f0bf-5587-a36a-91cdedfe6dd7",
+          "b0bf9f97-6080-5559-8c8c-735a68fa911f",
+          "087fcb43-b801-5a12-b5b0-aeb3fd1c97bf",
+          "320c3dfd-eb8e-544a-ad4c-e49e6b6a2130",
+          "68f04409-231a-582c-8e71-684c5f248538",
+          "80582712-3ef1-50a5-bcdc-fa9fd79c01f7",
+          "eb09c601-0305-5810-a787-b8847c76863e",
+          "42e91c74-04d3-5e02-8008-af50cf059768",
+          "b43b2f39-e024-5fe1-a988-8ebece7dc6bd",
+          "0dd223ca-d7ec-58b9-9781-3003471f0d86",
+          "60df02b5-92a9-5a71-acbb-facbabbf6409",
+          "d544ccb8-ab47-5a8e-b365-28f5eebaa4f6",
+          "933af493-2eb2-5e94-8ed8-4f8dc19ba679",
+          "3a264ba1-cb57-50e6-b761-7ed7bac79940",
+          "5ef8c7c3-d4ce-516a-9203-bdb58c419b29",
+          "c2e53ce4-01f2-5ed6-ae0b-051d36cd71fe",
+          "3c168200-ed53-5926-ab0b-333fe55928fd",
+          "1f9fb18d-6502-588f-9a27-7b101e3288e9",
+          "f5b08a77-385d-5a77-ae26-da730af40438",
+          "2ebb6c30-600e-5028-abb8-dcb1212127dd",
+          "b8a07672-2954-57ea-9c0a-15caff253ce2",
+          "1770b3e2-bc28-57cc-8112-87ba71f5d075",
+          "bbc0df68-b0b5-5415-ae5b-e3f6a081f7c5",
+          "a11bf13b-8683-5c62-9202-7177bba657f3",
+          "e9ae7984-560e-5ede-99e8-11b262203c6d",
+          "2b481a71-6cea-5094-b219-9796002360f1",
+          "0976c47c-4882-5a20-8810-129ef5514bd7",
+          "5ceee68f-0fb5-5ea4-9455-f7124e00e441",
+          "e42db29c-d03b-5b20-aee4-edd3050bb7b9",
+          "014359f3-7f00-5790-b614-78de7b0d62bc",
+          "931ef058-6e1e-5f56-b383-66c91376b889",
+          "b911191d-bfa4-5ba4-ad9d-4d082b5f51f3",
+          "9c6aef11-b84c-5d15-8f5d-ee23226a190d",
+          "e7f9e923-0822-512b-879e-8c2ebdfa44ea",
+          "f49577da-f879-52e3-8b9f-acc98c6c1376",
+          "97913488-029c-5789-aa00-b85f3ad41cc9",
+          "80045489-5b92-561d-a0af-14bb4b67d20b",
+          "dfbc7a3e-c9ce-5962-bc7f-52b2706ee412",
+          "9e877712-1618-5f71-a414-1b150696fe4e",
+          "ac6d6d05-9e5e-5584-9bd6-5a0b62117b60",
+          "4f641727-48fa-51d6-84b6-762830922e49",
+          "02b42c36-04fa-5461-baf0-abd0ece47a73",
+          "9d333f0a-1a15-55ab-8a72-2dd5f004730a",
+          "e9a61b26-de93-57c3-ab7f-08ca999b6c5c",
+          "2ab3835b-76a9-5dc5-959a-03d973a6e158",
+          "4985f25e-1a2d-53be-9906-de50c87c6eb6",
+          "d9d59ad9-de9d-5664-a134-dd428fd4d433",
+          "8928429a-a124-5ff0-87ab-e639861085ee",
+          "e4089ad1-73bf-5fa3-abf1-5e20e1dd9f9f",
+          "79b03364-81ab-552b-9cd0-eac8d7ff369f",
+          "c88efbce-daa9-5ac2-9414-dec6b36d0cf6",
+          "04a551de-3217-5c68-9e5b-cd578493a1a5",
+          "6436f22e-c809-5229-af08-d29a3d030183",
+          "384b6c7f-314c-55dc-9e55-705006ab6c87",
+          "375b12fb-866b-5c86-a779-0a52ad8a8773",
+          "829a5a92-797e-59c8-9c86-13f484d0982f",
+          "48aa784f-ac05-5cb1-826d-2451e96b0431",
+          "79e66ed1-5c61-56fb-93a1-a4a3b02556bb",
+          "d403bcce-6957-5746-a1da-2b2b69ac861f",
+          "a825a4b4-65bd-5a48-abe8-c54c2976011f",
+          "afe365fa-d77d-57b3-9b9e-068b645a2696",
+          "07b0d604-9be8-5a29-9edd-6180354e7147",
+          "f7960160-7085-520b-a9c1-0b9a0a1b47e4",
+          "3499ee05-40ce-5dfe-b833-53296830179b",
+          "5ca5f267-dbba-5e2a-8467-2d52104c045d"
+        ],
+        "draft_unsatisfiable_reason": null,
+        "teacher_checked": false
+      },
+      "kind": "cold",
+      "indices": [
+        2
+      ],
+      "worker_run": "ASM-100-SAT-cold-2",
+      "action_run_ids": {
+        "2": "ASM-100-SAT-cold-2-88cc9dbf"
+      }
+    },
+    {
+      "case": {
+        "case_id": "ASM-100-SAT",
+        "request": {
+          "course_id": "cf99a4d9-dfa1-5bb3-9d6d-2ea11d1d6820",
+          "question_count": 100,
+          "type_distribution": [
+            {
+              "question_type": "SINGLE_CHOICE",
+              "count": 34
+            },
+            {
+              "question_type": "TRUE_FALSE",
+              "count": 33
+            },
+            {
+              "question_type": "SHORT_ANSWER",
+              "count": 33
+            }
+          ],
+          "knowledge_coverage": [
+            {
+              "knowledge_point": "一次函数",
+              "min_questions": 1
+            }
+          ],
+          "total_score": "100.00",
+          "score_overrides": []
+        },
+        "draft_witness": [
+          "170002c8-1870-54cb-b8ad-494ee15697ad",
+          "fb2aad97-03ba-5704-854c-95453444ad65",
+          "38459e84-ef20-5cae-bdf4-0407061a6997",
+          "9bb36ece-ac8b-5a8d-a57b-ac093d050f60",
+          "1ac55ca1-b2c6-516c-ab5b-20d6ba9fe945",
+          "55506688-8029-54d2-aa94-7b2a44463f7d",
+          "2e47e877-369a-5c42-983c-b2c94f9cc8cb",
+          "d3c3d04b-8e0b-57d7-b159-755cf2ee84d8",
+          "afdb6c69-a066-5d48-927f-b2addbd39108",
+          "8b6ca584-ecac-5d56-8a31-3f21e1bce6c4",
+          "fb8957c9-73bf-5116-8c0c-4d102ff9dd12",
+          "05ef4e67-2b08-5fd4-b0de-a655a1b84083",
+          "2be74d73-07db-5876-bc35-329d1cbc0a03",
+          "24927879-0294-5076-92c8-39f9e14c3a35",
+          "a1e1cade-ec52-519a-89a8-a0d3a7d3f87a",
+          "9c975da4-f83a-5749-8a3d-5b3057ae6274",
+          "8b5cf761-a018-5966-ad61-5d2a6c879173",
+          "e75d38cc-9cda-57e0-a135-02d09861ba57",
+          "73cbbe37-f60c-5c22-9b51-9e404bffb664",
+          "c3ca3e92-be2c-5c39-834e-10363dbc6964",
+          "7ba10839-baff-50c7-910c-968d7a5b78f3",
+          "939900ec-ea55-5386-b7a7-63ca6bdd3d8b",
+          "57967ae1-d68d-5310-9ee5-42b7fb9b1d70",
+          "bbb585e7-892d-5d64-a951-3adc8965e9de",
+          "57553c76-ec58-5e5d-9180-372324a4ea67",
+          "c8d6b6fb-9934-545c-96b4-4e055777fca6",
+          "645405c1-7174-5e06-939d-3c97ad7c851d",
+          "87b85e7d-ebf3-566b-85c4-8ee432fb301b",
+          "0ae96050-23df-57ee-a0a0-15c7e32a7580",
+          "1e9a2a38-6450-5100-ad83-c13e15028129",
+          "bcbd60a8-7111-584d-93a6-ff7d0fd66383",
+          "a3be1c18-c266-56d4-a894-0b250b867b08",
+          "bafb6edf-024d-55aa-98a7-86d784f88645",
+          "6f915c84-811b-55cb-9031-cff7d8c24f3f",
+          "e9bb8e41-22ea-5af1-a61a-92caf3ac8c72",
+          "2f98c970-f0bf-5587-a36a-91cdedfe6dd7",
+          "b0bf9f97-6080-5559-8c8c-735a68fa911f",
+          "087fcb43-b801-5a12-b5b0-aeb3fd1c97bf",
+          "320c3dfd-eb8e-544a-ad4c-e49e6b6a2130",
+          "68f04409-231a-582c-8e71-684c5f248538",
+          "80582712-3ef1-50a5-bcdc-fa9fd79c01f7",
+          "eb09c601-0305-5810-a787-b8847c76863e",
+          "42e91c74-04d3-5e02-8008-af50cf059768",
+          "b43b2f39-e024-5fe1-a988-8ebece7dc6bd",
+          "0dd223ca-d7ec-58b9-9781-3003471f0d86",
+          "60df02b5-92a9-5a71-acbb-facbabbf6409",
+          "d544ccb8-ab47-5a8e-b365-28f5eebaa4f6",
+          "933af493-2eb2-5e94-8ed8-4f8dc19ba679",
+          "3a264ba1-cb57-50e6-b761-7ed7bac79940",
+          "5ef8c7c3-d4ce-516a-9203-bdb58c419b29",
+          "c2e53ce4-01f2-5ed6-ae0b-051d36cd71fe",
+          "3c168200-ed53-5926-ab0b-333fe55928fd",
+          "1f9fb18d-6502-588f-9a27-7b101e3288e9",
+          "f5b08a77-385d-5a77-ae26-da730af40438",
+          "2ebb6c30-600e-5028-abb8-dcb1212127dd",
+          "b8a07672-2954-57ea-9c0a-15caff253ce2",
+          "1770b3e2-bc28-57cc-8112-87ba71f5d075",
+          "bbc0df68-b0b5-5415-ae5b-e3f6a081f7c5",
+          "a11bf13b-8683-5c62-9202-7177bba657f3",
+          "e9ae7984-560e-5ede-99e8-11b262203c6d",
+          "2b481a71-6cea-5094-b219-9796002360f1",
+          "0976c47c-4882-5a20-8810-129ef5514bd7",
+          "5ceee68f-0fb5-5ea4-9455-f7124e00e441",
+          "e42db29c-d03b-5b20-aee4-edd3050bb7b9",
+          "014359f3-7f00-5790-b614-78de7b0d62bc",
+          "931ef058-6e1e-5f56-b383-66c91376b889",
+          "b911191d-bfa4-5ba4-ad9d-4d082b5f51f3",
+          "9c6aef11-b84c-5d15-8f5d-ee23226a190d",
+          "e7f9e923-0822-512b-879e-8c2ebdfa44ea",
+          "f49577da-f879-52e3-8b9f-acc98c6c1376",
+          "97913488-029c-5789-aa00-b85f3ad41cc9",
+          "80045489-5b92-561d-a0af-14bb4b67d20b",
+          "dfbc7a3e-c9ce-5962-bc7f-52b2706ee412",
+          "9e877712-1618-5f71-a414-1b150696fe4e",
+          "ac6d6d05-9e5e-5584-9bd6-5a0b62117b60",
+          "4f641727-48fa-51d6-84b6-762830922e49",
+          "02b42c36-04fa-5461-baf0-abd0ece47a73",
+          "9d333f0a-1a15-55ab-8a72-2dd5f004730a",
+          "e9a61b26-de93-57c3-ab7f-08ca999b6c5c",
+          "2ab3835b-76a9-5dc5-959a-03d973a6e158",
+          "4985f25e-1a2d-53be-9906-de50c87c6eb6",
+          "d9d59ad9-de9d-5664-a134-dd428fd4d433",
+          "8928429a-a124-5ff0-87ab-e639861085ee",
+          "e4089ad1-73bf-5fa3-abf1-5e20e1dd9f9f",
+          "79b03364-81ab-552b-9cd0-eac8d7ff369f",
+          "c88efbce-daa9-5ac2-9414-dec6b36d0cf6",
+          "04a551de-3217-5c68-9e5b-cd578493a1a5",
+          "6436f22e-c809-5229-af08-d29a3d030183",
+          "384b6c7f-314c-55dc-9e55-705006ab6c87",
+          "375b12fb-866b-5c86-a779-0a52ad8a8773",
+          "829a5a92-797e-59c8-9c86-13f484d0982f",
+          "48aa784f-ac05-5cb1-826d-2451e96b0431",
+          "79e66ed1-5c61-56fb-93a1-a4a3b02556bb",
+          "d403bcce-6957-5746-a1da-2b2b69ac861f",
+          "a825a4b4-65bd-5a48-abe8-c54c2976011f",
+          "afe365fa-d77d-57b3-9b9e-068b645a2696",
+          "07b0d604-9be8-5a29-9edd-6180354e7147",
+          "f7960160-7085-520b-a9c1-0b9a0a1b47e4",
+          "3499ee05-40ce-5dfe-b833-53296830179b",
+          "5ca5f267-dbba-5e2a-8467-2d52104c045d"
+        ],
+        "draft_unsatisfiable_reason": null,
+        "teacher_checked": false
+      },
+      "kind": "cold",
+      "indices": [
+        3
+      ],
+      "worker_run": "ASM-100-SAT-cold-3",
+      "action_run_ids": {
+        "3": "ASM-100-SAT-cold-3-aa2729c1"
+      }
+    },
+    {
+      "case": {
+        "case_id": "ASM-100-SAT",
+        "request": {
+          "course_id": "cf99a4d9-dfa1-5bb3-9d6d-2ea11d1d6820",
+          "question_count": 100,
+          "type_distribution": [
+            {
+              "question_type": "SINGLE_CHOICE",
+              "count": 34
+            },
+            {
+              "question_type": "TRUE_FALSE",
+              "count": 33
+            },
+            {
+              "question_type": "SHORT_ANSWER",
+              "count": 33
+            }
+          ],
+          "knowledge_coverage": [
+            {
+              "knowledge_point": "一次函数",
+              "min_questions": 1
+            }
+          ],
+          "total_score": "100.00",
+          "score_overrides": []
+        },
+        "draft_witness": [
+          "170002c8-1870-54cb-b8ad-494ee15697ad",
+          "fb2aad97-03ba-5704-854c-95453444ad65",
+          "38459e84-ef20-5cae-bdf4-0407061a6997",
+          "9bb36ece-ac8b-5a8d-a57b-ac093d050f60",
+          "1ac55ca1-b2c6-516c-ab5b-20d6ba9fe945",
+          "55506688-8029-54d2-aa94-7b2a44463f7d",
+          "2e47e877-369a-5c42-983c-b2c94f9cc8cb",
+          "d3c3d04b-8e0b-57d7-b159-755cf2ee84d8",
+          "afdb6c69-a066-5d48-927f-b2addbd39108",
+          "8b6ca584-ecac-5d56-8a31-3f21e1bce6c4",
+          "fb8957c9-73bf-5116-8c0c-4d102ff9dd12",
+          "05ef4e67-2b08-5fd4-b0de-a655a1b84083",
+          "2be74d73-07db-5876-bc35-329d1cbc0a03",
+          "24927879-0294-5076-92c8-39f9e14c3a35",
+          "a1e1cade-ec52-519a-89a8-a0d3a7d3f87a",
+          "9c975da4-f83a-5749-8a3d-5b3057ae6274",
+          "8b5cf761-a018-5966-ad61-5d2a6c879173",
+          "e75d38cc-9cda-57e0-a135-02d09861ba57",
+          "73cbbe37-f60c-5c22-9b51-9e404bffb664",
+          "c3ca3e92-be2c-5c39-834e-10363dbc6964",
+          "7ba10839-baff-50c7-910c-968d7a5b78f3",
+          "939900ec-ea55-5386-b7a7-63ca6bdd3d8b",
+          "57967ae1-d68d-5310-9ee5-42b7fb9b1d70",
+          "bbb585e7-892d-5d64-a951-3adc8965e9de",
+          "57553c76-ec58-5e5d-9180-372324a4ea67",
+          "c8d6b6fb-9934-545c-96b4-4e055777fca6",
+          "645405c1-7174-5e06-939d-3c97ad7c851d",
+          "87b85e7d-ebf3-566b-85c4-8ee432fb301b",
+          "0ae96050-23df-57ee-a0a0-15c7e32a7580",
+          "1e9a2a38-6450-5100-ad83-c13e15028129",
+          "bcbd60a8-7111-584d-93a6-ff7d0fd66383",
+          "a3be1c18-c266-56d4-a894-0b250b867b08",
+          "bafb6edf-024d-55aa-98a7-86d784f88645",
+          "6f915c84-811b-55cb-9031-cff7d8c24f3f",
+          "e9bb8e41-22ea-5af1-a61a-92caf3ac8c72",
+          "2f98c970-f0bf-5587-a36a-91cdedfe6dd7",
+          "b0bf9f97-6080-5559-8c8c-735a68fa911f",
+          "087fcb43-b801-5a12-b5b0-aeb3fd1c97bf",
+          "320c3dfd-eb8e-544a-ad4c-e49e6b6a2130",
+          "68f04409-231a-582c-8e71-684c5f248538",
+          "80582712-3ef1-50a5-bcdc-fa9fd79c01f7",
+          "eb09c601-0305-5810-a787-b8847c76863e",
+          "42e91c74-04d3-5e02-8008-af50cf059768",
+          "b43b2f39-e024-5fe1-a988-8ebece7dc6bd",
+          "0dd223ca-d7ec-58b9-9781-3003471f0d86",
+          "60df02b5-92a9-5a71-acbb-facbabbf6409",
+          "d544ccb8-ab47-5a8e-b365-28f5eebaa4f6",
+          "933af493-2eb2-5e94-8ed8-4f8dc19ba679",
+          "3a264ba1-cb57-50e6-b761-7ed7bac79940",
+          "5ef8c7c3-d4ce-516a-9203-bdb58c419b29",
+          "c2e53ce4-01f2-5ed6-ae0b-051d36cd71fe",
+          "3c168200-ed53-5926-ab0b-333fe55928fd",
+          "1f9fb18d-6502-588f-9a27-7b101e3288e9",
+          "f5b08a77-385d-5a77-ae26-da730af40438",
+          "2ebb6c30-600e-5028-abb8-dcb1212127dd",
+          "b8a07672-2954-57ea-9c0a-15caff253ce2",
+          "1770b3e2-bc28-57cc-8112-87ba71f5d075",
+          "bbc0df68-b0b5-5415-ae5b-e3f6a081f7c5",
+          "a11bf13b-8683-5c62-9202-7177bba657f3",
+          "e9ae7984-560e-5ede-99e8-11b262203c6d",
+          "2b481a71-6cea-5094-b219-9796002360f1",
+          "0976c47c-4882-5a20-8810-129ef5514bd7",
+          "5ceee68f-0fb5-5ea4-9455-f7124e00e441",
+          "e42db29c-d03b-5b20-aee4-edd3050bb7b9",
+          "014359f3-7f00-5790-b614-78de7b0d62bc",
+          "931ef058-6e1e-5f56-b383-66c91376b889",
+          "b911191d-bfa4-5ba4-ad9d-4d082b5f51f3",
+          "9c6aef11-b84c-5d15-8f5d-ee23226a190d",
+          "e7f9e923-0822-512b-879e-8c2ebdfa44ea",
+          "f49577da-f879-52e3-8b9f-acc98c6c1376",
+          "97913488-029c-5789-aa00-b85f3ad41cc9",
+          "80045489-5b92-561d-a0af-14bb4b67d20b",
+          "dfbc7a3e-c9ce-5962-bc7f-52b2706ee412",
+          "9e877712-1618-5f71-a414-1b150696fe4e",
+          "ac6d6d05-9e5e-5584-9bd6-5a0b62117b60",
+          "4f641727-48fa-51d6-84b6-762830922e49",
+          "02b42c36-04fa-5461-baf0-abd0ece47a73",
+          "9d333f0a-1a15-55ab-8a72-2dd5f004730a",
+          "e9a61b26-de93-57c3-ab7f-08ca999b6c5c",
+          "2ab3835b-76a9-5dc5-959a-03d973a6e158",
+          "4985f25e-1a2d-53be-9906-de50c87c6eb6",
+          "d9d59ad9-de9d-5664-a134-dd428fd4d433",
+          "8928429a-a124-5ff0-87ab-e639861085ee",
+          "e4089ad1-73bf-5fa3-abf1-5e20e1dd9f9f",
+          "79b03364-81ab-552b-9cd0-eac8d7ff369f",
+          "c88efbce-daa9-5ac2-9414-dec6b36d0cf6",
+          "04a551de-3217-5c68-9e5b-cd578493a1a5",
+          "6436f22e-c809-5229-af08-d29a3d030183",
+          "384b6c7f-314c-55dc-9e55-705006ab6c87",
+          "375b12fb-866b-5c86-a779-0a52ad8a8773",
+          "829a5a92-797e-59c8-9c86-13f484d0982f",
+          "48aa784f-ac05-5cb1-826d-2451e96b0431",
+          "79e66ed1-5c61-56fb-93a1-a4a3b02556bb",
+          "d403bcce-6957-5746-a1da-2b2b69ac861f",
+          "a825a4b4-65bd-5a48-abe8-c54c2976011f",
+          "afe365fa-d77d-57b3-9b9e-068b645a2696",
+          "07b0d604-9be8-5a29-9edd-6180354e7147",
+          "f7960160-7085-520b-a9c1-0b9a0a1b47e4",
+          "3499ee05-40ce-5dfe-b833-53296830179b",
+          "5ca5f267-dbba-5e2a-8467-2d52104c045d"
+        ],
+        "draft_unsatisfiable_reason": null,
+        "teacher_checked": false
+      },
+      "kind": "warm",
+      "indices": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "worker_run": "ASM-100-SAT-warm-0",
+      "action_run_ids": {
+        "0": "ASM-100-SAT-warm-0-d8b76a39",
+        "1": "ASM-100-SAT-warm-1-80b6114d",
+        "2": "ASM-100-SAT-warm-2-d2f4fcf8",
+        "3": "ASM-100-SAT-warm-3-b74fa796",
+        "4": "ASM-100-SAT-warm-4-3d42041d",
+        "5": "ASM-100-SAT-warm-5-4d0b3260"
+      }
+    },
+    {
+      "case": {
+        "case_id": "ASM-100-UNSAT",
+        "request": {
+          "course_id": "cf99a4d9-dfa1-5bb3-9d6d-2ea11d1d6820",
+          "question_count": 100,
+          "type_distribution": [
+            {
+              "question_type": "SINGLE_CHOICE",
+              "count": 34
+            },
+            {
+              "question_type": "TRUE_FALSE",
+              "count": 33
+            },
+            {
+              "question_type": "SHORT_ANSWER",
+              "count": 33
+            }
+          ],
+          "knowledge_coverage": [
+            {
+              "knowledge_point": "未收录知识点",
+              "min_questions": 1
+            }
+          ],
+          "total_score": "100.00",
+          "score_overrides": []
+        },
+        "draft_witness": null,
+        "draft_unsatisfiable_reason": "全部 300 个候选的标签集合没有未收录知识点",
+        "teacher_checked": false
+      },
+      "kind": "cold",
+      "indices": [
+        1
+      ],
+      "worker_run": "ASM-100-UNSAT-cold-1",
+      "action_run_ids": {
+        "1": "ASM-100-UNSAT-cold-1-58c758ed"
+      }
+    },
+    {
+      "case": {
+        "case_id": "ASM-100-UNSAT",
+        "request": {
+          "course_id": "cf99a4d9-dfa1-5bb3-9d6d-2ea11d1d6820",
+          "question_count": 100,
+          "type_distribution": [
+            {
+              "question_type": "SINGLE_CHOICE",
+              "count": 34
+            },
+            {
+              "question_type": "TRUE_FALSE",
+              "count": 33
+            },
+            {
+              "question_type": "SHORT_ANSWER",
+              "count": 33
+            }
+          ],
+          "knowledge_coverage": [
+            {
+              "knowledge_point": "未收录知识点",
+              "min_questions": 1
+            }
+          ],
+          "total_score": "100.00",
+          "score_overrides": []
+        },
+        "draft_witness": null,
+        "draft_unsatisfiable_reason": "全部 300 个候选的标签集合没有未收录知识点",
+        "teacher_checked": false
+      },
+      "kind": "cold",
+      "indices": [
+        2
+      ],
+      "worker_run": "ASM-100-UNSAT-cold-2",
+      "action_run_ids": {
+        "2": "ASM-100-UNSAT-cold-2-7d4e3a12"
+      }
+    },
+    {
+      "case": {
+        "case_id": "ASM-100-UNSAT",
+        "request": {
+          "course_id": "cf99a4d9-dfa1-5bb3-9d6d-2ea11d1d6820",
+          "question_count": 100,
+          "type_distribution": [
+            {
+              "question_type": "SINGLE_CHOICE",
+              "count": 34
+            },
+            {
+              "question_type": "TRUE_FALSE",
+              "count": 33
+            },
+            {
+              "question_type": "SHORT_ANSWER",
+              "count": 33
+            }
+          ],
+          "knowledge_coverage": [
+            {
+              "knowledge_point": "未收录知识点",
+              "min_questions": 1
+            }
+          ],
+          "total_score": "100.00",
+          "score_overrides": []
+        },
+        "draft_witness": null,
+        "draft_unsatisfiable_reason": "全部 300 个候选的标签集合没有未收录知识点",
+        "teacher_checked": false
+      },
+      "kind": "cold",
+      "indices": [
+        3
+      ],
+      "worker_run": "ASM-100-UNSAT-cold-3",
+      "action_run_ids": {
+        "3": "ASM-100-UNSAT-cold-3-580fe70d"
+      }
+    },
+    {
+      "case": {
+        "case_id": "ASM-100-UNSAT",
+        "request": {
+          "course_id": "cf99a4d9-dfa1-5bb3-9d6d-2ea11d1d6820",
+          "question_count": 100,
+          "type_distribution": [
+            {
+              "question_type": "SINGLE_CHOICE",
+              "count": 34
+            },
+            {
+              "question_type": "TRUE_FALSE",
+              "count": 33
+            },
+            {
+              "question_type": "SHORT_ANSWER",
+              "count": 33
+            }
+          ],
+          "knowledge_coverage": [
+            {
+              "knowledge_point": "未收录知识点",
+              "min_questions": 1
+            }
+          ],
+          "total_score": "100.00",
+          "score_overrides": []
+        },
+        "draft_witness": null,
+        "draft_unsatisfiable_reason": "全部 300 个候选的标签集合没有未收录知识点",
+        "teacher_checked": false
+      },
+      "kind": "warm",
+      "indices": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "worker_run": "ASM-100-UNSAT-warm-0",
+      "action_run_ids": {
+        "0": "ASM-100-UNSAT-warm-0-926b5f1f",
+        "1": "ASM-100-UNSAT-warm-1-88a90c51",
+        "2": "ASM-100-UNSAT-warm-2-1a796dbe",
+        "3": "ASM-100-UNSAT-warm-3-680d3d1e",
+        "4": "ASM-100-UNSAT-warm-4-705a9fcd",
+        "5": "ASM-100-UNSAT-warm-5-be27512e"
+      }
+    }
+  ],
+  "timed_planned": 48,
+  "total_actions_planned": 54,
+  "candidate_count": 300,
+  "initial_database_state": {
+    "course_exams": 28,
+    "course_links": 692,
+    "course_questions": 300
+  },
+  "concurrency": 1,
+  "cloud_calls": 0,
+  "annotation": "AI assisted + developer review; independent teacher=0",
+  "cold": "new actual application worker per action; ready DB/Redis reused; OS disk cache not cleared",
+  "warm": "one same-size preheat plus five fresh drafts in same worker",
+  "timing": "actual browser click to full preview or genuine unsatisfied diagnostic including rendered actual images; no generated questions"
+}

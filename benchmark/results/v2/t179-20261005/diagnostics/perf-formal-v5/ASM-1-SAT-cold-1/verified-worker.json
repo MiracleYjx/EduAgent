@@ -1,0 +1,12 @@
+{
+  "worker": {
+    "pid": 85332,
+    "source": "real uvicorn worker; no subprocess inference",
+    "view": "backend.app.ui.exam_view.create_exam_view"
+  },
+  "launched_pid": 102952,
+  "verified_chain": [
+    85332,
+    102952
+  ]
+}

@@ -1,0 +1,6 @@
+{
+  "database": "eduagent_t179_8756bb66a88f",
+  "redis_container": "eduagent-t179-redis-8756bb66a88f",
+  "redis_port": 12430,
+  "pg_container": "eduagent-postgres-1"
+}

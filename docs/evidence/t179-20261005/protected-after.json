@@ -1,0 +1,6 @@
+{
+  "README.md": true,
+  "README.zh-CN.md": true,
+  "benchmark/corpus/grading_samples.json": true,
+  ".env": true
+}

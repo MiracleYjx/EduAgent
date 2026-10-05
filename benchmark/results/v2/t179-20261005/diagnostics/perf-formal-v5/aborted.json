@@ -1,0 +1,6 @@
+{
+  "aborted_at": "2026-10-05T02:30:37.791689+00:00",
+  "reason": "Fix introduced bulk-read compatibility regression for corrupt cross-course associations; preserve all completed measurements; restart entire fixed protocol on new source",
+  "recorded_actions": 16,
+  "passed": false
+}

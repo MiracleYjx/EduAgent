@@ -1,0 +1,17 @@
+{
+  "run_id": "ASM-25-UNSAT-warm-2-68d9a8d3",
+  "case_id": "ASM-25-UNSAT",
+  "url": "http://127.0.0.1:18762",
+  "title": "T179 ASM-25-UNSAT-warm-2-68d9a8d3",
+  "sat": false,
+  "count": 25,
+  "counts": {
+    "SINGLE_CHOICE": 9,
+    "TRUE_FALSE": 8,
+    "SHORT_ANSWER": 8
+  },
+  "total": "25.00",
+  "label": "未收录知识点",
+  "output": "D:\\YJX\\MyCode\\EduAgent\\.cache\\t179-20261005\\perf-formal-v6\\ASM-25-UNSAT-warm-0\\2\\browser.json",
+  "screenshot": "D:\\YJX\\MyCode\\EduAgent\\.cache\\t179-20261005\\perf-formal-v6\\ASM-25-UNSAT-warm-0\\2\\browser.png"
+}

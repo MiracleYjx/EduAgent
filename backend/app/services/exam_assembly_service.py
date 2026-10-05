@@ -351,31 +351,32 @@ class ExamAssemblyService:
         overrides = {item.question_id: item.score for item in payload.score_overrides}
         candidates: list[_Candidate] = []
         excluded: list[dict[str, str]] = []
-        for question in rows:
-            try:
-                self.validation.require_exam_eligible(question, actor_id)
-                if not isinstance(question.knowledge_points, list) or any(
-                    not isinstance(label, str) or not label.strip()
-                    for label in question.knowledge_points
-                ):
-                    raise ContentValidationError(
-                        "CONTENT_SOURCE_INVALID", "知识点标签无效。"
+        with self.validation._exam_eligibility_batch(rows, actor_id):
+            for question in rows:
+                try:
+                    self.validation.require_exam_eligible(question, actor_id)
+                    if not isinstance(question.knowledge_points, list) or any(
+                        not isinstance(label, str) or not label.strip()
+                        for label in question.knowledge_points
+                    ):
+                        raise ContentValidationError(
+                            "CONTENT_SOURCE_INVALID", "知识点标签无效。"
+                        )
+                    candidates.append(
+                        _Candidate(
+                            question,
+                            overrides.get(question.id, question.score),
+                            frozenset(question.knowledge_points),
+                        )
                     )
-                candidates.append(
-                    _Candidate(
-                        question,
-                        overrides.get(question.id, question.score),
-                        frozenset(question.knowledge_points),
+                except (ContentValidationError, FileStorageError) as exc:
+                    excluded.append(
+                        {
+                            "question_id": str(question.id),
+                            "code": exc.code,
+                            "message": str(exc),
+                        }
                     )
-                )
-            except (ContentValidationError, FileStorageError) as exc:
-                excluded.append(
-                    {
-                        "question_id": str(question.id),
-                        "code": exc.code,
-                        "message": str(exc),
-                    }
-                )
         return candidates, excluded
 
     def _search(
@@ -655,68 +656,78 @@ class ExamAssemblyService:
                     code="EXAM_ORDER_INVALID", message="题序必须从 1 开始连续且唯一。"
                 )
             )
-        for link in links:
-            question = link.question
-            if question.course_id != exam.course_id:
-                checks.append(
-                    PublicationCheck(
-                        code="EXAM_QUESTION_COURSE_CONFLICT",
-                        message="题目不属于本场课程。",
-                        question_id=question.id,
+        with self.validation._exam_eligibility_batch(
+            [
+                link.question
+                for link in links
+                if link.question.course_id == exam.course_id
+            ],
+            actor_id,
+        ):
+            for link in links:
+                question = link.question
+                if question.course_id != exam.course_id:
+                    checks.append(
+                        PublicationCheck(
+                            code="EXAM_QUESTION_COURSE_CONFLICT",
+                            message="题目不属于本场课程。",
+                            question_id=question.id,
+                        )
                     )
-                )
-                continue
-            try:
-                self.validation.require_exam_eligible(question, actor_id)
-            except (ContentValidationError, FileStorageError) as exc:
-                checks.append(
-                    PublicationCheck(
-                        code=exc.code, message=str(exc), question_id=question.id
+                    continue
+                try:
+                    self.validation.require_exam_eligible(question, actor_id)
+                except (ContentValidationError, FileStorageError) as exc:
+                    checks.append(
+                        PublicationCheck(
+                            code=exc.code, message=str(exc), question_id=question.id
+                        )
                     )
+                basis = (
+                    ScoringBasis.model_validate(link.scoring_basis)
+                    if link.scoring_basis is not None
+                    else None
                 )
-            basis = (
-                ScoringBasis.model_validate(link.scoring_basis)
-                if link.scoring_basis is not None
-                else None
-            )
-            from backend.app.services.exam_scoring_service import require_scoring_ready
+                from backend.app.services.exam_scoring_service import (
+                    require_scoring_ready,
+                )
 
-            try:
-                require_scoring_ready(exam, link)
-            except AssemblyError as exc:
-                checks.append(
-                    PublicationCheck(
-                        code=exc.code, message=str(exc), question_id=question.id
+                try:
+                    require_scoring_ready(exam, link)
+                except AssemblyError as exc:
+                    checks.append(
+                        PublicationCheck(
+                            code=exc.code, message=str(exc), question_id=question.id
+                        )
+                    )
+                effective = (
+                    link.score
+                    if link.score is not None
+                    else question.score if exam.status == ExamStatus.DRAFT else None
+                )
+                views.append(
+                    ExamQuestionView(
+                        id=link.id,
+                        exam_id=exam.id,
+                        question_id=question.id,
+                        question_type=question.type,
+                        content=question.content,
+                        options=question.options,
+                        reference_answer=question.reference_answer,
+                        scoring_rubric=question.scoring_rubric,
+                        analysis=question.analysis,
+                        knowledge_points=list(question.knowledge_points or []),
+                        order_index=link.order_index,
+                        score=link.score,
+                        effective_score=effective,
+                        base_score=link.base_score,
+                        published_knowledge_points=link.published_knowledge_points,
+                        scoring_basis=basis,
+                        assets=self.assets.list_question(
+                            question.id, actor_id=actor_id
+                        ),
                     )
                 )
-            effective = (
-                link.score
-                if link.score is not None
-                else question.score
-                if exam.status == ExamStatus.DRAFT
-                else None
-            )
-            views.append(
-                ExamQuestionView(
-                    id=link.id,
-                    exam_id=exam.id,
-                    question_id=question.id,
-                    question_type=question.type,
-                    content=question.content,
-                    options=question.options,
-                    reference_answer=question.reference_answer,
-                    scoring_rubric=question.scoring_rubric,
-                    analysis=question.analysis,
-                    knowledge_points=list(question.knowledge_points or []),
-                    order_index=link.order_index,
-                    score=link.score,
-                    effective_score=effective,
-                    base_score=link.base_score,
-                    published_knowledge_points=link.published_knowledge_points,
-                    scoring_basis=basis,
-                    assets=self.assets.list_question(question.id, actor_id=actor_id),
-                )
-            )
         conditions = self.conditions(exam, intent)
         if any(not item.satisfied for item in conditions):
             checks.append(

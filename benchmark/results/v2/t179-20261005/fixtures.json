@@ -1,0 +1,1876 @@
+{
+  "created_at": "2026-10-05T01:42:58.030775+00:00",
+  "source": "T146 AI assisted + developer review; independent teachers=0",
+  "controlled_inference": "existing StubSemanticProvider; no cloud calls; not quality evidence",
+  "source_hashes": {
+    "question_pool.json": "c3b494b56cb2f34a88107568e0329ccfdf8f73ebb4b144f2ed95286b1bf99087",
+    "assembly_cases.json": "cd0ad9a0f7d4f4b3e27409b9ed4b1ab04c61b8fc7fc90f6945b5b75909c2ef2f",
+    "scoring_cases.json": "005d8e5dfd0c3b3ff9cd89c03a42ad1bb68cfb7d92eb1e6c35f356d616ceec70",
+    "teaching_basis.md": "f2d176cda52aff08d811f6c0c70dc10b2799f4b3b20174dd5860b5353ba623c7",
+    "assets/diagram.png": "44bbbce885cdf7f8965364579d2007b375c069a904d79f487ac64518ae602b97"
+  },
+  "approved_questions": [
+    {
+      "question_id": "170002c8-1870-54cb-b8ad-494ee15697ad",
+      "validation_revision": 0,
+      "validation_result_id": "c6678470-e0bf-49f9-9aaf-ec67695c5523",
+      "status": "Approved"
+    },
+    {
+      "question_id": "fb2aad97-03ba-5704-854c-95453444ad65",
+      "validation_revision": 0,
+      "validation_result_id": "fc5ec4cb-a763-486c-a12f-ce297e9ca047",
+      "status": "Approved"
+    },
+    {
+      "question_id": "38459e84-ef20-5cae-bdf4-0407061a6997",
+      "validation_revision": 0,
+      "validation_result_id": "01b9641e-a1fb-447d-9e90-4dc5bd0c52cd",
+      "status": "Approved"
+    },
+    {
+      "question_id": "9bb36ece-ac8b-5a8d-a57b-ac093d050f60",
+      "validation_revision": 0,
+      "validation_result_id": "e121af13-ba84-46b5-94af-4474ea3c68ac",
+      "status": "Approved"
+    },
+    {
+      "question_id": "1ac55ca1-b2c6-516c-ab5b-20d6ba9fe945",
+      "validation_revision": 0,
+      "validation_result_id": "a3a1bf6f-27a9-4901-a9c0-0cfa9455346f",
+      "status": "Approved"
+    },
+    {
+      "question_id": "55506688-8029-54d2-aa94-7b2a44463f7d",
+      "validation_revision": 0,
+      "validation_result_id": "0659af01-9d67-4e6d-b57f-5e2027c22873",
+      "status": "Approved"
+    },
+    {
+      "question_id": "2e47e877-369a-5c42-983c-b2c94f9cc8cb",
+      "validation_revision": 0,
+      "validation_result_id": "28abfa0a-5a82-4d2b-a892-832b9a524df3",
+      "status": "Approved"
+    },
+    {
+      "question_id": "d3c3d04b-8e0b-57d7-b159-755cf2ee84d8",
+      "validation_revision": 0,
+      "validation_result_id": "64766134-a4c1-446f-8886-b7df312673a0",
+      "status": "Approved"
+    },
+    {
+      "question_id": "afdb6c69-a066-5d48-927f-b2addbd39108",
+      "validation_revision": 0,
+      "validation_result_id": "11dc2455-ef32-4296-a040-49aeadfe191f",
+      "status": "Approved"
+    },
+    {
+      "question_id": "8b6ca584-ecac-5d56-8a31-3f21e1bce6c4",
+      "validation_revision": 0,
+      "validation_result_id": "2e5b7ade-5c77-4201-9947-cc60be958a8b",
+      "status": "Approved"
+    },
+    {
+      "question_id": "fb8957c9-73bf-5116-8c0c-4d102ff9dd12",
+      "validation_revision": 0,
+      "validation_result_id": "e04f778e-1b1f-453b-8a8f-89b002058fe7",
+      "status": "Approved"
+    },
+    {
+      "question_id": "05ef4e67-2b08-5fd4-b0de-a655a1b84083",
+      "validation_revision": 0,
+      "validation_result_id": "71a86877-5b9e-42bd-89e2-8bc98fe4d700",
+      "status": "Approved"
+    },
+    {
+      "question_id": "2be74d73-07db-5876-bc35-329d1cbc0a03",
+      "validation_revision": 0,
+      "validation_result_id": "11dc6cf3-c8c2-4e3e-8ba1-ca10ab0da24a",
+      "status": "Approved"
+    },
+    {
+      "question_id": "24927879-0294-5076-92c8-39f9e14c3a35",
+      "validation_revision": 0,
+      "validation_result_id": "d972c060-454f-4f3d-9ba9-2363fe5bd5b7",
+      "status": "Approved"
+    },
+    {
+      "question_id": "a1e1cade-ec52-519a-89a8-a0d3a7d3f87a",
+      "validation_revision": 0,
+      "validation_result_id": "b8fd75a5-0b68-484b-8f3f-27d17bd3ce07",
+      "status": "Approved"
+    },
+    {
+      "question_id": "9c975da4-f83a-5749-8a3d-5b3057ae6274",
+      "validation_revision": 0,
+      "validation_result_id": "340ccda8-124d-4a2e-99a3-26ca45b3c990",
+      "status": "Approved"
+    },
+    {
+      "question_id": "8b5cf761-a018-5966-ad61-5d2a6c879173",
+      "validation_revision": 0,
+      "validation_result_id": "3f692fd2-e446-4f9e-b2d3-eadfa48641ac",
+      "status": "Approved"
+    },
+    {
+      "question_id": "e75d38cc-9cda-57e0-a135-02d09861ba57",
+      "validation_revision": 0,
+      "validation_result_id": "c0b255b7-919e-46d2-acfa-e507e51c450e",
+      "status": "Approved"
+    },
+    {
+      "question_id": "73cbbe37-f60c-5c22-9b51-9e404bffb664",
+      "validation_revision": 0,
+      "validation_result_id": "95df83d3-b0bb-4ae5-b4d1-96f5bfa9dbb1",
+      "status": "Approved"
+    },
+    {
+      "question_id": "c3ca3e92-be2c-5c39-834e-10363dbc6964",
+      "validation_revision": 0,
+      "validation_result_id": "c3a96dfb-3911-47c9-a890-4dd77b54e4cf",
+      "status": "Approved"
+    },
+    {
+      "question_id": "7ba10839-baff-50c7-910c-968d7a5b78f3",
+      "validation_revision": 0,
+      "validation_result_id": "a157d37f-460e-4e7d-bb39-bc05d6a74870",
+      "status": "Approved"
+    },
+    {
+      "question_id": "939900ec-ea55-5386-b7a7-63ca6bdd3d8b",
+      "validation_revision": 0,
+      "validation_result_id": "d694021f-842c-4d06-a845-ed816492c67d",
+      "status": "Approved"
+    },
+    {
+      "question_id": "57967ae1-d68d-5310-9ee5-42b7fb9b1d70",
+      "validation_revision": 0,
+      "validation_result_id": "1a1cde22-e00b-4ad0-8a37-b8c7f0c6f0ee",
+      "status": "Approved"
+    },
+    {
+      "question_id": "bbb585e7-892d-5d64-a951-3adc8965e9de",
+      "validation_revision": 0,
+      "validation_result_id": "28c3a306-c876-4529-968e-65b7c6719998",
+      "status": "Approved"
+    },
+    {
+      "question_id": "57553c76-ec58-5e5d-9180-372324a4ea67",
+      "validation_revision": 0,
+      "validation_result_id": "ca3f0378-3d17-4f2a-a03b-248851045126",
+      "status": "Approved"
+    },
+    {
+      "question_id": "c8d6b6fb-9934-545c-96b4-4e055777fca6",
+      "validation_revision": 0,
+      "validation_result_id": "1a675e38-5458-4457-ac64-f418ba766634",
+      "status": "Approved"
+    },
+    {
+      "question_id": "645405c1-7174-5e06-939d-3c97ad7c851d",
+      "validation_revision": 0,
+      "validation_result_id": "381cb228-3015-4d8f-833f-b5f4ccb89821",
+      "status": "Approved"
+    },
+    {
+      "question_id": "87b85e7d-ebf3-566b-85c4-8ee432fb301b",
+      "validation_revision": 0,
+      "validation_result_id": "a9a8e2ab-8c7a-445a-b8ae-9fcb2b255a90",
+      "status": "Approved"
+    },
+    {
+      "question_id": "0ae96050-23df-57ee-a0a0-15c7e32a7580",
+      "validation_revision": 0,
+      "validation_result_id": "9aae6746-5312-4843-bf90-9655be91275f",
+      "status": "Approved"
+    },
+    {
+      "question_id": "1e9a2a38-6450-5100-ad83-c13e15028129",
+      "validation_revision": 0,
+      "validation_result_id": "0cd19383-b039-4087-83c0-5999cf219f94",
+      "status": "Approved"
+    },
+    {
+      "question_id": "bcbd60a8-7111-584d-93a6-ff7d0fd66383",
+      "validation_revision": 0,
+      "validation_result_id": "a0927909-d8c1-4d42-a3da-31ba953bf174",
+      "status": "Approved"
+    },
+    {
+      "question_id": "a3be1c18-c266-56d4-a894-0b250b867b08",
+      "validation_revision": 0,
+      "validation_result_id": "fa70b06b-0626-4cc5-be54-e5c67c9801e9",
+      "status": "Approved"
+    },
+    {
+      "question_id": "bafb6edf-024d-55aa-98a7-86d784f88645",
+      "validation_revision": 0,
+      "validation_result_id": "a7c5c37d-6c53-4084-b868-96c5e4fe3068",
+      "status": "Approved"
+    },
+    {
+      "question_id": "6f915c84-811b-55cb-9031-cff7d8c24f3f",
+      "validation_revision": 0,
+      "validation_result_id": "a35ea909-c2d8-43ef-8253-6b66d7cb282a",
+      "status": "Approved"
+    },
+    {
+      "question_id": "e9bb8e41-22ea-5af1-a61a-92caf3ac8c72",
+      "validation_revision": 0,
+      "validation_result_id": "95f3b0ee-3e5a-4e7d-bfb3-a481416ba65e",
+      "status": "Approved"
+    },
+    {
+      "question_id": "2f98c970-f0bf-5587-a36a-91cdedfe6dd7",
+      "validation_revision": 0,
+      "validation_result_id": "7ae9e778-559d-4990-8d47-618863eda93a",
+      "status": "Approved"
+    },
+    {
+      "question_id": "b0bf9f97-6080-5559-8c8c-735a68fa911f",
+      "validation_revision": 0,
+      "validation_result_id": "89378ab2-676a-4442-a73d-ca1b18322dd9",
+      "status": "Approved"
+    },
+    {
+      "question_id": "087fcb43-b801-5a12-b5b0-aeb3fd1c97bf",
+      "validation_revision": 0,
+      "validation_result_id": "ace71dd1-5c23-4b04-92b8-7cdc7f848298",
+      "status": "Approved"
+    },
+    {
+      "question_id": "320c3dfd-eb8e-544a-ad4c-e49e6b6a2130",
+      "validation_revision": 0,
+      "validation_result_id": "561681b0-16a0-44d5-918c-81870a162a41",
+      "status": "Approved"
+    },
+    {
+      "question_id": "68f04409-231a-582c-8e71-684c5f248538",
+      "validation_revision": 0,
+      "validation_result_id": "bda64cca-d431-4a83-bc7e-4df8bfbd9254",
+      "status": "Approved"
+    },
+    {
+      "question_id": "80582712-3ef1-50a5-bcdc-fa9fd79c01f7",
+      "validation_revision": 0,
+      "validation_result_id": "d537e302-78bb-42bb-ac5b-72e060ce98c8",
+      "status": "Approved"
+    },
+    {
+      "question_id": "eb09c601-0305-5810-a787-b8847c76863e",
+      "validation_revision": 0,
+      "validation_result_id": "53d17035-1dbe-4d3e-87d8-cc156423e4d5",
+      "status": "Approved"
+    },
+    {
+      "question_id": "42e91c74-04d3-5e02-8008-af50cf059768",
+      "validation_revision": 0,
+      "validation_result_id": "6c2d7585-01db-4085-8c16-a55481fbba12",
+      "status": "Approved"
+    },
+    {
+      "question_id": "b43b2f39-e024-5fe1-a988-8ebece7dc6bd",
+      "validation_revision": 0,
+      "validation_result_id": "cfa26d84-f3df-41ef-b9d7-9b7c68056881",
+      "status": "Approved"
+    },
+    {
+      "question_id": "0dd223ca-d7ec-58b9-9781-3003471f0d86",
+      "validation_revision": 0,
+      "validation_result_id": "05ea880b-7a5a-41cd-80a8-f62accea5308",
+      "status": "Approved"
+    },
+    {
+      "question_id": "60df02b5-92a9-5a71-acbb-facbabbf6409",
+      "validation_revision": 0,
+      "validation_result_id": "6113bd33-b4af-4cb2-96e0-219f44154a9e",
+      "status": "Approved"
+    },
+    {
+      "question_id": "d544ccb8-ab47-5a8e-b365-28f5eebaa4f6",
+      "validation_revision": 0,
+      "validation_result_id": "c9bf507f-343f-4e77-aee2-6af6b6e0b6ff",
+      "status": "Approved"
+    },
+    {
+      "question_id": "933af493-2eb2-5e94-8ed8-4f8dc19ba679",
+      "validation_revision": 0,
+      "validation_result_id": "a00d963f-61e6-4d21-8a47-3cd986384371",
+      "status": "Approved"
+    },
+    {
+      "question_id": "3a264ba1-cb57-50e6-b761-7ed7bac79940",
+      "validation_revision": 0,
+      "validation_result_id": "b1f7a345-9347-42b6-8370-29b67187d6b5",
+      "status": "Approved"
+    },
+    {
+      "question_id": "5ef8c7c3-d4ce-516a-9203-bdb58c419b29",
+      "validation_revision": 0,
+      "validation_result_id": "1e49c4f8-aee0-4902-bfd0-319d99af9997",
+      "status": "Approved"
+    },
+    {
+      "question_id": "c2e53ce4-01f2-5ed6-ae0b-051d36cd71fe",
+      "validation_revision": 0,
+      "validation_result_id": "c743fb0b-1916-447b-94f1-8bff8dfd6557",
+      "status": "Approved"
+    },
+    {
+      "question_id": "3c168200-ed53-5926-ab0b-333fe55928fd",
+      "validation_revision": 0,
+      "validation_result_id": "03b985a4-68f6-493e-92ba-506c1ce65e34",
+      "status": "Approved"
+    },
+    {
+      "question_id": "1f9fb18d-6502-588f-9a27-7b101e3288e9",
+      "validation_revision": 0,
+      "validation_result_id": "2ac78361-f733-46c4-8fdd-d0e39a21a1ca",
+      "status": "Approved"
+    },
+    {
+      "question_id": "f5b08a77-385d-5a77-ae26-da730af40438",
+      "validation_revision": 0,
+      "validation_result_id": "a2d089a5-5de0-4eee-9a4a-7ebfe4eeffa6",
+      "status": "Approved"
+    },
+    {
+      "question_id": "2ebb6c30-600e-5028-abb8-dcb1212127dd",
+      "validation_revision": 0,
+      "validation_result_id": "70eff3c2-8016-4227-9f8c-938c2f835d32",
+      "status": "Approved"
+    },
+    {
+      "question_id": "b8a07672-2954-57ea-9c0a-15caff253ce2",
+      "validation_revision": 0,
+      "validation_result_id": "3b2a10b2-e4fa-404a-976c-a2041f470c35",
+      "status": "Approved"
+    },
+    {
+      "question_id": "1770b3e2-bc28-57cc-8112-87ba71f5d075",
+      "validation_revision": 0,
+      "validation_result_id": "a205a4e8-11f4-4942-8117-e433a3e925e9",
+      "status": "Approved"
+    },
+    {
+      "question_id": "bbc0df68-b0b5-5415-ae5b-e3f6a081f7c5",
+      "validation_revision": 0,
+      "validation_result_id": "5e02d123-5292-474c-9ce9-a7ea754d6899",
+      "status": "Approved"
+    },
+    {
+      "question_id": "a11bf13b-8683-5c62-9202-7177bba657f3",
+      "validation_revision": 0,
+      "validation_result_id": "b0323d64-4750-4195-85f8-0a2a0816abd7",
+      "status": "Approved"
+    },
+    {
+      "question_id": "e9ae7984-560e-5ede-99e8-11b262203c6d",
+      "validation_revision": 0,
+      "validation_result_id": "48fe9932-0491-4d34-b5d2-4aecaf5da357",
+      "status": "Approved"
+    },
+    {
+      "question_id": "2b481a71-6cea-5094-b219-9796002360f1",
+      "validation_revision": 0,
+      "validation_result_id": "61452685-df54-4f47-a48c-e00a076a63dc",
+      "status": "Approved"
+    },
+    {
+      "question_id": "0976c47c-4882-5a20-8810-129ef5514bd7",
+      "validation_revision": 0,
+      "validation_result_id": "3dbe49a8-e97f-4ce3-a576-a48359a88e7b",
+      "status": "Approved"
+    },
+    {
+      "question_id": "5ceee68f-0fb5-5ea4-9455-f7124e00e441",
+      "validation_revision": 0,
+      "validation_result_id": "bab74cb3-71e7-411f-8278-f1992a5666c9",
+      "status": "Approved"
+    },
+    {
+      "question_id": "e42db29c-d03b-5b20-aee4-edd3050bb7b9",
+      "validation_revision": 0,
+      "validation_result_id": "60007b9b-7b9b-4018-a752-81c1530fbbae",
+      "status": "Approved"
+    },
+    {
+      "question_id": "014359f3-7f00-5790-b614-78de7b0d62bc",
+      "validation_revision": 0,
+      "validation_result_id": "21adb60a-165f-4d7c-aef8-4893d7b845fc",
+      "status": "Approved"
+    },
+    {
+      "question_id": "931ef058-6e1e-5f56-b383-66c91376b889",
+      "validation_revision": 0,
+      "validation_result_id": "34209660-662b-49e6-9aaf-d14aa3e350d0",
+      "status": "Approved"
+    },
+    {
+      "question_id": "b911191d-bfa4-5ba4-ad9d-4d082b5f51f3",
+      "validation_revision": 0,
+      "validation_result_id": "bdffa861-0754-4d56-b0c1-e4c232b4d1e0",
+      "status": "Approved"
+    },
+    {
+      "question_id": "9c6aef11-b84c-5d15-8f5d-ee23226a190d",
+      "validation_revision": 0,
+      "validation_result_id": "4bb13d8f-f2a7-4b6d-bb77-4695cfbdac19",
+      "status": "Approved"
+    },
+    {
+      "question_id": "e7f9e923-0822-512b-879e-8c2ebdfa44ea",
+      "validation_revision": 0,
+      "validation_result_id": "1ac64164-0952-4148-95b0-eefe9e5af316",
+      "status": "Approved"
+    },
+    {
+      "question_id": "f49577da-f879-52e3-8b9f-acc98c6c1376",
+      "validation_revision": 0,
+      "validation_result_id": "c1fe4c12-1c40-4e01-83d1-d93cd6e19a60",
+      "status": "Approved"
+    },
+    {
+      "question_id": "97913488-029c-5789-aa00-b85f3ad41cc9",
+      "validation_revision": 0,
+      "validation_result_id": "93d55972-d276-4fdb-8301-c6a98d79a2a3",
+      "status": "Approved"
+    },
+    {
+      "question_id": "80045489-5b92-561d-a0af-14bb4b67d20b",
+      "validation_revision": 0,
+      "validation_result_id": "98beced3-b62e-4199-a1e2-a6fc57a2b48a",
+      "status": "Approved"
+    },
+    {
+      "question_id": "dfbc7a3e-c9ce-5962-bc7f-52b2706ee412",
+      "validation_revision": 0,
+      "validation_result_id": "ca6264d5-e18d-43fb-961e-7f68e4ef4f01",
+      "status": "Approved"
+    },
+    {
+      "question_id": "9e877712-1618-5f71-a414-1b150696fe4e",
+      "validation_revision": 0,
+      "validation_result_id": "c3fc5879-ab39-4f87-95b6-e6ab9011c724",
+      "status": "Approved"
+    },
+    {
+      "question_id": "ac6d6d05-9e5e-5584-9bd6-5a0b62117b60",
+      "validation_revision": 0,
+      "validation_result_id": "5c8fbf8c-10a9-4af4-b961-ae4bd3faaae0",
+      "status": "Approved"
+    },
+    {
+      "question_id": "4f641727-48fa-51d6-84b6-762830922e49",
+      "validation_revision": 0,
+      "validation_result_id": "5b9e0667-c275-4b6d-818f-c6971d866fd0",
+      "status": "Approved"
+    },
+    {
+      "question_id": "02b42c36-04fa-5461-baf0-abd0ece47a73",
+      "validation_revision": 0,
+      "validation_result_id": "912e8e3a-786b-47e1-9a47-5406a463e9d0",
+      "status": "Approved"
+    },
+    {
+      "question_id": "9d333f0a-1a15-55ab-8a72-2dd5f004730a",
+      "validation_revision": 0,
+      "validation_result_id": "2343be6b-ab71-4863-9ea5-54975fa8f387",
+      "status": "Approved"
+    },
+    {
+      "question_id": "e9a61b26-de93-57c3-ab7f-08ca999b6c5c",
+      "validation_revision": 0,
+      "validation_result_id": "86a60555-81e6-407c-87db-e9e2bee0dc2a",
+      "status": "Approved"
+    },
+    {
+      "question_id": "2ab3835b-76a9-5dc5-959a-03d973a6e158",
+      "validation_revision": 0,
+      "validation_result_id": "279ece77-de42-4fc1-baf9-21737d777962",
+      "status": "Approved"
+    },
+    {
+      "question_id": "4985f25e-1a2d-53be-9906-de50c87c6eb6",
+      "validation_revision": 0,
+      "validation_result_id": "15cc898d-43f8-4c8d-9150-53709f73301b",
+      "status": "Approved"
+    },
+    {
+      "question_id": "d9d59ad9-de9d-5664-a134-dd428fd4d433",
+      "validation_revision": 0,
+      "validation_result_id": "0d72d06a-4eb3-416e-bd2e-b79ac44ade4b",
+      "status": "Approved"
+    },
+    {
+      "question_id": "8928429a-a124-5ff0-87ab-e639861085ee",
+      "validation_revision": 0,
+      "validation_result_id": "6a64ab43-00e6-4e03-a369-4833cd5d33ac",
+      "status": "Approved"
+    },
+    {
+      "question_id": "e4089ad1-73bf-5fa3-abf1-5e20e1dd9f9f",
+      "validation_revision": 0,
+      "validation_result_id": "a84bf175-f695-4ea0-a71d-94182b6b0a45",
+      "status": "Approved"
+    },
+    {
+      "question_id": "79b03364-81ab-552b-9cd0-eac8d7ff369f",
+      "validation_revision": 0,
+      "validation_result_id": "65e42b1a-f5f5-4866-a42e-d1c4a602313c",
+      "status": "Approved"
+    },
+    {
+      "question_id": "c88efbce-daa9-5ac2-9414-dec6b36d0cf6",
+      "validation_revision": 0,
+      "validation_result_id": "a14fe12d-446c-4aea-a00d-a7237584f54e",
+      "status": "Approved"
+    },
+    {
+      "question_id": "04a551de-3217-5c68-9e5b-cd578493a1a5",
+      "validation_revision": 0,
+      "validation_result_id": "3f62faec-6cca-41c6-b053-5f6a8b0708ab",
+      "status": "Approved"
+    },
+    {
+      "question_id": "6436f22e-c809-5229-af08-d29a3d030183",
+      "validation_revision": 0,
+      "validation_result_id": "afdfbdb7-f505-475e-b365-8124b7a6268c",
+      "status": "Approved"
+    },
+    {
+      "question_id": "384b6c7f-314c-55dc-9e55-705006ab6c87",
+      "validation_revision": 0,
+      "validation_result_id": "28b48e08-3fed-4c67-99b1-3d3471622aaf",
+      "status": "Approved"
+    },
+    {
+      "question_id": "375b12fb-866b-5c86-a779-0a52ad8a8773",
+      "validation_revision": 0,
+      "validation_result_id": "764d2975-0a45-41fd-9d1b-7fe06f601ab0",
+      "status": "Approved"
+    },
+    {
+      "question_id": "829a5a92-797e-59c8-9c86-13f484d0982f",
+      "validation_revision": 0,
+      "validation_result_id": "8a8aa171-83b5-47fd-9418-c816dd77e048",
+      "status": "Approved"
+    },
+    {
+      "question_id": "48aa784f-ac05-5cb1-826d-2451e96b0431",
+      "validation_revision": 0,
+      "validation_result_id": "32441053-4264-4dd2-a85b-38f1cf559ff3",
+      "status": "Approved"
+    },
+    {
+      "question_id": "79e66ed1-5c61-56fb-93a1-a4a3b02556bb",
+      "validation_revision": 0,
+      "validation_result_id": "4bfce63d-25c6-4d9c-934e-7aba9a85b1e3",
+      "status": "Approved"
+    },
+    {
+      "question_id": "d403bcce-6957-5746-a1da-2b2b69ac861f",
+      "validation_revision": 0,
+      "validation_result_id": "d50c9585-6330-4a44-b22c-36a621458885",
+      "status": "Approved"
+    },
+    {
+      "question_id": "a825a4b4-65bd-5a48-abe8-c54c2976011f",
+      "validation_revision": 0,
+      "validation_result_id": "114d9edb-89f5-48c2-80d1-bc9e723e497a",
+      "status": "Approved"
+    },
+    {
+      "question_id": "afe365fa-d77d-57b3-9b9e-068b645a2696",
+      "validation_revision": 0,
+      "validation_result_id": "e4de3a0b-3beb-466d-9532-2f595f60cab5",
+      "status": "Approved"
+    },
+    {
+      "question_id": "07b0d604-9be8-5a29-9edd-6180354e7147",
+      "validation_revision": 0,
+      "validation_result_id": "f7f7b169-cb06-4ec2-b28e-1b9d6c792a51",
+      "status": "Approved"
+    },
+    {
+      "question_id": "f7960160-7085-520b-a9c1-0b9a0a1b47e4",
+      "validation_revision": 0,
+      "validation_result_id": "d3b4f7aa-3048-47ba-9455-6b3ce724bc85",
+      "status": "Approved"
+    },
+    {
+      "question_id": "3499ee05-40ce-5dfe-b833-53296830179b",
+      "validation_revision": 0,
+      "validation_result_id": "cbbf27cf-339e-4be0-ab97-8057b456dc1a",
+      "status": "Approved"
+    },
+    {
+      "question_id": "5ca5f267-dbba-5e2a-8467-2d52104c045d",
+      "validation_revision": 0,
+      "validation_result_id": "65a29e3e-cc76-4934-abd9-e9d0f1daf325",
+      "status": "Approved"
+    },
+    {
+      "question_id": "951c0b72-33f5-58f1-9844-423c911a9c1d",
+      "validation_revision": 0,
+      "validation_result_id": "299ab437-1031-4e70-a8cd-bbe2cf9e539b",
+      "status": "Approved"
+    },
+    {
+      "question_id": "4c6c3a23-91b5-5145-9889-3007f4f5bdac",
+      "validation_revision": 0,
+      "validation_result_id": "23a2f48c-ca7f-46ee-a29d-a294f7cbde49",
+      "status": "Approved"
+    },
+    {
+      "question_id": "dde196b1-5007-5e9e-94d7-789b057fd6ff",
+      "validation_revision": 0,
+      "validation_result_id": "ae9eddff-9cbf-4300-9905-94cf41a7ca2f",
+      "status": "Approved"
+    },
+    {
+      "question_id": "79f98179-4da4-53f7-a04d-e06e10300c52",
+      "validation_revision": 0,
+      "validation_result_id": "8e6ac80d-cfad-4298-93ef-a69e89d1a303",
+      "status": "Approved"
+    },
+    {
+      "question_id": "4dff80f2-6065-56bc-8d07-a039efced506",
+      "validation_revision": 0,
+      "validation_result_id": "cd6c7aa5-6651-45fa-878c-93f6cb2497bf",
+      "status": "Approved"
+    },
+    {
+      "question_id": "a508adf5-eefd-589f-a73f-fe55fb1cd268",
+      "validation_revision": 0,
+      "validation_result_id": "a6583adb-bed7-4c2c-a38a-1e32c93c19d7",
+      "status": "Approved"
+    },
+    {
+      "question_id": "a5ff009d-7ae5-5d4b-8f47-c5e386d8e443",
+      "validation_revision": 0,
+      "validation_result_id": "9d991d73-27b1-40a0-a58e-359f8e10e7ad",
+      "status": "Approved"
+    },
+    {
+      "question_id": "fe9dc2a2-fd5d-5853-a4ff-71262a3a4df5",
+      "validation_revision": 0,
+      "validation_result_id": "8fcbd7b9-f5b5-45b7-9ecc-b1e2a2aa98da",
+      "status": "Approved"
+    },
+    {
+      "question_id": "c48103fc-fbd4-5445-9308-755905d9f587",
+      "validation_revision": 0,
+      "validation_result_id": "9b883e63-d123-4d55-b7d8-cc6ab498fb37",
+      "status": "Approved"
+    },
+    {
+      "question_id": "565d698f-be92-5491-b060-ab1fdedab3cc",
+      "validation_revision": 0,
+      "validation_result_id": "8a6963fe-6055-4453-b5e4-a001d64a6805",
+      "status": "Approved"
+    },
+    {
+      "question_id": "df737ac4-ac3c-5a3f-b474-a944952cb00a",
+      "validation_revision": 0,
+      "validation_result_id": "69f8398a-82ca-4b15-8e11-ac05d91d58fc",
+      "status": "Approved"
+    },
+    {
+      "question_id": "3d13a911-2edc-5b15-9a36-00e82bf9ba68",
+      "validation_revision": 0,
+      "validation_result_id": "9cb41329-5a85-41a9-ab0d-591c69fb79ce",
+      "status": "Approved"
+    },
+    {
+      "question_id": "054ca4bf-f06b-5abe-aae9-44bc3aa19c5a",
+      "validation_revision": 0,
+      "validation_result_id": "70704aef-45c7-40ea-a148-73563de7fc7a",
+      "status": "Approved"
+    },
+    {
+      "question_id": "d0a4d9bb-ea86-5714-8ece-02d3234bd2d3",
+      "validation_revision": 0,
+      "validation_result_id": "370d859a-5f85-46e3-a8ec-98addf0bd387",
+      "status": "Approved"
+    },
+    {
+      "question_id": "1dbd73cf-7335-577a-b321-64df8e0cbcff",
+      "validation_revision": 0,
+      "validation_result_id": "c6db860d-9c4b-4a55-9a6d-7e38733e6fd5",
+      "status": "Approved"
+    },
+    {
+      "question_id": "aee4d740-d369-51b8-8160-4630a1274895",
+      "validation_revision": 0,
+      "validation_result_id": "8d998582-3162-4eb8-875a-2ce38fead929",
+      "status": "Approved"
+    },
+    {
+      "question_id": "fd8248b1-34d6-54c0-9094-28d136689cb4",
+      "validation_revision": 0,
+      "validation_result_id": "702f3e9b-5e7b-420a-9fa8-b4642f88cf7c",
+      "status": "Approved"
+    },
+    {
+      "question_id": "9d1b6e7f-3f54-5e41-9381-462844cdb37a",
+      "validation_revision": 0,
+      "validation_result_id": "8a7392f4-6971-4bba-9a2c-ebaa2741ef70",
+      "status": "Approved"
+    },
+    {
+      "question_id": "f8ba165e-59b9-5092-ae1e-28532b48a9e1",
+      "validation_revision": 0,
+      "validation_result_id": "8a796374-b454-48cb-bc1f-93baf8fd7a78",
+      "status": "Approved"
+    },
+    {
+      "question_id": "04a312a5-101a-5a62-b2a9-b394a2bbc50f",
+      "validation_revision": 0,
+      "validation_result_id": "0dadd6cd-e68c-4e0a-b4a7-2e62a127eb4c",
+      "status": "Approved"
+    },
+    {
+      "question_id": "d5d252c1-64ad-53d7-9b8b-f1fd1b596c41",
+      "validation_revision": 0,
+      "validation_result_id": "4fb94b72-7b33-4b3a-b49d-cce6d6c04bc3",
+      "status": "Approved"
+    },
+    {
+      "question_id": "e5266a0c-b796-5137-8a0f-7045bbe45b92",
+      "validation_revision": 0,
+      "validation_result_id": "3f5fb029-57bb-4fd2-9f7f-bb3f7f1bd794",
+      "status": "Approved"
+    },
+    {
+      "question_id": "cbdb85d1-ba43-572b-a0bb-3a7272633868",
+      "validation_revision": 0,
+      "validation_result_id": "b9a1ae8e-b38c-49d8-bbc7-f55b1a37daa6",
+      "status": "Approved"
+    },
+    {
+      "question_id": "8b622a9f-7816-5eb6-99d7-e8841a6b0f0c",
+      "validation_revision": 0,
+      "validation_result_id": "702085d0-2abd-4e94-8e81-eaa5983385ea",
+      "status": "Approved"
+    },
+    {
+      "question_id": "4c1d8268-314c-52f6-9bf4-73de285475ca",
+      "validation_revision": 0,
+      "validation_result_id": "d0e6d90d-ae24-4cea-bcbb-54e81968cc1c",
+      "status": "Approved"
+    },
+    {
+      "question_id": "fa987ca9-1db5-5ce5-9ab8-25bcbb774e66",
+      "validation_revision": 0,
+      "validation_result_id": "47a2dd75-f1af-4a44-a3fd-fd81d51474cc",
+      "status": "Approved"
+    },
+    {
+      "question_id": "84835c43-0571-5a6f-b679-f76cd3c81f66",
+      "validation_revision": 0,
+      "validation_result_id": "0173c573-6dc1-4dc7-b1a9-e8a07a5f6dff",
+      "status": "Approved"
+    },
+    {
+      "question_id": "f05dcb0b-73d2-5b4a-b63f-07e5b83b6f82",
+      "validation_revision": 0,
+      "validation_result_id": "52ff7145-73b1-481f-a5a1-f961001ba8a2",
+      "status": "Approved"
+    },
+    {
+      "question_id": "5a2addd2-6c67-598e-bb92-4d9b18e0515b",
+      "validation_revision": 0,
+      "validation_result_id": "5de59b5b-9d58-4fda-8011-946f9ba86ad2",
+      "status": "Approved"
+    },
+    {
+      "question_id": "b00fc409-d8af-5d97-8ebb-21c9af306cb8",
+      "validation_revision": 0,
+      "validation_result_id": "d86f6b91-1717-473f-ae4d-7376a9b269a9",
+      "status": "Approved"
+    },
+    {
+      "question_id": "675d7d44-04d1-52ee-ab33-5f7e10ce49ab",
+      "validation_revision": 0,
+      "validation_result_id": "dc3679a3-8d55-49de-b3a3-8e1e2b0cdfb8",
+      "status": "Approved"
+    },
+    {
+      "question_id": "28c9f4b5-793d-5bf9-ad7a-307ba522d344",
+      "validation_revision": 0,
+      "validation_result_id": "43607d53-30a6-467d-a9d7-104dfedc8cc5",
+      "status": "Approved"
+    },
+    {
+      "question_id": "743cbfaa-cbaa-5d7b-b9a4-ce90d0aa81fa",
+      "validation_revision": 0,
+      "validation_result_id": "40fef535-72fc-4114-927d-9d46383962f6",
+      "status": "Approved"
+    },
+    {
+      "question_id": "dac2b2eb-7e1d-5c5a-97f6-d2700f4b547e",
+      "validation_revision": 0,
+      "validation_result_id": "e6b8d5de-90d5-45d6-a49f-28ae075eece3",
+      "status": "Approved"
+    },
+    {
+      "question_id": "4de40b1d-3356-5abc-bba1-00de780389a0",
+      "validation_revision": 0,
+      "validation_result_id": "70f63081-de66-4448-b67b-14925c7fce22",
+      "status": "Approved"
+    },
+    {
+      "question_id": "3ae6850c-5f3b-5bf0-a7f1-c6e06cff2eef",
+      "validation_revision": 0,
+      "validation_result_id": "e98660a6-e5db-4d0d-b83b-06cd7460d1b5",
+      "status": "Approved"
+    },
+    {
+      "question_id": "d5590b9e-ab25-5369-9862-98b25be8adbb",
+      "validation_revision": 0,
+      "validation_result_id": "307a59aa-d6b1-4801-a09c-6b977178f2aa",
+      "status": "Approved"
+    },
+    {
+      "question_id": "d3a8c259-a9dc-599d-9ea2-456b493591c4",
+      "validation_revision": 0,
+      "validation_result_id": "93c89912-e87f-413d-8a6d-bb48e796fff3",
+      "status": "Approved"
+    },
+    {
+      "question_id": "d230edd2-d5ef-5266-8792-2be4d85d20a1",
+      "validation_revision": 0,
+      "validation_result_id": "359ef122-cba3-4a45-9c35-da55cda7979f",
+      "status": "Approved"
+    },
+    {
+      "question_id": "3851c981-e6b7-521c-a0d4-77aadf8471ca",
+      "validation_revision": 0,
+      "validation_result_id": "93fafae1-ecd9-4968-9773-5e4729c10905",
+      "status": "Approved"
+    },
+    {
+      "question_id": "e0205534-e84c-519e-a176-19045a131704",
+      "validation_revision": 0,
+      "validation_result_id": "28d4042f-2dc5-4a60-888a-f46e8a9cfc64",
+      "status": "Approved"
+    },
+    {
+      "question_id": "e15b8c55-1af1-5edc-b97b-e9bb8b20f970",
+      "validation_revision": 0,
+      "validation_result_id": "bc3f32a8-d523-4d8f-b00e-f2d1435ecc5b",
+      "status": "Approved"
+    },
+    {
+      "question_id": "5c0a2b55-ac5e-5332-bdfe-afd057fd2053",
+      "validation_revision": 0,
+      "validation_result_id": "2e3dc391-7194-4776-933e-f2a5c3e4de6d",
+      "status": "Approved"
+    },
+    {
+      "question_id": "499e4e30-8c3a-5eef-9754-08ff152cfbbe",
+      "validation_revision": 0,
+      "validation_result_id": "c1facc8b-eb11-4755-aacc-7c34dbbfb318",
+      "status": "Approved"
+    },
+    {
+      "question_id": "0247c2ac-153e-5b4d-ab3b-77771336b56d",
+      "validation_revision": 0,
+      "validation_result_id": "e82711ff-c5a4-4b79-b874-8a935cb8a950",
+      "status": "Approved"
+    },
+    {
+      "question_id": "6a7799b0-ff37-53b7-998c-3cb2f0f9fe6a",
+      "validation_revision": 0,
+      "validation_result_id": "7780be12-5b3c-411e-ac86-2673a840ee7e",
+      "status": "Approved"
+    },
+    {
+      "question_id": "e22fcea3-2073-56c8-a405-00ece11e19c3",
+      "validation_revision": 0,
+      "validation_result_id": "de09caf8-deea-49d4-a4a7-c0f8cef8ec2a",
+      "status": "Approved"
+    },
+    {
+      "question_id": "4bb2b187-b5a1-56d2-afc0-bd0b5548c88c",
+      "validation_revision": 0,
+      "validation_result_id": "7265c95b-6cca-4547-9273-7caf6d77ff9e",
+      "status": "Approved"
+    },
+    {
+      "question_id": "89cdc5f5-424a-5b0c-82c3-6af1efde36c5",
+      "validation_revision": 0,
+      "validation_result_id": "f8fb81a3-5c66-449c-b1c7-b42fc9eaa3aa",
+      "status": "Approved"
+    },
+    {
+      "question_id": "0d7bb191-04da-5fcc-b10d-a89270506ab2",
+      "validation_revision": 0,
+      "validation_result_id": "7a738d61-7c9f-4c6c-80b1-083cc9cca2a3",
+      "status": "Approved"
+    },
+    {
+      "question_id": "5d82928a-7845-52b8-a86d-b6883cfbf494",
+      "validation_revision": 0,
+      "validation_result_id": "6ccd7350-209e-4fee-8d76-9f73f982029a",
+      "status": "Approved"
+    },
+    {
+      "question_id": "133a98f2-d919-597e-bde0-be42f452bb9d",
+      "validation_revision": 0,
+      "validation_result_id": "672ea2e6-e8b7-4d27-9c2f-31f29dd4a6ce",
+      "status": "Approved"
+    },
+    {
+      "question_id": "af6550a8-4ba3-541c-8691-6da39b6048c9",
+      "validation_revision": 0,
+      "validation_result_id": "6874a434-afe3-42ac-8b3b-801db29dbdfa",
+      "status": "Approved"
+    },
+    {
+      "question_id": "a6c6f053-bc4c-55db-8a28-151b34f472da",
+      "validation_revision": 0,
+      "validation_result_id": "97359504-be78-447a-8ce5-1cb060aa759d",
+      "status": "Approved"
+    },
+    {
+      "question_id": "fa5a12d0-d251-515a-a9b6-58d019d19c99",
+      "validation_revision": 0,
+      "validation_result_id": "6f876ff1-ac38-400f-87c3-2e4dc41ad083",
+      "status": "Approved"
+    },
+    {
+      "question_id": "025762a5-f1b9-5cdd-963f-53438de6ac36",
+      "validation_revision": 0,
+      "validation_result_id": "7f1e041e-f75c-4e92-9401-0d7f319a6fbb",
+      "status": "Approved"
+    },
+    {
+      "question_id": "0925620b-9e20-52b5-8be8-4009c1336ea1",
+      "validation_revision": 0,
+      "validation_result_id": "5e1b9618-0419-4a0e-8448-f14961132d85",
+      "status": "Approved"
+    },
+    {
+      "question_id": "3b511193-0e2e-5cb1-944f-890f9a12dad3",
+      "validation_revision": 0,
+      "validation_result_id": "ddc5f1da-84e8-4cb5-83cf-43f2bda274a0",
+      "status": "Approved"
+    },
+    {
+      "question_id": "4bda3e74-1184-5d11-9f11-ad12d798103e",
+      "validation_revision": 0,
+      "validation_result_id": "78f7fa60-ae9e-43a9-823c-048567efc311",
+      "status": "Approved"
+    },
+    {
+      "question_id": "71e91857-bc65-5075-9657-14e4374cab4c",
+      "validation_revision": 0,
+      "validation_result_id": "41781bed-09f9-4c75-baa0-7868342c4953",
+      "status": "Approved"
+    },
+    {
+      "question_id": "fbc591da-695e-542d-a2d6-261821ca9be3",
+      "validation_revision": 0,
+      "validation_result_id": "0b6d3b4e-dc94-4da3-80b4-a0ebb45495ee",
+      "status": "Approved"
+    },
+    {
+      "question_id": "09b52594-abab-5df9-9ee7-8ac140018350",
+      "validation_revision": 0,
+      "validation_result_id": "4e9d3209-feaa-4c53-9217-107298557c2e",
+      "status": "Approved"
+    },
+    {
+      "question_id": "b38c032b-3701-5f10-adca-af0f02e01955",
+      "validation_revision": 0,
+      "validation_result_id": "9899bd2c-2add-41be-90c8-3ed79cea87e9",
+      "status": "Approved"
+    },
+    {
+      "question_id": "1ad13a9d-8461-52ab-9dea-6bcc84cc45ba",
+      "validation_revision": 0,
+      "validation_result_id": "cfaaa459-6561-4954-b958-fd4b10b18e9c",
+      "status": "Approved"
+    },
+    {
+      "question_id": "aff0e317-815e-59a9-bb3d-eb423c674f83",
+      "validation_revision": 0,
+      "validation_result_id": "46cedb58-69cd-46f9-9b4e-4fb64d57ee39",
+      "status": "Approved"
+    },
+    {
+      "question_id": "d808171d-30ed-5a85-b110-4fb83dea3362",
+      "validation_revision": 0,
+      "validation_result_id": "9b9fd837-bc50-49cd-ad20-ddbd55134821",
+      "status": "Approved"
+    },
+    {
+      "question_id": "0bf3bf65-25ad-5982-b703-096aa5a17e6d",
+      "validation_revision": 0,
+      "validation_result_id": "4f08d856-9c21-4dca-af36-f471ec37c708",
+      "status": "Approved"
+    },
+    {
+      "question_id": "6c91f2c0-9209-5f62-8809-1ce0ffe54a65",
+      "validation_revision": 0,
+      "validation_result_id": "cbc52b7a-d03d-4592-9382-803a2cbfe8bb",
+      "status": "Approved"
+    },
+    {
+      "question_id": "334289f0-15f8-5210-a24c-d935b17d4177",
+      "validation_revision": 0,
+      "validation_result_id": "9abd3e85-e541-46cc-b8c7-1a12b2885619",
+      "status": "Approved"
+    },
+    {
+      "question_id": "b8e964a8-b532-54af-88dd-f187347d787d",
+      "validation_revision": 0,
+      "validation_result_id": "ff449d87-b58a-40bb-9aa0-858e0023a753",
+      "status": "Approved"
+    },
+    {
+      "question_id": "8b23e093-2672-5845-8043-bd700fe3207a",
+      "validation_revision": 0,
+      "validation_result_id": "d7084579-e7fb-41e4-b791-3ff57a7b8852",
+      "status": "Approved"
+    },
+    {
+      "question_id": "8c2de0a6-ecf4-5bd6-848c-2a282404443c",
+      "validation_revision": 0,
+      "validation_result_id": "6ef851c9-7b98-4dde-8c76-e3b5c0797381",
+      "status": "Approved"
+    },
+    {
+      "question_id": "118e28ea-c108-5e4d-989f-e8a8e1b0f74e",
+      "validation_revision": 0,
+      "validation_result_id": "843db856-efd7-4f76-b476-34e6be4fe13f",
+      "status": "Approved"
+    },
+    {
+      "question_id": "24f0c463-2c37-597e-a25b-5b8fd3f0076f",
+      "validation_revision": 0,
+      "validation_result_id": "8b18f481-ea1a-4154-bd41-f50106b6118e",
+      "status": "Approved"
+    },
+    {
+      "question_id": "e1c16f85-8fbf-5433-b9e0-45dab94f6792",
+      "validation_revision": 0,
+      "validation_result_id": "c666beaf-e481-46a0-9432-dd56e9eb3143",
+      "status": "Approved"
+    },
+    {
+      "question_id": "515b5974-4578-5a87-b0a2-3d01cda8dcb3",
+      "validation_revision": 0,
+      "validation_result_id": "6821a68a-727d-4fc0-93f6-6f435639f94c",
+      "status": "Approved"
+    },
+    {
+      "question_id": "384c6672-5ae9-523f-81b9-54686150c6a9",
+      "validation_revision": 0,
+      "validation_result_id": "aa0caa88-1ecb-4f70-b2c3-acbfc85ecf3d",
+      "status": "Approved"
+    },
+    {
+      "question_id": "698c7997-e143-5ec2-9d58-f2699ffaf3cd",
+      "validation_revision": 0,
+      "validation_result_id": "83679328-b9b4-4103-8fa0-af82ac6a5fdb",
+      "status": "Approved"
+    },
+    {
+      "question_id": "fe6ec3d3-dbfd-530c-bd69-fe59e7c02752",
+      "validation_revision": 0,
+      "validation_result_id": "29702271-0ad4-4e68-9daf-feaccb1c63f7",
+      "status": "Approved"
+    },
+    {
+      "question_id": "bd6c55a5-d139-5d4e-b1c8-5a1453277991",
+      "validation_revision": 0,
+      "validation_result_id": "b7f813eb-a73f-45ea-8019-f33e7faa4c01",
+      "status": "Approved"
+    },
+    {
+      "question_id": "31e66b7b-7793-5bb9-ae21-1cda0cb4ac23",
+      "validation_revision": 0,
+      "validation_result_id": "57d4b450-4d41-46a2-b27e-25c2456afb81",
+      "status": "Approved"
+    },
+    {
+      "question_id": "09d335cf-f93e-510a-b642-00981c734c07",
+      "validation_revision": 0,
+      "validation_result_id": "20219f48-f6b3-4539-93f2-78fbdf7b8902",
+      "status": "Approved"
+    },
+    {
+      "question_id": "6f4c000e-88b9-5c74-a1a3-d2c21067f309",
+      "validation_revision": 0,
+      "validation_result_id": "47e05fcc-a427-4611-a79e-a7fd077b73c8",
+      "status": "Approved"
+    },
+    {
+      "question_id": "6f6114de-efa0-5664-94f2-c9beadf3b557",
+      "validation_revision": 0,
+      "validation_result_id": "4d5a49a4-76de-4dff-8f57-feae9d9f1628",
+      "status": "Approved"
+    },
+    {
+      "question_id": "6c377728-f776-5505-bcc2-851d6de83b1a",
+      "validation_revision": 0,
+      "validation_result_id": "92567134-5169-4829-89d6-8d7862c0a478",
+      "status": "Approved"
+    },
+    {
+      "question_id": "f9dc7238-7052-5691-a5c3-acf7be165f83",
+      "validation_revision": 0,
+      "validation_result_id": "c1f0a17e-6a0d-4edb-bf12-394d7dd9ca7a",
+      "status": "Approved"
+    },
+    {
+      "question_id": "75d2ace4-0ce1-5289-9d9a-35fe8c11c3f2",
+      "validation_revision": 0,
+      "validation_result_id": "5f10125e-4c84-4ea4-b610-4a2b9adf6543",
+      "status": "Approved"
+    },
+    {
+      "question_id": "6d3ede55-2018-50d0-a36e-3f1e408efb88",
+      "validation_revision": 0,
+      "validation_result_id": "eeb23091-b0b9-40f9-a19d-aec7e52c57de",
+      "status": "Approved"
+    },
+    {
+      "question_id": "cbd29b49-2567-5606-874b-c03a3e491201",
+      "validation_revision": 0,
+      "validation_result_id": "e8b52e56-a9a3-4d7b-a527-962fcf8ba1cc",
+      "status": "Approved"
+    },
+    {
+      "question_id": "d8e25ae0-35ef-5847-8f91-a4a3b9c607bd",
+      "validation_revision": 0,
+      "validation_result_id": "af3c5ca2-3000-42a0-8d22-1e127f012779",
+      "status": "Approved"
+    },
+    {
+      "question_id": "a205b47a-f550-56f6-9b03-e3068c7664a9",
+      "validation_revision": 0,
+      "validation_result_id": "2e29669c-f9f7-42d9-ba68-478c4c031f69",
+      "status": "Approved"
+    },
+    {
+      "question_id": "db600375-4695-5861-b211-03e4a8b2ddcf",
+      "validation_revision": 0,
+      "validation_result_id": "d53453d0-6d12-4783-a685-5142ca67a097",
+      "status": "Approved"
+    },
+    {
+      "question_id": "e2a64940-55c1-58eb-aed4-68d8ffe14eca",
+      "validation_revision": 0,
+      "validation_result_id": "3af59fd5-653a-4fb7-90f8-3bb1a8bfc401",
+      "status": "Approved"
+    },
+    {
+      "question_id": "14b8a747-f718-5191-86ae-6fe18d60f5ff",
+      "validation_revision": 0,
+      "validation_result_id": "b1338a95-1a0f-41c8-9fff-e050ed3cdc3e",
+      "status": "Approved"
+    },
+    {
+      "question_id": "60207b4f-fcbf-568f-ba7b-6010f098674c",
+      "validation_revision": 0,
+      "validation_result_id": "46c68675-3de8-4f75-ada1-45fd914d6979",
+      "status": "Approved"
+    },
+    {
+      "question_id": "609b5170-ee68-5aa6-9b49-3b061fc12917",
+      "validation_revision": 0,
+      "validation_result_id": "721aa225-6b21-41bb-b98b-c491d001a5f5",
+      "status": "Approved"
+    },
+    {
+      "question_id": "6622dd10-635f-5cab-a0b2-504e72de8978",
+      "validation_revision": 0,
+      "validation_result_id": "6b8ea04d-0bb1-44c9-8161-f48555c072e5",
+      "status": "Approved"
+    },
+    {
+      "question_id": "c1e2f615-c83c-5da2-89c8-feedbdc2cd06",
+      "validation_revision": 0,
+      "validation_result_id": "1f15d9a1-a5c3-45a2-af58-e8ba469f6160",
+      "status": "Approved"
+    },
+    {
+      "question_id": "ce963694-f171-5892-aad5-2f027e9d79a3",
+      "validation_revision": 0,
+      "validation_result_id": "dc37a03c-dba0-4e6d-ae59-bb9590d400cd",
+      "status": "Approved"
+    },
+    {
+      "question_id": "7b141552-8afe-5c30-8840-7b8e4da67ab5",
+      "validation_revision": 0,
+      "validation_result_id": "d67e1417-268d-4a5c-9b4a-5dc76ebd614f",
+      "status": "Approved"
+    },
+    {
+      "question_id": "2a04b8cc-abd0-5116-b052-2bb74396e21c",
+      "validation_revision": 0,
+      "validation_result_id": "315d1bb9-db57-4f25-800f-ba6bf2e8d297",
+      "status": "Approved"
+    },
+    {
+      "question_id": "5fb9fa29-fb57-5a99-9276-709bb0166e64",
+      "validation_revision": 0,
+      "validation_result_id": "d25424aa-c627-4aec-8f8e-00363183e493",
+      "status": "Approved"
+    },
+    {
+      "question_id": "d54116d5-71d5-572d-8892-0ef29417e205",
+      "validation_revision": 0,
+      "validation_result_id": "c9b0b515-3542-4917-87cb-6fd8e1c3844b",
+      "status": "Approved"
+    },
+    {
+      "question_id": "55570092-ba7b-5779-a796-f8e43784e2c2",
+      "validation_revision": 0,
+      "validation_result_id": "809fbff3-6ee9-4e36-9689-abc1ee369ce4",
+      "status": "Approved"
+    },
+    {
+      "question_id": "7ebe6cd5-424f-5f39-9635-b7868c1f06b3",
+      "validation_revision": 0,
+      "validation_result_id": "a9cf2ed2-f896-4081-82ae-ddba18cddea5",
+      "status": "Approved"
+    },
+    {
+      "question_id": "c9b7c165-b7a6-5f1b-bd26-b9e2c32f7ca1",
+      "validation_revision": 0,
+      "validation_result_id": "4ef40ccb-e85f-4fc9-ba9b-854cd20156c3",
+      "status": "Approved"
+    },
+    {
+      "question_id": "fa772624-153b-5cd5-abc0-7d08013f6742",
+      "validation_revision": 0,
+      "validation_result_id": "57031646-a998-4ba4-9711-9480dbbf3639",
+      "status": "Approved"
+    },
+    {
+      "question_id": "a70d5ef9-fcf2-5bcd-a609-4f57b6a1ddcb",
+      "validation_revision": 0,
+      "validation_result_id": "e58f5362-ecd6-4c55-a864-a802f62ecbf8",
+      "status": "Approved"
+    },
+    {
+      "question_id": "3a56d9c8-1a20-5005-8eea-f59c59da45bd",
+      "validation_revision": 0,
+      "validation_result_id": "78a31e71-eca7-4585-8d1c-449ddf258295",
+      "status": "Approved"
+    },
+    {
+      "question_id": "de57ff7f-c149-5dc7-abe1-6495726bcb8d",
+      "validation_revision": 0,
+      "validation_result_id": "e790d8ec-e378-497f-8af2-40ba9d02e713",
+      "status": "Approved"
+    },
+    {
+      "question_id": "4639f2f5-e4a5-596d-8848-b1af1824ff9d",
+      "validation_revision": 0,
+      "validation_result_id": "96883e72-bd70-4e39-b7df-51b1109adca7",
+      "status": "Approved"
+    },
+    {
+      "question_id": "14688ca7-5f8f-51de-973b-3fc1552fa240",
+      "validation_revision": 0,
+      "validation_result_id": "a875677e-87d4-45c0-94c4-84c7768edae4",
+      "status": "Approved"
+    },
+    {
+      "question_id": "c224392f-fb81-53b3-9198-52facd12328d",
+      "validation_revision": 0,
+      "validation_result_id": "52df1218-e42e-4e3c-85d5-bc55b92d5bf7",
+      "status": "Approved"
+    },
+    {
+      "question_id": "80ce079b-7c32-5783-86ba-da9209fe8149",
+      "validation_revision": 0,
+      "validation_result_id": "c09ef4e4-5603-4d56-a478-6435938ad71e",
+      "status": "Approved"
+    },
+    {
+      "question_id": "68f43f24-67bf-5747-bd2c-0d9254a8894c",
+      "validation_revision": 0,
+      "validation_result_id": "57b858a3-34d5-44e2-87c8-d2630574a49e",
+      "status": "Approved"
+    },
+    {
+      "question_id": "d4dcf7f0-7a0d-50ba-a468-d6b10cb48de9",
+      "validation_revision": 0,
+      "validation_result_id": "6880d497-6734-42ac-aa87-d53bb6f64a45",
+      "status": "Approved"
+    },
+    {
+      "question_id": "9e973591-40f3-587f-9401-e0260e18ae35",
+      "validation_revision": 0,
+      "validation_result_id": "12e58360-b936-4435-a67f-89cf56b7617c",
+      "status": "Approved"
+    },
+    {
+      "question_id": "4788ca12-b4e0-575e-abba-0e8edae21f61",
+      "validation_revision": 0,
+      "validation_result_id": "38188f29-bbcd-445d-bede-44eb4d71d991",
+      "status": "Approved"
+    },
+    {
+      "question_id": "0888c616-b1fc-5e50-9ca9-0b237d6b0691",
+      "validation_revision": 0,
+      "validation_result_id": "dc6b2171-7815-4a31-a64a-0c68a208cc31",
+      "status": "Approved"
+    },
+    {
+      "question_id": "8669eb86-ec80-5a9a-917d-ae04755ecdab",
+      "validation_revision": 0,
+      "validation_result_id": "9876fe32-6331-44e3-a364-759c37270b1a",
+      "status": "Approved"
+    },
+    {
+      "question_id": "1fdc9d00-8309-51c6-b7fb-82efb07ec7a1",
+      "validation_revision": 0,
+      "validation_result_id": "d0835d0a-18a9-4b58-988a-51f553d9f735",
+      "status": "Approved"
+    },
+    {
+      "question_id": "d896acd1-37de-529b-a50a-7ac673d773da",
+      "validation_revision": 0,
+      "validation_result_id": "71a4b162-42a6-4664-ba9e-bbab84c6e6a1",
+      "status": "Approved"
+    },
+    {
+      "question_id": "3fb10dbe-1c98-5bb1-b7e9-68b3a0a83337",
+      "validation_revision": 0,
+      "validation_result_id": "9bd2aa9c-c0bf-4cb1-bbf6-91a1f192d2e7",
+      "status": "Approved"
+    },
+    {
+      "question_id": "57174e0c-ce2d-5963-9db0-bf0430939238",
+      "validation_revision": 0,
+      "validation_result_id": "3236c2fb-7cfd-46b0-8097-bf977fbcfbd3",
+      "status": "Approved"
+    },
+    {
+      "question_id": "92a501a3-1b86-5dc8-9ab5-3ce22bcc7b4d",
+      "validation_revision": 0,
+      "validation_result_id": "cac15a6f-8319-42a6-a8d2-79615c39d06d",
+      "status": "Approved"
+    },
+    {
+      "question_id": "24928d28-61c1-5409-907a-bc33d28cf5bd",
+      "validation_revision": 0,
+      "validation_result_id": "4553b456-bfab-4a91-a635-0f0be0831955",
+      "status": "Approved"
+    },
+    {
+      "question_id": "9552baf5-c714-5106-8977-3766a93a1dea",
+      "validation_revision": 0,
+      "validation_result_id": "b3a8951b-1ae8-4830-8da0-fc55e6440268",
+      "status": "Approved"
+    },
+    {
+      "question_id": "2f87f800-9630-5cc7-8ec5-8a43f48a49f0",
+      "validation_revision": 0,
+      "validation_result_id": "56ae2fd6-31ed-432b-99c0-389d14a47c7d",
+      "status": "Approved"
+    },
+    {
+      "question_id": "aae18cea-e034-57e8-8376-77de84411cdb",
+      "validation_revision": 0,
+      "validation_result_id": "cf148e8f-bd8f-4419-8fbb-e7e546691c60",
+      "status": "Approved"
+    },
+    {
+      "question_id": "c03eb9cf-7b29-55c6-bd7b-fc57e9c82206",
+      "validation_revision": 0,
+      "validation_result_id": "af0b572f-748d-4a72-8ab2-c573eb8c8d66",
+      "status": "Approved"
+    },
+    {
+      "question_id": "4f7a659a-690a-5aaf-ada0-76b783b62063",
+      "validation_revision": 0,
+      "validation_result_id": "ec5dc5fb-c1ce-43b3-90ff-b32eb35468fc",
+      "status": "Approved"
+    },
+    {
+      "question_id": "e45964e0-10ea-5e99-a177-6acffc11777f",
+      "validation_revision": 0,
+      "validation_result_id": "57c314ec-af0e-4fb7-8930-cca90930a190",
+      "status": "Approved"
+    },
+    {
+      "question_id": "16eec833-f11f-548a-aa50-90118f7cd7ec",
+      "validation_revision": 0,
+      "validation_result_id": "227b111a-f65c-4c85-aefd-8535e1c59ee4",
+      "status": "Approved"
+    },
+    {
+      "question_id": "c76de96f-1cd9-502f-9dbc-40b62b6262ec",
+      "validation_revision": 0,
+      "validation_result_id": "6f07f416-0f7f-414c-affd-fed6dce0e165",
+      "status": "Approved"
+    },
+    {
+      "question_id": "8814345b-eef6-5287-ad7c-a6644d8ddb86",
+      "validation_revision": 0,
+      "validation_result_id": "e78635a6-9b59-4566-a9b2-edd079e5ec96",
+      "status": "Approved"
+    },
+    {
+      "question_id": "b8b6e42d-5e12-592b-b694-5a0f4cb5221c",
+      "validation_revision": 0,
+      "validation_result_id": "241eeadf-8344-4339-a036-4999c5344896",
+      "status": "Approved"
+    },
+    {
+      "question_id": "9496f58f-841a-5ea9-810e-2b712d53eed5",
+      "validation_revision": 0,
+      "validation_result_id": "756081ad-a044-4df5-afdc-ad61bfc74d29",
+      "status": "Approved"
+    },
+    {
+      "question_id": "ce74ee99-2753-5967-94cd-7db9c21ece9f",
+      "validation_revision": 0,
+      "validation_result_id": "c3bb7306-276c-4772-ba0b-bbfd02b9b250",
+      "status": "Approved"
+    },
+    {
+      "question_id": "9c4ce462-1e16-5897-a48a-00e9b91928d4",
+      "validation_revision": 0,
+      "validation_result_id": "9f467720-27d1-4295-884a-9f6d55aeda40",
+      "status": "Approved"
+    },
+    {
+      "question_id": "51853b2a-8e2f-5300-9147-c1d5c0de8fb1",
+      "validation_revision": 0,
+      "validation_result_id": "7d188c0a-0d6a-4e39-ac90-9adbdcb8a966",
+      "status": "Approved"
+    },
+    {
+      "question_id": "6299fa8d-fd72-5def-88f6-6330fc75650d",
+      "validation_revision": 0,
+      "validation_result_id": "a19c7286-de32-49e9-ad15-3ded77d08d83",
+      "status": "Approved"
+    },
+    {
+      "question_id": "e13c372a-4330-5fd3-a15d-3072de456cd7",
+      "validation_revision": 0,
+      "validation_result_id": "de485610-2d80-43c6-a7ec-635b6c98a91e",
+      "status": "Approved"
+    },
+    {
+      "question_id": "45a837cb-6a8f-5b65-b30c-a9117e5e4c4d",
+      "validation_revision": 0,
+      "validation_result_id": "43c926e7-30ff-4c1e-9d55-5ac07384c1cf",
+      "status": "Approved"
+    },
+    {
+      "question_id": "29f16fa6-dfa5-5c11-9468-991e3f1cfcf0",
+      "validation_revision": 0,
+      "validation_result_id": "315d440a-e8d9-463b-b76d-0abf6ea3100b",
+      "status": "Approved"
+    },
+    {
+      "question_id": "b1eb5ff3-7e7e-5a40-b62b-6d8d99248d72",
+      "validation_revision": 0,
+      "validation_result_id": "d4dbede0-704f-46c7-935d-3dfce70b01fa",
+      "status": "Approved"
+    },
+    {
+      "question_id": "1f21f559-5728-5966-9952-b384d22880b9",
+      "validation_revision": 0,
+      "validation_result_id": "bcc4adbc-70b7-4e04-a51c-80e88d63be3a",
+      "status": "Approved"
+    },
+    {
+      "question_id": "f702e9e4-a80f-5be2-86b6-b5fc3437801b",
+      "validation_revision": 0,
+      "validation_result_id": "20fedb24-4066-4a7c-9b03-d271e918c08a",
+      "status": "Approved"
+    },
+    {
+      "question_id": "0a01eeb4-163c-597f-9f31-189e74b3669f",
+      "validation_revision": 0,
+      "validation_result_id": "a0417982-4118-4597-9210-c69033cf236d",
+      "status": "Approved"
+    },
+    {
+      "question_id": "7c988f4a-aae4-5dd6-aefd-138af4adca11",
+      "validation_revision": 0,
+      "validation_result_id": "1f9315f3-a31b-4975-a000-7fc359025886",
+      "status": "Approved"
+    },
+    {
+      "question_id": "66d1f1b5-0835-5e41-825e-41d593b87a0a",
+      "validation_revision": 0,
+      "validation_result_id": "447fc6c9-c7c6-471d-8ccc-828321d57827",
+      "status": "Approved"
+    },
+    {
+      "question_id": "d9e52c6e-7d75-58c4-8566-2f31d023eebd",
+      "validation_revision": 0,
+      "validation_result_id": "b52a5533-bad4-4d53-9682-dc0f7dba9fc0",
+      "status": "Approved"
+    },
+    {
+      "question_id": "bb433b4d-699c-5c58-aaef-ae487f9ddfb4",
+      "validation_revision": 0,
+      "validation_result_id": "1ef7916b-2620-46e1-8fe1-3bda830ddddc",
+      "status": "Approved"
+    },
+    {
+      "question_id": "27c392b2-9bd3-5b51-ba8b-641d230c8c71",
+      "validation_revision": 0,
+      "validation_result_id": "52c1cf79-4cfb-46e7-a7f1-c9fb9728dc6b",
+      "status": "Approved"
+    },
+    {
+      "question_id": "ca055129-5e24-58b2-9e1b-629f31a9e836",
+      "validation_revision": 0,
+      "validation_result_id": "ab3558c3-943f-427f-9ba8-70f1d5fae019",
+      "status": "Approved"
+    },
+    {
+      "question_id": "eb16ff84-ee3a-564d-89d7-e015dd8e7464",
+      "validation_revision": 0,
+      "validation_result_id": "8f9307ed-b362-40dc-8800-acbf16c5fbbe",
+      "status": "Approved"
+    },
+    {
+      "question_id": "fc3bf79a-b51b-50b0-813c-d9f5bbf840b9",
+      "validation_revision": 0,
+      "validation_result_id": "699ed1d0-f14a-4b24-be68-3d3d3036c1fa",
+      "status": "Approved"
+    },
+    {
+      "question_id": "cd08cb7d-c574-581f-9355-46c2e7f53d27",
+      "validation_revision": 0,
+      "validation_result_id": "35a1d4cc-03ea-4377-9563-008daba90fd1",
+      "status": "Approved"
+    },
+    {
+      "question_id": "1cefe14a-8ec2-5614-be9c-f84e6729c907",
+      "validation_revision": 0,
+      "validation_result_id": "473f9131-3c6a-427b-84dc-ce867fc94ac2",
+      "status": "Approved"
+    },
+    {
+      "question_id": "1e8ede5a-c15c-55c1-ad04-b2b1216731d4",
+      "validation_revision": 0,
+      "validation_result_id": "d873ed84-6cb2-4ac2-9614-ce3f960e85f1",
+      "status": "Approved"
+    },
+    {
+      "question_id": "9357cd23-4495-5783-bf70-322d7b581058",
+      "validation_revision": 0,
+      "validation_result_id": "79198610-0ba7-4e4b-83e0-6a91f22a3405",
+      "status": "Approved"
+    },
+    {
+      "question_id": "5695c41e-f123-5ddf-a749-756ef221d136",
+      "validation_revision": 0,
+      "validation_result_id": "a28f7b5a-96e7-43fa-b296-277f4ffeaa71",
+      "status": "Approved"
+    },
+    {
+      "question_id": "f572da20-4c0c-56b5-b04b-aaaed74d1b9a",
+      "validation_revision": 0,
+      "validation_result_id": "0b2d94d1-1fe7-42a6-919e-8d5d41b513b9",
+      "status": "Approved"
+    },
+    {
+      "question_id": "1ad9bcae-4901-5e57-90c1-f29457a6b31c",
+      "validation_revision": 0,
+      "validation_result_id": "73470770-fa99-41ef-ad24-4bbebf8d2dad",
+      "status": "Approved"
+    },
+    {
+      "question_id": "78a941ad-8096-512a-849e-0194c214d8c2",
+      "validation_revision": 0,
+      "validation_result_id": "3ab29fcf-ae1e-4de8-ad90-48eee0ba0461",
+      "status": "Approved"
+    },
+    {
+      "question_id": "fe1bd3e1-fbfd-5796-b12c-aed7d415ed08",
+      "validation_revision": 0,
+      "validation_result_id": "5860dcdd-46b4-4148-806e-7fb312126db2",
+      "status": "Approved"
+    },
+    {
+      "question_id": "e5aa3fc7-a09b-50af-9d60-7cade1b351fe",
+      "validation_revision": 0,
+      "validation_result_id": "39fc30e3-c840-42a5-bbd3-963dfbb9a033",
+      "status": "Approved"
+    },
+    {
+      "question_id": "567f8cc3-1751-5970-a3c9-67efe64bac2f",
+      "validation_revision": 0,
+      "validation_result_id": "35552c99-b51b-4e65-b7ff-bd13de55c017",
+      "status": "Approved"
+    },
+    {
+      "question_id": "e618c546-8bf2-58b1-8956-1dcda92bb7f2",
+      "validation_revision": 0,
+      "validation_result_id": "7ddd0a79-c04f-4265-beb5-0878451fdacc",
+      "status": "Approved"
+    },
+    {
+      "question_id": "afaa10b1-86f6-5f15-94ab-1d06d4618547",
+      "validation_revision": 0,
+      "validation_result_id": "2093b4ee-3d9f-4dcb-bb5e-1a798c462bb2",
+      "status": "Approved"
+    },
+    {
+      "question_id": "f3aae814-f640-5dbc-b634-a28e19669335",
+      "validation_revision": 0,
+      "validation_result_id": "c4a4b369-d9a1-472e-8699-6dd115c1b03f",
+      "status": "Approved"
+    },
+    {
+      "question_id": "a11720e5-52a3-57f7-a34f-1c2ebab94f5e",
+      "validation_revision": 0,
+      "validation_result_id": "b84e2eb7-9abb-4b2d-9d88-12f1c2984daf",
+      "status": "Approved"
+    },
+    {
+      "question_id": "f0fa3654-b7d5-5413-9009-6b41cc976e9a",
+      "validation_revision": 0,
+      "validation_result_id": "743fe528-0591-4801-b572-435a5ff8f294",
+      "status": "Approved"
+    },
+    {
+      "question_id": "4f20e0a4-af11-5172-8c68-f7755c852b1d",
+      "validation_revision": 0,
+      "validation_result_id": "a299d4dc-9a32-4c48-bca4-b83049b4a506",
+      "status": "Approved"
+    },
+    {
+      "question_id": "dc91fe02-d141-5cbd-970a-3fd17ff61f9c",
+      "validation_revision": 0,
+      "validation_result_id": "ec2e6eeb-c2ad-42e3-a08e-92b86c9d5b2c",
+      "status": "Approved"
+    },
+    {
+      "question_id": "adb0945c-c202-5618-86da-ff5788c936de",
+      "validation_revision": 0,
+      "validation_result_id": "874b548f-659c-4a76-91a7-3de2b498f553",
+      "status": "Approved"
+    },
+    {
+      "question_id": "7c97cf41-b677-51da-a1dc-8760182a687d",
+      "validation_revision": 0,
+      "validation_result_id": "55074cc4-189b-42c2-925a-16bbf6b2f1e7",
+      "status": "Approved"
+    },
+    {
+      "question_id": "f2b23faa-b9fb-5d3a-b535-8e31e076acdc",
+      "validation_revision": 0,
+      "validation_result_id": "65e7b728-a09d-4229-bf2d-46f4443f2d3d",
+      "status": "Approved"
+    },
+    {
+      "question_id": "d69f4b46-5612-50f4-9969-c64a8c90a9ff",
+      "validation_revision": 0,
+      "validation_result_id": "ca32fb54-6760-4343-9f08-b64dde00bb81",
+      "status": "Approved"
+    },
+    {
+      "question_id": "f6ebf076-79f0-5a2a-974d-e07ec6754565",
+      "validation_revision": 0,
+      "validation_result_id": "f00b59fa-a2f8-4ae2-937e-3384b0a31c54",
+      "status": "Approved"
+    },
+    {
+      "question_id": "8c85bc25-c57e-5f0e-8f85-766ba5fe84bb",
+      "validation_revision": 0,
+      "validation_result_id": "e103d652-f72a-4154-8e94-1b54171939b1",
+      "status": "Approved"
+    },
+    {
+      "question_id": "9410bb42-dbd4-5922-ad51-a395f7fb2a3b",
+      "validation_revision": 0,
+      "validation_result_id": "f885fd94-093e-4c4c-9b1d-ba382faef174",
+      "status": "Approved"
+    },
+    {
+      "question_id": "181971fa-bc27-5360-a524-5887a28f598b",
+      "validation_revision": 0,
+      "validation_result_id": "69dbca84-c5e1-487f-b211-5991c2a4f332",
+      "status": "Approved"
+    },
+    {
+      "question_id": "61798602-a2a1-525b-bd28-3b07504cac4b",
+      "validation_revision": 0,
+      "validation_result_id": "344b7426-8274-45b1-8141-8cf8013d5420",
+      "status": "Approved"
+    },
+    {
+      "question_id": "d3417315-9b3e-555e-9154-c7b76296903c",
+      "validation_revision": 0,
+      "validation_result_id": "06bfae0a-ca8d-46dd-b472-6ac8d1f21913",
+      "status": "Approved"
+    },
+    {
+      "question_id": "81a34298-f68b-58f2-91f7-89c3dbcc2c0a",
+      "validation_revision": 0,
+      "validation_result_id": "b3e06513-b087-4a4d-8b64-c24d9ad236b0",
+      "status": "Approved"
+    },
+    {
+      "question_id": "5026bc51-8a69-5f0c-aa64-94a865aa1ea2",
+      "validation_revision": 0,
+      "validation_result_id": "92facf1f-235c-475e-917d-e4ae43a17bf2",
+      "status": "Approved"
+    },
+    {
+      "question_id": "73597ddb-3e52-5e4e-b3fe-0c55603a1517",
+      "validation_revision": 0,
+      "validation_result_id": "1d624a69-5482-44e9-b78c-008fc655a763",
+      "status": "Approved"
+    },
+    {
+      "question_id": "6cb5119d-2deb-5017-99d6-a0eb1a1fd698",
+      "validation_revision": 0,
+      "validation_result_id": "9001bd01-fc74-4bad-aa51-6e1fbbd1b52c",
+      "status": "Approved"
+    },
+    {
+      "question_id": "555c7d34-e436-5340-945e-75815a1f816d",
+      "validation_revision": 0,
+      "validation_result_id": "c996133b-c65e-4552-a90e-020b63c09e38",
+      "status": "Approved"
+    },
+    {
+      "question_id": "a5cfcaef-e636-5f70-8725-5510c15dcf47",
+      "validation_revision": 0,
+      "validation_result_id": "a7b95eef-b0fd-405c-8ba1-8474ca854af1",
+      "status": "Approved"
+    },
+    {
+      "question_id": "dd5de44b-8007-5714-89fa-bb81f7b5d592",
+      "validation_revision": 0,
+      "validation_result_id": "b894fac5-1404-4097-b834-2e27e409fb88",
+      "status": "Approved"
+    },
+    {
+      "question_id": "c6d31bfc-260e-5fa0-8941-38f314e0570b",
+      "validation_revision": 0,
+      "validation_result_id": "146e4ae3-ab12-460c-913f-e8611fb18e57",
+      "status": "Approved"
+    },
+    {
+      "question_id": "506fa047-7f79-561d-a0c3-4e500111988b",
+      "validation_revision": 0,
+      "validation_result_id": "b4250268-eb9a-49c6-826c-102c198b46b3",
+      "status": "Approved"
+    },
+    {
+      "question_id": "76076963-8fd8-54a7-bbce-c86dddb656d5",
+      "validation_revision": 0,
+      "validation_result_id": "20bcea32-285b-45a1-a3c9-bf89d2c5036f",
+      "status": "Approved"
+    },
+    {
+      "question_id": "a0047092-64b2-5fef-b6e7-ef4be0772856",
+      "validation_revision": 0,
+      "validation_result_id": "4eedd6b3-0a17-4eea-96a2-78306ffc8804",
+      "status": "Approved"
+    },
+    {
+      "question_id": "ed1164ed-ec87-5154-85a9-8fe3cddc7334",
+      "validation_revision": 0,
+      "validation_result_id": "f55f6705-f662-4c90-99f9-0a4e6a4e0798",
+      "status": "Approved"
+    },
+    {
+      "question_id": "004c9da2-2d2c-5e93-901b-0c61c7d8fb76",
+      "validation_revision": 0,
+      "validation_result_id": "99be1d5a-87f1-430b-b16b-72af5ed26d3f",
+      "status": "Approved"
+    },
+    {
+      "question_id": "67441d68-3ca6-545c-bb42-8643f93b3a55",
+      "validation_revision": 0,
+      "validation_result_id": "9a1d1a9d-34d9-4cc2-8d91-dad909cde605",
+      "status": "Approved"
+    },
+    {
+      "question_id": "9217b325-f081-56a1-9c7b-c62349a26de4",
+      "validation_revision": 0,
+      "validation_result_id": "fc3b5372-edb5-4c02-9a78-f888c2f54896",
+      "status": "Approved"
+    },
+    {
+      "question_id": "4360c552-5fd4-5dfe-bdcf-3f3d2f523dd2",
+      "validation_revision": 0,
+      "validation_result_id": "883504fc-5063-4ce6-a0c1-b50cfb480f9d",
+      "status": "Approved"
+    }
+  ],
+  "actual_manual_image_checks": [
+    {
+      "id": "d6d5c48b-4316-4772-a45d-bfe8776ebcc2",
+      "check_no": 1,
+      "context_revision": 0,
+      "run_no": 0,
+      "run_id": null,
+      "input_refs": {
+        "text_fields": [
+          "type",
+          "content",
+          "options",
+          "reference_answer",
+          "scoring_rubric",
+          "analysis",
+          "score",
+          "caption"
+        ],
+        "images": [
+          {
+            "asset_id": "b539bb13-d196-4e9e-ba2f-d0336b2cbd12",
+            "file_id": "a_b539bb13d1964e9eba2fd0336b2cbd12",
+            "image_index": 1,
+            "asset_type": "diagram",
+            "source_page_id": null,
+            "region": null,
+            "width": 640,
+            "height": 400,
+            "mime_type": "image/png"
+          }
+        ]
+      },
+      "status": "confirmed",
+      "confirmed_conditions": [
+        {
+          "condition_id": "afe15ab6-5bba-470b-9ca5-441d6da1137f",
+          "asset_id": "b539bb13-d196-4e9e-ba2f-d0336b2cbd12",
+          "text": "输入x，经y=2*x+1，输出y；与原夹具公式一致。",
+          "evidence_region": null,
+          "source_condition_id": null
+        }
+      ],
+      "image_findings": [
+        {
+          "asset_id": "b539bb13-d196-4e9e-ba2f-d0336b2cbd12",
+          "finding": "conditions_confirmed",
+          "reason": "Explicit AI-authored synthetic fixture condition"
+        }
+      ],
+      "issues": [],
+      "issue_resolutions": [],
+      "teacher_id": "75bf577f-5ad8-4e27-8650-37d62c806e60",
+      "checked_at": "2026-10-05T01:42:58.348374Z",
+      "explanation": "AI authored business setup under developer delegation; not independent teacher review"
+    }
+  ],
+  "teacher_id": "75bf577f-5ad8-4e27-8650-37d62c806e60",
+  "student_id": "540f870b-ba80-4769-acc8-c7d81147a15c",
+  "course_id": "cf99a4d9-dfa1-5bb3-9d6d-2ea11d1d6820",
+  "candidate_count": 300,
+  "actual_database_loaded": true,
+  "completed_at": "2026-10-05T01:43:32.798853+00:00"
+}

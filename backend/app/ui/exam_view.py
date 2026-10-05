@@ -1286,8 +1286,21 @@ def create_exam_view(session_state: Any | None = None) -> ExamView:
             with get_session_factory()() as session:
                 exam = ExamService(session).get_exam(identifier, teacher_id=teacher_id)
                 service = QuestionService(session)
+                by_id = {
+                    question.id: question
+                    for question in service.list_questions(
+                        course_id=exam.course_id,
+                        teacher_id=teacher_id,
+                        question_ids=exam.question_ids,
+                    )
+                }
+                # Preserve actual exam order. A missing association remains an error.
                 questions = [
-                    service.get_question(qid, teacher_id=teacher_id)
+                    (
+                        by_id[qid]
+                        if qid in by_id
+                        else service.get_question(qid, teacher_id=teacher_id)
+                    )
                     for qid in exam.question_ids
                 ]
             return exam, questions

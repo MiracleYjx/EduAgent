@@ -152,6 +152,107 @@ class ContentValidationService:
         self.session = session
         self.files = FileStorageService(session, root=root)
         self._semantic_provider_factory = provider_factory
+        self._exam_batch: dict[str, Any] | None = None
+
+    @contextmanager
+    def _exam_eligibility_batch(
+        self, questions: list[Question], actor_id: UUID
+    ) -> Iterator[None]:
+        """Read current eligibility inputs once under the ordinary transaction locks.
+
+        This is a call-scoped read set, never a cache of eligibility decisions.
+        Every question still passes the same gate; no commit/rollback is owned here.
+        """
+        previous = self._exam_batch
+        identities = {question.id for question in questions}
+        actor = self.files._actor(actor_id)
+        courses = []
+        for course_id in sorted({q.course_id for q in questions}):
+            course = lock_course(self.session, course_id)
+            if course is None or not self.files._manages(actor, course):
+                raise ContentValidationError(
+                    "CONTENT_FORBIDDEN", "仅课程管理教师可核对内容。", http_status=403
+                )
+            courses.append(course)
+        locked = list(
+            self.session.scalars(
+                select(Question)
+                .where(Question.id.in_(identities))
+                .options(
+                    selectinload(Question.assets),
+                    selectinload(Question.imported_extracted_question),
+                )
+                .order_by(Question.id)
+                .with_for_update()
+                .execution_options(populate_existing=True)
+            ).all()
+        )
+        latest = (
+            select(
+                QuestionValidationResult.question_id,
+                func.max(QuestionValidationResult.run_no).label("run_no"),
+            )
+            .where(QuestionValidationResult.question_id.in_(identities))
+            .group_by(QuestionValidationResult.question_id)
+            .subquery()
+        )
+        reports = list(
+            self.session.scalars(
+                select(QuestionValidationResult)
+                .join(
+                    latest,
+                    (QuestionValidationResult.question_id == latest.c.question_id)
+                    & (QuestionValidationResult.run_no == latest.c.run_no),
+                )
+                .order_by(QuestionValidationResult.question_id)
+                .with_for_update(of=QuestionValidationResult)
+                .execution_options(populate_existing=True)
+            ).all()
+        )
+        sources = list(
+            self.session.scalars(
+                select(QuestionSourceChunk)
+                .where(QuestionSourceChunk.question_id.in_(identities))
+                .execution_options(populate_existing=True)
+            ).all()
+        )
+        chunk_ids = set()
+        for report in reports:
+            # Malformed evidence is rejected by the unchanged per-question schema gate.
+            if not isinstance(report.input_refs, dict):
+                continue
+            evidence = report.input_refs.get("evidence", [])
+            if not isinstance(evidence, list):
+                continue
+            for item in evidence:
+                if isinstance(item, dict) and item.get("kind") == "chunk":
+                    try:
+                        chunk_ids.add(UUID(str(item.get("source_id"))))
+                    except (ValueError, TypeError):
+                        pass
+        chunks = list(
+            self.session.scalars(
+                select(DocumentChunk)
+                .where(DocumentChunk.id.in_(chunk_ids))
+                .options(
+                    selectinload(DocumentChunk.document).selectinload(
+                        Document.knowledge_base
+                    )
+                )
+                .execution_options(populate_existing=True)
+            ).all()
+        )
+        self._exam_batch = {
+            "actor_id": actor_id,
+            "questions": {q.id: q for q in locked},
+            "reports": {r.question_id: r for r in reports},
+            "chunks": {chunk.id: chunk for chunk in chunks},
+            "keepalive": (actor, courses, sources),
+        }
+        try:
+            yield
+        finally:
+            self._exam_batch = previous
 
     @contextmanager
     def _transaction(self) -> Iterator[None]:
@@ -182,6 +283,14 @@ class ContentValidationService:
             raise ContentValidationError(
                 "CONTENT_OWNER_INVALID", "归属类型无效。", http_status=422
             )
+        if (
+            kind == "question"
+            and not writing
+            and self._exam_batch is not None
+            and self._exam_batch["actor_id"] == actor_id
+            and identity in self._exam_batch["questions"]
+        ):
+            return self._exam_batch["questions"][identity]
         model = Question if kind == "question" else ExtractedQuestion
         record = cast(Owner | None, self.session.get(model, identity))
         if record is None:
@@ -837,16 +946,20 @@ class ContentValidationService:
         )
 
     def _chunk_data(self, question: Question, chunk_id: UUID) -> dict[str, Any]:
-        chunk = self.session.scalars(
-            select(DocumentChunk)
-            .where(DocumentChunk.id == chunk_id)
-            .options(
-                selectinload(DocumentChunk.document).selectinload(
-                    Document.knowledge_base
+        chunk = (
+            self._exam_batch["chunks"].get(chunk_id)
+            if self._exam_batch is not None
+            else self.session.scalars(
+                select(DocumentChunk)
+                .where(DocumentChunk.id == chunk_id)
+                .options(
+                    selectinload(DocumentChunk.document).selectinload(
+                        Document.knowledge_base
+                    )
                 )
-            )
-            .execution_options(populate_existing=True)
-        ).one_or_none()
+                .execution_options(populate_existing=True)
+            ).one_or_none()
+        )
         if (
             chunk is None
             or chunk.course_id != question.course_id
@@ -1133,14 +1246,19 @@ class ContentValidationService:
                 "组卷题目必须已审核。",
                 current_status=locked.status.value,
             )
-        report = self.session.scalars(
-            select(QuestionValidationResult)
-            .where(QuestionValidationResult.question_id == locked.id)
-            .order_by(QuestionValidationResult.run_no.desc())
-            .limit(1)
-            .with_for_update()
-            .execution_options(populate_existing=True)
-        ).first()
+        report = (
+            self._exam_batch["reports"].get(locked.id)
+            if self._exam_batch is not None
+            and locked.id in self._exam_batch["questions"]
+            else self.session.scalars(
+                select(QuestionValidationResult)
+                .where(QuestionValidationResult.question_id == locked.id)
+                .order_by(QuestionValidationResult.run_no.desc())
+                .limit(1)
+                .with_for_update()
+                .execution_options(populate_existing=True)
+            ).first()
+        )
         if report is None:
             raise ContentValidationError(
                 "CONTENT_VALIDATION_REQUIRED", "组卷题目缺少当前语义核验报告。"

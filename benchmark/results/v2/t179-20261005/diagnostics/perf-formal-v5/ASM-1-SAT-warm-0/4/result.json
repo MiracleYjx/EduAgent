@@ -1,0 +1,168 @@
+{
+  "run_id": "ASM-1-SAT-warm-4-37f2c381",
+  "case_id": "ASM-1-SAT",
+  "kind": "warm",
+  "index": 4,
+  "worker_pid": 102820,
+  "exam_id": "a7e58edc-b1a3-4fba-9652-ec27147dd965",
+  "browser": {
+    "case_id": "ASM-1-SAT",
+    "run_id": "ASM-1-SAT-warm-4-37f2c381",
+    "passed": true,
+    "timeout_limit_ms": 60000,
+    "start": 3237.600000023842,
+    "started_at": "2026-10-05T02:28:55.920Z",
+    "completed_at": "2026-10-05T02:28:56.662Z",
+    "elapsed_ms": 742,
+    "status": "最近组卷要求记录于 2026-10-05T02:28:56.082189+00:00。\n\n满足 · count：要求 1，当前 1。\n\n满足 · type:SINGLE_CHOICE：要求 1，当前 1。\n\n满足 · knowledge:一次函数：要求 1，当前 1。\n\n满足 · total_score：要求 1.00，当前 1.00。\n\n⚠待人工复核\n请先准备并核对本场评分依据。",
+    "article_count": 1,
+    "preview": "教师完整预览 · 总分 1.00\n第 1 题 · 单选题 · 本场满分 1.00\n\n显式分值：1.00；基准满分：未知（待核对）\n\n当 x=145 时，y=2x+1 的值是？\nA · 291\nB · 292\nC · 290\nD · 293\n\n参考答案\n\nA\n\n原始评分标准\n\n选 A 得 1.00 分，否则 0.00 分。\n\n解析\n\n未知（待核对）\n\n知识点\n\n一次函数、表达与计算",
+    "images": [],
+    "browser_errors": [],
+    "browser_version": "154.0.4258.53",
+    "start_event": "actual teacher assembly button click",
+    "end_event": "full actual preview/unsatisfied diagnostic, images decoded, two animation frames",
+    "measurement_source": "same browser monotonic performance.now; startup/login/form entry outside timing"
+  },
+  "resources": {
+    "sample_count": 1,
+    "observed_sampling_span_seconds": 0.0,
+    "window_duration_seconds": 0.742000000027474,
+    "full_sampling_cycles_observed": 0,
+    "requested_interval_seconds": 1.0,
+    "max_observed_gap_seconds": 0.0,
+    "complete_at_requested_sampling_resolution": true,
+    "peaks": {
+      "app_working_set_bytes": 326991872,
+      "postgres_container_process_rss_bytes": 237694976,
+      "redis_container_process_rss_bytes": 8962048,
+      "simultaneous_observed_sum_bytes": 573648896
+    },
+    "missing_sample_count": 0,
+    "first_sample_at": "2026-10-05T02:28:56.252962+00:00",
+    "last_sample_at": "2026-10-05T02:28:56.252962+00:00",
+    "scope": {
+      "app": "verified Windows worker and actual descendant process working sets; excludes experiment controller and parent redirector",
+      "postgres": "sum of all postgres process RSS in shared eduagent-postgres-1; not isolated database attribution; shared pages can be counted repeatedly",
+      "redis": "sum of all redis-server process RSS in dedicated eduagent-t179-redis-8756bb66a88f",
+      "sum": "independent app/PostgreSQL/Redis probes concurrently inside one complete cycle; observed sum, not unique physical or continuous peak"
+    },
+    "coverage_rule": "complete simultaneous component cycles inside actual action; first cycle starts within50ms; last boundary and cycle gaps <=1s +50ms scheduling tolerance; probes <=1s; one cycle allowed when action is shorter than schedule; no continuous-peak guarantee",
+    "probe_duration_max_seconds": 0.3286500000394881,
+    "sample_rows": [
+      {
+        "sampled_at": "2026-10-05T02:28:56.252962+00:00",
+        "perf_counter": 472743.3731782,
+        "sample_completed_perf": 472743.7018282,
+        "pid": 102820,
+        "application_root_pid": 102820,
+        "app_working_set_bytes": 326991872,
+        "application_processes": [
+          {
+            "pid": 102820,
+            "parent_pid": 99196,
+            "working_set_bytes": 326991872,
+            "error": null
+          }
+        ],
+        "postgres_container_process_rss_bytes": 237694976,
+        "postgres_processes": [
+          {
+            "pid": 1,
+            "rss_bytes": 29892608
+          },
+          {
+            "pid": 27,
+            "rss_bytes": 98922496
+          },
+          {
+            "pid": 28,
+            "rss_bytes": 9895936
+          },
+          {
+            "pid": 30,
+            "rss_bytes": 10690560
+          },
+          {
+            "pid": 31,
+            "rss_bytes": 9318400
+          },
+          {
+            "pid": 32,
+            "rss_bytes": 8814592
+          },
+          {
+            "pid": 67018,
+            "rss_bytes": 33443840
+          },
+          {
+            "pid": 67148,
+            "rss_bytes": 36716544
+          }
+        ],
+        "redis_container_process_rss_bytes": 8962048,
+        "redis_processes": [
+          {
+            "pid": 1,
+            "rss_bytes": 8962048
+          }
+        ],
+        "simultaneous_observed_sum_bytes": 573648896,
+        "errors": {},
+        "observation_method": "three independent probes in parallel; common cycle start/completion, actual worker subtree; no browser/controller memory in app scope"
+      }
+    ],
+    "action_boundary_perf": {
+      "start": 472743.3688454,
+      "end": 472744.1108454
+    }
+  },
+  "memory_budget": {
+    "protocol": "plan-v2-memory-soft-upper-budgets",
+    "unit_policy": "GB=1000000000 bytes; MB=1000000 bytes; display MiB=1048576 bytes",
+    "limits_bytes": {
+      "app_working_set_bytes": 4000000000,
+      "postgres_container_process_rss_bytes": 1500000000,
+      "redis_container_process_rss_bytes": 512000000,
+      "simultaneous_observed_sum_bytes": 6000000000
+    },
+    "limits_mib": {
+      "app_working_set_bytes": 3814.697265625,
+      "postgres_container_process_rss_bytes": 1430.511474609375,
+      "redis_container_process_rss_bytes": 488.28125,
+      "simultaneous_observed_sum_bytes": 5722.0458984375
+    },
+    "observed_peaks_bytes": {
+      "app_working_set_bytes": 326991872,
+      "postgres_container_process_rss_bytes": 237694976,
+      "redis_container_process_rss_bytes": 8962048,
+      "simultaneous_observed_sum_bytes": 573648896
+    },
+    "observed_peaks_mib": {
+      "app_working_set_bytes": 311.84375,
+      "postgres_container_process_rss_bytes": 226.68359375,
+      "redis_container_process_rss_bytes": 8.546875,
+      "simultaneous_observed_sum_bytes": 547.07421875
+    },
+    "observed_over_budget": {
+      "app_working_set_bytes": false,
+      "postgres_container_process_rss_bytes": false,
+      "redis_container_process_rss_bytes": false,
+      "simultaneous_observed_sum_bytes": false
+    },
+    "resource_complete": true,
+    "component_pass": {
+      "app_working_set_bytes": true,
+      "postgres_container_process_rss_bytes": true,
+      "redis_container_process_rss_bytes": true,
+      "simultaneous_observed_sum_bytes": true
+    },
+    "budget_pass": true,
+    "scope": "Observed application subtree working set plus PostgreSQL/Redis process RSS. Shared pages may be counted repeatedly; not unique physical memory or EXE acceptance."
+  },
+  "observed_start_ipc_delay_seconds": 0.003141,
+  "controller_window": "browser monotonic duration mapped to same-host start UTC for resource selection; screenshots/cleanup excluded; elapsed always browser monotonic",
+  "node_exit": 0,
+  "passed": true,
+  "latency_target_pass": true
+}

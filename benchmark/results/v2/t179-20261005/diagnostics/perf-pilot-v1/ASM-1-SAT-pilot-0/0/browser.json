@@ -1,0 +1,17 @@
+{
+  "case_id": "ASM-1-SAT",
+  "run_id": "ASM-1-SAT-pilot-0-9c613eb9",
+  "passed": false,
+  "timeout_limit_ms": 60000,
+  "error": {
+    "type": "TimeoutError",
+    "message": "locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#t179-exams .virtual-body .body-cell').filter({ hasText: 'T179 ASM-1-SAT-pilot-0-9c613eb9' }).first()\u001b[22m\n"
+  },
+  "observed_at": "2026-10-05T02:05:15.726Z",
+  "elapsed_ms": null,
+  "browser_errors": [],
+  "browser_version": "154.0.4258.53",
+  "start_event": "actual teacher assembly button click",
+  "end_event": "full actual preview/unsatisfied diagnostic, images decoded, two animation frames",
+  "measurement_source": "same browser monotonic performance.now; startup/login/form entry outside timing"
+}

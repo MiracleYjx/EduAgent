@@ -1,0 +1,208 @@
+{
+  "task": "T179",
+  "completed_at": "2026-10-05T02:55:49.259329+00:00",
+  "annotation": "AI assisted + developer review; independent teacher=0; controlled semantic gate setup; no cloud calls; not model quality",
+  "business": {
+    "planned": 12,
+    "passed": 12,
+    "satisfied": 6,
+    "expected_unsatisfied": 5,
+    "legacy": 1
+  },
+  "performance": {
+    "planned": 48,
+    "attempted": 48,
+    "business_passed": 48,
+    "latency_passed": 48,
+    "resource_complete": 48,
+    "memory_passed": 48,
+    "completed_at": "2026-10-05T02:46:52.391134+00:00",
+    "passed": true
+  },
+  "warmups": {
+    "planned": 6,
+    "passed": 6,
+    "timed_denominator": false
+  },
+  "groups": [
+    {
+      "case_id": "ASM-1-SAT",
+      "kind": "cold",
+      "planned": 3,
+      "completed": 3,
+      "passed": 3,
+      "min_ms": 687.6000000238419,
+      "median_ms": 707,
+      "max_ms": 737,
+      "resource_complete": 3,
+      "memory_pass": 3,
+      "failed": 0
+    },
+    {
+      "case_id": "ASM-1-SAT",
+      "kind": "warm",
+      "planned": 5,
+      "completed": 5,
+      "passed": 5,
+      "min_ms": 680,
+      "median_ms": 681.6999999880791,
+      "max_ms": 882.1000000238419,
+      "resource_complete": 5,
+      "memory_pass": 5,
+      "failed": 0
+    },
+    {
+      "case_id": "ASM-1-UNSAT",
+      "kind": "cold",
+      "planned": 3,
+      "completed": 3,
+      "passed": 3,
+      "min_ms": 626.3999999761581,
+      "median_ms": 653.3999999761581,
+      "max_ms": 678.8999999761581,
+      "resource_complete": 3,
+      "memory_pass": 3,
+      "failed": 0
+    },
+    {
+      "case_id": "ASM-1-UNSAT",
+      "kind": "warm",
+      "planned": 5,
+      "completed": 5,
+      "passed": 5,
+      "min_ms": 593.6000000238419,
+      "median_ms": 646.0999999642372,
+      "max_ms": 688.3000000119209,
+      "resource_complete": 5,
+      "memory_pass": 5,
+      "failed": 0
+    },
+    {
+      "case_id": "ASM-25-SAT",
+      "kind": "cold",
+      "planned": 3,
+      "completed": 3,
+      "passed": 3,
+      "min_ms": 988.5,
+      "median_ms": 992.5,
+      "max_ms": 999,
+      "resource_complete": 3,
+      "memory_pass": 3,
+      "failed": 0
+    },
+    {
+      "case_id": "ASM-25-SAT",
+      "kind": "warm",
+      "planned": 5,
+      "completed": 5,
+      "passed": 5,
+      "min_ms": 974,
+      "median_ms": 1250.0999999642372,
+      "max_ms": 1397.699999988079,
+      "resource_complete": 5,
+      "memory_pass": 5,
+      "failed": 0
+    },
+    {
+      "case_id": "ASM-25-UNSAT",
+      "kind": "cold",
+      "planned": 3,
+      "completed": 3,
+      "passed": 3,
+      "min_ms": 690,
+      "median_ms": 712.3000000119209,
+      "max_ms": 723,
+      "resource_complete": 3,
+      "memory_pass": 3,
+      "failed": 0
+    },
+    {
+      "case_id": "ASM-25-UNSAT",
+      "kind": "warm",
+      "planned": 5,
+      "completed": 5,
+      "passed": 5,
+      "min_ms": 669.6999999880791,
+      "median_ms": 708.6000000238419,
+      "max_ms": 856.8000000119209,
+      "resource_complete": 5,
+      "memory_pass": 5,
+      "failed": 0
+    },
+    {
+      "case_id": "ASM-100-SAT",
+      "kind": "cold",
+      "planned": 3,
+      "completed": 3,
+      "passed": 3,
+      "min_ms": 1305.199999988079,
+      "median_ms": 1348.1000000238419,
+      "max_ms": 1374.2999999523163,
+      "resource_complete": 3,
+      "memory_pass": 3,
+      "failed": 0
+    },
+    {
+      "case_id": "ASM-100-SAT",
+      "kind": "warm",
+      "planned": 5,
+      "completed": 5,
+      "passed": 5,
+      "min_ms": 1273.300000011921,
+      "median_ms": 1307.5999999642372,
+      "max_ms": 1571.8999999761581,
+      "resource_complete": 5,
+      "memory_pass": 5,
+      "failed": 0
+    },
+    {
+      "case_id": "ASM-100-UNSAT",
+      "kind": "cold",
+      "planned": 3,
+      "completed": 3,
+      "passed": 3,
+      "min_ms": 673.0999999642372,
+      "median_ms": 678.8999999761581,
+      "max_ms": 714.5999999642372,
+      "resource_complete": 3,
+      "memory_pass": 3,
+      "failed": 0
+    },
+    {
+      "case_id": "ASM-100-UNSAT",
+      "kind": "warm",
+      "planned": 5,
+      "completed": 5,
+      "passed": 5,
+      "min_ms": 628.6000000238419,
+      "median_ms": 700.7000000476837,
+      "max_ms": 854.8000000119209,
+      "resource_complete": 5,
+      "memory_pass": 5,
+      "failed": 0
+    }
+  ],
+  "resource_peaks_bytes": {
+    "app_working_set_bytes": 332226560,
+    "postgres_container_process_rss_bytes": 244994048,
+    "redis_container_process_rss_bytes": 8962048,
+    "simultaneous_observed_sum_bytes": 586182656
+  },
+  "resource_peaks_mib": {
+    "app_working_set_bytes": 316.8359375,
+    "postgres_container_process_rss_bytes": 233.64453125,
+    "redis_container_process_rss_bytes": 8.546875,
+    "simultaneous_observed_sum_bytes": 559.02734375
+  },
+  "workers": 24,
+  "source_hashes_unchanged": true,
+  "protected_files_byte_equal": {
+    "README.md": true,
+    "README.zh-CN.md": true,
+    "benchmark/corpus/grading_samples.json": true,
+    ".env": true
+  },
+  "original_database_unchanged": true,
+  "quality_baseline": "T168 not_met retained",
+  "passed": true
+}
