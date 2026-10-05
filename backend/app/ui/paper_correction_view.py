@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from functools import wraps
+from html import escape
 from typing import Any
 
 import gradio as gr
@@ -14,6 +15,12 @@ from backend.app.domain.permissions import PermissionDeniedError
 from backend.app.services.auth_service import AuthenticationError
 from backend.app.services.file_storage_service import FileStorageError
 from backend.app.ui import paper_import_loaders as loaders
+from backend.app.ui.layout_view import (
+    empty_state,
+    feedback,
+    status_badge,
+    status_banner,
+)
 
 QUESTION_STATES = {
     "Pending Correction": "待校正",
@@ -94,7 +101,7 @@ def paper_summary(paper) -> str:
         message += f"\n\n{paper.error_code}：{paper.error_message}"
     for diagnostic in paper.file_diagnostics:
         message += "\n\n" + diagnostic["message"]
-    return message
+    return status_banner(paper.status, entity="paper_import", detail=message)
 
 
 @dataclass
@@ -104,10 +111,40 @@ class PaperCorrectionView:
     message: gr.Markdown
 
 
+def correction_preview(question) -> str:
+    """Read-only actual fields; absent answers stay absent, options keep JSON order."""
+    if question is None:
+        return empty_state("尚未提取题目，查看真实进度后再校正。")
+
+    def text(value):
+        return (
+            escape(str(value))
+            if value is not None and value != ""
+            else "未知 / 尚未填写"
+        )
+
+    options = question.options
+    rows = (
+        options.items()
+        if isinstance(options, dict)
+        else enumerate(options or [], start=1)
+    )
+    option_html = "".join(
+        f"<li><b>{text(key)}</b> {text(value)}</li>" for key, value in rows
+    )
+    return (
+        '<section class="edu-paper-preview"><h3>结构化题目详情</h3>'
+        f"<p>{text(question.content)}</p><ul>{option_html}</ul>"
+        f"<h3>参考答案</h3><p>{text(question.reference_answer)}</p>"
+        f"<h3>评分标准</h3><p>{text(question.scoring_rubric)}</p>"
+        f"<h3>解析</h3><p>{text(question.analysis)}</p></section>"
+    )
+
+
 def create_paper_correction_view(import_id, state) -> PaperCorrectionView:
     selected = gr.Dropdown(label="待校正题目", choices=[], interactive=True)
-    with gr.Row():
-        with gr.Column(scale=1, min_width=360):
+    with gr.Row(elem_classes="edu-paper-columns"):
+        with gr.Column(scale=1, min_width=360, elem_classes="edu-surface"):
             page_select = gr.Dropdown(label="查看原页", choices=[], interactive=True)
             page_preview = gr.HTML("<p>选择导入记录后查看真实原页。</p>")
             page_facts = gr.Markdown("")
@@ -128,49 +165,67 @@ def create_paper_correction_view(import_id, state) -> PaperCorrectionView:
                     label="题目区域",
                     interactive=True,
                 )
-        with gr.Column(scale=1, min_width=400):
+        with gr.Column(scale=1, min_width=400, elem_classes="edu-surface"):
             q_status = gr.Markdown("选择题目后校正；空缺答案和评分标准不会自动补写。")
-            with gr.Row():
-                number = gr.Textbox(label="原题号")
-                order = gr.Number(
-                    label="导入内题序", precision=0, minimum=1, value=None
+            detail = gr.HTML(correction_preview(None), elem_id="edu-paper-detail")
+            edit = gr.Button(
+                "开始校正",
+                elem_id="edu-paper-edit",
+                elem_classes="edu-icon",
+                interactive=False,
+            )
+            with gr.Column(visible=False, elem_id="edu-paper-editor") as editor:
+                with gr.Row():
+                    number = gr.Textbox(label="原题号")
+                    order = gr.Number(
+                        label="导入内题序", precision=0, minimum=1, value=None
+                    )
+                    q_type = gr.Dropdown(
+                        label="题型",
+                        choices=[
+                            ("单选题", "SINGLE_CHOICE"),
+                            ("判断题", "TRUE_FALSE"),
+                            ("简答题", "SHORT_ANSWER"),
+                        ],
+                        interactive=True,
+                    )
+                content = gr.Textbox(label="题干", lines=5)
+                option_kind = gr.Radio(
+                    label="选项形式",
+                    choices=["未知 / 无选项", "标签选项", "文本选项"],
+                    value="未知 / 无选项",
                 )
-                q_type = gr.Dropdown(
-                    label="题型",
-                    choices=[
-                        ("单选题", "SINGLE_CHOICE"),
-                        ("判断题", "TRUE_FALSE"),
-                        ("简答题", "SHORT_ANSWER"),
-                    ],
+                options = gr.Dataframe(
+                    headers=["标签", "选项内容（保持行顺序）"],
+                    datatype=["str", "str"],
+                    type="array",
+                    column_count=2,
+                    column_limits=(2, 2),
+                    row_count=1,
+                    label="选项",
                     interactive=True,
                 )
-            content = gr.Textbox(label="题干", lines=5)
-            option_kind = gr.Radio(
-                label="选项形式",
-                choices=["未知 / 无选项", "标签选项", "文本选项"],
-                value="未知 / 无选项",
-            )
-            options = gr.Dataframe(
-                headers=["标签", "选项内容（保持行顺序）"],
-                datatype=["str", "str"],
-                type="array",
-                column_count=2,
-                column_limits=(2, 2),
-                row_count=1,
-                label="选项",
-                interactive=True,
-            )
-            with gr.Row():
-                score = gr.Textbox(label="分值", placeholder="确认入库前必填，如 5.00")
-                points = gr.Textbox(label="知识点（每行一个）", lines=2)
-            answer = gr.Textbox(label="参考答案（未知留空）", lines=2)
-            rubric = gr.Textbox(label="评分标准（未知留空）", lines=2)
-            analysis = gr.Textbox(label="解析（未知留空）", lines=3)
-            notes = gr.Textbox(label="校正说明 / 拒绝理由", lines=2)
-            no_assets = gr.Checkbox(label="已核对，本题不关联题图", value=False)
-            with gr.Row():
-                save = gr.Button("保存校正", variant="primary")
-                reject = gr.Button("拒绝此题", variant="stop")
+                with gr.Row():
+                    score = gr.Textbox(
+                        label="分值", placeholder="确认入库前必填，如 5.00"
+                    )
+                    points = gr.Textbox(label="知识点（每行一个）", lines=2)
+                answer = gr.Textbox(label="参考答案（未知留空）", lines=2)
+                rubric = gr.Textbox(label="评分标准（未知留空）", lines=2)
+                analysis = gr.Textbox(label="解析（未知留空）", lines=3)
+                notes = gr.Textbox(label="校正说明 / 拒绝理由", lines=2)
+                no_assets = gr.Checkbox(label="已核对，本题不关联题图", value=False)
+                with gr.Row():
+                    save = gr.Button(
+                        "保存校正",
+                        variant="primary",
+                        elem_id="edu-paper-save",
+                        elem_classes="edu-icon",
+                    )
+                    cancel = gr.Button(
+                        "取消校正", elem_id="edu-paper-cancel", elem_classes="edu-icon"
+                    )
+                    reject = gr.Button("拒绝此题", variant="stop")
     with gr.Accordion("题图关联与学生展示", open=False):
         gr.Markdown(
             "先保存本题来源页，再裁取或关联题图。整页原图仅教师可读；学生展示须逐图核对。"
@@ -199,9 +254,17 @@ def create_paper_correction_view(import_id, state) -> PaperCorrectionView:
 
     image_review = create_paper_image_review_view(import_id, selected, state)
     batch = gr.CheckboxGroup(label="确认入库的题目", choices=[], interactive=True)
-    confirm = gr.Button("确认所选题入库", variant="primary")
+    confirm = gr.Button(
+        "确认所选题入库",
+        variant="primary",
+        elem_id="edu-paper-confirm",
+        elem_classes="edu-icon",
+    )
     message = gr.Markdown("入库后为题库草稿，仍须补全与审核。")
     outputs = [
+        detail,
+        edit,
+        editor,
         selected,
         page_select,
         page_preview,
@@ -253,10 +316,12 @@ def create_paper_correction_view(import_id, state) -> PaperCorrectionView:
                     continue
                 if isinstance(component, gr.Dropdown):
                     cleared[component] = gr.update(
-                        choices=[]
-                        if component
-                        in (selected, page_select, asset_select, asset_page)
-                        else component.choices,
+                        choices=(
+                            []
+                            if component
+                            in (selected, page_select, asset_select, asset_page)
+                            else component.choices
+                        ),
                         value=None,
                     )
                 elif isinstance(component, gr.CheckboxGroup):
@@ -272,7 +337,10 @@ def create_paper_correction_view(import_id, state) -> PaperCorrectionView:
                 else:
                     cleared[component] = gr.update(value="")
             cleared.update(image_review.reload(None, None, {}))
-            cleared[message] = "尚未选择导入记录。"
+            cleared[detail] = correction_preview(None)
+            cleared[edit] = gr.update(interactive=False, visible=True)
+            cleared[editor] = gr.update(visible=False)
+            cleared[message] = empty_state("尚未选择导入记录。")
             return cleared
         paper = loaders.load(identity, current_state)
         choices = [
@@ -301,15 +369,23 @@ def create_paper_correction_view(import_id, state) -> PaperCorrectionView:
             and paper.status.value == "Pending Review"
         )
         result = {
+            detail: gr.update(value=correction_preview(q), visible=True),
+            edit: gr.update(interactive=editable, visible=True),
+            editor: gr.update(visible=False),
             selected: gr.update(choices=choices, value=str(q.id) if q else None),
             page_select: gr.update(choices=pages, value=str(p.id) if p else None),
-            page_preview: loaders.page_image(identity, str(p.id), current_state)
-            if p and not any(d["file_id"] == p.file_id for d in paper.file_diagnostics)
-            else "<p>原页尚未产生或文件缺失。</p>",
-            page_facts: f"原页 {p.width}×{p.height} 像素 · "
-            + ("OCR 已执行" if p.ocr_text is not None else "未执行 OCR")
-            if p
-            else "",
+            page_preview: (
+                loaders.page_image(identity, str(p.id), current_state)
+                if p
+                and not any(d["file_id"] == p.file_id for d in paper.file_diagnostics)
+                else "<p>原页尚未产生或文件缺失。</p>"
+            ),
+            page_facts: (
+                f"原页 {p.width}×{p.height} 像素 · "
+                + ("OCR 已执行" if p.ocr_text is not None else "未执行 OCR")
+                if p
+                else ""
+            ),
             source_pages: gr.update(
                 choices=pages,
                 value=[str(x) for x in q.source_page_ids] if q else [],
@@ -351,78 +427,82 @@ def create_paper_correction_view(import_id, state) -> PaperCorrectionView:
                     interactive=editable,
                 ),
                 q_status: (
-                    "状态："
-                    + QUESTION_STATES[q.status.value]
-                    + (" · 已创建正式题" if q.question_id else "")
-                    + (
-                        " · 原始选项顺序无法证明，请对照原卷核对；修改其他字段不会清除此提示。"
-                        if not q.order_preserved
-                        else ""
+                    (
+                        "状态："
+                        + status_badge(q.status, entity="extracted_question")
+                        + (" · 已创建正式题" if q.question_id else "")
+                        + (
+                            " · 原始选项顺序无法证明，请对照原卷核对；修改其他字段不会清除此提示。"
+                            if not q.order_preserved
+                            else ""
+                        )
+                        + (
+                            " · 答案 / 评分标准待补全"
+                            if not q.reference_answer or not q.scoring_rubric
+                            else ""
+                        )
+                        + (
+                            " · 题图关联待核对"
+                            if q.assets is None
+                            else " · 题图核对状态见下方" if q.assets else ""
+                        )
                     )
-                    + (
-                        " · 答案 / 评分标准待补全"
-                        if not q.reference_answer or not q.scoring_rubric
-                        else ""
-                    )
-                    + (
-                        " · 题图关联待核对"
-                        if q.assets is None
-                        else " · 题图核对状态见下方"
-                        if q.assets
-                        else ""
-                    )
-                )
-                if q
-                else "本次导入尚未产生题目。",
+                    if q
+                    else "本次导入尚未产生题目。"
+                ),
                 points: gr.update(
                     value="\n".join(q.knowledge_points or []) if q else "",
                     interactive=editable,
                 ),
                 option_kind: gr.update(
-                    value="标签选项"
-                    if isinstance(opts, dict)
-                    else "文本选项"
-                    if isinstance(opts, list)
-                    else "未知 / 无选项",
+                    value=(
+                        "标签选项"
+                        if isinstance(opts, dict)
+                        else "文本选项" if isinstance(opts, list) else "未知 / 无选项"
+                    ),
                     interactive=editable,
                 ),
                 options: gr.update(
-                    value=list(map(list, opts.items()))
-                    if isinstance(opts, dict)
-                    else [["", v] for v in opts]
-                    if isinstance(opts, list)
-                    else [],
+                    value=(
+                        list(map(list, opts.items()))
+                        if isinstance(opts, dict)
+                        else [["", v] for v in opts] if isinstance(opts, list) else []
+                    ),
                     interactive=editable,
                 ),
                 unknown_boundary: gr.update(
                     value=q.source_regions is None if q else True, interactive=editable
                 ),
                 regions: gr.update(
-                    value=[
+                    value=(
                         [
-                            next(
-                                p.page_number
-                                for p in paper.pages
-                                if p.id == r.source_page_id
-                            ),
-                            *r.bbox,
+                            [
+                                next(
+                                    p.page_number
+                                    for p in paper.pages
+                                    if p.id == r.source_page_id
+                                ),
+                                *r.bbox,
+                            ]
+                            for r in q.source_regions or []
                         ]
-                        for r in q.source_regions or []
-                    ]
-                    if q
-                    else [],
+                        if q
+                        else []
+                    ),
                     interactive=editable,
                 ),
                 no_assets: gr.update(
                     value=q.assets == [] if q else False, interactive=editable
                 ),
                 asset_select: gr.update(
-                    choices=[
-                        (f"{i} · {a.caption or a.asset_type}", str(a.id))
-                        for i, a in enumerate(q.assets or [], 1)
-                    ]
-                    if q
-                    else [],
+                    choices=(
+                        [
+                            (f"{i} · {a.caption or a.asset_type}", str(a.id))
+                            for i, a in enumerate(q.assets or [], 1)
+                        ]
+                        if q
+                        else []
+                    ),
                     value=None,
                 ),
                 asset_preview: "",
@@ -443,8 +523,11 @@ def create_paper_correction_view(import_id, state) -> PaperCorrectionView:
         )
         result.update(
             image_review.reload(
-                identity, str(q.id) if q else None, current_state,
-                editable=editable, loaded_paper=paper,
+                identity,
+                str(q.id) if q else None,
+                current_state,
+                editable=editable,
+                loaded_paper=paper,
             )
         )
         return result
@@ -479,11 +562,15 @@ def create_paper_correction_view(import_id, state) -> PaperCorrectionView:
             "content": body or None,
             "options": options_from_rows(rows, option_mode),
             "score": value or None,
-            "knowledge_points": [
-                line.strip() for line in (knowledge or "").splitlines() if line.strip()
-            ]
-            if knowledge
-            else ([] if q.knowledge_points is not None else None),
+            "knowledge_points": (
+                [
+                    line.strip()
+                    for line in (knowledge or "").splitlines()
+                    if line.strip()
+                ]
+                if knowledge
+                else ([] if q.knowledge_points is not None else None)
+            ),
             "reference_answer": reference or None,
             "scoring_rubric": grading or None,
             "analysis": explanation or None,
@@ -499,7 +586,7 @@ def create_paper_correction_view(import_id, state) -> PaperCorrectionView:
             payload["assets"] = None
         loaders.patch(identity, qid, payload, current_state)
         result = reload(identity, qid, current_state)
-        result[message] = "校正已保存；重新打开可读取。"
+        result[message] = feedback("校正已保存；重新打开可读取。", "success")
         return result
 
     @ui_errors
@@ -589,6 +676,24 @@ def create_paper_correction_view(import_id, state) -> PaperCorrectionView:
         if not identity or not pid:
             return "", ""
         return loaders.page_preview(identity, pid, current_state)
+
+    @ui_errors
+    def begin_edit(identity, qid, current_state):
+        result = reload(identity, qid, current_state)
+        if not result[edit].get("interactive"):
+            raise gr.Error("当前题目不可校正，请重新读取实际状态。")
+        result[detail] = gr.update(visible=False)
+        result[editor] = gr.update(visible=True)
+        return result
+
+    @ui_errors
+    def cancel_edit(identity, qid, current_state):
+        result = reload(identity, qid, current_state)
+        result[message] = feedback("已取消本次校正，重新读取已保存内容。")
+        return result
+
+    edit.click(begin_edit, inputs=[import_id, selected, state], outputs=outputs)
+    cancel.click(cancel_edit, inputs=[import_id, selected, state], outputs=outputs)
 
     # Single-select input also fires on blur in Gradio; value changes run once
     # for both mouse and keyboard navigation, while explicit reloads stay current.

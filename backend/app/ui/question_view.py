@@ -28,10 +28,12 @@ from backend.app.services.question_service import (
 )
 from backend.app.ui import question_review_loaders
 from backend.app.ui.layout_view import (
+    UiStatus,
     bind_confirmation,
     empty_state,
     feedback,
     status_badge,
+    status_banner,
     status_choices,
     status_label,
     table_options,
@@ -626,8 +628,25 @@ def question_preview_html(
                 + escape(json.dumps(question.options, ensure_ascii=False, indent=2))
                 + "</div>"
             )
+    missing_basis = [
+        label
+        for label, value in [
+            ("参考答案", question.reference_answer),
+            ("评分标准", question.scoring_rubric),
+        ]
+        if not value
+    ]
+    notice = (
+        status_banner(
+            UiStatus.PENDING_COMPLETION,
+            entity="ui",
+            detail="、".join(missing_basis) + "尚未填写，补全后再送审。",
+        )
+        if missing_basis
+        else ""
+    )
     return (
-        '<div class="edu-question-preview-grid">'
+        notice + '<div class="edu-question-preview-grid">'
         '<section class="edu-question-preview-section"><h3>题目内容</h3>'
         f'<div class="edu-question-meta">{meta}</div>'
         f'<div class="edu-question-body">{escape(question.content)}</div>{options_html}</section>'
@@ -668,7 +687,9 @@ def create_question_view(session_state: Any | None = None) -> QuestionView:
         TypeError,
         ValueError,
     )
-    with gr.Column(visible=False, elem_id="edu-question-bank") as panel:
+    with gr.Column(
+        visible=False, elem_id="edu-question-bank", elem_classes="edu-business-page"
+    ) as panel:
         snapshot = gr.State(None)
         editing_mode = gr.State(False)
         question_id = gr.Textbox(visible=False, container=False)

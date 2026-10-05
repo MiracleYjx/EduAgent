@@ -883,7 +883,11 @@ def student_panel_updates(
 def create_results_view(session_state: Any | None = None) -> ResultsView:
     """本人考试、最终结果与受答卷上下文授权的学习反馈。"""
     state = session_state or gr.State({"access_token": "", "roles": []})
-    with gr.Column(visible=False, elem_classes="edu-results") as panel:
+    with gr.Column(
+        visible=False,
+        elem_id="edu-student-results",
+        elem_classes=["edu-results", "edu-business-page"],
+    ) as panel:
         gr.HTML(
             "<style>.edu-results .result-summary{min-height:74px;} .edu-results .result-tabs{min-height:320px;} @media(max-width:767px){.edu-results .result-summary-row{flex-wrap:wrap;}}</style>"
         )
@@ -1228,7 +1232,9 @@ def create_teacher_results_view(
     """创建教师成绩、诊断和知识点分析工作台。"""
 
     state = session_state or gr.State({"access_token": "", "roles": []})
-    with gr.Column(visible=False, elem_classes="edu-teacher-results") as panel:
+    with gr.Column(
+        visible=False, elem_classes=["edu-teacher-results", "edu-business-page"]
+    ) as panel:
         gr.HTML(
             "<style>"
             ".edu-teacher-results .teacher-summary {min-height:74px;}"

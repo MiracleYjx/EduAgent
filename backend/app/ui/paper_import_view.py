@@ -29,24 +29,40 @@ class PaperImportView:
 
 def create_paper_import_view(session_state: Any | None = None) -> PaperImportView:
     state = session_state if session_state is not None else gr.State({})
-    with gr.Column(visible=False, elem_classes="edu-paper-import") as panel:
+    with gr.Column(
+        visible=False,
+        elem_id="edu-paper-import",
+        elem_classes=["edu-paper-import", "edu-business-page"],
+    ) as panel:
         gr.Markdown("## 试卷导入与校正")
         gr.Markdown(
             "上传原卷 → 解析与提取 → 对照原页校正 → 确认草稿。支持 PDF、PNG、JPEG，最多 50 页。"
         )
         with gr.Row():
             course = gr.Dropdown(label="导入课程", choices=[], interactive=True)
-            refresh_courses = gr.Button("刷新课程")
-        file = gr.File(
-            label="原试卷",
-            file_types=[".pdf", ".png", ".jpg", ".jpeg"],
-            type="filepath",
-        )
-        upload_button = gr.Button("上传并提取", variant="primary")
+            refresh_courses = gr.Button(
+                "刷新课程", elem_id="edu-paper-courses", elem_classes="edu-icon"
+            )
+        with gr.Accordion("导入新试卷", open=False, elem_classes="edu-surface"):
+            file = gr.File(
+                label="原试卷",
+                file_types=[".pdf", ".png", ".jpg", ".jpeg"],
+                type="filepath",
+            )
+            upload_button = gr.Button(
+                "上传并提取",
+                variant="primary",
+                elem_id="edu-paper-upload",
+                elem_classes="edu-icon",
+            )
         message = gr.Markdown("选择课程并上传原卷，或打开已有导入记录。")
         with gr.Row():
             imports = gr.Dropdown(label="试卷导入记录", choices=[], interactive=True)
-            refresh = gr.Button("刷新进度 / 重新读取")
+            refresh = gr.Button(
+                "刷新进度 / 重新读取",
+                elem_id="edu-paper-refresh",
+                elem_classes="edu-icon",
+            )
         editor = create_paper_correction_view(imports, state)
 
     @ui_errors

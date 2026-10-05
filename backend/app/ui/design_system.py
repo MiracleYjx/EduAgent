@@ -28,6 +28,7 @@ _NAVIGATION_ICONS = {
     "teacher-courses": "book",
     "teacher-knowledge": "library",
     "teacher-questions": "questions",
+    "teacher-paper_import": "review",
     "teacher-exams": "exam",
     "teacher-generate": "sparkles",
     "teacher-review": "review",
@@ -49,6 +50,13 @@ _ACTION_ICONS = {
     "edu-question-back": "back",
     "edu-question-edit": "edit",
     "edu-question-save": "save",
+    "edu-paper-edit": "edit",
+    "edu-paper-save": "save",
+    "edu-paper-cancel": "back",
+    "edu-paper-confirm": "exam",
+    "edu-paper-refresh": "refresh",
+    "edu-paper-courses": "refresh",
+    "edu-paper-upload": "plus",
 }
 
 
@@ -75,9 +83,7 @@ def _icon_rules() -> str:
     return "\n".join(result)
 
 
-DESIGN_SYSTEM_CSS = (
-    _icon_rules()
-    + """
+DESIGN_SYSTEM_CSS = _icon_rules() + """
 #edu-root { --edu-blue: #1677ff; --edu-ink: #1f2937; --edu-line: #e8ebef;
     --edu-muted: #7b8493; font-family: Inter, 'Segoe UI', 'Microsoft YaHei', sans-serif;
     background: #f5f7fa; }
@@ -220,4 +226,39 @@ DESIGN_SYSTEM_CSS = (
     #edu-question-editor .edu-editor-actions { flex-direction: row; flex-wrap: wrap; }
 }
 """
-)
+
+
+# Shared page scales reuse the established question-bank theme and local icons.
+DESIGN_SYSTEM_CSS += """
+#edu-root { --edu-font-body: 14px; --edu-font-title: 24px; --edu-font-section: 16px;
+    --edu-space: 16px; --edu-surface-padding: 20px; }
+#edu-root .edu-business-page { gap: var(--edu-space); min-width: 0 !important; }
+#edu-root .edu-business-page h2 { font-size: var(--edu-font-title); line-height: 1.4; margin: 0 0 8px; }
+#edu-root .edu-business-page h3 { font-size: var(--edu-font-section); line-height: 1.5; margin: 0 0 12px; }
+#edu-root .edu-business-page label, #edu-root .edu-business-page input,
+#edu-root .edu-business-page textarea, #edu-root .edu-business-page p { font-size: var(--edu-font-body); line-height: 1.6; }
+#edu-root .edu-business-page .edu-surface,
+#edu-root .edu-business-page .result-tabs { padding: var(--edu-surface-padding); border: 1px solid var(--edu-line);
+    border-radius: 8px; background: white; min-width: 0 !important; }
+#edu-root .edu-business-page .row { gap: var(--edu-space); }
+#edu-root .edu-business-page button { border-radius: 6px; font-size: var(--edu-font-body); min-height: 44px; }
+#edu-root .edu-business-page .edu-actions { align-items: center; flex-wrap: wrap; }
+#edu-root .edu-business-page .edu-actions > button { flex: 0 1 auto; width: auto; }
+#edu-root .edu-business-page .edu-status-table { border: 1px solid var(--edu-line); border-radius: 8px; }
+#edu-root .edu-business-page .edu-status-table th { background: #fafbfc; color: #596579; font-size: 13px; }
+#edu-root .edu-business-page .edu-status-table td { font-size: 13px; line-height: 1.6; }
+#edu-root .edu-business-page .edu-status-table button { min-height: 0; font-size: 13px; }
+#edu-paper-import .edu-paper-columns { align-items: flex-start; }
+#edu-paper-import .edu-paper-columns > .column { min-width: 0 !important; flex-basis: 360px; }
+#edu-paper-import .edu-paper-preview { white-space: pre-wrap; overflow-wrap: anywhere; }
+#edu-paper-import .edu-paper-preview h3 { margin-top: 16px; }
+#edu-paper-import .edu-paper-preview ul { padding-left: 20px; }
+#edu-root .edu-state-banner { border-radius: 6px; font-size: var(--edu-font-body); }
+#edu-root .edu-business-page .result-summary { background: white; border: 1px solid var(--edu-line); border-radius: 8px; }
+@media (max-width: 767px) {
+    #edu-root { --edu-surface-padding: 16px; --edu-font-title: 22px; }
+    #edu-paper-import .edu-paper-columns { flex-direction: column; }
+    #edu-paper-import .edu-paper-columns > .column { flex-basis: auto; width: 100%; }
+    #edu-root .edu-business-page .edu-actions > button { flex: 1 1 auto; }
+}
+"""

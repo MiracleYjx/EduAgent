@@ -17,8 +17,10 @@ from backend.app.domain.enums import (
     AnswerStatus,
     DocumentStatus,
     ExamStatus,
+    ExtractedQuestionStatus,
     GradingMode,
     GradingStatus,
+    PaperImportStatus,
     QuestionStatus,
     QuestionType,
     ReviewStatus,
@@ -35,6 +37,8 @@ StatusEntity = Literal[
     "question",
     "question_type",
     "document",
+    "paper_import",
+    "extracted_question",
     "exam",
     "submission",
     "answer",
@@ -57,6 +61,7 @@ class UiStatus(StrEnum):
     PENDING_GRADING = "pending_grading"
     LOW_CONFIDENCE = "low_confidence"
     PENDING_REVIEW = "pending_review"
+    PENDING_COMPLETION = "pending_completion"
     COMPLETED = "completed"
     CONFIRMED = "confirmed"
     FAILED = "failed"
@@ -103,6 +108,8 @@ _ENUM_TYPES: Mapping[str, type[StrEnum]] = MappingProxyType(
         "question": QuestionStatus,
         "question_type": QuestionType,
         "document": DocumentStatus,
+        "paper_import": PaperImportStatus,
+        "extracted_question": ExtractedQuestionStatus,
         "exam": ExamStatus,
         "submission": SubmissionStatus,
         "answer": AnswerStatus,
@@ -138,6 +145,7 @@ _STATUS_MAPS: Mapping[str, Mapping[str, StatusPresentation]] = MappingProxyType(
             ("pending_grading", "待批阅", "warning", "◷"),
             ("low_confidence", "低置信度，待人工复核", "warning", "⚠"),
             ("pending_review", "待人工复核", "warning", "⚠"),
+            ("pending_completion", "待补全", "warning", "✎"),
             ("completed", "已完成", "success", "✓"),
             ("confirmed", "已确认", "success", "✓"),
             ("failed", "处理失败", "danger", "✕"),
@@ -172,6 +180,21 @@ _STATUS_MAPS: Mapping[str, Mapping[str, StatusPresentation]] = MappingProxyType(
             ("Embedding", "正在向量化", "info", "◷"),
             ("Ready", "资料已就绪", "success", "✓"),
             ("Failed", "处理失败", "danger", "✕"),
+        ),
+        "paper_import": _status_map(
+            ("Uploaded", "已上传", "info", "↑"),
+            ("Parsing", "解析原页中", "info", "◷"),
+            ("Extracting", "提取题目中", "info", "◷"),
+            ("Pending Review", "待教师校正", "warning", "✎"),
+            ("Ready", "本次导入已处理", "success", "✓"),
+            ("Failed", "处理失败", "danger", "✕"),
+            ("Rejected", "已全部拒绝", "neutral", "✕"),
+        ),
+        "extracted_question": _status_map(
+            ("Extracted", "已提取", "info", "▤"),
+            ("Pending Correction", "待校正", "warning", "✎"),
+            ("Corrected", "已入库", "success", "✓"),
+            ("Rejected", "已拒绝", "neutral", "✕"),
         ),
         "exam": _status_map(
             ("Draft", "草稿", "neutral", "▤"),
