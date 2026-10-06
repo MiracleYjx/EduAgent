@@ -624,3 +624,18 @@ T168提取只用真实页内唯一原文定位证据恢复题序/选项顺序，
 补验使用容器内真实pg_dump/restore，15/15通过。M0使用固定隔离项目eduagent-test及既有测试卷；首轮工具遗漏POSTGRES_DB导致不存在默认库的失败保留，按原eduagent_t190_m0_fixed库配置重验通过，未清空卷。只有合成模型凭据/构造readiness，不验证Docker云模型质量；结束仅down该测试项目、不删卷，共享原PG/Redis健康。原业务库仍0012_audit_logs，23业务表＋1Alembic表，关键业务行数不变；README两份、原grading_samples及.env字节均未变。真实导入业务文件移至.cache保留，各文件SHA前后一致，公开证据不含配置、JWT或业务文件。恢复目标保持停写，未发布正式release。
 
 [本次机器汇总](../benchmark/results/v2/final-gate-retest-20261006/summary.json)、[完整证据](../benchmark/results/v2/final-gate-retest-20261006/README.md)、[质量逐指标](../benchmark/results/v2/t168-repair-20261006/repair-summary.json)。下一批需继续定位后续启动耗时，以及自动文本字段、图片完整性和语义参考争议；新增图像提取流程须另定范围，解决后按原阈值复验。
+
+## T168 按字段验收口径修正（2026-10-07，用户确认）
+
+本节替代 T168 本批自动导入的统一每字段95%及全字段一致90%门槛，原阈值/测量与失败记录保留为历史。基准仍为AI辅助＋开发者审查，不改标注、未知项或比较规则。自动提取的100%字段：identity、question_number、order_index、source_page_numbers、question_type、options、reference_answer、score；≥80%字段：content、analysis、scoring_rubric；≥70%字段：knowledge_points。按原5份试卷×3轮逐字段统计48题实例；原跨页question_type的3个未知实例排除并明确报告，其余已知缺失仍参与比较。分母为0不算通过，失败导入保留计划分母。全字段一致仅作诊断，不再构成本批门槛。
+
+assets标记“待T164图像提取流程”，不计入T168阈值；这不表示现有T164已实现自动定位/裁切（它已实现图片理解与人工核对）。source_regions原基准为未知，继续不计。其他业务来源校验、教师批准及图像资产确认规则不变。质量达标还须本批完整回归无failed。
+
+### 已知限制（本批不阻塞 T168）
+
+- 后续启动约15–16秒：T189的<10秒目标保持，T189仍未通过，不以学习项目质量口径降低启动目标。
+- 语义条件误报16.67%：保留原样本/标签争议，不将阻断或未知计为正确。
+- Rubric覆盖77.78%：原输入阻断、弃权及分母保持；本项为语义核验覆盖率，与导入scoring_rubric字段≥80%的门槛分开。
+- 图片条件完整性72.73%：原严格逐项匹配和失败记录保持，图片流程未泛化达标。
+
+上述限制改为T168后续改进项，不解除其余任务/最终发布门禁。机器可读新阈值见[本批thresholds](../benchmark/results/v2/t168-fields-20261007/thresholds.json)，确认来自2026-10-07用户消息；不回写旧确认文件。只修复已明确授权的拆题提示词content/knowledge_points段，保留E1/E2接口、Schema/校验、持久化和其他已完成业务部分。

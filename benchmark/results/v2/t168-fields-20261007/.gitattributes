@@ -1,0 +1,2 @@
+# Preserve real execution evidence bytes.
+* -text whitespace=cr-at-eol

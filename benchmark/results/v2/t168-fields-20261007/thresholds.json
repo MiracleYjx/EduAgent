@@ -1,0 +1,39 @@
+{
+  "version": "t168-field-thresholds-20261007-1",
+  "status": "confirmed_by_user",
+  "confirmation_source": "current user message on 2026-10-07",
+  "scope": "T168 import field baseline; learning project",
+  "reference": "AI-assisted + developer review",
+  "independent_teachers": 0,
+  "stage": "automatic",
+  "targets": {
+    "identity": 1.0,
+    "question_number": 1.0,
+    "order_index": 1.0,
+    "source_page_numbers": 1.0,
+    "question_type": 1.0,
+    "options": 1.0,
+    "reference_answer": 1.0,
+    "score": 1.0,
+    "content": 0.8,
+    "analysis": 0.8,
+    "scoring_rubric": 0.8,
+    "knowledge_points": 0.7
+  },
+  "comparison": "unchanged strict T168 comparison; trim and line endings only; no internal whitespace normalization",
+  "unknown_policy": "exclude reference-unknown fields and report counts; zero evaluable denominator is not pass",
+  "excluded": {
+    "assets": "待 T164 图像提取流程；不计入 T168 阈值。既有 T164 完成图片理解与核对，自动图像提取尚未实现。",
+    "source_regions": "原标注全部未知，不设本批阈值",
+    "all_evaluable_fields_match": "only a diagnostic; not an acceptance threshold"
+  },
+  "known_limitations_not_blocking_t168": {
+    "startup": "15–16 seconds; original subsequent <10 seconds T189 target unchanged",
+    "semantic_condition_false_positive_rate": 0.16666666666666666,
+    "semantic_rubric_coverage": 0.7777777777777778,
+    "vision_condition_completeness": 0.7272727272727273
+  },
+  "full_regression_required": true,
+  "previous_thresholds_ref": "benchmark/results/v2/t168-20261003/thresholds.json",
+  "previous_thresholds_sha256": "da0170dfd014b41b284ec13934626a78b326f4aea282291ae0d4a462a37016d3"
+}
