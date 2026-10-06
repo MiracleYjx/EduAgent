@@ -1,0 +1,78 @@
+{
+  "cases": [
+    {
+      "case": "missing_config",
+      "exit_code": 1,
+      "expected_step": "外置配置",
+      "observed_step": true,
+      "no_application_spawned": true,
+      "elapsed_seconds": 0.53781909996178,
+      "passed": true
+    },
+    {
+      "case": "invalid_config",
+      "exit_code": 1,
+      "expected_step": "配置校验",
+      "observed_step": true,
+      "no_application_spawned": true,
+      "elapsed_seconds": 0.5664089999627322,
+      "passed": true
+    },
+    {
+      "case": "database_unreachable",
+      "exit_code": 1,
+      "expected_step": "PostgreSQL / pgvector",
+      "observed_step": true,
+      "no_application_spawned": true,
+      "elapsed_seconds": 7.1809896000195295,
+      "passed": true
+    },
+    {
+      "case": "redis_unreachable",
+      "exit_code": 1,
+      "expected_step": "Redis",
+      "observed_step": true,
+      "no_application_spawned": true,
+      "elapsed_seconds": 6.251147300004959,
+      "passed": true
+    },
+    {
+      "case": "model_network",
+      "exit_code": 1,
+      "expected_step": "模型网络",
+      "observed_step": true,
+      "no_application_spawned": true,
+      "elapsed_seconds": 6.210622299928218,
+      "passed": true
+    },
+    {
+      "case": "missing_local_model",
+      "exit_code": 1,
+      "expected_step": "本地模型",
+      "observed_step": true,
+      "no_application_spawned": true,
+      "elapsed_seconds": 0.5485985999694094,
+      "passed": true
+    },
+    {
+      "case": "missing_ocr_weights",
+      "exit_code": 1,
+      "expected_step": "OCR",
+      "observed_step": true,
+      "no_application_spawned": true,
+      "elapsed_seconds": 3.9394815999548882,
+      "passed": true
+    },
+    {
+      "case": "migration_unknown_revision",
+      "exit_code": 1,
+      "expected_step": "数据库迁移",
+      "observed_step": true,
+      "no_application_spawned": true,
+      "elapsed_seconds": 4.44569149997551,
+      "passed": true
+    }
+  ],
+  "isolated_migration_db_removed": true,
+  "shared_dependencies_untouched": true
+}

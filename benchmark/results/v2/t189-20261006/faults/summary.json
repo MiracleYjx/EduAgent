@@ -1,0 +1,84 @@
+{
+  "cases": [
+    {
+      "case": "missing_config",
+      "exit_code": 1,
+      "expected_step": "外置配置",
+      "observed_step": true,
+      "no_application_spawned": true,
+      "elapsed_seconds": 0.6481171000050381,
+      "passed": true
+    },
+    {
+      "case": "invalid_config",
+      "exit_code": 1,
+      "expected_step": "配置校验",
+      "observed_step": true,
+      "no_application_spawned": true,
+      "elapsed_seconds": 0.5362842999165878,
+      "passed": true
+    },
+    {
+      "case": "database_unreachable",
+      "exit_code": 1,
+      "expected_step": "PostgreSQL / pgvector",
+      "observed_step": true,
+      "no_application_spawned": true,
+      "elapsed_seconds": 9.492502000066452,
+      "passed": true
+    },
+    {
+      "case": "redis_unreachable",
+      "exit_code": 1,
+      "expected_step": "Redis",
+      "observed_step": true,
+      "no_application_spawned": true,
+      "elapsed_seconds": 8.222904999973252,
+      "passed": true
+    },
+    {
+      "case": "model_network",
+      "exit_code": 1,
+      "expected_step": "模型网络",
+      "observed_step": true,
+      "no_application_spawned": true,
+      "elapsed_seconds": 8.220801800023764,
+      "passed": true
+    },
+    {
+      "case": "missing_local_model",
+      "exit_code": 1,
+      "expected_step": "本地模型",
+      "observed_step": true,
+      "no_application_spawned": true,
+      "elapsed_seconds": 0.5289709999924526,
+      "passed": true
+    },
+    {
+      "case": "missing_ocr_weights",
+      "exit_code": 1,
+      "expected_step": "OCR",
+      "observed_step": true,
+      "no_application_spawned": true,
+      "elapsed_seconds": 5.96799649996683,
+      "passed": true
+    },
+    {
+      "case": "migration_unknown_revision",
+      "exit_code": 1,
+      "expected_step": "数据库迁移",
+      "observed_step": true,
+      "no_application_spawned": true,
+      "elapsed_seconds": 6.454870700021274,
+      "passed": true
+    }
+  ],
+  "isolated_migration_db_removed": true,
+  "shared_dependencies_untouched": true,
+  "observer_correction": {
+    "case": "missing_config",
+    "original_expected_step": "配置读取",
+    "actual_existing_contract_step": "外置配置",
+    "reason": "observer label mismatch; actual exit 1 / no worker / explicit missing file already correct; no business change or rerun"
+  }
+}

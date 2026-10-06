@@ -1,0 +1,15 @@
+{
+  "task": "T189",
+  "execution": "protocol_executed",
+  "delivery_acceptance": "not_passed",
+  "first_under30": 3,
+  "first_planned": 3,
+  "subsequent_under10": 0,
+  "subsequent_planned": 5,
+  "normal_owned_exits": 8,
+  "memory_complete": 7,
+  "memory_unknown": 1,
+  "model_inference": "actual DeepSeek scan extraction passed in separate runtime receipt",
+  "browser_preference": "After user steering, further runtime/fault cases use --no-browser; original formal8 used real default OS browser",
+  "failure_preservation": "startup initial observer Ctrl+C inheritance failures retained; v2 entire8 uses corrected observer; one PG probe failure remains unknown"
+}
