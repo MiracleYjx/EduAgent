@@ -1,0 +1,9 @@
+{
+  "scope": "real container pg_dump/restore and assets; owned database only",
+  "database": "eduagent_finalpg_20261006_282f5a90",
+  "original_database": "eduagent",
+  "returncode": 0,
+  "elapsed_seconds": 50.13616069999989,
+  "active_connections_at_cleanup": 0,
+  "owned_database_removed": true
+}

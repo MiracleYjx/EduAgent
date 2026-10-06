@@ -1,0 +1,287 @@
+F                                                                        [100%]
+================================== FAILURES ===================================
+____________________________ test_m0_smoke_script _____________________________
+
+    def test_m0_smoke_script() -> None:
+        """执行固定隔离的 M0 冒烟脚本，并验证真实 /ready 端点返回就绪状态。"""
+    
+        _require_isolated_environment()
+    
+        if not SMOKE_SCRIPT.exists():
+            pytest.fail(f"未找到 M0 冒烟脚本：{SMOKE_SCRIPT}")
+    
+        powershell = _find_powershell()
+        if powershell is None:
+            pytest.skip("未找到 PowerShell，跳过 M0 容器冒烟测试。")
+    
+        docker_available, reason = _docker_daemon_available()
+        if not docker_available:
+            pytest.skip(f"Docker 前置条件不可用，跳过 M0 容器冒烟测试：{reason}")
+    
+        result = subprocess.run(
+            [
+                powershell,
+                "-NoLogo",
+                "-NoProfile",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                str(SMOKE_SCRIPT),
+            ],
+            cwd=PROJECT_ROOT,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=240,
+            check=False,
+        )
+        output = f"{result.stdout}\n{result.stderr}"
+>       assert result.returncode == 0, f"M0 冒烟脚本执行失败：\n{output}"
+E       AssertionError: M0 冒烟脚本执行失败：
+E         开始执行 M0 冒烟验证。
+E         正在执行Compose 配置检查...
+E         。
+E         正在执行Backend 镜像构建...
+E          Image eduagent-test-backend Building 
+E         #1 [internal] load local bake definitions
+E         #1 reading from stdin 519B 0.0s done
+E         #1 DONE 0.0s
+E         #2 [internal] load build definition from Dockerfile
+E         #2 transferring dockerfile: 762B 0.0s done
+E         #2 DONE 0.0s
+E         #3 [internal] load metadata for docker.io/library/python:3.12-slim
+E         #3 DONE 0.1s
+E         #4 [internal] load .dockerignore
+E         #4 transferring context: 256B done
+E         #4 DONE 0.0s
+E         #5 [internal] load build context
+E         #5 transferring context: 196.72kB 0.1s done
+E         #5 DONE 0.1s
+E         #6 [1/8] FROM docker.io/library/python:3.12-slim@sha256:78387bc3881b8273120a12ebe6c1ab22b018ccc2c9adf565ae1ac9b536e184ea
+E         #6 resolve docker.io/library/python:3.12-slim@sha256:78387bc3881b8273120a12ebe6c1ab22b018ccc2c9adf565ae1ac9b536e184ea 0.1s done
+E         #6 DONE 0.1s
+E         #7 [2/8] WORKDIR /app
+E         #7 CACHED
+E         #8 [3/8] COPY pyproject.toml ./
+E         #8 CACHED
+E         #9 [4/8] RUN pip install --upgrade pip     && pip install .
+E         #9 CACHED
+E         #10 [5/8] COPY alembic.ini ./
+E         #10 CACHED
+E         #11 [6/8] COPY backend ./backend
+E         #11 DONE 0.6s
+E         #12 [7/8] COPY migrations ./migrations
+E         #12 DONE 0.2s
+E         #13 [8/8] COPY scripts ./scripts
+E         #13 DONE 0.1s
+E         #14 exporting to image
+E         #14 exporting layers
+E         #14 exporting layers 0.8s done
+E         #14 exporting manifest sha256:06a6a3243b2bf8911374bcfbac485276f1de3ebebdec49159c59dc6fa3df11b9 0.0s done
+E         #14 exporting config sha256:d51c76f2f5cf90f075b71b43cec2983a858bdd5cc0052b011bad428a4c26c66e 0.0s done
+E         #14 exporting attestation manifest sha256:9d3ddf863d3a3c09f41717ceca9f754dde4d1d565cd07bcdd0bb68d7a6008e13
+E         #14 exporting attestation manifest sha256:9d3ddf863d3a3c09f41717ceca9f754dde4d1d565cd07bcdd0bb68d7a6008e13 0.0s done
+E         #14 exporting manifest list sha256:02c2f26750e2d6b50488258b028f96de270a860f983eb8f18d2bf2d6a508d2a8 0.0s done
+E         #14 naming to docker.io/library/eduagent-test-backend:latest done
+E         #14 unpacking to docker.io/library/eduagent-test-backend:latest
+E         #14 unpacking to docker.io/library/eduagent-test-backend:latest 0.5s done
+E         #14 DONE 1.6s
+E         #15 resolving provenance for metadata file
+E         #15 DONE 0.0s
+E          Image eduagent-test-backend Built 
+E         。
+E         正在执行数据库和缓存启动...
+E          Network eduagent-test_default Creating 
+E          Network eduagent-test_default Creating 
+E          Network eduagent-test_default Created 
+E          Network eduagent-test_default Created 
+E          Container eduagent-test-postgres-1 Creating 
+E          Container eduagent-test-redis-1 Creating 
+E          Container eduagent-test-redis-1 Created 
+E          Container eduagent-test-postgres-1 Created 
+E          Container eduagent-test-redis-1 Starting 
+E          Container eduagent-test-postgres-1 Starting 
+E          Container eduagent-test-postgres-1 Started 
+E          Container eduagent-test-redis-1 Started 
+E         。
+E         等待容器健康检查：postgres=running/starting, redis=running/starting, backend=未发现
+E         等待容器健康检查：postgres=running/healthy, redis=running/healthy, backend=未发现
+E         容器健康检查已通过：postgres, redis。
+E         正在执行Alembic 数据库迁移...
+E         M0 冒烟验证失败：： Container eduagent-test-backend-run-3ecf88bc131b Creating 
+E          Container eduagent-test-backend-run-3ecf88bc131b Created 
+E         Traceback (most recent call last):
+E           File "/usr/local/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 149, in __init__
+E             self._dbapi_connection = engine.raw_connection()
+E                                      ^^^^^^^^^^^^^^^^^^^^^^^
+E           File "/usr/local/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 3284, in raw_connection
+E             return self.pool.connect()
+E                    ^^^^^^^^^^^^^^^^^^^
+E           File "/usr/local/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 445, in connect
+E             return _ConnectionFairy._checkout(self)
+E                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           File "/usr/local/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 1303, in _checkout
+E             fairy = _ConnectionRecord.checkout(pool)
+E                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           File "/usr/local/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 709, in checkout
+E             rec = pool._do_get()
+E                   ^^^^^^^^^^^^^^
+E           File "/usr/local/lib/python3.12/site-packages/sqlalchemy/pool/impl.py", line 176, in _do_get
+E             with util.safe_reraise():
+E                  ^^^^^^^^^^^^^^^^^^^
+E           File "/usr/local/lib/python3.12/site-packages/sqlalchemy/util/langhelpers.py", line 166, in __exit__
+E             raise exc_value.with_traceback(exc_tb)
+E           File "/usr/local/lib/python3.12/site-packages/sqlalchemy/pool/impl.py", line 174, in _do_get
+E             return self._create_connection()
+E                    ^^^^^^^^^^^^^^^^^^^^^^^^^
+E           File "/usr/local/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 386, in _create_connection
+E             return _ConnectionRecord(self)
+E                    ^^^^^^^^^^^^^^^^^^^^^^^
+E           File "/usr/local/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 671, in __init__
+E             self.__connect()
+E           File "/usr/local/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 906, in __connect
+E             with util.safe_reraise():
+E                  ^^^^^^^^^^^^^^^^^^^
+E           File "/usr/local/lib/python3.12/site-packages/sqlalchemy/util/langhelpers.py", line 166, in __exit__
+E             raise exc_value.with_traceback(exc_tb)
+E           File "/usr/local/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 902, in __connect
+E             self.dbapi_connection = connection = pool._invoke_creator(self)
+E                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           File "/usr/local/lib/python3.12/site-packages/sqlalchemy/engine/create.py", line 645, in connect
+E             return dialect.connect(*cargs_tup, **cparams)
+E                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           File "/usr/local/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 869, in connect
+E             return self.loaded_dbapi.connect(*cargs, **cparams)  # type: ignore[no-any-return]  # NOQA: E501
+E                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           File "/usr/local/lib/python3.12/site-packages/psycopg/connection.py", line 126, in connect
+E             raise last_ex.with_traceback(None)
+E         psycopg.OperationalError: connection failed: connection to server at "172.19.0.2", port 5432 failed: FATAL:  database "eduagent" does not exist
+E         
+E         The above exception was the direct cause of the following exception:
+E         
+E         Traceback (most recent call last):
+E           File "/usr/local/bin/alembic", line 6, in <module>
+E             sys.exit(main())
+E                      ^^^^^^
+E           File "/usr/local/lib/python3.12/site-packages/alembic/config.py", line 1039, in main
+E             CommandLine(prog=prog).main(argv=argv)
+E           File "/usr/local/lib/python3.12/site-packages/alembic/config.py", line 1029, in main
+E             self.run_cmd(cfg, options)
+E           File "/usr/local/lib/python3.12/site-packages/alembic/config.py", line 963, in run_cmd
+E             fn(
+E           File "/usr/local/lib/python3.12/site-packages/alembic/command.py", line 487, in upgrade
+E             script.run_env()
+E           File "/usr/local/lib/python3.12/site-packages/alembic/script/base.py", line 550, in run_env
+E             util.load_python_file(self.dir, "env.py")
+E           File "/usr/local/lib/python3.12/site-packages/alembic/util/pyfiles.py", line 114, in load_python_file
+E             module = load_module_py(module_id, path)
+E                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           File "/usr/local/lib/python3.12/site-packages/alembic/util/pyfiles.py", line 132, in load_module_py
+E             spec.loader.exec_module(module)  # type: ignore
+E             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           File "<frozen importlib._bootstrap_external>", line 999, in exec_module
+E           File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+E           File "/app/migrations/env.py", line 59, in <module>
+E             run_migrations_online()
+E           File "/app/migrations/env.py", line 44, in run_migrations_online
+E             with engine.connect() as connection:
+E                  ^^^^^^^^^^^^^^^^
+E           File "/usr/local/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 3260, in connect
+E             return self._connection_cls(self)
+E                    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           File "/usr/local/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 151, in __init__
+E             Connection._handle_dbapi_exception_noconnection(
+E           File "/usr/local/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 2417, in _handle_dbapi_exception_noconnection
+E             raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+E           File "/usr/local/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 149, in __init__
+E             self._dbapi_connection = engine.raw_connection()
+E                                      ^^^^^^^^^^^^^^^^^^^^^^^
+E           File "/usr/local/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 3284, in raw_connection
+E             return self.pool.connect()
+E                    ^^^^^^^^^^^^^^^^^^^
+E           File "/usr/local/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 445, in connect
+E             return _ConnectionFairy._checkout(self)
+E                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           File "/usr/local/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 1303, in _checkout
+E             fairy = _ConnectionRecord.checkout(pool)
+E                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           File "/usr/local/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 709, in checkout
+E             rec = pool._do_get()
+E                   ^^^^^^^^^^^^^^
+E           File "/usr/local/lib/python3.12/site-packages/sqlalchemy/pool/impl.py", line 176, in _do_get
+E             with util.safe_reraise():
+E                  ^^^^^^^^^^^^^^^^^^^
+E           File "/usr/local/lib/python3.12/site-packages/sqlalchemy/util/langhelpers.py", line 166, in __exit__
+E             raise exc_value.with_traceback(exc_tb)
+E           File "/usr/local/lib/python3.12/site-packages/sqlalchemy/pool/impl.py", line 174, in _do_get
+E             return self._create_connection()
+E                    ^^^^^^^^^^^^^^^^^^^^^^^^^
+E           File "/usr/local/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 386, in _create_connection
+E             return _ConnectionRecord(self)
+E                    ^^^^^^^^^^^^^^^^^^^^^^^
+E           File "/usr/local/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 671, in __init__
+E             self.__connect()
+E           File "/usr/local/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 906, in __connect
+E             with util.safe_reraise():
+E                  ^^^^^^^^^^^^^^^^^^^
+E           File "/usr/local/lib/python3.12/site-packages/sqlalchemy/util/langhelpers.py", line 166, in __exit__
+E             raise exc_value.with_traceback(exc_tb)
+E           File "/usr/local/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 902, in __connect
+E             self.dbapi_connection = connection = pool._invoke_creator(self)
+E                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           File "/usr/local/lib/python3.12/site-packages/sqlalchemy/engine/create.py", line 645, in connect
+E             return dialect.connect(*cargs_tup, **cparams)
+E                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           File "/usr/local/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 869, in connect
+E             return self.loaded_dbapi.connect(*cargs, **cparams)  # type: ignore[no-any-return]  # NOQA: E501
+E                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           File "/usr/local/lib/python3.12/site-packages/psycopg/connection.py", line 126, in connect
+E             raise last_ex.with_traceback(None)
+E         sqlalchemy.exc.OperationalError: (psycopg.OperationalError) connection failed: connection to server at "172.19.0.2", port 5432 failed: FATAL:  database "eduagent" does not exist
+E         (Background on this error at: https://sqlalche.me/e/21/e3q8)
+E         
+E         开始输出 M0 冒烟诊断信息：
+E         Compose 服务状态：
+E         NAME                       IMAGE                    COMMAND                  SERVICE    CREATED          STATUS                    PORTS
+E         eduagent-test-postgres-1   pgvector/pgvector:pg16   "docker-entrypoint.s…"   postgres   13 seconds ago   Up 13 seconds (healthy)   127.0.0.1:15432->5432/tcp
+E         eduagent-test-redis-1      redis:7.4-alpine         "docker-entrypoint.s…"   redis      13 seconds ago   Up 13 seconds (healthy)   127.0.0.1:16379->6379/tcp
+E         最近服务日志（已截取并脱敏）：
+E         postgres-1  | 
+E         redis-1     | 1:C 06 Oct 2026 14:29:52.132 * oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
+E         postgres-1  | PostgreSQL Database directory appears to contain a database; Skipping initialization
+E         redis-1     | 1:C 06 Oct 2026 14:29:52.132 * Redis version=7.4.11, bits=64, commit=00000000, modified=0, pid=1, just started
+E         redis-1     | 1:C 06 Oct 2026 14:29:52.132 * Configuration loaded
+E         postgres-1  | 
+E         postgres-1  | 2026-10-06 14:29:52.002 UTC [1] LOG:  starting PostgreSQL 16.15 (Debian 16.15-1.pgdg12+2) on x86_64-pc-linux-gnu, compiled by gcc (Debian 12.2.0-14+deb12u1) 12.2.0, 64-bit
+E         postgres-1  | 2026-10-06 14:29:52.034 UTC [1] LOG:  listening on IPv4 address "0.0.0.0", port 5432
+E         postgres-1  | 2026-10-06 14:29:52.046 UTC [1] LOG:  listening on IPv6 address "::", port 5432
+E         redis-1     | 1:M 06 Oct 2026 14:29:52.133 * monotonic clock: POSIX clock_gettime
+E         postgres-1  | 2026-10-06 14:29:52.059 UTC [1] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+E         postgres-1  | 2026-10-06 14:29:52.075 UTC [29] LOG:  database system was shut down at 2026-10-06 04:44:06 UTC
+E         postgres-1  | 2026-10-06 14:29:52.101 UTC [1] LOG:  database system is ready to accept connections
+E         postgres-1  | 2026-10-06 14:29:56.866 UTC [40] FATAL:  database "eduagent" does not exist
+E         postgres-1  | 2026-10-06 14:30:01.987 UTC [48] FATAL:  database "eduagent" does not exist
+E         postgres-1  | 2026-10-06 14:30:03.191 UTC [49] FATAL:  database "eduagent" does not exist
+E         redis-1     | 1:M 06 Oct 2026 14:29:52.139 * Running mode=standalone, port=6379.
+E         redis-1     | 1:M 06 Oct 2026 14:29:52.152 * Server initialized
+E         redis-1     | 1:M 06 Oct 2026 14:29:52.154 * Reading RDB base file on AOF loading...
+E         redis-1     | 1:M 06 Oct 2026 14:29:52.156 * Loading RDB produced by version 7.4.11
+E         redis-1     | 1:M 06 Oct 2026 14:29:52.156 * RDB age 35182 seconds
+E         redis-1     | 1:M 06 Oct 2026 14:29:52.156 * RDB memory usage when created 0.90 Mb
+E         redis-1     | 1:M 06 Oct 2026 14:29:52.156 * RDB is base AOF
+E         redis-1     | 1:M 06 Oct 2026 14:29:52.156 * Done loading RDB, keys loaded: 0, keys expired: 0.
+E         redis-1     | 1:M 06 Oct 2026 14:29:52.156 * DB loaded from base file appendonly.aof.1.base.rdb: 0.003 seconds
+E         redis-1     | 1:M 06 Oct 2026 14:29:52.157 * DB loaded from append only file: 0.004 seconds
+E         redis-1     | 1:M 06 Oct 2026 14:29:52.157 * Opening AOF incr file appendonly.aof.1.incr.aof on server start
+E         redis-1     | 1:M 06 Oct 2026 14:29:52.157 * Ready to accept connections tcp
+E         
+E         
+E       assert 1 == 0
+E        +  where 1 = CompletedProcess(args=['C:\\Users\\10169\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powersh...1.incr.aof on server start\nredis-1     | 1:M 06 Oct 2026 14:29:52.157 * Ready to accept connections tcp\n', stderr='').returncode
+
+tests\integration\test_m0_smoke.py:131: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/integration/test_m0_smoke.py::test_m0_smoke_script - AssertionEr...
+1 failed in 24.09s
+

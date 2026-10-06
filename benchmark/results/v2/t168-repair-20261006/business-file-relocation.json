@@ -1,0 +1,23 @@
+{
+  "moves": [
+    {
+      "source_at_runtime": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t168-repair-20261006\\import-execution\\business-files",
+      "sha256_set_equal": true,
+      "file_count": 72,
+      "preserved_at": "D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t168-retest-20261006\\preserved-import-files\\import-execution"
+    },
+    {
+      "source_at_runtime": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t168-repair-20261006\\import-execution-v4\\business-files",
+      "sha256_set_equal": true,
+      "file_count": 72,
+      "preserved_at": "D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t168-retest-20261006\\preserved-import-files\\import-execution-v4"
+    },
+    {
+      "source_at_runtime": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t168-repair-20261006\\import-execution-v5\\business-files",
+      "sha256_set_equal": true,
+      "file_count": 72,
+      "preserved_at": "D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t168-retest-20261006\\preserved-import-files\\import-execution-v5"
+    }
+  ],
+  "note": "Only owned generated files moved after database cleanup; raw runtime paths remain historical, no user files moved"
+}

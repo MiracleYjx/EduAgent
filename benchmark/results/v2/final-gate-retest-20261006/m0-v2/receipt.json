@@ -1,0 +1,31 @@
+{
+  "scope": "current-source isolated existing test volumes; synthetic providers; no cloud inference",
+  "source_commit": "f46c2f9",
+  "commands": [
+    {
+      "name": "pytest",
+      "returncode": 0,
+      "elapsed_seconds": 45.01986909995321
+    },
+    {
+      "name": "containers",
+      "returncode": 0,
+      "elapsed_seconds": 0.572148900013417
+    },
+    {
+      "name": "migration",
+      "returncode": 0,
+      "elapsed_seconds": 2.6063820999115705
+    },
+    {
+      "name": "redis",
+      "returncode": 0,
+      "elapsed_seconds": 0.6402819999493659
+    },
+    {
+      "name": "owned-project-down",
+      "returncode": 0,
+      "elapsed_seconds": 3.955098200007342
+    }
+  ]
+}

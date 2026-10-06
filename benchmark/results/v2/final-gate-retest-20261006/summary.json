@@ -1,0 +1,266 @@
+{
+  "task": "T189 startup optimization -> T168 scoped quality repair -> final gate retest",
+  "completed_at": "2026-10-06T14:37:15.235311+00:00",
+  "overall_gate_passed": false,
+  "source_commit": "f46c2f955573f14202cd52e5f02dde56955fb8b0",
+  "build": {
+    "source_dirty": true,
+    "executable_sha256": "dee4bf33a6e7a7640c0f294160adf90142436d0445e373b762138505e2c7b3c7",
+    "file_count": 9643,
+    "size_bytes": 969472381,
+    "python": "3.13.13"
+  },
+  "backend_matches_actual_build_receipt": true,
+  "startup": {
+    "first_seconds": [
+      16.81726310006343,
+      17.312625400023535,
+      16.11405560001731
+    ],
+    "subsequent_seconds": [
+      16.14676260005217,
+      16.237515799934044,
+      15.49335180001799,
+      15.20075290009845,
+      15.672884300001897
+    ],
+    "first_under_30": [
+      3,
+      3
+    ],
+    "subsequent_under_10": [
+      0,
+      5
+    ],
+    "business_readiness": [
+      8,
+      8
+    ],
+    "normal_owned_exit": [
+      8,
+      8
+    ],
+    "complete_resource_budget": [
+      8,
+      8
+    ],
+    "peaks_bytes": {
+      "app_working_set_bytes": 472600576,
+      "postgres_container_process_rss_bytes": 279691264,
+      "redis_container_process_rss_bytes": 9019392,
+      "simultaneous_observed_sum_bytes": 745869312
+    },
+    "peaks_mib": {
+      "app_working_set_bytes": 450.70703125,
+      "postgres_container_process_rss_bytes": 266.734375,
+      "redis_container_process_rss_bytes": 8.6015625,
+      "simultaneous_observed_sum_bytes": 711.31640625
+    },
+    "resource_scope": "owned frozen launcher plus actual child subtree working set; shared PostgreSQL container and Redis process RSS; excludes browser/OS; not unique physical pages",
+    "measurement_boundary": "launch actual frozen EXE until fresh /ready and /gradio/ return 200; --no-browser; excludes browser rendering",
+    "per_run_scope_correction": "shared generic sampler says excludes parent redirector; actual T189 passed launcher PID and counted owned launcher plus descendants as stated in top-level scope",
+    "timing_gate_passed": false
+  },
+  "frozen_faults": [
+    8,
+    8
+  ],
+  "quality": {
+    "reference": "AI-assisted + developer review",
+    "independent_teachers": 0,
+    "import_pending_review": [
+      15,
+      15
+    ],
+    "automatic": {
+      "identity": [
+        48,
+        48
+      ],
+      "all_fields": [
+        0,
+        48
+      ],
+      "fields": {
+        "question_number": [
+          48,
+          48
+        ],
+        "order_index": [
+          48,
+          48
+        ],
+        "source_page_numbers": [
+          48,
+          48
+        ],
+        "question_type": [
+          45,
+          45
+        ],
+        "content": [
+          18,
+          48
+        ],
+        "options": [
+          48,
+          48
+        ],
+        "reference_answer": [
+          48,
+          48
+        ],
+        "analysis": [
+          39,
+          48
+        ],
+        "score": [
+          48,
+          48
+        ],
+        "scoring_rubric": [
+          38,
+          48
+        ],
+        "knowledge_points": [
+          15,
+          48
+        ],
+        "source_regions": [
+          0,
+          0
+        ],
+        "assets": [
+          0,
+          48
+        ]
+      },
+      "unknown_fields_excluded": 51
+    },
+    "semantic": {
+      "answer_correctness": {
+        "TN": 18,
+        "TP": 6,
+        "recall": 1.0,
+        "false_positive_rate": 0.0,
+        "coverage": 1.0,
+        "assessed": 24,
+        "planned": 24,
+        "input_blocked": 0,
+        "abstained": 0
+      },
+      "condition_sufficiency": {
+        "TN": 20,
+        "TP": 6,
+        "FP": 4,
+        "recall": 1.0,
+        "false_positive_rate": 0.16666666666666666,
+        "coverage": 0.9090909090909091,
+        "assessed": 30,
+        "planned": 33,
+        "input_blocked": 3,
+        "abstained": 0
+      },
+      "option_ambiguity": {
+        "TP": 3,
+        "TN": 3,
+        "recall": 1.0,
+        "false_positive_rate": 0.0,
+        "coverage": 1.0,
+        "assessed": 6,
+        "planned": 6,
+        "input_blocked": 0,
+        "abstained": 0
+      },
+      "rubric_clarity": {
+        "TP": 3,
+        "TN": 10,
+        "FP": 1,
+        "recall": 1.0,
+        "false_positive_rate": 0.09090909090909091,
+        "coverage": 0.7777777777777778,
+        "assessed": 14,
+        "planned": 18,
+        "input_blocked": 3,
+        "abstained": 1
+      }
+    },
+    "vision": {
+      "matched": 24,
+      "outputs": 24,
+      "references": 33,
+      "precision": 1.0,
+      "completeness": 0.7272727272727273,
+      "unclear_handoffs": [
+        3,
+        3
+      ]
+    },
+    "gate_passed": false,
+    "details_ref": "../t168-repair-20261006/repair-summary.json"
+  },
+  "verification": {
+    "full_committed_snapshot": {
+      "name": "pytest",
+      "errors": "0",
+      "failures": "1",
+      "skipped": "15",
+      "tests": "2659",
+      "time": "1467.717",
+      "timestamp": "2026-10-06T21:45:50.288354+08:00",
+      "hostname": "YJX"
+    },
+    "full_scope": "git archive f46c2f9; committed corpus; original protected working corpus not overwritten or claimed passing",
+    "full_failure": "old test monkeypatched removed module-level SDK symbol and assumed eager construction; corrected with pre-edit TCR47; original failure retained",
+    "after_test_adaptation_focused": {
+      "name": "pytest",
+      "errors": "0",
+      "failures": "0",
+      "skipped": "0",
+      "tests": "120",
+      "time": "12.740",
+      "timestamp": "2026-10-06T22:15:37.867682+08:00",
+      "hostname": "YJX"
+    },
+    "full_suite_rerun_after_test_only_change": false,
+    "backend_mypy_source_files": 216,
+    "active_ruff_passed": true,
+    "postgres_real_dump_restore_assets": [
+      15,
+      15
+    ],
+    "docker_m0": [
+      1,
+      1
+    ],
+    "docker_m0_initial_failure": "observer omitted existing test volume database name; preserved m0 failure, corrected same existing database in m0-v2 without rebuilding volume",
+    "supplements_not_added_to_full_pass_count": true
+  },
+  "preservation": {
+    "protected_file_sha256": {
+      "README.md": "93277070d870ff09eb524acd8cae57df80aaed2eb382c8f58c0b995b8045fa2e",
+      "README.zh-CN.md": "d621fd9a82a4e4b06751fa50562a34140bf05c22997a4331e0343c4448382b8d",
+      "benchmark/corpus/grading_samples.json": "9f8c56328973fb56f88564560f1166bc0415a54fb5022f98c07fc6c168f94fca",
+      ".env": "0834523cc6a2ce5742012f62b903397f1b404d678d9e066a5a4fe19875a02566"
+    },
+    "all_protected_files_unchanged": true,
+    "original_database_revision": "0012_audit_logs",
+    "original_database_table_count_including_alembic": 24,
+    "original_database_application_table_count": 23,
+    "original_database_counts": {
+      "exams": 1,
+      "exam_questions": 2,
+      "submissions": 1,
+      "answers": 2,
+      "grading_results": 0,
+      "review_records": 0
+    },
+    "original_containers": [
+      "eduagent-redis-1|Up 46 hours (healthy)",
+      "eduagent-postgres-1|Up 46 hours (healthy)"
+    ],
+    "post_hooks": "skipped; .specify/extensions.yml absent"
+  },
+  "task_status": "T189 remains unchecked; T168 baseline-completed status unchanged, no quality success claim",
+  "publication": "no release or restore activation; no repeated browser opening"
+}

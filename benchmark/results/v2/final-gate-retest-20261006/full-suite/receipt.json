@@ -1,0 +1,11 @@
+{
+  "source_commit": "f46c2f955573f14202cd52e5f02dde56955fb8b0",
+  "source_kind": "git archive of committed code and corpus; user workspace files unmodified",
+  "corpus_sha256": "c0b37ca359e9e821a8ed0ead0c7f420977e2460fa623cba466e7501c366370d2",
+  "database": "eduagent_finalgate_20261006_1c17e1f6",
+  "active_connections": 0,
+  "database_removed": true,
+  "exit_code": 1,
+  "seconds": 1484.0762264999794,
+  "completed_at": "2026-10-06T14:10:31.040311+00:00"
+}

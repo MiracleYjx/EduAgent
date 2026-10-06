@@ -1,0 +1,16 @@
+{
+  "scope": "current-source isolated existing test volumes; synthetic providers; no cloud inference",
+  "source_commit": "f46c2f9",
+  "commands": [
+    {
+      "name": "pytest",
+      "returncode": 1,
+      "elapsed_seconds": 25.62407959997654
+    },
+    {
+      "name": "owned-project-down",
+      "returncode": 0,
+      "elapsed_seconds": 2.239050399977714
+    }
+  ]
+}

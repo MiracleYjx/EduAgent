@@ -1,0 +1,2 @@
+# Preserve raw execution and source bytes; CRLF is an intentional line ending.
+* -text whitespace=cr-at-eol
