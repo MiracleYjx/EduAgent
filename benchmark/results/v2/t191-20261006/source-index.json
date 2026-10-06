@@ -1,0 +1,64 @@
+{
+  "receipts": [
+    {
+      "path": "benchmark/results/v2/t191-20261006/course/receipt.json",
+      "sha256": "c66683999560346a3eafb83ff67e7ca76169a6590afa908ee8094626edd75c7f"
+    },
+    {
+      "path": "benchmark/results/v2/t191-20261006/course-continuation/receipt.json",
+      "sha256": "668db64fc3bf9fcfc44a8ef85917867eb27997084e98f1194fc53ec887aaa5e7"
+    },
+    {
+      "path": "benchmark/results/v2/t191-20261006/course-final/receipt.json",
+      "sha256": "98901d8f14bba42f533ed0052c1f27df7a1c6ba81c85d04a34aa5fd5b2f2d614"
+    },
+    {
+      "path": "benchmark/results/v2/t191-20261006/course-generation-continuation/receipt.json",
+      "sha256": "903d99ca5372e29016b54039716b4f57a40ce983ce903e34e64106a6fad096dd"
+    },
+    {
+      "path": "benchmark/results/v2/t191-20261006/exam/receipt.json",
+      "sha256": "e43cbe9ed35da479f1a707f21a21b19017a25aa25665bffde17ab82dd9bb7ec1"
+    },
+    {
+      "path": "benchmark/results/v2/t191-20261006/exam-complete/receipt.json",
+      "sha256": "ad270f6b0b52596325f9c86320297796bbc3f8ec2a88f0b278ae583eac49b4a7"
+    },
+    {
+      "path": "benchmark/results/v2/t191-20261006/export/receipt.json",
+      "sha256": "7c3e345b4c30f998824fcdc8c495c7b5acc9328ff1f7315bed35f2a9b3aad7a4"
+    },
+    {
+      "path": "benchmark/results/v2/t191-20261006/final-exam/receipt.json",
+      "sha256": "9f7acf7a5b8699093a4ab7d8621ffdc93b2b1e704e41b16eef58ed4b1b3e6919"
+    },
+    {
+      "path": "benchmark/results/v2/t191-20261006/opened-adaptation/receipt.json",
+      "sha256": "8c3c6fd700af1a435b1bf321bfa9d31a09aeba52ef385d1885a901a15703b455"
+    },
+    {
+      "path": "benchmark/results/v2/t191-20261006/storage/receipt.json",
+      "sha256": "7404ed34d103b16ad859363201bd2acd8c23ea6285bb31546770fd80d0e83416"
+    },
+    {
+      "path": "benchmark/results/v2/t191-20261006/storage-verification/receipt.json",
+      "sha256": "e423aecc146905ee42e3b0b6c9ffc3a53735f3515d8bc709006faeb72420b1f2"
+    },
+    {
+      "path": "benchmark/results/v2/t191-20261006/student-grading/receipt.json",
+      "sha256": "3f51b24bb747491f08574dae5184a7bbc2ac3b6e4af04ae3d06c84b8f9cde4aa"
+    },
+    {
+      "path": "benchmark/results/v2/t191-20261006/workflow/receipt.json",
+      "sha256": "86216ca12297badacab98f217b1bd0448a49edf8ae81725cdb24f41423a1c563"
+    },
+    {
+      "path": "benchmark/results/v2/t191-20261006/workflow-new-student/receipt.json",
+      "sha256": "f83a3f7317f30213e469a0ca251acdc0ffd2f055c1973c8068260daa45c226bd"
+    }
+  ],
+  "hash_semantics": "trace and byte integrity only; no version equality gate",
+  "actual_complete_workflow": "workflow-new-student/receipt.json",
+  "actual_verified_restore": "storage-verification/receipt.json",
+  "overall_v2_acceptance": "not_passed"
+}

@@ -1,0 +1,2838 @@
+{
+  "annotation": "AI-assisted + developer review; not independent teacher",
+  "actor": "AI session-delegated, synthetic DEV teacher/student roles",
+  "events": [
+    {
+      "label": "create_real_course",
+      "method": "POST",
+      "path": "/api/courses",
+      "status": 201,
+      "elapsed_seconds": 0.04246280004736036,
+      "response": {
+        "id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+        "name": "T191 实际运行的合成数学课程",
+        "description": "真实业务/模型闭环；AI辅助开发者审查，不是独立教师质量",
+        "created_by": "dbea54c4-d987-4b0e-abcd-273eeb962b7d",
+        "knowledge_base_count": 0,
+        "created_at": "2026-10-06T04:05:07.177193Z",
+        "updated_at": "2026-10-06T04:05:07.177198Z"
+      }
+    },
+    {
+      "label": "import_real_pdf",
+      "method": "POST",
+      "path": "/api/paper-imports",
+      "status": 201,
+      "elapsed_seconds": 0.09442529990337789,
+      "response": {
+        "id": "6729a01d-d0fc-43f8-9333-d98d12ddb76e",
+        "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+        "uploaded_by": "dbea54c4-d987-4b0e-abcd-273eeb962b7d",
+        "document_id": "4966f2fa-298e-4dc2-8fe9-415468f9844e",
+        "original_filename": "paper_text.pdf",
+        "page_count": null,
+        "status": "Uploaded",
+        "error_code": null,
+        "error_message": null,
+        "created_at": "2026-10-06T04:05:07.250498Z",
+        "updated_at": "2026-10-06T04:05:07.250502Z",
+        "original_file_id": "d_4966f2fa298e4dc28fe9415468f9844e",
+        "parsed_page_count": 0,
+        "question_count": 0,
+        "pages": [],
+        "questions": [],
+        "file_diagnostics": []
+      }
+    },
+    {
+      "label": "poll_real_import",
+      "method": "GET",
+      "path": "/api/paper-imports/6729a01d-d0fc-43f8-9333-d98d12ddb76e",
+      "status": 200,
+      "elapsed_seconds": 0.05305170000065118,
+      "response": {
+        "id": "6729a01d-d0fc-43f8-9333-d98d12ddb76e",
+        "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+        "uploaded_by": "dbea54c4-d987-4b0e-abcd-273eeb962b7d",
+        "document_id": "4966f2fa-298e-4dc2-8fe9-415468f9844e",
+        "original_filename": "paper_text.pdf",
+        "page_count": null,
+        "status": "Parsing",
+        "error_code": null,
+        "error_message": null,
+        "created_at": "2026-10-06T04:05:07.250498Z",
+        "updated_at": "2026-10-06T04:05:07.317192Z",
+        "original_file_id": "d_4966f2fa298e4dc28fe9415468f9844e",
+        "parsed_page_count": 0,
+        "question_count": 0,
+        "pages": [],
+        "questions": [],
+        "file_diagnostics": []
+      }
+    },
+    {
+      "label": "poll_real_import",
+      "method": "GET",
+      "path": "/api/paper-imports/6729a01d-d0fc-43f8-9333-d98d12ddb76e",
+      "status": 200,
+      "elapsed_seconds": 0.04367050004657358,
+      "response": {
+        "id": "6729a01d-d0fc-43f8-9333-d98d12ddb76e",
+        "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+        "uploaded_by": "dbea54c4-d987-4b0e-abcd-273eeb962b7d",
+        "document_id": "4966f2fa-298e-4dc2-8fe9-415468f9844e",
+        "original_filename": "paper_text.pdf",
+        "page_count": 1,
+        "status": "Extracting",
+        "error_code": null,
+        "error_message": null,
+        "created_at": "2026-10-06T04:05:07.250498Z",
+        "updated_at": "2026-10-06T04:05:07.520474Z",
+        "original_file_id": "d_4966f2fa298e4dc28fe9415468f9844e",
+        "parsed_page_count": 1,
+        "question_count": 0,
+        "pages": [
+          {
+            "id": "a9c76614-4f08-4eeb-8f5c-95b1c37f2d30",
+            "paper_import_id": "6729a01d-d0fc-43f8-9333-d98d12ddb76e",
+            "page_number": 1,
+            "file_id": "p_a9c766144f084eeb8f5c95b1c37f2d30",
+            "width": 1241,
+            "height": 1754,
+            "ocr_text": null,
+            "ocr_confidence": null
+          }
+        ],
+        "questions": [],
+        "file_diagnostics": []
+      }
+    },
+    {
+      "label": "poll_real_import",
+      "method": "GET",
+      "path": "/api/paper-imports/6729a01d-d0fc-43f8-9333-d98d12ddb76e",
+      "status": 200,
+      "elapsed_seconds": 0.04133019992150366,
+      "response": {
+        "id": "6729a01d-d0fc-43f8-9333-d98d12ddb76e",
+        "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+        "uploaded_by": "dbea54c4-d987-4b0e-abcd-273eeb962b7d",
+        "document_id": "4966f2fa-298e-4dc2-8fe9-415468f9844e",
+        "original_filename": "paper_text.pdf",
+        "page_count": 1,
+        "status": "Extracting",
+        "error_code": null,
+        "error_message": null,
+        "created_at": "2026-10-06T04:05:07.250498Z",
+        "updated_at": "2026-10-06T04:05:07.520474Z",
+        "original_file_id": "d_4966f2fa298e4dc28fe9415468f9844e",
+        "parsed_page_count": 1,
+        "question_count": 0,
+        "pages": [
+          {
+            "id": "a9c76614-4f08-4eeb-8f5c-95b1c37f2d30",
+            "paper_import_id": "6729a01d-d0fc-43f8-9333-d98d12ddb76e",
+            "page_number": 1,
+            "file_id": "p_a9c766144f084eeb8f5c95b1c37f2d30",
+            "width": 1241,
+            "height": 1754,
+            "ocr_text": null,
+            "ocr_confidence": null
+          }
+        ],
+        "questions": [],
+        "file_diagnostics": []
+      }
+    },
+    {
+      "label": "poll_real_import",
+      "method": "GET",
+      "path": "/api/paper-imports/6729a01d-d0fc-43f8-9333-d98d12ddb76e",
+      "status": 200,
+      "elapsed_seconds": 0.04503359994851053,
+      "response": {
+        "id": "6729a01d-d0fc-43f8-9333-d98d12ddb76e",
+        "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+        "uploaded_by": "dbea54c4-d987-4b0e-abcd-273eeb962b7d",
+        "document_id": "4966f2fa-298e-4dc2-8fe9-415468f9844e",
+        "original_filename": "paper_text.pdf",
+        "page_count": 1,
+        "status": "Extracting",
+        "error_code": null,
+        "error_message": null,
+        "created_at": "2026-10-06T04:05:07.250498Z",
+        "updated_at": "2026-10-06T04:05:07.520474Z",
+        "original_file_id": "d_4966f2fa298e4dc28fe9415468f9844e",
+        "parsed_page_count": 1,
+        "question_count": 0,
+        "pages": [
+          {
+            "id": "a9c76614-4f08-4eeb-8f5c-95b1c37f2d30",
+            "paper_import_id": "6729a01d-d0fc-43f8-9333-d98d12ddb76e",
+            "page_number": 1,
+            "file_id": "p_a9c766144f084eeb8f5c95b1c37f2d30",
+            "width": 1241,
+            "height": 1754,
+            "ocr_text": null,
+            "ocr_confidence": null
+          }
+        ],
+        "questions": [],
+        "file_diagnostics": []
+      }
+    },
+    {
+      "label": "poll_real_import",
+      "method": "GET",
+      "path": "/api/paper-imports/6729a01d-d0fc-43f8-9333-d98d12ddb76e",
+      "status": 200,
+      "elapsed_seconds": 0.04259460000321269,
+      "response": {
+        "id": "6729a01d-d0fc-43f8-9333-d98d12ddb76e",
+        "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+        "uploaded_by": "dbea54c4-d987-4b0e-abcd-273eeb962b7d",
+        "document_id": "4966f2fa-298e-4dc2-8fe9-415468f9844e",
+        "original_filename": "paper_text.pdf",
+        "page_count": 1,
+        "status": "Extracting",
+        "error_code": null,
+        "error_message": null,
+        "created_at": "2026-10-06T04:05:07.250498Z",
+        "updated_at": "2026-10-06T04:05:07.520474Z",
+        "original_file_id": "d_4966f2fa298e4dc28fe9415468f9844e",
+        "parsed_page_count": 1,
+        "question_count": 0,
+        "pages": [
+          {
+            "id": "a9c76614-4f08-4eeb-8f5c-95b1c37f2d30",
+            "paper_import_id": "6729a01d-d0fc-43f8-9333-d98d12ddb76e",
+            "page_number": 1,
+            "file_id": "p_a9c766144f084eeb8f5c95b1c37f2d30",
+            "width": 1241,
+            "height": 1754,
+            "ocr_text": null,
+            "ocr_confidence": null
+          }
+        ],
+        "questions": [],
+        "file_diagnostics": []
+      }
+    },
+    {
+      "label": "poll_real_import",
+      "method": "GET",
+      "path": "/api/paper-imports/6729a01d-d0fc-43f8-9333-d98d12ddb76e",
+      "status": 200,
+      "elapsed_seconds": 0.03984169999603182,
+      "response": {
+        "id": "6729a01d-d0fc-43f8-9333-d98d12ddb76e",
+        "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+        "uploaded_by": "dbea54c4-d987-4b0e-abcd-273eeb962b7d",
+        "document_id": "4966f2fa-298e-4dc2-8fe9-415468f9844e",
+        "original_filename": "paper_text.pdf",
+        "page_count": 1,
+        "status": "Pending Review",
+        "error_code": null,
+        "error_message": null,
+        "created_at": "2026-10-06T04:05:07.250498Z",
+        "updated_at": "2026-10-06T04:05:12.225871Z",
+        "original_file_id": "d_4966f2fa298e4dc28fe9415468f9844e",
+        "parsed_page_count": 1,
+        "question_count": 3,
+        "pages": [
+          {
+            "id": "a9c76614-4f08-4eeb-8f5c-95b1c37f2d30",
+            "paper_import_id": "6729a01d-d0fc-43f8-9333-d98d12ddb76e",
+            "page_number": 1,
+            "file_id": "p_a9c766144f084eeb8f5c95b1c37f2d30",
+            "width": 1241,
+            "height": 1754,
+            "ocr_text": null,
+            "ocr_confidence": null
+          }
+        ],
+        "questions": [
+          {
+            "question_type": "SINGLE_CHOICE",
+            "content": "y = 2x + 1，x = 3 时 y 为多少？",
+            "options": {
+              "C": "7",
+              "A": "5",
+              "B": "6",
+              "D": "8"
+            },
+            "reference_answer": "C",
+            "scoring_rubric": null,
+            "score": "2.00",
+            "correction_notes": null,
+            "question_number": "1",
+            "analysis": "2 × 3 + 1 = 7。",
+            "knowledge_points": null,
+            "source_regions": null,
+            "assets": null,
+            "source_page_ids": [
+              "a9c76614-4f08-4eeb-8f5c-95b1c37f2d30"
+            ],
+            "extracted_by": "LLM",
+            "extraction_confidence": null,
+            "id": "c2b692d8-42e3-4e56-8558-e078abe831c6",
+            "paper_import_id": "6729a01d-d0fc-43f8-9333-d98d12ddb76e",
+            "order_index": 1,
+            "order_preserved": true,
+            "status": "Pending Correction",
+            "question_id": null,
+            "image_assessment": null,
+            "created_at": "2026-10-06T04:05:12.215916Z",
+            "updated_at": "2026-10-06T04:05:12.215920Z"
+          },
+          {
+            "question_type": "TRUE_FALSE",
+            "content": "右图三角形面积为 24 cm²。",
+            "options": [
+              "正确",
+              "错误"
+            ],
+            "reference_answer": null,
+            "scoring_rubric": null,
+            "score": "2.00",
+            "correction_notes": null,
+            "question_number": "2",
+            "analysis": null,
+            "knowledge_points": null,
+            "source_regions": null,
+            "assets": null,
+            "source_page_ids": [
+              "a9c76614-4f08-4eeb-8f5c-95b1c37f2d30"
+            ],
+            "extracted_by": "LLM",
+            "extraction_confidence": null,
+            "id": "82aa03bf-1bdc-4011-ab13-17db1b310ac4",
+            "paper_import_id": "6729a01d-d0fc-43f8-9333-d98d12ddb76e",
+            "order_index": 2,
+            "order_preserved": true,
+            "status": "Pending Correction",
+            "question_id": null,
+            "image_assessment": null,
+            "created_at": "2026-10-06T04:05:12.215921Z",
+            "updated_at": "2026-10-06T04:05:12.215922Z"
+          },
+          {
+            "question_type": "SHORT_ANSWER",
+            "content": "根据下表写出 y 关于 x 的关系式。",
+            "options": null,
+            "reference_answer": null,
+            "scoring_rubric": "正确关系式 1.00；说明代入过程 2.00。",
+            "score": "3.00",
+            "correction_notes": null,
+            "question_number": "3",
+            "analysis": null,
+            "knowledge_points": [
+              "一次函数",
+              "表达与计算"
+            ],
+            "source_regions": null,
+            "assets": null,
+            "source_page_ids": [
+              "a9c76614-4f08-4eeb-8f5c-95b1c37f2d30"
+            ],
+            "extracted_by": "LLM",
+            "extraction_confidence": null,
+            "id": "89af5474-4d50-43cd-9120-c6cbf3b0c422",
+            "paper_import_id": "6729a01d-d0fc-43f8-9333-d98d12ddb76e",
+            "order_index": 3,
+            "order_preserved": true,
+            "status": "Pending Correction",
+            "question_id": null,
+            "image_assessment": null,
+            "created_at": "2026-10-06T04:05:12.215923Z",
+            "updated_at": "2026-10-06T04:05:12.215923Z"
+          }
+        ],
+        "file_diagnostics": []
+      }
+    },
+    {
+      "label": "correct_source_fields",
+      "method": "PATCH",
+      "path": "/api/paper-imports/6729a01d-d0fc-43f8-9333-d98d12ddb76e/questions/c2b692d8-42e3-4e56-8558-e078abe831c6",
+      "status": 200,
+      "elapsed_seconds": 0.02981440001167357,
+      "response": {
+        "question_type": "SINGLE_CHOICE",
+        "content": "y = 2x + 1，x = 3 时 y 为多少？",
+        "options": {
+          "C": "7",
+          "A": "5",
+          "B": "6",
+          "D": "8"
+        },
+        "reference_answer": "C",
+        "scoring_rubric": null,
+        "score": "2.00",
+        "correction_notes": "授权AI对照冻结原页标注校正，未知边界保持null；非独立教师",
+        "question_number": "1",
+        "analysis": "2 × 3 + 1 = 7。",
+        "knowledge_points": [],
+        "source_regions": null,
+        "assets": [],
+        "source_page_ids": [
+          "a9c76614-4f08-4eeb-8f5c-95b1c37f2d30"
+        ],
+        "extracted_by": "LLM",
+        "extraction_confidence": null,
+        "id": "c2b692d8-42e3-4e56-8558-e078abe831c6",
+        "paper_import_id": "6729a01d-d0fc-43f8-9333-d98d12ddb76e",
+        "order_index": 1,
+        "order_preserved": true,
+        "status": "Pending Correction",
+        "question_id": null,
+        "image_assessment": null,
+        "created_at": "2026-10-06T04:05:12.215916Z",
+        "updated_at": "2026-10-06T04:05:12.593687Z"
+      }
+    },
+    {
+      "label": "correct_source_fields",
+      "method": "PATCH",
+      "path": "/api/paper-imports/6729a01d-d0fc-43f8-9333-d98d12ddb76e/questions/82aa03bf-1bdc-4011-ab13-17db1b310ac4",
+      "status": 200,
+      "elapsed_seconds": 0.02967519999947399,
+      "response": {
+        "question_type": "TRUE_FALSE",
+        "content": "右图三角形面积为 24 cm²。",
+        "options": [
+          "正确",
+          "错误"
+        ],
+        "reference_answer": null,
+        "scoring_rubric": null,
+        "score": "2.00",
+        "correction_notes": "授权AI对照冻结原页标注校正，未知边界保持null；非独立教师",
+        "question_number": "2",
+        "analysis": null,
+        "knowledge_points": [],
+        "source_regions": null,
+        "assets": [],
+        "source_page_ids": [
+          "a9c76614-4f08-4eeb-8f5c-95b1c37f2d30"
+        ],
+        "extracted_by": "LLM",
+        "extraction_confidence": null,
+        "id": "82aa03bf-1bdc-4011-ab13-17db1b310ac4",
+        "paper_import_id": "6729a01d-d0fc-43f8-9333-d98d12ddb76e",
+        "order_index": 2,
+        "order_preserved": true,
+        "status": "Pending Correction",
+        "question_id": null,
+        "image_assessment": null,
+        "created_at": "2026-10-06T04:05:12.215921Z",
+        "updated_at": "2026-10-06T04:05:12.624882Z"
+      }
+    },
+    {
+      "label": "correct_source_fields",
+      "method": "PATCH",
+      "path": "/api/paper-imports/6729a01d-d0fc-43f8-9333-d98d12ddb76e/questions/89af5474-4d50-43cd-9120-c6cbf3b0c422",
+      "status": 200,
+      "elapsed_seconds": 0.027330499957315624,
+      "response": {
+        "question_type": "SHORT_ANSWER",
+        "content": "根据下表写出 y 关于 x 的关系式。",
+        "options": null,
+        "reference_answer": null,
+        "scoring_rubric": "正确关系式 1.00；说明代入过程 2.00。",
+        "score": "3.00",
+        "correction_notes": "授权AI对照冻结原页标注校正，未知边界保持null；非独立教师",
+        "question_number": "3",
+        "analysis": null,
+        "knowledge_points": [
+          "一次函数",
+          "表达与计算"
+        ],
+        "source_regions": null,
+        "assets": [],
+        "source_page_ids": [
+          "a9c76614-4f08-4eeb-8f5c-95b1c37f2d30"
+        ],
+        "extracted_by": "LLM",
+        "extraction_confidence": null,
+        "id": "89af5474-4d50-43cd-9120-c6cbf3b0c422",
+        "paper_import_id": "6729a01d-d0fc-43f8-9333-d98d12ddb76e",
+        "order_index": 3,
+        "order_preserved": true,
+        "status": "Pending Correction",
+        "question_id": null,
+        "image_assessment": null,
+        "created_at": "2026-10-06T04:05:12.215923Z",
+        "updated_at": "2026-10-06T04:05:12.652717Z"
+      }
+    },
+    {
+      "label": "real_source_table_crop",
+      "method": "POST",
+      "path": "/api/extracted-questions/89af5474-4d50-43cd-9120-c6cbf3b0c422/assets",
+      "status": 201,
+      "elapsed_seconds": 0.11062580009456724,
+      "response": {
+        "id": "6f782567-7a52-4e35-a4a6-c97c6e7494c3",
+        "file_id": "a_6f7825677a524e35a4a6c97c6e7494c3",
+        "asset_type": "table",
+        "source_page_id": "a9c76614-4f08-4eeb-8f5c-95b1c37f2d30",
+        "region": {
+          "bbox": [
+            375,
+            1062,
+            850,
+            1412
+          ]
+        },
+        "caption": null,
+        "student_visible": true
+      }
+    },
+    {
+      "label": "idempotent_commit",
+      "method": "POST",
+      "path": "/api/paper-imports/6729a01d-d0fc-43f8-9333-d98d12ddb76e/commit",
+      "status": 200,
+      "elapsed_seconds": 0.11827049998100847,
+      "response": {
+        "paper_import_id": "6729a01d-d0fc-43f8-9333-d98d12ddb76e",
+        "status": "Ready",
+        "questions": [
+          {
+            "extracted_question_id": "c2b692d8-42e3-4e56-8558-e078abe831c6",
+            "question_id": "946d6db6-43b1-4e0b-a85b-1c849b0c2edb",
+            "question_status": "Draft",
+            "order_preserved": true,
+            "completion_status": "needs_completion"
+          },
+          {
+            "extracted_question_id": "82aa03bf-1bdc-4011-ab13-17db1b310ac4",
+            "question_id": "dd9b7665-0389-48e6-b81a-f61bb37ff371",
+            "question_status": "Draft",
+            "order_preserved": true,
+            "completion_status": "needs_completion"
+          },
+          {
+            "extracted_question_id": "89af5474-4d50-43cd-9120-c6cbf3b0c422",
+            "question_id": "e676cf98-f73f-4e45-99ac-56441471f9a3",
+            "question_status": "Draft",
+            "order_preserved": true,
+            "completion_status": "needs_completion"
+          }
+        ]
+      }
+    },
+    {
+      "label": "repeat_commit",
+      "method": "POST",
+      "path": "/api/paper-imports/6729a01d-d0fc-43f8-9333-d98d12ddb76e/commit",
+      "status": 200,
+      "elapsed_seconds": 0.03241920005530119,
+      "response": {
+        "paper_import_id": "6729a01d-d0fc-43f8-9333-d98d12ddb76e",
+        "status": "Ready",
+        "questions": [
+          {
+            "extracted_question_id": "c2b692d8-42e3-4e56-8558-e078abe831c6",
+            "question_id": "946d6db6-43b1-4e0b-a85b-1c849b0c2edb",
+            "question_status": "Draft",
+            "order_preserved": true,
+            "completion_status": "needs_completion"
+          },
+          {
+            "extracted_question_id": "82aa03bf-1bdc-4011-ab13-17db1b310ac4",
+            "question_id": "dd9b7665-0389-48e6-b81a-f61bb37ff371",
+            "question_status": "Draft",
+            "order_preserved": true,
+            "completion_status": "needs_completion"
+          },
+          {
+            "extracted_question_id": "89af5474-4d50-43cd-9120-c6cbf3b0c422",
+            "question_id": "e676cf98-f73f-4e45-99ac-56441471f9a3",
+            "question_status": "Draft",
+            "order_preserved": true,
+            "completion_status": "needs_completion"
+          }
+        ]
+      }
+    },
+    {
+      "label": "missing_answer_blocked",
+      "method": "POST",
+      "path": "/api/questions/dd9b7665-0389-48e6-b81a-f61bb37ff371/approve",
+      "status": 422,
+      "elapsed_seconds": 0.04537509998772293,
+      "response": {
+        "detail": "题目状态不能从“Draft”变更为“Approved”。"
+      }
+    },
+    {
+      "label": "create_real_knowledge_base",
+      "method": "POST",
+      "path": "/api/knowledge-bases",
+      "status": 201,
+      "elapsed_seconds": 0.032956099952571094,
+      "response": {
+        "id": "fb1284d9-5d21-4e71-8130-6afee30d7909",
+        "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+        "name": "T191 数学原资料",
+        "description": null,
+        "document_count": 0,
+        "created_at": "2026-10-06T04:05:12.991463Z",
+        "updated_at": "2026-10-06T04:05:12.991467Z"
+      }
+    },
+    {
+      "label": "real_local_bge_ingestion",
+      "method": "POST",
+      "path": "/api/knowledge-bases/fb1284d9-5d21-4e71-8130-6afee30d7909/documents/upload",
+      "status": 201,
+      "elapsed_seconds": 16.6183832999086,
+      "response": {
+        "document_id": "0d6de23d-2db0-4f34-a175-ea324b78d46d",
+        "status": "Ready",
+        "chunk_count": 5,
+        "error_code": null,
+        "error_message": null,
+        "retryable": false,
+        "detail": null
+      }
+    },
+    {
+      "label": "actual_chunks",
+      "method": "GET",
+      "path": "/api/knowledge-bases/documents/0d6de23d-2db0-4f34-a175-ea324b78d46d/chunks",
+      "status": 200,
+      "elapsed_seconds": 0.026197099941782653,
+      "response": [
+        {
+          "id": "b7f84906-9be6-4e1c-b20e-e61a9bfdf2d8",
+          "chunk_index": 0,
+          "content": "# 合成教学依据（待教师核对）",
+          "metadata": {
+            "chunk_index": 0,
+            "document_id": "0d6de23d-2db0-4f34-a175-ea324b78d46d",
+            "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+            "knowledge_base_id": "fb1284d9-5d21-4e71-8130-6afee30d7909",
+            "original_filename": "teaching_basis.txt",
+            "file_format": "txt",
+            "location": "第 1 段",
+            "section_index": 1,
+            "start_char": 0,
+            "end_char": 15,
+            "content_sha256": "559ef0499eb9dfd46d4806bae02f6a703e5c1daee3319e0a8e0267d225c0a33f"
+          },
+          "has_embedding": true,
+          "chapter_id": null,
+          "section_order": null
+        },
+        {
+          "id": "24ae7aa8-baa3-4d7c-8dea-8453d1b61331",
+          "chunk_index": 1,
+          "content": "由 Codex 编写固定输入，非真实教师标注，也不是模型运行结果。",
+          "metadata": {
+            "chunk_index": 1,
+            "document_id": "0d6de23d-2db0-4f34-a175-ea324b78d46d",
+            "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+            "knowledge_base_id": "fb1284d9-5d21-4e71-8130-6afee30d7909",
+            "original_filename": "teaching_basis.txt",
+            "file_format": "txt",
+            "location": "第 2 段",
+            "section_index": 2,
+            "start_char": 0,
+            "end_char": 33,
+            "content_sha256": "40bd5d7c74161e72d399e123baa909136e1eafcb76ce94a095483889819b3375"
+          },
+          "has_embedding": true,
+          "chapter_id": null,
+          "section_order": null
+        },
+        {
+          "id": "e4941012-3487-461e-940e-0c2132b2d7d9",
+          "chunk_index": 2,
+          "content": "一次函数：y=2x+1。代入x=3得y=7。",
+          "metadata": {
+            "chunk_index": 2,
+            "document_id": "0d6de23d-2db0-4f34-a175-ea324b78d46d",
+            "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+            "knowledge_base_id": "fb1284d9-5d21-4e71-8130-6afee30d7909",
+            "original_filename": "teaching_basis.txt",
+            "file_format": "txt",
+            "location": "第 3 段",
+            "section_index": 3,
+            "start_char": 0,
+            "end_char": 22,
+            "content_sha256": "0ee0b446f59724d7fb5264f2670a1d09f5dfb5a723a3b270720a0c0aab497ee5"
+          },
+          "has_embedding": true,
+          "chapter_id": null,
+          "section_order": null
+        },
+        {
+          "id": "2fd56526-aa92-44cf-a032-cf718465b9d0",
+          "chunk_index": 3,
+          "content": "三角形面积=底×高÷2，底6高4的面积为12。",
+          "metadata": {
+            "chunk_index": 3,
+            "document_id": "0d6de23d-2db0-4f34-a175-ea324b78d46d",
+            "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+            "knowledge_base_id": "fb1284d9-5d21-4e71-8130-6afee30d7909",
+            "original_filename": "teaching_basis.txt",
+            "file_format": "txt",
+            "location": "第 4 段",
+            "section_index": 4,
+            "start_char": 0,
+            "end_char": 23,
+            "content_sha256": "17d0f4782dd98537f3e97ad20c9c78811233645c6e49a9f0e23ec7481b6ae190"
+          },
+          "has_embedding": true,
+          "chapter_id": null,
+          "section_order": null
+        },
+        {
+          "id": "85078434-b133-4c80-b568-ff210affb9b5",
+          "chunk_index": 4,
+          "content": "矩形面积需要长和宽，只有长度不能唯一确定面积。",
+          "metadata": {
+            "chunk_index": 4,
+            "document_id": "0d6de23d-2db0-4f34-a175-ea324b78d46d",
+            "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+            "knowledge_base_id": "fb1284d9-5d21-4e71-8130-6afee30d7909",
+            "original_filename": "teaching_basis.txt",
+            "file_format": "txt",
+            "location": "第 5 段",
+            "section_index": 5,
+            "start_char": 0,
+            "end_char": 23,
+            "content_sha256": "8f581b6f20b94427a4e380cb92956cf394687f9e85d8d97552701eaea02d06fa"
+          },
+          "has_embedding": true,
+          "chapter_id": null,
+          "section_order": null
+        }
+      ]
+    },
+    {
+      "label": "chapter_directory",
+      "method": "POST",
+      "path": "/api/knowledge-bases/courses/496d8796-55c5-4a40-bcfd-72e7d8b656ad/chapters",
+      "status": 201,
+      "elapsed_seconds": 0.02757430006749928,
+      "response": {
+        "id": "0e6babdf-eb06-4237-9189-0aeee1a67b09",
+        "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+        "title": "函数与面积",
+        "sections": [
+          {
+            "section_order": 1,
+            "title": "一次函数"
+          }
+        ],
+        "confirmed_by": "dbea54c4-d987-4b0e-abcd-273eeb962b7d",
+        "confirmed_at": "2026-10-06T04:05:29.678171Z",
+        "created_at": "2026-10-06T04:05:29.679234Z",
+        "updated_at": "2026-10-06T04:05:29.679237Z"
+      }
+    },
+    {
+      "label": "confirmed_chunk_scope",
+      "method": "PATCH",
+      "path": "/api/knowledge-bases/chunks/b7f84906-9be6-4e1c-b20e-e61a9bfdf2d8/scope",
+      "status": 200,
+      "elapsed_seconds": 0.04503669997211546,
+      "response": {
+        "id": "b7f84906-9be6-4e1c-b20e-e61a9bfdf2d8",
+        "chunk_index": 0,
+        "content": "# 合成教学依据（待教师核对）",
+        "metadata": {
+          "chunk_index": 0,
+          "document_id": "0d6de23d-2db0-4f34-a175-ea324b78d46d",
+          "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+          "knowledge_base_id": "fb1284d9-5d21-4e71-8130-6afee30d7909",
+          "original_filename": "teaching_basis.txt",
+          "file_format": "txt",
+          "location": "第 1 段",
+          "section_index": 1,
+          "start_char": 0,
+          "end_char": 15,
+          "content_sha256": "559ef0499eb9dfd46d4806bae02f6a703e5c1daee3319e0a8e0267d225c0a33f",
+          "scope_confirmation": {
+            "location": {
+              "confirmed_by": "dbea54c4-d987-4b0e-abcd-273eeb962b7d",
+              "confirmed_at": "2026-10-06T04:05:29.720199+00:00"
+            },
+            "knowledge_points": {
+              "confirmed_by": "dbea54c4-d987-4b0e-abcd-273eeb962b7d",
+              "confirmed_at": "2026-10-06T04:05:29.720199+00:00"
+            }
+          },
+          "knowledge_points": [
+            "一次函数",
+            "表达与计算"
+          ]
+        },
+        "has_embedding": true,
+        "chapter_id": "0e6babdf-eb06-4237-9189-0aeee1a67b09",
+        "section_order": 1
+      }
+    },
+    {
+      "label": "confirmed_chunk_scope",
+      "method": "PATCH",
+      "path": "/api/knowledge-bases/chunks/24ae7aa8-baa3-4d7c-8dea-8453d1b61331/scope",
+      "status": 200,
+      "elapsed_seconds": 0.051074599963612854,
+      "response": {
+        "id": "24ae7aa8-baa3-4d7c-8dea-8453d1b61331",
+        "chunk_index": 1,
+        "content": "由 Codex 编写固定输入，非真实教师标注，也不是模型运行结果。",
+        "metadata": {
+          "chunk_index": 1,
+          "document_id": "0d6de23d-2db0-4f34-a175-ea324b78d46d",
+          "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+          "knowledge_base_id": "fb1284d9-5d21-4e71-8130-6afee30d7909",
+          "original_filename": "teaching_basis.txt",
+          "file_format": "txt",
+          "location": "第 2 段",
+          "section_index": 2,
+          "start_char": 0,
+          "end_char": 33,
+          "content_sha256": "40bd5d7c74161e72d399e123baa909136e1eafcb76ce94a095483889819b3375",
+          "scope_confirmation": {
+            "location": {
+              "confirmed_by": "dbea54c4-d987-4b0e-abcd-273eeb962b7d",
+              "confirmed_at": "2026-10-06T04:05:29.774297+00:00"
+            },
+            "knowledge_points": {
+              "confirmed_by": "dbea54c4-d987-4b0e-abcd-273eeb962b7d",
+              "confirmed_at": "2026-10-06T04:05:29.774297+00:00"
+            }
+          },
+          "knowledge_points": [
+            "一次函数",
+            "表达与计算"
+          ]
+        },
+        "has_embedding": true,
+        "chapter_id": "0e6babdf-eb06-4237-9189-0aeee1a67b09",
+        "section_order": 1
+      }
+    },
+    {
+      "label": "confirmed_chunk_scope",
+      "method": "PATCH",
+      "path": "/api/knowledge-bases/chunks/e4941012-3487-461e-940e-0c2132b2d7d9/scope",
+      "status": 200,
+      "elapsed_seconds": 0.041347699938341975,
+      "response": {
+        "id": "e4941012-3487-461e-940e-0c2132b2d7d9",
+        "chunk_index": 2,
+        "content": "一次函数：y=2x+1。代入x=3得y=7。",
+        "metadata": {
+          "chunk_index": 2,
+          "document_id": "0d6de23d-2db0-4f34-a175-ea324b78d46d",
+          "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+          "knowledge_base_id": "fb1284d9-5d21-4e71-8130-6afee30d7909",
+          "original_filename": "teaching_basis.txt",
+          "file_format": "txt",
+          "location": "第 3 段",
+          "section_index": 3,
+          "start_char": 0,
+          "end_char": 22,
+          "content_sha256": "0ee0b446f59724d7fb5264f2670a1d09f5dfb5a723a3b270720a0c0aab497ee5",
+          "scope_confirmation": {
+            "location": {
+              "confirmed_by": "dbea54c4-d987-4b0e-abcd-273eeb962b7d",
+              "confirmed_at": "2026-10-06T04:05:29.818769+00:00"
+            },
+            "knowledge_points": {
+              "confirmed_by": "dbea54c4-d987-4b0e-abcd-273eeb962b7d",
+              "confirmed_at": "2026-10-06T04:05:29.818769+00:00"
+            }
+          },
+          "knowledge_points": [
+            "一次函数",
+            "表达与计算"
+          ]
+        },
+        "has_embedding": true,
+        "chapter_id": "0e6babdf-eb06-4237-9189-0aeee1a67b09",
+        "section_order": 1
+      }
+    },
+    {
+      "label": "confirmed_chunk_scope",
+      "method": "PATCH",
+      "path": "/api/knowledge-bases/chunks/2fd56526-aa92-44cf-a032-cf718465b9d0/scope",
+      "status": 200,
+      "elapsed_seconds": 0.042114200070500374,
+      "response": {
+        "id": "2fd56526-aa92-44cf-a032-cf718465b9d0",
+        "chunk_index": 3,
+        "content": "三角形面积=底×高÷2，底6高4的面积为12。",
+        "metadata": {
+          "chunk_index": 3,
+          "document_id": "0d6de23d-2db0-4f34-a175-ea324b78d46d",
+          "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+          "knowledge_base_id": "fb1284d9-5d21-4e71-8130-6afee30d7909",
+          "original_filename": "teaching_basis.txt",
+          "file_format": "txt",
+          "location": "第 4 段",
+          "section_index": 4,
+          "start_char": 0,
+          "end_char": 23,
+          "content_sha256": "17d0f4782dd98537f3e97ad20c9c78811233645c6e49a9f0e23ec7481b6ae190",
+          "scope_confirmation": {
+            "location": {
+              "confirmed_by": "dbea54c4-d987-4b0e-abcd-273eeb962b7d",
+              "confirmed_at": "2026-10-06T04:05:29.861238+00:00"
+            },
+            "knowledge_points": {
+              "confirmed_by": "dbea54c4-d987-4b0e-abcd-273eeb962b7d",
+              "confirmed_at": "2026-10-06T04:05:29.861238+00:00"
+            }
+          },
+          "knowledge_points": [
+            "一次函数",
+            "表达与计算"
+          ]
+        },
+        "has_embedding": true,
+        "chapter_id": "0e6babdf-eb06-4237-9189-0aeee1a67b09",
+        "section_order": 1
+      }
+    },
+    {
+      "label": "confirmed_chunk_scope",
+      "method": "PATCH",
+      "path": "/api/knowledge-bases/chunks/85078434-b133-4c80-b568-ff210affb9b5/scope",
+      "status": 200,
+      "elapsed_seconds": 0.042879799962975085,
+      "response": {
+        "id": "85078434-b133-4c80-b568-ff210affb9b5",
+        "chunk_index": 4,
+        "content": "矩形面积需要长和宽，只有长度不能唯一确定面积。",
+        "metadata": {
+          "chunk_index": 4,
+          "document_id": "0d6de23d-2db0-4f34-a175-ea324b78d46d",
+          "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+          "knowledge_base_id": "fb1284d9-5d21-4e71-8130-6afee30d7909",
+          "original_filename": "teaching_basis.txt",
+          "file_format": "txt",
+          "location": "第 5 段",
+          "section_index": 5,
+          "start_char": 0,
+          "end_char": 23,
+          "content_sha256": "8f581b6f20b94427a4e380cb92956cf394687f9e85d8d97552701eaea02d06fa",
+          "scope_confirmation": {
+            "location": {
+              "confirmed_by": "dbea54c4-d987-4b0e-abcd-273eeb962b7d",
+              "confirmed_at": "2026-10-06T04:05:29.905984+00:00"
+            },
+            "knowledge_points": {
+              "confirmed_by": "dbea54c4-d987-4b0e-abcd-273eeb962b7d",
+              "confirmed_at": "2026-10-06T04:05:29.905984+00:00"
+            }
+          },
+          "knowledge_points": [
+            "一次函数",
+            "表达与计算"
+          ]
+        },
+        "has_embedding": true,
+        "chapter_id": "0e6babdf-eb06-4237-9189-0aeee1a67b09",
+        "section_order": 1
+      }
+    },
+    {
+      "label": "supplement_objective_rubric",
+      "method": "PATCH",
+      "path": "/api/questions/946d6db6-43b1-4e0b-a85b-1c849b0c2edb",
+      "status": 200,
+      "elapsed_seconds": 0.04927660000976175,
+      "response": {
+        "id": "946d6db6-43b1-4e0b-a85b-1c849b0c2edb",
+        "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+        "type": "SINGLE_CHOICE",
+        "content": "y = 2x + 1，x = 3 时 y 为多少？",
+        "options": {
+          "C": "7",
+          "A": "5",
+          "B": "6",
+          "D": "8"
+        },
+        "order_preserved": true,
+        "reference_answer": "C",
+        "scoring_rubric": "选C得2分，其他选项0分。",
+        "analysis": "2 × 3 + 1 = 7。",
+        "source_type": "paper_imported",
+        "frozen_at": null,
+        "difficulty": null,
+        "knowledge_points": [
+          "一次函数"
+        ],
+        "score": "2.00",
+        "status": "Draft",
+        "created_by": "dbea54c4-d987-4b0e-abcd-273eeb962b7d",
+        "created_at": "2026-10-06T04:05:12.873949Z",
+        "updated_at": "2026-10-06T04:05:29.950274Z"
+      }
+    },
+    {
+      "label": "submit_imported_objective",
+      "method": "POST",
+      "path": "/api/questions/946d6db6-43b1-4e0b-a85b-1c849b0c2edb/submit-review",
+      "status": 200,
+      "elapsed_seconds": 0.03355659998487681,
+      "response": {
+        "id": "946d6db6-43b1-4e0b-a85b-1c849b0c2edb",
+        "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+        "type": "SINGLE_CHOICE",
+        "content": "y = 2x + 1，x = 3 时 y 为多少？",
+        "options": {
+          "C": "7",
+          "A": "5",
+          "B": "6",
+          "D": "8"
+        },
+        "order_preserved": true,
+        "reference_answer": "C",
+        "scoring_rubric": "选C得2分，其他选项0分。",
+        "analysis": "2 × 3 + 1 = 7。",
+        "source_type": "paper_imported",
+        "frozen_at": null,
+        "difficulty": null,
+        "knowledge_points": [
+          "一次函数"
+        ],
+        "score": "2.00",
+        "status": "Pending Review",
+        "created_by": "dbea54c4-d987-4b0e-abcd-273eeb962b7d",
+        "created_at": "2026-10-06T04:05:12.873949Z",
+        "updated_at": "2026-10-06T04:05:29.989913Z"
+      }
+    },
+    {
+      "label": "real_imported_semantic_check",
+      "method": "POST",
+      "path": "/api/questions/946d6db6-43b1-4e0b-a85b-1c849b0c2edb/validations",
+      "status": 200,
+      "elapsed_seconds": 3.7185211000032723,
+      "response": {
+        "id": "430c6dd3-ada0-4031-b017-b0725ae53fcb",
+        "question_id": "946d6db6-43b1-4e0b-a85b-1c849b0c2edb",
+        "input_revision": 1,
+        "run_no": 1,
+        "outcome": "passed",
+        "input_refs": {
+          "fields": [
+            "type",
+            "content",
+            "options",
+            "reference_answer",
+            "scoring_rubric",
+            "analysis",
+            "score"
+          ],
+          "evidence": [
+            {
+              "evidence_id": "6ad899a7-e83a-4cad-a51b-408c04054b15",
+              "kind": "chunk",
+              "source_id": "b7f84906-9be6-4e1c-b20e-e61a9bfdf2d8",
+              "source_data": {
+                "chunk_id": "b7f84906-9be6-4e1c-b20e-e61a9bfdf2d8",
+                "location": "第 1 段",
+                "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+                "document_id": "0d6de23d-2db0-4f34-a175-ea324b78d46d",
+                "source_file": "teaching_basis.txt",
+                "content_snapshot": "# 合成教学依据（待教师核对）"
+              }
+            },
+            {
+              "evidence_id": "91ff2cde-23b2-47ab-9144-46e3552181a3",
+              "kind": "chunk",
+              "source_id": "24ae7aa8-baa3-4d7c-8dea-8453d1b61331",
+              "source_data": {
+                "chunk_id": "24ae7aa8-baa3-4d7c-8dea-8453d1b61331",
+                "location": "第 2 段",
+                "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+                "document_id": "0d6de23d-2db0-4f34-a175-ea324b78d46d",
+                "source_file": "teaching_basis.txt",
+                "content_snapshot": "由 Codex 编写固定输入，非真实教师标注，也不是模型运行结果。"
+              }
+            },
+            {
+              "evidence_id": "b64134fd-25e5-4f8b-98c9-146c718fa45f",
+              "kind": "chunk",
+              "source_id": "e4941012-3487-461e-940e-0c2132b2d7d9",
+              "source_data": {
+                "chunk_id": "e4941012-3487-461e-940e-0c2132b2d7d9",
+                "location": "第 3 段",
+                "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+                "document_id": "0d6de23d-2db0-4f34-a175-ea324b78d46d",
+                "source_file": "teaching_basis.txt",
+                "content_snapshot": "一次函数：y=2x+1。代入x=3得y=7。"
+              }
+            },
+            {
+              "evidence_id": "e9ba74aa-982b-41fd-b50b-2b835640f8f8",
+              "kind": "chunk",
+              "source_id": "2fd56526-aa92-44cf-a032-cf718465b9d0",
+              "source_data": {
+                "chunk_id": "2fd56526-aa92-44cf-a032-cf718465b9d0",
+                "location": "第 4 段",
+                "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+                "document_id": "0d6de23d-2db0-4f34-a175-ea324b78d46d",
+                "source_file": "teaching_basis.txt",
+                "content_snapshot": "三角形面积=底×高÷2，底6高4的面积为12。"
+              }
+            },
+            {
+              "evidence_id": "8f80e8ec-9654-4006-9715-2b669e10b58c",
+              "kind": "chunk",
+              "source_id": "85078434-b133-4c80-b568-ff210affb9b5",
+              "source_data": {
+                "chunk_id": "85078434-b133-4c80-b568-ff210affb9b5",
+                "location": "第 5 段",
+                "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+                "document_id": "0d6de23d-2db0-4f34-a175-ea324b78d46d",
+                "source_file": "teaching_basis.txt",
+                "content_snapshot": "矩形面积需要长和宽，只有长度不能唯一确定面积。"
+              }
+            }
+          ],
+          "manual_context": []
+        },
+        "checks": [
+          {
+            "kind": "answer_correctness",
+            "verdict": "pass",
+            "reason": "第3段证据明确给出“一次函数：y=2x+1。代入x=3得y=7”，与题目解析“2 × 3 + 1 = 7”一致；选项C为7，参考答案为C，计算与证据相符。",
+            "evidence_refs": [
+              "b64134fd-25e5-4f8b-98c9-146c718fa45f"
+            ]
+          },
+          {
+            "kind": "condition_sufficiency",
+            "verdict": "pass",
+            "reason": "题目给出函数式 y = 2x + 1 和 x = 3 两个条件，信息足以唯一确定 y 的值；证据中的代入计算也验证该条件组合充分。",
+            "evidence_refs": [
+              "b64134fd-25e5-4f8b-98c9-146c718fa45f"
+            ]
+          },
+          {
+            "kind": "option_ambiguity",
+            "verdict": "pass",
+            "reason": "四个选项分别为A=5、B=6、C=7、D=8，均为唯一数值且互不重复，结合函数式计算只有一个正确结果7，不存在歧义或重复选项。",
+            "evidence_refs": [
+              "b64134fd-25e5-4f8b-98c9-146c718fa45f"
+            ]
+          },
+          {
+            "kind": "rubric_clarity",
+            "verdict": "pass",
+            "reason": "评分规则明确“选C得2分，其他选项0分”，与参考答案C及总分2.00一致，评分标准清晰可执行。",
+            "evidence_refs": [
+              "b64134fd-25e5-4f8b-98c9-146c718fa45f"
+            ]
+          }
+        ],
+        "issues": [],
+        "error": null,
+        "executor_kind": "agent",
+        "executor_name": "question_semantic_validator",
+        "requested_by": "dbea54c4-d987-4b0e-abcd-273eeb962b7d",
+        "agent_run_id": null,
+        "provenance": {
+          "agent_type": "Question",
+          "provider_name": "deepseek",
+          "model": "deepseek-chat",
+          "model_version": null,
+          "prompt_version": "question-semantics-v1"
+        },
+        "manual_dispositions": [],
+        "created_at": "2026-10-06T04:05:30.164442Z",
+        "completed_at": "2026-10-06T04:05:33.671669Z",
+        "is_current": true,
+        "stale": false,
+        "can_review": true,
+        "requires_manual_review": false
+      }
+    },
+    {
+      "label": "approve_imported_objective",
+      "method": "POST",
+      "path": "/api/questions/946d6db6-43b1-4e0b-a85b-1c849b0c2edb/approve",
+      "status": 200,
+      "elapsed_seconds": 0.09579030005261302,
+      "response": {
+        "id": "946d6db6-43b1-4e0b-a85b-1c849b0c2edb",
+        "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+        "type": "SINGLE_CHOICE",
+        "content": "y = 2x + 1，x = 3 时 y 为多少？",
+        "options": {
+          "C": "7",
+          "A": "5",
+          "B": "6",
+          "D": "8"
+        },
+        "order_preserved": true,
+        "reference_answer": "C",
+        "scoring_rubric": "选C得2分，其他选项0分。",
+        "analysis": "2 × 3 + 1 = 7。",
+        "source_type": "paper_imported",
+        "frozen_at": "2026-10-06T04:05:33.792407Z",
+        "difficulty": null,
+        "knowledge_points": [
+          "一次函数"
+        ],
+        "score": "2.00",
+        "status": "Approved",
+        "created_by": "dbea54c4-d987-4b0e-abcd-273eeb962b7d",
+        "created_at": "2026-10-06T04:05:12.873949Z",
+        "updated_at": "2026-10-06T04:05:33.793409Z"
+      }
+    },
+    {
+      "label": "explicit_ai_supplement_answer",
+      "method": "PATCH",
+      "path": "/api/questions/e676cf98-f73f-4e45-99ac-56441471f9a3",
+      "status": 200,
+      "elapsed_seconds": 0.056460399995557964,
+      "response": {
+        "id": "e676cf98-f73f-4e45-99ac-56441471f9a3",
+        "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+        "type": "SHORT_ANSWER",
+        "content": "根据下表写出 y 关于 x 的关系式。",
+        "options": null,
+        "order_preserved": true,
+        "reference_answer": "y=2x+1。代入x=1、2、3依次得到3、5、7。",
+        "scoring_rubric": "正确关系式 1.00；说明代入过程 2.00。",
+        "analysis": "由表中三组实际数值验证关系式。",
+        "source_type": "paper_imported",
+        "frozen_at": null,
+        "difficulty": null,
+        "knowledge_points": [
+          "一次函数",
+          "表达与计算"
+        ],
+        "score": "3.00",
+        "status": "Draft",
+        "created_by": "dbea54c4-d987-4b0e-abcd-273eeb962b7d",
+        "created_at": "2026-10-06T04:05:12.873958Z",
+        "updated_at": "2026-10-06T04:05:33.858123Z"
+      }
+    },
+    {
+      "label": "current_image_context",
+      "method": "GET",
+      "path": "/api/questions/e676cf98-f73f-4e45-99ac-56441471f9a3/image-assessment",
+      "status": 200,
+      "elapsed_seconds": 0.07688030006829649,
+      "response": {
+        "owner_kind": "question",
+        "owner_id": "e676cf98-f73f-4e45-99ac-56441471f9a3",
+        "assessment": null,
+        "context_revision": 0,
+        "run_no": 0,
+        "check_no": 0,
+        "input_refs": {
+          "text_fields": [
+            "type",
+            "content",
+            "options",
+            "reference_answer",
+            "scoring_rubric",
+            "analysis",
+            "score",
+            "source_page_ids",
+            "source_regions",
+            "caption"
+          ],
+          "images": [
+            {
+              "asset_id": "6f782567-7a52-4e35-a4a6-c97c6e7494c3",
+              "file_id": "a_6f7825677a524e35a4a6c97c6e7494c3",
+              "image_index": 1,
+              "asset_type": "table",
+              "source_page_id": "a9c76614-4f08-4eeb-8f5c-95b1c37f2d30",
+              "region": {
+                "bbox": [
+                  375,
+                  1062,
+                  850,
+                  1412
+                ]
+              },
+              "width": 475,
+              "height": 350,
+              "mime_type": "image/png"
+            }
+          ]
+        },
+        "current_run": null,
+        "current_check": null,
+        "imported_review": null,
+        "status": "pending",
+        "confirmed_conditions": [],
+        "requires_manual_review": true,
+        "evidence_readable": true,
+        "error": null,
+        "open_issues": []
+      }
+    },
+    {
+      "label": "real_vision_model",
+      "method": "POST",
+      "path": "/api/questions/e676cf98-f73f-4e45-99ac-56441471f9a3/image-understanding",
+      "status": 200,
+      "elapsed_seconds": 48.04688040004112,
+      "response": {
+        "owner_kind": "question",
+        "owner_id": "e676cf98-f73f-4e45-99ac-56441471f9a3",
+        "assessment": {
+          "context_revision": 0,
+          "runs": [
+            {
+              "id": "163bf08e-d9ff-4cd0-a220-21f354cf1ef4",
+              "run_no": 1,
+              "context_revision": 0,
+              "task": "提取题图中作答所需条件",
+              "input_refs": {
+                "text_fields": [
+                  "type",
+                  "content",
+                  "options",
+                  "reference_answer",
+                  "scoring_rubric",
+                  "analysis",
+                  "score",
+                  "source_page_ids",
+                  "source_regions",
+                  "caption"
+                ],
+                "images": [
+                  {
+                    "asset_id": "6f782567-7a52-4e35-a4a6-c97c6e7494c3",
+                    "file_id": "a_6f7825677a524e35a4a6c97c6e7494c3",
+                    "image_index": 1,
+                    "asset_type": "table",
+                    "source_page_id": "a9c76614-4f08-4eeb-8f5c-95b1c37f2d30",
+                    "region": {
+                      "bbox": [
+                        375,
+                        1062,
+                        850,
+                        1412
+                      ]
+                    },
+                    "width": 475,
+                    "height": 350,
+                    "mime_type": "image/png"
+                  }
+                ]
+              },
+              "outcome": "completed",
+              "result": {
+                "observations": [
+                  {
+                    "image_index": 1,
+                    "kind": "表格",
+                    "description": "题图中是一张三列表格；表头为 x、y、说明。表格下方有三行数据：第一行 x=1、y=3、说明为“第一行”；第二行 x=2、y=5、说明为“第二行”；第三行 x=3、y=7、说明为“第三行”。",
+                    "bbox": null
+                  }
+                ],
+                "conditions": [
+                  {
+                    "condition_id": "3eb5d682-2a64-456f-bf01-69a66ae32ae4",
+                    "asset_id": "6f782567-7a52-4e35-a4a6-c97c6e7494c3",
+                    "image_index": 1,
+                    "text": "表格表头为 x、y、说明三列。",
+                    "evidence_region": null
+                  },
+                  {
+                    "condition_id": "aa5b9bc3-214e-406d-8ca0-390e91db8229",
+                    "asset_id": "6f782567-7a52-4e35-a4a6-c97c6e7494c3",
+                    "image_index": 1,
+                    "text": "表格数据第一行：x=1，y=3，说明为“第一行”。",
+                    "evidence_region": null
+                  },
+                  {
+                    "condition_id": "5dcea0a7-09c1-4297-a3a3-d7f7c028af7d",
+                    "asset_id": "6f782567-7a52-4e35-a4a6-c97c6e7494c3",
+                    "image_index": 1,
+                    "text": "表格数据第二行：x=2，y=5，说明为“第二行”。",
+                    "evidence_region": null
+                  },
+                  {
+                    "condition_id": "fbfded3a-70bb-4880-856b-bfc55290408d",
+                    "asset_id": "6f782567-7a52-4e35-a4a6-c97c6e7494c3",
+                    "image_index": 1,
+                    "text": "表格数据第三行：x=3，y=7，说明为“第三行”。",
+                    "evidence_region": null
+                  }
+                ],
+                "unresolved_issues": [],
+                "requires_manual_review": false
+              },
+              "error": null,
+              "executor_kind": "service",
+              "executor_name": "vision",
+              "requested_by": "dbea54c4-d987-4b0e-abcd-273eeb962b7d",
+              "agent_run_id": null,
+              "provenance": {
+                "provider_name": "deepseek",
+                "model": "deepseek-flash",
+                "model_version": null,
+                "prompt_version": "vision-conditions-v1"
+              },
+              "started_at": "2026-10-06T04:05:33.998720Z",
+              "completed_at": "2026-10-06T04:06:21.944687Z"
+            }
+          ],
+          "manual_checks": [],
+          "imported_review": null
+        },
+        "context_revision": 0,
+        "run_no": 1,
+        "check_no": 0,
+        "input_refs": {
+          "text_fields": [
+            "type",
+            "content",
+            "options",
+            "reference_answer",
+            "scoring_rubric",
+            "analysis",
+            "score",
+            "source_page_ids",
+            "source_regions",
+            "caption"
+          ],
+          "images": [
+            {
+              "asset_id": "6f782567-7a52-4e35-a4a6-c97c6e7494c3",
+              "file_id": "a_6f7825677a524e35a4a6c97c6e7494c3",
+              "image_index": 1,
+              "asset_type": "table",
+              "source_page_id": "a9c76614-4f08-4eeb-8f5c-95b1c37f2d30",
+              "region": {
+                "bbox": [
+                  375,
+                  1062,
+                  850,
+                  1412
+                ]
+              },
+              "width": 475,
+              "height": 350,
+              "mime_type": "image/png"
+            }
+          ]
+        },
+        "current_run": {
+          "id": "163bf08e-d9ff-4cd0-a220-21f354cf1ef4",
+          "run_no": 1,
+          "context_revision": 0,
+          "task": "提取题图中作答所需条件",
+          "input_refs": {
+            "text_fields": [
+              "type",
+              "content",
+              "options",
+              "reference_answer",
+              "scoring_rubric",
+              "analysis",
+              "score",
+              "source_page_ids",
+              "source_regions",
+              "caption"
+            ],
+            "images": [
+              {
+                "asset_id": "6f782567-7a52-4e35-a4a6-c97c6e7494c3",
+                "file_id": "a_6f7825677a524e35a4a6c97c6e7494c3",
+                "image_index": 1,
+                "asset_type": "table",
+                "source_page_id": "a9c76614-4f08-4eeb-8f5c-95b1c37f2d30",
+                "region": {
+                  "bbox": [
+                    375,
+                    1062,
+                    850,
+                    1412
+                  ]
+                },
+                "width": 475,
+                "height": 350,
+                "mime_type": "image/png"
+              }
+            ]
+          },
+          "outcome": "completed",
+          "result": {
+            "observations": [
+              {
+                "image_index": 1,
+                "kind": "表格",
+                "description": "题图中是一张三列表格；表头为 x、y、说明。表格下方有三行数据：第一行 x=1、y=3、说明为“第一行”；第二行 x=2、y=5、说明为“第二行”；第三行 x=3、y=7、说明为“第三行”。",
+                "bbox": null
+              }
+            ],
+            "conditions": [
+              {
+                "condition_id": "3eb5d682-2a64-456f-bf01-69a66ae32ae4",
+                "asset_id": "6f782567-7a52-4e35-a4a6-c97c6e7494c3",
+                "image_index": 1,
+                "text": "表格表头为 x、y、说明三列。",
+                "evidence_region": null
+              },
+              {
+                "condition_id": "aa5b9bc3-214e-406d-8ca0-390e91db8229",
+                "asset_id": "6f782567-7a52-4e35-a4a6-c97c6e7494c3",
+                "image_index": 1,
+                "text": "表格数据第一行：x=1，y=3，说明为“第一行”。",
+                "evidence_region": null
+              },
+              {
+                "condition_id": "5dcea0a7-09c1-4297-a3a3-d7f7c028af7d",
+                "asset_id": "6f782567-7a52-4e35-a4a6-c97c6e7494c3",
+                "image_index": 1,
+                "text": "表格数据第二行：x=2，y=5，说明为“第二行”。",
+                "evidence_region": null
+              },
+              {
+                "condition_id": "fbfded3a-70bb-4880-856b-bfc55290408d",
+                "asset_id": "6f782567-7a52-4e35-a4a6-c97c6e7494c3",
+                "image_index": 1,
+                "text": "表格数据第三行：x=3，y=7，说明为“第三行”。",
+                "evidence_region": null
+              }
+            ],
+            "unresolved_issues": [],
+            "requires_manual_review": false
+          },
+          "error": null,
+          "executor_kind": "service",
+          "executor_name": "vision",
+          "requested_by": "dbea54c4-d987-4b0e-abcd-273eeb962b7d",
+          "agent_run_id": null,
+          "provenance": {
+            "provider_name": "deepseek",
+            "model": "deepseek-flash",
+            "model_version": null,
+            "prompt_version": "vision-conditions-v1"
+          },
+          "started_at": "2026-10-06T04:05:33.998720Z",
+          "completed_at": "2026-10-06T04:06:21.944687Z"
+        },
+        "current_check": null,
+        "imported_review": null,
+        "status": "pending",
+        "confirmed_conditions": [],
+        "requires_manual_review": true,
+        "evidence_readable": true,
+        "error": null,
+        "open_issues": []
+      }
+    },
+    {
+      "label": "current_image_after_model",
+      "method": "GET",
+      "path": "/api/questions/e676cf98-f73f-4e45-99ac-56441471f9a3/image-assessment",
+      "status": 200,
+      "elapsed_seconds": 0.06602760008536279,
+      "response": {
+        "owner_kind": "question",
+        "owner_id": "e676cf98-f73f-4e45-99ac-56441471f9a3",
+        "assessment": {
+          "context_revision": 0,
+          "runs": [
+            {
+              "id": "163bf08e-d9ff-4cd0-a220-21f354cf1ef4",
+              "run_no": 1,
+              "context_revision": 0,
+              "task": "提取题图中作答所需条件",
+              "input_refs": {
+                "text_fields": [
+                  "type",
+                  "content",
+                  "options",
+                  "reference_answer",
+                  "scoring_rubric",
+                  "analysis",
+                  "score",
+                  "source_page_ids",
+                  "source_regions",
+                  "caption"
+                ],
+                "images": [
+                  {
+                    "asset_id": "6f782567-7a52-4e35-a4a6-c97c6e7494c3",
+                    "file_id": "a_6f7825677a524e35a4a6c97c6e7494c3",
+                    "image_index": 1,
+                    "asset_type": "table",
+                    "source_page_id": "a9c76614-4f08-4eeb-8f5c-95b1c37f2d30",
+                    "region": {
+                      "bbox": [
+                        375,
+                        1062,
+                        850,
+                        1412
+                      ]
+                    },
+                    "width": 475,
+                    "height": 350,
+                    "mime_type": "image/png"
+                  }
+                ]
+              },
+              "outcome": "completed",
+              "result": {
+                "observations": [
+                  {
+                    "image_index": 1,
+                    "kind": "表格",
+                    "description": "题图中是一张三列表格；表头为 x、y、说明。表格下方有三行数据：第一行 x=1、y=3、说明为“第一行”；第二行 x=2、y=5、说明为“第二行”；第三行 x=3、y=7、说明为“第三行”。",
+                    "bbox": null
+                  }
+                ],
+                "conditions": [
+                  {
+                    "condition_id": "3eb5d682-2a64-456f-bf01-69a66ae32ae4",
+                    "asset_id": "6f782567-7a52-4e35-a4a6-c97c6e7494c3",
+                    "image_index": 1,
+                    "text": "表格表头为 x、y、说明三列。",
+                    "evidence_region": null
+                  },
+                  {
+                    "condition_id": "aa5b9bc3-214e-406d-8ca0-390e91db8229",
+                    "asset_id": "6f782567-7a52-4e35-a4a6-c97c6e7494c3",
+                    "image_index": 1,
+                    "text": "表格数据第一行：x=1，y=3，说明为“第一行”。",
+                    "evidence_region": null
+                  },
+                  {
+                    "condition_id": "5dcea0a7-09c1-4297-a3a3-d7f7c028af7d",
+                    "asset_id": "6f782567-7a52-4e35-a4a6-c97c6e7494c3",
+                    "image_index": 1,
+                    "text": "表格数据第二行：x=2，y=5，说明为“第二行”。",
+                    "evidence_region": null
+                  },
+                  {
+                    "condition_id": "fbfded3a-70bb-4880-856b-bfc55290408d",
+                    "asset_id": "6f782567-7a52-4e35-a4a6-c97c6e7494c3",
+                    "image_index": 1,
+                    "text": "表格数据第三行：x=3，y=7，说明为“第三行”。",
+                    "evidence_region": null
+                  }
+                ],
+                "unresolved_issues": [],
+                "requires_manual_review": false
+              },
+              "error": null,
+              "executor_kind": "service",
+              "executor_name": "vision",
+              "requested_by": "dbea54c4-d987-4b0e-abcd-273eeb962b7d",
+              "agent_run_id": null,
+              "provenance": {
+                "provider_name": "deepseek",
+                "model": "deepseek-flash",
+                "model_version": null,
+                "prompt_version": "vision-conditions-v1"
+              },
+              "started_at": "2026-10-06T04:05:33.998720Z",
+              "completed_at": "2026-10-06T04:06:21.944687Z"
+            }
+          ],
+          "manual_checks": [],
+          "imported_review": null
+        },
+        "context_revision": 0,
+        "run_no": 1,
+        "check_no": 0,
+        "input_refs": {
+          "text_fields": [
+            "type",
+            "content",
+            "options",
+            "reference_answer",
+            "scoring_rubric",
+            "analysis",
+            "score",
+            "source_page_ids",
+            "source_regions",
+            "caption"
+          ],
+          "images": [
+            {
+              "asset_id": "6f782567-7a52-4e35-a4a6-c97c6e7494c3",
+              "file_id": "a_6f7825677a524e35a4a6c97c6e7494c3",
+              "image_index": 1,
+              "asset_type": "table",
+              "source_page_id": "a9c76614-4f08-4eeb-8f5c-95b1c37f2d30",
+              "region": {
+                "bbox": [
+                  375,
+                  1062,
+                  850,
+                  1412
+                ]
+              },
+              "width": 475,
+              "height": 350,
+              "mime_type": "image/png"
+            }
+          ]
+        },
+        "current_run": {
+          "id": "163bf08e-d9ff-4cd0-a220-21f354cf1ef4",
+          "run_no": 1,
+          "context_revision": 0,
+          "task": "提取题图中作答所需条件",
+          "input_refs": {
+            "text_fields": [
+              "type",
+              "content",
+              "options",
+              "reference_answer",
+              "scoring_rubric",
+              "analysis",
+              "score",
+              "source_page_ids",
+              "source_regions",
+              "caption"
+            ],
+            "images": [
+              {
+                "asset_id": "6f782567-7a52-4e35-a4a6-c97c6e7494c3",
+                "file_id": "a_6f7825677a524e35a4a6c97c6e7494c3",
+                "image_index": 1,
+                "asset_type": "table",
+                "source_page_id": "a9c76614-4f08-4eeb-8f5c-95b1c37f2d30",
+                "region": {
+                  "bbox": [
+                    375,
+                    1062,
+                    850,
+                    1412
+                  ]
+                },
+                "width": 475,
+                "height": 350,
+                "mime_type": "image/png"
+              }
+            ]
+          },
+          "outcome": "completed",
+          "result": {
+            "observations": [
+              {
+                "image_index": 1,
+                "kind": "表格",
+                "description": "题图中是一张三列表格；表头为 x、y、说明。表格下方有三行数据：第一行 x=1、y=3、说明为“第一行”；第二行 x=2、y=5、说明为“第二行”；第三行 x=3、y=7、说明为“第三行”。",
+                "bbox": null
+              }
+            ],
+            "conditions": [
+              {
+                "condition_id": "3eb5d682-2a64-456f-bf01-69a66ae32ae4",
+                "asset_id": "6f782567-7a52-4e35-a4a6-c97c6e7494c3",
+                "image_index": 1,
+                "text": "表格表头为 x、y、说明三列。",
+                "evidence_region": null
+              },
+              {
+                "condition_id": "aa5b9bc3-214e-406d-8ca0-390e91db8229",
+                "asset_id": "6f782567-7a52-4e35-a4a6-c97c6e7494c3",
+                "image_index": 1,
+                "text": "表格数据第一行：x=1，y=3，说明为“第一行”。",
+                "evidence_region": null
+              },
+              {
+                "condition_id": "5dcea0a7-09c1-4297-a3a3-d7f7c028af7d",
+                "asset_id": "6f782567-7a52-4e35-a4a6-c97c6e7494c3",
+                "image_index": 1,
+                "text": "表格数据第二行：x=2，y=5，说明为“第二行”。",
+                "evidence_region": null
+              },
+              {
+                "condition_id": "fbfded3a-70bb-4880-856b-bfc55290408d",
+                "asset_id": "6f782567-7a52-4e35-a4a6-c97c6e7494c3",
+                "image_index": 1,
+                "text": "表格数据第三行：x=3，y=7，说明为“第三行”。",
+                "evidence_region": null
+              }
+            ],
+            "unresolved_issues": [],
+            "requires_manual_review": false
+          },
+          "error": null,
+          "executor_kind": "service",
+          "executor_name": "vision",
+          "requested_by": "dbea54c4-d987-4b0e-abcd-273eeb962b7d",
+          "agent_run_id": null,
+          "provenance": {
+            "provider_name": "deepseek",
+            "model": "deepseek-flash",
+            "model_version": null,
+            "prompt_version": "vision-conditions-v1"
+          },
+          "started_at": "2026-10-06T04:05:33.998720Z",
+          "completed_at": "2026-10-06T04:06:21.944687Z"
+        },
+        "current_check": null,
+        "imported_review": null,
+        "status": "pending",
+        "confirmed_conditions": [],
+        "requires_manual_review": true,
+        "evidence_readable": true,
+        "error": null,
+        "open_issues": []
+      }
+    },
+    {
+      "label": "ai_delegated_image_check",
+      "method": "POST",
+      "path": "/api/questions/e676cf98-f73f-4e45-99ac-56441471f9a3/image-manual-checks",
+      "status": 200,
+      "elapsed_seconds": 0.13284959993325174,
+      "response": {
+        "owner_kind": "question",
+        "owner_id": "e676cf98-f73f-4e45-99ac-56441471f9a3",
+        "assessment": {
+          "context_revision": 0,
+          "runs": [
+            {
+              "id": "163bf08e-d9ff-4cd0-a220-21f354cf1ef4",
+              "run_no": 1,
+              "context_revision": 0,
+              "task": "提取题图中作答所需条件",
+              "input_refs": {
+                "text_fields": [
+                  "type",
+                  "content",
+                  "options",
+                  "reference_answer",
+                  "scoring_rubric",
+                  "analysis",
+                  "score",
+                  "source_page_ids",
+                  "source_regions",
+                  "caption"
+                ],
+                "images": [
+                  {
+                    "asset_id": "6f782567-7a52-4e35-a4a6-c97c6e7494c3",
+                    "file_id": "a_6f7825677a524e35a4a6c97c6e7494c3",
+                    "image_index": 1,
+                    "asset_type": "table",
+                    "source_page_id": "a9c76614-4f08-4eeb-8f5c-95b1c37f2d30",
+                    "region": {
+                      "bbox": [
+                        375,
+                        1062,
+                        850,
+                        1412
+                      ]
+                    },
+                    "width": 475,
+                    "height": 350,
+                    "mime_type": "image/png"
+                  }
+                ]
+              },
+              "outcome": "completed",
+              "result": {
+                "observations": [
+                  {
+                    "image_index": 1,
+                    "kind": "表格",
+                    "description": "题图中是一张三列表格；表头为 x、y、说明。表格下方有三行数据：第一行 x=1、y=3、说明为“第一行”；第二行 x=2、y=5、说明为“第二行”；第三行 x=3、y=7、说明为“第三行”。",
+                    "bbox": null
+                  }
+                ],
+                "conditions": [
+                  {
+                    "condition_id": "3eb5d682-2a64-456f-bf01-69a66ae32ae4",
+                    "asset_id": "6f782567-7a52-4e35-a4a6-c97c6e7494c3",
+                    "image_index": 1,
+                    "text": "表格表头为 x、y、说明三列。",
+                    "evidence_region": null
+                  },
+                  {
+                    "condition_id": "aa5b9bc3-214e-406d-8ca0-390e91db8229",
+                    "asset_id": "6f782567-7a52-4e35-a4a6-c97c6e7494c3",
+                    "image_index": 1,
+                    "text": "表格数据第一行：x=1，y=3，说明为“第一行”。",
+                    "evidence_region": null
+                  },
+                  {
+                    "condition_id": "5dcea0a7-09c1-4297-a3a3-d7f7c028af7d",
+                    "asset_id": "6f782567-7a52-4e35-a4a6-c97c6e7494c3",
+                    "image_index": 1,
+                    "text": "表格数据第二行：x=2，y=5，说明为“第二行”。",
+                    "evidence_region": null
+                  },
+                  {
+                    "condition_id": "fbfded3a-70bb-4880-856b-bfc55290408d",
+                    "asset_id": "6f782567-7a52-4e35-a4a6-c97c6e7494c3",
+                    "image_index": 1,
+                    "text": "表格数据第三行：x=3，y=7，说明为“第三行”。",
+                    "evidence_region": null
+                  }
+                ],
+                "unresolved_issues": [],
+                "requires_manual_review": false
+              },
+              "error": null,
+              "executor_kind": "service",
+              "executor_name": "vision",
+              "requested_by": "dbea54c4-d987-4b0e-abcd-273eeb962b7d",
+              "agent_run_id": null,
+              "provenance": {
+                "provider_name": "deepseek",
+                "model": "deepseek-flash",
+                "model_version": null,
+                "prompt_version": "vision-conditions-v1"
+              },
+              "started_at": "2026-10-06T04:05:33.998720Z",
+              "completed_at": "2026-10-06T04:06:21.944687Z"
+            }
+          ],
+          "manual_checks": [
+            {
+              "id": "127de709-9300-4751-a54b-e063f8299cce",
+              "check_no": 1,
+              "context_revision": 0,
+              "run_no": 1,
+              "run_id": "163bf08e-d9ff-4cd0-a220-21f354cf1ef4",
+              "input_refs": {
+                "text_fields": [
+                  "type",
+                  "content",
+                  "options",
+                  "reference_answer",
+                  "scoring_rubric",
+                  "analysis",
+                  "score",
+                  "source_page_ids",
+                  "source_regions",
+                  "caption"
+                ],
+                "images": [
+                  {
+                    "asset_id": "6f782567-7a52-4e35-a4a6-c97c6e7494c3",
+                    "file_id": "a_6f7825677a524e35a4a6c97c6e7494c3",
+                    "image_index": 1,
+                    "asset_type": "table",
+                    "source_page_id": "a9c76614-4f08-4eeb-8f5c-95b1c37f2d30",
+                    "region": {
+                      "bbox": [
+                        375,
+                        1062,
+                        850,
+                        1412
+                      ]
+                    },
+                    "width": 475,
+                    "height": 350,
+                    "mime_type": "image/png"
+                  }
+                ]
+              },
+              "status": "confirmed",
+              "confirmed_conditions": [
+                {
+                  "condition_id": "0acedda9-7b46-4601-923b-c90aa0c0f7c7",
+                  "asset_id": "6f782567-7a52-4e35-a4a6-c97c6e7494c3",
+                  "text": "表中x为1、2、3，对应y为3、5、7。",
+                  "evidence_region": null,
+                  "source_condition_id": null
+                }
+              ],
+              "image_findings": [
+                {
+                  "asset_id": "6f782567-7a52-4e35-a4a6-c97c6e7494c3",
+                  "finding": "conditions_confirmed",
+                  "reason": "会话委托AI直接核对原图条件，非独立教师"
+                }
+              ],
+              "issues": [],
+              "issue_resolutions": [],
+              "teacher_id": "dbea54c4-d987-4b0e-abcd-273eeb962b7d",
+              "checked_at": "2026-10-06T04:06:22.147249Z",
+              "explanation": "会话委托AI按真实来源图像核对；学习项目口径，不冒充独立教师。"
+            }
+          ],
+          "imported_review": null
+        },
+        "context_revision": 0,
+        "run_no": 1,
+        "check_no": 1,
+        "input_refs": {
+          "text_fields": [
+            "type",
+            "content",
+            "options",
+            "reference_answer",
+            "scoring_rubric",
+            "analysis",
+            "score",
+            "source_page_ids",
+            "source_regions",
+            "caption"
+          ],
+          "images": [
+            {
+              "asset_id": "6f782567-7a52-4e35-a4a6-c97c6e7494c3",
+              "file_id": "a_6f7825677a524e35a4a6c97c6e7494c3",
+              "image_index": 1,
+              "asset_type": "table",
+              "source_page_id": "a9c76614-4f08-4eeb-8f5c-95b1c37f2d30",
+              "region": {
+                "bbox": [
+                  375,
+                  1062,
+                  850,
+                  1412
+                ]
+              },
+              "width": 475,
+              "height": 350,
+              "mime_type": "image/png"
+            }
+          ]
+        },
+        "current_run": {
+          "id": "163bf08e-d9ff-4cd0-a220-21f354cf1ef4",
+          "run_no": 1,
+          "context_revision": 0,
+          "task": "提取题图中作答所需条件",
+          "input_refs": {
+            "text_fields": [
+              "type",
+              "content",
+              "options",
+              "reference_answer",
+              "scoring_rubric",
+              "analysis",
+              "score",
+              "source_page_ids",
+              "source_regions",
+              "caption"
+            ],
+            "images": [
+              {
+                "asset_id": "6f782567-7a52-4e35-a4a6-c97c6e7494c3",
+                "file_id": "a_6f7825677a524e35a4a6c97c6e7494c3",
+                "image_index": 1,
+                "asset_type": "table",
+                "source_page_id": "a9c76614-4f08-4eeb-8f5c-95b1c37f2d30",
+                "region": {
+                  "bbox": [
+                    375,
+                    1062,
+                    850,
+                    1412
+                  ]
+                },
+                "width": 475,
+                "height": 350,
+                "mime_type": "image/png"
+              }
+            ]
+          },
+          "outcome": "completed",
+          "result": {
+            "observations": [
+              {
+                "image_index": 1,
+                "kind": "表格",
+                "description": "题图中是一张三列表格；表头为 x、y、说明。表格下方有三行数据：第一行 x=1、y=3、说明为“第一行”；第二行 x=2、y=5、说明为“第二行”；第三行 x=3、y=7、说明为“第三行”。",
+                "bbox": null
+              }
+            ],
+            "conditions": [
+              {
+                "condition_id": "3eb5d682-2a64-456f-bf01-69a66ae32ae4",
+                "asset_id": "6f782567-7a52-4e35-a4a6-c97c6e7494c3",
+                "image_index": 1,
+                "text": "表格表头为 x、y、说明三列。",
+                "evidence_region": null
+              },
+              {
+                "condition_id": "aa5b9bc3-214e-406d-8ca0-390e91db8229",
+                "asset_id": "6f782567-7a52-4e35-a4a6-c97c6e7494c3",
+                "image_index": 1,
+                "text": "表格数据第一行：x=1，y=3，说明为“第一行”。",
+                "evidence_region": null
+              },
+              {
+                "condition_id": "5dcea0a7-09c1-4297-a3a3-d7f7c028af7d",
+                "asset_id": "6f782567-7a52-4e35-a4a6-c97c6e7494c3",
+                "image_index": 1,
+                "text": "表格数据第二行：x=2，y=5，说明为“第二行”。",
+                "evidence_region": null
+              },
+              {
+                "condition_id": "fbfded3a-70bb-4880-856b-bfc55290408d",
+                "asset_id": "6f782567-7a52-4e35-a4a6-c97c6e7494c3",
+                "image_index": 1,
+                "text": "表格数据第三行：x=3，y=7，说明为“第三行”。",
+                "evidence_region": null
+              }
+            ],
+            "unresolved_issues": [],
+            "requires_manual_review": false
+          },
+          "error": null,
+          "executor_kind": "service",
+          "executor_name": "vision",
+          "requested_by": "dbea54c4-d987-4b0e-abcd-273eeb962b7d",
+          "agent_run_id": null,
+          "provenance": {
+            "provider_name": "deepseek",
+            "model": "deepseek-flash",
+            "model_version": null,
+            "prompt_version": "vision-conditions-v1"
+          },
+          "started_at": "2026-10-06T04:05:33.998720Z",
+          "completed_at": "2026-10-06T04:06:21.944687Z"
+        },
+        "current_check": {
+          "id": "127de709-9300-4751-a54b-e063f8299cce",
+          "check_no": 1,
+          "context_revision": 0,
+          "run_no": 1,
+          "run_id": "163bf08e-d9ff-4cd0-a220-21f354cf1ef4",
+          "input_refs": {
+            "text_fields": [
+              "type",
+              "content",
+              "options",
+              "reference_answer",
+              "scoring_rubric",
+              "analysis",
+              "score",
+              "source_page_ids",
+              "source_regions",
+              "caption"
+            ],
+            "images": [
+              {
+                "asset_id": "6f782567-7a52-4e35-a4a6-c97c6e7494c3",
+                "file_id": "a_6f7825677a524e35a4a6c97c6e7494c3",
+                "image_index": 1,
+                "asset_type": "table",
+                "source_page_id": "a9c76614-4f08-4eeb-8f5c-95b1c37f2d30",
+                "region": {
+                  "bbox": [
+                    375,
+                    1062,
+                    850,
+                    1412
+                  ]
+                },
+                "width": 475,
+                "height": 350,
+                "mime_type": "image/png"
+              }
+            ]
+          },
+          "status": "confirmed",
+          "confirmed_conditions": [
+            {
+              "condition_id": "0acedda9-7b46-4601-923b-c90aa0c0f7c7",
+              "asset_id": "6f782567-7a52-4e35-a4a6-c97c6e7494c3",
+              "text": "表中x为1、2、3，对应y为3、5、7。",
+              "evidence_region": null,
+              "source_condition_id": null
+            }
+          ],
+          "image_findings": [
+            {
+              "asset_id": "6f782567-7a52-4e35-a4a6-c97c6e7494c3",
+              "finding": "conditions_confirmed",
+              "reason": "会话委托AI直接核对原图条件，非独立教师"
+            }
+          ],
+          "issues": [],
+          "issue_resolutions": [],
+          "teacher_id": "dbea54c4-d987-4b0e-abcd-273eeb962b7d",
+          "checked_at": "2026-10-06T04:06:22.147249Z",
+          "explanation": "会话委托AI按真实来源图像核对；学习项目口径，不冒充独立教师。"
+        },
+        "imported_review": null,
+        "status": "confirmed",
+        "confirmed_conditions": [
+          {
+            "condition_id": "0acedda9-7b46-4601-923b-c90aa0c0f7c7",
+            "asset_id": "6f782567-7a52-4e35-a4a6-c97c6e7494c3",
+            "text": "表中x为1、2、3，对应y为3、5、7。",
+            "evidence_region": null,
+            "source_condition_id": null
+          }
+        ],
+        "requires_manual_review": false,
+        "evidence_readable": true,
+        "error": null,
+        "open_issues": []
+      }
+    },
+    {
+      "label": "submit_completed_table_question",
+      "method": "POST",
+      "path": "/api/questions/e676cf98-f73f-4e45-99ac-56441471f9a3/submit-review",
+      "status": 200,
+      "elapsed_seconds": 0.03884169994853437,
+      "response": {
+        "id": "e676cf98-f73f-4e45-99ac-56441471f9a3",
+        "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+        "type": "SHORT_ANSWER",
+        "content": "根据下表写出 y 关于 x 的关系式。",
+        "options": null,
+        "order_preserved": true,
+        "reference_answer": "y=2x+1。代入x=1、2、3依次得到3、5、7。",
+        "scoring_rubric": "正确关系式 1.00；说明代入过程 2.00。",
+        "analysis": "由表中三组实际数值验证关系式。",
+        "source_type": "paper_imported",
+        "frozen_at": null,
+        "difficulty": null,
+        "knowledge_points": [
+          "一次函数",
+          "表达与计算"
+        ],
+        "score": "3.00",
+        "status": "Pending Review",
+        "created_by": "dbea54c4-d987-4b0e-abcd-273eeb962b7d",
+        "created_at": "2026-10-06T04:05:12.873958Z",
+        "updated_at": "2026-10-06T04:06:22.231114Z"
+      }
+    },
+    {
+      "label": "real_completed_semantic_check",
+      "method": "POST",
+      "path": "/api/questions/e676cf98-f73f-4e45-99ac-56441471f9a3/validations",
+      "status": 200,
+      "elapsed_seconds": 9.51930409995839,
+      "response": {
+        "id": "02b40065-b896-4718-9dae-a3382cc02429",
+        "question_id": "e676cf98-f73f-4e45-99ac-56441471f9a3",
+        "input_revision": 3,
+        "run_no": 1,
+        "outcome": "failed",
+        "input_refs": {
+          "fields": [
+            "type",
+            "content",
+            "options",
+            "reference_answer",
+            "scoring_rubric",
+            "analysis",
+            "score",
+            "images",
+            "image_conditions"
+          ],
+          "evidence": [
+            {
+              "evidence_id": "287b9552-d51b-4aa9-89c9-027a678e41eb",
+              "kind": "chunk",
+              "source_id": "b7f84906-9be6-4e1c-b20e-e61a9bfdf2d8",
+              "source_data": {
+                "chunk_id": "b7f84906-9be6-4e1c-b20e-e61a9bfdf2d8",
+                "location": "第 1 段",
+                "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+                "document_id": "0d6de23d-2db0-4f34-a175-ea324b78d46d",
+                "source_file": "teaching_basis.txt",
+                "content_snapshot": "# 合成教学依据（待教师核对）"
+              }
+            },
+            {
+              "evidence_id": "1ebde68f-9ab6-4b34-a424-cca728632312",
+              "kind": "chunk",
+              "source_id": "24ae7aa8-baa3-4d7c-8dea-8453d1b61331",
+              "source_data": {
+                "chunk_id": "24ae7aa8-baa3-4d7c-8dea-8453d1b61331",
+                "location": "第 2 段",
+                "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+                "document_id": "0d6de23d-2db0-4f34-a175-ea324b78d46d",
+                "source_file": "teaching_basis.txt",
+                "content_snapshot": "由 Codex 编写固定输入，非真实教师标注，也不是模型运行结果。"
+              }
+            },
+            {
+              "evidence_id": "1c186201-54ee-4b6e-b2d1-e11dc92aa705",
+              "kind": "chunk",
+              "source_id": "e4941012-3487-461e-940e-0c2132b2d7d9",
+              "source_data": {
+                "chunk_id": "e4941012-3487-461e-940e-0c2132b2d7d9",
+                "location": "第 3 段",
+                "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+                "document_id": "0d6de23d-2db0-4f34-a175-ea324b78d46d",
+                "source_file": "teaching_basis.txt",
+                "content_snapshot": "一次函数：y=2x+1。代入x=3得y=7。"
+              }
+            },
+            {
+              "evidence_id": "aad9d8a3-3987-4b3d-9868-b46cce55b076",
+              "kind": "chunk",
+              "source_id": "2fd56526-aa92-44cf-a032-cf718465b9d0",
+              "source_data": {
+                "chunk_id": "2fd56526-aa92-44cf-a032-cf718465b9d0",
+                "location": "第 4 段",
+                "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+                "document_id": "0d6de23d-2db0-4f34-a175-ea324b78d46d",
+                "source_file": "teaching_basis.txt",
+                "content_snapshot": "三角形面积=底×高÷2，底6高4的面积为12。"
+              }
+            },
+            {
+              "evidence_id": "326b4c6a-a978-4fd0-97c4-1e91249b8e71",
+              "kind": "chunk",
+              "source_id": "85078434-b133-4c80-b568-ff210affb9b5",
+              "source_data": {
+                "chunk_id": "85078434-b133-4c80-b568-ff210affb9b5",
+                "location": "第 5 段",
+                "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+                "document_id": "0d6de23d-2db0-4f34-a175-ea324b78d46d",
+                "source_file": "teaching_basis.txt",
+                "content_snapshot": "矩形面积需要长和宽，只有长度不能唯一确定面积。"
+              }
+            },
+            {
+              "evidence_id": "d44567ff-52eb-42a5-b766-1a2cf648dd86",
+              "kind": "question_asset",
+              "source_id": "6f782567-7a52-4e35-a4a6-c97c6e7494c3",
+              "source_data": {
+                "region": {
+                  "bbox": [
+                    375,
+                    1062,
+                    850,
+                    1412
+                  ]
+                },
+                "file_id": "a_6f7825677a524e35a4a6c97c6e7494c3",
+                "source_page_id": "a9c76614-4f08-4eeb-8f5c-95b1c37f2d30",
+                "image_review_ref": {
+                  "check_id": "127de709-9300-4751-a54b-e063f8299cce",
+                  "owner_id": "e676cf98-f73f-4e45-99ac-56441471f9a3",
+                  "binding_id": null,
+                  "owner_kind": "question"
+                },
+                "confirmed_conditions": [
+                  {
+                    "text": "表中x为1、2、3，对应y为3、5、7。",
+                    "asset_id": "6f782567-7a52-4e35-a4a6-c97c6e7494c3",
+                    "condition_id": "0acedda9-7b46-4601-923b-c90aa0c0f7c7",
+                    "evidence_region": null,
+                    "source_condition_id": null
+                  }
+                ]
+              }
+            }
+          ],
+          "manual_context": []
+        },
+        "checks": [
+          {
+            "kind": "answer_correctness",
+            "verdict": "fail",
+            "reason": "参考答案 y=2x+1 仅由证据中标注为“合成教学依据（待教师核对）”“由 Codex 编写固定输入，非真实教师标注”的内容支持，缺乏可信的教学证据，无法确认其正确性。",
+            "evidence_refs": [
+              "287b9552-d51b-4aa9-89c9-027a678e41eb",
+              "1ebde68f-9ab6-4b34-a424-cca728632312",
+              "1c186201-54ee-4b6e-b2d1-e11dc92aa705"
+            ]
+          },
+          {
+            "kind": "condition_sufficiency",
+            "verdict": "fail",
+            "reason": "题目要求根据下表写出关系式，但题干本身未包含表格内容；唯一涵盖 x=1、2、3 与 y=3、5、7 的表格信息来自标记为待核对且非真实教师标注的合成依据，属于不可靠证据，条件不充分。",
+            "evidence_refs": [
+              "287b9552-d51b-4aa9-89c9-027a678e41eb",
+              "1ebde68f-9ab6-4b34-a424-cca728632312"
+            ]
+          },
+          {
+            "kind": "option_ambiguity",
+            "verdict": "pass",
+            "reason": "本题为非选择题（SHORT_ANSWER），options 为 null，无选项可供歧义判断。",
+            "evidence_refs": []
+          },
+          {
+            "kind": "rubric_clarity",
+            "verdict": "needs_review",
+            "reason": "评分标准“正确关系式 1.00；说明代入过程 2.00”对“说明代入过程”的具体要求不够明确，需教师确认。",
+            "evidence_refs": []
+          }
+        ],
+        "issues": [
+          {
+            "issue_id": "0d8b0b61-bc0c-4147-8936-10d250131069",
+            "code": "UNRELIABLE_EVIDENCE",
+            "field": "reference_answer",
+            "severity": "error",
+            "message": "关键证据为“合成教学依据（待教师核对）”，且明确标注“由 Codex 编写固定输入，非真实教师标注，也不是模型运行结果”，不能作为答案正确性的可靠依据。",
+            "evidence_refs": [
+              "287b9552-d51b-4aa9-89c9-027a678e41eb",
+              "1ebde68f-9ab6-4b34-a424-cca728632312"
+            ]
+          },
+          {
+            "issue_id": "0026e960-001a-421f-9385-390cb0a26ad6",
+            "code": "INSUFFICIENT_CONDITION",
+            "field": "content",
+            "severity": "error",
+            "message": "题干未直接给出表格数据，表格 x=1、2、3 与 y=3、5、7 仅存在于待核对合成证据中，条件无法可靠成立。",
+            "evidence_refs": [
+              "287b9552-d51b-4aa9-89c9-027a678e41eb",
+              "1ebde68f-9ab6-4b34-a424-cca728632312"
+            ]
+          },
+          {
+            "issue_id": "81a587fd-e2e4-40a3-a52a-77a95b235644",
+            "code": "RUBRIC_NOT_CLEAR",
+            "field": "scoring_rubric",
+            "severity": "warning",
+            "message": "评分标准未明确“说明代入过程”应包含哪些内容及判定方式。",
+            "evidence_refs": []
+          }
+        ],
+        "error": null,
+        "executor_kind": "agent",
+        "executor_name": "question_semantic_validator",
+        "requested_by": "dbea54c4-d987-4b0e-abcd-273eeb962b7d",
+        "agent_run_id": null,
+        "provenance": {
+          "agent_type": "Question",
+          "provider_name": "deepseek",
+          "model": "deepseek-chat",
+          "model_version": null,
+          "prompt_version": "question-semantics-v1"
+        },
+        "manual_dispositions": [],
+        "created_at": "2026-10-06T04:06:22.642046Z",
+        "completed_at": "2026-10-06T04:06:31.755332Z",
+        "is_current": true,
+        "stale": false,
+        "can_review": false,
+        "requires_manual_review": true
+      }
+    },
+    {
+      "label": "approve_table_source",
+      "method": "POST",
+      "path": "/api/questions/e676cf98-f73f-4e45-99ac-56441471f9a3/approve",
+      "status": 422,
+      "elapsed_seconds": 0.026450200006365776,
+      "response": {
+        "detail": "题目状态不能从“Needs Revision”变更为“Approved”。"
+      }
+    }
+  ],
+  "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+  "automatic_import": {
+    "id": "6729a01d-d0fc-43f8-9333-d98d12ddb76e",
+    "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+    "uploaded_by": "dbea54c4-d987-4b0e-abcd-273eeb962b7d",
+    "document_id": "4966f2fa-298e-4dc2-8fe9-415468f9844e",
+    "original_filename": "paper_text.pdf",
+    "page_count": 1,
+    "status": "Pending Review",
+    "error_code": null,
+    "error_message": null,
+    "created_at": "2026-10-06T04:05:07.250498Z",
+    "updated_at": "2026-10-06T04:05:12.225871Z",
+    "original_file_id": "d_4966f2fa298e4dc28fe9415468f9844e",
+    "parsed_page_count": 1,
+    "question_count": 3,
+    "pages": [
+      {
+        "id": "a9c76614-4f08-4eeb-8f5c-95b1c37f2d30",
+        "paper_import_id": "6729a01d-d0fc-43f8-9333-d98d12ddb76e",
+        "page_number": 1,
+        "file_id": "p_a9c766144f084eeb8f5c95b1c37f2d30",
+        "width": 1241,
+        "height": 1754,
+        "ocr_text": null,
+        "ocr_confidence": null
+      }
+    ],
+    "questions": [
+      {
+        "question_type": "SINGLE_CHOICE",
+        "content": "y = 2x + 1，x = 3 时 y 为多少？",
+        "options": {
+          "C": "7",
+          "A": "5",
+          "B": "6",
+          "D": "8"
+        },
+        "reference_answer": "C",
+        "scoring_rubric": null,
+        "score": "2.00",
+        "correction_notes": null,
+        "question_number": "1",
+        "analysis": "2 × 3 + 1 = 7。",
+        "knowledge_points": null,
+        "source_regions": null,
+        "assets": null,
+        "source_page_ids": [
+          "a9c76614-4f08-4eeb-8f5c-95b1c37f2d30"
+        ],
+        "extracted_by": "LLM",
+        "extraction_confidence": null,
+        "id": "c2b692d8-42e3-4e56-8558-e078abe831c6",
+        "paper_import_id": "6729a01d-d0fc-43f8-9333-d98d12ddb76e",
+        "order_index": 1,
+        "order_preserved": true,
+        "status": "Pending Correction",
+        "question_id": null,
+        "image_assessment": null,
+        "created_at": "2026-10-06T04:05:12.215916Z",
+        "updated_at": "2026-10-06T04:05:12.215920Z"
+      },
+      {
+        "question_type": "TRUE_FALSE",
+        "content": "右图三角形面积为 24 cm²。",
+        "options": [
+          "正确",
+          "错误"
+        ],
+        "reference_answer": null,
+        "scoring_rubric": null,
+        "score": "2.00",
+        "correction_notes": null,
+        "question_number": "2",
+        "analysis": null,
+        "knowledge_points": null,
+        "source_regions": null,
+        "assets": null,
+        "source_page_ids": [
+          "a9c76614-4f08-4eeb-8f5c-95b1c37f2d30"
+        ],
+        "extracted_by": "LLM",
+        "extraction_confidence": null,
+        "id": "82aa03bf-1bdc-4011-ab13-17db1b310ac4",
+        "paper_import_id": "6729a01d-d0fc-43f8-9333-d98d12ddb76e",
+        "order_index": 2,
+        "order_preserved": true,
+        "status": "Pending Correction",
+        "question_id": null,
+        "image_assessment": null,
+        "created_at": "2026-10-06T04:05:12.215921Z",
+        "updated_at": "2026-10-06T04:05:12.215922Z"
+      },
+      {
+        "question_type": "SHORT_ANSWER",
+        "content": "根据下表写出 y 关于 x 的关系式。",
+        "options": null,
+        "reference_answer": null,
+        "scoring_rubric": "正确关系式 1.00；说明代入过程 2.00。",
+        "score": "3.00",
+        "correction_notes": null,
+        "question_number": "3",
+        "analysis": null,
+        "knowledge_points": [
+          "一次函数",
+          "表达与计算"
+        ],
+        "source_regions": null,
+        "assets": null,
+        "source_page_ids": [
+          "a9c76614-4f08-4eeb-8f5c-95b1c37f2d30"
+        ],
+        "extracted_by": "LLM",
+        "extraction_confidence": null,
+        "id": "89af5474-4d50-43cd-9120-c6cbf3b0c422",
+        "paper_import_id": "6729a01d-d0fc-43f8-9333-d98d12ddb76e",
+        "order_index": 3,
+        "order_preserved": true,
+        "status": "Pending Correction",
+        "question_id": null,
+        "image_assessment": null,
+        "created_at": "2026-10-06T04:05:12.215923Z",
+        "updated_at": "2026-10-06T04:05:12.215923Z"
+      }
+    ],
+    "file_diagnostics": []
+  },
+  "imported_questions": [
+    "946d6db6-43b1-4e0b-a85b-1c849b0c2edb",
+    "dd9b7665-0389-48e6-b81a-f61bb37ff371",
+    "e676cf98-f73f-4e45-99ac-56441471f9a3"
+  ],
+  "ingestion": {
+    "document_id": "0d6de23d-2db0-4f34-a175-ea324b78d46d",
+    "status": "Ready",
+    "chunk_count": 5,
+    "error_code": null,
+    "error_message": null,
+    "retryable": false,
+    "detail": null
+  },
+  "chunk_ids": [
+    "b7f84906-9be6-4e1c-b20e-e61a9bfdf2d8",
+    "24ae7aa8-baa3-4d7c-8dea-8453d1b61331",
+    "e4941012-3487-461e-940e-0c2132b2d7d9",
+    "2fd56526-aa92-44cf-a032-cf718465b9d0",
+    "85078434-b133-4c80-b568-ff210affb9b5"
+  ],
+  "image_runs": [
+    {
+      "owner_kind": "question",
+      "owner_id": "e676cf98-f73f-4e45-99ac-56441471f9a3",
+      "assessment": {
+        "context_revision": 0,
+        "runs": [
+          {
+            "id": "163bf08e-d9ff-4cd0-a220-21f354cf1ef4",
+            "run_no": 1,
+            "context_revision": 0,
+            "task": "提取题图中作答所需条件",
+            "input_refs": {
+              "text_fields": [
+                "type",
+                "content",
+                "options",
+                "reference_answer",
+                "scoring_rubric",
+                "analysis",
+                "score",
+                "source_page_ids",
+                "source_regions",
+                "caption"
+              ],
+              "images": [
+                {
+                  "asset_id": "6f782567-7a52-4e35-a4a6-c97c6e7494c3",
+                  "file_id": "a_6f7825677a524e35a4a6c97c6e7494c3",
+                  "image_index": 1,
+                  "asset_type": "table",
+                  "source_page_id": "a9c76614-4f08-4eeb-8f5c-95b1c37f2d30",
+                  "region": {
+                    "bbox": [
+                      375,
+                      1062,
+                      850,
+                      1412
+                    ]
+                  },
+                  "width": 475,
+                  "height": 350,
+                  "mime_type": "image/png"
+                }
+              ]
+            },
+            "outcome": "completed",
+            "result": {
+              "observations": [
+                {
+                  "image_index": 1,
+                  "kind": "表格",
+                  "description": "题图中是一张三列表格；表头为 x、y、说明。表格下方有三行数据：第一行 x=1、y=3、说明为“第一行”；第二行 x=2、y=5、说明为“第二行”；第三行 x=3、y=7、说明为“第三行”。",
+                  "bbox": null
+                }
+              ],
+              "conditions": [
+                {
+                  "condition_id": "3eb5d682-2a64-456f-bf01-69a66ae32ae4",
+                  "asset_id": "6f782567-7a52-4e35-a4a6-c97c6e7494c3",
+                  "image_index": 1,
+                  "text": "表格表头为 x、y、说明三列。",
+                  "evidence_region": null
+                },
+                {
+                  "condition_id": "aa5b9bc3-214e-406d-8ca0-390e91db8229",
+                  "asset_id": "6f782567-7a52-4e35-a4a6-c97c6e7494c3",
+                  "image_index": 1,
+                  "text": "表格数据第一行：x=1，y=3，说明为“第一行”。",
+                  "evidence_region": null
+                },
+                {
+                  "condition_id": "5dcea0a7-09c1-4297-a3a3-d7f7c028af7d",
+                  "asset_id": "6f782567-7a52-4e35-a4a6-c97c6e7494c3",
+                  "image_index": 1,
+                  "text": "表格数据第二行：x=2，y=5，说明为“第二行”。",
+                  "evidence_region": null
+                },
+                {
+                  "condition_id": "fbfded3a-70bb-4880-856b-bfc55290408d",
+                  "asset_id": "6f782567-7a52-4e35-a4a6-c97c6e7494c3",
+                  "image_index": 1,
+                  "text": "表格数据第三行：x=3，y=7，说明为“第三行”。",
+                  "evidence_region": null
+                }
+              ],
+              "unresolved_issues": [],
+              "requires_manual_review": false
+            },
+            "error": null,
+            "executor_kind": "service",
+            "executor_name": "vision",
+            "requested_by": "dbea54c4-d987-4b0e-abcd-273eeb962b7d",
+            "agent_run_id": null,
+            "provenance": {
+              "provider_name": "deepseek",
+              "model": "deepseek-flash",
+              "model_version": null,
+              "prompt_version": "vision-conditions-v1"
+            },
+            "started_at": "2026-10-06T04:05:33.998720Z",
+            "completed_at": "2026-10-06T04:06:21.944687Z"
+          }
+        ],
+        "manual_checks": [],
+        "imported_review": null
+      },
+      "context_revision": 0,
+      "run_no": 1,
+      "check_no": 0,
+      "input_refs": {
+        "text_fields": [
+          "type",
+          "content",
+          "options",
+          "reference_answer",
+          "scoring_rubric",
+          "analysis",
+          "score",
+          "source_page_ids",
+          "source_regions",
+          "caption"
+        ],
+        "images": [
+          {
+            "asset_id": "6f782567-7a52-4e35-a4a6-c97c6e7494c3",
+            "file_id": "a_6f7825677a524e35a4a6c97c6e7494c3",
+            "image_index": 1,
+            "asset_type": "table",
+            "source_page_id": "a9c76614-4f08-4eeb-8f5c-95b1c37f2d30",
+            "region": {
+              "bbox": [
+                375,
+                1062,
+                850,
+                1412
+              ]
+            },
+            "width": 475,
+            "height": 350,
+            "mime_type": "image/png"
+          }
+        ]
+      },
+      "current_run": {
+        "id": "163bf08e-d9ff-4cd0-a220-21f354cf1ef4",
+        "run_no": 1,
+        "context_revision": 0,
+        "task": "提取题图中作答所需条件",
+        "input_refs": {
+          "text_fields": [
+            "type",
+            "content",
+            "options",
+            "reference_answer",
+            "scoring_rubric",
+            "analysis",
+            "score",
+            "source_page_ids",
+            "source_regions",
+            "caption"
+          ],
+          "images": [
+            {
+              "asset_id": "6f782567-7a52-4e35-a4a6-c97c6e7494c3",
+              "file_id": "a_6f7825677a524e35a4a6c97c6e7494c3",
+              "image_index": 1,
+              "asset_type": "table",
+              "source_page_id": "a9c76614-4f08-4eeb-8f5c-95b1c37f2d30",
+              "region": {
+                "bbox": [
+                  375,
+                  1062,
+                  850,
+                  1412
+                ]
+              },
+              "width": 475,
+              "height": 350,
+              "mime_type": "image/png"
+            }
+          ]
+        },
+        "outcome": "completed",
+        "result": {
+          "observations": [
+            {
+              "image_index": 1,
+              "kind": "表格",
+              "description": "题图中是一张三列表格；表头为 x、y、说明。表格下方有三行数据：第一行 x=1、y=3、说明为“第一行”；第二行 x=2、y=5、说明为“第二行”；第三行 x=3、y=7、说明为“第三行”。",
+              "bbox": null
+            }
+          ],
+          "conditions": [
+            {
+              "condition_id": "3eb5d682-2a64-456f-bf01-69a66ae32ae4",
+              "asset_id": "6f782567-7a52-4e35-a4a6-c97c6e7494c3",
+              "image_index": 1,
+              "text": "表格表头为 x、y、说明三列。",
+              "evidence_region": null
+            },
+            {
+              "condition_id": "aa5b9bc3-214e-406d-8ca0-390e91db8229",
+              "asset_id": "6f782567-7a52-4e35-a4a6-c97c6e7494c3",
+              "image_index": 1,
+              "text": "表格数据第一行：x=1，y=3，说明为“第一行”。",
+              "evidence_region": null
+            },
+            {
+              "condition_id": "5dcea0a7-09c1-4297-a3a3-d7f7c028af7d",
+              "asset_id": "6f782567-7a52-4e35-a4a6-c97c6e7494c3",
+              "image_index": 1,
+              "text": "表格数据第二行：x=2，y=5，说明为“第二行”。",
+              "evidence_region": null
+            },
+            {
+              "condition_id": "fbfded3a-70bb-4880-856b-bfc55290408d",
+              "asset_id": "6f782567-7a52-4e35-a4a6-c97c6e7494c3",
+              "image_index": 1,
+              "text": "表格数据第三行：x=3，y=7，说明为“第三行”。",
+              "evidence_region": null
+            }
+          ],
+          "unresolved_issues": [],
+          "requires_manual_review": false
+        },
+        "error": null,
+        "executor_kind": "service",
+        "executor_name": "vision",
+        "requested_by": "dbea54c4-d987-4b0e-abcd-273eeb962b7d",
+        "agent_run_id": null,
+        "provenance": {
+          "provider_name": "deepseek",
+          "model": "deepseek-flash",
+          "model_version": null,
+          "prompt_version": "vision-conditions-v1"
+        },
+        "started_at": "2026-10-06T04:05:33.998720Z",
+        "completed_at": "2026-10-06T04:06:21.944687Z"
+      },
+      "current_check": null,
+      "imported_review": null,
+      "status": "pending",
+      "confirmed_conditions": [],
+      "requires_manual_review": true,
+      "evidence_readable": true,
+      "error": null,
+      "open_issues": []
+    }
+  ],
+  "status": "failed",
+  "failure_type": "RuntimeError",
+  "failure": "approve_table_source: HTTP 422"
+}

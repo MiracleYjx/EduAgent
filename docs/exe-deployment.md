@@ -23,3 +23,13 @@ T188构建包与T189真实Windows重复启动/故障/资源预算另验；本页
 [实际构建与运行证据](evidence/t188-20261006/README.md)：PyInstaller6.22.3、Python3.13.13，初始约367MiB，Gradio生成组件存根后的最终目录约369MiB；包内空库迁移/API/UI/静态资源及PDF/扫描OCR/授权PNG读取通过。受控空题目输出仍Failed，不宣称成功导入或真实模型质量。默认包选择云Embedding+LLM重排与可选CPU OCR，降低依赖体积；本地Embedding/Cross Encoder需-WithLocalModels额外构建并实测，运行时不会偷偷切换Provider。
 
 缺配置测试返回1，参数帮助返回0。构建号/哈希仅追溯，实际源文件哈希及dirty状态记录于build-receipt.json，不要求远端组件/数据库与源码提交号相等。资源冒烟退出使用辅助工具按确切归属停止子进程，正常冻结程序Ctrl+C/关闭控制台由T189验证；尚无完整冷暖/内存测量，SC-014交付未宣告通过。
+
+## T189–T191 实际运行与当前交付限制（2026-10-06）
+
+本批以实际-WithLocalModels构建的onedir包运行，外置既有完整BGE权重与锁定PP-OCRv5模型；包约922.57MiB。启动器只检查本地目录存在，实际编码还需完整模型文件：D:/YJX/Cache/huggingface的旧snapshot只有元数据，本批改用仓库.cache/huggingface下已有完整权重，没有自动下载或替换Provider。不要把目录存在、TCP网络检查或readiness称为模型业务可用。
+
+后台验收统一使用 `EduAgent.exe --config <绝对配置路径> --no-browser`，不反复自动打开浏览器。实际冻结包完成原页/裁图读取、OCR、BGE知识库、DeepSeek文字生成/改编/Vision/语义、带图考试、混合工作流评分和复核/诊断；会话委托AI使用真实DEV角色，仅处理自编合成数学题，不能作为独立教师或泛化质量证明。该课程EXE正常Ctrl+C返回0，所属Worker退出；共享PG/Redis保留。
+
+[T189验收](v2.0-exe-acceptance.md)仍未通过：首次3/3<30s，后续0/5<10s（约18.76–20.12s），启动资源7/8窗完整、1窗未知。启动阶段未实际BGE编码，预算不外推到完整本地模型业务峰值。T191使用完整权重的单次就绪19.465s只作运行回执，不替代固定重复协议。
+
+部署前沿用[发布检查表](release-checklist.md)的v2.0新增节；原配置/真实库不自动升级或切换，恢复目标verified也保持停写。当前T168质量、T189启动/资源及工作区原样本契约未通过，**尚不能声明v2.0交付验收完成**；源码、Docker、包构建、业务运行、质量与发布回执分别判断。

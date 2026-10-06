@@ -1,0 +1,9 @@
+{
+  "source": "actual local-model frozen EXE",
+  "browser_disabled": true,
+  "parent_pid": 108216,
+  "configuration": "isolated synthetic course; actual BGE local weights, DeepSeek text/vision, native OCR",
+  "review_threshold": 1.0,
+  "readiness_seconds": 19.46512830001302,
+  "exit": 0
+}

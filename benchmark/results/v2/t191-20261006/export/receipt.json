@@ -1,0 +1,30 @@
+{
+  "status": "registered",
+  "producer": "actual result CSV assembled by acceptance harness then production FileStorageService; no business export UI claimed",
+  "view": {
+    "file_id": "e_b81db376fc294290b904db1e939a7644",
+    "resource_type": "export",
+    "resource_id": "b81db376-fc29-4290-b904-db1e939a7644",
+    "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+    "original_filename": "t191-real-final-result.csv",
+    "media_type": "text/csv",
+    "size_bytes": 224,
+    "availability": "available",
+    "migration_status": "not_required"
+  },
+  "content_sha256": "885de14e02f6392fa96525d22e7aaef7ba0c5d4ee33a40b835a75154c5f5815d",
+  "teacher_read": {
+    "status": 200,
+    "same_bytes": true
+  },
+  "student_read": {
+    "status": 403,
+    "body": {
+      "detail": {
+        "code": "FILE_FORBIDDEN",
+        "message": "无权访问该资源的文件。",
+        "current_status": null
+      }
+    }
+  }
+}

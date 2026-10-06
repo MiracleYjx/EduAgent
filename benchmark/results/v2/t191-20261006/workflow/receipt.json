@@ -1,0 +1,25 @@
+{
+  "prior_receipt": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t191-20261006\\final-exam\\receipt.json",
+  "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+  "exam_id": "d72b96f8-2bda-4225-9c9c-660eb8f9e462",
+  "second_exam_id": "cb6af9b1-9050-4c60-be5c-6a6c5b3c89de",
+  "submission_id": "f5b2abd4-e8d0-4d12-bc5e-70ab0f95fb93",
+  "events": [
+    {
+      "label": "actual_LangGraph_run_and_checkpoint",
+      "status": 409,
+      "response": {
+        "detail": {
+          "error_code": "WORKFLOW_SUBMISSION_NOT_READY",
+          "message": "答卷当前状态为“Graded”，只有已提交的答卷才能启动阅卷。",
+          "retryable": false,
+          "source_code": null
+        }
+      }
+    }
+  ],
+  "actor": "AI delegated real DEV roles; not independent teacher",
+  "status": "failed",
+  "failure_type": "RuntimeError",
+  "failure": "actual_LangGraph_run_and_checkpoint: HTTP 409"
+}

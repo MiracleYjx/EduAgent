@@ -1,0 +1,1668 @@
+{
+  "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+  "exam_id": "441cf4e2-655c-4a9c-895a-d53bef24ee6c",
+  "prior_receipt": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t191-20261006\\course-final\\receipt.json",
+  "events": [
+    {
+      "label": "actual_approved_adaptation",
+      "method": "GET",
+      "path": "/api/questions/13f50e69-a8e5-4579-a405-a69a7f4faf88",
+      "status": 200,
+      "response": {
+        "id": "13f50e69-a8e5-4579-a405-a69a7f4faf88",
+        "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+        "type": "SHORT_ANSWER",
+        "content": "已知 y 是 x 的一次函数，关系式可写为 y=2x+1。请通过自变量与函数值的对应关系说明该一次函数中“系数 2”和“常数 1”分别表示什么，并代入 x=3 求函数值 y。",
+        "options": null,
+        "order_preserved": true,
+        "reference_answer": "在一次函数 y=2x+1 中，系数 2 表示自变量 x 每增加 1，函数值 y 增加 2；常数 1 表示当 x=0 时，y 的值为 1。代入 x=3，得 y=2×3+1=7。",
+        "scoring_rubric": "说明系数2表示x每增加1，y增加2，得1.00分；说明常数1表示x=0时y=1，得1.00分；正确代入x=3并算出y=7，得1.00分，共3.00分。",
+        "analysis": "本题考查一次函数关系式 y=2x+1 中系数与常数项的含义，以及代入求值的基本计算。",
+        "source_type": "adapted",
+        "frozen_at": "2026-10-06T04:16:26.817592Z",
+        "difficulty": "未指定",
+        "knowledge_points": [
+          "一次函数",
+          "表达与计算"
+        ],
+        "score": "3.00",
+        "status": "Approved",
+        "created_by": "dbea54c4-d987-4b0e-abcd-273eeb962b7d",
+        "created_at": "2026-10-06T04:15:58.273258Z",
+        "updated_at": "2026-10-06T04:16:26.818061Z",
+        "sources_persisted": true,
+        "source_status": "persisted",
+        "sources": [
+          {
+            "chunk_id": "e4941012-3487-461e-940e-0c2132b2d7d9",
+            "source_order": 0,
+            "content_snapshot": "一次函数：y=2x+1。代入x=3得y=7。",
+            "source_file": "teaching_basis.txt",
+            "chunk_index": 2,
+            "retrieval_rank": null,
+            "score_kind": "fusion",
+            "score_value": 0.5,
+            "source_deleted": false
+          }
+        ],
+        "revision_comments": [],
+        "parent_sources": [
+          {
+            "source_question_id": "e676cf98-f73f-4e45-99ac-56441471f9a3",
+            "adaptation_type": "rewrite",
+            "created_at": "2026-10-06T04:15:58.349458+00:00"
+          }
+        ],
+        "paper_source": null,
+        "current_validation": {
+          "id": "32cdd332-cd7c-47ab-b4c4-c96b30aad1f3",
+          "question_id": "13f50e69-a8e5-4579-a405-a69a7f4faf88",
+          "input_revision": 3,
+          "run_no": 1,
+          "outcome": "passed",
+          "input_refs": {
+            "fields": [
+              "type",
+              "content",
+              "options",
+              "reference_answer",
+              "scoring_rubric",
+              "analysis",
+              "score",
+              "images",
+              "image_conditions"
+            ],
+            "evidence": [
+              {
+                "evidence_id": "d3a4e164-97fb-4643-81b3-182848ac2cc8",
+                "kind": "chunk",
+                "source_id": "e4941012-3487-461e-940e-0c2132b2d7d9",
+                "source_data": {
+                  "chunk_id": "e4941012-3487-461e-940e-0c2132b2d7d9",
+                  "location": "第 3 段",
+                  "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+                  "document_id": "0d6de23d-2db0-4f34-a175-ea324b78d46d",
+                  "source_file": "teaching_basis.txt",
+                  "content_snapshot": "一次函数：y=2x+1。代入x=3得y=7。"
+                }
+              },
+              {
+                "evidence_id": "85a08ecb-6010-4de1-82e5-71c6f6c13915",
+                "kind": "question_asset",
+                "source_id": "8dc8603a-c0e2-4c95-9449-ef66e6d7ada5",
+                "source_data": {
+                  "region": {
+                    "bbox": [
+                      375,
+                      1062,
+                      850,
+                      1412
+                    ]
+                  },
+                  "file_id": "a_8dc8603ac0e24c959449ef66e6d7ada5",
+                  "source_page_id": "a9c76614-4f08-4eeb-8f5c-95b1c37f2d30",
+                  "image_review_ref": {
+                    "check_id": "144a2c6a-56ac-4690-aecf-026019be9148",
+                    "owner_id": "13f50e69-a8e5-4579-a405-a69a7f4faf88",
+                    "binding_id": null,
+                    "owner_kind": "question"
+                  },
+                  "confirmed_conditions": [
+                    {
+                      "text": "表中x为1、2、3，对应y为3、5、7。",
+                      "asset_id": "8dc8603a-c0e2-4c95-9449-ef66e6d7ada5",
+                      "condition_id": "83a76682-e73a-4914-a92c-c9050ebe2c08",
+                      "evidence_region": null,
+                      "source_condition_id": null
+                    }
+                  ]
+                }
+              }
+            ],
+            "manual_context": []
+          },
+          "checks": [
+            {
+              "kind": "answer_correctness",
+              "verdict": "pass",
+              "reason": "参考答案与评分标准一致：系数2表示x每增加1、y增加2；常数1表示x=0时y=1；代入x=3得y=7。证据 d3a4e164-97fb-4643-81b3-182848ac2cc8 明确给出“一次函数：y=2x+1。代入x=3得y=7”，支持代入计算结果；系数与常数的含义与一次函数 y=2x+1 的定义相符，未发现矛盾。",
+              "evidence_refs": [
+                "d3a4e164-97fb-4643-81b3-182848ac2cc8"
+              ]
+            },
+            {
+              "kind": "condition_sufficiency",
+              "verdict": "pass",
+              "reason": "题干给出完整关系式 y=2x+1 和代入条件 x=3，任务明确要求说明系数2、常数1的含义并求值。证据 d3a4e164-97fb-4643-81b3-182848ac2cc8 确认该函数式与 x=3 代入情形；证据 85a08ecb-6010-4de1-82e5-71c6f6c13915 的已确认条件提供 x 与 y 的对应表（1→3、2→5、3→7），与关系式 y=2x+1 一致，可支撑“x每增加1、y增加2”的说明。",
+              "evidence_refs": [
+                "d3a4e164-97fb-4643-81b3-182848ac2cc8",
+                "85a08ecb-6010-4de1-82e5-71c6f6c13915"
+              ]
+            },
+            {
+              "kind": "option_ambiguity",
+              "verdict": "pass",
+              "reason": "本题为 SHORT_ANSWER（填空题/简答题）类型，options 为 null，不存在选择题选项歧义问题，故明确按不适用处理。",
+              "evidence_refs": []
+            },
+            {
+              "kind": "rubric_clarity",
+              "verdict": "pass",
+              "reason": "评分标准清晰可操作：说明系数2含义得1.00分、说明常数1含义得1.00分、正确代入x=3并算出y=7得1.00分，共3.00分，与题干要求及参考答案的三个得分点一一对应，无歧义或遗漏。",
+              "evidence_refs": []
+            }
+          ],
+          "issues": [],
+          "error": null,
+          "executor_kind": "agent",
+          "executor_name": "question_semantic_validator",
+          "requested_by": "dbea54c4-d987-4b0e-abcd-273eeb962b7d",
+          "agent_run_id": null,
+          "provenance": {
+            "agent_type": "Question",
+            "provider_name": "deepseek",
+            "model": "deepseek-chat",
+            "model_version": null,
+            "prompt_version": "question-semantics-v1"
+          },
+          "manual_dispositions": [],
+          "created_at": "2026-10-06T04:16:22.432712Z",
+          "completed_at": "2026-10-06T04:16:26.583334Z",
+          "is_current": true,
+          "stale": false,
+          "can_review": false,
+          "requires_manual_review": true
+        },
+        "can_review": false,
+        "image_assessment": {
+          "owner_kind": "question",
+          "owner_id": "13f50e69-a8e5-4579-a405-a69a7f4faf88",
+          "assessment": {
+            "context_revision": 0,
+            "runs": [
+              {
+                "id": "6f18f0d0-4613-4bb9-9ed0-01e807d89a3a",
+                "run_no": 1,
+                "context_revision": 0,
+                "task": "提取题图中作答所需条件",
+                "input_refs": {
+                  "text_fields": [
+                    "type",
+                    "content",
+                    "options",
+                    "reference_answer",
+                    "scoring_rubric",
+                    "analysis",
+                    "score",
+                    "caption"
+                  ],
+                  "images": [
+                    {
+                      "asset_id": "8dc8603a-c0e2-4c95-9449-ef66e6d7ada5",
+                      "file_id": "a_8dc8603ac0e24c959449ef66e6d7ada5",
+                      "image_index": 1,
+                      "asset_type": "table",
+                      "source_page_id": "a9c76614-4f08-4eeb-8f5c-95b1c37f2d30",
+                      "region": {
+                        "bbox": [
+                          375,
+                          1062,
+                          850,
+                          1412
+                        ]
+                      },
+                      "width": 475,
+                      "height": 350,
+                      "mime_type": "image/png"
+                    }
+                  ]
+                },
+                "outcome": "completed",
+                "result": {
+                  "observations": [
+                    {
+                      "image_index": 1,
+                      "kind": "table",
+                      "description": "题图为一张三列表格，列标题为 x、y、说明，表头下方有三行数据。",
+                      "bbox": [
+                        385.0,
+                        1082.0,
+                        840.0,
+                        1332.0
+                      ]
+                    },
+                    {
+                      "image_index": 1,
+                      "kind": "table_header",
+                      "description": "表头显示三列：x、y、说明。",
+                      "bbox": [
+                        385.0,
+                        1082.0,
+                        840.0,
+                        1139.0
+                      ]
+                    },
+                    {
+                      "image_index": 1,
+                      "kind": "table_row",
+                      "description": "第一行数据：x 为 1，y 为 3，说明为“第一行”。",
+                      "bbox": [
+                        385.0,
+                        1139.0,
+                        840.0,
+                        1204.0
+                      ]
+                    },
+                    {
+                      "image_index": 1,
+                      "kind": "table_row",
+                      "description": "第二行数据：x 为 2，y 为 5，说明为“第二行”。",
+                      "bbox": [
+                        385.0,
+                        1204.0,
+                        840.0,
+                        1269.0
+                      ]
+                    },
+                    {
+                      "image_index": 1,
+                      "kind": "table_row",
+                      "description": "第三行数据：x 为 3，y 为 7，说明为“第三行”。",
+                      "bbox": [
+                        385.0,
+                        1269.0,
+                        840.0,
+                        1334.0
+                      ]
+                    }
+                  ],
+                  "conditions": [
+                    {
+                      "condition_id": "fe992966-b05f-4e16-bbf8-0e998b4a1678",
+                      "asset_id": "8dc8603a-c0e2-4c95-9449-ef66e6d7ada5",
+                      "image_index": 1,
+                      "text": "表格列标题为 x、y、说明。",
+                      "evidence_region": {
+                        "bbox": [
+                          385,
+                          1082,
+                          840,
+                          1139
+                        ]
+                      }
+                    },
+                    {
+                      "condition_id": "54787a4c-497c-4f83-9fa5-114795e991b2",
+                      "asset_id": "8dc8603a-c0e2-4c95-9449-ef66e6d7ada5",
+                      "image_index": 1,
+                      "text": "表格第一行给出：x 为 1 时，y 为 3。",
+                      "evidence_region": {
+                        "bbox": [
+                          385,
+                          1139,
+                          840,
+                          1204
+                        ]
+                      }
+                    },
+                    {
+                      "condition_id": "93b32578-277b-4578-9824-7e5c8e3a41d5",
+                      "asset_id": "8dc8603a-c0e2-4c95-9449-ef66e6d7ada5",
+                      "image_index": 1,
+                      "text": "表格第二行给出：x 为 2 时，y 为 5。",
+                      "evidence_region": {
+                        "bbox": [
+                          385,
+                          1204,
+                          840,
+                          1269
+                        ]
+                      }
+                    },
+                    {
+                      "condition_id": "ff015fd2-d51a-4128-bee4-b550a9e92201",
+                      "asset_id": "8dc8603a-c0e2-4c95-9449-ef66e6d7ada5",
+                      "image_index": 1,
+                      "text": "表格第三行给出：x 为 3 时，y 为 7。",
+                      "evidence_region": {
+                        "bbox": [
+                          385,
+                          1269,
+                          840,
+                          1334
+                        ]
+                      }
+                    }
+                  ],
+                  "unresolved_issues": [],
+                  "requires_manual_review": false
+                },
+                "error": null,
+                "executor_kind": "service",
+                "executor_name": "vision",
+                "requested_by": "dbea54c4-d987-4b0e-abcd-273eeb962b7d",
+                "agent_run_id": null,
+                "provenance": {
+                  "provider_name": "deepseek",
+                  "model": "deepseek-flash",
+                  "model_version": null,
+                  "prompt_version": "vision-conditions-v1"
+                },
+                "started_at": "2026-10-06T04:15:58.486182Z",
+                "completed_at": "2026-10-06T04:16:21.518803Z"
+              }
+            ],
+            "manual_checks": [
+              {
+                "id": "144a2c6a-56ac-4690-aecf-026019be9148",
+                "check_no": 1,
+                "context_revision": 0,
+                "run_no": 1,
+                "run_id": "6f18f0d0-4613-4bb9-9ed0-01e807d89a3a",
+                "input_refs": {
+                  "text_fields": [
+                    "type",
+                    "content",
+                    "options",
+                    "reference_answer",
+                    "scoring_rubric",
+                    "analysis",
+                    "score",
+                    "caption"
+                  ],
+                  "images": [
+                    {
+                      "asset_id": "8dc8603a-c0e2-4c95-9449-ef66e6d7ada5",
+                      "file_id": "a_8dc8603ac0e24c959449ef66e6d7ada5",
+                      "image_index": 1,
+                      "asset_type": "table",
+                      "source_page_id": "a9c76614-4f08-4eeb-8f5c-95b1c37f2d30",
+                      "region": {
+                        "bbox": [
+                          375,
+                          1062,
+                          850,
+                          1412
+                        ]
+                      },
+                      "width": 475,
+                      "height": 350,
+                      "mime_type": "image/png"
+                    }
+                  ]
+                },
+                "status": "confirmed",
+                "confirmed_conditions": [
+                  {
+                    "condition_id": "83a76682-e73a-4914-a92c-c9050ebe2c08",
+                    "asset_id": "8dc8603a-c0e2-4c95-9449-ef66e6d7ada5",
+                    "text": "表中x为1、2、3，对应y为3、5、7。",
+                    "evidence_region": null,
+                    "source_condition_id": null
+                  }
+                ],
+                "image_findings": [
+                  {
+                    "asset_id": "8dc8603a-c0e2-4c95-9449-ef66e6d7ada5",
+                    "finding": "conditions_confirmed",
+                    "reason": "会话委托AI直接核对原图条件，非独立教师"
+                  }
+                ],
+                "issues": [],
+                "issue_resolutions": [],
+                "teacher_id": "dbea54c4-d987-4b0e-abcd-273eeb962b7d",
+                "checked_at": "2026-10-06T04:16:21.706511Z",
+                "explanation": "会话委托AI按真实来源图像核对；学习项目口径，不冒充独立教师。"
+              }
+            ],
+            "imported_review": null
+          },
+          "context_revision": 0,
+          "run_no": 1,
+          "check_no": 1,
+          "input_refs": {
+            "text_fields": [
+              "type",
+              "content",
+              "options",
+              "reference_answer",
+              "scoring_rubric",
+              "analysis",
+              "score",
+              "caption"
+            ],
+            "images": [
+              {
+                "asset_id": "8dc8603a-c0e2-4c95-9449-ef66e6d7ada5",
+                "file_id": "a_8dc8603ac0e24c959449ef66e6d7ada5",
+                "image_index": 1,
+                "asset_type": "table",
+                "source_page_id": "a9c76614-4f08-4eeb-8f5c-95b1c37f2d30",
+                "region": {
+                  "bbox": [
+                    375,
+                    1062,
+                    850,
+                    1412
+                  ]
+                },
+                "width": 475,
+                "height": 350,
+                "mime_type": "image/png"
+              }
+            ]
+          },
+          "current_run": {
+            "id": "6f18f0d0-4613-4bb9-9ed0-01e807d89a3a",
+            "run_no": 1,
+            "context_revision": 0,
+            "task": "提取题图中作答所需条件",
+            "input_refs": {
+              "text_fields": [
+                "type",
+                "content",
+                "options",
+                "reference_answer",
+                "scoring_rubric",
+                "analysis",
+                "score",
+                "caption"
+              ],
+              "images": [
+                {
+                  "asset_id": "8dc8603a-c0e2-4c95-9449-ef66e6d7ada5",
+                  "file_id": "a_8dc8603ac0e24c959449ef66e6d7ada5",
+                  "image_index": 1,
+                  "asset_type": "table",
+                  "source_page_id": "a9c76614-4f08-4eeb-8f5c-95b1c37f2d30",
+                  "region": {
+                    "bbox": [
+                      375,
+                      1062,
+                      850,
+                      1412
+                    ]
+                  },
+                  "width": 475,
+                  "height": 350,
+                  "mime_type": "image/png"
+                }
+              ]
+            },
+            "outcome": "completed",
+            "result": {
+              "observations": [
+                {
+                  "image_index": 1,
+                  "kind": "table",
+                  "description": "题图为一张三列表格，列标题为 x、y、说明，表头下方有三行数据。",
+                  "bbox": [
+                    385.0,
+                    1082.0,
+                    840.0,
+                    1332.0
+                  ]
+                },
+                {
+                  "image_index": 1,
+                  "kind": "table_header",
+                  "description": "表头显示三列：x、y、说明。",
+                  "bbox": [
+                    385.0,
+                    1082.0,
+                    840.0,
+                    1139.0
+                  ]
+                },
+                {
+                  "image_index": 1,
+                  "kind": "table_row",
+                  "description": "第一行数据：x 为 1，y 为 3，说明为“第一行”。",
+                  "bbox": [
+                    385.0,
+                    1139.0,
+                    840.0,
+                    1204.0
+                  ]
+                },
+                {
+                  "image_index": 1,
+                  "kind": "table_row",
+                  "description": "第二行数据：x 为 2，y 为 5，说明为“第二行”。",
+                  "bbox": [
+                    385.0,
+                    1204.0,
+                    840.0,
+                    1269.0
+                  ]
+                },
+                {
+                  "image_index": 1,
+                  "kind": "table_row",
+                  "description": "第三行数据：x 为 3，y 为 7，说明为“第三行”。",
+                  "bbox": [
+                    385.0,
+                    1269.0,
+                    840.0,
+                    1334.0
+                  ]
+                }
+              ],
+              "conditions": [
+                {
+                  "condition_id": "fe992966-b05f-4e16-bbf8-0e998b4a1678",
+                  "asset_id": "8dc8603a-c0e2-4c95-9449-ef66e6d7ada5",
+                  "image_index": 1,
+                  "text": "表格列标题为 x、y、说明。",
+                  "evidence_region": {
+                    "bbox": [
+                      385,
+                      1082,
+                      840,
+                      1139
+                    ]
+                  }
+                },
+                {
+                  "condition_id": "54787a4c-497c-4f83-9fa5-114795e991b2",
+                  "asset_id": "8dc8603a-c0e2-4c95-9449-ef66e6d7ada5",
+                  "image_index": 1,
+                  "text": "表格第一行给出：x 为 1 时，y 为 3。",
+                  "evidence_region": {
+                    "bbox": [
+                      385,
+                      1139,
+                      840,
+                      1204
+                    ]
+                  }
+                },
+                {
+                  "condition_id": "93b32578-277b-4578-9824-7e5c8e3a41d5",
+                  "asset_id": "8dc8603a-c0e2-4c95-9449-ef66e6d7ada5",
+                  "image_index": 1,
+                  "text": "表格第二行给出：x 为 2 时，y 为 5。",
+                  "evidence_region": {
+                    "bbox": [
+                      385,
+                      1204,
+                      840,
+                      1269
+                    ]
+                  }
+                },
+                {
+                  "condition_id": "ff015fd2-d51a-4128-bee4-b550a9e92201",
+                  "asset_id": "8dc8603a-c0e2-4c95-9449-ef66e6d7ada5",
+                  "image_index": 1,
+                  "text": "表格第三行给出：x 为 3 时，y 为 7。",
+                  "evidence_region": {
+                    "bbox": [
+                      385,
+                      1269,
+                      840,
+                      1334
+                    ]
+                  }
+                }
+              ],
+              "unresolved_issues": [],
+              "requires_manual_review": false
+            },
+            "error": null,
+            "executor_kind": "service",
+            "executor_name": "vision",
+            "requested_by": "dbea54c4-d987-4b0e-abcd-273eeb962b7d",
+            "agent_run_id": null,
+            "provenance": {
+              "provider_name": "deepseek",
+              "model": "deepseek-flash",
+              "model_version": null,
+              "prompt_version": "vision-conditions-v1"
+            },
+            "started_at": "2026-10-06T04:15:58.486182Z",
+            "completed_at": "2026-10-06T04:16:21.518803Z"
+          },
+          "current_check": {
+            "id": "144a2c6a-56ac-4690-aecf-026019be9148",
+            "check_no": 1,
+            "context_revision": 0,
+            "run_no": 1,
+            "run_id": "6f18f0d0-4613-4bb9-9ed0-01e807d89a3a",
+            "input_refs": {
+              "text_fields": [
+                "type",
+                "content",
+                "options",
+                "reference_answer",
+                "scoring_rubric",
+                "analysis",
+                "score",
+                "caption"
+              ],
+              "images": [
+                {
+                  "asset_id": "8dc8603a-c0e2-4c95-9449-ef66e6d7ada5",
+                  "file_id": "a_8dc8603ac0e24c959449ef66e6d7ada5",
+                  "image_index": 1,
+                  "asset_type": "table",
+                  "source_page_id": "a9c76614-4f08-4eeb-8f5c-95b1c37f2d30",
+                  "region": {
+                    "bbox": [
+                      375,
+                      1062,
+                      850,
+                      1412
+                    ]
+                  },
+                  "width": 475,
+                  "height": 350,
+                  "mime_type": "image/png"
+                }
+              ]
+            },
+            "status": "confirmed",
+            "confirmed_conditions": [
+              {
+                "condition_id": "83a76682-e73a-4914-a92c-c9050ebe2c08",
+                "asset_id": "8dc8603a-c0e2-4c95-9449-ef66e6d7ada5",
+                "text": "表中x为1、2、3，对应y为3、5、7。",
+                "evidence_region": null,
+                "source_condition_id": null
+              }
+            ],
+            "image_findings": [
+              {
+                "asset_id": "8dc8603a-c0e2-4c95-9449-ef66e6d7ada5",
+                "finding": "conditions_confirmed",
+                "reason": "会话委托AI直接核对原图条件，非独立教师"
+              }
+            ],
+            "issues": [],
+            "issue_resolutions": [],
+            "teacher_id": "dbea54c4-d987-4b0e-abcd-273eeb962b7d",
+            "checked_at": "2026-10-06T04:16:21.706511Z",
+            "explanation": "会话委托AI按真实来源图像核对；学习项目口径，不冒充独立教师。"
+          },
+          "imported_review": null,
+          "status": "confirmed",
+          "confirmed_conditions": [
+            {
+              "condition_id": "83a76682-e73a-4914-a92c-c9050ebe2c08",
+              "asset_id": "8dc8603a-c0e2-4c95-9449-ef66e6d7ada5",
+              "text": "表中x为1、2、3，对应y为3、5、7。",
+              "evidence_region": null,
+              "source_condition_id": null
+            }
+          ],
+          "requires_manual_review": false,
+          "evidence_readable": true,
+          "error": null,
+          "open_issues": []
+        },
+        "assets": [
+          {
+            "id": "8dc8603a-c0e2-4c95-9449-ef66e6d7ada5",
+            "question_id": "13f50e69-a8e5-4579-a405-a69a7f4faf88",
+            "file_id": "a_8dc8603ac0e24c959449ef66e6d7ada5",
+            "asset_type": "table",
+            "width": 475,
+            "height": 350,
+            "caption": null,
+            "source_page_id": "a9c76614-4f08-4eeb-8f5c-95b1c37f2d30",
+            "region": {
+              "bbox": [
+                375,
+                1062,
+                850,
+                1412
+              ]
+            },
+            "order_index": 1,
+            "student_visible": false
+          }
+        ]
+      },
+      "elapsed_seconds": 0.10435639997012913
+    },
+    {
+      "label": "actual_current_scoring_context",
+      "method": "GET",
+      "path": "/api/exams/441cf4e2-655c-4a9c-895a-d53bef24ee6c/questions/13f50e69-a8e5-4579-a405-a69a7f4faf88/scoring-basis",
+      "status": 200,
+      "response": {
+        "exam_id": "441cf4e2-655c-4a9c-895a-d53bef24ee6c",
+        "exam_question_id": "4c36d56b-0c8d-4bd3-b88c-7981517eb75e",
+        "question_id": "13f50e69-a8e5-4579-a405-a69a7f4faf88",
+        "question_type": "SHORT_ANSWER",
+        "source_rubric": "说明系数2表示x每增加1，y增加2，得1.00分；说明常数1表示x=0时y=1，得1.00分；正确代入x=3并算出y=7，得1.00分，共3.00分。",
+        "question_validation_revision": 3,
+        "explicit_score": "6.00",
+        "effective_score": "6.00",
+        "question_score": "3.00",
+        "base_score": "3.00",
+        "basis": {
+          "preparation_id": "7a1e81bd-6ae0-46ad-8c81-bbda71ccb9bb",
+          "kind": "subjective",
+          "rounding_mode": "ROUND_HALF_UP",
+          "points": [
+            {
+              "key": "relation",
+              "label": "正确关系式",
+              "base_points": "1.00",
+              "default_points": "2.00",
+              "confirmed_points": "2.00"
+            },
+            {
+              "key": "calculation",
+              "label": "推导系数并代入验证",
+              "base_points": "2.00",
+              "default_points": "4.00",
+              "confirmed_points": "4.00"
+            }
+          ],
+          "additive": true,
+          "rounding_delta": "0.00",
+          "confirmation": null
+        },
+        "editable": true
+      },
+      "elapsed_seconds": 0.028704100055620074
+    },
+    {
+      "label": "prepare_actual_three_rubric_items",
+      "method": "POST",
+      "path": "/api/exams/441cf4e2-655c-4a9c-895a-d53bef24ee6c/questions/13f50e69-a8e5-4579-a405-a69a7f4faf88/scoring-basis/prepare",
+      "status": 200,
+      "response": {
+        "exam_id": "441cf4e2-655c-4a9c-895a-d53bef24ee6c",
+        "exam_question_id": "4c36d56b-0c8d-4bd3-b88c-7981517eb75e",
+        "question_id": "13f50e69-a8e5-4579-a405-a69a7f4faf88",
+        "question_type": "SHORT_ANSWER",
+        "source_rubric": "说明系数2表示x每增加1，y增加2，得1.00分；说明常数1表示x=0时y=1，得1.00分；正确代入x=3并算出y=7，得1.00分，共3.00分。",
+        "question_validation_revision": 3,
+        "explicit_score": "6.00",
+        "effective_score": "6.00",
+        "question_score": "3.00",
+        "base_score": "3.00",
+        "basis": {
+          "preparation_id": "824fe79c-ec5b-4ec4-aab1-c4a452b95963",
+          "kind": "subjective",
+          "rounding_mode": "ROUND_HALF_UP",
+          "points": [
+            {
+              "key": "coefficient",
+              "label": "x每增加1时y增加2",
+              "base_points": "1.00",
+              "default_points": "2.00",
+              "confirmed_points": "2.00"
+            },
+            {
+              "key": "intercept",
+              "label": "x为0时y为1",
+              "base_points": "1.00",
+              "default_points": "2.00",
+              "confirmed_points": "2.00"
+            },
+            {
+              "key": "substitution",
+              "label": "代入x为3得到y为7",
+              "base_points": "1.00",
+              "default_points": "2.00",
+              "confirmed_points": "2.00"
+            }
+          ],
+          "additive": true,
+          "rounding_delta": "0.00",
+          "confirmation": null
+        },
+        "editable": true
+      },
+      "elapsed_seconds": 0.14109859999734908
+    },
+    {
+      "label": "confirm_fresh_prepared_context",
+      "method": "POST",
+      "path": "/api/exams/441cf4e2-655c-4a9c-895a-d53bef24ee6c/questions/13f50e69-a8e5-4579-a405-a69a7f4faf88/scoring-basis/confirm",
+      "status": 200,
+      "response": {
+        "exam_id": "441cf4e2-655c-4a9c-895a-d53bef24ee6c",
+        "exam_question_id": "4c36d56b-0c8d-4bd3-b88c-7981517eb75e",
+        "question_id": "13f50e69-a8e5-4579-a405-a69a7f4faf88",
+        "question_type": "SHORT_ANSWER",
+        "source_rubric": "说明系数2表示x每增加1，y增加2，得1.00分；说明常数1表示x=0时y=1，得1.00分；正确代入x=3并算出y=7，得1.00分，共3.00分。",
+        "question_validation_revision": 3,
+        "explicit_score": "6.00",
+        "effective_score": "6.00",
+        "question_score": "3.00",
+        "base_score": "3.00",
+        "basis": {
+          "preparation_id": "824fe79c-ec5b-4ec4-aab1-c4a452b95963",
+          "kind": "subjective",
+          "rounding_mode": "ROUND_HALF_UP",
+          "points": [
+            {
+              "key": "coefficient",
+              "label": "x每增加1时y增加2",
+              "base_points": "1.00",
+              "default_points": "2.00",
+              "confirmed_points": "2.00"
+            },
+            {
+              "key": "intercept",
+              "label": "x为0时y为1",
+              "base_points": "1.00",
+              "default_points": "2.00",
+              "confirmed_points": "2.00"
+            },
+            {
+              "key": "substitution",
+              "label": "代入x为3得到y为7",
+              "base_points": "1.00",
+              "default_points": "2.00",
+              "confirmed_points": "2.00"
+            }
+          ],
+          "additive": true,
+          "rounding_delta": "0.00",
+          "confirmation": {
+            "teacher_id": "dbea54c4-d987-4b0e-abcd-273eeb962b7d",
+            "confirmed_at": "2026-10-06T04:18:51.979243Z",
+            "reason": "会话委托AI依据当前真实改编Rubric三项各1分核对本场比例；不是独立教师。"
+          }
+        },
+        "editable": true
+      },
+      "elapsed_seconds": 0.15072810009587556
+    },
+    {
+      "label": "publish_local_exam",
+      "method": "POST",
+      "path": "/api/exams/441cf4e2-655c-4a9c-895a-d53bef24ee6c/publish",
+      "status": 409,
+      "response": {
+        "detail": {
+          "code": "EXAM_SCORING_BASIS_MISSING",
+          "message": "请先准备并核对本场评分依据。",
+          "current_status": "Draft",
+          "publication_checks": [
+            {
+              "code": "EXAM_SCORING_BASIS_MISSING",
+              "message": "请先准备并核对本场评分依据。",
+              "question_id": "946d6db6-43b1-4e0b-a85b-1c849b0c2edb"
+            }
+          ]
+        }
+      },
+      "elapsed_seconds": 0.12797110003884882
+    }
+  ],
+  "actor": "AI session delegated synthetic DEV roles; not independent teacher",
+  "reference": "AI-assisted + developer review learning project",
+  "actual_adapted_question": {
+    "id": "13f50e69-a8e5-4579-a405-a69a7f4faf88",
+    "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+    "type": "SHORT_ANSWER",
+    "content": "已知 y 是 x 的一次函数，关系式可写为 y=2x+1。请通过自变量与函数值的对应关系说明该一次函数中“系数 2”和“常数 1”分别表示什么，并代入 x=3 求函数值 y。",
+    "options": null,
+    "order_preserved": true,
+    "reference_answer": "在一次函数 y=2x+1 中，系数 2 表示自变量 x 每增加 1，函数值 y 增加 2；常数 1 表示当 x=0 时，y 的值为 1。代入 x=3，得 y=2×3+1=7。",
+    "scoring_rubric": "说明系数2表示x每增加1，y增加2，得1.00分；说明常数1表示x=0时y=1，得1.00分；正确代入x=3并算出y=7，得1.00分，共3.00分。",
+    "analysis": "本题考查一次函数关系式 y=2x+1 中系数与常数项的含义，以及代入求值的基本计算。",
+    "source_type": "adapted",
+    "frozen_at": "2026-10-06T04:16:26.817592Z",
+    "difficulty": "未指定",
+    "knowledge_points": [
+      "一次函数",
+      "表达与计算"
+    ],
+    "score": "3.00",
+    "status": "Approved",
+    "created_by": "dbea54c4-d987-4b0e-abcd-273eeb962b7d",
+    "created_at": "2026-10-06T04:15:58.273258Z",
+    "updated_at": "2026-10-06T04:16:26.818061Z",
+    "sources_persisted": true,
+    "source_status": "persisted",
+    "sources": [
+      {
+        "chunk_id": "e4941012-3487-461e-940e-0c2132b2d7d9",
+        "source_order": 0,
+        "content_snapshot": "一次函数：y=2x+1。代入x=3得y=7。",
+        "source_file": "teaching_basis.txt",
+        "chunk_index": 2,
+        "retrieval_rank": null,
+        "score_kind": "fusion",
+        "score_value": 0.5,
+        "source_deleted": false
+      }
+    ],
+    "revision_comments": [],
+    "parent_sources": [
+      {
+        "source_question_id": "e676cf98-f73f-4e45-99ac-56441471f9a3",
+        "adaptation_type": "rewrite",
+        "created_at": "2026-10-06T04:15:58.349458+00:00"
+      }
+    ],
+    "paper_source": null,
+    "current_validation": {
+      "id": "32cdd332-cd7c-47ab-b4c4-c96b30aad1f3",
+      "question_id": "13f50e69-a8e5-4579-a405-a69a7f4faf88",
+      "input_revision": 3,
+      "run_no": 1,
+      "outcome": "passed",
+      "input_refs": {
+        "fields": [
+          "type",
+          "content",
+          "options",
+          "reference_answer",
+          "scoring_rubric",
+          "analysis",
+          "score",
+          "images",
+          "image_conditions"
+        ],
+        "evidence": [
+          {
+            "evidence_id": "d3a4e164-97fb-4643-81b3-182848ac2cc8",
+            "kind": "chunk",
+            "source_id": "e4941012-3487-461e-940e-0c2132b2d7d9",
+            "source_data": {
+              "chunk_id": "e4941012-3487-461e-940e-0c2132b2d7d9",
+              "location": "第 3 段",
+              "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+              "document_id": "0d6de23d-2db0-4f34-a175-ea324b78d46d",
+              "source_file": "teaching_basis.txt",
+              "content_snapshot": "一次函数：y=2x+1。代入x=3得y=7。"
+            }
+          },
+          {
+            "evidence_id": "85a08ecb-6010-4de1-82e5-71c6f6c13915",
+            "kind": "question_asset",
+            "source_id": "8dc8603a-c0e2-4c95-9449-ef66e6d7ada5",
+            "source_data": {
+              "region": {
+                "bbox": [
+                  375,
+                  1062,
+                  850,
+                  1412
+                ]
+              },
+              "file_id": "a_8dc8603ac0e24c959449ef66e6d7ada5",
+              "source_page_id": "a9c76614-4f08-4eeb-8f5c-95b1c37f2d30",
+              "image_review_ref": {
+                "check_id": "144a2c6a-56ac-4690-aecf-026019be9148",
+                "owner_id": "13f50e69-a8e5-4579-a405-a69a7f4faf88",
+                "binding_id": null,
+                "owner_kind": "question"
+              },
+              "confirmed_conditions": [
+                {
+                  "text": "表中x为1、2、3，对应y为3、5、7。",
+                  "asset_id": "8dc8603a-c0e2-4c95-9449-ef66e6d7ada5",
+                  "condition_id": "83a76682-e73a-4914-a92c-c9050ebe2c08",
+                  "evidence_region": null,
+                  "source_condition_id": null
+                }
+              ]
+            }
+          }
+        ],
+        "manual_context": []
+      },
+      "checks": [
+        {
+          "kind": "answer_correctness",
+          "verdict": "pass",
+          "reason": "参考答案与评分标准一致：系数2表示x每增加1、y增加2；常数1表示x=0时y=1；代入x=3得y=7。证据 d3a4e164-97fb-4643-81b3-182848ac2cc8 明确给出“一次函数：y=2x+1。代入x=3得y=7”，支持代入计算结果；系数与常数的含义与一次函数 y=2x+1 的定义相符，未发现矛盾。",
+          "evidence_refs": [
+            "d3a4e164-97fb-4643-81b3-182848ac2cc8"
+          ]
+        },
+        {
+          "kind": "condition_sufficiency",
+          "verdict": "pass",
+          "reason": "题干给出完整关系式 y=2x+1 和代入条件 x=3，任务明确要求说明系数2、常数1的含义并求值。证据 d3a4e164-97fb-4643-81b3-182848ac2cc8 确认该函数式与 x=3 代入情形；证据 85a08ecb-6010-4de1-82e5-71c6f6c13915 的已确认条件提供 x 与 y 的对应表（1→3、2→5、3→7），与关系式 y=2x+1 一致，可支撑“x每增加1、y增加2”的说明。",
+          "evidence_refs": [
+            "d3a4e164-97fb-4643-81b3-182848ac2cc8",
+            "85a08ecb-6010-4de1-82e5-71c6f6c13915"
+          ]
+        },
+        {
+          "kind": "option_ambiguity",
+          "verdict": "pass",
+          "reason": "本题为 SHORT_ANSWER（填空题/简答题）类型，options 为 null，不存在选择题选项歧义问题，故明确按不适用处理。",
+          "evidence_refs": []
+        },
+        {
+          "kind": "rubric_clarity",
+          "verdict": "pass",
+          "reason": "评分标准清晰可操作：说明系数2含义得1.00分、说明常数1含义得1.00分、正确代入x=3并算出y=7得1.00分，共3.00分，与题干要求及参考答案的三个得分点一一对应，无歧义或遗漏。",
+          "evidence_refs": []
+        }
+      ],
+      "issues": [],
+      "error": null,
+      "executor_kind": "agent",
+      "executor_name": "question_semantic_validator",
+      "requested_by": "dbea54c4-d987-4b0e-abcd-273eeb962b7d",
+      "agent_run_id": null,
+      "provenance": {
+        "agent_type": "Question",
+        "provider_name": "deepseek",
+        "model": "deepseek-chat",
+        "model_version": null,
+        "prompt_version": "question-semantics-v1"
+      },
+      "manual_dispositions": [],
+      "created_at": "2026-10-06T04:16:22.432712Z",
+      "completed_at": "2026-10-06T04:16:26.583334Z",
+      "is_current": true,
+      "stale": false,
+      "can_review": false,
+      "requires_manual_review": true
+    },
+    "can_review": false,
+    "image_assessment": {
+      "owner_kind": "question",
+      "owner_id": "13f50e69-a8e5-4579-a405-a69a7f4faf88",
+      "assessment": {
+        "context_revision": 0,
+        "runs": [
+          {
+            "id": "6f18f0d0-4613-4bb9-9ed0-01e807d89a3a",
+            "run_no": 1,
+            "context_revision": 0,
+            "task": "提取题图中作答所需条件",
+            "input_refs": {
+              "text_fields": [
+                "type",
+                "content",
+                "options",
+                "reference_answer",
+                "scoring_rubric",
+                "analysis",
+                "score",
+                "caption"
+              ],
+              "images": [
+                {
+                  "asset_id": "8dc8603a-c0e2-4c95-9449-ef66e6d7ada5",
+                  "file_id": "a_8dc8603ac0e24c959449ef66e6d7ada5",
+                  "image_index": 1,
+                  "asset_type": "table",
+                  "source_page_id": "a9c76614-4f08-4eeb-8f5c-95b1c37f2d30",
+                  "region": {
+                    "bbox": [
+                      375,
+                      1062,
+                      850,
+                      1412
+                    ]
+                  },
+                  "width": 475,
+                  "height": 350,
+                  "mime_type": "image/png"
+                }
+              ]
+            },
+            "outcome": "completed",
+            "result": {
+              "observations": [
+                {
+                  "image_index": 1,
+                  "kind": "table",
+                  "description": "题图为一张三列表格，列标题为 x、y、说明，表头下方有三行数据。",
+                  "bbox": [
+                    385.0,
+                    1082.0,
+                    840.0,
+                    1332.0
+                  ]
+                },
+                {
+                  "image_index": 1,
+                  "kind": "table_header",
+                  "description": "表头显示三列：x、y、说明。",
+                  "bbox": [
+                    385.0,
+                    1082.0,
+                    840.0,
+                    1139.0
+                  ]
+                },
+                {
+                  "image_index": 1,
+                  "kind": "table_row",
+                  "description": "第一行数据：x 为 1，y 为 3，说明为“第一行”。",
+                  "bbox": [
+                    385.0,
+                    1139.0,
+                    840.0,
+                    1204.0
+                  ]
+                },
+                {
+                  "image_index": 1,
+                  "kind": "table_row",
+                  "description": "第二行数据：x 为 2，y 为 5，说明为“第二行”。",
+                  "bbox": [
+                    385.0,
+                    1204.0,
+                    840.0,
+                    1269.0
+                  ]
+                },
+                {
+                  "image_index": 1,
+                  "kind": "table_row",
+                  "description": "第三行数据：x 为 3，y 为 7，说明为“第三行”。",
+                  "bbox": [
+                    385.0,
+                    1269.0,
+                    840.0,
+                    1334.0
+                  ]
+                }
+              ],
+              "conditions": [
+                {
+                  "condition_id": "fe992966-b05f-4e16-bbf8-0e998b4a1678",
+                  "asset_id": "8dc8603a-c0e2-4c95-9449-ef66e6d7ada5",
+                  "image_index": 1,
+                  "text": "表格列标题为 x、y、说明。",
+                  "evidence_region": {
+                    "bbox": [
+                      385,
+                      1082,
+                      840,
+                      1139
+                    ]
+                  }
+                },
+                {
+                  "condition_id": "54787a4c-497c-4f83-9fa5-114795e991b2",
+                  "asset_id": "8dc8603a-c0e2-4c95-9449-ef66e6d7ada5",
+                  "image_index": 1,
+                  "text": "表格第一行给出：x 为 1 时，y 为 3。",
+                  "evidence_region": {
+                    "bbox": [
+                      385,
+                      1139,
+                      840,
+                      1204
+                    ]
+                  }
+                },
+                {
+                  "condition_id": "93b32578-277b-4578-9824-7e5c8e3a41d5",
+                  "asset_id": "8dc8603a-c0e2-4c95-9449-ef66e6d7ada5",
+                  "image_index": 1,
+                  "text": "表格第二行给出：x 为 2 时，y 为 5。",
+                  "evidence_region": {
+                    "bbox": [
+                      385,
+                      1204,
+                      840,
+                      1269
+                    ]
+                  }
+                },
+                {
+                  "condition_id": "ff015fd2-d51a-4128-bee4-b550a9e92201",
+                  "asset_id": "8dc8603a-c0e2-4c95-9449-ef66e6d7ada5",
+                  "image_index": 1,
+                  "text": "表格第三行给出：x 为 3 时，y 为 7。",
+                  "evidence_region": {
+                    "bbox": [
+                      385,
+                      1269,
+                      840,
+                      1334
+                    ]
+                  }
+                }
+              ],
+              "unresolved_issues": [],
+              "requires_manual_review": false
+            },
+            "error": null,
+            "executor_kind": "service",
+            "executor_name": "vision",
+            "requested_by": "dbea54c4-d987-4b0e-abcd-273eeb962b7d",
+            "agent_run_id": null,
+            "provenance": {
+              "provider_name": "deepseek",
+              "model": "deepseek-flash",
+              "model_version": null,
+              "prompt_version": "vision-conditions-v1"
+            },
+            "started_at": "2026-10-06T04:15:58.486182Z",
+            "completed_at": "2026-10-06T04:16:21.518803Z"
+          }
+        ],
+        "manual_checks": [
+          {
+            "id": "144a2c6a-56ac-4690-aecf-026019be9148",
+            "check_no": 1,
+            "context_revision": 0,
+            "run_no": 1,
+            "run_id": "6f18f0d0-4613-4bb9-9ed0-01e807d89a3a",
+            "input_refs": {
+              "text_fields": [
+                "type",
+                "content",
+                "options",
+                "reference_answer",
+                "scoring_rubric",
+                "analysis",
+                "score",
+                "caption"
+              ],
+              "images": [
+                {
+                  "asset_id": "8dc8603a-c0e2-4c95-9449-ef66e6d7ada5",
+                  "file_id": "a_8dc8603ac0e24c959449ef66e6d7ada5",
+                  "image_index": 1,
+                  "asset_type": "table",
+                  "source_page_id": "a9c76614-4f08-4eeb-8f5c-95b1c37f2d30",
+                  "region": {
+                    "bbox": [
+                      375,
+                      1062,
+                      850,
+                      1412
+                    ]
+                  },
+                  "width": 475,
+                  "height": 350,
+                  "mime_type": "image/png"
+                }
+              ]
+            },
+            "status": "confirmed",
+            "confirmed_conditions": [
+              {
+                "condition_id": "83a76682-e73a-4914-a92c-c9050ebe2c08",
+                "asset_id": "8dc8603a-c0e2-4c95-9449-ef66e6d7ada5",
+                "text": "表中x为1、2、3，对应y为3、5、7。",
+                "evidence_region": null,
+                "source_condition_id": null
+              }
+            ],
+            "image_findings": [
+              {
+                "asset_id": "8dc8603a-c0e2-4c95-9449-ef66e6d7ada5",
+                "finding": "conditions_confirmed",
+                "reason": "会话委托AI直接核对原图条件，非独立教师"
+              }
+            ],
+            "issues": [],
+            "issue_resolutions": [],
+            "teacher_id": "dbea54c4-d987-4b0e-abcd-273eeb962b7d",
+            "checked_at": "2026-10-06T04:16:21.706511Z",
+            "explanation": "会话委托AI按真实来源图像核对；学习项目口径，不冒充独立教师。"
+          }
+        ],
+        "imported_review": null
+      },
+      "context_revision": 0,
+      "run_no": 1,
+      "check_no": 1,
+      "input_refs": {
+        "text_fields": [
+          "type",
+          "content",
+          "options",
+          "reference_answer",
+          "scoring_rubric",
+          "analysis",
+          "score",
+          "caption"
+        ],
+        "images": [
+          {
+            "asset_id": "8dc8603a-c0e2-4c95-9449-ef66e6d7ada5",
+            "file_id": "a_8dc8603ac0e24c959449ef66e6d7ada5",
+            "image_index": 1,
+            "asset_type": "table",
+            "source_page_id": "a9c76614-4f08-4eeb-8f5c-95b1c37f2d30",
+            "region": {
+              "bbox": [
+                375,
+                1062,
+                850,
+                1412
+              ]
+            },
+            "width": 475,
+            "height": 350,
+            "mime_type": "image/png"
+          }
+        ]
+      },
+      "current_run": {
+        "id": "6f18f0d0-4613-4bb9-9ed0-01e807d89a3a",
+        "run_no": 1,
+        "context_revision": 0,
+        "task": "提取题图中作答所需条件",
+        "input_refs": {
+          "text_fields": [
+            "type",
+            "content",
+            "options",
+            "reference_answer",
+            "scoring_rubric",
+            "analysis",
+            "score",
+            "caption"
+          ],
+          "images": [
+            {
+              "asset_id": "8dc8603a-c0e2-4c95-9449-ef66e6d7ada5",
+              "file_id": "a_8dc8603ac0e24c959449ef66e6d7ada5",
+              "image_index": 1,
+              "asset_type": "table",
+              "source_page_id": "a9c76614-4f08-4eeb-8f5c-95b1c37f2d30",
+              "region": {
+                "bbox": [
+                  375,
+                  1062,
+                  850,
+                  1412
+                ]
+              },
+              "width": 475,
+              "height": 350,
+              "mime_type": "image/png"
+            }
+          ]
+        },
+        "outcome": "completed",
+        "result": {
+          "observations": [
+            {
+              "image_index": 1,
+              "kind": "table",
+              "description": "题图为一张三列表格，列标题为 x、y、说明，表头下方有三行数据。",
+              "bbox": [
+                385.0,
+                1082.0,
+                840.0,
+                1332.0
+              ]
+            },
+            {
+              "image_index": 1,
+              "kind": "table_header",
+              "description": "表头显示三列：x、y、说明。",
+              "bbox": [
+                385.0,
+                1082.0,
+                840.0,
+                1139.0
+              ]
+            },
+            {
+              "image_index": 1,
+              "kind": "table_row",
+              "description": "第一行数据：x 为 1，y 为 3，说明为“第一行”。",
+              "bbox": [
+                385.0,
+                1139.0,
+                840.0,
+                1204.0
+              ]
+            },
+            {
+              "image_index": 1,
+              "kind": "table_row",
+              "description": "第二行数据：x 为 2，y 为 5，说明为“第二行”。",
+              "bbox": [
+                385.0,
+                1204.0,
+                840.0,
+                1269.0
+              ]
+            },
+            {
+              "image_index": 1,
+              "kind": "table_row",
+              "description": "第三行数据：x 为 3，y 为 7，说明为“第三行”。",
+              "bbox": [
+                385.0,
+                1269.0,
+                840.0,
+                1334.0
+              ]
+            }
+          ],
+          "conditions": [
+            {
+              "condition_id": "fe992966-b05f-4e16-bbf8-0e998b4a1678",
+              "asset_id": "8dc8603a-c0e2-4c95-9449-ef66e6d7ada5",
+              "image_index": 1,
+              "text": "表格列标题为 x、y、说明。",
+              "evidence_region": {
+                "bbox": [
+                  385,
+                  1082,
+                  840,
+                  1139
+                ]
+              }
+            },
+            {
+              "condition_id": "54787a4c-497c-4f83-9fa5-114795e991b2",
+              "asset_id": "8dc8603a-c0e2-4c95-9449-ef66e6d7ada5",
+              "image_index": 1,
+              "text": "表格第一行给出：x 为 1 时，y 为 3。",
+              "evidence_region": {
+                "bbox": [
+                  385,
+                  1139,
+                  840,
+                  1204
+                ]
+              }
+            },
+            {
+              "condition_id": "93b32578-277b-4578-9824-7e5c8e3a41d5",
+              "asset_id": "8dc8603a-c0e2-4c95-9449-ef66e6d7ada5",
+              "image_index": 1,
+              "text": "表格第二行给出：x 为 2 时，y 为 5。",
+              "evidence_region": {
+                "bbox": [
+                  385,
+                  1204,
+                  840,
+                  1269
+                ]
+              }
+            },
+            {
+              "condition_id": "ff015fd2-d51a-4128-bee4-b550a9e92201",
+              "asset_id": "8dc8603a-c0e2-4c95-9449-ef66e6d7ada5",
+              "image_index": 1,
+              "text": "表格第三行给出：x 为 3 时，y 为 7。",
+              "evidence_region": {
+                "bbox": [
+                  385,
+                  1269,
+                  840,
+                  1334
+                ]
+              }
+            }
+          ],
+          "unresolved_issues": [],
+          "requires_manual_review": false
+        },
+        "error": null,
+        "executor_kind": "service",
+        "executor_name": "vision",
+        "requested_by": "dbea54c4-d987-4b0e-abcd-273eeb962b7d",
+        "agent_run_id": null,
+        "provenance": {
+          "provider_name": "deepseek",
+          "model": "deepseek-flash",
+          "model_version": null,
+          "prompt_version": "vision-conditions-v1"
+        },
+        "started_at": "2026-10-06T04:15:58.486182Z",
+        "completed_at": "2026-10-06T04:16:21.518803Z"
+      },
+      "current_check": {
+        "id": "144a2c6a-56ac-4690-aecf-026019be9148",
+        "check_no": 1,
+        "context_revision": 0,
+        "run_no": 1,
+        "run_id": "6f18f0d0-4613-4bb9-9ed0-01e807d89a3a",
+        "input_refs": {
+          "text_fields": [
+            "type",
+            "content",
+            "options",
+            "reference_answer",
+            "scoring_rubric",
+            "analysis",
+            "score",
+            "caption"
+          ],
+          "images": [
+            {
+              "asset_id": "8dc8603a-c0e2-4c95-9449-ef66e6d7ada5",
+              "file_id": "a_8dc8603ac0e24c959449ef66e6d7ada5",
+              "image_index": 1,
+              "asset_type": "table",
+              "source_page_id": "a9c76614-4f08-4eeb-8f5c-95b1c37f2d30",
+              "region": {
+                "bbox": [
+                  375,
+                  1062,
+                  850,
+                  1412
+                ]
+              },
+              "width": 475,
+              "height": 350,
+              "mime_type": "image/png"
+            }
+          ]
+        },
+        "status": "confirmed",
+        "confirmed_conditions": [
+          {
+            "condition_id": "83a76682-e73a-4914-a92c-c9050ebe2c08",
+            "asset_id": "8dc8603a-c0e2-4c95-9449-ef66e6d7ada5",
+            "text": "表中x为1、2、3，对应y为3、5、7。",
+            "evidence_region": null,
+            "source_condition_id": null
+          }
+        ],
+        "image_findings": [
+          {
+            "asset_id": "8dc8603a-c0e2-4c95-9449-ef66e6d7ada5",
+            "finding": "conditions_confirmed",
+            "reason": "会话委托AI直接核对原图条件，非独立教师"
+          }
+        ],
+        "issues": [],
+        "issue_resolutions": [],
+        "teacher_id": "dbea54c4-d987-4b0e-abcd-273eeb962b7d",
+        "checked_at": "2026-10-06T04:16:21.706511Z",
+        "explanation": "会话委托AI按真实来源图像核对；学习项目口径，不冒充独立教师。"
+      },
+      "imported_review": null,
+      "status": "confirmed",
+      "confirmed_conditions": [
+        {
+          "condition_id": "83a76682-e73a-4914-a92c-c9050ebe2c08",
+          "asset_id": "8dc8603a-c0e2-4c95-9449-ef66e6d7ada5",
+          "text": "表中x为1、2、3，对应y为3、5、7。",
+          "evidence_region": null,
+          "source_condition_id": null
+        }
+      ],
+      "requires_manual_review": false,
+      "evidence_readable": true,
+      "error": null,
+      "open_issues": []
+    },
+    "assets": [
+      {
+        "id": "8dc8603a-c0e2-4c95-9449-ef66e6d7ada5",
+        "question_id": "13f50e69-a8e5-4579-a405-a69a7f4faf88",
+        "file_id": "a_8dc8603ac0e24c959449ef66e6d7ada5",
+        "asset_type": "table",
+        "width": 475,
+        "height": 350,
+        "caption": null,
+        "source_page_id": "a9c76614-4f08-4eeb-8f5c-95b1c37f2d30",
+        "region": {
+          "bbox": [
+            375,
+            1062,
+            850,
+            1412
+          ]
+        },
+        "order_index": 1,
+        "student_visible": false
+      }
+    ]
+  },
+  "primary_scoring": {
+    "exam_id": "441cf4e2-655c-4a9c-895a-d53bef24ee6c",
+    "exam_question_id": "4c36d56b-0c8d-4bd3-b88c-7981517eb75e",
+    "question_id": "13f50e69-a8e5-4579-a405-a69a7f4faf88",
+    "question_type": "SHORT_ANSWER",
+    "source_rubric": "说明系数2表示x每增加1，y增加2，得1.00分；说明常数1表示x=0时y=1，得1.00分；正确代入x=3并算出y=7，得1.00分，共3.00分。",
+    "question_validation_revision": 3,
+    "explicit_score": "6.00",
+    "effective_score": "6.00",
+    "question_score": "3.00",
+    "base_score": "3.00",
+    "basis": {
+      "preparation_id": "824fe79c-ec5b-4ec4-aab1-c4a452b95963",
+      "kind": "subjective",
+      "rounding_mode": "ROUND_HALF_UP",
+      "points": [
+        {
+          "key": "coefficient",
+          "label": "x每增加1时y增加2",
+          "base_points": "1.00",
+          "default_points": "2.00",
+          "confirmed_points": "2.00"
+        },
+        {
+          "key": "intercept",
+          "label": "x为0时y为1",
+          "base_points": "1.00",
+          "default_points": "2.00",
+          "confirmed_points": "2.00"
+        },
+        {
+          "key": "substitution",
+          "label": "代入x为3得到y为7",
+          "base_points": "1.00",
+          "default_points": "2.00",
+          "confirmed_points": "2.00"
+        }
+      ],
+      "additive": true,
+      "rounding_delta": "0.00",
+      "confirmation": {
+        "teacher_id": "dbea54c4-d987-4b0e-abcd-273eeb962b7d",
+        "confirmed_at": "2026-10-06T04:18:51.979243Z",
+        "reason": "会话委托AI依据当前真实改编Rubric三项各1分核对本场比例；不是独立教师。"
+      }
+    },
+    "editable": true
+  },
+  "status": "failed",
+  "failure_type": "RuntimeError",
+  "failure": "publish_local_exam: HTTP 409"
+}

@@ -1,0 +1,509 @@
+{
+  "provenance": "synthetic course and answers, AI session delegated; no independent teacher",
+  "activated": false,
+  "commands": [
+    {
+      "label": "actual_backup_cli",
+      "returncode": 0
+    },
+    {
+      "label": "actual_restore_cli",
+      "returncode": 0
+    }
+  ],
+  "source_tables": {
+    "alembic_version": {
+      "rows": 1,
+      "sha256": "cd6d39f041f0418cd7625b382398aa5637d744bab1348a53163d2fa5063d4bb4"
+    },
+    "users": {
+      "rows": 4,
+      "sha256": "e2997b43bbe0d022da4432d15982ebc4665c72bd8b9077c7603b706071f555df"
+    },
+    "courses": {
+      "rows": 2,
+      "sha256": "6cf511cee9db5635d92d54d0e7232ef45dc397ef9e68fde971ea9b5b10ab658b"
+    },
+    "roles": {
+      "rows": 3,
+      "sha256": "346ffd090cc12cfe11f42c96c3d7153ff26fd05ce691c52002c88a53b25fb919"
+    },
+    "user_roles": {
+      "rows": 4,
+      "sha256": "d3c5cc914c9efd26bdda62693ba3725cd177d79752d22f437f30f4a3192730fe"
+    },
+    "knowledge_bases": {
+      "rows": 1,
+      "sha256": "d93e76af80f074a32e979a33bb321ce22c91e3bdfb75393d96b21918c7f49d03"
+    },
+    "submissions": {
+      "rows": 2,
+      "sha256": "34f7988b0d08f7ff58bf11dc58bebeb1761d6bb637e963ae2a5b949d883f6cf2"
+    },
+    "answers": {
+      "rows": 4,
+      "sha256": "c98d74e8185455c0f4e0e9e7e13ed88ba58d613bf4e3e2a9ec16ab7873ce5ab4"
+    },
+    "exam_participants": {
+      "rows": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "exam_results": {
+      "rows": 2,
+      "sha256": "c9be678df4243bbb09c545bbb3f12464625f7bef3a211d0f1eb68c407a910d67"
+    },
+    "diagnosis_reports": {
+      "rows": 1,
+      "sha256": "9b270957ff0b4560a12bbbd57aa817f5d1e99f108a798f6a321ab9004c020293"
+    },
+    "workflow_runs": {
+      "rows": 2,
+      "sha256": "9030bc6948979dd33577c93034257a99c08e5d765d4ed457a095224fa64e4096"
+    },
+    "agent_runs": {
+      "rows": 38,
+      "sha256": "ed448a873f2590bf7b0a083a134e53293a06dade1f74098dbbf36818f1024361"
+    },
+    "review_records": {
+      "rows": 1,
+      "sha256": "01f7b63ab60f9b02c126943c6b79e06c5ca9053550d1a05be8db1ed32f1d0ede"
+    },
+    "question_source_chunks": {
+      "rows": 3,
+      "sha256": "73f5353d06fade6eef6f5b17fe40ef0ff84807590e4af833a0a49b24486261db"
+    },
+    "question_generation_metadata": {
+      "rows": 3,
+      "sha256": "4d1a7d70488c667dd76ae7753161ce1c9f497baa862e65c49a0c4a8d1ca2883b"
+    },
+    "question_revision_comments": {
+      "rows": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "audit_logs": {
+      "rows": 9,
+      "sha256": "71b45e5f38be76231260afbb4668ba9bfd80f91970d2c1b8db890758d6864a34"
+    },
+    "export_files": {
+      "rows": 1,
+      "sha256": "dc293c00cadbe0c0ba795d117f47ebac376f292d9cb46a8858b36afc44a30da1"
+    },
+    "documents": {
+      "rows": 4,
+      "sha256": "4727ecce2897d13302d672cfdde57c8742ea0b180ca422eaf24b8cd93cf5cb50"
+    },
+    "paper_imports": {
+      "rows": 3,
+      "sha256": "1cf4662622ec0fb5c07be724581c9607acd504944c2943b876954900aea11c9e"
+    },
+    "source_pages": {
+      "rows": 3,
+      "sha256": "533926450f9974aeea08a50dd0a0dbe253f23f1aa5b3faf6f28bd5c30604e664"
+    },
+    "question_assets": {
+      "rows": 3,
+      "sha256": "548d852fcf1df3533e7efdf24979ce4b503691323b535126c54d555a3fb0125b"
+    },
+    "extracted_questions": {
+      "rows": 6,
+      "sha256": "d84d6524103f67d0c9b3adc52e398a485b822e1ffa10a4b2bb6143235ecd2db1"
+    },
+    "chapters": {
+      "rows": 1,
+      "sha256": "34a5d92a6ed16f2bf2fc0fd64bb816019090ddc1a23f61d7327536638261c4ca"
+    },
+    "document_chunks": {
+      "rows": 5,
+      "sha256": "b59d3446af1452b0bcb0a8614ff6f0ca933abb8b8a0ae1dc8c50c567f20b618c"
+    },
+    "questions": {
+      "rows": 6,
+      "sha256": "e3a17d2cac9d0291ed3ba96ea54515e2199d72f2f81813c0f94e80fa2da6f6eb"
+    },
+    "question_validation_results": {
+      "rows": 7,
+      "sha256": "c27231f136e0aba4337a59258667a5f2367a2cce70c09a1e51676fd9d9410a4a"
+    },
+    "question_source_papers": {
+      "rows": 2,
+      "sha256": "b68f1d5fdb850c8754bc43e12eb3f806d47d4698eee790e36e8481131d10bca3"
+    },
+    "exams": {
+      "rows": 4,
+      "sha256": "ba37eaa31ca495c1e60c485d4c464b02e324378df79eaf3a6f46a40e29c9c949"
+    },
+    "exam_questions": {
+      "rows": 8,
+      "sha256": "228ace58e1f02e9b0225e2a0bbd92e129966e305483eab417d207b70c4b6142a"
+    },
+    "grading_results": {
+      "rows": 4,
+      "sha256": "5a779995324f76b5fcc5234e3fc6d953e7a193a284e0ad4c5c7aab2986774839"
+    }
+  },
+  "prior_storage_receipt": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t191-20261006\\storage",
+  "backup_set_path": "D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\backups\\backup_set_31f517fb6d504e568d34d83419520964",
+  "backup_outcome": "complete",
+  "file_count": 20,
+  "reference_counts": {
+    "document": 4,
+    "export": 1,
+    "source_page": 3,
+    "question_asset": 3
+  },
+  "target_tables": {
+    "alembic_version": {
+      "rows": 1,
+      "sha256": "cd6d39f041f0418cd7625b382398aa5637d744bab1348a53163d2fa5063d4bb4"
+    },
+    "audit_logs": {
+      "rows": 9,
+      "sha256": "71b45e5f38be76231260afbb4668ba9bfd80f91970d2c1b8db890758d6864a34"
+    },
+    "users": {
+      "rows": 4,
+      "sha256": "e2997b43bbe0d022da4432d15982ebc4665c72bd8b9077c7603b706071f555df"
+    },
+    "agent_runs": {
+      "rows": 38,
+      "sha256": "ed448a873f2590bf7b0a083a134e53293a06dade1f74098dbbf36818f1024361"
+    },
+    "workflow_runs": {
+      "rows": 2,
+      "sha256": "9030bc6948979dd33577c93034257a99c08e5d765d4ed457a095224fa64e4096"
+    },
+    "questions": {
+      "rows": 6,
+      "sha256": "e3a17d2cac9d0291ed3ba96ea54515e2199d72f2f81813c0f94e80fa2da6f6eb"
+    },
+    "answers": {
+      "rows": 4,
+      "sha256": "c98d74e8185455c0f4e0e9e7e13ed88ba58d613bf4e3e2a9ec16ab7873ce5ab4"
+    },
+    "submissions": {
+      "rows": 2,
+      "sha256": "34f7988b0d08f7ff58bf11dc58bebeb1761d6bb637e963ae2a5b949d883f6cf2"
+    },
+    "chapters": {
+      "rows": 1,
+      "sha256": "34a5d92a6ed16f2bf2fc0fd64bb816019090ddc1a23f61d7327536638261c4ca"
+    },
+    "courses": {
+      "rows": 2,
+      "sha256": "6cf511cee9db5635d92d54d0e7232ef45dc397ef9e68fde971ea9b5b10ab658b"
+    },
+    "exam_results": {
+      "rows": 2,
+      "sha256": "c9be678df4243bbb09c545bbb3f12464625f7bef3a211d0f1eb68c407a910d67"
+    },
+    "diagnosis_reports": {
+      "rows": 1,
+      "sha256": "9b270957ff0b4560a12bbbd57aa817f5d1e99f108a798f6a321ab9004c020293"
+    },
+    "document_chunks": {
+      "rows": 5,
+      "sha256": "b59d3446af1452b0bcb0a8614ff6f0ca933abb8b8a0ae1dc8c50c567f20b618c"
+    },
+    "documents": {
+      "rows": 4,
+      "sha256": "4727ecce2897d13302d672cfdde57c8742ea0b180ca422eaf24b8cd93cf5cb50"
+    },
+    "knowledge_bases": {
+      "rows": 1,
+      "sha256": "d93e76af80f074a32e979a33bb321ce22c91e3bdfb75393d96b21918c7f49d03"
+    },
+    "exams": {
+      "rows": 4,
+      "sha256": "ba37eaa31ca495c1e60c485d4c464b02e324378df79eaf3a6f46a40e29c9c949"
+    },
+    "exam_participants": {
+      "rows": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "exam_questions": {
+      "rows": 8,
+      "sha256": "228ace58e1f02e9b0225e2a0bbd92e129966e305483eab417d207b70c4b6142a"
+    },
+    "export_files": {
+      "rows": 1,
+      "sha256": "dc293c00cadbe0c0ba795d117f47ebac376f292d9cb46a8858b36afc44a30da1"
+    },
+    "paper_imports": {
+      "rows": 3,
+      "sha256": "1cf4662622ec0fb5c07be724581c9607acd504944c2943b876954900aea11c9e"
+    },
+    "extracted_questions": {
+      "rows": 6,
+      "sha256": "d84d6524103f67d0c9b3adc52e398a485b822e1ffa10a4b2bb6143235ecd2db1"
+    },
+    "grading_results": {
+      "rows": 4,
+      "sha256": "5a779995324f76b5fcc5234e3fc6d953e7a193a284e0ad4c5c7aab2986774839"
+    },
+    "question_assets": {
+      "rows": 3,
+      "sha256": "548d852fcf1df3533e7efdf24979ce4b503691323b535126c54d555a3fb0125b"
+    },
+    "source_pages": {
+      "rows": 3,
+      "sha256": "533926450f9974aeea08a50dd0a0dbe253f23f1aa5b3faf6f28bd5c30604e664"
+    },
+    "question_generation_metadata": {
+      "rows": 3,
+      "sha256": "4d1a7d70488c667dd76ae7753161ce1c9f497baa862e65c49a0c4a8d1ca2883b"
+    },
+    "question_revision_comments": {
+      "rows": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "question_source_chunks": {
+      "rows": 3,
+      "sha256": "73f5353d06fade6eef6f5b17fe40ef0ff84807590e4af833a0a49b24486261db"
+    },
+    "question_source_papers": {
+      "rows": 2,
+      "sha256": "b68f1d5fdb850c8754bc43e12eb3f806d47d4698eee790e36e8481131d10bca3"
+    },
+    "question_validation_results": {
+      "rows": 7,
+      "sha256": "c27231f136e0aba4337a59258667a5f2367a2cce70c09a1e51676fd9d9410a4a"
+    },
+    "review_records": {
+      "rows": 1,
+      "sha256": "01f7b63ab60f9b02c126943c6b79e06c5ca9053550d1a05be8db1ed32f1d0ede"
+    },
+    "roles": {
+      "rows": 3,
+      "sha256": "346ffd090cc12cfe11f42c96c3d7153ff26fd05ce691c52002c88a53b25fb919"
+    },
+    "user_roles": {
+      "rows": 4,
+      "sha256": "d3c5cc914c9efd26bdda62693ba3725cd177d79752d22f437f30f4a3192730fe"
+    }
+  },
+  "all_table_rows_identical": true,
+  "restored_file_checks": [
+    {
+      "relative_path": "uploads/0d6de23d2db04f34a175ea324b78d46d/31bd29c4a32b45bf8c6b3ea505aa529e.receipt.json",
+      "size_matches": true,
+      "sha256_matches": true
+    },
+    {
+      "relative_path": "uploads/0d6de23d2db04f34a175ea324b78d46d/31bd29c4a32b45bf8c6b3ea505aa529e.txt",
+      "size_matches": true,
+      "sha256_matches": true
+    },
+    {
+      "relative_path": "papers/4966f2fa298e4dc28fe9415468f9844e/bdee1b8433bb4f0588e74b4e86b9f3c3.pdf",
+      "size_matches": true,
+      "sha256_matches": true
+    },
+    {
+      "relative_path": "papers/4966f2fa298e4dc28fe9415468f9844e/bdee1b8433bb4f0588e74b4e86b9f3c3.receipt.json",
+      "size_matches": true,
+      "sha256_matches": true
+    },
+    {
+      "relative_path": "papers/71678749b50a47ce8af8681cfbf0f471/932b509ee6ef4f5cafdc29164383e5f5.pdf",
+      "size_matches": true,
+      "sha256_matches": true
+    },
+    {
+      "relative_path": "papers/71678749b50a47ce8af8681cfbf0f471/932b509ee6ef4f5cafdc29164383e5f5.receipt.json",
+      "size_matches": true,
+      "sha256_matches": true
+    },
+    {
+      "relative_path": "papers/7624303ff59f49eda72bdcc0e27f0b6a/f7b929fcb25b4de1a4d67fd02042feab.png",
+      "size_matches": true,
+      "sha256_matches": true
+    },
+    {
+      "relative_path": "papers/7624303ff59f49eda72bdcc0e27f0b6a/f7b929fcb25b4de1a4d67fd02042feab.receipt.json",
+      "size_matches": true,
+      "sha256_matches": true
+    },
+    {
+      "relative_path": "papers/763cb86eb571456690ec95ef6cad2907/9afe4c1cbc5641d7a7be97db0b3734bc.png",
+      "size_matches": true,
+      "sha256_matches": true
+    },
+    {
+      "relative_path": "papers/763cb86eb571456690ec95ef6cad2907/9afe4c1cbc5641d7a7be97db0b3734bc.receipt.json",
+      "size_matches": true,
+      "sha256_matches": true
+    },
+    {
+      "relative_path": "papers/a9c766144f084eeb8f5c95b1c37f2d30/d58bcb7451054597a3e0babb4d2ea21e.png",
+      "size_matches": true,
+      "sha256_matches": true
+    },
+    {
+      "relative_path": "papers/a9c766144f084eeb8f5c95b1c37f2d30/d58bcb7451054597a3e0babb4d2ea21e.receipt.json",
+      "size_matches": true,
+      "sha256_matches": true
+    },
+    {
+      "relative_path": "papers/be74c29a19c3436a93312a5de7bf8766/6b7b3e6fbb6c4426b4aa61f9f131fad9.pdf",
+      "size_matches": true,
+      "sha256_matches": true
+    },
+    {
+      "relative_path": "papers/be74c29a19c3436a93312a5de7bf8766/6b7b3e6fbb6c4426b4aa61f9f131fad9.receipt.json",
+      "size_matches": true,
+      "sha256_matches": true
+    },
+    {
+      "relative_path": "assets/6f7825677a524e35a4a6c97c6e7494c3/2378410edf3c404cba1ea5ba530fefec.png",
+      "size_matches": true,
+      "sha256_matches": true
+    },
+    {
+      "relative_path": "assets/6f7825677a524e35a4a6c97c6e7494c3/2378410edf3c404cba1ea5ba530fefec.receipt.json",
+      "size_matches": true,
+      "sha256_matches": true
+    },
+    {
+      "relative_path": "assets/6f7825677a524e35a4a6c97c6e7494c3/a75d67410cca4985b9860dcfccf4e260_867d1e094f1b44879a5d6545407b0b29.receipt.json",
+      "size_matches": true,
+      "sha256_matches": true
+    },
+    {
+      "relative_path": "assets/6f7825677a524e35a4a6c97c6e7494c3/b0d12894c0d245fdbca2d8b9d788295f_8dc8603ac0e24c959449ef66e6d7ada5.receipt.json",
+      "size_matches": true,
+      "sha256_matches": true
+    },
+    {
+      "relative_path": "exports/b81db376fc294290b904db1e939a7644/f68fb48844024befa712519ec2451c7c.csv",
+      "size_matches": true,
+      "sha256_matches": true
+    },
+    {
+      "relative_path": "exports/b81db376fc294290b904db1e939a7644/f68fb48844024befa712519ec2451c7c.receipt.json",
+      "size_matches": true,
+      "sha256_matches": true
+    }
+  ],
+  "restored_teacher_authorized_reads": [
+    {
+      "file_id": "d_0d6de23d2db04f34a175ea324b78d46d",
+      "availability": "available",
+      "bytes": 301
+    },
+    {
+      "file_id": "d_4966f2fa298e4dc28fe9415468f9844e",
+      "availability": "available",
+      "bytes": 72250
+    },
+    {
+      "file_id": "d_71678749b50a47ce8af8681cfbf0f471",
+      "availability": "available",
+      "bytes": 154527
+    },
+    {
+      "file_id": "d_be74c29a19c3436a93312a5de7bf8766",
+      "availability": "available",
+      "bytes": 154527
+    },
+    {
+      "file_id": "e_b81db376fc294290b904db1e939a7644",
+      "availability": "available",
+      "bytes": 224
+    },
+    {
+      "file_id": "p_7624303ff59f49eda72bdcc0e27f0b6a",
+      "availability": "available",
+      "bytes": 157944
+    },
+    {
+      "file_id": "p_763cb86eb571456690ec95ef6cad2907",
+      "availability": "available",
+      "bytes": 157944
+    },
+    {
+      "file_id": "p_a9c766144f084eeb8f5c95b1c37f2d30",
+      "availability": "available",
+      "bytes": 157944
+    },
+    {
+      "file_id": "a_6f7825677a524e35a4a6c97c6e7494c3",
+      "availability": "available",
+      "bytes": 13943
+    },
+    {
+      "file_id": "a_867d1e094f1b44879a5d6545407b0b29",
+      "availability": "available",
+      "bytes": 13943
+    },
+    {
+      "file_id": "a_8dc8603ac0e24c959449ef66e6d7ada5",
+      "availability": "available",
+      "bytes": 13943
+    }
+  ],
+  "student_restored_pictures": [
+    {
+      "file_id": "a_867d1e094f1b44879a5d6545407b0b29",
+      "bytes": 13943
+    }
+  ],
+  "source_pages_still_private": [
+    {
+      "file_id": "p_7624303ff59f49eda72bdcc0e27f0b6a",
+      "http_status": 403,
+      "code": "FILE_FORBIDDEN"
+    },
+    {
+      "file_id": "p_763cb86eb571456690ec95ef6cad2907",
+      "http_status": 403,
+      "code": "FILE_FORBIDDEN"
+    },
+    {
+      "file_id": "p_a9c766144f084eeb8f5c95b1c37f2d30",
+      "http_status": 403,
+      "code": "FILE_FORBIDDEN"
+    }
+  ],
+  "restored_result": {
+    "submission_id": "39cefb7a-e1d6-4a0e-9ec1-6da24d92af44",
+    "exam_id": "d72b96f8-2bda-4225-9c9c-660eb8f9e462",
+    "is_final": true,
+    "final_total_score": 2.0,
+    "total_max_score": 10.0
+  },
+  "restored_exam_totals": [
+    {
+      "id": "d72b96f8-2bda-4225-9c9c-660eb8f9e462",
+      "status": "Published",
+      "total_score": "10.00"
+    },
+    {
+      "id": "cb6af9b1-9050-4c60-be5c-6a6c5b3c89de",
+      "status": "Published",
+      "total_score": "5.00"
+    }
+  ],
+  "restored_option_orders": {
+    "dd9b7665-0389-48e6-b81a-f61bb37ff371": [
+      "正确",
+      "错误"
+    ],
+    "4d6073af-592e-4d83-8fea-db35e168d721": [
+      "A. 5",
+      "B. 6",
+      "C. 7",
+      "D. 8"
+    ],
+    "946d6db6-43b1-4e0b-a85b-1c849b0c2edb": [
+      "C",
+      "A",
+      "B",
+      "D"
+    ],
+    "e676cf98-f73f-4e45-99ac-56441471f9a3": null,
+    "13f50e69-a8e5-4579-a405-a69a7f4faf88": null,
+    "b412c277-7f56-4d27-b2d5-ff59b77dae47": null
+  },
+  "target_remains_maintenance_blocked": true,
+  "status": "verified"
+}

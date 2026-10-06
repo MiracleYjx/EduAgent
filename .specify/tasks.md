@@ -644,7 +644,7 @@ M0 工程骨架 + Benchmark
 
 - [X] T190 [HIGH] [E6] **完成兼容回归与 v2.0 测量汇总**：按既有框架执行全量 pytest、mypy、ruff、隔离迁移/历史读取、Docker M0/三容器 readiness及原检索/阅卷 Benchmark；汇总 T160/T168/T179/T189 的质量、耗时、资源和失败样本到 `benchmark/results/`、`docs/evaluation.md`，仅有新修改/失败时重测相关场景。保留 v1.0 用例、原证据和所有真实未通过项，不修改旧任务勾选。 依赖：T145、T152、T160、T169、T179、T184、T186、T189。per plan Gate 1–19/兼容性目标、Constitution I/V（F057） (partial)
 
-- [ ] T191 [HIGH] [E6] **完成真实闭环、恢复及交付证据**：在实际课程完成导入校正、教学资料、知识库文字出题与原题改编两条路径、答案重核验/教师审核、带图条件组卷、本机考试、混合评分/人工复核及两类分析；覆盖缺答案/不同本场分值/失败状态。用含全部新资源和答卷评分的数据在隔离目标执行一致备份恢复，核对来源/文件/成绩，并汇总七页 UI/EXE 证据到 `docs/validation-report.md`、`docs/release-checklist.md` 以及 `docs/paper-import.md`、`docs/file-lifecycle.md`、`docs/exe-deployment.md` 使用说明；记录验收结论供用户裁决，未实测不宣称交付，发布另按授权。 依赖：T151、T160、T169、T179、T184、T186、T189、T190。per FR-041–052、SC-010–014、plan Gate 10–19（F058） (missing)
+- [X] T191 [HIGH] [E6] **完成真实闭环、恢复及交付证据**：在实际课程完成导入校正、教学资料、知识库文字出题与原题改编两条路径、答案重核验/教师审核、带图条件组卷、本机考试、混合评分/人工复核及两类分析；覆盖缺答案/不同本场分值/失败状态。用含全部新资源和答卷评分的数据在隔离目标执行一致备份恢复，核对来源/文件/成绩，并汇总七页 UI/EXE 证据到 `docs/validation-report.md`、`docs/release-checklist.md` 以及 `docs/paper-import.md`、`docs/file-lifecycle.md`、`docs/exe-deployment.md` 使用说明；记录验收结论供用户裁决，未实测不宣称交付，发布另按授权。 依赖：T151、T160、T169、T179、T184、T186、T189、T190。per FR-041–052、SC-010–014、plan Gate 10–19（F058） (missing)
 
 ### 需求、场景与验证追溯
 

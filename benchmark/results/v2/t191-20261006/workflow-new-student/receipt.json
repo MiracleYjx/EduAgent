@@ -1,0 +1,1811 @@
+{
+  "prior_receipt": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t191-20261006\\final-exam\\receipt.json",
+  "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+  "exam_id": "d72b96f8-2bda-4225-9c9c-660eb8f9e462",
+  "second_exam_id": "cb6af9b1-9050-4c60-be5c-6a6c5b3c89de",
+  "submission_id": "39cefb7a-e1d6-4a0e-9ec1-6da24d92af44",
+  "events": [
+    {
+      "label": "create_real_synthetic_student",
+      "status": 201,
+      "response": {
+        "id": "7cd74a3c-0f4c-4347-9cdb-0d0df9f57753",
+        "username": "t191_workflow_303144a9dacf",
+        "email": "t191_workflow_303144a9dacf@example.invalid",
+        "is_active": true,
+        "roles": [
+          "Student"
+        ],
+        "created_at": "2026-10-06T04:41:52.589426Z",
+        "updated_at": "2026-10-06T04:41:52.589429Z"
+      }
+    },
+    {
+      "label": "actual_password_login",
+      "status": 200,
+      "response": {
+        "access_token": "[REDACTED]",
+        "user": {
+          "id": "7cd74a3c-0f4c-4347-9cdb-0d0df9f57753",
+          "username": "t191_workflow_303144a9dacf",
+          "email": "t191_workflow_303144a9dacf@example.invalid",
+          "roles": [
+            "Student"
+          ]
+        }
+      }
+    },
+    {
+      "label": "new_student_start",
+      "status": 201,
+      "response": {
+        "id": "39cefb7a-e1d6-4a0e-9ec1-6da24d92af44",
+        "exam_id": "d72b96f8-2bda-4225-9c9c-660eb8f9e462",
+        "student_id": "7cd74a3c-0f4c-4347-9cdb-0d0df9f57753",
+        "status": "Draft",
+        "submitted_at": null,
+        "graded_at": null,
+        "reviewed_at": null,
+        "answers": [
+          {
+            "id": "9890867a-c71d-47b7-b7fc-ffeee6537c1f",
+            "submission_id": "39cefb7a-e1d6-4a0e-9ec1-6da24d92af44",
+            "question_id": "b412c277-7f56-4d27-b2d5-ff59b77dae47",
+            "content": null,
+            "status": "Draft",
+            "created_at": "2026-10-06T04:41:52.798887Z",
+            "updated_at": "2026-10-06T04:41:52.798890Z"
+          },
+          {
+            "id": "3693d220-4507-414e-9c62-331ab13ad564",
+            "submission_id": "39cefb7a-e1d6-4a0e-9ec1-6da24d92af44",
+            "question_id": "4d6073af-592e-4d83-8fea-db35e168d721",
+            "content": null,
+            "status": "Draft",
+            "created_at": "2026-10-06T04:41:52.798894Z",
+            "updated_at": "2026-10-06T04:41:52.798894Z"
+          }
+        ],
+        "answer_count": 2,
+        "question_count": 2,
+        "missing_question_ids": [
+          "b412c277-7f56-4d27-b2d5-ff59b77dae47",
+          "4d6073af-592e-4d83-8fea-db35e168d721"
+        ],
+        "created_at": "2026-10-06T04:41:52.795533Z",
+        "updated_at": "2026-10-06T04:41:52.795537Z"
+      }
+    },
+    {
+      "label": "new_student_submit_mixed_answers",
+      "status": 200,
+      "response": {
+        "id": "39cefb7a-e1d6-4a0e-9ec1-6da24d92af44",
+        "exam_id": "d72b96f8-2bda-4225-9c9c-660eb8f9e462",
+        "student_id": "7cd74a3c-0f4c-4347-9cdb-0d0df9f57753",
+        "status": "Submitted",
+        "submitted_at": "2026-10-06T04:41:52.836616Z",
+        "graded_at": null,
+        "reviewed_at": null,
+        "answers": [
+          {
+            "id": "9890867a-c71d-47b7-b7fc-ffeee6537c1f",
+            "submission_id": "39cefb7a-e1d6-4a0e-9ec1-6da24d92af44",
+            "question_id": "b412c277-7f56-4d27-b2d5-ff59b77dae47",
+            "content": "y=2x+1。",
+            "status": "Submitted",
+            "created_at": "2026-10-06T04:41:52.798887Z",
+            "updated_at": "2026-10-06T04:41:52.932242Z"
+          },
+          {
+            "id": "3693d220-4507-414e-9c62-331ab13ad564",
+            "submission_id": "39cefb7a-e1d6-4a0e-9ec1-6da24d92af44",
+            "question_id": "4d6073af-592e-4d83-8fea-db35e168d721",
+            "content": "A. 5",
+            "status": "Submitted",
+            "created_at": "2026-10-06T04:41:52.798894Z",
+            "updated_at": "2026-10-06T04:41:52.932242Z"
+          }
+        ],
+        "answer_count": 2,
+        "question_count": 2,
+        "missing_question_ids": [],
+        "created_at": "2026-10-06T04:41:52.795533Z",
+        "updated_at": "2026-10-06T04:41:52.930311Z"
+      }
+    },
+    {
+      "label": "actual_LangGraph_run_and_checkpoint",
+      "status": 200,
+      "response": {
+        "workflow_id": "grading-989c0b39-4a8d-458b-9449-eca4b258c472",
+        "submission_id": "39cefb7a-e1d6-4a0e-9ec1-6da24d92af44",
+        "request_id": "0823d10e-3a3b-4963-bcfb-7b0e1719dfea",
+        "status": "Paused",
+        "current_node": "pending_review",
+        "pause_reason": "第 9890867a-c71d-47b7-b7fc-ffeee6537c1f 题评分结果需要教师复核，工作流已暂停。",
+        "resumable": true,
+        "interrupted": true,
+        "pending_answer_ids": [
+          "9890867a-c71d-47b7-b7fc-ffeee6537c1f"
+        ],
+        "retry_count": 0,
+        "thread_id": "3f1bb8da-8b6b-42e1-a562-2e5aa62ae761",
+        "reused": false,
+        "updated_at": "2026-10-06T04:42:01.442701Z"
+      }
+    },
+    {
+      "label": "actual_workflow_review_queue",
+      "status": 200,
+      "response": {
+        "total": 2,
+        "limit": 50,
+        "offset": 0,
+        "items": [
+          {
+            "submission_id": "39cefb7a-e1d6-4a0e-9ec1-6da24d92af44",
+            "answer_id": "9890867a-c71d-47b7-b7fc-ffeee6537c1f",
+            "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+            "exam_id": "d72b96f8-2bda-4225-9c9c-660eb8f9e462",
+            "exam_title": "T191 可作答文字生成与带图改编闭环",
+            "student_id": "7cd74a3c-0f4c-4347-9cdb-0d0df9f57753",
+            "student_name": "t191_workflow_303144a9dacf",
+            "question_id": "b412c277-7f56-4d27-b2d5-ff59b77dae47",
+            "exam_question_id": "966f7106-e36f-404a-8846-3c81f2f3f3e8",
+            "question_number": 1,
+            "question_type": "SHORT_ANSWER",
+            "max_score": "6.00",
+            "score": "2.00",
+            "confidence": 0.98,
+            "review_status": "Pending Review",
+            "pending_review_round_id": "5d7d5c32-7441-480c-b0ac-2a1dee72b716",
+            "requires_review": true,
+            "updated_at": "2026-10-06T04:42:01.405589Z"
+          },
+          {
+            "submission_id": "f5b2abd4-e8d0-4d12-bc5e-70ab0f95fb93",
+            "answer_id": "e943ac30-57c4-4e6e-a8ab-55bdc7e1a71f",
+            "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+            "exam_id": "d72b96f8-2bda-4225-9c9c-660eb8f9e462",
+            "exam_title": "T191 可作答文字生成与带图改编闭环",
+            "student_id": "49e07d09-9088-40f3-9b12-92c3bc12b0ab",
+            "student_name": "dev_student",
+            "question_id": "b412c277-7f56-4d27-b2d5-ff59b77dae47",
+            "exam_question_id": "966f7106-e36f-404a-8846-3c81f2f3f3e8",
+            "question_number": 1,
+            "question_type": "SHORT_ANSWER",
+            "max_score": "6.00",
+            "score": "2.00",
+            "confidence": 0.99,
+            "review_status": "Pending Review",
+            "pending_review_round_id": "880b38a2-f14a-45a7-9448-a364fc59fa83",
+            "requires_review": true,
+            "updated_at": "2026-10-06T04:27:30.450200Z"
+          }
+        ]
+      }
+    },
+    {
+      "label": "AI_delegated_current_workflow_review",
+      "status": 200,
+      "response": {
+        "workflow_id": "grading-989c0b39-4a8d-458b-9449-eca4b258c472",
+        "submission_id": "39cefb7a-e1d6-4a0e-9ec1-6da24d92af44",
+        "answer_id": "9890867a-c71d-47b7-b7fc-ffeee6537c1f",
+        "decision": "Modified",
+        "decision_saved": true,
+        "review_record_id": "aba97ee0-687b-4e98-9e4c-4f0b9ab87da1",
+        "review_round_id": "5d7d5c32-7441-480c-b0ac-2a1dee72b716",
+        "idempotency_degraded": false,
+        "resume_status": "succeeded",
+        "resume_error_code": null,
+        "workflow_status": "Completed",
+        "pending_review_count": 0,
+        "resumable": false,
+        "exam_result_persisted": true,
+        "diagnosis_error_code": null,
+        "message": "教师结论已生效，原工作流已恢复。"
+      }
+    },
+    {
+      "label": "actual_resumed_workflow",
+      "status": 200,
+      "response": {
+        "workflow_id": "grading-989c0b39-4a8d-458b-9449-eca4b258c472",
+        "submission_id": "39cefb7a-e1d6-4a0e-9ec1-6da24d92af44",
+        "request_id": "0823d10e-3a3b-4963-bcfb-7b0e1719dfea",
+        "status": "Completed",
+        "current_node": "generate_diagnosis",
+        "pause_reason": null,
+        "resumable": false,
+        "interrupted": false,
+        "pending_answer_ids": [],
+        "retry_count": 0,
+        "thread_id": "3f1bb8da-8b6b-42e1-a562-2e5aa62ae761",
+        "reused": false,
+        "updated_at": "2026-10-06T04:42:05.938345Z"
+      }
+    },
+    {
+      "label": "teacher_actual_analysis",
+      "status": 200,
+      "response": {
+        "exam_id": "d72b96f8-2bda-4225-9c9c-660eb8f9e462",
+        "submitted_count": 2,
+        "final_count": 1,
+        "pending_review_count": 1,
+        "average_of_final_scores": "2.00",
+        "eligible_count": 2,
+        "participated_count": 2,
+        "draft_count": 0,
+        "not_participated_count": 0,
+        "pending_review_submission_count": 1,
+        "failed_submission_count": 0,
+        "insufficient_evidence_submission_count": 0,
+        "unfinished_submission_count": 0,
+        "participation_scope": "当前启用学生的分配资格人口，独立于当前考试开放时间窗；无分配记录按既有全体开放口径（含无角色旧账号）。已参加按真实答卷去重，保留历史停用/已撤销分配的观测。",
+        "distribution_denominator": 1,
+        "final_score_distribution": [
+          {
+            "score": "2.00",
+            "submission_count": 1
+          }
+        ],
+        "question_statistics": [
+          {
+            "exam_question_id": "966f7106-e36f-404a-8846-3c81f2f3f3e8",
+            "question_id": "b412c277-7f56-4d27-b2d5-ff59b77dae47",
+            "order": 1,
+            "published_knowledge_points": [
+              "一次函数",
+              "求函数值",
+              "验证关系式"
+            ],
+            "max_score": "6.00",
+            "effective_submission_count": 1,
+            "excluded_final_submission_count": 0,
+            "awarded_score": "2.00",
+            "maximum_score": "6.00",
+            "lost_score": "4.00",
+            "score_rate": "0.3333",
+            "not_ready_reason": null
+          },
+          {
+            "exam_question_id": "fbf242d6-6ebf-4044-99c2-8f380350a90d",
+            "question_id": "4d6073af-592e-4d83-8fea-db35e168d721",
+            "order": 2,
+            "published_knowledge_points": [
+              "一次函数",
+              "求函数值"
+            ],
+            "max_score": "4.00",
+            "effective_submission_count": 1,
+            "excluded_final_submission_count": 0,
+            "awarded_score": "0",
+            "maximum_score": "4.00",
+            "lost_score": "4.00",
+            "score_rate": "0.0000",
+            "not_ready_reason": null
+          }
+        ],
+        "knowledge_point_statistics": [
+          {
+            "knowledge_point": "一次函数",
+            "exam_question_ids": [
+              "966f7106-e36f-404a-8846-3c81f2f3f3e8",
+              "fbf242d6-6ebf-4044-99c2-8f380350a90d"
+            ],
+            "effective_student_count": 1,
+            "effective_answer_count": 2,
+            "awarded_score": "2.00",
+            "maximum_score": "10.00",
+            "lost_score": "8.00",
+            "score_rate": "0.2000"
+          },
+          {
+            "knowledge_point": "求函数值",
+            "exam_question_ids": [
+              "966f7106-e36f-404a-8846-3c81f2f3f3e8",
+              "fbf242d6-6ebf-4044-99c2-8f380350a90d"
+            ],
+            "effective_student_count": 1,
+            "effective_answer_count": 2,
+            "awarded_score": "2.00",
+            "maximum_score": "10.00",
+            "lost_score": "8.00",
+            "score_rate": "0.2000"
+          },
+          {
+            "knowledge_point": "验证关系式",
+            "exam_question_ids": [
+              "966f7106-e36f-404a-8846-3c81f2f3f3e8"
+            ],
+            "effective_student_count": 1,
+            "effective_answer_count": 1,
+            "awarded_score": "2.00",
+            "maximum_score": "6.00",
+            "lost_score": "4.00",
+            "score_rate": "0.3333"
+          }
+        ],
+        "attention_students": [
+          {
+            "student_id": "49e07d09-9088-40f3-9b12-92c3bc12b0ab",
+            "submission_id": "f5b2abd4-e8d0-4d12-bc5e-70ab0f95fb93",
+            "reasons": [
+              "存在待人工复核题目，未形成最终成绩。"
+            ],
+            "answer_ids": [],
+            "exam_question_ids": [],
+            "knowledge_points": [],
+            "final_lost_score": null,
+            "error_code": null
+          },
+          {
+            "student_id": "7cd74a3c-0f4c-4347-9cdb-0d0df9f57753",
+            "submission_id": "39cefb7a-e1d6-4a0e-9ec1-6da24d92af44",
+            "reasons": [
+              "存在已确认的最终失分；明细使用本场固定满分和发布知识点。"
+            ],
+            "answer_ids": [
+              "9890867a-c71d-47b7-b7fc-ffeee6537c1f",
+              "3693d220-4507-414e-9c62-331ab13ad564"
+            ],
+            "exam_question_ids": [
+              "966f7106-e36f-404a-8846-3c81f2f3f3e8",
+              "fbf242d6-6ebf-4044-99c2-8f380350a90d"
+            ],
+            "knowledge_points": [
+              "一次函数",
+              "求函数值",
+              "验证关系式"
+            ],
+            "final_lost_score": "8.00",
+            "error_code": null
+          }
+        ],
+        "knowledge_point_attribution": "多知识点题在各知识点完整归属；知识点行不可加总成整卷总分。",
+        "statistics_not_ready_reason": null,
+        "not_ready": false,
+        "not_ready_reason": null
+      }
+    },
+    {
+      "label": "student_actual_learning",
+      "status": 200,
+      "response": {
+        "processing_status": "final",
+        "processing_error_code": null,
+        "processing_reason": null,
+        "submission_id": "39cefb7a-e1d6-4a0e-9ec1-6da24d92af44",
+        "exam_id": "d72b96f8-2bda-4225-9c9c-660eb8f9e462",
+        "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+        "student_id": "7cd74a3c-0f4c-4347-9cdb-0d0df9f57753",
+        "is_final": true,
+        "source_exam_result_updated_at": "2026-10-06T04:42:02.585275Z",
+        "diagnosis": {
+          "exam_result_id": "ac01faae-7dcd-4c47-92f3-9b0cb68d26d4",
+          "submission_id": "39cefb7a-e1d6-4a0e-9ec1-6da24d92af44",
+          "student_id": "7cd74a3c-0f4c-4347-9cdb-0d0df9f57753",
+          "status": "Ready",
+          "mastery_by_knowledge_point": [
+            {
+              "knowledge_point": "一次函数",
+              "answered_count": 2,
+              "correct_count": 0,
+              "awarded_score": "2.00",
+              "max_score": "10.00",
+              "mastery": "0.20"
+            },
+            {
+              "knowledge_point": "求函数值",
+              "answered_count": 2,
+              "correct_count": 0,
+              "awarded_score": "2.00",
+              "max_score": "10.00",
+              "mastery": "0.20"
+            },
+            {
+              "knowledge_point": "验证关系式",
+              "answered_count": 1,
+              "correct_count": 0,
+              "awarded_score": "2.00",
+              "max_score": "6.00",
+              "mastery": "0.33"
+            }
+          ],
+          "weak_knowledge_points": [
+            {
+              "knowledge_point": "一次函数",
+              "reason": "掌握度 0.20 低于阈值 0.60（2.00/10.00）。",
+              "error_count": 2,
+              "awarded_score": "2.00",
+              "max_score": "10.00",
+              "mastery": "0.20"
+            },
+            {
+              "knowledge_point": "求函数值",
+              "reason": "掌握度 0.20 低于阈值 0.60（2.00/10.00）。",
+              "error_count": 2,
+              "awarded_score": "2.00",
+              "max_score": "10.00",
+              "mastery": "0.20"
+            },
+            {
+              "knowledge_point": "验证关系式",
+              "reason": "掌握度 0.33 低于阈值 0.60（2.00/6.00）。",
+              "error_count": 1,
+              "awarded_score": "2.00",
+              "max_score": "6.00",
+              "mastery": "0.33"
+            }
+          ],
+          "error_reasons": [
+            "b412c277-7f56-4d27-b2d5-ff59b77dae47：缺少要点 用两组数据求斜率及截距的过程、代入第三组数据验证（得分 2.00/6.00）。",
+            "4d6073af-592e-4d83-8fea-db35e168d721：缺少要点 一次函数、求函数值（得分 0/4.00）。"
+          ],
+          "learning_suggestions": [
+            "建议优先复习一次函数的定义与一般形式，明确自变量、因变量与系数的关系。",
+            "针对求函数值，建议练习根据给定自变量代入关系式进行计算，并检查每一步的运算过程。",
+            "在验证关系式类题目中，建议补充用两组数据求斜率及截距的完整过程，再代入第三组数据进行验证。",
+            "建议整理一次函数与求函数值的典型例题，对照标准步骤逐步书写，避免跳步导致要点缺失。",
+            "可针对薄弱知识点安排专项练习，每完成一题后回顾用到的概念与方法，及时总结易错点。"
+          ],
+          "insufficient_evidence_answer_ids": [],
+          "generated_at": "2026-10-06T04:42:05.852022Z",
+          "source_exam_result_updated_at": "2026-10-06T04:42:02.585275Z",
+          "error_code": null,
+          "retryable": null,
+          "source_code": null,
+          "attempt_count": null
+        },
+        "items": [
+          {
+            "answer_id": "9890867a-c71d-47b7-b7fc-ffeee6537c1f",
+            "exam_question_id": "966f7106-e36f-404a-8846-3c81f2f3f3e8",
+            "question_id": "b412c277-7f56-4d27-b2d5-ff59b77dae47",
+            "order": 1,
+            "student_answer": "y=2x+1。",
+            "score": "2.00",
+            "max_score": "6.00",
+            "lost_score": "4.00",
+            "counted": true,
+            "grading_status": "Final",
+            "reason": "会话委托AI依据本场三项各2分核对：实际答案仅给出正确关系式，没有求系数过程和第三组验证，故确认2.00分；不是独立教师。",
+            "published_knowledge_points": [
+              "一次函数",
+              "求函数值",
+              "验证关系式"
+            ],
+            "assets": [
+              {
+                "asset_id": "867d1e09-4f1b-4487-9a5d-6545407b0b29",
+                "asset_type": "table",
+                "width": 475,
+                "height": 350,
+                "order": 1,
+                "caption": null,
+                "url": "/api/results/me/submissions/39cefb7a-e1d6-4a0e-9ec1-6da24d92af44/learning/assets/867d1e09-4f1b-4487-9a5d-6545407b0b29"
+              }
+            ],
+            "image_unavailable_reason": null
+          },
+          {
+            "answer_id": "3693d220-4507-414e-9c62-331ab13ad564",
+            "exam_question_id": "fbf242d6-6ebf-4044-99c2-8f380350a90d",
+            "question_id": "4d6073af-592e-4d83-8fea-db35e168d721",
+            "order": 2,
+            "student_answer": "A. 5",
+            "score": "0.00",
+            "max_score": "4.00",
+            "lost_score": "4.00",
+            "counted": true,
+            "grading_status": "Accepted",
+            "reason": "学生答案与标准答案不一致，按客观题规则记 0 分。",
+            "published_knowledge_points": [
+              "一次函数",
+              "求函数值"
+            ],
+            "assets": [],
+            "image_unavailable_reason": null
+          }
+        ],
+        "mastery_by_knowledge_point": [
+          {
+            "knowledge_point": "一次函数",
+            "answered_count": 2,
+            "correct_count": 0,
+            "awarded_score": "2.00",
+            "max_score": "10.00",
+            "mastery": "0.20"
+          },
+          {
+            "knowledge_point": "求函数值",
+            "answered_count": 2,
+            "correct_count": 0,
+            "awarded_score": "2.00",
+            "max_score": "10.00",
+            "mastery": "0.20"
+          },
+          {
+            "knowledge_point": "验证关系式",
+            "answered_count": 1,
+            "correct_count": 0,
+            "awarded_score": "2.00",
+            "max_score": "6.00",
+            "mastery": "0.33"
+          }
+        ],
+        "weak_knowledge_points": [
+          {
+            "knowledge_point": "一次函数",
+            "reason": "掌握度 0.20 低于阈值 0.60（2.00/10.00）。",
+            "error_count": 2,
+            "awarded_score": "2.00",
+            "max_score": "10.00",
+            "mastery": "0.20"
+          },
+          {
+            "knowledge_point": "求函数值",
+            "reason": "掌握度 0.20 低于阈值 0.60（2.00/10.00）。",
+            "error_count": 2,
+            "awarded_score": "2.00",
+            "max_score": "10.00",
+            "mastery": "0.20"
+          },
+          {
+            "knowledge_point": "验证关系式",
+            "reason": "掌握度 0.33 低于阈值 0.60（2.00/6.00）。",
+            "error_count": 1,
+            "awarded_score": "2.00",
+            "max_score": "6.00",
+            "mastery": "0.33"
+          }
+        ],
+        "recommendations": [
+          {
+            "knowledge_point": "一次函数",
+            "answer_ids": [
+              "9890867a-c71d-47b7-b7fc-ffeee6537c1f",
+              "3693d220-4507-414e-9c62-331ab13ad564"
+            ],
+            "exam_question_ids": [
+              "966f7106-e36f-404a-8846-3c81f2f3f3e8",
+              "fbf242d6-6ebf-4044-99c2-8f380350a90d"
+            ],
+            "awarded_score": "2.00",
+            "maximum_score": "10.00",
+            "lost_score": "8.00",
+            "materials": [
+              {
+                "chunk_id": "e4941012-3487-461e-940e-0c2132b2d7d9",
+                "knowledge_points": [
+                  "一次函数",
+                  "表达与计算"
+                ],
+                "source": {
+                  "kind": "current_chunk",
+                  "source_id": "e4941012-3487-461e-940e-0c2132b2d7d9",
+                  "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+                  "document_id": "0d6de23d-2db0-4f34-a175-ea324b78d46d",
+                  "chunk_id": "e4941012-3487-461e-940e-0c2132b2d7d9",
+                  "source_file": "teaching_basis.txt",
+                  "chapter_id": "0e6babdf-eb06-4237-9189-0aeee1a67b09",
+                  "section_order": 1,
+                  "chunk_index": 2
+                },
+                "reason": "本人最终答卷在知识点「一次函数」失分 8.00/10.00，关联 2 个失分答案。",
+                "url": "/api/results/me/submissions/39cefb7a-e1d6-4a0e-9ec1-6da24d92af44/learning/materials/e4941012-3487-461e-940e-0c2132b2d7d9"
+              }
+            ],
+            "practices": [
+              {
+                "question_id": "4d6073af-592e-4d83-8fea-db35e168d721",
+                "knowledge_points": [
+                  "一次函数",
+                  "求函数值"
+                ],
+                "sources": [
+                  {
+                    "kind": "current_chunk",
+                    "source_id": "e4941012-3487-461e-940e-0c2132b2d7d9",
+                    "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+                    "document_id": "0d6de23d-2db0-4f34-a175-ea324b78d46d",
+                    "chunk_id": "e4941012-3487-461e-940e-0c2132b2d7d9",
+                    "source_file": "teaching_basis.txt",
+                    "chapter_id": "0e6babdf-eb06-4237-9189-0aeee1a67b09",
+                    "section_order": 1,
+                    "chunk_index": 2
+                  }
+                ],
+                "reason": "本人最终答卷在知识点「一次函数」失分 8.00/10.00，关联 2 个失分答案。",
+                "url": "/api/results/me/submissions/39cefb7a-e1d6-4a0e-9ec1-6da24d92af44/learning/practices/4d6073af-592e-4d83-8fea-db35e168d721",
+                "assets": [],
+                "image_unavailable_reason": null
+              },
+              {
+                "question_id": "946d6db6-43b1-4e0b-a85b-1c849b0c2edb",
+                "knowledge_points": [
+                  "一次函数"
+                ],
+                "sources": [
+                  {
+                    "kind": "current_chunk",
+                    "source_id": "b7f84906-9be6-4e1c-b20e-e61a9bfdf2d8",
+                    "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+                    "document_id": "0d6de23d-2db0-4f34-a175-ea324b78d46d",
+                    "chunk_id": "b7f84906-9be6-4e1c-b20e-e61a9bfdf2d8",
+                    "source_file": "teaching_basis.txt",
+                    "chapter_id": null,
+                    "section_order": null,
+                    "chunk_index": 0
+                  },
+                  {
+                    "kind": "current_chunk",
+                    "source_id": "24ae7aa8-baa3-4d7c-8dea-8453d1b61331",
+                    "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+                    "document_id": "0d6de23d-2db0-4f34-a175-ea324b78d46d",
+                    "chunk_id": "24ae7aa8-baa3-4d7c-8dea-8453d1b61331",
+                    "source_file": "teaching_basis.txt",
+                    "chapter_id": null,
+                    "section_order": null,
+                    "chunk_index": 1
+                  },
+                  {
+                    "kind": "current_chunk",
+                    "source_id": "e4941012-3487-461e-940e-0c2132b2d7d9",
+                    "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+                    "document_id": "0d6de23d-2db0-4f34-a175-ea324b78d46d",
+                    "chunk_id": "e4941012-3487-461e-940e-0c2132b2d7d9",
+                    "source_file": "teaching_basis.txt",
+                    "chapter_id": "0e6babdf-eb06-4237-9189-0aeee1a67b09",
+                    "section_order": 1,
+                    "chunk_index": 2
+                  },
+                  {
+                    "kind": "current_chunk",
+                    "source_id": "2fd56526-aa92-44cf-a032-cf718465b9d0",
+                    "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+                    "document_id": "0d6de23d-2db0-4f34-a175-ea324b78d46d",
+                    "chunk_id": "2fd56526-aa92-44cf-a032-cf718465b9d0",
+                    "source_file": "teaching_basis.txt",
+                    "chapter_id": null,
+                    "section_order": null,
+                    "chunk_index": 3
+                  },
+                  {
+                    "kind": "current_chunk",
+                    "source_id": "85078434-b133-4c80-b568-ff210affb9b5",
+                    "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+                    "document_id": "0d6de23d-2db0-4f34-a175-ea324b78d46d",
+                    "chunk_id": "85078434-b133-4c80-b568-ff210affb9b5",
+                    "source_file": "teaching_basis.txt",
+                    "chapter_id": null,
+                    "section_order": null,
+                    "chunk_index": 4
+                  }
+                ],
+                "reason": "本人最终答卷在知识点「一次函数」失分 8.00/10.00，关联 2 个失分答案。",
+                "url": "/api/results/me/submissions/39cefb7a-e1d6-4a0e-9ec1-6da24d92af44/learning/practices/946d6db6-43b1-4e0b-a85b-1c849b0c2edb",
+                "assets": [],
+                "image_unavailable_reason": null
+              },
+              {
+                "question_id": "b412c277-7f56-4d27-b2d5-ff59b77dae47",
+                "knowledge_points": [
+                  "一次函数",
+                  "求函数值",
+                  "验证关系式"
+                ],
+                "sources": [
+                  {
+                    "kind": "current_chunk",
+                    "source_id": "e4941012-3487-461e-940e-0c2132b2d7d9",
+                    "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+                    "document_id": "0d6de23d-2db0-4f34-a175-ea324b78d46d",
+                    "chunk_id": "e4941012-3487-461e-940e-0c2132b2d7d9",
+                    "source_file": "teaching_basis.txt",
+                    "chapter_id": "0e6babdf-eb06-4237-9189-0aeee1a67b09",
+                    "section_order": 1,
+                    "chunk_index": 2
+                  }
+                ],
+                "reason": "本人最终答卷在知识点「一次函数」失分 8.00/10.00，关联 2 个失分答案。",
+                "url": "/api/results/me/submissions/39cefb7a-e1d6-4a0e-9ec1-6da24d92af44/learning/practices/b412c277-7f56-4d27-b2d5-ff59b77dae47",
+                "assets": [
+                  {
+                    "asset_id": "867d1e09-4f1b-4487-9a5d-6545407b0b29",
+                    "asset_type": "table",
+                    "width": 475,
+                    "height": 350,
+                    "order": 1,
+                    "caption": null,
+                    "url": "/api/results/me/submissions/39cefb7a-e1d6-4a0e-9ec1-6da24d92af44/learning/practices/b412c277-7f56-4d27-b2d5-ff59b77dae47/assets/867d1e09-4f1b-4487-9a5d-6545407b0b29"
+                  }
+                ],
+                "image_unavailable_reason": null
+              }
+            ],
+            "material_not_ready_reason": null,
+            "practice_not_ready_reason": null,
+            "selection_rule": "精确知识点匹配；按真实身份稳定排序，每类最多3项，无范围外补位。"
+          },
+          {
+            "knowledge_point": "求函数值",
+            "answer_ids": [
+              "9890867a-c71d-47b7-b7fc-ffeee6537c1f",
+              "3693d220-4507-414e-9c62-331ab13ad564"
+            ],
+            "exam_question_ids": [
+              "966f7106-e36f-404a-8846-3c81f2f3f3e8",
+              "fbf242d6-6ebf-4044-99c2-8f380350a90d"
+            ],
+            "awarded_score": "2.00",
+            "maximum_score": "10.00",
+            "lost_score": "8.00",
+            "materials": [],
+            "practices": [
+              {
+                "question_id": "4d6073af-592e-4d83-8fea-db35e168d721",
+                "knowledge_points": [
+                  "一次函数",
+                  "求函数值"
+                ],
+                "sources": [
+                  {
+                    "kind": "current_chunk",
+                    "source_id": "e4941012-3487-461e-940e-0c2132b2d7d9",
+                    "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+                    "document_id": "0d6de23d-2db0-4f34-a175-ea324b78d46d",
+                    "chunk_id": "e4941012-3487-461e-940e-0c2132b2d7d9",
+                    "source_file": "teaching_basis.txt",
+                    "chapter_id": "0e6babdf-eb06-4237-9189-0aeee1a67b09",
+                    "section_order": 1,
+                    "chunk_index": 2
+                  }
+                ],
+                "reason": "本人最终答卷在知识点「求函数值」失分 8.00/10.00，关联 2 个失分答案。",
+                "url": "/api/results/me/submissions/39cefb7a-e1d6-4a0e-9ec1-6da24d92af44/learning/practices/4d6073af-592e-4d83-8fea-db35e168d721",
+                "assets": [],
+                "image_unavailable_reason": null
+              },
+              {
+                "question_id": "b412c277-7f56-4d27-b2d5-ff59b77dae47",
+                "knowledge_points": [
+                  "一次函数",
+                  "求函数值",
+                  "验证关系式"
+                ],
+                "sources": [
+                  {
+                    "kind": "current_chunk",
+                    "source_id": "e4941012-3487-461e-940e-0c2132b2d7d9",
+                    "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+                    "document_id": "0d6de23d-2db0-4f34-a175-ea324b78d46d",
+                    "chunk_id": "e4941012-3487-461e-940e-0c2132b2d7d9",
+                    "source_file": "teaching_basis.txt",
+                    "chapter_id": "0e6babdf-eb06-4237-9189-0aeee1a67b09",
+                    "section_order": 1,
+                    "chunk_index": 2
+                  }
+                ],
+                "reason": "本人最终答卷在知识点「求函数值」失分 8.00/10.00，关联 2 个失分答案。",
+                "url": "/api/results/me/submissions/39cefb7a-e1d6-4a0e-9ec1-6da24d92af44/learning/practices/b412c277-7f56-4d27-b2d5-ff59b77dae47",
+                "assets": [
+                  {
+                    "asset_id": "867d1e09-4f1b-4487-9a5d-6545407b0b29",
+                    "asset_type": "table",
+                    "width": 475,
+                    "height": 350,
+                    "order": 1,
+                    "caption": null,
+                    "url": "/api/results/me/submissions/39cefb7a-e1d6-4a0e-9ec1-6da24d92af44/learning/practices/b412c277-7f56-4d27-b2d5-ff59b77dae47/assets/867d1e09-4f1b-4487-9a5d-6545407b0b29"
+                  }
+                ],
+                "image_unavailable_reason": null
+              }
+            ],
+            "material_not_ready_reason": "没有同课程、Ready 且已确认精确标签的复习片段。",
+            "practice_not_ready_reason": null,
+            "selection_rule": "精确知识点匹配；按真实身份稳定排序，每类最多3项，无范围外补位。"
+          },
+          {
+            "knowledge_point": "验证关系式",
+            "answer_ids": [
+              "9890867a-c71d-47b7-b7fc-ffeee6537c1f"
+            ],
+            "exam_question_ids": [
+              "966f7106-e36f-404a-8846-3c81f2f3f3e8"
+            ],
+            "awarded_score": "2.00",
+            "maximum_score": "6.00",
+            "lost_score": "4.00",
+            "materials": [],
+            "practices": [
+              {
+                "question_id": "b412c277-7f56-4d27-b2d5-ff59b77dae47",
+                "knowledge_points": [
+                  "一次函数",
+                  "求函数值",
+                  "验证关系式"
+                ],
+                "sources": [
+                  {
+                    "kind": "current_chunk",
+                    "source_id": "e4941012-3487-461e-940e-0c2132b2d7d9",
+                    "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+                    "document_id": "0d6de23d-2db0-4f34-a175-ea324b78d46d",
+                    "chunk_id": "e4941012-3487-461e-940e-0c2132b2d7d9",
+                    "source_file": "teaching_basis.txt",
+                    "chapter_id": "0e6babdf-eb06-4237-9189-0aeee1a67b09",
+                    "section_order": 1,
+                    "chunk_index": 2
+                  }
+                ],
+                "reason": "本人最终答卷在知识点「验证关系式」失分 4.00/6.00，关联 1 个失分答案。",
+                "url": "/api/results/me/submissions/39cefb7a-e1d6-4a0e-9ec1-6da24d92af44/learning/practices/b412c277-7f56-4d27-b2d5-ff59b77dae47",
+                "assets": [
+                  {
+                    "asset_id": "867d1e09-4f1b-4487-9a5d-6545407b0b29",
+                    "asset_type": "table",
+                    "width": 475,
+                    "height": 350,
+                    "order": 1,
+                    "caption": null,
+                    "url": "/api/results/me/submissions/39cefb7a-e1d6-4a0e-9ec1-6da24d92af44/learning/practices/b412c277-7f56-4d27-b2d5-ff59b77dae47/assets/867d1e09-4f1b-4487-9a5d-6545407b0b29"
+                  }
+                ],
+                "image_unavailable_reason": null
+              }
+            ],
+            "material_not_ready_reason": "没有同课程、Ready 且已确认精确标签的复习片段。",
+            "practice_not_ready_reason": null,
+            "selection_rule": "精确知识点匹配；按真实身份稳定排序，每类最多3项，无范围外补位。"
+          }
+        ],
+        "insufficient_evidence_answer_ids": [],
+        "not_ready_reason": null,
+        "knowledge_point_attribution": "多标签题完整归属各知识点；各行不能加总成整场总分/失分。"
+      }
+    },
+    {
+      "label": "actual_final_score",
+      "status": 200,
+      "response": {
+        "submission_id": "39cefb7a-e1d6-4a0e-9ec1-6da24d92af44",
+        "exam_id": "d72b96f8-2bda-4225-9c9c-660eb8f9e462",
+        "exam_title": "T191 可作答文字生成与带图改编闭环",
+        "student_id": "7cd74a3c-0f4c-4347-9cdb-0d0df9f57753",
+        "result_status": "Final",
+        "is_final": true,
+        "total_score": "2.00",
+        "confirmed_subtotal": "2.00",
+        "confirmed_subtotal_label": "已确认部分小计（不含待复核、未完成与失败题目），不得作为最终成绩。",
+        "total_max_score": "10.00",
+        "expected_answer_count": 2,
+        "graded_answer_count": 2,
+        "pending_review_count": 0,
+        "items": [
+          {
+            "order": 1,
+            "answer_id": "9890867a-c71d-47b7-b7fc-ffeee6537c1f",
+            "question_id": "b412c277-7f56-4d27-b2d5-ff59b77dae47",
+            "exam_question_id": "966f7106-e36f-404a-8846-3c81f2f3f3e8",
+            "question_type": "SHORT_ANSWER",
+            "max_score": "6.00",
+            "score": "2.00",
+            "effective_score": "2.00",
+            "counted": true,
+            "missing": false,
+            "requires_review": false,
+            "grading_status": "Final",
+            "review_status": "Modified",
+            "validation_status": "Validated",
+            "reason": "会话委托AI依据本场三项各2分核对：实际答案仅给出正确关系式，没有求系数过程和第三组验证，故确认2.00分；不是独立教师。",
+            "knowledge_points": [
+              "一次函数",
+              "求函数值",
+              "验证关系式"
+            ],
+            "missing_knowledge_points": [
+              "用两组数据求斜率及截距的过程",
+              "代入第三组数据验证"
+            ],
+            "correct_points": [
+              "正确写出关系式 y=2x+1"
+            ],
+            "suggestions": [
+              "补充用(1,3)、(2,5)求斜率k=(5-3)/(2-1)=2的步骤，并求出截距b=1。",
+              "写出关系式后，代入第三组x=3，验证y=2×3+1=7，与表格一致。",
+              "注意题目要求同时呈现关系式、推导过程和验证过程，不能只写最终结论。"
+            ],
+            "retrieved_context_ids": [
+              "e4941012-3487-461e-940e-0c2132b2d7d9",
+              "24ae7aa8-baa3-4d7c-8dea-8453d1b61331",
+              "b7f84906-9be6-4e1c-b20e-e61a9bfdf2d8",
+              "2fd56526-aa92-44cf-a032-cf718465b9d0",
+              "85078434-b133-4c80-b568-ff210affb9b5"
+            ],
+            "confidence": 0.98,
+            "submission_id": "39cefb7a-e1d6-4a0e-9ec1-6da24d92af44",
+            "decision": null
+          },
+          {
+            "order": 2,
+            "answer_id": "3693d220-4507-414e-9c62-331ab13ad564",
+            "question_id": "4d6073af-592e-4d83-8fea-db35e168d721",
+            "exam_question_id": "fbf242d6-6ebf-4044-99c2-8f380350a90d",
+            "question_type": "SINGLE_CHOICE",
+            "max_score": "4.00",
+            "score": "0.00",
+            "effective_score": "0.00",
+            "counted": true,
+            "missing": false,
+            "requires_review": false,
+            "grading_status": "Accepted",
+            "review_status": "Not Required",
+            "validation_status": "Validated",
+            "reason": "学生答案与标准答案不一致，按客观题规则记 0 分。",
+            "knowledge_points": [
+              "一次函数",
+              "求函数值"
+            ],
+            "missing_knowledge_points": [
+              "一次函数",
+              "求函数值"
+            ],
+            "correct_points": [],
+            "suggestions": [
+              "对照标准答案复核本题，确认是知识点遗漏还是审题问题。"
+            ],
+            "retrieved_context_ids": [],
+            "confidence": 1.0,
+            "submission_id": "39cefb7a-e1d6-4a0e-9ec1-6da24d92af44",
+            "decision": null
+          }
+        ],
+        "mistake_answer_ids": [
+          "9890867a-c71d-47b7-b7fc-ffeee6537c1f",
+          "3693d220-4507-414e-9c62-331ab13ad564"
+        ],
+        "diagnosis_status": null,
+        "diagnosis": null,
+        "not_ready_reason": null
+      }
+    }
+  ],
+  "actor": "AI delegated real DEV roles; not independent teacher",
+  "synthetic_student": {
+    "id": "7cd74a3c-0f4c-4347-9cdb-0d0df9f57753",
+    "username": "t191_workflow_303144a9dacf",
+    "email": "t191_workflow_303144a9dacf@example.invalid",
+    "is_active": true,
+    "roles": [
+      "Student"
+    ],
+    "created_at": "2026-10-06T04:41:52.589426Z",
+    "updated_at": "2026-10-06T04:41:52.589429Z"
+  },
+  "previous_failed_submission_id": "f5b2abd4-e8d0-4d12-bc5e-70ab0f95fb93",
+  "actual_student_answers": {
+    "4d6073af-592e-4d83-8fea-db35e168d721": "A. 5",
+    "b412c277-7f56-4d27-b2d5-ff59b77dae47": "y=2x+1。"
+  },
+  "workflow": {
+    "workflow_id": "grading-989c0b39-4a8d-458b-9449-eca4b258c472",
+    "submission_id": "39cefb7a-e1d6-4a0e-9ec1-6da24d92af44",
+    "request_id": "0823d10e-3a3b-4963-bcfb-7b0e1719dfea",
+    "status": "Paused",
+    "current_node": "pending_review",
+    "pause_reason": "第 9890867a-c71d-47b7-b7fc-ffeee6537c1f 题评分结果需要教师复核，工作流已暂停。",
+    "resumable": true,
+    "interrupted": true,
+    "pending_answer_ids": [
+      "9890867a-c71d-47b7-b7fc-ffeee6537c1f"
+    ],
+    "retry_count": 0,
+    "thread_id": "3f1bb8da-8b6b-42e1-a562-2e5aa62ae761",
+    "reused": false,
+    "updated_at": "2026-10-06T04:42:01.442701Z"
+  },
+  "queue": {
+    "total": 2,
+    "limit": 50,
+    "offset": 0,
+    "items": [
+      {
+        "submission_id": "39cefb7a-e1d6-4a0e-9ec1-6da24d92af44",
+        "answer_id": "9890867a-c71d-47b7-b7fc-ffeee6537c1f",
+        "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+        "exam_id": "d72b96f8-2bda-4225-9c9c-660eb8f9e462",
+        "exam_title": "T191 可作答文字生成与带图改编闭环",
+        "student_id": "7cd74a3c-0f4c-4347-9cdb-0d0df9f57753",
+        "student_name": "t191_workflow_303144a9dacf",
+        "question_id": "b412c277-7f56-4d27-b2d5-ff59b77dae47",
+        "exam_question_id": "966f7106-e36f-404a-8846-3c81f2f3f3e8",
+        "question_number": 1,
+        "question_type": "SHORT_ANSWER",
+        "max_score": "6.00",
+        "score": "2.00",
+        "confidence": 0.98,
+        "review_status": "Pending Review",
+        "pending_review_round_id": "5d7d5c32-7441-480c-b0ac-2a1dee72b716",
+        "requires_review": true,
+        "updated_at": "2026-10-06T04:42:01.405589Z"
+      },
+      {
+        "submission_id": "f5b2abd4-e8d0-4d12-bc5e-70ab0f95fb93",
+        "answer_id": "e943ac30-57c4-4e6e-a8ab-55bdc7e1a71f",
+        "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+        "exam_id": "d72b96f8-2bda-4225-9c9c-660eb8f9e462",
+        "exam_title": "T191 可作答文字生成与带图改编闭环",
+        "student_id": "49e07d09-9088-40f3-9b12-92c3bc12b0ab",
+        "student_name": "dev_student",
+        "question_id": "b412c277-7f56-4d27-b2d5-ff59b77dae47",
+        "exam_question_id": "966f7106-e36f-404a-8846-3c81f2f3f3e8",
+        "question_number": 1,
+        "question_type": "SHORT_ANSWER",
+        "max_score": "6.00",
+        "score": "2.00",
+        "confidence": 0.99,
+        "review_status": "Pending Review",
+        "pending_review_round_id": "880b38a2-f14a-45a7-9448-a364fc59fa83",
+        "requires_review": true,
+        "updated_at": "2026-10-06T04:27:30.450200Z"
+      }
+    ]
+  },
+  "unmodified_other_pending_count": 1,
+  "final_workflow": {
+    "workflow_id": "grading-989c0b39-4a8d-458b-9449-eca4b258c472",
+    "submission_id": "39cefb7a-e1d6-4a0e-9ec1-6da24d92af44",
+    "request_id": "0823d10e-3a3b-4963-bcfb-7b0e1719dfea",
+    "status": "Completed",
+    "current_node": "generate_diagnosis",
+    "pause_reason": null,
+    "resumable": false,
+    "interrupted": false,
+    "pending_answer_ids": [],
+    "retry_count": 0,
+    "thread_id": "3f1bb8da-8b6b-42e1-a562-2e5aa62ae761",
+    "reused": false,
+    "updated_at": "2026-10-06T04:42:05.938345Z"
+  },
+  "teacher_analysis": {
+    "exam_id": "d72b96f8-2bda-4225-9c9c-660eb8f9e462",
+    "submitted_count": 2,
+    "final_count": 1,
+    "pending_review_count": 1,
+    "average_of_final_scores": "2.00",
+    "eligible_count": 2,
+    "participated_count": 2,
+    "draft_count": 0,
+    "not_participated_count": 0,
+    "pending_review_submission_count": 1,
+    "failed_submission_count": 0,
+    "insufficient_evidence_submission_count": 0,
+    "unfinished_submission_count": 0,
+    "participation_scope": "当前启用学生的分配资格人口，独立于当前考试开放时间窗；无分配记录按既有全体开放口径（含无角色旧账号）。已参加按真实答卷去重，保留历史停用/已撤销分配的观测。",
+    "distribution_denominator": 1,
+    "final_score_distribution": [
+      {
+        "score": "2.00",
+        "submission_count": 1
+      }
+    ],
+    "question_statistics": [
+      {
+        "exam_question_id": "966f7106-e36f-404a-8846-3c81f2f3f3e8",
+        "question_id": "b412c277-7f56-4d27-b2d5-ff59b77dae47",
+        "order": 1,
+        "published_knowledge_points": [
+          "一次函数",
+          "求函数值",
+          "验证关系式"
+        ],
+        "max_score": "6.00",
+        "effective_submission_count": 1,
+        "excluded_final_submission_count": 0,
+        "awarded_score": "2.00",
+        "maximum_score": "6.00",
+        "lost_score": "4.00",
+        "score_rate": "0.3333",
+        "not_ready_reason": null
+      },
+      {
+        "exam_question_id": "fbf242d6-6ebf-4044-99c2-8f380350a90d",
+        "question_id": "4d6073af-592e-4d83-8fea-db35e168d721",
+        "order": 2,
+        "published_knowledge_points": [
+          "一次函数",
+          "求函数值"
+        ],
+        "max_score": "4.00",
+        "effective_submission_count": 1,
+        "excluded_final_submission_count": 0,
+        "awarded_score": "0",
+        "maximum_score": "4.00",
+        "lost_score": "4.00",
+        "score_rate": "0.0000",
+        "not_ready_reason": null
+      }
+    ],
+    "knowledge_point_statistics": [
+      {
+        "knowledge_point": "一次函数",
+        "exam_question_ids": [
+          "966f7106-e36f-404a-8846-3c81f2f3f3e8",
+          "fbf242d6-6ebf-4044-99c2-8f380350a90d"
+        ],
+        "effective_student_count": 1,
+        "effective_answer_count": 2,
+        "awarded_score": "2.00",
+        "maximum_score": "10.00",
+        "lost_score": "8.00",
+        "score_rate": "0.2000"
+      },
+      {
+        "knowledge_point": "求函数值",
+        "exam_question_ids": [
+          "966f7106-e36f-404a-8846-3c81f2f3f3e8",
+          "fbf242d6-6ebf-4044-99c2-8f380350a90d"
+        ],
+        "effective_student_count": 1,
+        "effective_answer_count": 2,
+        "awarded_score": "2.00",
+        "maximum_score": "10.00",
+        "lost_score": "8.00",
+        "score_rate": "0.2000"
+      },
+      {
+        "knowledge_point": "验证关系式",
+        "exam_question_ids": [
+          "966f7106-e36f-404a-8846-3c81f2f3f3e8"
+        ],
+        "effective_student_count": 1,
+        "effective_answer_count": 1,
+        "awarded_score": "2.00",
+        "maximum_score": "6.00",
+        "lost_score": "4.00",
+        "score_rate": "0.3333"
+      }
+    ],
+    "attention_students": [
+      {
+        "student_id": "49e07d09-9088-40f3-9b12-92c3bc12b0ab",
+        "submission_id": "f5b2abd4-e8d0-4d12-bc5e-70ab0f95fb93",
+        "reasons": [
+          "存在待人工复核题目，未形成最终成绩。"
+        ],
+        "answer_ids": [],
+        "exam_question_ids": [],
+        "knowledge_points": [],
+        "final_lost_score": null,
+        "error_code": null
+      },
+      {
+        "student_id": "7cd74a3c-0f4c-4347-9cdb-0d0df9f57753",
+        "submission_id": "39cefb7a-e1d6-4a0e-9ec1-6da24d92af44",
+        "reasons": [
+          "存在已确认的最终失分；明细使用本场固定满分和发布知识点。"
+        ],
+        "answer_ids": [
+          "9890867a-c71d-47b7-b7fc-ffeee6537c1f",
+          "3693d220-4507-414e-9c62-331ab13ad564"
+        ],
+        "exam_question_ids": [
+          "966f7106-e36f-404a-8846-3c81f2f3f3e8",
+          "fbf242d6-6ebf-4044-99c2-8f380350a90d"
+        ],
+        "knowledge_points": [
+          "一次函数",
+          "求函数值",
+          "验证关系式"
+        ],
+        "final_lost_score": "8.00",
+        "error_code": null
+      }
+    ],
+    "knowledge_point_attribution": "多知识点题在各知识点完整归属；知识点行不可加总成整卷总分。",
+    "statistics_not_ready_reason": null,
+    "not_ready": false,
+    "not_ready_reason": null
+  },
+  "student_analysis": {
+    "processing_status": "final",
+    "processing_error_code": null,
+    "processing_reason": null,
+    "submission_id": "39cefb7a-e1d6-4a0e-9ec1-6da24d92af44",
+    "exam_id": "d72b96f8-2bda-4225-9c9c-660eb8f9e462",
+    "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+    "student_id": "7cd74a3c-0f4c-4347-9cdb-0d0df9f57753",
+    "is_final": true,
+    "source_exam_result_updated_at": "2026-10-06T04:42:02.585275Z",
+    "diagnosis": {
+      "exam_result_id": "ac01faae-7dcd-4c47-92f3-9b0cb68d26d4",
+      "submission_id": "39cefb7a-e1d6-4a0e-9ec1-6da24d92af44",
+      "student_id": "7cd74a3c-0f4c-4347-9cdb-0d0df9f57753",
+      "status": "Ready",
+      "mastery_by_knowledge_point": [
+        {
+          "knowledge_point": "一次函数",
+          "answered_count": 2,
+          "correct_count": 0,
+          "awarded_score": "2.00",
+          "max_score": "10.00",
+          "mastery": "0.20"
+        },
+        {
+          "knowledge_point": "求函数值",
+          "answered_count": 2,
+          "correct_count": 0,
+          "awarded_score": "2.00",
+          "max_score": "10.00",
+          "mastery": "0.20"
+        },
+        {
+          "knowledge_point": "验证关系式",
+          "answered_count": 1,
+          "correct_count": 0,
+          "awarded_score": "2.00",
+          "max_score": "6.00",
+          "mastery": "0.33"
+        }
+      ],
+      "weak_knowledge_points": [
+        {
+          "knowledge_point": "一次函数",
+          "reason": "掌握度 0.20 低于阈值 0.60（2.00/10.00）。",
+          "error_count": 2,
+          "awarded_score": "2.00",
+          "max_score": "10.00",
+          "mastery": "0.20"
+        },
+        {
+          "knowledge_point": "求函数值",
+          "reason": "掌握度 0.20 低于阈值 0.60（2.00/10.00）。",
+          "error_count": 2,
+          "awarded_score": "2.00",
+          "max_score": "10.00",
+          "mastery": "0.20"
+        },
+        {
+          "knowledge_point": "验证关系式",
+          "reason": "掌握度 0.33 低于阈值 0.60（2.00/6.00）。",
+          "error_count": 1,
+          "awarded_score": "2.00",
+          "max_score": "6.00",
+          "mastery": "0.33"
+        }
+      ],
+      "error_reasons": [
+        "b412c277-7f56-4d27-b2d5-ff59b77dae47：缺少要点 用两组数据求斜率及截距的过程、代入第三组数据验证（得分 2.00/6.00）。",
+        "4d6073af-592e-4d83-8fea-db35e168d721：缺少要点 一次函数、求函数值（得分 0/4.00）。"
+      ],
+      "learning_suggestions": [
+        "建议优先复习一次函数的定义与一般形式，明确自变量、因变量与系数的关系。",
+        "针对求函数值，建议练习根据给定自变量代入关系式进行计算，并检查每一步的运算过程。",
+        "在验证关系式类题目中，建议补充用两组数据求斜率及截距的完整过程，再代入第三组数据进行验证。",
+        "建议整理一次函数与求函数值的典型例题，对照标准步骤逐步书写，避免跳步导致要点缺失。",
+        "可针对薄弱知识点安排专项练习，每完成一题后回顾用到的概念与方法，及时总结易错点。"
+      ],
+      "insufficient_evidence_answer_ids": [],
+      "generated_at": "2026-10-06T04:42:05.852022Z",
+      "source_exam_result_updated_at": "2026-10-06T04:42:02.585275Z",
+      "error_code": null,
+      "retryable": null,
+      "source_code": null,
+      "attempt_count": null
+    },
+    "items": [
+      {
+        "answer_id": "9890867a-c71d-47b7-b7fc-ffeee6537c1f",
+        "exam_question_id": "966f7106-e36f-404a-8846-3c81f2f3f3e8",
+        "question_id": "b412c277-7f56-4d27-b2d5-ff59b77dae47",
+        "order": 1,
+        "student_answer": "y=2x+1。",
+        "score": "2.00",
+        "max_score": "6.00",
+        "lost_score": "4.00",
+        "counted": true,
+        "grading_status": "Final",
+        "reason": "会话委托AI依据本场三项各2分核对：实际答案仅给出正确关系式，没有求系数过程和第三组验证，故确认2.00分；不是独立教师。",
+        "published_knowledge_points": [
+          "一次函数",
+          "求函数值",
+          "验证关系式"
+        ],
+        "assets": [
+          {
+            "asset_id": "867d1e09-4f1b-4487-9a5d-6545407b0b29",
+            "asset_type": "table",
+            "width": 475,
+            "height": 350,
+            "order": 1,
+            "caption": null,
+            "url": "/api/results/me/submissions/39cefb7a-e1d6-4a0e-9ec1-6da24d92af44/learning/assets/867d1e09-4f1b-4487-9a5d-6545407b0b29"
+          }
+        ],
+        "image_unavailable_reason": null
+      },
+      {
+        "answer_id": "3693d220-4507-414e-9c62-331ab13ad564",
+        "exam_question_id": "fbf242d6-6ebf-4044-99c2-8f380350a90d",
+        "question_id": "4d6073af-592e-4d83-8fea-db35e168d721",
+        "order": 2,
+        "student_answer": "A. 5",
+        "score": "0.00",
+        "max_score": "4.00",
+        "lost_score": "4.00",
+        "counted": true,
+        "grading_status": "Accepted",
+        "reason": "学生答案与标准答案不一致，按客观题规则记 0 分。",
+        "published_knowledge_points": [
+          "一次函数",
+          "求函数值"
+        ],
+        "assets": [],
+        "image_unavailable_reason": null
+      }
+    ],
+    "mastery_by_knowledge_point": [
+      {
+        "knowledge_point": "一次函数",
+        "answered_count": 2,
+        "correct_count": 0,
+        "awarded_score": "2.00",
+        "max_score": "10.00",
+        "mastery": "0.20"
+      },
+      {
+        "knowledge_point": "求函数值",
+        "answered_count": 2,
+        "correct_count": 0,
+        "awarded_score": "2.00",
+        "max_score": "10.00",
+        "mastery": "0.20"
+      },
+      {
+        "knowledge_point": "验证关系式",
+        "answered_count": 1,
+        "correct_count": 0,
+        "awarded_score": "2.00",
+        "max_score": "6.00",
+        "mastery": "0.33"
+      }
+    ],
+    "weak_knowledge_points": [
+      {
+        "knowledge_point": "一次函数",
+        "reason": "掌握度 0.20 低于阈值 0.60（2.00/10.00）。",
+        "error_count": 2,
+        "awarded_score": "2.00",
+        "max_score": "10.00",
+        "mastery": "0.20"
+      },
+      {
+        "knowledge_point": "求函数值",
+        "reason": "掌握度 0.20 低于阈值 0.60（2.00/10.00）。",
+        "error_count": 2,
+        "awarded_score": "2.00",
+        "max_score": "10.00",
+        "mastery": "0.20"
+      },
+      {
+        "knowledge_point": "验证关系式",
+        "reason": "掌握度 0.33 低于阈值 0.60（2.00/6.00）。",
+        "error_count": 1,
+        "awarded_score": "2.00",
+        "max_score": "6.00",
+        "mastery": "0.33"
+      }
+    ],
+    "recommendations": [
+      {
+        "knowledge_point": "一次函数",
+        "answer_ids": [
+          "9890867a-c71d-47b7-b7fc-ffeee6537c1f",
+          "3693d220-4507-414e-9c62-331ab13ad564"
+        ],
+        "exam_question_ids": [
+          "966f7106-e36f-404a-8846-3c81f2f3f3e8",
+          "fbf242d6-6ebf-4044-99c2-8f380350a90d"
+        ],
+        "awarded_score": "2.00",
+        "maximum_score": "10.00",
+        "lost_score": "8.00",
+        "materials": [
+          {
+            "chunk_id": "e4941012-3487-461e-940e-0c2132b2d7d9",
+            "knowledge_points": [
+              "一次函数",
+              "表达与计算"
+            ],
+            "source": {
+              "kind": "current_chunk",
+              "source_id": "e4941012-3487-461e-940e-0c2132b2d7d9",
+              "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+              "document_id": "0d6de23d-2db0-4f34-a175-ea324b78d46d",
+              "chunk_id": "e4941012-3487-461e-940e-0c2132b2d7d9",
+              "source_file": "teaching_basis.txt",
+              "chapter_id": "0e6babdf-eb06-4237-9189-0aeee1a67b09",
+              "section_order": 1,
+              "chunk_index": 2
+            },
+            "reason": "本人最终答卷在知识点「一次函数」失分 8.00/10.00，关联 2 个失分答案。",
+            "url": "/api/results/me/submissions/39cefb7a-e1d6-4a0e-9ec1-6da24d92af44/learning/materials/e4941012-3487-461e-940e-0c2132b2d7d9"
+          }
+        ],
+        "practices": [
+          {
+            "question_id": "4d6073af-592e-4d83-8fea-db35e168d721",
+            "knowledge_points": [
+              "一次函数",
+              "求函数值"
+            ],
+            "sources": [
+              {
+                "kind": "current_chunk",
+                "source_id": "e4941012-3487-461e-940e-0c2132b2d7d9",
+                "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+                "document_id": "0d6de23d-2db0-4f34-a175-ea324b78d46d",
+                "chunk_id": "e4941012-3487-461e-940e-0c2132b2d7d9",
+                "source_file": "teaching_basis.txt",
+                "chapter_id": "0e6babdf-eb06-4237-9189-0aeee1a67b09",
+                "section_order": 1,
+                "chunk_index": 2
+              }
+            ],
+            "reason": "本人最终答卷在知识点「一次函数」失分 8.00/10.00，关联 2 个失分答案。",
+            "url": "/api/results/me/submissions/39cefb7a-e1d6-4a0e-9ec1-6da24d92af44/learning/practices/4d6073af-592e-4d83-8fea-db35e168d721",
+            "assets": [],
+            "image_unavailable_reason": null
+          },
+          {
+            "question_id": "946d6db6-43b1-4e0b-a85b-1c849b0c2edb",
+            "knowledge_points": [
+              "一次函数"
+            ],
+            "sources": [
+              {
+                "kind": "current_chunk",
+                "source_id": "b7f84906-9be6-4e1c-b20e-e61a9bfdf2d8",
+                "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+                "document_id": "0d6de23d-2db0-4f34-a175-ea324b78d46d",
+                "chunk_id": "b7f84906-9be6-4e1c-b20e-e61a9bfdf2d8",
+                "source_file": "teaching_basis.txt",
+                "chapter_id": null,
+                "section_order": null,
+                "chunk_index": 0
+              },
+              {
+                "kind": "current_chunk",
+                "source_id": "24ae7aa8-baa3-4d7c-8dea-8453d1b61331",
+                "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+                "document_id": "0d6de23d-2db0-4f34-a175-ea324b78d46d",
+                "chunk_id": "24ae7aa8-baa3-4d7c-8dea-8453d1b61331",
+                "source_file": "teaching_basis.txt",
+                "chapter_id": null,
+                "section_order": null,
+                "chunk_index": 1
+              },
+              {
+                "kind": "current_chunk",
+                "source_id": "e4941012-3487-461e-940e-0c2132b2d7d9",
+                "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+                "document_id": "0d6de23d-2db0-4f34-a175-ea324b78d46d",
+                "chunk_id": "e4941012-3487-461e-940e-0c2132b2d7d9",
+                "source_file": "teaching_basis.txt",
+                "chapter_id": "0e6babdf-eb06-4237-9189-0aeee1a67b09",
+                "section_order": 1,
+                "chunk_index": 2
+              },
+              {
+                "kind": "current_chunk",
+                "source_id": "2fd56526-aa92-44cf-a032-cf718465b9d0",
+                "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+                "document_id": "0d6de23d-2db0-4f34-a175-ea324b78d46d",
+                "chunk_id": "2fd56526-aa92-44cf-a032-cf718465b9d0",
+                "source_file": "teaching_basis.txt",
+                "chapter_id": null,
+                "section_order": null,
+                "chunk_index": 3
+              },
+              {
+                "kind": "current_chunk",
+                "source_id": "85078434-b133-4c80-b568-ff210affb9b5",
+                "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+                "document_id": "0d6de23d-2db0-4f34-a175-ea324b78d46d",
+                "chunk_id": "85078434-b133-4c80-b568-ff210affb9b5",
+                "source_file": "teaching_basis.txt",
+                "chapter_id": null,
+                "section_order": null,
+                "chunk_index": 4
+              }
+            ],
+            "reason": "本人最终答卷在知识点「一次函数」失分 8.00/10.00，关联 2 个失分答案。",
+            "url": "/api/results/me/submissions/39cefb7a-e1d6-4a0e-9ec1-6da24d92af44/learning/practices/946d6db6-43b1-4e0b-a85b-1c849b0c2edb",
+            "assets": [],
+            "image_unavailable_reason": null
+          },
+          {
+            "question_id": "b412c277-7f56-4d27-b2d5-ff59b77dae47",
+            "knowledge_points": [
+              "一次函数",
+              "求函数值",
+              "验证关系式"
+            ],
+            "sources": [
+              {
+                "kind": "current_chunk",
+                "source_id": "e4941012-3487-461e-940e-0c2132b2d7d9",
+                "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+                "document_id": "0d6de23d-2db0-4f34-a175-ea324b78d46d",
+                "chunk_id": "e4941012-3487-461e-940e-0c2132b2d7d9",
+                "source_file": "teaching_basis.txt",
+                "chapter_id": "0e6babdf-eb06-4237-9189-0aeee1a67b09",
+                "section_order": 1,
+                "chunk_index": 2
+              }
+            ],
+            "reason": "本人最终答卷在知识点「一次函数」失分 8.00/10.00，关联 2 个失分答案。",
+            "url": "/api/results/me/submissions/39cefb7a-e1d6-4a0e-9ec1-6da24d92af44/learning/practices/b412c277-7f56-4d27-b2d5-ff59b77dae47",
+            "assets": [
+              {
+                "asset_id": "867d1e09-4f1b-4487-9a5d-6545407b0b29",
+                "asset_type": "table",
+                "width": 475,
+                "height": 350,
+                "order": 1,
+                "caption": null,
+                "url": "/api/results/me/submissions/39cefb7a-e1d6-4a0e-9ec1-6da24d92af44/learning/practices/b412c277-7f56-4d27-b2d5-ff59b77dae47/assets/867d1e09-4f1b-4487-9a5d-6545407b0b29"
+              }
+            ],
+            "image_unavailable_reason": null
+          }
+        ],
+        "material_not_ready_reason": null,
+        "practice_not_ready_reason": null,
+        "selection_rule": "精确知识点匹配；按真实身份稳定排序，每类最多3项，无范围外补位。"
+      },
+      {
+        "knowledge_point": "求函数值",
+        "answer_ids": [
+          "9890867a-c71d-47b7-b7fc-ffeee6537c1f",
+          "3693d220-4507-414e-9c62-331ab13ad564"
+        ],
+        "exam_question_ids": [
+          "966f7106-e36f-404a-8846-3c81f2f3f3e8",
+          "fbf242d6-6ebf-4044-99c2-8f380350a90d"
+        ],
+        "awarded_score": "2.00",
+        "maximum_score": "10.00",
+        "lost_score": "8.00",
+        "materials": [],
+        "practices": [
+          {
+            "question_id": "4d6073af-592e-4d83-8fea-db35e168d721",
+            "knowledge_points": [
+              "一次函数",
+              "求函数值"
+            ],
+            "sources": [
+              {
+                "kind": "current_chunk",
+                "source_id": "e4941012-3487-461e-940e-0c2132b2d7d9",
+                "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+                "document_id": "0d6de23d-2db0-4f34-a175-ea324b78d46d",
+                "chunk_id": "e4941012-3487-461e-940e-0c2132b2d7d9",
+                "source_file": "teaching_basis.txt",
+                "chapter_id": "0e6babdf-eb06-4237-9189-0aeee1a67b09",
+                "section_order": 1,
+                "chunk_index": 2
+              }
+            ],
+            "reason": "本人最终答卷在知识点「求函数值」失分 8.00/10.00，关联 2 个失分答案。",
+            "url": "/api/results/me/submissions/39cefb7a-e1d6-4a0e-9ec1-6da24d92af44/learning/practices/4d6073af-592e-4d83-8fea-db35e168d721",
+            "assets": [],
+            "image_unavailable_reason": null
+          },
+          {
+            "question_id": "b412c277-7f56-4d27-b2d5-ff59b77dae47",
+            "knowledge_points": [
+              "一次函数",
+              "求函数值",
+              "验证关系式"
+            ],
+            "sources": [
+              {
+                "kind": "current_chunk",
+                "source_id": "e4941012-3487-461e-940e-0c2132b2d7d9",
+                "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+                "document_id": "0d6de23d-2db0-4f34-a175-ea324b78d46d",
+                "chunk_id": "e4941012-3487-461e-940e-0c2132b2d7d9",
+                "source_file": "teaching_basis.txt",
+                "chapter_id": "0e6babdf-eb06-4237-9189-0aeee1a67b09",
+                "section_order": 1,
+                "chunk_index": 2
+              }
+            ],
+            "reason": "本人最终答卷在知识点「求函数值」失分 8.00/10.00，关联 2 个失分答案。",
+            "url": "/api/results/me/submissions/39cefb7a-e1d6-4a0e-9ec1-6da24d92af44/learning/practices/b412c277-7f56-4d27-b2d5-ff59b77dae47",
+            "assets": [
+              {
+                "asset_id": "867d1e09-4f1b-4487-9a5d-6545407b0b29",
+                "asset_type": "table",
+                "width": 475,
+                "height": 350,
+                "order": 1,
+                "caption": null,
+                "url": "/api/results/me/submissions/39cefb7a-e1d6-4a0e-9ec1-6da24d92af44/learning/practices/b412c277-7f56-4d27-b2d5-ff59b77dae47/assets/867d1e09-4f1b-4487-9a5d-6545407b0b29"
+              }
+            ],
+            "image_unavailable_reason": null
+          }
+        ],
+        "material_not_ready_reason": "没有同课程、Ready 且已确认精确标签的复习片段。",
+        "practice_not_ready_reason": null,
+        "selection_rule": "精确知识点匹配；按真实身份稳定排序，每类最多3项，无范围外补位。"
+      },
+      {
+        "knowledge_point": "验证关系式",
+        "answer_ids": [
+          "9890867a-c71d-47b7-b7fc-ffeee6537c1f"
+        ],
+        "exam_question_ids": [
+          "966f7106-e36f-404a-8846-3c81f2f3f3e8"
+        ],
+        "awarded_score": "2.00",
+        "maximum_score": "6.00",
+        "lost_score": "4.00",
+        "materials": [],
+        "practices": [
+          {
+            "question_id": "b412c277-7f56-4d27-b2d5-ff59b77dae47",
+            "knowledge_points": [
+              "一次函数",
+              "求函数值",
+              "验证关系式"
+            ],
+            "sources": [
+              {
+                "kind": "current_chunk",
+                "source_id": "e4941012-3487-461e-940e-0c2132b2d7d9",
+                "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+                "document_id": "0d6de23d-2db0-4f34-a175-ea324b78d46d",
+                "chunk_id": "e4941012-3487-461e-940e-0c2132b2d7d9",
+                "source_file": "teaching_basis.txt",
+                "chapter_id": "0e6babdf-eb06-4237-9189-0aeee1a67b09",
+                "section_order": 1,
+                "chunk_index": 2
+              }
+            ],
+            "reason": "本人最终答卷在知识点「验证关系式」失分 4.00/6.00，关联 1 个失分答案。",
+            "url": "/api/results/me/submissions/39cefb7a-e1d6-4a0e-9ec1-6da24d92af44/learning/practices/b412c277-7f56-4d27-b2d5-ff59b77dae47",
+            "assets": [
+              {
+                "asset_id": "867d1e09-4f1b-4487-9a5d-6545407b0b29",
+                "asset_type": "table",
+                "width": 475,
+                "height": 350,
+                "order": 1,
+                "caption": null,
+                "url": "/api/results/me/submissions/39cefb7a-e1d6-4a0e-9ec1-6da24d92af44/learning/practices/b412c277-7f56-4d27-b2d5-ff59b77dae47/assets/867d1e09-4f1b-4487-9a5d-6545407b0b29"
+              }
+            ],
+            "image_unavailable_reason": null
+          }
+        ],
+        "material_not_ready_reason": "没有同课程、Ready 且已确认精确标签的复习片段。",
+        "practice_not_ready_reason": null,
+        "selection_rule": "精确知识点匹配；按真实身份稳定排序，每类最多3项，无范围外补位。"
+      }
+    ],
+    "insufficient_evidence_answer_ids": [],
+    "not_ready_reason": null,
+    "knowledge_point_attribution": "多标签题完整归属各知识点；各行不能加总成整场总分/失分。"
+  },
+  "final_result": {
+    "submission_id": "39cefb7a-e1d6-4a0e-9ec1-6da24d92af44",
+    "exam_id": "d72b96f8-2bda-4225-9c9c-660eb8f9e462",
+    "exam_title": "T191 可作答文字生成与带图改编闭环",
+    "student_id": "7cd74a3c-0f4c-4347-9cdb-0d0df9f57753",
+    "result_status": "Final",
+    "is_final": true,
+    "total_score": "2.00",
+    "confirmed_subtotal": "2.00",
+    "confirmed_subtotal_label": "已确认部分小计（不含待复核、未完成与失败题目），不得作为最终成绩。",
+    "total_max_score": "10.00",
+    "expected_answer_count": 2,
+    "graded_answer_count": 2,
+    "pending_review_count": 0,
+    "items": [
+      {
+        "order": 1,
+        "answer_id": "9890867a-c71d-47b7-b7fc-ffeee6537c1f",
+        "question_id": "b412c277-7f56-4d27-b2d5-ff59b77dae47",
+        "exam_question_id": "966f7106-e36f-404a-8846-3c81f2f3f3e8",
+        "question_type": "SHORT_ANSWER",
+        "max_score": "6.00",
+        "score": "2.00",
+        "effective_score": "2.00",
+        "counted": true,
+        "missing": false,
+        "requires_review": false,
+        "grading_status": "Final",
+        "review_status": "Modified",
+        "validation_status": "Validated",
+        "reason": "会话委托AI依据本场三项各2分核对：实际答案仅给出正确关系式，没有求系数过程和第三组验证，故确认2.00分；不是独立教师。",
+        "knowledge_points": [
+          "一次函数",
+          "求函数值",
+          "验证关系式"
+        ],
+        "missing_knowledge_points": [
+          "用两组数据求斜率及截距的过程",
+          "代入第三组数据验证"
+        ],
+        "correct_points": [
+          "正确写出关系式 y=2x+1"
+        ],
+        "suggestions": [
+          "补充用(1,3)、(2,5)求斜率k=(5-3)/(2-1)=2的步骤，并求出截距b=1。",
+          "写出关系式后，代入第三组x=3，验证y=2×3+1=7，与表格一致。",
+          "注意题目要求同时呈现关系式、推导过程和验证过程，不能只写最终结论。"
+        ],
+        "retrieved_context_ids": [
+          "e4941012-3487-461e-940e-0c2132b2d7d9",
+          "24ae7aa8-baa3-4d7c-8dea-8453d1b61331",
+          "b7f84906-9be6-4e1c-b20e-e61a9bfdf2d8",
+          "2fd56526-aa92-44cf-a032-cf718465b9d0",
+          "85078434-b133-4c80-b568-ff210affb9b5"
+        ],
+        "confidence": 0.98,
+        "submission_id": "39cefb7a-e1d6-4a0e-9ec1-6da24d92af44",
+        "decision": null
+      },
+      {
+        "order": 2,
+        "answer_id": "3693d220-4507-414e-9c62-331ab13ad564",
+        "question_id": "4d6073af-592e-4d83-8fea-db35e168d721",
+        "exam_question_id": "fbf242d6-6ebf-4044-99c2-8f380350a90d",
+        "question_type": "SINGLE_CHOICE",
+        "max_score": "4.00",
+        "score": "0.00",
+        "effective_score": "0.00",
+        "counted": true,
+        "missing": false,
+        "requires_review": false,
+        "grading_status": "Accepted",
+        "review_status": "Not Required",
+        "validation_status": "Validated",
+        "reason": "学生答案与标准答案不一致，按客观题规则记 0 分。",
+        "knowledge_points": [
+          "一次函数",
+          "求函数值"
+        ],
+        "missing_knowledge_points": [
+          "一次函数",
+          "求函数值"
+        ],
+        "correct_points": [],
+        "suggestions": [
+          "对照标准答案复核本题，确认是知识点遗漏还是审题问题。"
+        ],
+        "retrieved_context_ids": [],
+        "confidence": 1.0,
+        "submission_id": "39cefb7a-e1d6-4a0e-9ec1-6da24d92af44",
+        "decision": null
+      }
+    ],
+    "mistake_answer_ids": [
+      "9890867a-c71d-47b7-b7fc-ffeee6537c1f",
+      "3693d220-4507-414e-9c62-331ab13ad564"
+    ],
+    "diagnosis_status": null,
+    "diagnosis": null,
+    "not_ready_reason": null
+  },
+  "status": "completed"
+}

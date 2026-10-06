@@ -1,0 +1,2190 @@
+{
+  "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+  "events": [
+    {
+      "label": "new_actual_adaptation_before_publication",
+      "status": 201,
+      "response": {
+        "request_id": "82b2e01d-45c0-42d2-821c-efdf8eb2b314",
+        "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+        "generated_count": 1,
+        "candidates": [
+          {
+            "candidate_id": "b412c277-7f56-4d27-b2d5-ff59b77dae47",
+            "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+            "question_type": "SHORT_ANSWER",
+            "content": "已知y是x的一次函数，且当x=3时，y=7；已知其关系式为y=2x+1。请写出该一次函数的关系式，并说明如何由x=3得到y=7进行验证。",
+            "options": null,
+            "reference_answer": "关系式为 y=2x+1。验证：把 x=3 代入 y=2x+1，得到 y=2×3+1=7，与已知 y=7 一致。",
+            "scoring_rubric": "写出关系式 y=2x+1 得 1.50 分；正确代入 x=3 并计算 y=7 得 1.50 分，共 3.00 分。若关系式错误但验证过程正确，仅得验证部分分值；只有关系式正确而无验证过程，仅得关系式部分分值。",
+            "difficulty": "未指定",
+            "knowledge_points": [
+              "一次函数",
+              "求函数值",
+              "验证关系式"
+            ],
+            "score": "3.00",
+            "status": "Pending Review",
+            "analysis": "依据给定片段中的一次函数关系式 y=2x+1，将 x=3 代入计算，得到 y=7，可验证关系式与对应数值一致。",
+            "source_type": "adapted",
+            "parent_sources": [
+              {
+                "source_question_id": "e676cf98-f73f-4e45-99ac-56441471f9a3",
+                "adaptation_type": "rewrite",
+                "created_at": "2026-10-06T04:25:29.470142+00:00"
+              }
+            ],
+            "paper_source": null,
+            "current_validation": null,
+            "can_review": false,
+            "created_at": "2026-10-06T04:25:29.392067Z",
+            "updated_at": "2026-10-06T04:25:29.468679Z",
+            "origin": "Candidate Generation",
+            "validation": {
+              "status": "Pending Review",
+              "issues": []
+            },
+            "source_context_ids": [
+              "e4941012-3487-461e-940e-0c2132b2d7d9"
+            ],
+            "sources_persisted": true,
+            "source_status": "persisted"
+          }
+        ],
+        "batch_validation": {
+          "status": "Pending Review",
+          "issues": []
+        },
+        "evidence": [
+          {
+            "chunk_id": "e4941012-3487-461e-940e-0c2132b2d7d9",
+            "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+            "document_id": "0d6de23d-2db0-4f34-a175-ea324b78d46d",
+            "source_file": "teaching_basis.txt",
+            "chunk_index": 2,
+            "content": "一次函数：y=2x+1。代入x=3得y=7。"
+          }
+        ],
+        "out_of_course_source_count": 0,
+        "unresolved_source_count": 0,
+        "sources_persisted": true,
+        "model": "deepseek-chat",
+        "prompt_version": "question-generation-v2"
+      }
+    },
+    {
+      "label": "explicit_AI_current_adaptation_completion",
+      "status": 200,
+      "response": {
+        "id": "b412c277-7f56-4d27-b2d5-ff59b77dae47",
+        "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+        "type": "SHORT_ANSWER",
+        "content": "已知y是x的一次函数。根据下表求y关于x的关系式，写出用两组数据求斜率及截距的过程，并代入第三组数据验证。",
+        "options": null,
+        "order_preserved": true,
+        "reference_answer": "由(1,3)、(2,5)得斜率(5-3)/(2-1)=2，截距1，所以y=2x+1。代入第三组x=3得y=7。",
+        "scoring_rubric": "正确关系式1.00分；用两组数据求斜率及截距1.00分；代入第三组数据验证1.00分，共3.00分。",
+        "analysis": "AI会话委托显式补全业务题；依据实际表格三组点求系数并验证，不称为模型自动提取或独立教师标注。",
+        "source_type": "adapted",
+        "frozen_at": null,
+        "difficulty": "未指定",
+        "knowledge_points": [
+          "一次函数",
+          "求函数值",
+          "验证关系式"
+        ],
+        "score": "3.00",
+        "status": "Pending Review",
+        "created_by": "dbea54c4-d987-4b0e-abcd-273eeb962b7d",
+        "created_at": "2026-10-06T04:25:29.392067Z",
+        "updated_at": "2026-10-06T04:25:29.534257Z"
+      }
+    },
+    {
+      "label": "actual_new_adaptation_assets",
+      "status": 200,
+      "response": [
+        {
+          "id": "867d1e09-4f1b-4487-9a5d-6545407b0b29",
+          "question_id": "b412c277-7f56-4d27-b2d5-ff59b77dae47",
+          "file_id": "a_867d1e094f1b44879a5d6545407b0b29",
+          "asset_type": "table",
+          "width": 475,
+          "height": 350,
+          "caption": null,
+          "source_page_id": "a9c76614-4f08-4eeb-8f5c-95b1c37f2d30",
+          "region": {
+            "bbox": [
+              375,
+              1062,
+              850,
+              1412
+            ]
+          },
+          "order_index": 1,
+          "student_visible": false
+        }
+      ]
+    },
+    {
+      "label": "open_verified_crop_before_publication",
+      "status": 200,
+      "response": {
+        "id": "867d1e09-4f1b-4487-9a5d-6545407b0b29",
+        "question_id": "b412c277-7f56-4d27-b2d5-ff59b77dae47",
+        "file_id": "a_867d1e094f1b44879a5d6545407b0b29",
+        "asset_type": "table",
+        "width": 475,
+        "height": 350,
+        "caption": null,
+        "source_page_id": "a9c76614-4f08-4eeb-8f5c-95b1c37f2d30",
+        "region": {
+          "bbox": [
+            375,
+            1062,
+            850,
+            1412
+          ]
+        },
+        "order_index": 1,
+        "student_visible": true
+      }
+    },
+    {
+      "label": "new_actual_vision_call",
+      "status": 200,
+      "response": {
+        "owner_kind": "question",
+        "owner_id": "b412c277-7f56-4d27-b2d5-ff59b77dae47",
+        "assessment": {
+          "context_revision": 1,
+          "runs": [
+            {
+              "id": "b011f9f3-d519-4368-becd-b7c0453f39a5",
+              "run_no": 1,
+              "context_revision": 1,
+              "task": "提取题图中作答所需条件",
+              "input_refs": {
+                "text_fields": [
+                  "type",
+                  "content",
+                  "options",
+                  "reference_answer",
+                  "scoring_rubric",
+                  "analysis",
+                  "score",
+                  "caption"
+                ],
+                "images": [
+                  {
+                    "asset_id": "867d1e09-4f1b-4487-9a5d-6545407b0b29",
+                    "file_id": "a_867d1e094f1b44879a5d6545407b0b29",
+                    "image_index": 1,
+                    "asset_type": "table",
+                    "source_page_id": "a9c76614-4f08-4eeb-8f5c-95b1c37f2d30",
+                    "region": {
+                      "bbox": [
+                        375,
+                        1062,
+                        850,
+                        1412
+                      ]
+                    },
+                    "width": 475,
+                    "height": 350,
+                    "mime_type": "image/png"
+                  }
+                ]
+              },
+              "outcome": "completed",
+              "result": {
+                "observations": [
+                  {
+                    "image_index": 1,
+                    "kind": "table",
+                    "description": "表格共4行3列；表头为x、y、说明；三行数据依次为(1,3,第一行)、(2,5,第二行)、(3,7,第三行)。",
+                    "bbox": [
+                      392.0,
+                      1090.0,
+                      833.0,
+                      1387.0
+                    ]
+                  },
+                  {
+                    "image_index": 1,
+                    "kind": "table_header",
+                    "description": "表头文字为：x、y、说明。",
+                    "bbox": [
+                      392.0,
+                      1090.0,
+                      833.0,
+                      1164.0
+                    ]
+                  },
+                  {
+                    "image_index": 1,
+                    "kind": "table_row",
+                    "description": "第一行数据：x=1，y=3，说明为“第一行”。",
+                    "bbox": [
+                      392.0,
+                      1164.0,
+                      833.0,
+                      1238.0
+                    ]
+                  },
+                  {
+                    "image_index": 1,
+                    "kind": "table_row",
+                    "description": "第二行数据：x=2，y=5，说明为“第二行”。",
+                    "bbox": [
+                      392.0,
+                      1238.0,
+                      833.0,
+                      1312.0
+                    ]
+                  },
+                  {
+                    "image_index": 1,
+                    "kind": "table_row",
+                    "description": "第三行数据：x=3，y=7，说明为“第三行”。",
+                    "bbox": [
+                      392.0,
+                      1312.0,
+                      833.0,
+                      1387.0
+                    ]
+                  }
+                ],
+                "conditions": [
+                  {
+                    "condition_id": "d84dfa8f-8a36-452a-b8e8-562d005dc669",
+                    "asset_id": "867d1e09-4f1b-4487-9a5d-6545407b0b29",
+                    "image_index": 1,
+                    "text": "已知 y 是 x 的一次函数。",
+                    "evidence_region": null
+                  },
+                  {
+                    "condition_id": "cfb16cca-a97f-43be-865e-76936f854c94",
+                    "asset_id": "867d1e09-4f1b-4487-9a5d-6545407b0b29",
+                    "image_index": 1,
+                    "text": "表格给出三组 x 与 y 的对应值：x=1 时 y=3；x=2 时 y=5；x=3 时 y=7。",
+                    "evidence_region": {
+                      "bbox": [
+                        392,
+                        1090,
+                        833,
+                        1387
+                      ]
+                    }
+                  },
+                  {
+                    "condition_id": "14c9845c-ed19-4d3a-82bf-cdc45bf6904b",
+                    "asset_id": "867d1e09-4f1b-4487-9a5d-6545407b0b29",
+                    "image_index": 1,
+                    "text": "需根据表格中的三组数据求 y 关于 x 的关系式，写出用两组数据求斜率及截距的过程，并代入第三组数据验证。",
+                    "evidence_region": null
+                  }
+                ],
+                "unresolved_issues": [],
+                "requires_manual_review": false
+              },
+              "error": null,
+              "executor_kind": "service",
+              "executor_name": "vision",
+              "requested_by": "dbea54c4-d987-4b0e-abcd-273eeb962b7d",
+              "agent_run_id": null,
+              "provenance": {
+                "provider_name": "deepseek",
+                "model": "deepseek-flash",
+                "model_version": null,
+                "prompt_version": "vision-conditions-v1"
+              },
+              "started_at": "2026-10-06T04:25:29.646246Z",
+              "completed_at": "2026-10-06T04:25:58.992230Z"
+            }
+          ],
+          "manual_checks": [],
+          "imported_review": null
+        },
+        "context_revision": 1,
+        "run_no": 1,
+        "check_no": 0,
+        "input_refs": {
+          "text_fields": [
+            "type",
+            "content",
+            "options",
+            "reference_answer",
+            "scoring_rubric",
+            "analysis",
+            "score",
+            "caption"
+          ],
+          "images": [
+            {
+              "asset_id": "867d1e09-4f1b-4487-9a5d-6545407b0b29",
+              "file_id": "a_867d1e094f1b44879a5d6545407b0b29",
+              "image_index": 1,
+              "asset_type": "table",
+              "source_page_id": "a9c76614-4f08-4eeb-8f5c-95b1c37f2d30",
+              "region": {
+                "bbox": [
+                  375,
+                  1062,
+                  850,
+                  1412
+                ]
+              },
+              "width": 475,
+              "height": 350,
+              "mime_type": "image/png"
+            }
+          ]
+        },
+        "current_run": {
+          "id": "b011f9f3-d519-4368-becd-b7c0453f39a5",
+          "run_no": 1,
+          "context_revision": 1,
+          "task": "提取题图中作答所需条件",
+          "input_refs": {
+            "text_fields": [
+              "type",
+              "content",
+              "options",
+              "reference_answer",
+              "scoring_rubric",
+              "analysis",
+              "score",
+              "caption"
+            ],
+            "images": [
+              {
+                "asset_id": "867d1e09-4f1b-4487-9a5d-6545407b0b29",
+                "file_id": "a_867d1e094f1b44879a5d6545407b0b29",
+                "image_index": 1,
+                "asset_type": "table",
+                "source_page_id": "a9c76614-4f08-4eeb-8f5c-95b1c37f2d30",
+                "region": {
+                  "bbox": [
+                    375,
+                    1062,
+                    850,
+                    1412
+                  ]
+                },
+                "width": 475,
+                "height": 350,
+                "mime_type": "image/png"
+              }
+            ]
+          },
+          "outcome": "completed",
+          "result": {
+            "observations": [
+              {
+                "image_index": 1,
+                "kind": "table",
+                "description": "表格共4行3列；表头为x、y、说明；三行数据依次为(1,3,第一行)、(2,5,第二行)、(3,7,第三行)。",
+                "bbox": [
+                  392.0,
+                  1090.0,
+                  833.0,
+                  1387.0
+                ]
+              },
+              {
+                "image_index": 1,
+                "kind": "table_header",
+                "description": "表头文字为：x、y、说明。",
+                "bbox": [
+                  392.0,
+                  1090.0,
+                  833.0,
+                  1164.0
+                ]
+              },
+              {
+                "image_index": 1,
+                "kind": "table_row",
+                "description": "第一行数据：x=1，y=3，说明为“第一行”。",
+                "bbox": [
+                  392.0,
+                  1164.0,
+                  833.0,
+                  1238.0
+                ]
+              },
+              {
+                "image_index": 1,
+                "kind": "table_row",
+                "description": "第二行数据：x=2，y=5，说明为“第二行”。",
+                "bbox": [
+                  392.0,
+                  1238.0,
+                  833.0,
+                  1312.0
+                ]
+              },
+              {
+                "image_index": 1,
+                "kind": "table_row",
+                "description": "第三行数据：x=3，y=7，说明为“第三行”。",
+                "bbox": [
+                  392.0,
+                  1312.0,
+                  833.0,
+                  1387.0
+                ]
+              }
+            ],
+            "conditions": [
+              {
+                "condition_id": "d84dfa8f-8a36-452a-b8e8-562d005dc669",
+                "asset_id": "867d1e09-4f1b-4487-9a5d-6545407b0b29",
+                "image_index": 1,
+                "text": "已知 y 是 x 的一次函数。",
+                "evidence_region": null
+              },
+              {
+                "condition_id": "cfb16cca-a97f-43be-865e-76936f854c94",
+                "asset_id": "867d1e09-4f1b-4487-9a5d-6545407b0b29",
+                "image_index": 1,
+                "text": "表格给出三组 x 与 y 的对应值：x=1 时 y=3；x=2 时 y=5；x=3 时 y=7。",
+                "evidence_region": {
+                  "bbox": [
+                    392,
+                    1090,
+                    833,
+                    1387
+                  ]
+                }
+              },
+              {
+                "condition_id": "14c9845c-ed19-4d3a-82bf-cdc45bf6904b",
+                "asset_id": "867d1e09-4f1b-4487-9a5d-6545407b0b29",
+                "image_index": 1,
+                "text": "需根据表格中的三组数据求 y 关于 x 的关系式，写出用两组数据求斜率及截距的过程，并代入第三组数据验证。",
+                "evidence_region": null
+              }
+            ],
+            "unresolved_issues": [],
+            "requires_manual_review": false
+          },
+          "error": null,
+          "executor_kind": "service",
+          "executor_name": "vision",
+          "requested_by": "dbea54c4-d987-4b0e-abcd-273eeb962b7d",
+          "agent_run_id": null,
+          "provenance": {
+            "provider_name": "deepseek",
+            "model": "deepseek-flash",
+            "model_version": null,
+            "prompt_version": "vision-conditions-v1"
+          },
+          "started_at": "2026-10-06T04:25:29.646246Z",
+          "completed_at": "2026-10-06T04:25:58.992230Z"
+        },
+        "current_check": null,
+        "imported_review": null,
+        "status": "pending",
+        "confirmed_conditions": [],
+        "requires_manual_review": true,
+        "evidence_readable": true,
+        "error": null,
+        "open_issues": []
+      }
+    },
+    {
+      "label": "actual_current_image_context",
+      "status": 200,
+      "response": {
+        "owner_kind": "question",
+        "owner_id": "b412c277-7f56-4d27-b2d5-ff59b77dae47",
+        "assessment": {
+          "context_revision": 1,
+          "runs": [
+            {
+              "id": "b011f9f3-d519-4368-becd-b7c0453f39a5",
+              "run_no": 1,
+              "context_revision": 1,
+              "task": "提取题图中作答所需条件",
+              "input_refs": {
+                "text_fields": [
+                  "type",
+                  "content",
+                  "options",
+                  "reference_answer",
+                  "scoring_rubric",
+                  "analysis",
+                  "score",
+                  "caption"
+                ],
+                "images": [
+                  {
+                    "asset_id": "867d1e09-4f1b-4487-9a5d-6545407b0b29",
+                    "file_id": "a_867d1e094f1b44879a5d6545407b0b29",
+                    "image_index": 1,
+                    "asset_type": "table",
+                    "source_page_id": "a9c76614-4f08-4eeb-8f5c-95b1c37f2d30",
+                    "region": {
+                      "bbox": [
+                        375,
+                        1062,
+                        850,
+                        1412
+                      ]
+                    },
+                    "width": 475,
+                    "height": 350,
+                    "mime_type": "image/png"
+                  }
+                ]
+              },
+              "outcome": "completed",
+              "result": {
+                "observations": [
+                  {
+                    "image_index": 1,
+                    "kind": "table",
+                    "description": "表格共4行3列；表头为x、y、说明；三行数据依次为(1,3,第一行)、(2,5,第二行)、(3,7,第三行)。",
+                    "bbox": [
+                      392.0,
+                      1090.0,
+                      833.0,
+                      1387.0
+                    ]
+                  },
+                  {
+                    "image_index": 1,
+                    "kind": "table_header",
+                    "description": "表头文字为：x、y、说明。",
+                    "bbox": [
+                      392.0,
+                      1090.0,
+                      833.0,
+                      1164.0
+                    ]
+                  },
+                  {
+                    "image_index": 1,
+                    "kind": "table_row",
+                    "description": "第一行数据：x=1，y=3，说明为“第一行”。",
+                    "bbox": [
+                      392.0,
+                      1164.0,
+                      833.0,
+                      1238.0
+                    ]
+                  },
+                  {
+                    "image_index": 1,
+                    "kind": "table_row",
+                    "description": "第二行数据：x=2，y=5，说明为“第二行”。",
+                    "bbox": [
+                      392.0,
+                      1238.0,
+                      833.0,
+                      1312.0
+                    ]
+                  },
+                  {
+                    "image_index": 1,
+                    "kind": "table_row",
+                    "description": "第三行数据：x=3，y=7，说明为“第三行”。",
+                    "bbox": [
+                      392.0,
+                      1312.0,
+                      833.0,
+                      1387.0
+                    ]
+                  }
+                ],
+                "conditions": [
+                  {
+                    "condition_id": "d84dfa8f-8a36-452a-b8e8-562d005dc669",
+                    "asset_id": "867d1e09-4f1b-4487-9a5d-6545407b0b29",
+                    "image_index": 1,
+                    "text": "已知 y 是 x 的一次函数。",
+                    "evidence_region": null
+                  },
+                  {
+                    "condition_id": "cfb16cca-a97f-43be-865e-76936f854c94",
+                    "asset_id": "867d1e09-4f1b-4487-9a5d-6545407b0b29",
+                    "image_index": 1,
+                    "text": "表格给出三组 x 与 y 的对应值：x=1 时 y=3；x=2 时 y=5；x=3 时 y=7。",
+                    "evidence_region": {
+                      "bbox": [
+                        392,
+                        1090,
+                        833,
+                        1387
+                      ]
+                    }
+                  },
+                  {
+                    "condition_id": "14c9845c-ed19-4d3a-82bf-cdc45bf6904b",
+                    "asset_id": "867d1e09-4f1b-4487-9a5d-6545407b0b29",
+                    "image_index": 1,
+                    "text": "需根据表格中的三组数据求 y 关于 x 的关系式，写出用两组数据求斜率及截距的过程，并代入第三组数据验证。",
+                    "evidence_region": null
+                  }
+                ],
+                "unresolved_issues": [],
+                "requires_manual_review": false
+              },
+              "error": null,
+              "executor_kind": "service",
+              "executor_name": "vision",
+              "requested_by": "dbea54c4-d987-4b0e-abcd-273eeb962b7d",
+              "agent_run_id": null,
+              "provenance": {
+                "provider_name": "deepseek",
+                "model": "deepseek-flash",
+                "model_version": null,
+                "prompt_version": "vision-conditions-v1"
+              },
+              "started_at": "2026-10-06T04:25:29.646246Z",
+              "completed_at": "2026-10-06T04:25:58.992230Z"
+            }
+          ],
+          "manual_checks": [],
+          "imported_review": null
+        },
+        "context_revision": 1,
+        "run_no": 1,
+        "check_no": 0,
+        "input_refs": {
+          "text_fields": [
+            "type",
+            "content",
+            "options",
+            "reference_answer",
+            "scoring_rubric",
+            "analysis",
+            "score",
+            "caption"
+          ],
+          "images": [
+            {
+              "asset_id": "867d1e09-4f1b-4487-9a5d-6545407b0b29",
+              "file_id": "a_867d1e094f1b44879a5d6545407b0b29",
+              "image_index": 1,
+              "asset_type": "table",
+              "source_page_id": "a9c76614-4f08-4eeb-8f5c-95b1c37f2d30",
+              "region": {
+                "bbox": [
+                  375,
+                  1062,
+                  850,
+                  1412
+                ]
+              },
+              "width": 475,
+              "height": 350,
+              "mime_type": "image/png"
+            }
+          ]
+        },
+        "current_run": {
+          "id": "b011f9f3-d519-4368-becd-b7c0453f39a5",
+          "run_no": 1,
+          "context_revision": 1,
+          "task": "提取题图中作答所需条件",
+          "input_refs": {
+            "text_fields": [
+              "type",
+              "content",
+              "options",
+              "reference_answer",
+              "scoring_rubric",
+              "analysis",
+              "score",
+              "caption"
+            ],
+            "images": [
+              {
+                "asset_id": "867d1e09-4f1b-4487-9a5d-6545407b0b29",
+                "file_id": "a_867d1e094f1b44879a5d6545407b0b29",
+                "image_index": 1,
+                "asset_type": "table",
+                "source_page_id": "a9c76614-4f08-4eeb-8f5c-95b1c37f2d30",
+                "region": {
+                  "bbox": [
+                    375,
+                    1062,
+                    850,
+                    1412
+                  ]
+                },
+                "width": 475,
+                "height": 350,
+                "mime_type": "image/png"
+              }
+            ]
+          },
+          "outcome": "completed",
+          "result": {
+            "observations": [
+              {
+                "image_index": 1,
+                "kind": "table",
+                "description": "表格共4行3列；表头为x、y、说明；三行数据依次为(1,3,第一行)、(2,5,第二行)、(3,7,第三行)。",
+                "bbox": [
+                  392.0,
+                  1090.0,
+                  833.0,
+                  1387.0
+                ]
+              },
+              {
+                "image_index": 1,
+                "kind": "table_header",
+                "description": "表头文字为：x、y、说明。",
+                "bbox": [
+                  392.0,
+                  1090.0,
+                  833.0,
+                  1164.0
+                ]
+              },
+              {
+                "image_index": 1,
+                "kind": "table_row",
+                "description": "第一行数据：x=1，y=3，说明为“第一行”。",
+                "bbox": [
+                  392.0,
+                  1164.0,
+                  833.0,
+                  1238.0
+                ]
+              },
+              {
+                "image_index": 1,
+                "kind": "table_row",
+                "description": "第二行数据：x=2，y=5，说明为“第二行”。",
+                "bbox": [
+                  392.0,
+                  1238.0,
+                  833.0,
+                  1312.0
+                ]
+              },
+              {
+                "image_index": 1,
+                "kind": "table_row",
+                "description": "第三行数据：x=3，y=7，说明为“第三行”。",
+                "bbox": [
+                  392.0,
+                  1312.0,
+                  833.0,
+                  1387.0
+                ]
+              }
+            ],
+            "conditions": [
+              {
+                "condition_id": "d84dfa8f-8a36-452a-b8e8-562d005dc669",
+                "asset_id": "867d1e09-4f1b-4487-9a5d-6545407b0b29",
+                "image_index": 1,
+                "text": "已知 y 是 x 的一次函数。",
+                "evidence_region": null
+              },
+              {
+                "condition_id": "cfb16cca-a97f-43be-865e-76936f854c94",
+                "asset_id": "867d1e09-4f1b-4487-9a5d-6545407b0b29",
+                "image_index": 1,
+                "text": "表格给出三组 x 与 y 的对应值：x=1 时 y=3；x=2 时 y=5；x=3 时 y=7。",
+                "evidence_region": {
+                  "bbox": [
+                    392,
+                    1090,
+                    833,
+                    1387
+                  ]
+                }
+              },
+              {
+                "condition_id": "14c9845c-ed19-4d3a-82bf-cdc45bf6904b",
+                "asset_id": "867d1e09-4f1b-4487-9a5d-6545407b0b29",
+                "image_index": 1,
+                "text": "需根据表格中的三组数据求 y 关于 x 的关系式，写出用两组数据求斜率及截距的过程，并代入第三组数据验证。",
+                "evidence_region": null
+              }
+            ],
+            "unresolved_issues": [],
+            "requires_manual_review": false
+          },
+          "error": null,
+          "executor_kind": "service",
+          "executor_name": "vision",
+          "requested_by": "dbea54c4-d987-4b0e-abcd-273eeb962b7d",
+          "agent_run_id": null,
+          "provenance": {
+            "provider_name": "deepseek",
+            "model": "deepseek-flash",
+            "model_version": null,
+            "prompt_version": "vision-conditions-v1"
+          },
+          "started_at": "2026-10-06T04:25:29.646246Z",
+          "completed_at": "2026-10-06T04:25:58.992230Z"
+        },
+        "current_check": null,
+        "imported_review": null,
+        "status": "pending",
+        "confirmed_conditions": [],
+        "requires_manual_review": true,
+        "evidence_readable": true,
+        "error": null,
+        "open_issues": []
+      }
+    },
+    {
+      "label": "AI_delegated_whole_group_check",
+      "status": 200,
+      "response": {
+        "owner_kind": "question",
+        "owner_id": "b412c277-7f56-4d27-b2d5-ff59b77dae47",
+        "assessment": {
+          "context_revision": 1,
+          "runs": [
+            {
+              "id": "b011f9f3-d519-4368-becd-b7c0453f39a5",
+              "run_no": 1,
+              "context_revision": 1,
+              "task": "提取题图中作答所需条件",
+              "input_refs": {
+                "text_fields": [
+                  "type",
+                  "content",
+                  "options",
+                  "reference_answer",
+                  "scoring_rubric",
+                  "analysis",
+                  "score",
+                  "caption"
+                ],
+                "images": [
+                  {
+                    "asset_id": "867d1e09-4f1b-4487-9a5d-6545407b0b29",
+                    "file_id": "a_867d1e094f1b44879a5d6545407b0b29",
+                    "image_index": 1,
+                    "asset_type": "table",
+                    "source_page_id": "a9c76614-4f08-4eeb-8f5c-95b1c37f2d30",
+                    "region": {
+                      "bbox": [
+                        375,
+                        1062,
+                        850,
+                        1412
+                      ]
+                    },
+                    "width": 475,
+                    "height": 350,
+                    "mime_type": "image/png"
+                  }
+                ]
+              },
+              "outcome": "completed",
+              "result": {
+                "observations": [
+                  {
+                    "image_index": 1,
+                    "kind": "table",
+                    "description": "表格共4行3列；表头为x、y、说明；三行数据依次为(1,3,第一行)、(2,5,第二行)、(3,7,第三行)。",
+                    "bbox": [
+                      392.0,
+                      1090.0,
+                      833.0,
+                      1387.0
+                    ]
+                  },
+                  {
+                    "image_index": 1,
+                    "kind": "table_header",
+                    "description": "表头文字为：x、y、说明。",
+                    "bbox": [
+                      392.0,
+                      1090.0,
+                      833.0,
+                      1164.0
+                    ]
+                  },
+                  {
+                    "image_index": 1,
+                    "kind": "table_row",
+                    "description": "第一行数据：x=1，y=3，说明为“第一行”。",
+                    "bbox": [
+                      392.0,
+                      1164.0,
+                      833.0,
+                      1238.0
+                    ]
+                  },
+                  {
+                    "image_index": 1,
+                    "kind": "table_row",
+                    "description": "第二行数据：x=2，y=5，说明为“第二行”。",
+                    "bbox": [
+                      392.0,
+                      1238.0,
+                      833.0,
+                      1312.0
+                    ]
+                  },
+                  {
+                    "image_index": 1,
+                    "kind": "table_row",
+                    "description": "第三行数据：x=3，y=7，说明为“第三行”。",
+                    "bbox": [
+                      392.0,
+                      1312.0,
+                      833.0,
+                      1387.0
+                    ]
+                  }
+                ],
+                "conditions": [
+                  {
+                    "condition_id": "d84dfa8f-8a36-452a-b8e8-562d005dc669",
+                    "asset_id": "867d1e09-4f1b-4487-9a5d-6545407b0b29",
+                    "image_index": 1,
+                    "text": "已知 y 是 x 的一次函数。",
+                    "evidence_region": null
+                  },
+                  {
+                    "condition_id": "cfb16cca-a97f-43be-865e-76936f854c94",
+                    "asset_id": "867d1e09-4f1b-4487-9a5d-6545407b0b29",
+                    "image_index": 1,
+                    "text": "表格给出三组 x 与 y 的对应值：x=1 时 y=3；x=2 时 y=5；x=3 时 y=7。",
+                    "evidence_region": {
+                      "bbox": [
+                        392,
+                        1090,
+                        833,
+                        1387
+                      ]
+                    }
+                  },
+                  {
+                    "condition_id": "14c9845c-ed19-4d3a-82bf-cdc45bf6904b",
+                    "asset_id": "867d1e09-4f1b-4487-9a5d-6545407b0b29",
+                    "image_index": 1,
+                    "text": "需根据表格中的三组数据求 y 关于 x 的关系式，写出用两组数据求斜率及截距的过程，并代入第三组数据验证。",
+                    "evidence_region": null
+                  }
+                ],
+                "unresolved_issues": [],
+                "requires_manual_review": false
+              },
+              "error": null,
+              "executor_kind": "service",
+              "executor_name": "vision",
+              "requested_by": "dbea54c4-d987-4b0e-abcd-273eeb962b7d",
+              "agent_run_id": null,
+              "provenance": {
+                "provider_name": "deepseek",
+                "model": "deepseek-flash",
+                "model_version": null,
+                "prompt_version": "vision-conditions-v1"
+              },
+              "started_at": "2026-10-06T04:25:29.646246Z",
+              "completed_at": "2026-10-06T04:25:58.992230Z"
+            }
+          ],
+          "manual_checks": [
+            {
+              "id": "b7b18cc3-a232-41ef-ad09-e356fad9548d",
+              "check_no": 1,
+              "context_revision": 1,
+              "run_no": 1,
+              "run_id": "b011f9f3-d519-4368-becd-b7c0453f39a5",
+              "input_refs": {
+                "text_fields": [
+                  "type",
+                  "content",
+                  "options",
+                  "reference_answer",
+                  "scoring_rubric",
+                  "analysis",
+                  "score",
+                  "caption"
+                ],
+                "images": [
+                  {
+                    "asset_id": "867d1e09-4f1b-4487-9a5d-6545407b0b29",
+                    "file_id": "a_867d1e094f1b44879a5d6545407b0b29",
+                    "image_index": 1,
+                    "asset_type": "table",
+                    "source_page_id": "a9c76614-4f08-4eeb-8f5c-95b1c37f2d30",
+                    "region": {
+                      "bbox": [
+                        375,
+                        1062,
+                        850,
+                        1412
+                      ]
+                    },
+                    "width": 475,
+                    "height": 350,
+                    "mime_type": "image/png"
+                  }
+                ]
+              },
+              "status": "confirmed",
+              "confirmed_conditions": [
+                {
+                  "condition_id": "3a8a1b1e-a0d3-48fc-8838-a1faf98612d4",
+                  "asset_id": "867d1e09-4f1b-4487-9a5d-6545407b0b29",
+                  "text": "实际表格x为1、2、3，对应y为3、5、7。",
+                  "evidence_region": null,
+                  "source_condition_id": null
+                }
+              ],
+              "image_findings": [
+                {
+                  "asset_id": "867d1e09-4f1b-4487-9a5d-6545407b0b29",
+                  "finding": "conditions_confirmed",
+                  "reason": "AI会话委托复核原页裁图与同源475×350像素，不是独立教师。"
+                }
+              ],
+              "issues": [],
+              "issue_resolutions": [],
+              "teacher_id": "dbea54c4-d987-4b0e-abcd-273eeb962b7d",
+              "checked_at": "2026-10-06T04:25:59.175445Z",
+              "explanation": "AI授权操作，原图与当前补全题干对应；真实来源/身份/时间由服务保存。"
+            }
+          ],
+          "imported_review": null
+        },
+        "context_revision": 1,
+        "run_no": 1,
+        "check_no": 1,
+        "input_refs": {
+          "text_fields": [
+            "type",
+            "content",
+            "options",
+            "reference_answer",
+            "scoring_rubric",
+            "analysis",
+            "score",
+            "caption"
+          ],
+          "images": [
+            {
+              "asset_id": "867d1e09-4f1b-4487-9a5d-6545407b0b29",
+              "file_id": "a_867d1e094f1b44879a5d6545407b0b29",
+              "image_index": 1,
+              "asset_type": "table",
+              "source_page_id": "a9c76614-4f08-4eeb-8f5c-95b1c37f2d30",
+              "region": {
+                "bbox": [
+                  375,
+                  1062,
+                  850,
+                  1412
+                ]
+              },
+              "width": 475,
+              "height": 350,
+              "mime_type": "image/png"
+            }
+          ]
+        },
+        "current_run": {
+          "id": "b011f9f3-d519-4368-becd-b7c0453f39a5",
+          "run_no": 1,
+          "context_revision": 1,
+          "task": "提取题图中作答所需条件",
+          "input_refs": {
+            "text_fields": [
+              "type",
+              "content",
+              "options",
+              "reference_answer",
+              "scoring_rubric",
+              "analysis",
+              "score",
+              "caption"
+            ],
+            "images": [
+              {
+                "asset_id": "867d1e09-4f1b-4487-9a5d-6545407b0b29",
+                "file_id": "a_867d1e094f1b44879a5d6545407b0b29",
+                "image_index": 1,
+                "asset_type": "table",
+                "source_page_id": "a9c76614-4f08-4eeb-8f5c-95b1c37f2d30",
+                "region": {
+                  "bbox": [
+                    375,
+                    1062,
+                    850,
+                    1412
+                  ]
+                },
+                "width": 475,
+                "height": 350,
+                "mime_type": "image/png"
+              }
+            ]
+          },
+          "outcome": "completed",
+          "result": {
+            "observations": [
+              {
+                "image_index": 1,
+                "kind": "table",
+                "description": "表格共4行3列；表头为x、y、说明；三行数据依次为(1,3,第一行)、(2,5,第二行)、(3,7,第三行)。",
+                "bbox": [
+                  392.0,
+                  1090.0,
+                  833.0,
+                  1387.0
+                ]
+              },
+              {
+                "image_index": 1,
+                "kind": "table_header",
+                "description": "表头文字为：x、y、说明。",
+                "bbox": [
+                  392.0,
+                  1090.0,
+                  833.0,
+                  1164.0
+                ]
+              },
+              {
+                "image_index": 1,
+                "kind": "table_row",
+                "description": "第一行数据：x=1，y=3，说明为“第一行”。",
+                "bbox": [
+                  392.0,
+                  1164.0,
+                  833.0,
+                  1238.0
+                ]
+              },
+              {
+                "image_index": 1,
+                "kind": "table_row",
+                "description": "第二行数据：x=2，y=5，说明为“第二行”。",
+                "bbox": [
+                  392.0,
+                  1238.0,
+                  833.0,
+                  1312.0
+                ]
+              },
+              {
+                "image_index": 1,
+                "kind": "table_row",
+                "description": "第三行数据：x=3，y=7，说明为“第三行”。",
+                "bbox": [
+                  392.0,
+                  1312.0,
+                  833.0,
+                  1387.0
+                ]
+              }
+            ],
+            "conditions": [
+              {
+                "condition_id": "d84dfa8f-8a36-452a-b8e8-562d005dc669",
+                "asset_id": "867d1e09-4f1b-4487-9a5d-6545407b0b29",
+                "image_index": 1,
+                "text": "已知 y 是 x 的一次函数。",
+                "evidence_region": null
+              },
+              {
+                "condition_id": "cfb16cca-a97f-43be-865e-76936f854c94",
+                "asset_id": "867d1e09-4f1b-4487-9a5d-6545407b0b29",
+                "image_index": 1,
+                "text": "表格给出三组 x 与 y 的对应值：x=1 时 y=3；x=2 时 y=5；x=3 时 y=7。",
+                "evidence_region": {
+                  "bbox": [
+                    392,
+                    1090,
+                    833,
+                    1387
+                  ]
+                }
+              },
+              {
+                "condition_id": "14c9845c-ed19-4d3a-82bf-cdc45bf6904b",
+                "asset_id": "867d1e09-4f1b-4487-9a5d-6545407b0b29",
+                "image_index": 1,
+                "text": "需根据表格中的三组数据求 y 关于 x 的关系式，写出用两组数据求斜率及截距的过程，并代入第三组数据验证。",
+                "evidence_region": null
+              }
+            ],
+            "unresolved_issues": [],
+            "requires_manual_review": false
+          },
+          "error": null,
+          "executor_kind": "service",
+          "executor_name": "vision",
+          "requested_by": "dbea54c4-d987-4b0e-abcd-273eeb962b7d",
+          "agent_run_id": null,
+          "provenance": {
+            "provider_name": "deepseek",
+            "model": "deepseek-flash",
+            "model_version": null,
+            "prompt_version": "vision-conditions-v1"
+          },
+          "started_at": "2026-10-06T04:25:29.646246Z",
+          "completed_at": "2026-10-06T04:25:58.992230Z"
+        },
+        "current_check": {
+          "id": "b7b18cc3-a232-41ef-ad09-e356fad9548d",
+          "check_no": 1,
+          "context_revision": 1,
+          "run_no": 1,
+          "run_id": "b011f9f3-d519-4368-becd-b7c0453f39a5",
+          "input_refs": {
+            "text_fields": [
+              "type",
+              "content",
+              "options",
+              "reference_answer",
+              "scoring_rubric",
+              "analysis",
+              "score",
+              "caption"
+            ],
+            "images": [
+              {
+                "asset_id": "867d1e09-4f1b-4487-9a5d-6545407b0b29",
+                "file_id": "a_867d1e094f1b44879a5d6545407b0b29",
+                "image_index": 1,
+                "asset_type": "table",
+                "source_page_id": "a9c76614-4f08-4eeb-8f5c-95b1c37f2d30",
+                "region": {
+                  "bbox": [
+                    375,
+                    1062,
+                    850,
+                    1412
+                  ]
+                },
+                "width": 475,
+                "height": 350,
+                "mime_type": "image/png"
+              }
+            ]
+          },
+          "status": "confirmed",
+          "confirmed_conditions": [
+            {
+              "condition_id": "3a8a1b1e-a0d3-48fc-8838-a1faf98612d4",
+              "asset_id": "867d1e09-4f1b-4487-9a5d-6545407b0b29",
+              "text": "实际表格x为1、2、3，对应y为3、5、7。",
+              "evidence_region": null,
+              "source_condition_id": null
+            }
+          ],
+          "image_findings": [
+            {
+              "asset_id": "867d1e09-4f1b-4487-9a5d-6545407b0b29",
+              "finding": "conditions_confirmed",
+              "reason": "AI会话委托复核原页裁图与同源475×350像素，不是独立教师。"
+            }
+          ],
+          "issues": [],
+          "issue_resolutions": [],
+          "teacher_id": "dbea54c4-d987-4b0e-abcd-273eeb962b7d",
+          "checked_at": "2026-10-06T04:25:59.175445Z",
+          "explanation": "AI授权操作，原图与当前补全题干对应；真实来源/身份/时间由服务保存。"
+        },
+        "imported_review": null,
+        "status": "confirmed",
+        "confirmed_conditions": [
+          {
+            "condition_id": "3a8a1b1e-a0d3-48fc-8838-a1faf98612d4",
+            "asset_id": "867d1e09-4f1b-4487-9a5d-6545407b0b29",
+            "text": "实际表格x为1、2、3，对应y为3、5、7。",
+            "evidence_region": null,
+            "source_condition_id": null
+          }
+        ],
+        "requires_manual_review": false,
+        "evidence_readable": true,
+        "error": null,
+        "open_issues": []
+      }
+    },
+    {
+      "label": "submit_actual_completed_adaptation",
+      "status": 200,
+      "response": {
+        "id": "b412c277-7f56-4d27-b2d5-ff59b77dae47",
+        "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+        "type": "SHORT_ANSWER",
+        "content": "已知y是x的一次函数。根据下表求y关于x的关系式，写出用两组数据求斜率及截距的过程，并代入第三组数据验证。",
+        "options": null,
+        "order_preserved": true,
+        "reference_answer": "由(1,3)、(2,5)得斜率(5-3)/(2-1)=2，截距1，所以y=2x+1。代入第三组x=3得y=7。",
+        "scoring_rubric": "正确关系式1.00分；用两组数据求斜率及截距1.00分；代入第三组数据验证1.00分，共3.00分。",
+        "analysis": "AI会话委托显式补全业务题；依据实际表格三组点求系数并验证，不称为模型自动提取或独立教师标注。",
+        "source_type": "adapted",
+        "frozen_at": null,
+        "difficulty": "未指定",
+        "knowledge_points": [
+          "一次函数",
+          "求函数值",
+          "验证关系式"
+        ],
+        "score": "3.00",
+        "status": "Pending Review",
+        "created_by": "dbea54c4-d987-4b0e-abcd-273eeb962b7d",
+        "created_at": "2026-10-06T04:25:29.392067Z",
+        "updated_at": "2026-10-06T04:25:59.179230Z"
+      }
+    },
+    {
+      "label": "real_current_semantic_validation",
+      "status": 200,
+      "response": {
+        "id": "d0388d6e-8254-4e7b-acd0-120526cb7eff",
+        "question_id": "b412c277-7f56-4d27-b2d5-ff59b77dae47",
+        "input_revision": 4,
+        "run_no": 1,
+        "outcome": "passed",
+        "input_refs": {
+          "fields": [
+            "type",
+            "content",
+            "options",
+            "reference_answer",
+            "scoring_rubric",
+            "analysis",
+            "score",
+            "images",
+            "image_conditions"
+          ],
+          "evidence": [
+            {
+              "evidence_id": "73009c0e-bf9d-4498-be57-6b00d46237e4",
+              "kind": "chunk",
+              "source_id": "e4941012-3487-461e-940e-0c2132b2d7d9",
+              "source_data": {
+                "chunk_id": "e4941012-3487-461e-940e-0c2132b2d7d9",
+                "location": "第 3 段",
+                "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+                "document_id": "0d6de23d-2db0-4f34-a175-ea324b78d46d",
+                "source_file": "teaching_basis.txt",
+                "content_snapshot": "一次函数：y=2x+1。代入x=3得y=7。"
+              }
+            },
+            {
+              "evidence_id": "81ab4b20-eb6b-4758-9c19-3f063894daf2",
+              "kind": "question_asset",
+              "source_id": "867d1e09-4f1b-4487-9a5d-6545407b0b29",
+              "source_data": {
+                "region": {
+                  "bbox": [
+                    375,
+                    1062,
+                    850,
+                    1412
+                  ]
+                },
+                "file_id": "a_867d1e094f1b44879a5d6545407b0b29",
+                "source_page_id": "a9c76614-4f08-4eeb-8f5c-95b1c37f2d30",
+                "image_review_ref": {
+                  "check_id": "b7b18cc3-a232-41ef-ad09-e356fad9548d",
+                  "owner_id": "b412c277-7f56-4d27-b2d5-ff59b77dae47",
+                  "binding_id": null,
+                  "owner_kind": "question"
+                },
+                "confirmed_conditions": [
+                  {
+                    "text": "实际表格x为1、2、3，对应y为3、5、7。",
+                    "asset_id": "867d1e09-4f1b-4487-9a5d-6545407b0b29",
+                    "condition_id": "3a8a1b1e-a0d3-48fc-8838-a1faf98612d4",
+                    "evidence_region": null,
+                    "source_condition_id": null
+                  }
+                ]
+              }
+            }
+          ],
+          "manual_context": []
+        },
+        "checks": [
+          {
+            "kind": "answer_correctness",
+            "verdict": "pass",
+            "reason": "参考答案由(1,3)、(2,5)求出斜率2、截距1，得到y=2x+1，并代入x=3得y=7，与教学依据中“一次函数：y=2x+1。代入x=3得y=7。”一致，也与确认的表格数据x=1,2,3对应y=3,5,7一致。",
+            "evidence_refs": [
+              "73009c0e-bf9d-4498-be57-6b00d46237e4",
+              "81ab4b20-eb6b-4758-9c19-3f063894daf2"
+            ]
+          },
+          {
+            "kind": "condition_sufficiency",
+            "verdict": "pass",
+            "reason": "题目要求根据表格求一次函数关系式并验证，确认条件明确指出实际表格x为1、2、3，对应y为3、5、7，三组数据足以求斜率和截距并完成验证，条件充分。",
+            "evidence_refs": [
+              "81ab4b20-eb6b-4758-9c19-3f063894daf2"
+            ]
+          },
+          {
+            "kind": "option_ambiguity",
+            "verdict": "pass",
+            "reason": "本题为SHORT_ANSWER非选择题，不适用选项歧义检查；题干和参考答案均未出现需要辨析的选项。",
+            "evidence_refs": []
+          },
+          {
+            "kind": "rubric_clarity",
+            "verdict": "pass",
+            "reason": "评分标准明确分为正确关系式1.00分、用两组数据求斜率及截距1.00分、代入第三组数据验证1.00分，共3.00分，与题目要求一一对应，评分点清晰。",
+            "evidence_refs": []
+          }
+        ],
+        "issues": [],
+        "error": null,
+        "executor_kind": "agent",
+        "executor_name": "question_semantic_validator",
+        "requested_by": "dbea54c4-d987-4b0e-abcd-273eeb962b7d",
+        "agent_run_id": null,
+        "provenance": {
+          "agent_type": "Question",
+          "provider_name": "deepseek",
+          "model": "deepseek-chat",
+          "model_version": null,
+          "prompt_version": "question-semantics-v1"
+        },
+        "manual_dispositions": [],
+        "created_at": "2026-10-06T04:25:59.529329Z",
+        "completed_at": "2026-10-06T04:26:03.326250Z",
+        "is_current": true,
+        "stale": false,
+        "can_review": true,
+        "requires_manual_review": false
+      }
+    },
+    {
+      "label": "approve_actual_opened_adaptation",
+      "status": 200,
+      "response": {
+        "id": "b412c277-7f56-4d27-b2d5-ff59b77dae47",
+        "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+        "type": "SHORT_ANSWER",
+        "content": "已知y是x的一次函数。根据下表求y关于x的关系式，写出用两组数据求斜率及截距的过程，并代入第三组数据验证。",
+        "options": null,
+        "order_preserved": true,
+        "reference_answer": "由(1,3)、(2,5)得斜率(5-3)/(2-1)=2，截距1，所以y=2x+1。代入第三组x=3得y=7。",
+        "scoring_rubric": "正确关系式1.00分；用两组数据求斜率及截距1.00分；代入第三组数据验证1.00分，共3.00分。",
+        "analysis": "AI会话委托显式补全业务题；依据实际表格三组点求系数并验证，不称为模型自动提取或独立教师标注。",
+        "source_type": "adapted",
+        "frozen_at": "2026-10-06T04:26:03.556664Z",
+        "difficulty": "未指定",
+        "knowledge_points": [
+          "一次函数",
+          "求函数值",
+          "验证关系式"
+        ],
+        "score": "3.00",
+        "status": "Approved",
+        "created_by": "dbea54c4-d987-4b0e-abcd-273eeb962b7d",
+        "created_at": "2026-10-06T04:25:29.392067Z",
+        "updated_at": "2026-10-06T04:26:03.557138Z"
+      }
+    },
+    {
+      "label": "actual_generated_objective",
+      "status": 200,
+      "response": {
+        "id": "4d6073af-592e-4d83-8fea-db35e168d721",
+        "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+        "type": "SINGLE_CHOICE",
+        "content": "已知一次函数 y=2x+1，当 x=3 时，y 的值为（ ）",
+        "options": [
+          "A. 5",
+          "B. 6",
+          "C. 7",
+          "D. 8"
+        ],
+        "order_preserved": true,
+        "reference_answer": "C. 7",
+        "scoring_rubric": "选择 C（y=7）得满分 2.00 分；选择其他选项不得分。",
+        "analysis": "把 x=3 代入 y=2x+1，得 y=2×3+1=7。",
+        "source_type": "ai_generated",
+        "frozen_at": "2026-10-06T04:15:54.204697Z",
+        "difficulty": "基础",
+        "knowledge_points": [
+          "一次函数",
+          "求函数值"
+        ],
+        "score": "2.00",
+        "status": "Approved",
+        "created_by": "dbea54c4-d987-4b0e-abcd-273eeb962b7d",
+        "created_at": "2026-10-06T04:10:30.941202Z",
+        "updated_at": "2026-10-06T04:15:54.205127Z",
+        "sources_persisted": true,
+        "source_status": "persisted",
+        "sources": [
+          {
+            "chunk_id": "e4941012-3487-461e-940e-0c2132b2d7d9",
+            "source_order": 0,
+            "content_snapshot": "一次函数：y=2x+1。代入x=3得y=7。",
+            "source_file": "teaching_basis.txt",
+            "chunk_index": 2,
+            "retrieval_rank": null,
+            "score_kind": "fusion",
+            "score_value": 0.5,
+            "source_deleted": false
+          }
+        ],
+        "revision_comments": [],
+        "parent_sources": [],
+        "paper_source": null,
+        "current_validation": {
+          "id": "02527815-3d36-4941-892f-8d600143036a",
+          "question_id": "4d6073af-592e-4d83-8fea-db35e168d721",
+          "input_revision": 6,
+          "run_no": 2,
+          "outcome": "passed",
+          "input_refs": {
+            "fields": [
+              "type",
+              "content",
+              "options",
+              "reference_answer",
+              "scoring_rubric",
+              "analysis",
+              "score"
+            ],
+            "evidence": [
+              {
+                "evidence_id": "0220f361-eae3-461b-8413-1fd4386d9524",
+                "kind": "chunk",
+                "source_id": "e4941012-3487-461e-940e-0c2132b2d7d9",
+                "source_data": {
+                  "chunk_id": "e4941012-3487-461e-940e-0c2132b2d7d9",
+                  "location": "第 3 段",
+                  "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+                  "document_id": "0d6de23d-2db0-4f34-a175-ea324b78d46d",
+                  "source_file": "teaching_basis.txt",
+                  "content_snapshot": "一次函数：y=2x+1。代入x=3得y=7。"
+                }
+              }
+            ],
+            "manual_context": []
+          },
+          "checks": [
+            {
+              "kind": "answer_correctness",
+              "verdict": "pass",
+              "reason": "证据片段明确给出一次函数 y=2x+1，代入 x=3 得 y=7，与参考答案 C 一致。",
+              "evidence_refs": [
+                "0220f361-eae3-461b-8413-1fd4386d9524"
+              ]
+            },
+            {
+              "kind": "condition_sufficiency",
+              "verdict": "pass",
+              "reason": "题干给出了函数表达式 y=2x+1 和 x=3 的条件，选项、答案和解析齐全，条件足以唯一确定结果。",
+              "evidence_refs": [
+                "0220f361-eae3-461b-8413-1fd4386d9524"
+              ]
+            },
+            {
+              "kind": "option_ambiguity",
+              "verdict": "pass",
+              "reason": "四个选项 A.5、B.6、C.7、D.8 互不相同，正确答案 7 唯一对应 C，无歧义。",
+              "evidence_refs": []
+            },
+            {
+              "kind": "rubric_clarity",
+              "verdict": "pass",
+              "reason": "评分标准明确：选 C 得满分 2.00 分，选其他不得分，判定界线清晰。",
+              "evidence_refs": []
+            }
+          ],
+          "issues": [],
+          "error": null,
+          "executor_kind": "agent",
+          "executor_name": "question_semantic_validator",
+          "requested_by": "dbea54c4-d987-4b0e-abcd-273eeb962b7d",
+          "agent_run_id": null,
+          "provenance": {
+            "agent_type": "Question",
+            "provider_name": "deepseek",
+            "model": "deepseek-chat",
+            "model_version": null,
+            "prompt_version": "question-semantics-v1"
+          },
+          "manual_dispositions": [],
+          "created_at": "2026-10-06T04:15:50.949823Z",
+          "completed_at": "2026-10-06T04:15:54.148816Z",
+          "is_current": true,
+          "stale": false,
+          "can_review": false,
+          "requires_manual_review": true
+        },
+        "can_review": false,
+        "image_assessment": {
+          "owner_kind": "question",
+          "owner_id": "4d6073af-592e-4d83-8fea-db35e168d721",
+          "assessment": null,
+          "context_revision": 0,
+          "run_no": 0,
+          "check_no": 0,
+          "input_refs": null,
+          "current_run": null,
+          "current_check": null,
+          "imported_review": null,
+          "status": "not_required",
+          "confirmed_conditions": [],
+          "requires_manual_review": false,
+          "evidence_readable": true,
+          "error": null,
+          "open_issues": []
+        },
+        "assets": []
+      }
+    },
+    {
+      "label": "new_draft_exam_after_visibility_check",
+      "status": 201,
+      "response": {
+        "id": "d72b96f8-2bda-4225-9c9c-660eb8f9e462",
+        "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+        "created_by": "dbea54c4-d987-4b0e-abcd-273eeb962b7d",
+        "title": "T191 可作答文字生成与带图改编闭环",
+        "description": null,
+        "status": "Draft",
+        "duration_minutes": null,
+        "starts_at": null,
+        "ends_at": null,
+        "question_ids": [],
+        "question_count": 0,
+        "total_score": "0.00",
+        "created_at": "2026-10-06T04:26:03.651953Z",
+        "updated_at": "2026-10-06T04:26:03.651956Z"
+      }
+    },
+    {
+      "label": "actual_new_conditional_assembly",
+      "status": 200,
+      "response": {
+        "exam_id": "d72b96f8-2bda-4225-9c9c-660eb8f9e462",
+        "current_status": "Draft",
+        "exam_questions": [
+          {
+            "id": "966f7106-e36f-404a-8846-3c81f2f3f3e8",
+            "exam_id": "d72b96f8-2bda-4225-9c9c-660eb8f9e462",
+            "question_id": "b412c277-7f56-4d27-b2d5-ff59b77dae47",
+            "order_index": 1,
+            "score": "6.00",
+            "effective_score": "6.00",
+            "base_score": null,
+            "published_knowledge_points": null,
+            "scoring_basis": null,
+            "question_type": "SHORT_ANSWER",
+            "content": "已知y是x的一次函数。根据下表求y关于x的关系式，写出用两组数据求斜率及截距的过程，并代入第三组数据验证。",
+            "options": null,
+            "reference_answer": "由(1,3)、(2,5)得斜率(5-3)/(2-1)=2，截距1，所以y=2x+1。代入第三组x=3得y=7。",
+            "scoring_rubric": "正确关系式1.00分；用两组数据求斜率及截距1.00分；代入第三组数据验证1.00分，共3.00分。",
+            "analysis": "AI会话委托显式补全业务题；依据实际表格三组点求系数并验证，不称为模型自动提取或独立教师标注。",
+            "knowledge_points": [
+              "一次函数",
+              "求函数值",
+              "验证关系式"
+            ],
+            "assets": [
+              {
+                "id": "867d1e09-4f1b-4487-9a5d-6545407b0b29",
+                "question_id": "b412c277-7f56-4d27-b2d5-ff59b77dae47",
+                "file_id": "a_867d1e094f1b44879a5d6545407b0b29",
+                "asset_type": "table",
+                "width": 475,
+                "height": 350,
+                "caption": null,
+                "source_page_id": "a9c76614-4f08-4eeb-8f5c-95b1c37f2d30",
+                "region": {
+                  "bbox": [
+                    375,
+                    1062,
+                    850,
+                    1412
+                  ]
+                },
+                "order_index": 1,
+                "student_visible": true
+              }
+            ]
+          },
+          {
+            "id": "fbf242d6-6ebf-4044-99c2-8f380350a90d",
+            "exam_id": "d72b96f8-2bda-4225-9c9c-660eb8f9e462",
+            "question_id": "4d6073af-592e-4d83-8fea-db35e168d721",
+            "order_index": 2,
+            "score": "4.00",
+            "effective_score": "4.00",
+            "base_score": null,
+            "published_knowledge_points": null,
+            "scoring_basis": null,
+            "question_type": "SINGLE_CHOICE",
+            "content": "已知一次函数 y=2x+1，当 x=3 时，y 的值为（ ）",
+            "options": [
+              "A. 5",
+              "B. 6",
+              "C. 7",
+              "D. 8"
+            ],
+            "reference_answer": "C. 7",
+            "scoring_rubric": "选择 C（y=7）得满分 2.00 分；选择其他选项不得分。",
+            "analysis": "把 x=3 代入 y=2x+1，得 y=2×3+1=7。",
+            "knowledge_points": [
+              "一次函数",
+              "求函数值"
+            ],
+            "assets": []
+          }
+        ],
+        "conditions": [
+          {
+            "kind": "count",
+            "target": 2,
+            "actual": 2,
+            "satisfied": true,
+            "reason": null
+          },
+          {
+            "kind": "type:SINGLE_CHOICE",
+            "target": 1,
+            "actual": 1,
+            "satisfied": true,
+            "reason": null
+          },
+          {
+            "kind": "type:SHORT_ANSWER",
+            "target": 1,
+            "actual": 1,
+            "satisfied": true,
+            "reason": null
+          },
+          {
+            "kind": "total_score",
+            "target": "10.00",
+            "actual": "10.00",
+            "satisfied": true,
+            "reason": null
+          }
+        ],
+        "total_score": "10.00",
+        "publication_checks": [
+          {
+            "code": "EXAM_SCORING_BASIS_MISSING",
+            "message": "请先准备并核对本场评分依据。",
+            "question_id": "b412c277-7f56-4d27-b2d5-ff59b77dae47"
+          },
+          {
+            "code": "EXAM_SCORING_BASIS_MISSING",
+            "message": "请先准备并核对本场评分依据。",
+            "question_id": "4d6073af-592e-4d83-8fea-db35e168d721"
+          }
+        ],
+        "assembly_constraints": {
+          "request": {
+            "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+            "question_count": 2,
+            "type_distribution": [
+              {
+                "question_type": "SINGLE_CHOICE",
+                "count": 1
+              },
+              {
+                "question_type": "SHORT_ANSWER",
+                "count": 1
+              }
+            ],
+            "knowledge_coverage": [],
+            "total_score": "10.00",
+            "score_overrides": [
+              {
+                "question_id": "4d6073af-592e-4d83-8fea-db35e168d721",
+                "score": "4.00"
+              },
+              {
+                "question_id": "b412c277-7f56-4d27-b2d5-ff59b77dae47",
+                "score": "6.00"
+              }
+            ]
+          },
+          "recorded_by": "dbea54c4-d987-4b0e-abcd-273eeb962b7d",
+          "recorded_at": "2026-10-06T04:26:03.687090Z"
+        }
+      }
+    }
+  ],
+  "prior_receipt": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t191-20261006\\course-final\\receipt.json",
+  "actor": "AI session delegated; no independent teacher",
+  "synthetic_student_answer": "y=2x+1。",
+  "objective_question_id": "4d6073af-592e-4d83-8fea-db35e168d721",
+  "adaptation": {
+    "request_id": "82b2e01d-45c0-42d2-821c-efdf8eb2b314",
+    "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+    "generated_count": 1,
+    "candidates": [
+      {
+        "candidate_id": "b412c277-7f56-4d27-b2d5-ff59b77dae47",
+        "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+        "question_type": "SHORT_ANSWER",
+        "content": "已知y是x的一次函数，且当x=3时，y=7；已知其关系式为y=2x+1。请写出该一次函数的关系式，并说明如何由x=3得到y=7进行验证。",
+        "options": null,
+        "reference_answer": "关系式为 y=2x+1。验证：把 x=3 代入 y=2x+1，得到 y=2×3+1=7，与已知 y=7 一致。",
+        "scoring_rubric": "写出关系式 y=2x+1 得 1.50 分；正确代入 x=3 并计算 y=7 得 1.50 分，共 3.00 分。若关系式错误但验证过程正确，仅得验证部分分值；只有关系式正确而无验证过程，仅得关系式部分分值。",
+        "difficulty": "未指定",
+        "knowledge_points": [
+          "一次函数",
+          "求函数值",
+          "验证关系式"
+        ],
+        "score": "3.00",
+        "status": "Pending Review",
+        "analysis": "依据给定片段中的一次函数关系式 y=2x+1，将 x=3 代入计算，得到 y=7，可验证关系式与对应数值一致。",
+        "source_type": "adapted",
+        "parent_sources": [
+          {
+            "source_question_id": "e676cf98-f73f-4e45-99ac-56441471f9a3",
+            "adaptation_type": "rewrite",
+            "created_at": "2026-10-06T04:25:29.470142+00:00"
+          }
+        ],
+        "paper_source": null,
+        "current_validation": null,
+        "can_review": false,
+        "created_at": "2026-10-06T04:25:29.392067Z",
+        "updated_at": "2026-10-06T04:25:29.468679Z",
+        "origin": "Candidate Generation",
+        "validation": {
+          "status": "Pending Review",
+          "issues": []
+        },
+        "source_context_ids": [
+          "e4941012-3487-461e-940e-0c2132b2d7d9"
+        ],
+        "sources_persisted": true,
+        "source_status": "persisted"
+      }
+    ],
+    "batch_validation": {
+      "status": "Pending Review",
+      "issues": []
+    },
+    "evidence": [
+      {
+        "chunk_id": "e4941012-3487-461e-940e-0c2132b2d7d9",
+        "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+        "document_id": "0d6de23d-2db0-4f34-a175-ea324b78d46d",
+        "source_file": "teaching_basis.txt",
+        "chunk_index": 2,
+        "content": "一次函数：y=2x+1。代入x=3得y=7。"
+      }
+    ],
+    "out_of_course_source_count": 0,
+    "unresolved_source_count": 0,
+    "sources_persisted": true,
+    "model": "deepseek-chat",
+    "prompt_version": "question-generation-v2"
+  },
+  "explicit_AI_business_completion": {
+    "id": "b412c277-7f56-4d27-b2d5-ff59b77dae47",
+    "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+    "type": "SHORT_ANSWER",
+    "content": "已知y是x的一次函数。根据下表求y关于x的关系式，写出用两组数据求斜率及截距的过程，并代入第三组数据验证。",
+    "options": null,
+    "order_preserved": true,
+    "reference_answer": "由(1,3)、(2,5)得斜率(5-3)/(2-1)=2，截距1，所以y=2x+1。代入第三组x=3得y=7。",
+    "scoring_rubric": "正确关系式1.00分；用两组数据求斜率及截距1.00分；代入第三组数据验证1.00分，共3.00分。",
+    "analysis": "AI会话委托显式补全业务题；依据实际表格三组点求系数并验证，不称为模型自动提取或独立教师标注。",
+    "source_type": "adapted",
+    "frozen_at": null,
+    "difficulty": "未指定",
+    "knowledge_points": [
+      "一次函数",
+      "求函数值",
+      "验证关系式"
+    ],
+    "score": "3.00",
+    "status": "Pending Review",
+    "created_by": "dbea54c4-d987-4b0e-abcd-273eeb962b7d",
+    "created_at": "2026-10-06T04:25:29.392067Z",
+    "updated_at": "2026-10-06T04:25:29.534257Z"
+  },
+  "validation": {
+    "id": "d0388d6e-8254-4e7b-acd0-120526cb7eff",
+    "question_id": "b412c277-7f56-4d27-b2d5-ff59b77dae47",
+    "input_revision": 4,
+    "run_no": 1,
+    "outcome": "passed",
+    "input_refs": {
+      "fields": [
+        "type",
+        "content",
+        "options",
+        "reference_answer",
+        "scoring_rubric",
+        "analysis",
+        "score",
+        "images",
+        "image_conditions"
+      ],
+      "evidence": [
+        {
+          "evidence_id": "73009c0e-bf9d-4498-be57-6b00d46237e4",
+          "kind": "chunk",
+          "source_id": "e4941012-3487-461e-940e-0c2132b2d7d9",
+          "source_data": {
+            "chunk_id": "e4941012-3487-461e-940e-0c2132b2d7d9",
+            "location": "第 3 段",
+            "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+            "document_id": "0d6de23d-2db0-4f34-a175-ea324b78d46d",
+            "source_file": "teaching_basis.txt",
+            "content_snapshot": "一次函数：y=2x+1。代入x=3得y=7。"
+          }
+        },
+        {
+          "evidence_id": "81ab4b20-eb6b-4758-9c19-3f063894daf2",
+          "kind": "question_asset",
+          "source_id": "867d1e09-4f1b-4487-9a5d-6545407b0b29",
+          "source_data": {
+            "region": {
+              "bbox": [
+                375,
+                1062,
+                850,
+                1412
+              ]
+            },
+            "file_id": "a_867d1e094f1b44879a5d6545407b0b29",
+            "source_page_id": "a9c76614-4f08-4eeb-8f5c-95b1c37f2d30",
+            "image_review_ref": {
+              "check_id": "b7b18cc3-a232-41ef-ad09-e356fad9548d",
+              "owner_id": "b412c277-7f56-4d27-b2d5-ff59b77dae47",
+              "binding_id": null,
+              "owner_kind": "question"
+            },
+            "confirmed_conditions": [
+              {
+                "text": "实际表格x为1、2、3，对应y为3、5、7。",
+                "asset_id": "867d1e09-4f1b-4487-9a5d-6545407b0b29",
+                "condition_id": "3a8a1b1e-a0d3-48fc-8838-a1faf98612d4",
+                "evidence_region": null,
+                "source_condition_id": null
+              }
+            ]
+          }
+        }
+      ],
+      "manual_context": []
+    },
+    "checks": [
+      {
+        "kind": "answer_correctness",
+        "verdict": "pass",
+        "reason": "参考答案由(1,3)、(2,5)求出斜率2、截距1，得到y=2x+1，并代入x=3得y=7，与教学依据中“一次函数：y=2x+1。代入x=3得y=7。”一致，也与确认的表格数据x=1,2,3对应y=3,5,7一致。",
+        "evidence_refs": [
+          "73009c0e-bf9d-4498-be57-6b00d46237e4",
+          "81ab4b20-eb6b-4758-9c19-3f063894daf2"
+        ]
+      },
+      {
+        "kind": "condition_sufficiency",
+        "verdict": "pass",
+        "reason": "题目要求根据表格求一次函数关系式并验证，确认条件明确指出实际表格x为1、2、3，对应y为3、5、7，三组数据足以求斜率和截距并完成验证，条件充分。",
+        "evidence_refs": [
+          "81ab4b20-eb6b-4758-9c19-3f063894daf2"
+        ]
+      },
+      {
+        "kind": "option_ambiguity",
+        "verdict": "pass",
+        "reason": "本题为SHORT_ANSWER非选择题，不适用选项歧义检查；题干和参考答案均未出现需要辨析的选项。",
+        "evidence_refs": []
+      },
+      {
+        "kind": "rubric_clarity",
+        "verdict": "pass",
+        "reason": "评分标准明确分为正确关系式1.00分、用两组数据求斜率及截距1.00分、代入第三组数据验证1.00分，共3.00分，与题目要求一一对应，评分点清晰。",
+        "evidence_refs": []
+      }
+    ],
+    "issues": [],
+    "error": null,
+    "executor_kind": "agent",
+    "executor_name": "question_semantic_validator",
+    "requested_by": "dbea54c4-d987-4b0e-abcd-273eeb962b7d",
+    "agent_run_id": null,
+    "provenance": {
+      "agent_type": "Question",
+      "provider_name": "deepseek",
+      "model": "deepseek-chat",
+      "model_version": null,
+      "prompt_version": "question-semantics-v1"
+    },
+    "manual_dispositions": [],
+    "created_at": "2026-10-06T04:25:59.529329Z",
+    "completed_at": "2026-10-06T04:26:03.326250Z",
+    "is_current": true,
+    "stale": false,
+    "can_review": true,
+    "requires_manual_review": false
+  },
+  "synthetic_objective_answer": "A. 5",
+  "exam_id": "d72b96f8-2bda-4225-9c9c-660eb8f9e462",
+  "assembly": {
+    "exam_id": "d72b96f8-2bda-4225-9c9c-660eb8f9e462",
+    "current_status": "Draft",
+    "exam_questions": [
+      {
+        "id": "966f7106-e36f-404a-8846-3c81f2f3f3e8",
+        "exam_id": "d72b96f8-2bda-4225-9c9c-660eb8f9e462",
+        "question_id": "b412c277-7f56-4d27-b2d5-ff59b77dae47",
+        "order_index": 1,
+        "score": "6.00",
+        "effective_score": "6.00",
+        "base_score": null,
+        "published_knowledge_points": null,
+        "scoring_basis": null,
+        "question_type": "SHORT_ANSWER",
+        "content": "已知y是x的一次函数。根据下表求y关于x的关系式，写出用两组数据求斜率及截距的过程，并代入第三组数据验证。",
+        "options": null,
+        "reference_answer": "由(1,3)、(2,5)得斜率(5-3)/(2-1)=2，截距1，所以y=2x+1。代入第三组x=3得y=7。",
+        "scoring_rubric": "正确关系式1.00分；用两组数据求斜率及截距1.00分；代入第三组数据验证1.00分，共3.00分。",
+        "analysis": "AI会话委托显式补全业务题；依据实际表格三组点求系数并验证，不称为模型自动提取或独立教师标注。",
+        "knowledge_points": [
+          "一次函数",
+          "求函数值",
+          "验证关系式"
+        ],
+        "assets": [
+          {
+            "id": "867d1e09-4f1b-4487-9a5d-6545407b0b29",
+            "question_id": "b412c277-7f56-4d27-b2d5-ff59b77dae47",
+            "file_id": "a_867d1e094f1b44879a5d6545407b0b29",
+            "asset_type": "table",
+            "width": 475,
+            "height": 350,
+            "caption": null,
+            "source_page_id": "a9c76614-4f08-4eeb-8f5c-95b1c37f2d30",
+            "region": {
+              "bbox": [
+                375,
+                1062,
+                850,
+                1412
+              ]
+            },
+            "order_index": 1,
+            "student_visible": true
+          }
+        ]
+      },
+      {
+        "id": "fbf242d6-6ebf-4044-99c2-8f380350a90d",
+        "exam_id": "d72b96f8-2bda-4225-9c9c-660eb8f9e462",
+        "question_id": "4d6073af-592e-4d83-8fea-db35e168d721",
+        "order_index": 2,
+        "score": "4.00",
+        "effective_score": "4.00",
+        "base_score": null,
+        "published_knowledge_points": null,
+        "scoring_basis": null,
+        "question_type": "SINGLE_CHOICE",
+        "content": "已知一次函数 y=2x+1，当 x=3 时，y 的值为（ ）",
+        "options": [
+          "A. 5",
+          "B. 6",
+          "C. 7",
+          "D. 8"
+        ],
+        "reference_answer": "C. 7",
+        "scoring_rubric": "选择 C（y=7）得满分 2.00 分；选择其他选项不得分。",
+        "analysis": "把 x=3 代入 y=2x+1，得 y=2×3+1=7。",
+        "knowledge_points": [
+          "一次函数",
+          "求函数值"
+        ],
+        "assets": []
+      }
+    ],
+    "conditions": [
+      {
+        "kind": "count",
+        "target": 2,
+        "actual": 2,
+        "satisfied": true,
+        "reason": null
+      },
+      {
+        "kind": "type:SINGLE_CHOICE",
+        "target": 1,
+        "actual": 1,
+        "satisfied": true,
+        "reason": null
+      },
+      {
+        "kind": "type:SHORT_ANSWER",
+        "target": 1,
+        "actual": 1,
+        "satisfied": true,
+        "reason": null
+      },
+      {
+        "kind": "total_score",
+        "target": "10.00",
+        "actual": "10.00",
+        "satisfied": true,
+        "reason": null
+      }
+    ],
+    "total_score": "10.00",
+    "publication_checks": [
+      {
+        "code": "EXAM_SCORING_BASIS_MISSING",
+        "message": "请先准备并核对本场评分依据。",
+        "question_id": "b412c277-7f56-4d27-b2d5-ff59b77dae47"
+      },
+      {
+        "code": "EXAM_SCORING_BASIS_MISSING",
+        "message": "请先准备并核对本场评分依据。",
+        "question_id": "4d6073af-592e-4d83-8fea-db35e168d721"
+      }
+    ],
+    "assembly_constraints": {
+      "request": {
+        "course_id": "496d8796-55c5-4a40-bcfd-72e7d8b656ad",
+        "question_count": 2,
+        "type_distribution": [
+          {
+            "question_type": "SINGLE_CHOICE",
+            "count": 1
+          },
+          {
+            "question_type": "SHORT_ANSWER",
+            "count": 1
+          }
+        ],
+        "knowledge_coverage": [],
+        "total_score": "10.00",
+        "score_overrides": [
+          {
+            "question_id": "4d6073af-592e-4d83-8fea-db35e168d721",
+            "score": "4.00"
+          },
+          {
+            "question_id": "b412c277-7f56-4d27-b2d5-ff59b77dae47",
+            "score": "6.00"
+          }
+        ]
+      },
+      "recorded_by": "dbea54c4-d987-4b0e-abcd-273eeb962b7d",
+      "recorded_at": "2026-10-06T04:26:03.687090Z"
+    }
+  },
+  "status": "ready_for_exam"
+}

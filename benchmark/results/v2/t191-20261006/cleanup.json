@@ -1,0 +1,34 @@
+{
+  "owned_course_app_exit": {
+    "source": "actual local-model frozen EXE",
+    "browser_disabled": true,
+    "parent_pid": 108216,
+    "configuration": "isolated synthetic course; actual BGE local weights, DeepSeek text/vision, native OCR",
+    "review_threshold": 1.0,
+    "readiness_seconds": 19.46512830001302,
+    "exit": 0
+  },
+  "restored_target_activated": false,
+  "retained_isolated_course": "eduagent_t191_3bed6c35ed68",
+  "retained_restore_database": "eduagent_t191_restore_20261006",
+  "unused_probe_database_cleanup": {
+    "database": "eduagent_t189_bbb7e5b64819",
+    "pre_drop_connections": 0,
+    "removed": true
+  },
+  "remaining_course_connections": 0,
+  "remaining_restore_connections": 0,
+  "original_database_revision": [
+    "0012_audit_logs"
+  ],
+  "protected_files": {
+    "README.md": true,
+    "README.zh-CN.md": true,
+    "benchmark/corpus/grading_samples.json": true,
+    ".env": true
+  },
+  "remaining_original_services": [
+    "eduagent-redis-1 Up 36 hours (healthy)",
+    "eduagent-postgres-1 Up 36 hours (healthy)"
+  ]
+}
