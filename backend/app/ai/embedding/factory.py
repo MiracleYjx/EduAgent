@@ -123,14 +123,23 @@ def _ensure_builtin_providers() -> None:
 
     if _default_factory.supported_providers():
         return
-    from .providers.bge import BgeEmbeddingProvider
-    from .providers.local import LocalEmbeddingProvider
-    from .providers.openai_compatible import OpenAICompatibleEmbeddingProvider
+    def bge_builder(settings: AppSettings) -> BaseEmbeddingProvider:
+        from .providers.bge import BgeEmbeddingProvider
+
+        return BgeEmbeddingProvider.from_settings(settings)
+
+    def cloud_builder(settings: AppSettings) -> BaseEmbeddingProvider:
+        from .providers.openai_compatible import OpenAICompatibleEmbeddingProvider
+
+        return OpenAICompatibleEmbeddingProvider.from_settings(settings)
 
     def local_builder(name: str) -> EmbeddingProviderBuilder:
         """构造本地 Provider，并把注册名称写入 Provider 标识以支持溯源。"""
 
         def build(settings: AppSettings) -> BaseEmbeddingProvider:
+            from .providers.bge import BgeEmbeddingProvider
+            from .providers.local import LocalEmbeddingProvider
+
             # 本地 BGE 通过任一别名加载，都遵循仅在查询侧添加指令的模型约定。
             provider = (
                 BgeEmbeddingProvider.from_settings(settings)
@@ -142,12 +151,12 @@ def _ensure_builtin_providers() -> None:
 
         return build
 
-    _default_factory.register("bge", BgeEmbeddingProvider.from_settings, replace=True)
+    _default_factory.register("bge", bge_builder, replace=True)
     _default_factory.register("huggingface", local_builder("huggingface"), replace=True)
     _default_factory.register("local", local_builder("local"), replace=True)
     _default_factory.register(
         "openai_compatible",
-        OpenAICompatibleEmbeddingProvider.from_settings,
+        cloud_builder,
         replace=True,
     )
 

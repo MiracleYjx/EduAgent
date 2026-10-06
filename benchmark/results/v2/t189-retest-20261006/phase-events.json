@@ -1,0 +1,100 @@
+{
+  "events": [
+    {
+      "elapsed": 0.981926399981603,
+      "source": "phase.log",
+      "line": "检查：持久目录"
+    },
+    {
+      "elapsed": 0.9819365000585094,
+      "source": "phase.log",
+      "line": "通过：持久目录"
+    },
+    {
+      "elapsed": 0.9819400000851601,
+      "source": "phase.log",
+      "line": "检查：模型配置"
+    },
+    {
+      "elapsed": 2.3574993000365794,
+      "source": "phase.log",
+      "line": "通过：模型配置"
+    },
+    {
+      "elapsed": 2.357503000064753,
+      "source": "phase.log",
+      "line": "检查：PostgreSQL / pgvector / Redis"
+    },
+    {
+      "elapsed": 3.1733409999869764,
+      "source": "phase.log",
+      "line": "通过：PostgreSQL / pgvector / Redis"
+    },
+    {
+      "elapsed": 3.17334470001515,
+      "source": "phase.log",
+      "line": "检查：必要网络"
+    },
+    {
+      "elapsed": 3.275575599982403,
+      "source": "phase.log",
+      "line": "通过：必要网络"
+    },
+    {
+      "elapsed": 3.2755794000113383,
+      "source": "phase.log",
+      "line": "检查：数据库迁移"
+    },
+    {
+      "elapsed": 3.8352042000042275,
+      "source": "phase.log",
+      "line": "INFO  [alembic.runtime.migration] Context impl PostgresqlImpl."
+    },
+    {
+      "elapsed": 3.8352073000278324,
+      "source": "phase.log",
+      "line": "INFO  [alembic.runtime.migration] Will assume transactional DDL."
+    },
+    {
+      "elapsed": 3.9889610999962315,
+      "source": "phase.log",
+      "line": "INFO  [alembic.runtime.migration] Context impl PostgresqlImpl."
+    },
+    {
+      "elapsed": 3.9889665000373498,
+      "source": "phase.log",
+      "line": "INFO  [alembic.runtime.migration] Will assume transactional DDL."
+    },
+    {
+      "elapsed": 3.9889680000487715,
+      "source": "phase.log",
+      "line": "通过：数据库迁移"
+    },
+    {
+      "elapsed": 12.964338300051168,
+      "source": "application.log",
+      "line": "gradio\\components\\dataframe.py:197: UserWarning: The `column_limits` parameter is not yet implemented."
+    },
+    {
+      "elapsed": 13.067308900062926,
+      "source": "application.log",
+      "line": "gradio\\components\\dataframe.py:183: UserWarning: The `row_limits` parameter is not yet implemented."
+    },
+    {
+      "elapsed": 14.44796620006673,
+      "source": "application.log",
+      "line": "INFO:     Started server process [70680]"
+    },
+    {
+      "elapsed": 14.754628900089301,
+      "source": "application.log",
+      "line": "INFO:     Application startup complete."
+    },
+    {
+      "elapsed": 17.313174900016747,
+      "source": "phase.log",
+      "line": "应用已就绪：http://127.0.0.1:19496/gradio/；所属 PID=70680；Ctrl+C 退出"
+    }
+  ],
+  "normal_exit_code": 0
+}

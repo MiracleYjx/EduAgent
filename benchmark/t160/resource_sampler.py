@@ -207,11 +207,17 @@ def evaluate_v2_memory_budget(resources):
 def container_rss(container: str, process_name: str):
     if not re.fullmatch(r"[A-Za-z0-9_.-]+", container):
         return None, None, {"code": "INVALID_CONTAINER_NAME"}
-    # Names and commands are fixed by the experiment, never user shell text.
+    if not re.fullmatch(r"[A-Za-z0-9_-]{1,15}", process_name):
+        return None, None, {"code": "INVALID_PROCESS_NAME"}
+    # First select actual target identities. A disappearing health-check shell
+    # must not make awk's broad /proc glob fail. A selected target disappearing,
+    # lacking RSS, or failing to read still fails the entire observation.
     program = (
-        "awk '/^Name:/ {n=$2} /^VmRSS:/ {if(n==\""
-        + process_name
-        + "\") print FILENAME,$2}' /proc/[0-9]*/status"
+        "for process in /proc/[0-9]*; do "
+        'IFS= read -r name < "$process/comm" 2>/dev/null || continue; '
+        f'[ "$name" = "{process_name}" ] || continue; '
+        "awk '/^VmRSS:/ {print FILENAME,$2; found=1} END {if (!found) exit 1}' "
+        '"$process/status" || exit 1; done'
     )
     try:
         result = subprocess.run(

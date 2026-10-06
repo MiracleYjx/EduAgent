@@ -285,3 +285,45 @@ def test_interrupted_evidence_write_preserves_last_complete_record(
             },
         )
     assert json.loads(target.read_text(encoding="utf-8")) == previous
+
+
+@pytest.mark.parametrize("name", ["postgres;echo bad", "", "name with spaces"])
+def test_container_probe_rejects_non_identity_process_name(monkeypatch, name):
+    monkeypatch.setattr(
+        sampling.subprocess,
+        "run",
+        lambda *args, **kwargs: pytest.fail("invalid input must not run"),
+    )
+    value, rows, error = sampling.container_rss("fixture-pg", name)
+    assert value is None and rows is None
+    assert error["code"] == "INVALID_PROCESS_NAME"
+
+
+def test_selected_target_probe_failure_cannot_become_partial_success(monkeypatch):
+    from types import SimpleNamespace
+
+    monkeypatch.setattr(
+        sampling.subprocess,
+        "run",
+        lambda *args, **kwargs: SimpleNamespace(
+            returncode=1, stdout="/proc/1/status 100\n"
+        ),
+    )
+    value, rows, error = sampling.container_rss("fixture-pg", "postgres")
+    assert value is None and rows is None
+    assert error["code"] == "CONTAINER_PROBE_FAILED"
+
+
+def test_container_probe_keeps_all_reported_target_rss(monkeypatch):
+    from types import SimpleNamespace
+
+    monkeypatch.setattr(
+        sampling.subprocess,
+        "run",
+        lambda *args, **kwargs: SimpleNamespace(
+            returncode=0, stdout="/proc/1/status 100\n/proc/7/status 50\n"
+        ),
+    )
+    value, rows, error = sampling.container_rss("fixture-pg", "postgres")
+    assert error is None and value == 150 * 1024
+    assert [row["pid"] for row in rows] == [1, 7]

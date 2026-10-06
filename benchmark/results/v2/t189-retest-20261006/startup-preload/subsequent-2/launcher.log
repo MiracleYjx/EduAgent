@@ -1,0 +1,16 @@
+检查：持久目录
+通过：持久目录
+检查：模型配置
+通过：模型配置
+检查：PostgreSQL / pgvector / Redis
+通过：PostgreSQL / pgvector / Redis
+检查：必要网络
+通过：必要网络
+检查：数据库迁移
+INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
+INFO  [alembic.runtime.migration] Will assume transactional DDL.
+INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
+INFO  [alembic.runtime.migration] Will assume transactional DDL.
+通过：数据库迁移
+应用已就绪：http://127.0.0.1:19491/gradio/；所属 PID=111948；Ctrl+C 退出
+正在停止所属应用进程…

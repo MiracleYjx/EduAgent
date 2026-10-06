@@ -1,0 +1,35 @@
+{
+  "task": "T189",
+  "gate_passed": false,
+  "first_seconds": [
+    20.772,
+    20.54,
+    20.108
+  ],
+  "subsequent_seconds": [
+    18.984,
+    18.939,
+    19.546,
+    19.544,
+    19.495
+  ],
+  "first_under_30s": 3,
+  "subsequent_under_10s": 0,
+  "normal_exits": 8,
+  "complete_resource_windows": 7,
+  "memory_budget_passes": 7,
+  "sampled_peaks_mib": {
+    "app_working_set_bytes": 465.6,
+    "postgres_container_process_rss_bytes": 254.41,
+    "redis_container_process_rss_bytes": 8.6,
+    "simultaneous_observed_sum_bytes": 714.65
+  },
+  "browser_opened": false,
+  "source_regression": {
+    "passed": 102,
+    "seconds": 14.61
+  },
+  "architecture_decision": "User approved frozen-only parallel preload; all preflight checks must pass before SERVE; source sequential migration-failure no-child invariant preserved.",
+  "real_faults_passed": 8,
+  "preload_service_gate_verified": true
+}

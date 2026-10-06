@@ -1,0 +1,9 @@
+检查：持久目录
+通过：持久目录
+检查：模型配置
+通过：模型配置
+检查：PostgreSQL / pgvector / Redis
+通过：PostgreSQL / pgvector / Redis
+检查：必要网络
+启动失败：[模型网络] 127.0.0.1：ConnectionRefusedError；下一步：检查网络、代理和端点 TLS；此探测不证明凭据或模型调用成功
+启动失败，请按上面的步骤修正。按回车退出…

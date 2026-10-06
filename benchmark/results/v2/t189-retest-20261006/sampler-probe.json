@@ -1,0 +1,846 @@
+{
+  "samples": [
+    {
+      "sample": 1,
+      "seconds": 0.7506013000383973,
+      "postgres_bytes": 177479680,
+      "redis_bytes": 9019392,
+      "postgres_processes": [
+        {
+          "pid": 1,
+          "rss_bytes": 29892608
+        },
+        {
+          "pid": 27,
+          "rss_bytes": 107933696
+        },
+        {
+          "pid": 28,
+          "rss_bytes": 10788864
+        },
+        {
+          "pid": 30,
+          "rss_bytes": 10690560
+        },
+        {
+          "pid": 31,
+          "rss_bytes": 9359360
+        },
+        {
+          "pid": 32,
+          "rss_bytes": 8814592
+        }
+      ],
+      "redis_processes": [
+        {
+          "pid": 1,
+          "rss_bytes": 9019392
+        }
+      ],
+      "errors": {
+        "postgres": null,
+        "redis": null
+      }
+    },
+    {
+      "sample": 2,
+      "seconds": 0.6923620000015944,
+      "postgres_bytes": 177479680,
+      "redis_bytes": 9019392,
+      "postgres_processes": [
+        {
+          "pid": 1,
+          "rss_bytes": 29892608
+        },
+        {
+          "pid": 27,
+          "rss_bytes": 107933696
+        },
+        {
+          "pid": 28,
+          "rss_bytes": 10788864
+        },
+        {
+          "pid": 30,
+          "rss_bytes": 10690560
+        },
+        {
+          "pid": 31,
+          "rss_bytes": 9359360
+        },
+        {
+          "pid": 32,
+          "rss_bytes": 8814592
+        }
+      ],
+      "redis_processes": [
+        {
+          "pid": 1,
+          "rss_bytes": 9019392
+        }
+      ],
+      "errors": {
+        "postgres": null,
+        "redis": null
+      }
+    },
+    {
+      "sample": 3,
+      "seconds": 0.7169477000134066,
+      "postgres_bytes": 177479680,
+      "redis_bytes": 9019392,
+      "postgres_processes": [
+        {
+          "pid": 1,
+          "rss_bytes": 29892608
+        },
+        {
+          "pid": 27,
+          "rss_bytes": 107933696
+        },
+        {
+          "pid": 28,
+          "rss_bytes": 10788864
+        },
+        {
+          "pid": 30,
+          "rss_bytes": 10690560
+        },
+        {
+          "pid": 31,
+          "rss_bytes": 9359360
+        },
+        {
+          "pid": 32,
+          "rss_bytes": 8814592
+        }
+      ],
+      "redis_processes": [
+        {
+          "pid": 1,
+          "rss_bytes": 9019392
+        }
+      ],
+      "errors": {
+        "postgres": null,
+        "redis": null
+      }
+    },
+    {
+      "sample": 4,
+      "seconds": 0.725906900013797,
+      "postgres_bytes": 177479680,
+      "redis_bytes": 9019392,
+      "postgres_processes": [
+        {
+          "pid": 1,
+          "rss_bytes": 29892608
+        },
+        {
+          "pid": 27,
+          "rss_bytes": 107933696
+        },
+        {
+          "pid": 28,
+          "rss_bytes": 10788864
+        },
+        {
+          "pid": 30,
+          "rss_bytes": 10690560
+        },
+        {
+          "pid": 31,
+          "rss_bytes": 9359360
+        },
+        {
+          "pid": 32,
+          "rss_bytes": 8814592
+        }
+      ],
+      "redis_processes": [
+        {
+          "pid": 1,
+          "rss_bytes": 9019392
+        }
+      ],
+      "errors": {
+        "postgres": null,
+        "redis": null
+      }
+    },
+    {
+      "sample": 5,
+      "seconds": 0.6956897999625653,
+      "postgres_bytes": 177479680,
+      "redis_bytes": 9019392,
+      "postgres_processes": [
+        {
+          "pid": 1,
+          "rss_bytes": 29892608
+        },
+        {
+          "pid": 27,
+          "rss_bytes": 107933696
+        },
+        {
+          "pid": 28,
+          "rss_bytes": 10788864
+        },
+        {
+          "pid": 30,
+          "rss_bytes": 10690560
+        },
+        {
+          "pid": 31,
+          "rss_bytes": 9359360
+        },
+        {
+          "pid": 32,
+          "rss_bytes": 8814592
+        }
+      ],
+      "redis_processes": [
+        {
+          "pid": 1,
+          "rss_bytes": 9019392
+        }
+      ],
+      "errors": {
+        "postgres": null,
+        "redis": null
+      }
+    },
+    {
+      "sample": 6,
+      "seconds": 0.6804606999503449,
+      "postgres_bytes": 177479680,
+      "redis_bytes": 9019392,
+      "postgres_processes": [
+        {
+          "pid": 1,
+          "rss_bytes": 29892608
+        },
+        {
+          "pid": 27,
+          "rss_bytes": 107933696
+        },
+        {
+          "pid": 28,
+          "rss_bytes": 10788864
+        },
+        {
+          "pid": 30,
+          "rss_bytes": 10690560
+        },
+        {
+          "pid": 31,
+          "rss_bytes": 9359360
+        },
+        {
+          "pid": 32,
+          "rss_bytes": 8814592
+        }
+      ],
+      "redis_processes": [
+        {
+          "pid": 1,
+          "rss_bytes": 9019392
+        }
+      ],
+      "errors": {
+        "postgres": null,
+        "redis": null
+      }
+    },
+    {
+      "sample": 7,
+      "seconds": 0.6309934000018984,
+      "postgres_bytes": 177479680,
+      "redis_bytes": 9019392,
+      "postgres_processes": [
+        {
+          "pid": 1,
+          "rss_bytes": 29892608
+        },
+        {
+          "pid": 27,
+          "rss_bytes": 107933696
+        },
+        {
+          "pid": 28,
+          "rss_bytes": 10788864
+        },
+        {
+          "pid": 30,
+          "rss_bytes": 10690560
+        },
+        {
+          "pid": 31,
+          "rss_bytes": 9359360
+        },
+        {
+          "pid": 32,
+          "rss_bytes": 8814592
+        }
+      ],
+      "redis_processes": [
+        {
+          "pid": 1,
+          "rss_bytes": 9019392
+        }
+      ],
+      "errors": {
+        "postgres": null,
+        "redis": null
+      }
+    },
+    {
+      "sample": 8,
+      "seconds": 0.5930137999821454,
+      "postgres_bytes": 177479680,
+      "redis_bytes": 9019392,
+      "postgres_processes": [
+        {
+          "pid": 1,
+          "rss_bytes": 29892608
+        },
+        {
+          "pid": 27,
+          "rss_bytes": 107933696
+        },
+        {
+          "pid": 28,
+          "rss_bytes": 10788864
+        },
+        {
+          "pid": 30,
+          "rss_bytes": 10690560
+        },
+        {
+          "pid": 31,
+          "rss_bytes": 9359360
+        },
+        {
+          "pid": 32,
+          "rss_bytes": 8814592
+        }
+      ],
+      "redis_processes": [
+        {
+          "pid": 1,
+          "rss_bytes": 9019392
+        }
+      ],
+      "errors": {
+        "postgres": null,
+        "redis": null
+      }
+    },
+    {
+      "sample": 9,
+      "seconds": 0.6117037999210879,
+      "postgres_bytes": 177479680,
+      "redis_bytes": 9019392,
+      "postgres_processes": [
+        {
+          "pid": 1,
+          "rss_bytes": 29892608
+        },
+        {
+          "pid": 27,
+          "rss_bytes": 107933696
+        },
+        {
+          "pid": 28,
+          "rss_bytes": 10788864
+        },
+        {
+          "pid": 30,
+          "rss_bytes": 10690560
+        },
+        {
+          "pid": 31,
+          "rss_bytes": 9359360
+        },
+        {
+          "pid": 32,
+          "rss_bytes": 8814592
+        }
+      ],
+      "redis_processes": [
+        {
+          "pid": 1,
+          "rss_bytes": 9019392
+        }
+      ],
+      "errors": {
+        "postgres": null,
+        "redis": null
+      }
+    },
+    {
+      "sample": 10,
+      "seconds": 0.6307203000178561,
+      "postgres_bytes": 177479680,
+      "redis_bytes": 9019392,
+      "postgres_processes": [
+        {
+          "pid": 1,
+          "rss_bytes": 29892608
+        },
+        {
+          "pid": 27,
+          "rss_bytes": 107933696
+        },
+        {
+          "pid": 28,
+          "rss_bytes": 10788864
+        },
+        {
+          "pid": 30,
+          "rss_bytes": 10690560
+        },
+        {
+          "pid": 31,
+          "rss_bytes": 9359360
+        },
+        {
+          "pid": 32,
+          "rss_bytes": 8814592
+        }
+      ],
+      "redis_processes": [
+        {
+          "pid": 1,
+          "rss_bytes": 9019392
+        }
+      ],
+      "errors": {
+        "postgres": null,
+        "redis": null
+      }
+    },
+    {
+      "sample": 11,
+      "seconds": 0.6215907000005245,
+      "postgres_bytes": 177479680,
+      "redis_bytes": 9019392,
+      "postgres_processes": [
+        {
+          "pid": 1,
+          "rss_bytes": 29892608
+        },
+        {
+          "pid": 27,
+          "rss_bytes": 107933696
+        },
+        {
+          "pid": 28,
+          "rss_bytes": 10788864
+        },
+        {
+          "pid": 30,
+          "rss_bytes": 10690560
+        },
+        {
+          "pid": 31,
+          "rss_bytes": 9359360
+        },
+        {
+          "pid": 32,
+          "rss_bytes": 8814592
+        }
+      ],
+      "redis_processes": [
+        {
+          "pid": 1,
+          "rss_bytes": 9019392
+        }
+      ],
+      "errors": {
+        "postgres": null,
+        "redis": null
+      }
+    },
+    {
+      "sample": 12,
+      "seconds": 0.6049846999812871,
+      "postgres_bytes": 177479680,
+      "redis_bytes": 9019392,
+      "postgres_processes": [
+        {
+          "pid": 1,
+          "rss_bytes": 29892608
+        },
+        {
+          "pid": 27,
+          "rss_bytes": 107933696
+        },
+        {
+          "pid": 28,
+          "rss_bytes": 10788864
+        },
+        {
+          "pid": 30,
+          "rss_bytes": 10690560
+        },
+        {
+          "pid": 31,
+          "rss_bytes": 9359360
+        },
+        {
+          "pid": 32,
+          "rss_bytes": 8814592
+        }
+      ],
+      "redis_processes": [
+        {
+          "pid": 1,
+          "rss_bytes": 9019392
+        }
+      ],
+      "errors": {
+        "postgres": null,
+        "redis": null
+      }
+    },
+    {
+      "sample": 13,
+      "seconds": 0.596117400098592,
+      "postgres_bytes": 177479680,
+      "redis_bytes": 9019392,
+      "postgres_processes": [
+        {
+          "pid": 1,
+          "rss_bytes": 29892608
+        },
+        {
+          "pid": 27,
+          "rss_bytes": 107933696
+        },
+        {
+          "pid": 28,
+          "rss_bytes": 10788864
+        },
+        {
+          "pid": 30,
+          "rss_bytes": 10690560
+        },
+        {
+          "pid": 31,
+          "rss_bytes": 9359360
+        },
+        {
+          "pid": 32,
+          "rss_bytes": 8814592
+        }
+      ],
+      "redis_processes": [
+        {
+          "pid": 1,
+          "rss_bytes": 9019392
+        }
+      ],
+      "errors": {
+        "postgres": null,
+        "redis": null
+      }
+    },
+    {
+      "sample": 14,
+      "seconds": 0.5901913000270724,
+      "postgres_bytes": 177479680,
+      "redis_bytes": 9019392,
+      "postgres_processes": [
+        {
+          "pid": 1,
+          "rss_bytes": 29892608
+        },
+        {
+          "pid": 27,
+          "rss_bytes": 107933696
+        },
+        {
+          "pid": 28,
+          "rss_bytes": 10788864
+        },
+        {
+          "pid": 30,
+          "rss_bytes": 10690560
+        },
+        {
+          "pid": 31,
+          "rss_bytes": 9359360
+        },
+        {
+          "pid": 32,
+          "rss_bytes": 8814592
+        }
+      ],
+      "redis_processes": [
+        {
+          "pid": 1,
+          "rss_bytes": 9019392
+        }
+      ],
+      "errors": {
+        "postgres": null,
+        "redis": null
+      }
+    },
+    {
+      "sample": 15,
+      "seconds": 0.6234501999570057,
+      "postgres_bytes": 177479680,
+      "redis_bytes": 9019392,
+      "postgres_processes": [
+        {
+          "pid": 1,
+          "rss_bytes": 29892608
+        },
+        {
+          "pid": 27,
+          "rss_bytes": 107933696
+        },
+        {
+          "pid": 28,
+          "rss_bytes": 10788864
+        },
+        {
+          "pid": 30,
+          "rss_bytes": 10690560
+        },
+        {
+          "pid": 31,
+          "rss_bytes": 9359360
+        },
+        {
+          "pid": 32,
+          "rss_bytes": 8814592
+        }
+      ],
+      "redis_processes": [
+        {
+          "pid": 1,
+          "rss_bytes": 9019392
+        }
+      ],
+      "errors": {
+        "postgres": null,
+        "redis": null
+      }
+    },
+    {
+      "sample": 16,
+      "seconds": 0.6083819000050426,
+      "postgres_bytes": 177479680,
+      "redis_bytes": 9019392,
+      "postgres_processes": [
+        {
+          "pid": 1,
+          "rss_bytes": 29892608
+        },
+        {
+          "pid": 27,
+          "rss_bytes": 107933696
+        },
+        {
+          "pid": 28,
+          "rss_bytes": 10788864
+        },
+        {
+          "pid": 30,
+          "rss_bytes": 10690560
+        },
+        {
+          "pid": 31,
+          "rss_bytes": 9359360
+        },
+        {
+          "pid": 32,
+          "rss_bytes": 8814592
+        }
+      ],
+      "redis_processes": [
+        {
+          "pid": 1,
+          "rss_bytes": 9019392
+        }
+      ],
+      "errors": {
+        "postgres": null,
+        "redis": null
+      }
+    },
+    {
+      "sample": 17,
+      "seconds": 0.6024604000849649,
+      "postgres_bytes": 177479680,
+      "redis_bytes": 9019392,
+      "postgres_processes": [
+        {
+          "pid": 1,
+          "rss_bytes": 29892608
+        },
+        {
+          "pid": 27,
+          "rss_bytes": 107933696
+        },
+        {
+          "pid": 28,
+          "rss_bytes": 10788864
+        },
+        {
+          "pid": 30,
+          "rss_bytes": 10690560
+        },
+        {
+          "pid": 31,
+          "rss_bytes": 9359360
+        },
+        {
+          "pid": 32,
+          "rss_bytes": 8814592
+        }
+      ],
+      "redis_processes": [
+        {
+          "pid": 1,
+          "rss_bytes": 9019392
+        }
+      ],
+      "errors": {
+        "postgres": null,
+        "redis": null
+      }
+    },
+    {
+      "sample": 18,
+      "seconds": 0.5908326000208035,
+      "postgres_bytes": 177479680,
+      "redis_bytes": 9019392,
+      "postgres_processes": [
+        {
+          "pid": 1,
+          "rss_bytes": 29892608
+        },
+        {
+          "pid": 27,
+          "rss_bytes": 107933696
+        },
+        {
+          "pid": 28,
+          "rss_bytes": 10788864
+        },
+        {
+          "pid": 30,
+          "rss_bytes": 10690560
+        },
+        {
+          "pid": 31,
+          "rss_bytes": 9359360
+        },
+        {
+          "pid": 32,
+          "rss_bytes": 8814592
+        }
+      ],
+      "redis_processes": [
+        {
+          "pid": 1,
+          "rss_bytes": 9019392
+        }
+      ],
+      "errors": {
+        "postgres": null,
+        "redis": null
+      }
+    },
+    {
+      "sample": 19,
+      "seconds": 0.5985638999845833,
+      "postgres_bytes": 177479680,
+      "redis_bytes": 9019392,
+      "postgres_processes": [
+        {
+          "pid": 1,
+          "rss_bytes": 29892608
+        },
+        {
+          "pid": 27,
+          "rss_bytes": 107933696
+        },
+        {
+          "pid": 28,
+          "rss_bytes": 10788864
+        },
+        {
+          "pid": 30,
+          "rss_bytes": 10690560
+        },
+        {
+          "pid": 31,
+          "rss_bytes": 9359360
+        },
+        {
+          "pid": 32,
+          "rss_bytes": 8814592
+        }
+      ],
+      "redis_processes": [
+        {
+          "pid": 1,
+          "rss_bytes": 9019392
+        }
+      ],
+      "errors": {
+        "postgres": null,
+        "redis": null
+      }
+    },
+    {
+      "sample": 20,
+      "seconds": 0.6257587999571115,
+      "postgres_bytes": 177479680,
+      "redis_bytes": 9019392,
+      "postgres_processes": [
+        {
+          "pid": 1,
+          "rss_bytes": 29892608
+        },
+        {
+          "pid": 27,
+          "rss_bytes": 107933696
+        },
+        {
+          "pid": 28,
+          "rss_bytes": 10788864
+        },
+        {
+          "pid": 30,
+          "rss_bytes": 10690560
+        },
+        {
+          "pid": 31,
+          "rss_bytes": 9359360
+        },
+        {
+          "pid": 32,
+          "rss_bytes": 8814592
+        }
+      ],
+      "redis_processes": [
+        {
+          "pid": 1,
+          "rss_bytes": 9019392
+        }
+      ],
+      "errors": {
+        "postgres": null,
+        "redis": null
+      }
+    }
+  ],
+  "successes": 20,
+  "scope": "actual shared container processes; no missing sample filled"
+}

@@ -1,0 +1,126 @@
+{
+  "cases": [
+    {
+      "case": "missing_config",
+      "exit_code": 1,
+      "expected_step": "配置文件",
+      "observed_step": false,
+      "no_business_port_observed": true,
+      "owned_preload_pids_observed": [
+        109188
+      ],
+      "owned_preload_exited": true,
+      "remaining_owned_pids": [],
+      "elapsed_seconds": 1.0550149999326095,
+      "passed": false
+    },
+    {
+      "case": "invalid_config",
+      "exit_code": 1,
+      "expected_step": "配置校验",
+      "observed_step": true,
+      "no_business_port_observed": true,
+      "owned_preload_pids_observed": [
+        113036
+      ],
+      "owned_preload_exited": true,
+      "remaining_owned_pids": [],
+      "elapsed_seconds": 1.0439801999600604,
+      "passed": true
+    },
+    {
+      "case": "database_unreachable",
+      "exit_code": 1,
+      "expected_step": "PostgreSQL / pgvector",
+      "observed_step": true,
+      "no_business_port_observed": true,
+      "owned_preload_pids_observed": [
+        112096,
+        111188
+      ],
+      "owned_preload_exited": true,
+      "remaining_owned_pids": [],
+      "elapsed_seconds": 7.105870300089009,
+      "passed": true
+    },
+    {
+      "case": "redis_unreachable",
+      "exit_code": 1,
+      "expected_step": "Redis",
+      "observed_step": true,
+      "no_business_port_observed": true,
+      "owned_preload_pids_observed": [
+        113024,
+        113100
+      ],
+      "owned_preload_exited": true,
+      "remaining_owned_pids": [],
+      "elapsed_seconds": 5.974908800097182,
+      "passed": true
+    },
+    {
+      "case": "model_network",
+      "exit_code": 1,
+      "expected_step": "模型网络",
+      "observed_step": true,
+      "no_business_port_observed": true,
+      "owned_preload_pids_observed": [
+        108604,
+        112288
+      ],
+      "owned_preload_exited": true,
+      "remaining_owned_pids": [],
+      "elapsed_seconds": 5.969157799961977,
+      "passed": true
+    },
+    {
+      "case": "missing_local_model",
+      "exit_code": 1,
+      "expected_step": "本地模型",
+      "observed_step": true,
+      "no_business_port_observed": true,
+      "owned_preload_pids_observed": [
+        87492
+      ],
+      "owned_preload_exited": true,
+      "remaining_owned_pids": [],
+      "elapsed_seconds": 1.150119400001131,
+      "passed": true
+    },
+    {
+      "case": "missing_ocr_weights",
+      "exit_code": 1,
+      "expected_step": "OCR",
+      "observed_step": true,
+      "no_business_port_observed": true,
+      "owned_preload_pids_observed": [
+        113416,
+        112852
+      ],
+      "owned_preload_exited": true,
+      "remaining_owned_pids": [],
+      "elapsed_seconds": 3.148778099915944,
+      "passed": true
+    },
+    {
+      "case": "migration_unknown_revision",
+      "exit_code": 1,
+      "expected_step": "数据库迁移",
+      "observed_step": true,
+      "no_business_port_observed": true,
+      "owned_preload_pids_observed": [
+        113212,
+        110360
+      ],
+      "owned_preload_exited": true,
+      "remaining_owned_pids": [],
+      "elapsed_seconds": 5.118806999991648,
+      "passed": true
+    }
+  ],
+  "protocol": "v2-evaluation-1",
+  "service_gate": "Preloaded processes may exist but never serve before successful preflight",
+  "owned_migration_database": "eduagent_t189_c618d333aba6",
+  "active_connections": 0,
+  "database_removed": true
+}

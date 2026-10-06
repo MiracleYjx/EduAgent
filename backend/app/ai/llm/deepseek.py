@@ -8,10 +8,10 @@ import binascii
 import json
 from collections.abc import Mapping, Sequence
 from time import perf_counter
-from typing import Any, cast
+from typing import TYPE_CHECKING, Any, cast
 
-from openai import AsyncOpenAI
-from openai.types.chat import ChatCompletionMessageParam
+if TYPE_CHECKING:
+    from openai.types.chat import ChatCompletionMessageParam
 from pydantic import BaseModel, ValidationError
 
 from backend.app.ai.vision.base import ProviderImage
@@ -21,7 +21,6 @@ from backend.app.core.retry_policy import (
     ProviderCallError,
     RetryPolicy,
 )
-from backend.app.services.trace_service import record_trace
 
 from .base import BaseLLMProvider, LLMMessages, LLMProviderMetadata
 
@@ -49,12 +48,25 @@ class DeepSeekProvider(BaseLLMProvider):
         self._retry_policy = retry_policy or RetryPolicy()
         self._fallback_provider = fallback_provider
         self._sleep = sleep
-        self._client = client or AsyncOpenAI(
-            api_key=settings.deepseek_api_key.get_secret_value(),
-            base_url=str(settings.deepseek_base_url),
-            timeout=timeout,
-            max_retries=0,
-        )
+        self._client = client
+        self._api_key = settings.deepseek_api_key
+        self._base_url = str(settings.deepseek_base_url)
+        self._timeout = timeout
+        self._closed = False
+
+    def _request_client(self) -> Any:
+        if self._closed:
+            raise RuntimeError("LLM Provider is closed.")
+        if self._client is None:
+            from openai import AsyncOpenAI
+
+            self._client = AsyncOpenAI(
+                api_key=self._api_key.get_secret_value(),
+                base_url=self._base_url,
+                timeout=self._timeout,
+                max_retries=0,
+            )
+        return self._client
 
     def supports_vision(self) -> bool:
         """仅声明当前实例模型与官方适配器明确支持的真实图像能力。"""
@@ -65,7 +77,8 @@ class DeepSeekProvider(BaseLLMProvider):
         )
 
     async def aclose(self) -> None:
-        if self._owns_client:
+        self._closed = True
+        if self._owns_client and self._client is not None:
             await self._client.close()
 
     def describe(self, *, prompt_version: str | None = None) -> LLMProviderMetadata:
@@ -76,7 +89,12 @@ class DeepSeekProvider(BaseLLMProvider):
         """
 
         metadata = super().describe(prompt_version=prompt_version)
-        if self._fallback_provider is not None or not isinstance(self._client, AsyncOpenAI):
+        identified = self._client is None and self._owns_client
+        if self._client is not None:
+            from openai import AsyncOpenAI
+
+            identified = isinstance(self._client, AsyncOpenAI)
+        if self._fallback_provider is not None or not identified:
             metadata.update({"provider": "unknown", "model": "unknown"})
         else:
             metadata["model"] = self._model.strip() or "unknown"
@@ -132,9 +150,11 @@ class DeepSeekProvider(BaseLLMProvider):
         schema: type[BaseModel],
         model: str | None,
     ) -> BaseModel:
+        from backend.app.services.trace_service import record_trace
+
         started_at = perf_counter()
         try:
-            response = await self._client.chat.completions.create(
+            response = await self._request_client().chat.completions.create(
                 messages=messages,
                 model=model or self._model,
                 response_format={"type": "json_object"},
@@ -247,7 +267,7 @@ class DeepSeekProvider(BaseLLMProvider):
                     else:
                         blocks.append(dict(block))
                 converted["content"] = blocks
-            prepared.append(cast(ChatCompletionMessageParam, converted))
+            prepared.append(cast("ChatCompletionMessageParam", converted))
         has_json_instruction = any(
             "json" in str(message.get("content", "")).lower() for message in prepared
         )
@@ -255,7 +275,7 @@ class DeepSeekProvider(BaseLLMProvider):
             prepared.insert(
                 0,
                 cast(
-                    ChatCompletionMessageParam,
+                    "ChatCompletionMessageParam",
                     {"role": "system", "content": _JSON_INSTRUCTION},
                 ),
             )

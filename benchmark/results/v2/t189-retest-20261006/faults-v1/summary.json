@@ -1,0 +1,78 @@
+{
+  "cases": [
+    {
+      "case": "missing_config",
+      "exit_code": 1,
+      "expected_step": "外置配置",
+      "observed_step": true,
+      "no_application_spawned": true,
+      "elapsed_seconds": 0.9904095000820234,
+      "passed": true
+    },
+    {
+      "case": "invalid_config",
+      "exit_code": 1,
+      "expected_step": "配置校验",
+      "observed_step": true,
+      "no_application_spawned": true,
+      "elapsed_seconds": 0.8604563999688253,
+      "passed": true
+    },
+    {
+      "case": "database_unreachable",
+      "exit_code": 1,
+      "expected_step": "PostgreSQL / pgvector",
+      "observed_step": true,
+      "no_application_spawned": true,
+      "elapsed_seconds": 6.753051099949516,
+      "passed": true
+    },
+    {
+      "case": "redis_unreachable",
+      "exit_code": 1,
+      "expected_step": "Redis",
+      "observed_step": true,
+      "no_application_spawned": true,
+      "elapsed_seconds": 5.274979199981317,
+      "passed": true
+    },
+    {
+      "case": "model_network",
+      "exit_code": 1,
+      "expected_step": "模型网络",
+      "observed_step": true,
+      "no_application_spawned": true,
+      "elapsed_seconds": 5.4650721999350935,
+      "passed": true
+    },
+    {
+      "case": "missing_local_model",
+      "exit_code": 1,
+      "expected_step": "本地模型",
+      "observed_step": true,
+      "no_application_spawned": true,
+      "elapsed_seconds": 0.8367027000058442,
+      "passed": true
+    },
+    {
+      "case": "missing_ocr_weights",
+      "exit_code": 1,
+      "expected_step": "OCR",
+      "observed_step": true,
+      "no_application_spawned": true,
+      "elapsed_seconds": 2.6104524999391288,
+      "passed": true
+    },
+    {
+      "case": "migration_unknown_revision",
+      "exit_code": 1,
+      "expected_step": "数据库迁移",
+      "observed_step": true,
+      "no_application_spawned": true,
+      "elapsed_seconds": 4.427124900044873,
+      "passed": true
+    }
+  ],
+  "isolated_migration_db_removed": true,
+  "shared_dependencies_untouched": true
+}

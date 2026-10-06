@@ -320,3 +320,49 @@ def test_importing_deepseek_registers_provider_factory() -> None:
 
 async def _recordless_sleep(delay: float) -> None:
     del delay
+
+
+@async_test
+async def test_unused_provider_close_does_not_construct_sdk_client(monkeypatch):
+    def unexpected(**kwargs):
+        pytest.fail('unused provider must not create an HTTP client')
+    monkeypatch.setattr('openai.AsyncOpenAI', unexpected)
+    provider = DeepSeekProvider(build_settings())
+    await provider.aclose()
+    with pytest.raises(RuntimeError, match='closed'):
+        provider._request_client()
+
+
+@async_test
+async def test_first_request_constructs_once_with_original_config_and_owned_close(monkeypatch):
+    settings = build_settings()
+    base_url = str(settings.deepseek_base_url)
+    key = settings.deepseek_api_key.get_secret_value()
+    client = build_client(response('{"value": 7}'), response('{"value": 8}'))
+    client.close = AsyncMock()
+    calls = []
+    class SDK:
+        def __new__(cls, **kwargs):
+            calls.append(kwargs)
+            return client
+    monkeypatch.setattr('openai.AsyncOpenAI', SDK)
+    provider = DeepSeekProvider(settings, timeout=23)
+    assert calls == []
+    settings.deepseek_base_url = 'https://changed.example.test'
+    settings.deepseek_api_key = 'changed-test-key'
+    assert (await provider.generate_structured([], ExampleResult)).value == 7
+    assert (await provider.generate_structured([], ExampleResult)).value == 8
+    assert len(calls) == 1
+    assert calls[0] == {'api_key':key,'base_url':base_url,'timeout':23,'max_retries':0}
+    await provider.aclose()
+    client.close.assert_awaited_once()
+
+
+@async_test
+async def test_injected_client_is_not_closed_by_provider():
+    client = build_client(response('{"value": 7}'))
+    client.close = AsyncMock()
+    provider = DeepSeekProvider(build_settings(), client=client)
+    await provider.generate_structured([], ExampleResult)
+    await provider.aclose()
+    client.close.assert_not_awaited()

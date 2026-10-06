@@ -15,11 +15,13 @@ import traceback
 import webbrowser
 from pathlib import Path
 from urllib.parse import urlsplit
-from urllib.request import urlopen
+from urllib.request import ProxyHandler, build_opener
 
 from dotenv import dotenv_values
 
 from backend.app.core.config import AppSettings, ConfigurationError, get_settings
+
+_LOCAL_HTTP = build_opener(ProxyHandler({}))
 
 
 class LaunchError(RuntimeError):
@@ -97,6 +99,10 @@ def check_models(settings: AppSettings) -> None:
     from backend.app.ai.embedding.factory import create_embedding_provider
     from backend.app.ai.llm.factory import create_llm_provider
 
+    if importlib.util.find_spec("openai") is None:
+        raise LaunchError(
+            "模型运行库", "缺少 OpenAI-compatible SDK", "恢复打包依赖或安装核心运行依赖"
+        )
     if settings.embedding_provider in {"bge", "huggingface", "local"}:
         check_local_model(settings.embedding_model, "Embedding")
     if settings.rerank_provider == "cross_encoder":
@@ -247,7 +253,9 @@ def migrate() -> None:
 def http_ready(port: int) -> bool:
     try:
         for path in ("/ready", "/gradio/"):
-            with urlopen(f"http://127.0.0.1:{port}{path}", timeout=2) as response:
+            with _LOCAL_HTTP.open(
+                f"http://127.0.0.1:{port}{path}", timeout=2
+            ) as response:
                 if response.status != 200:
                     return False
         return True
@@ -284,12 +292,17 @@ def stop_owned(child: subprocess.Popen) -> None:
             child.wait(timeout=5)
 
 
-def serve(port: int) -> int:
+def serve(port: int, *, await_preflight: bool = False) -> int:
     import uvicorn
 
     from backend.app.core.app import create_app
 
-    uvicorn.run(create_app(), host="127.0.0.1", port=port, workers=1)
+    application = create_app()
+    if await_preflight:
+        print("应用预加载完成，等待启动预检。", flush=True)
+        if sys.stdin is None or sys.stdin.readline() != "SERVE\n":
+            raise LaunchError("启动预检", "未收到预检通过信号", "查看启动器失败步骤")
+    uvicorn.run(application, host="127.0.0.1", port=port, workers=1)
     return 0
 
 
@@ -306,6 +319,9 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--startup-timeout", type=float, default=60)
     parser.add_argument("--no-browser", action="store_true")
     parser.add_argument("--child", choices=["serve"], help=argparse.SUPPRESS)
+    parser.add_argument(
+        "--await-preflight", action="store_true", help=argparse.SUPPRESS
+    )
     args = parser.parse_args(argv)
     args.config = args.config.expanduser().resolve()
     child = None
@@ -314,51 +330,77 @@ def main(argv: list[str] | None = None) -> int:
             raise LaunchError(
                 "启动参数", "端口或超时无效", "端口应为1–65535，超时应大于0"
             )
+        from backend.app.deployment.windows_tls import install_windows_tls_loader
+
+        install_windows_tls_loader()
         settings = configure(args.config)
         if args.child:
-            return serve(args.port)
-        for label, operation in (
-            (
-                "持久目录",
-                lambda: check_storage(
-                    settings.storage_root, frozen=bool(getattr(sys, "frozen", False))
-                ),
-            ),
-            ("模型配置", lambda: check_models(settings)),
-            ("PostgreSQL / pgvector / Redis", lambda: check_dependencies(settings)),
-            ("必要网络", lambda: check_network(settings)),
-            ("数据库迁移", migrate),
-        ):
-            print(f"检查：{label}", flush=True)
-            operation()
-            print(f"通过：{label}", flush=True)
-        with socket.socket() as probe:
-            try:
-                probe.bind(("127.0.0.1", args.port))
-            except OSError as exc:
-                raise LaunchError(
-                    "本机端口",
-                    "已被占用",
-                    "停止您确认的旧实例或选另一个 --port；启动器不会停止无关进程",
-                ) from exc
-        command = [sys.executable]
-        if not getattr(sys, "frozen", False):
-            command.append(str(resource_root() / "scripts/launch_windows.py"))
-        command += [
-            "--child",
-            "serve",
-            "--config",
-            str(args.config.resolve()),
-            "--port",
-            str(args.port),
-        ]
-        env = os.environ.copy()
-        env["GRADIO_ANALYTICS_ENABLED"] = "False"
-        env["PYTHONIOENCODING"] = "utf-8"
+            return serve(args.port, await_preflight=args.await_preflight)
+        print("检查：持久目录", flush=True)
+        check_storage(settings.storage_root, frozen=bool(getattr(sys, "frozen", False)))
+        print("通过：持久目录", flush=True)
+
+        def spawn(log, *, preload: bool):
+            with socket.socket() as probe:
+                try:
+                    probe.bind(("127.0.0.1", args.port))
+                except OSError as exc:
+                    raise LaunchError(
+                        "服务端口",
+                        "已被占用",
+                        "停止已确认的旧实例或选择另一个 --port；启动器不会停止无关进程",
+                    ) from exc
+            command = [sys.executable]
+            if not getattr(sys, "frozen", False):
+                command.append(str(resource_root() / "scripts/launch_windows.py"))
+            command += [
+                "--child",
+                "serve",
+                "--config",
+                str(args.config),
+                "--port",
+                str(args.port),
+            ]
+            if preload:
+                command.append("--await-preflight")
+            env = os.environ.copy()
+            env["GRADIO_ANALYTICS_ENABLED"] = "False"
+            env["PYTHONIOENCODING"] = "utf-8"
+            return subprocess.Popen(
+                command,
+                env=env,
+                stdout=log,
+                stderr=log,
+                stdin=subprocess.PIPE if preload else None,
+                text=True,
+                encoding="utf-8",
+            )
+
         with (settings.storage_root / "logs/application.log").open(
             "a", encoding="utf-8"
         ) as log:
-            child = subprocess.Popen(command, env=env, stdout=log, stderr=log)
+            if getattr(sys, "frozen", False):
+                child = spawn(log, preload=True)
+            for label, operation in (
+                ("模型配置", lambda: check_models(settings)),
+                ("PostgreSQL / pgvector / Redis", lambda: check_dependencies(settings)),
+                ("必要网络", lambda: check_network(settings)),
+                ("数据库迁移", migrate),
+            ):
+                print(f"检查：{label}", flush=True)
+                operation()
+                print(f"通过：{label}", flush=True)
+            if child is None:
+                child = spawn(log, preload=False)
+            else:
+                try:
+                    child.stdin.write("SERVE\n")
+                    child.stdin.flush()
+                    child.stdin.close()
+                except (OSError, AttributeError) as exc:
+                    raise LaunchError(
+                        "应用预加载", "工作进程未接收启动信号", "查看 application.log"
+                    ) from exc
             wait_ready(child, args.port, args.startup_timeout)
             url = f"http://127.0.0.1:{args.port}/gradio/"
             print(f"应用已就绪：{url}；所属 PID={child.pid}；Ctrl+C 退出", flush=True)
@@ -390,4 +432,9 @@ def main(argv: list[str] | None = None) -> int:
         return 1
     finally:
         if child is not None:
+            if child.stdin is not None and not child.stdin.closed:
+                try:
+                    child.stdin.close()
+                except OSError:
+                    pass  # Preserve the original preflight/signal error during cleanup.
             stop_owned(child)
