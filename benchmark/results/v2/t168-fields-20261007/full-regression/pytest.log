@@ -1,0 +1,142 @@
+........................................................................ [  2%]
+........................................................................ [  5%]
+........................................................................ [  8%]
+........................................................................ [ 10%]
+........................................................................ [ 13%]
+........................................................................ [ 16%]
+........................................................................ [ 18%]
+........................................................................ [ 21%]
+........................................................................ [ 24%]
+........................................................................ [ 27%]
+........................................s............................... [ 29%]
+........................................................................ [ 32%]
+........................................................................ [ 35%]
+........................................................................ [ 37%]
+........................................................................ [ 40%]
+........................................................................ [ 43%]
+........................................................................ [ 45%]
+........................................................................ [ 48%]
+........................................................................ [ 51%]
+........................................................................ [ 54%]
+........................................................................ [ 56%]
+........................................................................ [ 59%]
+........................................................................ [ 62%]
+........................................................................ [ 64%]
+........................................................................ [ 67%]
+........................................................................ [ 70%]
+........................................................................ [ 73%]
+.....................................................................s.. [ 75%]
+........................................................................ [ 78%]
+........................................................................ [ 81%]
+........................................................................ [ 83%]
+........................................................................ [ 86%]
+........................................................................ [ 89%]
+........................................................................ [ 91%]
+........................................................................ [ 94%]
+........................................................................ [ 97%]
+.......................................................................  [100%]
+============================== warnings summary ===============================
+..\..\..\..\..\..\..\develop\Python\Lib\site-packages\fastapi\testclient.py:1
+  D:\develop\Python\Lib\site-packages\fastapi\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+tests/contract/test_admin_api_contract.py: 4 warnings
+tests/contract/test_auth_api_contract.py: 6 warnings
+tests/contract/test_traces_api_contract.py: 2 warnings
+tests/integration/test_student_learning_ui.py: 1 warning
+tests/unit/test_app.py: 1 warning
+tests/unit/ui/test_evaluation_dashboard.py: 1 warning
+tests/unit/ui/test_gradio_app.py: 1 warning
+tests/unit/ui/test_paper_image_review.py: 4 warnings
+tests/unit/ui/test_paper_import_view.py: 5 warnings
+tests/unit/ui/test_review_view.py: 1 warning
+tests/unit/ui/test_seven_page_acceptance.py: 1 warning
+tests/unit/ui/test_shared_ui_acceptance.py: 1 warning
+tests/unit/ui/test_t160_correction_loading.py: 4 warnings
+  D:\develop\Python\Lib\site-packages\gradio\components\dataframe.py:197: UserWarning: The `column_limits` parameter is not yet implemented.
+    warnings.warn(
+
+tests/contract/test_admin_api_contract.py: 4 warnings
+tests/contract/test_auth_api_contract.py: 6 warnings
+tests/contract/test_traces_api_contract.py: 2 warnings
+tests/integration/test_student_learning_ui.py: 1 warning
+tests/unit/test_app.py: 1 warning
+tests/unit/ui/test_evaluation_dashboard.py: 1 warning
+tests/unit/ui/test_exam_assembly_view.py: 1 warning
+tests/unit/ui/test_exam_scoring_view.py: 1 warning
+tests/unit/ui/test_gradio_app.py: 1 warning
+tests/unit/ui/test_paper_import_view.py: 1 warning
+tests/unit/ui/test_review_view.py: 1 warning
+tests/unit/ui/test_seven_page_acceptance.py: 1 warning
+  D:\develop\Python\Lib\site-packages\gradio\components\dataframe.py:183: UserWarning: The `row_limits` parameter is not yet implemented.
+    warnings.warn(
+
+tests/contract/test_grading_benchmark_contract.py::test_p4a3_persisted_label_metrics_and_selftest_evidence[False]
+tests/contract/test_grading_benchmark_contract.py::test_p4a3_persisted_label_metrics_and_selftest_evidence[True]
+  D:\develop\Python\Lib\site-packages\pydantic\main.py:475: UserWarning: Pydantic serializer warnings:
+    PydanticSerializationUnexpectedValue(Expected `decimal` - serialized value may not be as expected [field_name='score', input_value=5.0, input_type=float])
+    return self.__pydantic_serializer__.to_python(
+
+tests/contract/test_grading_benchmark_contract.py::test_invalid_payload_writes_failure_record_without_fake_score
+tests/contract/test_grading_benchmark_contract.py::test_failure_status_counts_and_cli_agree[invalid]
+tests/contract/test_grading_benchmark_contract.py::test_failure_status_counts_and_cli_agree[partial]
+tests/contract/test_grading_benchmark_contract.py::test_failure_status_counts_and_cli_agree[mixed]
+  D:\develop\Python\Lib\site-packages\pydantic\main.py:475: UserWarning: Pydantic serializer warnings:
+    PydanticSerializationUnexpectedValue(Expected `decimal` - serialized value may not be as expected [field_name='score', input_value=1000000.0, input_type=float])
+    return self.__pydantic_serializer__.to_python(
+
+tests/contract/test_knowledge_base_upload_contract.py::test_upload_document_rejects_unsupported_format
+  D:\YJX\MyCode\EduAgent\.cache\t168-fields-20261007\full-regression-v3\source\backend\app\api\knowledge_bases.py:475: StarletteDeprecationWarning: 'HTTP_422_UNPROCESSABLE_ENTITY' is deprecated. Use 'HTTP_422_UNPROCESSABLE_CONTENT' instead.
+    raise _knowledge_base_http_exception(exc) from None
+
+tests/contract/test_question_update_api_contract.py::test_revision_edit_and_reapproval_use_existing_endpoints
+tests/contract/test_t166_generation_review.py::test_each_approval_route_rejects_pending_without_current_semantic_report[approve]
+tests/contract/test_t166_generation_review.py::test_image_adaptation_keeps_original_pixels_but_requires_its_own_image_and_semantic_review
+  D:\YJX\MyCode\EduAgent\.cache\t168-fields-20261007\full-regression-v3\source\backend\app\api\questions.py:597: StarletteDeprecationWarning: 'HTTP_422_UNPROCESSABLE_ENTITY' is deprecated. Use 'HTTP_422_UNPROCESSABLE_CONTENT' instead.
+    raise _question_http_exception(exc) from None
+
+tests/contract/test_t166_generation_review.py::test_each_approval_route_rejects_pending_without_current_semantic_report[patch_status]
+tests/contract/test_t166_generation_review.py::test_each_approval_route_rejects_pending_without_current_semantic_report[post_status]
+  D:\YJX\MyCode\EduAgent\.cache\t168-fields-20261007\full-regression-v3\source\backend\app\api\questions.py:555: StarletteDeprecationWarning: 'HTTP_422_UNPROCESSABLE_ENTITY' is deprecated. Use 'HTTP_422_UNPROCESSABLE_CONTENT' instead.
+    raise _question_http_exception(exc) from None
+
+tests/integration/test_audit_migration.py: 3 warnings
+tests/integration/test_chapter_scope_migration.py: 5 warnings
+tests/integration/test_exam_question_migration.py: 5 warnings
+tests/integration/test_extracted_question_order_migration.py: 5 warnings
+tests/integration/test_file_storage_migration.py: 3 warnings
+tests/integration/test_grading_exam_question_migration.py: 4 warnings
+tests/integration/test_options_json_migration.py: 10 warnings
+tests/integration/test_paper_import_migration.py: 4 warnings
+tests/integration/test_question_asset_visibility_migration.py: 5 warnings
+tests/integration/test_question_source_migration.py: 4 warnings
+tests/integration/test_question_source_paper_migration.py: 4 warnings
+  D:\develop\Python\Lib\site-packages\alembic\config.py:604: DeprecationWarning: No path_separator found in configuration; falling back to legacy splitting on spaces, commas, and colons for prepend_sys_path.  Consider adding path_separator=os to Alembic config.
+    util.warn_deprecated(
+
+tests/integration/test_grading_pipeline.py::test_mixed_submission_runs_full_pipeline_and_forms_final_diagnosis
+tests/integration/test_grading_pipeline.py::test_low_confidence_subjective_stays_pending_and_blocks_diagnosis
+tests/integration/test_grading_pipeline.py::test_existing_report_becomes_stale_after_regrade
+tests/integration/test_grading_pipeline.py::test_partial_write_failure_leaves_no_intermediate_result
+  D:\YJX\MyCode\EduAgent\.cache\t168-fields-20261007\full-regression-v3\source\tests\integration\test_grading_pipeline.py:172: SAWarning: Object of type <User> not in session, add operation along 'Role.users' won't proceed (This warning originated from the Session 'autoflush' process, which was invoked automatically in response to a user-initiated operation. Consider using ``no_autoflush`` context manager if this warning happened while initializing objects.)
+    existing = session.scalars(select(Role).where(Role.name == role)).one_or_none()
+
+tests/integration/test_teacher_setup.py::test_teacher_prepares_course_document_question_and_exam
+  D:\YJX\MyCode\EduAgent\.cache\t168-fields-20261007\full-regression-v3\source\backend\app\api\exams.py:295: StarletteDeprecationWarning: 'HTTP_422_UNPROCESSABLE_ENTITY' is deprecated. Use 'HTTP_422_UNPROCESSABLE_CONTENT' instead.
+    raise _exam_http_exception(exc) from None
+
+tests/integration/test_workflow_start_concurrency.py::test_concurrent_start_reuses_one_run_and_releases_submission_lock[m3-isolated]
+  D:\develop\Python\Lib\site-packages\pydantic\_internal\_generate_schema.py:2274: UnsupportedFieldAttributeWarning: The 'alias' attribute with value 'payload' was provided to the `Field()` function, which has no effect in the context it was used. 'alias' is field-specific metadata, and can only be attached to a model field using `Annotated` metadata or by assignment. This may have happened because an `Annotated` type alias using the `type` statement was used, or if the `Field()` function was attached to a single member of a union type.
+    warnings.warn(
+
+tests/unit/services/test_review_service.py::test_resume_modified_rejects_different_content[score]
+tests/unit/services/test_review_service.py::test_resume_modified_rejects_different_content[reason]
+  D:\develop\Python\Lib\site-packages\pydantic\main.py:475: UserWarning: Pydantic serializer warnings:
+    PydanticSerializationUnexpectedValue(Expected `decimal` - serialized value may not be as expected [field_name='score', input_value=8.0, input_type=float])
+    return self.__pydantic_serializer__.to_python(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+SKIPPED [1] tests\integration\test_m0_smoke.py:110: Docker 前置条件不可用，跳过 M0 容器冒烟测试：Docker 引擎响应超时。
+SKIPPED [1] tests\unit\services\test_file_storage_service.py:212: Host does not permit creation of this test symlink.
+2661 passed, 2 skipped, 126 warnings in 1117.60s (0:18:37)

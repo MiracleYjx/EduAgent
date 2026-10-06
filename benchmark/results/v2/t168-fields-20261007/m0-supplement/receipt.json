@@ -1,0 +1,11 @@
+{
+  "source_commit": "cd20d6d6ec6e070587754b6ed57ba724d3ca0e22",
+  "test": "unmodified tests/integration/test_m0_smoke.py",
+  "scope": "separate M0 check after full regression; not merged into full-suite count",
+  "exit_code": 0,
+  "seconds": 65.76006939995568,
+  "down_exit_code": 0,
+  "existing_test_volumes_retained": true,
+  "cloud_quality_requests": 0,
+  "at": "2026-10-06T18:06:28.164062+00:00"
+}

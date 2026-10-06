@@ -1,0 +1,27 @@
+{
+  "reason": "M0 240s timeout left compose build descendants holding captured stdout/stderr; terminate only exact snapshot-owned build processes to let original pytest report timeout",
+  "terminated": [
+    {
+      "pid": 113452,
+      "created": 1791307224.616676,
+      "cwd": "D:\\YJX\\MyCode\\EduAgent\\.cache\\t168-fields-20261007\\full-regression-v2\\source",
+      "args": [
+        "compose",
+        "build",
+        "backend"
+      ]
+    },
+    {
+      "pid": 125920,
+      "created": 1791307224.4843974,
+      "cwd": "D:\\YJX\\MyCode\\EduAgent\\.cache\\t168-fields-20261007\\full-regression-v2\\source",
+      "args": [
+        "compose",
+        "build",
+        "backend"
+      ]
+    }
+  ],
+  "at": "2026-10-06T17:30:32.169118+00:00",
+  "shared_docker_daemon_untouched": true
+}

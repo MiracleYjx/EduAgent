@@ -1,0 +1,18 @@
+{
+  "exit_code": 1,
+  "timed_out": true,
+  "seconds": 180.06310819997452,
+  "owned_children_cleaned": [
+    {
+      "pid": 120936,
+      "name": "docker-buildx.exe"
+    },
+    {
+      "pid": 123024,
+      "name": "docker-compose.exe"
+    }
+  ],
+  "cwd": "D:\\YJX\\MyCode\\EduAgent\\.cache\\t168-fields-20261007\\full-regression-v2\\source",
+  "code_or_test_modified": false,
+  "at": "2026-10-06T17:40:21.187433+00:00"
+}

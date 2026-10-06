@@ -1,0 +1,7 @@
+{
+  "reason": "missing existing locked pypdfium2==5.13.0 in recreated runtime; incomplete first attempt preserved",
+  "owned_pytest_pid": 125604,
+  "creation_time": 1791305894.3687243,
+  "exact_junit_target": "D:\\YJX\\MyCode\\EduAgent\\.cache\\t168-fields-20261007\\full-regression\\pytest.xml",
+  "interrupted_at": "2026-10-06T17:05:58.961912+00:00"
+}

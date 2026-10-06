@@ -1,0 +1,14 @@
+{
+  "source_commit": "cd20d6d6ec6e070587754b6ed57ba724d3ca0e22",
+  "source_scope": "git archive committed source and corpus; protected user fixture unmodified",
+  "corpus_sha256": "c0b37ca359e9e821a8ed0ead0c7f420977e2460fa623cba466e7501c366370d2",
+  "database": "eduagent_t168_regression_6ae811ce35e9",
+  "active_connections": 0,
+  "database_removed": true,
+  "exit_code": 1,
+  "seconds": 1792.6203651999822,
+  "m0_existing_test_volumes_retained": true,
+  "m0_project_down_exit_code": 0,
+  "cloud_model_calls": "unit/contract/integration controlled transports; no quality-baseline requests",
+  "completed_at": "2026-10-06T17:36:39.887927+00:00"
+}

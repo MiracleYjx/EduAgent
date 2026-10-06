@@ -1,0 +1,30 @@
+{
+  "actual_python": "3.13.13 (tags/v3.13.13:01104ce, Apr  7 2026, 19:25:48) [MSC v.1944 64 bit (AMD64)]",
+  "python_executable": "D:\\YJX\\MyCode\\EduAgent\\.cache\\t168-fields-20261007\\runtime\\Scripts\\python.exe",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "dependencies": {
+    "rapidocr": "3.9.2",
+    "onnxruntime": "1.30.0",
+    "opencv-python": "5.0.0.93",
+    "pypdfium2": "5.13.0",
+    "pypdf": "6.18.1",
+    "psutil": "7.2.2",
+    "pytest": "9.1.1",
+    "openai": "2.54.0",
+    "httpx": "0.28.1",
+    "gradio": "6.26.0",
+    "mypy": "2.3.1"
+  },
+  "reference_sha256": "c6965254e670225224ef28d4abc9efd54fef7d2b7a1841134c3fa11bfcc99350",
+  "runner_reference_sha256": "13095b3d62f9e0db14e92412e58923f6b2c1c83c0acf49ea356e306397e2ff9e",
+  "restored_existing_locked_dependencies": [
+    "rapidocr==3.9.2",
+    "onnxruntime==1.30.0",
+    "pypdfium2==5.13.0"
+  ],
+  "model_receipt": "ocr-restoration.json",
+  "project_dependency_file_changed": false,
+  "quality_calls_executed": 0,
+  "full_first_attempt": "interrupted after missing original PDF dependency; no completed full result claim",
+  "field_comparison_unchanged": true
+}

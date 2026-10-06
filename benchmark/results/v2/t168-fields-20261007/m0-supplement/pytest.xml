@@ -1,0 +1,1 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="0" skipped="0" tests="1" time="57.129" timestamp="2026-10-07T02:05:27.012832+08:00" hostname="YJX"><testcase classname="tests.integration.test_m0_smoke" name="test_m0_smoke_script" time="57.088" /></testsuite></testsuites>
