@@ -1,0 +1,107 @@
+{
+  "evidence_kind": "historical baseline reinterpreted only; not new model execution",
+  "source_ref": "benchmark\\results\\v2\\t168-repair-20261006\\repair-summary.json",
+  "source_sha256": "c311444bf5863ee7ab38c0ef7fe635b8157e8de5d40df0272ec303ea8dacfe11",
+  "thresholds_sha256": "4a387513ca715a698436f35fea540eb40ee7660ff09019fb0ed98d40919eae62",
+  "assessments": [
+    {
+      "field": "identity",
+      "numerator": 48,
+      "denominator": 48,
+      "value": 1.0,
+      "target": 1.0,
+      "met": true
+    },
+    {
+      "field": "question_number",
+      "numerator": 48,
+      "denominator": 48,
+      "value": 1.0,
+      "target": 1.0,
+      "met": true
+    },
+    {
+      "field": "order_index",
+      "numerator": 48,
+      "denominator": 48,
+      "value": 1.0,
+      "target": 1.0,
+      "met": true
+    },
+    {
+      "field": "source_page_numbers",
+      "numerator": 48,
+      "denominator": 48,
+      "value": 1.0,
+      "target": 1.0,
+      "met": true
+    },
+    {
+      "field": "question_type",
+      "numerator": 45,
+      "denominator": 45,
+      "value": 1.0,
+      "target": 1.0,
+      "met": true
+    },
+    {
+      "field": "options",
+      "numerator": 48,
+      "denominator": 48,
+      "value": 1.0,
+      "target": 1.0,
+      "met": true
+    },
+    {
+      "field": "reference_answer",
+      "numerator": 48,
+      "denominator": 48,
+      "value": 1.0,
+      "target": 1.0,
+      "met": true
+    },
+    {
+      "field": "score",
+      "numerator": 48,
+      "denominator": 48,
+      "value": 1.0,
+      "target": 1.0,
+      "met": true
+    },
+    {
+      "field": "content",
+      "numerator": 18,
+      "denominator": 48,
+      "value": 0.375,
+      "target": 0.8,
+      "met": false
+    },
+    {
+      "field": "analysis",
+      "numerator": 39,
+      "denominator": 48,
+      "value": 0.8125,
+      "target": 0.8,
+      "met": true
+    },
+    {
+      "field": "scoring_rubric",
+      "numerator": 38,
+      "denominator": 48,
+      "value": 0.7916666666666666,
+      "target": 0.8,
+      "met": false
+    },
+    {
+      "field": "knowledge_points",
+      "numerator": 15,
+      "denominator": 48,
+      "value": 0.3125,
+      "target": 0.7,
+      "met": false
+    }
+  ],
+  "assets_excluded_from_thresholds": true,
+  "new_model_calls": 0,
+  "field_thresholds_passed": false
+}

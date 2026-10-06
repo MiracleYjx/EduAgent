@@ -1,0 +1,77 @@
+{
+  "scope": "local PDF decode and actual locked CPU OCR only; no extraction model or quality accuracy claim",
+  "pages": [
+    {
+      "source_file": "paper_text.pdf",
+      "source_sha256": "74e4f9a21fd7bf778bab474f89bcede2680010e957cc435774205dbaa648c167",
+      "page_number": 1,
+      "method": "TEXT",
+      "width": 1241,
+      "height": 1754,
+      "text_characters": 304,
+      "text_sha256": "7afce49c3ac2396177fd73b322bbe74a2b34c43a5610f5290e41146e658fe70b"
+    },
+    {
+      "source_file": "paper_scan.pdf",
+      "source_sha256": "16aaa00c8b41ca1f5e5e77d6248e918953d054e725ebfb30548fec84cfe9ba5b",
+      "page_number": 1,
+      "method": "OCR",
+      "width": 1241,
+      "height": 1754,
+      "text_characters": 312,
+      "text_sha256": "800692a6f5885f98ea0f1c1ad1b067c90daf54add18797c8dadd57d9f82537fe"
+    },
+    {
+      "source_file": "paper_image.png",
+      "source_sha256": "31cdc03d0d958c33d6d7815e330f521febe40e23eab0122f687344f8ed311199",
+      "page_number": 1,
+      "method": "OCR",
+      "width": 1241,
+      "height": 1754,
+      "text_characters": 312,
+      "text_sha256": "800692a6f5885f98ea0f1c1ad1b067c90daf54add18797c8dadd57d9f82537fe"
+    },
+    {
+      "source_file": "paper_mixed.pdf",
+      "source_sha256": "5c0affa1fb5ec3f3267972bce7cfbf67cf3abe067b59c9cdac0b45edd025f4ba",
+      "page_number": 1,
+      "method": "TEXT",
+      "width": 1241,
+      "height": 1754,
+      "text_characters": 304,
+      "text_sha256": "7afce49c3ac2396177fd73b322bbe74a2b34c43a5610f5290e41146e658fe70b"
+    },
+    {
+      "source_file": "paper_mixed.pdf",
+      "source_sha256": "5c0affa1fb5ec3f3267972bce7cfbf67cf3abe067b59c9cdac0b45edd025f4ba",
+      "page_number": 2,
+      "method": "OCR",
+      "width": 1241,
+      "height": 1754,
+      "text_characters": 310,
+      "text_sha256": "3e94c46757e80c3cbdff684d1daa3ca38d2b10f7997b5b25849f2b287a8872ed"
+    },
+    {
+      "source_file": "paper_cross_page.pdf",
+      "source_sha256": "8c6a18f125a37ff9107a563efb52f5e61ec8ce1debdb516059a1d5b7d58d1a23",
+      "page_number": 1,
+      "method": "TEXT",
+      "width": 1241,
+      "height": 1754,
+      "text_characters": 134,
+      "text_sha256": "fefc16f43ad33b192d037b2d385163a719fa6d6bd207e00884368222bacd9120"
+    },
+    {
+      "source_file": "paper_cross_page.pdf",
+      "source_sha256": "8c6a18f125a37ff9107a563efb52f5e61ec8ce1debdb516059a1d5b7d58d1a23",
+      "page_number": 2,
+      "method": "TEXT",
+      "width": 1241,
+      "height": 1754,
+      "text_characters": 98,
+      "text_sha256": "c50d277440c323a9ef8df215a7c91ec07e007abcc070120acca974eea4d02eed"
+    }
+  ],
+  "ocr_pages": 3,
+  "cloud_requests": 0
+}

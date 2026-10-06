@@ -1158,3 +1158,18 @@ T168提取只用真实页内唯一原文定位证据恢复题序/选项顺序，
 补验使用容器内真实pg_dump/restore，15/15通过。M0使用固定隔离项目eduagent-test及既有测试卷；首轮工具遗漏POSTGRES_DB导致不存在默认库的失败保留，按原eduagent_t190_m0_fixed库配置重验通过，未清空卷。只有合成模型凭据/构造readiness，不验证Docker云模型质量；结束仅down该测试项目、不删卷，共享原PG/Redis健康。原业务库仍0012_audit_logs，23业务表＋1Alembic表，关键业务行数不变；README两份、原grading_samples及.env字节均未变。真实导入业务文件移至.cache保留，各文件SHA前后一致，公开证据不含配置、JWT或业务文件。恢复目标保持停写，未发布正式release。
 
 [本次机器汇总](../benchmark/results/v2/final-gate-retest-20261006/summary.json)、[完整证据](../benchmark/results/v2/final-gate-retest-20261006/README.md)、[质量逐指标](../benchmark/results/v2/t168-repair-20261006/repair-summary.json)。下一批需继续定位后续启动耗时，以及自动文本字段、图片完整性和语义参考争议；新增图像提取流程须另定范围，解决后按原阈值复验。
+
+
+## T168 本批修复与技术回归结果（2026-10-07）
+
+**新口径与 prompt-v6 已实现；真实字段重测等待目的地确认，尚未取得本批质量达标结论。** 本批文字模型请求0，content/knowledge_points 新准确率均为 null，不用旧结果或本地 OCR 预检代替。自动审批两次拒绝发送试卷提取文字到 api.deepseek.com，要求人类直接确认该目的地；问题已提交。5份输入为仓库现有自编合成材料，不含真实师生资料。
+
+content根因是OCR数学排版/上标差异和“排除图表标题”导致真实跨页指令遗漏；只改paper-extraction-v6提示词，允许不改数学含义的排版恢复、保留真实跨页指令，原文定位证据仍逐字且唯一。knowledge_points根因是明确无原标签的完整资料被返回为null；v6只将完整可读且无显式标签的情况标为[]，缺页/不可读仍null，不从题干推测、不回填旧数据。
+
+TCR §47旧生命周期用例 test_close_only_provider_owned_client 已随de8551a按实际SDK边界适配，本批再次真实运行通过；原自有关闭及外部不关闭断言保持。最终一次完整提交快照回归为 **2661 passed / 0 failed / 0 errors / 2 skipped**，使用源码cd20d6d与提交语料，未覆盖工作区开发者评分文件。全量2项跳过为Docker前置响应超时与主机符号链接权限；M0原用例独立补验为 **1 passed / 0 failed / 0 errors / 0 skipped**，不加总成一次全量通过。未跳过生命周期或质量判定测试。后端mypy214源文件、活动Ruff通过；9项PDF原合同聚焦通过，与全量有重叠不加总。
+
+第一轮缺原PDF依赖的中断日志保留；恢复锁定pypdfium2后第二轮完整2661 passed/1 failed/1 skipped，唯一M0因首次依赖下载超过240秒，父脚本超时后自有构建进程持有输出管道。只清理PID/创建时间/命令/cwd核对的自有残留，未改Dockerfile、依赖声明或240秒用例超时。在用例外完成原镜像准备，随后从头执行本节最终完整回归，未拼接为一次通过。
+
+四项已知限制按本批口径不阻塞T168；原T189<10秒及未通过状态保持。旧v5按新阈值再计算仍是content18/48、knowledge_points15/48、导入scoring_rubric38/48未达标，仅作历史诊断。T168原[X]对应已经完成的基线测量与阈值登记，本次不新增质量达标勾选；其他任务定义/状态不改。
+
+新阈值、原始完整/中断证据、实际环境与清理回执见[本批结果](../benchmark/results/v2/t168-fields-20261007/README.md)、[机器汇总](../benchmark/results/v2/t168-fields-20261007/repair-summary.json)。原标注与比较规则、用户四文件、原库0012及业务行数保持；最终测试库零连接后删除，隔离M0仅down且保留既有卷，共享原服务保留。
