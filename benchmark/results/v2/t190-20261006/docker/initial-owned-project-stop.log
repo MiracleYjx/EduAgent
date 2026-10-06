@@ -1,0 +1,15 @@
+
+ Container eduagent-t190-20261006-backend-1 Stopping 
+ Container eduagent-t190-20261006-backend-1 Stopped 
+ Container eduagent-t190-20261006-backend-1 Removing 
+ Container eduagent-t190-20261006-backend-1 Removed 
+ Container eduagent-t190-20261006-redis-1 Stopping 
+ Container eduagent-t190-20261006-postgres-1 Stopping 
+ Container eduagent-t190-20261006-postgres-1 Stopped 
+ Container eduagent-t190-20261006-postgres-1 Removing 
+ Container eduagent-t190-20261006-postgres-1 Removed 
+ Container eduagent-t190-20261006-redis-1 Stopped 
+ Container eduagent-t190-20261006-redis-1 Removing 
+ Container eduagent-t190-20261006-redis-1 Removed 
+ Network eduagent-t190-20261006_default Removing 
+ Network eduagent-t190-20261006_default Removed 

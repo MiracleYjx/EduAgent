@@ -1,0 +1,5 @@
+Loading weights:   0%|          | 0/391 [00:00<?, ?it/s]Loading weights: 100%|██████████| 391/391 [00:00<00:00, 13727.18it/s]
+[vector_only] ok -> D:\YJX\MyCode\EduAgent\benchmark\results\v2\t190-20261006\benchmarks-v2\retrieval\t190-real-20261006
+[keyword_only] ok -> D:\YJX\MyCode\EduAgent\benchmark\results\v2\t190-20261006\benchmarks-v2\retrieval\t190-real-20261006
+[hybrid] ok -> D:\YJX\MyCode\EduAgent\benchmark\results\v2\t190-20261006\benchmarks-v2\retrieval\t190-real-20261006
+[hybrid_rerank] ok -> D:\YJX\MyCode\EduAgent\benchmark\results\v2\t190-20261006\benchmarks-v2\retrieval\t190-real-20261006

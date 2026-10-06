@@ -884,3 +884,7 @@ T188 结果：实际完整构建脚本成功、111项固定依赖pip check通过
 ## 44. T189–T191 真实交付与兼容/闭环验收（2026-10-06，实施前）
 
 必要性：源码和受控冒烟不能证明真实EXE重复启动、资源窗口、退出所有权及完整业务备份。新增独立验收入口/原始回执，复用既有ResourceSampler、隔离PostgreSQL和既有业务服务；不修改旧用例、断言或教师标签。T189固定3首次/5后续及配置/依赖/迁移/模型网络/OCR/重启/退出；仅有实测缺陷时新增对应部署回归。T190运行完整原框架与原Benchmark，T191真实模型课程和隔离恢复；受控故障、AI辅助参考与真实模型明确分列，失败/未知不填成功。正式质量与独立教师缺口保持。
+
+### §44 收尾事实
+
+T190 实际空库 Docker 发现启动恢复检查点依赖迁移、而旧 M0 先等待就绪的循环。仅调整脚本编排为依赖健康→一次性迁移→Backend；复用原 tests/unit/test_m0_smoke_isolation.py、tests/contract/test_docker_demo_config.py、tests/integration/test_m0_smoke.py，没有新增/修改 pytest 用例或断言。最终14单元/契约通过、原集成1/1通过；首次 Docker info 超时 skip/后续观察失败保留。

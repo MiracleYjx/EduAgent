@@ -1,0 +1,54 @@
+[
+  {
+    "check": "migration",
+    "args": [
+      "-m",
+      "alembic",
+      "upgrade",
+      "head"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 2.9399806999135762
+  },
+  {
+    "check": "backup-existing",
+    "args": [
+      "-m",
+      "pytest",
+      "-q",
+      "tests/integration/test_backup_restore.py",
+      "tests/integration/test_question_asset_persistence.py",
+      "--junitxml=D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t190-20261006\\supplement\\backup.xml"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 46.206196299986914
+  },
+  {
+    "check": "committed-input",
+    "args": [
+      "-m",
+      "pytest",
+      "-q",
+      "tests/contract/test_grading_benchmark_contract.py",
+      "--junitxml=D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t190-20261006\\supplement\\committed.xml"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 8.159861100022681
+  },
+  {
+    "check": "active-code-ruff",
+    "args": [
+      "-m",
+      "ruff",
+      "check",
+      "backend",
+      "scripts",
+      "tests",
+      "benchmark",
+      "--extend-exclude",
+      "benchmark/results"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 0.34755770000629127
+  }
+]

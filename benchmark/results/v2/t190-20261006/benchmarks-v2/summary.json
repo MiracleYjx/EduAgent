@@ -1,0 +1,53 @@
+[
+  {
+    "check": "migration",
+    "args": [
+      "-m",
+      "alembic",
+      "upgrade",
+      "head"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 3.713239899952896
+  },
+  {
+    "check": "ingestion",
+    "args": [
+      "scripts/setup_benchmark_corpus.py",
+      "--output-dir",
+      "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t190-20261006\\benchmarks-v2\\corpus"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 42.839339899946935
+  },
+  {
+    "check": "retrieval",
+    "args": [
+      "scripts/run_retrieval_benchmark.py",
+      "--manifest",
+      "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t190-20261006\\benchmarks-v2\\corpus\\manifest.json",
+      "--output-dir",
+      "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t190-20261006\\benchmarks-v2\\retrieval",
+      "--run-id",
+      "t190-real-20261006"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 47.84915260004345
+  },
+  {
+    "check": "grading",
+    "args": [
+      "scripts/run_grading_benchmark.py",
+      "--mode",
+      "real",
+      "--corpus",
+      "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t190-20261006\\benchmarks-v2\\corpus\\manifest.json",
+      "--results-dir",
+      "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t190-20261006\\benchmarks-v2\\grading",
+      "--run-id",
+      "t190-real-20261006"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 45.82825889997184
+  }
+]

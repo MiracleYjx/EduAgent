@@ -1,0 +1,5 @@
+...........s...                                                          [100%]
+=========================== short test summary info ===========================
+SKIPPED [1] tests\integration\test_m0_smoke.py:110: Docker 前置条件不可用，跳过 M0 容器冒烟测试：Docker 引擎响应超时。
+14 passed, 1 skipped in 21.82s
+

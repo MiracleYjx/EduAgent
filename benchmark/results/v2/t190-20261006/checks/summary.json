@@ -1,0 +1,48 @@
+[
+  {
+    "check": "migration",
+    "args": [
+      "-m",
+      "alembic",
+      "upgrade",
+      "head"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 3.538569699972868
+  },
+  {
+    "check": "pytest",
+    "args": [
+      "-m",
+      "pytest",
+      "-q",
+      "--junitxml=D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t190-20261006\\checks\\pytest.xml"
+    ],
+    "exit_code": 1,
+    "elapsed_seconds": 1155.8910187999718
+  },
+  {
+    "check": "mypy",
+    "args": [
+      "-m",
+      "mypy",
+      "backend"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 8.811137800104916
+  },
+  {
+    "check": "ruff",
+    "args": [
+      "-m",
+      "ruff",
+      "check",
+      "backend",
+      "scripts",
+      "tests",
+      "benchmark"
+    ],
+    "exit_code": 1,
+    "elapsed_seconds": 0.18386699992697686
+  }
+]

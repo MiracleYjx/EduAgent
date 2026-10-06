@@ -1,0 +1,5 @@
+run_id,run_at,config,dataset_version,model_version,prompt_version,status,error_code,recall_at_5,recall_at_10,precision_at_5,mrr,ndcg_at_10,latency_p95_ms,result_path
+t190-real-20261006,2026-10-06T03:45:10.775065+00:00,vector_only,synthetic-python-basics-heading-v3-20261002,BAAI/bge-large-zh-v1.5,,ok,,1.0000,1.0000,0.2500,0.9028,0.9276,15.325,retrieval_t190-real-20261006_vector_only.json
+t190-real-20261006,2026-10-06T03:45:10.854561+00:00,keyword_only,synthetic-python-basics-heading-v3-20261002,BAAI/bge-large-zh-v1.5,,ok,,0.0000,0.0000,0.0000,0.0000,0.0000,9.331,retrieval_t190-real-20261006_keyword_only.json
+t190-real-20261006,2026-10-06T03:45:11.039623+00:00,hybrid,synthetic-python-basics-heading-v3-20261002,BAAI/bge-large-zh-v1.5,,ok,,1.0000,1.0000,0.2500,0.9028,0.9276,24.260,retrieval_t190-real-20261006_hybrid.json
+t190-real-20261006,2026-10-06T03:45:30.473572+00:00,hybrid_rerank,synthetic-python-basics-heading-v3-20261002,BAAI/bge-large-zh-v1.5,,ok,,1.0000,1.0000,0.2500,1.0000,1.0000,4548.837,retrieval_t190-real-20261006_hybrid_rerank.json

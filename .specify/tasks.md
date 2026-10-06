@@ -642,7 +642,7 @@ M0 工程骨架 + Benchmark
 
 - [ ] T189 [HIGH] [E6] **执行真实 Windows 交付验收**：在准备好依赖的 Windows 单机运行 T188 包，覆盖首次/后续启动、配置/数据库/Redis/迁移/模型网络失败、OCR启用/禁用、图片读取、重启及退出进程所有权；按 T142 冷暖/重复协议记录首次<30s、后续<10s目标和相关应用/数据库/Redis同时峰值≤6GB及各预算，超标如实报告。证据写 `docs/v2.0-exe-acceptance.md`，不以源码运行替代打包运行。 依赖：T142、T146、T188。per FR-052、SC-014、plan Gate 17/非功能目标（F056） (missing)
 
-- [ ] T190 [HIGH] [E6] **完成兼容回归与 v2.0 测量汇总**：按既有框架执行全量 pytest、mypy、ruff、隔离迁移/历史读取、Docker M0/三容器 readiness及原检索/阅卷 Benchmark；汇总 T160/T168/T179/T189 的质量、耗时、资源和失败样本到 `benchmark/results/`、`docs/evaluation.md`，仅有新修改/失败时重测相关场景。保留 v1.0 用例、原证据和所有真实未通过项，不修改旧任务勾选。 依赖：T145、T152、T160、T169、T179、T184、T186、T189。per plan Gate 1–19/兼容性目标、Constitution I/V（F057） (partial)
+- [X] T190 [HIGH] [E6] **完成兼容回归与 v2.0 测量汇总**：按既有框架执行全量 pytest、mypy、ruff、隔离迁移/历史读取、Docker M0/三容器 readiness及原检索/阅卷 Benchmark；汇总 T160/T168/T179/T189 的质量、耗时、资源和失败样本到 `benchmark/results/`、`docs/evaluation.md`，仅有新修改/失败时重测相关场景。保留 v1.0 用例、原证据和所有真实未通过项，不修改旧任务勾选。 依赖：T145、T152、T160、T169、T179、T184、T186、T189。per plan Gate 1–19/兼容性目标、Constitution I/V（F057） (partial)
 
 - [ ] T191 [HIGH] [E6] **完成真实闭环、恢复及交付证据**：在实际课程完成导入校正、教学资料、知识库文字出题与原题改编两条路径、答案重核验/教师审核、带图条件组卷、本机考试、混合评分/人工复核及两类分析；覆盖缺答案/不同本场分值/失败状态。用含全部新资源和答卷评分的数据在隔离目标执行一致备份恢复，核对来源/文件/成绩，并汇总七页 UI/EXE 证据到 `docs/validation-report.md`、`docs/release-checklist.md` 以及 `docs/paper-import.md`、`docs/file-lifecycle.md`、`docs/exe-deployment.md` 使用说明；记录验收结论供用户裁决，未实测不宣称交付，发布另按授权。 依赖：T151、T160、T169、T179、T184、T186、T189、T190。per FR-041–052、SC-010–014、plan Gate 10–19（F058） (missing)
 

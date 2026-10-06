@@ -1,0 +1,4 @@
+run_id,created_at,mode,dataset_version,model,prompt_version,strategy,status,error_code,sample_total,scored_count,failure_count,failure_rate,effective_sample_count,mae,rmse,agreement_rate,provider_calls,retrieval_calls,rerank_calls,elapsed_ms
+t190-real-20261006,2026-10-06T03:45:35.120890+00:00,real,t059-v2,deepseek-chat,subjective-grading-v1,zero_shot,completed,,4,4,0,0.0,4,0.50,0.71,1.0000,4,0,0,6069.557
+t190-real-20261006,2026-10-06T03:45:35.120890+00:00,real,t059-v2,deepseek-chat,subjective-grading-v1,rag,completed,,4,4,0,0.0,4,0.25,0.50,1.0000,4,4,0,20897.425
+t190-real-20261006,2026-10-06T03:45:35.120890+00:00,real,t059-v2,deepseek-chat,subjective-grading-v1,hybrid_rerank,completed,,4,4,0,0.0,4,0.25,0.50,1.0000,4,4,4,11870.728

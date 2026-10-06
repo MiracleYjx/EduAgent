@@ -1,0 +1,18 @@
+..............................                                           [100%]
+============================== warnings summary ===============================
+tests/contract/test_grading_benchmark_contract.py::test_p4a3_persisted_label_metrics_and_selftest_evidence[False]
+tests/contract/test_grading_benchmark_contract.py::test_p4a3_persisted_label_metrics_and_selftest_evidence[True]
+  D:\develop\Python\Lib\site-packages\pydantic\main.py:475: UserWarning: Pydantic serializer warnings:
+    PydanticSerializationUnexpectedValue(Expected `decimal` - serialized value may not be as expected [field_name='score', input_value=5.0, input_type=float])
+    return self.__pydantic_serializer__.to_python(
+
+tests/contract/test_grading_benchmark_contract.py::test_invalid_payload_writes_failure_record_without_fake_score
+tests/contract/test_grading_benchmark_contract.py::test_failure_status_counts_and_cli_agree[invalid]
+tests/contract/test_grading_benchmark_contract.py::test_failure_status_counts_and_cli_agree[partial]
+tests/contract/test_grading_benchmark_contract.py::test_failure_status_counts_and_cli_agree[mixed]
+  D:\develop\Python\Lib\site-packages\pydantic\main.py:475: UserWarning: Pydantic serializer warnings:
+    PydanticSerializationUnexpectedValue(Expected `decimal` - serialized value may not be as expected [field_name='score', input_value=1000000.0, input_type=float])
+    return self.__pydantic_serializer__.to_python(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+30 passed, 6 warnings in 6.45s

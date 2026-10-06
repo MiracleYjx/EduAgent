@@ -3,8 +3,8 @@
 执行 M0 三容器、数据库迁移和 Redis 连接冒烟验证。
 
 .DESCRIPTION
-启动 PostgreSQL、Redis 和 Backend，等待容器健康检查与 Backend
-就绪端点可用，然后执行 Alembic 迁移和 Redis PING。脚本失败时会输出
+启动 PostgreSQL、Redis 并等待健康检查，先执行 Alembic 迁移，再启动
+Backend 并检查全部容器、就绪端点和 Redis PING。脚本失败时会输出
 脱敏诊断并以非零退出码结束。
 #>
 
@@ -137,7 +137,8 @@ function Get-ServiceSummary {
 function Wait-ForComposeServices {
     param(
         [Parameter(Mandatory = $true)]
-        [datetime]$Deadline
+        [datetime]$Deadline,
+        [string[]]$RequiredServices = @("postgres", "redis", "backend")
     )
 
     $lastSummary = ""
@@ -150,7 +151,7 @@ function Wait-ForComposeServices {
         }
 
         $allHealthy = $true
-        foreach ($serviceName in $serviceNames) {
+        foreach ($serviceName in $RequiredServices) {
             if (-not $states.ContainsKey($serviceName)) {
                 $allHealthy = $false
                 continue
@@ -166,7 +167,7 @@ function Wait-ForComposeServices {
         }
 
         if ($allHealthy) {
-            Write-Host "PostgreSQL、Redis 和 Backend 容器健康检查已通过。"
+            Write-Host "容器健康检查已通过：$($RequiredServices -join ", ")。"
             return
         }
 
@@ -279,15 +280,18 @@ try {
     $isolationVerified = $true
     Write-Host "开始执行 M0 冒烟验证。"
     Invoke-ComposeCheck -Description "Compose 配置检查" -Arguments @("compose", "config", "--quiet") | Out-Null
-    Invoke-ComposeCheck -Description "三容器启动" -Arguments @("compose", "up", "--build", "-d") | Out-Null
+    Invoke-ComposeCheck -Description "Backend 镜像构建" -Arguments @("compose", "build", "backend") | Out-Null
+    Invoke-ComposeCheck -Description "数据库和缓存启动" -Arguments @("compose", "up", "-d", "postgres", "redis") | Out-Null
 
     $deadline = [DateTime]::UtcNow.AddSeconds($TimeoutSeconds)
-    Wait-ForComposeServices -Deadline $deadline
-    Wait-ForBackendReady -Deadline $deadline
-
+    Wait-ForComposeServices -Deadline $deadline -RequiredServices @("postgres", "redis")
     Invoke-ComposeCheck `
         -Description "Alembic 数据库迁移" `
-        -Arguments @("compose", "exec", "-T", "backend", "alembic", "upgrade", "head") | Out-Null
+        -Arguments @("compose", "run", "--rm", "--no-deps", "backend", "alembic", "upgrade", "head") | Out-Null
+
+    Invoke-ComposeCheck -Description "Backend 启动" -Arguments @("compose", "up", "-d", "backend") | Out-Null
+    Wait-ForComposeServices -Deadline $deadline
+    Wait-ForBackendReady -Deadline $deadline
 
     $currentOutput = Invoke-ComposeCheck `
         -Description "Alembic 当前版本检查" `

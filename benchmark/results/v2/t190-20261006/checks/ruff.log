@@ -1,0 +1,29 @@
+I001 [*] Import block is un-sorted or un-formatted
+ --> benchmark\results\v2\t160-retest-20261003\frozen-execution\formal_execute.py:2:1
+  |
+1 |   """Execute the authorized fixed protocol once, sequentially, without hidden retries."""
+2 | / import json,os,subprocess,sys,time
+3 | | from datetime import UTC,datetime
+4 | | from pathlib import Path
+  | |________________________^
+5 |   repo=Path(__file__).resolve().parents[2]
+6 |   run=Path(__file__).resolve().parent
+  |
+help: Organize imports
+   |
+1  | """Execute the authorized fixed protocol once, sequentially, without hidden retries."""
+   - import json,os,subprocess,sys,time
+   - from datetime import UTC,datetime
+2  + import json
+3  + import os
+4  + import subprocess
+5  + import sys
+6  + import time
+7  + from datetime import UTC, datetime
+8  | from pathlib import Path
+9  +
+10 | repo=Path(__file__).resolve().parents[2]
+   |
+
+Found 1 error.
+[*] 1 fixable with the `--fix` option.

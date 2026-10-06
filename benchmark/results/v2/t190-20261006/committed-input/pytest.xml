@@ -1,0 +1,718 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="18" skipped="0" tests="30" time="7.334" timestamp="2026-10-06T11:49:41.173186+08:00" hostname="YJX"><testcase classname="tests.contract.test_grading_benchmark_contract" name="test_benchmark_metadata_comes_from_resolved_provider[actual-stub-model-v2-False]" time="0.015" /><testcase classname="tests.contract.test_grading_benchmark_contract" name="test_benchmark_metadata_comes_from_resolved_provider[actual-stub-model-v2-True]" time="0.010" /><testcase classname="tests.contract.test_grading_benchmark_contract" name="test_benchmark_metadata_comes_from_resolved_provider[-False]" time="0.009" /><testcase classname="tests.contract.test_grading_benchmark_contract" name="test_benchmark_metadata_comes_from_resolved_provider[-True]" time="0.009" /><testcase classname="tests.contract.test_grading_benchmark_contract" name="test_selftest_default_provider_is_explicit_stub" time="0.009" /><testcase classname="tests.contract.test_grading_benchmark_contract" name="test_unresolved_benchmark_provider_has_unknown_identity" time="0.038" /><testcase classname="tests.contract.test_grading_benchmark_contract" name="test_three_strategies_are_executed_with_complete_metric_fields" time="0.006"><failure message="backend.app.core.config.ConfigurationError: 运行配置无效：CONFIDENCE_THRESHOLD, DATABASE_URL, DEEPSEEK_BASE_URL, DEEPSEEK_MODEL, EMBEDDING_PROVIDER, JWT_SECRET_KEY, LLM_PROVIDER, REDIS_URL, RERANK_PROVIDER。JWT_SECRET_KEY 必须配置为至少 32 个字符的非空密钥。">results_dir = WindowsPath('D:/YJX/Cache/Temp/pytest-of-10169/pytest-289/test_three_strategies_are_exec0/results')
+
+    def test_three_strategies_are_executed_with_complete_metric_fields(
+        results_dir: Path,
+    ) -&gt; None:
+        """三路策略均被执行，预测与指标字段完整，且预测分数在满分范围内。"""
+    
+&gt;       record = _run(results_dir)
+                 ^^^^^^^^^^^^^^^^^
+
+tests\contract\test_grading_benchmark_contract.py:158: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\contract\test_grading_benchmark_contract.py:144: in _run
+    record, _ = benchmark.run_benchmark(
+scripts\run_grading_benchmark.py:847: in run_benchmark
+    resolved_settings = settings if settings is not None else get_settings()
+                                                              ^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    @lru_cache(maxsize=1)
+    def get_settings() -&gt; AppSettings:
+        """Load runtime configuration once and cache the validated result."""
+    
+        try:
+            return AppSettings()  # type: ignore[call-arg]
+        except (
+            ValidationError
+        ) as exc:  # pragma: no cover - exercised by startup validation later
+&gt;           raise ConfigurationError.from_validation_error(exc) from None
+E           backend.app.core.config.ConfigurationError: 运行配置无效：CONFIDENCE_THRESHOLD, DATABASE_URL, DEEPSEEK_BASE_URL, DEEPSEEK_MODEL, EMBEDDING_PROVIDER, JWT_SECRET_KEY, LLM_PROVIDER, REDIS_URL, RERANK_PROVIDER。JWT_SECRET_KEY 必须配置为至少 32 个字符的非空密钥。
+
+backend\app\core\config.py:336: ConfigurationError</failure></testcase><testcase classname="tests.contract.test_grading_benchmark_contract" name="test_metrics_are_null_without_teacher_ground_truth" time="0.007"><failure message="backend.app.core.config.ConfigurationError: 运行配置无效：CONFIDENCE_THRESHOLD, DATABASE_URL, DEEPSEEK_BASE_URL, DEEPSEEK_MODEL, EMBEDDING_PROVIDER, JWT_SECRET_KEY, LLM_PROVIDER, REDIS_URL, RERANK_PROVIDER。JWT_SECRET_KEY 必须配置为至少 32 个字符的非空密钥。">results_dir = WindowsPath('D:/YJX/Cache/Temp/pytest-of-10169/pytest-289/test_metrics_are_null_without_0/results')
+
+    def test_metrics_are_null_without_teacher_ground_truth(results_dir: Path) -&gt; None:
+        """数据集只有合成参考分时，质量指标为 null 并说明原因。"""
+    
+&gt;       record = _run(results_dir)
+                 ^^^^^^^^^^^^^^^^^
+
+tests\contract\test_grading_benchmark_contract.py:201: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\contract\test_grading_benchmark_contract.py:144: in _run
+    record, _ = benchmark.run_benchmark(
+scripts\run_grading_benchmark.py:847: in run_benchmark
+    resolved_settings = settings if settings is not None else get_settings()
+                                                              ^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    @lru_cache(maxsize=1)
+    def get_settings() -&gt; AppSettings:
+        """Load runtime configuration once and cache the validated result."""
+    
+        try:
+            return AppSettings()  # type: ignore[call-arg]
+        except (
+            ValidationError
+        ) as exc:  # pragma: no cover - exercised by startup validation later
+&gt;           raise ConfigurationError.from_validation_error(exc) from None
+E           backend.app.core.config.ConfigurationError: 运行配置无效：CONFIDENCE_THRESHOLD, DATABASE_URL, DEEPSEEK_BASE_URL, DEEPSEEK_MODEL, EMBEDDING_PROVIDER, JWT_SECRET_KEY, LLM_PROVIDER, REDIS_URL, RERANK_PROVIDER。JWT_SECRET_KEY 必须配置为至少 32 个字符的非空密钥。
+
+backend\app\core\config.py:336: ConfigurationError</failure></testcase><testcase classname="tests.contract.test_grading_benchmark_contract" name="test_teacher_labels_enable_quality_metrics" time="0.018"><failure message="backend.app.core.config.ConfigurationError: 运行配置无效：CONFIDENCE_THRESHOLD, DATABASE_URL, DEEPSEEK_BASE_URL, DEEPSEEK_MODEL, EMBEDDING_PROVIDER, JWT_SECRET_KEY, LLM_PROVIDER, REDIS_URL, RERANK_PROVIDER。JWT_SECRET_KEY 必须配置为至少 32 个字符的非空密钥。">results_dir = WindowsPath('D:/YJX/Cache/Temp/pytest-of-10169/pytest-289/test_teacher_labels_enable_qua0/results')
+tmp_path = WindowsPath('D:/YJX/Cache/Temp/pytest-of-10169/pytest-289/test_teacher_labels_enable_qua0')
+
+    def test_teacher_labels_enable_quality_metrics(results_dir: Path, tmp_path: Path) -&gt; None:
+        """存在教师评分时按定义计算 MAE/RMSE 与一致率。"""
+    
+        dataset = json.loads(benchmark.DATASET_PATH.read_text(encoding="utf-8"))
+        for item in dataset["samples"]:
+            item["teacher_score"] = item["reference_score"]
+            item["label_source"] = "teacher"
+        dataset_path = tmp_path / "grading_samples_teacher.json"
+        dataset_path.write_text(json.dumps(dataset, ensure_ascii=False), encoding="utf-8")
+    
+&gt;       record, _ = benchmark.run_benchmark(
+            mode="selftest",
+            dataset_path=dataset_path,
+            results_dir=results_dir,
+            run_id="t059-teacher",
+            provider=SelfTestScoringProvider(),
+        )
+
+tests\contract\test_grading_benchmark_contract.py:227: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+scripts\run_grading_benchmark.py:847: in run_benchmark
+    resolved_settings = settings if settings is not None else get_settings()
+                                                              ^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    @lru_cache(maxsize=1)
+    def get_settings() -&gt; AppSettings:
+        """Load runtime configuration once and cache the validated result."""
+    
+        try:
+            return AppSettings()  # type: ignore[call-arg]
+        except (
+            ValidationError
+        ) as exc:  # pragma: no cover - exercised by startup validation later
+&gt;           raise ConfigurationError.from_validation_error(exc) from None
+E           backend.app.core.config.ConfigurationError: 运行配置无效：CONFIDENCE_THRESHOLD, DATABASE_URL, DEEPSEEK_BASE_URL, DEEPSEEK_MODEL, EMBEDDING_PROVIDER, JWT_SECRET_KEY, LLM_PROVIDER, REDIS_URL, RERANK_PROVIDER。JWT_SECRET_KEY 必须配置为至少 32 个字符的非空密钥。
+
+backend\app\core\config.py:336: ConfigurationError</failure></testcase><testcase classname="tests.contract.test_grading_benchmark_contract" name="test_p4a3_persisted_label_metrics_and_selftest_evidence[False]" time="0.009"><failure message="backend.app.core.config.ConfigurationError: 运行配置无效：CONFIDENCE_THRESHOLD, DATABASE_URL, DEEPSEEK_BASE_URL, DEEPSEEK_MODEL, EMBEDDING_PROVIDER, JWT_SECRET_KEY, LLM_PROVIDER, REDIS_URL, RERANK_PROVIDER。JWT_SECRET_KEY 必须配置为至少 32 个字符的非空密钥。">results_dir = WindowsPath('D:/YJX/Cache/Temp/pytest-of-10169/pytest-289/test_p4a3_persisted_label_metr0/results')
+tmp_path = WindowsPath('D:/YJX/Cache/Temp/pytest-of-10169/pytest-289/test_p4a3_persisted_label_metr0')
+teacher_labels = False
+
+    @pytest.mark.parametrize("teacher_labels", [False, True])
+    def test_p4a3_persisted_label_metrics_and_selftest_evidence(
+        results_dir: Path, tmp_path: Path, teacher_labels: bool,
+    ) -&gt; None:
+        """TCR P4A.3：已知误差的人工标签夹具验证公式；合成参考分绝不冒充人工分。"""
+        dataset = json.loads(benchmark.DATASET_PATH.read_text(encoding="utf-8"))
+        dataset["samples"] = dataset["samples"][:2]
+        for item, score in zip(dataset["samples"], [6, 2], strict=True):
+            item["teacher_score"] = score if teacher_labels else None
+            item["label_source"] = "teacher" if teacher_labels else "synthetic_reference"
+            item["reference_score"] = "5.00"  # 与预测相同也不能用来算质量指标。
+        path = tmp_path / "labels.json"
+        path.write_text(json.dumps(dataset, ensure_ascii=False), encoding="utf-8")
+    
+        class FivePointStub(SelfTestScoringProvider):
+            async def generate_structured(self, messages, schema, **kwargs):
+                payload = await super().generate_structured(messages, schema, **kwargs)
+                return payload.model_copy(update={"score": 5.0})
+    
+&gt;       record, run_id = benchmark.run_benchmark(
+            mode="selftest", dataset_path=path, results_dir=results_dir, provider=FivePointStub(),
+        )
+
+tests\contract\test_grading_benchmark_contract.py:264: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+scripts\run_grading_benchmark.py:847: in run_benchmark
+    resolved_settings = settings if settings is not None else get_settings()
+                                                              ^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    @lru_cache(maxsize=1)
+    def get_settings() -&gt; AppSettings:
+        """Load runtime configuration once and cache the validated result."""
+    
+        try:
+            return AppSettings()  # type: ignore[call-arg]
+        except (
+            ValidationError
+        ) as exc:  # pragma: no cover - exercised by startup validation later
+&gt;           raise ConfigurationError.from_validation_error(exc) from None
+E           backend.app.core.config.ConfigurationError: 运行配置无效：CONFIDENCE_THRESHOLD, DATABASE_URL, DEEPSEEK_BASE_URL, DEEPSEEK_MODEL, EMBEDDING_PROVIDER, JWT_SECRET_KEY, LLM_PROVIDER, REDIS_URL, RERANK_PROVIDER。JWT_SECRET_KEY 必须配置为至少 32 个字符的非空密钥。
+
+backend\app\core\config.py:336: ConfigurationError</failure></testcase><testcase classname="tests.contract.test_grading_benchmark_contract" name="test_p4a3_persisted_label_metrics_and_selftest_evidence[True]" time="0.009"><failure message="backend.app.core.config.ConfigurationError: 运行配置无效：CONFIDENCE_THRESHOLD, DATABASE_URL, DEEPSEEK_BASE_URL, DEEPSEEK_MODEL, EMBEDDING_PROVIDER, JWT_SECRET_KEY, LLM_PROVIDER, REDIS_URL, RERANK_PROVIDER。JWT_SECRET_KEY 必须配置为至少 32 个字符的非空密钥。">results_dir = WindowsPath('D:/YJX/Cache/Temp/pytest-of-10169/pytest-289/test_p4a3_persisted_label_metr1/results')
+tmp_path = WindowsPath('D:/YJX/Cache/Temp/pytest-of-10169/pytest-289/test_p4a3_persisted_label_metr1')
+teacher_labels = True
+
+    @pytest.mark.parametrize("teacher_labels", [False, True])
+    def test_p4a3_persisted_label_metrics_and_selftest_evidence(
+        results_dir: Path, tmp_path: Path, teacher_labels: bool,
+    ) -&gt; None:
+        """TCR P4A.3：已知误差的人工标签夹具验证公式；合成参考分绝不冒充人工分。"""
+        dataset = json.loads(benchmark.DATASET_PATH.read_text(encoding="utf-8"))
+        dataset["samples"] = dataset["samples"][:2]
+        for item, score in zip(dataset["samples"], [6, 2], strict=True):
+            item["teacher_score"] = score if teacher_labels else None
+            item["label_source"] = "teacher" if teacher_labels else "synthetic_reference"
+            item["reference_score"] = "5.00"  # 与预测相同也不能用来算质量指标。
+        path = tmp_path / "labels.json"
+        path.write_text(json.dumps(dataset, ensure_ascii=False), encoding="utf-8")
+    
+        class FivePointStub(SelfTestScoringProvider):
+            async def generate_structured(self, messages, schema, **kwargs):
+                payload = await super().generate_structured(messages, schema, **kwargs)
+                return payload.model_copy(update={"score": 5.0})
+    
+&gt;       record, run_id = benchmark.run_benchmark(
+            mode="selftest", dataset_path=path, results_dir=results_dir, provider=FivePointStub(),
+        )
+
+tests\contract\test_grading_benchmark_contract.py:264: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+scripts\run_grading_benchmark.py:847: in run_benchmark
+    resolved_settings = settings if settings is not None else get_settings()
+                                                              ^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    @lru_cache(maxsize=1)
+    def get_settings() -&gt; AppSettings:
+        """Load runtime configuration once and cache the validated result."""
+    
+        try:
+            return AppSettings()  # type: ignore[call-arg]
+        except (
+            ValidationError
+        ) as exc:  # pragma: no cover - exercised by startup validation later
+&gt;           raise ConfigurationError.from_validation_error(exc) from None
+E           backend.app.core.config.ConfigurationError: 运行配置无效：CONFIDENCE_THRESHOLD, DATABASE_URL, DEEPSEEK_BASE_URL, DEEPSEEK_MODEL, EMBEDDING_PROVIDER, JWT_SECRET_KEY, LLM_PROVIDER, REDIS_URL, RERANK_PROVIDER。JWT_SECRET_KEY 必须配置为至少 32 个字符的非空密钥。
+
+backend\app\core\config.py:336: ConfigurationError</failure></testcase><testcase classname="tests.contract.test_grading_benchmark_contract" name="test_p4a3_legacy_corpus_failure_keeps_original_error_code[True]" time="0.012" /><testcase classname="tests.contract.test_grading_benchmark_contract" name="test_p4a3_legacy_corpus_failure_keeps_original_error_code[False]" time="0.011" /><testcase classname="tests.contract.test_grading_benchmark_contract" name="test_invalid_payload_writes_failure_record_without_fake_score" time="0.006"><failure message="backend.app.core.config.ConfigurationError: 运行配置无效：CONFIDENCE_THRESHOLD, DATABASE_URL, DEEPSEEK_BASE_URL, DEEPSEEK_MODEL, EMBEDDING_PROVIDER, JWT_SECRET_KEY, LLM_PROVIDER, REDIS_URL, RERANK_PROVIDER。JWT_SECRET_KEY 必须配置为至少 32 个字符的非空密钥。">results_dir = WindowsPath('D:/YJX/Cache/Temp/pytest-of-10169/pytest-289/test_invalid_payload_writes_fa0/results')
+
+    def test_invalid_payload_writes_failure_record_without_fake_score(
+        results_dir: Path,
+    ) -&gt; None:
+        """单样本失败写入失败状态与错误码，且不写假分数。"""
+    
+&gt;       record = _run(results_dir, provider=OutOfRangeProvider())
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\contract\test_grading_benchmark_contract.py:307: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\contract\test_grading_benchmark_contract.py:144: in _run
+    record, _ = benchmark.run_benchmark(
+scripts\run_grading_benchmark.py:847: in run_benchmark
+    resolved_settings = settings if settings is not None else get_settings()
+                                                              ^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    @lru_cache(maxsize=1)
+    def get_settings() -&gt; AppSettings:
+        """Load runtime configuration once and cache the validated result."""
+    
+        try:
+            return AppSettings()  # type: ignore[call-arg]
+        except (
+            ValidationError
+        ) as exc:  # pragma: no cover - exercised by startup validation later
+&gt;           raise ConfigurationError.from_validation_error(exc) from None
+E           backend.app.core.config.ConfigurationError: 运行配置无效：CONFIDENCE_THRESHOLD, DATABASE_URL, DEEPSEEK_BASE_URL, DEEPSEEK_MODEL, EMBEDDING_PROVIDER, JWT_SECRET_KEY, LLM_PROVIDER, REDIS_URL, RERANK_PROVIDER。JWT_SECRET_KEY 必须配置为至少 32 个字符的非空密钥。
+
+backend\app\core\config.py:336: ConfigurationError</failure></testcase><testcase classname="tests.contract.test_grading_benchmark_contract" name="test_provider_failure_marks_run_failed_with_error_code" time="0.006"><failure message="backend.app.core.config.ConfigurationError: 运行配置无效：CONFIDENCE_THRESHOLD, DATABASE_URL, DEEPSEEK_BASE_URL, DEEPSEEK_MODEL, EMBEDDING_PROVIDER, JWT_SECRET_KEY, LLM_PROVIDER, REDIS_URL, RERANK_PROVIDER。JWT_SECRET_KEY 必须配置为至少 32 个字符的非空密钥。">results_dir = WindowsPath('D:/YJX/Cache/Temp/pytest-of-10169/pytest-289/test_provider_failure_marks_ru0/results')
+
+    def test_provider_failure_marks_run_failed_with_error_code(results_dir: Path) -&gt; None:
+        """Provider 调用失败时整体运行标记失败并保留错误码。"""
+    
+&gt;       record = _run(results_dir, provider=NotReadyProvider())
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\contract\test_grading_benchmark_contract.py:322: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\contract\test_grading_benchmark_contract.py:144: in _run
+    record, _ = benchmark.run_benchmark(
+scripts\run_grading_benchmark.py:847: in run_benchmark
+    resolved_settings = settings if settings is not None else get_settings()
+                                                              ^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    @lru_cache(maxsize=1)
+    def get_settings() -&gt; AppSettings:
+        """Load runtime configuration once and cache the validated result."""
+    
+        try:
+            return AppSettings()  # type: ignore[call-arg]
+        except (
+            ValidationError
+        ) as exc:  # pragma: no cover - exercised by startup validation later
+&gt;           raise ConfigurationError.from_validation_error(exc) from None
+E           backend.app.core.config.ConfigurationError: 运行配置无效：CONFIDENCE_THRESHOLD, DATABASE_URL, DEEPSEEK_BASE_URL, DEEPSEEK_MODEL, EMBEDDING_PROVIDER, JWT_SECRET_KEY, LLM_PROVIDER, REDIS_URL, RERANK_PROVIDER。JWT_SECRET_KEY 必须配置为至少 32 个字符的非空密钥。
+
+backend\app\core\config.py:336: ConfigurationError</failure></testcase><testcase classname="tests.contract.test_grading_benchmark_contract" name="test_failure_status_counts_and_cli_agree[invalid]" time="0.007"><failure message="backend.app.core.config.ConfigurationError: 运行配置无效：CONFIDENCE_THRESHOLD, DATABASE_URL, DEEPSEEK_BASE_URL, DEEPSEEK_MODEL, EMBEDDING_PROVIDER, JWT_SECRET_KEY, LLM_PROVIDER, REDIS_URL, RERANK_PROVIDER。JWT_SECRET_KEY 必须配置为至少 32 个字符的非空密钥。">results_dir = WindowsPath('D:/YJX/Cache/Temp/pytest-of-10169/pytest-289/test_failure_status_counts_and0/results')
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x000001525144FF20&gt;
+kind = 'invalid'
+
+    @pytest.mark.parametrize("kind", ["invalid", "provider", "partial", "mixed"])
+    def test_failure_status_counts_and_cli_agree(
+        results_dir: Path, monkeypatch: pytest.MonkeyPatch, kind: str,
+    ) -&gt; None:
+        """真实入口生成报告：失败率仅统计执行过的样本，失败退出码不可为零。"""
+    
+        class FailingProvider(SelfTestScoringProvider):
+            def __init__(self):
+                super().__init__()
+                self.attempts = 0
+    
+            async def generate_structured(self, messages, schema, **kwargs):
+                self.attempts += 1
+                if kind == "provider":
+                    raise ProviderExecutionError(ProviderErrorInfo(
+                        code="ProviderTimeout", message="敏感内容不得写入结果", attempt_count=3,
+                    ))
+                payload = await super().generate_structured(messages, schema, **kwargs)
+                if kind == "invalid" or (kind == "partial" and self.attempts % 4 == 1) or (
+                    kind == "mixed" and self.attempts &lt;= 4
+                ):
+                    return payload.model_copy(update={"score": 1e6})
+                return payload
+    
+        provider = FailingProvider()
+        monkeypatch.setattr(benchmark, "build_provider", lambda *args: provider)
+&gt;       exit_code = benchmark.main([
+            "--mode", "selftest", "--results-dir", str(results_dir), "--run-id", "b04",
+        ])
+
+tests\contract\test_grading_benchmark_contract.py:357: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+scripts\run_grading_benchmark.py:938: in main
+    record, run_id = run_benchmark(
+scripts\run_grading_benchmark.py:847: in run_benchmark
+    resolved_settings = settings if settings is not None else get_settings()
+                                                              ^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    @lru_cache(maxsize=1)
+    def get_settings() -&gt; AppSettings:
+        """Load runtime configuration once and cache the validated result."""
+    
+        try:
+            return AppSettings()  # type: ignore[call-arg]
+        except (
+            ValidationError
+        ) as exc:  # pragma: no cover - exercised by startup validation later
+&gt;           raise ConfigurationError.from_validation_error(exc) from None
+E           backend.app.core.config.ConfigurationError: 运行配置无效：CONFIDENCE_THRESHOLD, DATABASE_URL, DEEPSEEK_BASE_URL, DEEPSEEK_MODEL, EMBEDDING_PROVIDER, JWT_SECRET_KEY, LLM_PROVIDER, REDIS_URL, RERANK_PROVIDER。JWT_SECRET_KEY 必须配置为至少 32 个字符的非空密钥。
+
+backend\app\core\config.py:336: ConfigurationError</failure></testcase><testcase classname="tests.contract.test_grading_benchmark_contract" name="test_failure_status_counts_and_cli_agree[provider]" time="0.008"><failure message="backend.app.core.config.ConfigurationError: 运行配置无效：CONFIDENCE_THRESHOLD, DATABASE_URL, DEEPSEEK_BASE_URL, DEEPSEEK_MODEL, EMBEDDING_PROVIDER, JWT_SECRET_KEY, LLM_PROVIDER, REDIS_URL, RERANK_PROVIDER。JWT_SECRET_KEY 必须配置为至少 32 个字符的非空密钥。">results_dir = WindowsPath('D:/YJX/Cache/Temp/pytest-of-10169/pytest-289/test_failure_status_counts_and1/results')
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x000001525144EA80&gt;
+kind = 'provider'
+
+    @pytest.mark.parametrize("kind", ["invalid", "provider", "partial", "mixed"])
+    def test_failure_status_counts_and_cli_agree(
+        results_dir: Path, monkeypatch: pytest.MonkeyPatch, kind: str,
+    ) -&gt; None:
+        """真实入口生成报告：失败率仅统计执行过的样本，失败退出码不可为零。"""
+    
+        class FailingProvider(SelfTestScoringProvider):
+            def __init__(self):
+                super().__init__()
+                self.attempts = 0
+    
+            async def generate_structured(self, messages, schema, **kwargs):
+                self.attempts += 1
+                if kind == "provider":
+                    raise ProviderExecutionError(ProviderErrorInfo(
+                        code="ProviderTimeout", message="敏感内容不得写入结果", attempt_count=3,
+                    ))
+                payload = await super().generate_structured(messages, schema, **kwargs)
+                if kind == "invalid" or (kind == "partial" and self.attempts % 4 == 1) or (
+                    kind == "mixed" and self.attempts &lt;= 4
+                ):
+                    return payload.model_copy(update={"score": 1e6})
+                return payload
+    
+        provider = FailingProvider()
+        monkeypatch.setattr(benchmark, "build_provider", lambda *args: provider)
+&gt;       exit_code = benchmark.main([
+            "--mode", "selftest", "--results-dir", str(results_dir), "--run-id", "b04",
+        ])
+
+tests\contract\test_grading_benchmark_contract.py:357: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+scripts\run_grading_benchmark.py:938: in main
+    record, run_id = run_benchmark(
+scripts\run_grading_benchmark.py:847: in run_benchmark
+    resolved_settings = settings if settings is not None else get_settings()
+                                                              ^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    @lru_cache(maxsize=1)
+    def get_settings() -&gt; AppSettings:
+        """Load runtime configuration once and cache the validated result."""
+    
+        try:
+            return AppSettings()  # type: ignore[call-arg]
+        except (
+            ValidationError
+        ) as exc:  # pragma: no cover - exercised by startup validation later
+&gt;           raise ConfigurationError.from_validation_error(exc) from None
+E           backend.app.core.config.ConfigurationError: 运行配置无效：CONFIDENCE_THRESHOLD, DATABASE_URL, DEEPSEEK_BASE_URL, DEEPSEEK_MODEL, EMBEDDING_PROVIDER, JWT_SECRET_KEY, LLM_PROVIDER, REDIS_URL, RERANK_PROVIDER。JWT_SECRET_KEY 必须配置为至少 32 个字符的非空密钥。
+
+backend\app\core\config.py:336: ConfigurationError</failure></testcase><testcase classname="tests.contract.test_grading_benchmark_contract" name="test_failure_status_counts_and_cli_agree[partial]" time="0.006"><failure message="backend.app.core.config.ConfigurationError: 运行配置无效：CONFIDENCE_THRESHOLD, DATABASE_URL, DEEPSEEK_BASE_URL, DEEPSEEK_MODEL, EMBEDDING_PROVIDER, JWT_SECRET_KEY, LLM_PROVIDER, REDIS_URL, RERANK_PROVIDER。JWT_SECRET_KEY 必须配置为至少 32 个字符的非空密钥。">results_dir = WindowsPath('D:/YJX/Cache/Temp/pytest-of-10169/pytest-289/test_failure_status_counts_and2/results')
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x00000152516ADC50&gt;
+kind = 'partial'
+
+    @pytest.mark.parametrize("kind", ["invalid", "provider", "partial", "mixed"])
+    def test_failure_status_counts_and_cli_agree(
+        results_dir: Path, monkeypatch: pytest.MonkeyPatch, kind: str,
+    ) -&gt; None:
+        """真实入口生成报告：失败率仅统计执行过的样本，失败退出码不可为零。"""
+    
+        class FailingProvider(SelfTestScoringProvider):
+            def __init__(self):
+                super().__init__()
+                self.attempts = 0
+    
+            async def generate_structured(self, messages, schema, **kwargs):
+                self.attempts += 1
+                if kind == "provider":
+                    raise ProviderExecutionError(ProviderErrorInfo(
+                        code="ProviderTimeout", message="敏感内容不得写入结果", attempt_count=3,
+                    ))
+                payload = await super().generate_structured(messages, schema, **kwargs)
+                if kind == "invalid" or (kind == "partial" and self.attempts % 4 == 1) or (
+                    kind == "mixed" and self.attempts &lt;= 4
+                ):
+                    return payload.model_copy(update={"score": 1e6})
+                return payload
+    
+        provider = FailingProvider()
+        monkeypatch.setattr(benchmark, "build_provider", lambda *args: provider)
+&gt;       exit_code = benchmark.main([
+            "--mode", "selftest", "--results-dir", str(results_dir), "--run-id", "b04",
+        ])
+
+tests\contract\test_grading_benchmark_contract.py:357: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+scripts\run_grading_benchmark.py:938: in main
+    record, run_id = run_benchmark(
+scripts\run_grading_benchmark.py:847: in run_benchmark
+    resolved_settings = settings if settings is not None else get_settings()
+                                                              ^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    @lru_cache(maxsize=1)
+    def get_settings() -&gt; AppSettings:
+        """Load runtime configuration once and cache the validated result."""
+    
+        try:
+            return AppSettings()  # type: ignore[call-arg]
+        except (
+            ValidationError
+        ) as exc:  # pragma: no cover - exercised by startup validation later
+&gt;           raise ConfigurationError.from_validation_error(exc) from None
+E           backend.app.core.config.ConfigurationError: 运行配置无效：CONFIDENCE_THRESHOLD, DATABASE_URL, DEEPSEEK_BASE_URL, DEEPSEEK_MODEL, EMBEDDING_PROVIDER, JWT_SECRET_KEY, LLM_PROVIDER, REDIS_URL, RERANK_PROVIDER。JWT_SECRET_KEY 必须配置为至少 32 个字符的非空密钥。
+
+backend\app\core\config.py:336: ConfigurationError</failure></testcase><testcase classname="tests.contract.test_grading_benchmark_contract" name="test_failure_status_counts_and_cli_agree[mixed]" time="0.007"><failure message="backend.app.core.config.ConfigurationError: 运行配置无效：CONFIDENCE_THRESHOLD, DATABASE_URL, DEEPSEEK_BASE_URL, DEEPSEEK_MODEL, EMBEDDING_PROVIDER, JWT_SECRET_KEY, LLM_PROVIDER, REDIS_URL, RERANK_PROVIDER。JWT_SECRET_KEY 必须配置为至少 32 个字符的非空密钥。">results_dir = WindowsPath('D:/YJX/Cache/Temp/pytest-of-10169/pytest-289/test_failure_status_counts_and3/results')
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x00000152516AC590&gt;
+kind = 'mixed'
+
+    @pytest.mark.parametrize("kind", ["invalid", "provider", "partial", "mixed"])
+    def test_failure_status_counts_and_cli_agree(
+        results_dir: Path, monkeypatch: pytest.MonkeyPatch, kind: str,
+    ) -&gt; None:
+        """真实入口生成报告：失败率仅统计执行过的样本，失败退出码不可为零。"""
+    
+        class FailingProvider(SelfTestScoringProvider):
+            def __init__(self):
+                super().__init__()
+                self.attempts = 0
+    
+            async def generate_structured(self, messages, schema, **kwargs):
+                self.attempts += 1
+                if kind == "provider":
+                    raise ProviderExecutionError(ProviderErrorInfo(
+                        code="ProviderTimeout", message="敏感内容不得写入结果", attempt_count=3,
+                    ))
+                payload = await super().generate_structured(messages, schema, **kwargs)
+                if kind == "invalid" or (kind == "partial" and self.attempts % 4 == 1) or (
+                    kind == "mixed" and self.attempts &lt;= 4
+                ):
+                    return payload.model_copy(update={"score": 1e6})
+                return payload
+    
+        provider = FailingProvider()
+        monkeypatch.setattr(benchmark, "build_provider", lambda *args: provider)
+&gt;       exit_code = benchmark.main([
+            "--mode", "selftest", "--results-dir", str(results_dir), "--run-id", "b04",
+        ])
+
+tests\contract\test_grading_benchmark_contract.py:357: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+scripts\run_grading_benchmark.py:938: in main
+    record, run_id = run_benchmark(
+scripts\run_grading_benchmark.py:847: in run_benchmark
+    resolved_settings = settings if settings is not None else get_settings()
+                                                              ^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    @lru_cache(maxsize=1)
+    def get_settings() -&gt; AppSettings:
+        """Load runtime configuration once and cache the validated result."""
+    
+        try:
+            return AppSettings()  # type: ignore[call-arg]
+        except (
+            ValidationError
+        ) as exc:  # pragma: no cover - exercised by startup validation later
+&gt;           raise ConfigurationError.from_validation_error(exc) from None
+E           backend.app.core.config.ConfigurationError: 运行配置无效：CONFIDENCE_THRESHOLD, DATABASE_URL, DEEPSEEK_BASE_URL, DEEPSEEK_MODEL, EMBEDDING_PROVIDER, JWT_SECRET_KEY, LLM_PROVIDER, REDIS_URL, RERANK_PROVIDER。JWT_SECRET_KEY 必须配置为至少 32 个字符的非空密钥。
+
+backend\app\core\config.py:336: ConfigurationError</failure></testcase><testcase classname="tests.contract.test_grading_benchmark_contract" name="test_results_omit_prompts_and_student_answers" time="0.006"><failure message="backend.app.core.config.ConfigurationError: 运行配置无效：CONFIDENCE_THRESHOLD, DATABASE_URL, DEEPSEEK_BASE_URL, DEEPSEEK_MODEL, EMBEDDING_PROVIDER, JWT_SECRET_KEY, LLM_PROVIDER, REDIS_URL, RERANK_PROVIDER。JWT_SECRET_KEY 必须配置为至少 32 个字符的非空密钥。">results_dir = WindowsPath('D:/YJX/Cache/Temp/pytest-of-10169/pytest-289/test_results_omit_prompts_and_0/results')
+
+    def test_results_omit_prompts_and_student_answers(results_dir: Path) -&gt; None:
+        """结果文件不记录密钥、完整 Prompt 与学生答案原文。"""
+    
+&gt;       _run(results_dir)
+
+tests\contract\test_grading_benchmark_contract.py:393: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\contract\test_grading_benchmark_contract.py:144: in _run
+    record, _ = benchmark.run_benchmark(
+scripts\run_grading_benchmark.py:847: in run_benchmark
+    resolved_settings = settings if settings is not None else get_settings()
+                                                              ^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    @lru_cache(maxsize=1)
+    def get_settings() -&gt; AppSettings:
+        """Load runtime configuration once and cache the validated result."""
+    
+        try:
+            return AppSettings()  # type: ignore[call-arg]
+        except (
+            ValidationError
+        ) as exc:  # pragma: no cover - exercised by startup validation later
+&gt;           raise ConfigurationError.from_validation_error(exc) from None
+E           backend.app.core.config.ConfigurationError: 运行配置无效：CONFIDENCE_THRESHOLD, DATABASE_URL, DEEPSEEK_BASE_URL, DEEPSEEK_MODEL, EMBEDDING_PROVIDER, JWT_SECRET_KEY, LLM_PROVIDER, REDIS_URL, RERANK_PROVIDER。JWT_SECRET_KEY 必须配置为至少 32 个字符的非空密钥。
+
+backend\app\core\config.py:336: ConfigurationError</failure></testcase><testcase classname="tests.contract.test_grading_benchmark_contract" name="test_repeated_runs_append_csv_summary" time="0.006"><failure message="backend.app.core.config.ConfigurationError: 运行配置无效：CONFIDENCE_THRESHOLD, DATABASE_URL, DEEPSEEK_BASE_URL, DEEPSEEK_MODEL, EMBEDDING_PROVIDER, JWT_SECRET_KEY, LLM_PROVIDER, REDIS_URL, RERANK_PROVIDER。JWT_SECRET_KEY 必须配置为至少 32 个字符的非空密钥。">results_dir = WindowsPath('D:/YJX/Cache/Temp/pytest-of-10169/pytest-289/test_repeated_runs_append_csv_0/results')
+
+    def test_repeated_runs_append_csv_summary(results_dir: Path) -&gt; None:
+        """重复运行生成独立 JSON 并追加 CSV 汇总行。"""
+    
+&gt;       _run(results_dir)
+
+tests\contract\test_grading_benchmark_contract.py:406: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\contract\test_grading_benchmark_contract.py:144: in _run
+    record, _ = benchmark.run_benchmark(
+scripts\run_grading_benchmark.py:847: in run_benchmark
+    resolved_settings = settings if settings is not None else get_settings()
+                                                              ^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    @lru_cache(maxsize=1)
+    def get_settings() -&gt; AppSettings:
+        """Load runtime configuration once and cache the validated result."""
+    
+        try:
+            return AppSettings()  # type: ignore[call-arg]
+        except (
+            ValidationError
+        ) as exc:  # pragma: no cover - exercised by startup validation later
+&gt;           raise ConfigurationError.from_validation_error(exc) from None
+E           backend.app.core.config.ConfigurationError: 运行配置无效：CONFIDENCE_THRESHOLD, DATABASE_URL, DEEPSEEK_BASE_URL, DEEPSEEK_MODEL, EMBEDDING_PROVIDER, JWT_SECRET_KEY, LLM_PROVIDER, REDIS_URL, RERANK_PROVIDER。JWT_SECRET_KEY 必须配置为至少 32 个字符的非空密钥。
+
+backend\app\core\config.py:336: ConfigurationError</failure></testcase><testcase classname="tests.contract.test_grading_benchmark_contract" name="test_shared_provider_uses_one_loop_for_all_samples_and_strategies" time="0.006"><failure message="backend.app.core.config.ConfigurationError: 运行配置无效：CONFIDENCE_THRESHOLD, DATABASE_URL, DEEPSEEK_BASE_URL, DEEPSEEK_MODEL, EMBEDDING_PROVIDER, JWT_SECRET_KEY, LLM_PROVIDER, REDIS_URL, RERANK_PROVIDER。JWT_SECRET_KEY 必须配置为至少 32 个字符的非空密钥。">results_dir = WindowsPath('D:/YJX/Cache/Temp/pytest-of-10169/pytest-289/test_shared_provider_uses_one_0/results')
+
+    def test_shared_provider_uses_one_loop_for_all_samples_and_strategies(results_dir: Path) -&gt; None:
+        loops = []
+    
+        class LoopBoundProvider(SelfTestScoringProvider):
+            async def generate_structured(self, messages, schema, **kwargs):
+                loops.append(asyncio.get_running_loop())
+                if loops[-1] is not loops[0]:
+                    raise RuntimeError("共享客户端跨事件循环调用")
+                return await super().generate_structured(messages, schema, **kwargs)
+    
+&gt;       record = _run(results_dir, LoopBoundProvider())
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\contract\test_grading_benchmark_contract.py:431: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\contract\test_grading_benchmark_contract.py:144: in _run
+    record, _ = benchmark.run_benchmark(
+scripts\run_grading_benchmark.py:847: in run_benchmark
+    resolved_settings = settings if settings is not None else get_settings()
+                                                              ^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    @lru_cache(maxsize=1)
+    def get_settings() -&gt; AppSettings:
+        """Load runtime configuration once and cache the validated result."""
+    
+        try:
+            return AppSettings()  # type: ignore[call-arg]
+        except (
+            ValidationError
+        ) as exc:  # pragma: no cover - exercised by startup validation later
+&gt;           raise ConfigurationError.from_validation_error(exc) from None
+E           backend.app.core.config.ConfigurationError: 运行配置无效：CONFIDENCE_THRESHOLD, DATABASE_URL, DEEPSEEK_BASE_URL, DEEPSEEK_MODEL, EMBEDDING_PROVIDER, JWT_SECRET_KEY, LLM_PROVIDER, REDIS_URL, RERANK_PROVIDER。JWT_SECRET_KEY 必须配置为至少 32 个字符的非空密钥。
+
+backend\app\core\config.py:336: ConfigurationError</failure></testcase><testcase classname="tests.contract.test_grading_benchmark_contract" name="test_real_mode_embedding_not_ready_fails_without_stub_fallback" time="0.010" /><testcase classname="tests.contract.test_grading_benchmark_contract" name="test_real_mode_selects_production_retrievers_and_reranker[zero_shot]" time="0.003" /><testcase classname="tests.contract.test_grading_benchmark_contract" name="test_real_mode_selects_production_retrievers_and_reranker[rag]" time="0.003" /><testcase classname="tests.contract.test_grading_benchmark_contract" name="test_real_mode_selects_production_retrievers_and_reranker[hybrid_rerank]" time="0.010"><failure message="backend.app.core.config.ConfigurationError: 运行配置无效：CONFIDENCE_THRESHOLD, DATABASE_URL, DEEPSEEK_BASE_URL, DEEPSEEK_MODEL, EMBEDDING_PROVIDER, JWT_SECRET_KEY, LLM_PROVIDER, REDIS_URL, RERANK_PROVIDER。JWT_SECRET_KEY 必须配置为至少 32 个字符的非空密钥。">strategy = 'hybrid_rerank'
+
+    @pytest.mark.parametrize("strategy", ["zero_shot", "rag", "hybrid_rerank"])
+    def test_real_mode_selects_production_retrievers_and_reranker(strategy: str) -&gt; None:
+        settings = build_test_settings(rerank_provider="llm", rerank_max_candidates=5)
+&gt;       retriever, reranker = benchmark.build_retrieval_components(
+            "real", strategy, settings=settings, provider=SelfTestScoringProvider(),
+        )
+
+tests\contract\test_grading_benchmark_contract.py:460: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+scripts\run_grading_benchmark.py:715: in build_retrieval_components
+    build_reranker(settings.rerank_provider, **kwargs),
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend\app\ai\retrieval\reranker.py:471: in build_reranker
+    runtime_settings = settings if settings is not None else get_settings()
+                                                             ^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    @lru_cache(maxsize=1)
+    def get_settings() -&gt; AppSettings:
+        """Load runtime configuration once and cache the validated result."""
+    
+        try:
+            return AppSettings()  # type: ignore[call-arg]
+        except (
+            ValidationError
+        ) as exc:  # pragma: no cover - exercised by startup validation later
+&gt;           raise ConfigurationError.from_validation_error(exc) from None
+E           backend.app.core.config.ConfigurationError: 运行配置无效：CONFIDENCE_THRESHOLD, DATABASE_URL, DEEPSEEK_BASE_URL, DEEPSEEK_MODEL, EMBEDDING_PROVIDER, JWT_SECRET_KEY, LLM_PROVIDER, REDIS_URL, RERANK_PROVIDER。JWT_SECRET_KEY 必须配置为至少 32 个字符的非空密钥。
+
+backend\app\core\config.py:336: ConfigurationError</failure></testcase><testcase classname="tests.contract.test_grading_benchmark_contract" name="test_embedding_modes_use_factory_or_selftest_stub" time="0.004" /><testcase classname="tests.contract.test_grading_benchmark_contract" name="test_lazy_component_not_ready_cannot_be_hidden_by_zero_shot_success[embedding]" time="0.006"><failure message="backend.app.core.config.ConfigurationError: 运行配置无效：CONFIDENCE_THRESHOLD, DATABASE_URL, DEEPSEEK_BASE_URL, DEEPSEEK_MODEL, EMBEDDING_PROVIDER, JWT_SECRET_KEY, LLM_PROVIDER, REDIS_URL, RERANK_PROVIDER。JWT_SECRET_KEY 必须配置为至少 32 个字符的非空密钥。">results_dir = WindowsPath('D:/YJX/Cache/Temp/pytest-of-10169/pytest-289/test_lazy_component_not_ready_0/results')
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x00000152516C8350&gt;
+component = 'embedding'
+
+    @pytest.mark.parametrize("component", ["embedding", "reranker"])
+    def test_lazy_component_not_ready_cannot_be_hidden_by_zero_shot_success(
+        results_dir: Path, monkeypatch: pytest.MonkeyPatch, component: str,
+    ) -&gt; None:
+        """TCR（B03）：工厂返回后才发现未就绪时，同样不能报告整批成功。"""
+        error_type = (EmbeddingProviderNotReadyError if component == "embedding"
+                      else RerankProviderNotReadyError)
+    
+        async def not_ready(*args, **kwargs):
+            raise error_type("延迟初始化未就绪")
+    
+        if component == "embedding":
+            monkeypatch.setattr(benchmark.StubEmbeddingProvider, "embed_query", not_ready)
+        else:
+            monkeypatch.setattr(benchmark.IdentityReranker, "rerank_async", not_ready)
+&gt;       record = _run(results_dir)
+                 ^^^^^^^^^^^^^^^^^
+
+tests\contract\test_grading_benchmark_contract.py:512: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\contract\test_grading_benchmark_contract.py:144: in _run
+    record, _ = benchmark.run_benchmark(
+scripts\run_grading_benchmark.py:847: in run_benchmark
+    resolved_settings = settings if settings is not None else get_settings()
+                                                              ^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    @lru_cache(maxsize=1)
+    def get_settings() -&gt; AppSettings:
+        """Load runtime configuration once and cache the validated result."""
+    
+        try:
+            return AppSettings()  # type: ignore[call-arg]
+        except (
+            ValidationError
+        ) as exc:  # pragma: no cover - exercised by startup validation later
+&gt;           raise ConfigurationError.from_validation_error(exc) from None
+E           backend.app.core.config.ConfigurationError: 运行配置无效：CONFIDENCE_THRESHOLD, DATABASE_URL, DEEPSEEK_BASE_URL, DEEPSEEK_MODEL, EMBEDDING_PROVIDER, JWT_SECRET_KEY, LLM_PROVIDER, REDIS_URL, RERANK_PROVIDER。JWT_SECRET_KEY 必须配置为至少 32 个字符的非空密钥。
+
+backend\app\core\config.py:336: ConfigurationError</failure></testcase><testcase classname="tests.contract.test_grading_benchmark_contract" name="test_lazy_component_not_ready_cannot_be_hidden_by_zero_shot_success[reranker]" time="0.006"><failure message="backend.app.core.config.ConfigurationError: 运行配置无效：CONFIDENCE_THRESHOLD, DATABASE_URL, DEEPSEEK_BASE_URL, DEEPSEEK_MODEL, EMBEDDING_PROVIDER, JWT_SECRET_KEY, LLM_PROVIDER, REDIS_URL, RERANK_PROVIDER。JWT_SECRET_KEY 必须配置为至少 32 个字符的非空密钥。">results_dir = WindowsPath('D:/YJX/Cache/Temp/pytest-of-10169/pytest-289/test_lazy_component_not_ready_1/results')
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x00000152516BF8B0&gt;
+component = 'reranker'
+
+    @pytest.mark.parametrize("component", ["embedding", "reranker"])
+    def test_lazy_component_not_ready_cannot_be_hidden_by_zero_shot_success(
+        results_dir: Path, monkeypatch: pytest.MonkeyPatch, component: str,
+    ) -&gt; None:
+        """TCR（B03）：工厂返回后才发现未就绪时，同样不能报告整批成功。"""
+        error_type = (EmbeddingProviderNotReadyError if component == "embedding"
+                      else RerankProviderNotReadyError)
+    
+        async def not_ready(*args, **kwargs):
+            raise error_type("延迟初始化未就绪")
+    
+        if component == "embedding":
+            monkeypatch.setattr(benchmark.StubEmbeddingProvider, "embed_query", not_ready)
+        else:
+            monkeypatch.setattr(benchmark.IdentityReranker, "rerank_async", not_ready)
+&gt;       record = _run(results_dir)
+                 ^^^^^^^^^^^^^^^^^
+
+tests\contract\test_grading_benchmark_contract.py:512: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\contract\test_grading_benchmark_contract.py:144: in _run
+    record, _ = benchmark.run_benchmark(
+scripts\run_grading_benchmark.py:847: in run_benchmark
+    resolved_settings = settings if settings is not None else get_settings()
+                                                              ^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    @lru_cache(maxsize=1)
+    def get_settings() -&gt; AppSettings:
+        """Load runtime configuration once and cache the validated result."""
+    
+        try:
+            return AppSettings()  # type: ignore[call-arg]
+        except (
+            ValidationError
+        ) as exc:  # pragma: no cover - exercised by startup validation later
+&gt;           raise ConfigurationError.from_validation_error(exc) from None
+E           backend.app.core.config.ConfigurationError: 运行配置无效：CONFIDENCE_THRESHOLD, DATABASE_URL, DEEPSEEK_BASE_URL, DEEPSEEK_MODEL, EMBEDDING_PROVIDER, JWT_SECRET_KEY, LLM_PROVIDER, REDIS_URL, RERANK_PROVIDER。JWT_SECRET_KEY 必须配置为至少 32 个字符的非空密钥。
+
+backend\app\core\config.py:336: ConfigurationError</failure></testcase><testcase classname="tests.contract.test_grading_benchmark_contract" name="test_script_entrypoint_runs_selftest" time="3.170"><failure message="AssertionError: Traceback (most recent call last):&#10;    File &quot;D:\YJX\MyCode\EduAgent\.cache\t189-t191-20261006\committed-regression-source\scripts\run_grading_benchmark.py&quot;, line 960, in &lt;module&gt;&#10;      sys.exit(main())&#10;               ~~~~^^&#10;    File &quot;D:\YJX\MyCode\EduAgent\.cache\t189-t191-20261006\committed-regression-source\scripts\run_grading_benchmark.py&quot;, line 938, in main&#10;      record, run_id = run_benchmark(&#10;                       ~~~~~~~~~~~~~^&#10;          mode=args.mode,&#10;          ^^^^^^^^^^^^^^^&#10;      ...&lt;5 lines&gt;...&#10;          limit=args.limit,&#10;          ^^^^^^^^^^^^^^^^^&#10;      )&#10;      ^&#10;    File &quot;D:\YJX\MyCode\EduAgent\.cache\t189-t191-20261006\committed-regression-source\scripts\run_grading_benchmark.py&quot;, line 847, in run_benchmark&#10;      resolved_settings = settings if settings is not None else get_settings()&#10;                                                                ~~~~~~~~~~~~^^&#10;    File &quot;D:\YJX\MyCode\EduAgent\.cache\t189-t191-20261006\committed-regression-source\backend\app\core\config.py&quot;, line 336, in get_settings&#10;      raise ConfigurationError.from_validation_error(exc) from None&#10;  backend.app.core.config.ConfigurationError: 运行配置无效：CONFIDENCE_THRESHOLD, DATABASE_URL, DEEPSEEK_BASE_URL, DEEPSEEK_MODEL, EMBEDDING_PROVIDER, JWT_SECRET_KEY, LLM_PROVIDER, REDIS_URL, RERANK_PROVIDER。JWT_SECRET_KEY 必须配置为至少 32 个字符的非空密钥。&#10;  &#10;assert 1 == 0&#10; +  where 1 = CompletedProcess(args=['D:\\YJX\\MyCode\\EduAgent\\.cache\\e2-t157-159-20261002\\runtime\\Scripts\\python.exe', 'D:\\Y...L, EMBEDDING_PROVIDER, JWT_SECRET_KEY, LLM_PROVIDER, REDIS_URL, RERANK_PROVIDER。JWT_SECRET_KEY 必须配置为至少 32 个字符的非空密钥。\n').returncode">results_dir = WindowsPath('D:/YJX/Cache/Temp/pytest-of-10169/pytest-289/test_script_entrypoint_runs_se0/results')
+
+    def test_script_entrypoint_runs_selftest(results_dir: Path) -&gt; None:
+        """TCR（B03）：直接执行脚本也必须能导入复用的 M2 语料工具。"""
+        completed = subprocess.run(
+            [sys.executable, str(benchmark.REPO_ROOT / "scripts/run_grading_benchmark.py"),
+             "--mode", "selftest", "--results-dir", str(results_dir),
+             "--run-id", "b03-cli", "--limit", "1"],
+            cwd=benchmark.REPO_ROOT, capture_output=True, text=True,
+            encoding="utf-8", errors="replace", timeout=30, check=False,
+        )
+&gt;       assert completed.returncode == 0, completed.stderr
+E       AssertionError: Traceback (most recent call last):
+E           File "D:\YJX\MyCode\EduAgent\.cache\t189-t191-20261006\committed-regression-source\scripts\run_grading_benchmark.py", line 960, in &lt;module&gt;
+E             sys.exit(main())
+E                      ~~~~^^
+E           File "D:\YJX\MyCode\EduAgent\.cache\t189-t191-20261006\committed-regression-source\scripts\run_grading_benchmark.py", line 938, in main
+E             record, run_id = run_benchmark(
+E                              ~~~~~~~~~~~~~^
+E                 mode=args.mode,
+E                 ^^^^^^^^^^^^^^^
+E             ...&lt;5 lines&gt;...
+E                 limit=args.limit,
+E                 ^^^^^^^^^^^^^^^^^
+E             )
+E             ^
+E           File "D:\YJX\MyCode\EduAgent\.cache\t189-t191-20261006\committed-regression-source\scripts\run_grading_benchmark.py", line 847, in run_benchmark
+E             resolved_settings = settings if settings is not None else get_settings()
+E                                                                       ~~~~~~~~~~~~^^
+E           File "D:\YJX\MyCode\EduAgent\.cache\t189-t191-20261006\committed-regression-source\backend\app\core\config.py", line 336, in get_settings
+E             raise ConfigurationError.from_validation_error(exc) from None
+E         backend.app.core.config.ConfigurationError: 运行配置无效：CONFIDENCE_THRESHOLD, DATABASE_URL, DEEPSEEK_BASE_URL, DEEPSEEK_MODEL, EMBEDDING_PROVIDER, JWT_SECRET_KEY, LLM_PROVIDER, REDIS_URL, RERANK_PROVIDER。JWT_SECRET_KEY 必须配置为至少 32 个字符的非空密钥。
+E         
+E       assert 1 == 0
+E        +  where 1 = CompletedProcess(args=['D:\\YJX\\MyCode\\EduAgent\\.cache\\e2-t157-159-20261002\\runtime\\Scripts\\python.exe', 'D:\\Y...L, EMBEDDING_PROVIDER, JWT_SECRET_KEY, LLM_PROVIDER, REDIS_URL, RERANK_PROVIDER。JWT_SECRET_KEY 必须配置为至少 32 个字符的非空密钥。\n').returncode
+
+tests\contract\test_grading_benchmark_contract.py:526: AssertionError</failure></testcase></testsuite></testsuites>

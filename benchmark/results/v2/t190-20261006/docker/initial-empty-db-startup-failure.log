@@ -1,0 +1,121 @@
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 247, in merged_lifespan
+backend-1  |     async with original_context(app) as maybe_original_state:
+backend-1  |                ^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/contextlib.py", line 210, in __aenter__
+backend-1  |     return await anext(self.gen)
+backend-1  |            ^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 247, in merged_lifespan
+backend-1  |     async with original_context(app) as maybe_original_state:
+backend-1  |                ^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/contextlib.py", line 210, in __aenter__
+backend-1  |     return await anext(self.gen)
+backend-1  |            ^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 247, in merged_lifespan
+backend-1  |     async with original_context(app) as maybe_original_state:
+backend-1  |                ^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/contextlib.py", line 210, in __aenter__
+backend-1  |     return await anext(self.gen)
+backend-1  |            ^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 247, in merged_lifespan
+backend-1  |     async with original_context(app) as maybe_original_state:
+backend-1  |                ^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/contextlib.py", line 210, in __aenter__
+backend-1  |     return await anext(self.gen)
+backend-1  |            ^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 247, in merged_lifespan
+backend-1  |     async with original_context(app) as maybe_original_state:
+backend-1  |                ^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/contextlib.py", line 210, in __aenter__
+backend-1  |     return await anext(self.gen)
+backend-1  |            ^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 247, in merged_lifespan
+backend-1  |     async with original_context(app) as maybe_original_state:
+backend-1  |                ^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/contextlib.py", line 210, in __aenter__
+backend-1  |     return await anext(self.gen)
+backend-1  |            ^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 247, in merged_lifespan
+backend-1  |     async with original_context(app) as maybe_original_state:
+backend-1  |                ^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/contextlib.py", line 210, in __aenter__
+backend-1  |     return await anext(self.gen)
+backend-1  |            ^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 247, in merged_lifespan
+backend-1  |     async with original_context(app) as maybe_original_state:
+backend-1  |                ^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/contextlib.py", line 210, in __aenter__
+backend-1  |     return await anext(self.gen)
+backend-1  |            ^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 247, in merged_lifespan
+backend-1  |     async with original_context(app) as maybe_original_state:
+backend-1  |                ^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/contextlib.py", line 210, in __aenter__
+backend-1  |     return await anext(self.gen)
+backend-1  |            ^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 247, in merged_lifespan
+backend-1  |     async with original_context(app) as maybe_original_state:
+backend-1  |                ^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/contextlib.py", line 210, in __aenter__
+backend-1  |     return await anext(self.gen)
+backend-1  |            ^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 247, in merged_lifespan
+backend-1  |     async with original_context(app) as maybe_original_state:
+backend-1  |                ^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/contextlib.py", line 210, in __aenter__
+backend-1  |     return await anext(self.gen)
+backend-1  |            ^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 247, in merged_lifespan
+backend-1  |     async with original_context(app) as maybe_original_state:
+backend-1  |                ^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/contextlib.py", line 210, in __aenter__
+backend-1  |     return await anext(self.gen)
+backend-1  |            ^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 247, in merged_lifespan
+backend-1  |     async with original_context(app) as maybe_original_state:
+backend-1  |                ^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/contextlib.py", line 210, in __aenter__
+backend-1  |     return await anext(self.gen)
+backend-1  |            ^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 247, in merged_lifespan
+backend-1  |     async with original_context(app) as maybe_original_state:
+backend-1  |                ^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/contextlib.py", line 210, in __aenter__
+backend-1  |     return await anext(self.gen)
+backend-1  |            ^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 247, in merged_lifespan
+backend-1  |     async with original_context(app) as maybe_original_state:
+backend-1  |                ^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/contextlib.py", line 210, in __aenter__
+backend-1  |     return await anext(self.gen)
+backend-1  |            ^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 247, in merged_lifespan
+backend-1  |     async with original_context(app) as maybe_original_state:
+backend-1  |                ^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/contextlib.py", line 210, in __aenter__
+backend-1  |     return await anext(self.gen)
+backend-1  |            ^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 247, in merged_lifespan
+backend-1  |     async with original_context(app) as maybe_original_state:
+backend-1  |                ^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/contextlib.py", line 210, in __aenter__
+backend-1  |     return await anext(self.gen)
+backend-1  |            ^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/site-packages/fastapi/routing.py", line 247, in merged_lifespan
+backend-1  |     async with original_context(app) as maybe_original_state:
+backend-1  |                ^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/usr/local/lib/python3.12/contextlib.py", line 210, in __aenter__
+backend-1  |     return await anext(self.gen)
+backend-1  |            ^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/app/backend/app/core/app.py", line 83, in _application_lifespan
+backend-1  |     recover_diagnosis_pending_runs()
+backend-1  |   File "/app/backend/app/api/workflow.py", line 1341, in recover_diagnosis_pending_runs
+backend-1  |     return build_production_workflow_service(settings).recover_diagnosis_pending_runs()
+backend-1  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend-1  |   File "/app/backend/app/api/workflow.py", line 734, in recover_diagnosis_pending_runs
+backend-1  |     self._ensure_ready()
+backend-1  |   File "/app/backend/app/api/workflow.py", line 466, in _ensure_ready
+backend-1  |     raise WorkflowNotReadyError(
+backend-1  | backend.app.api.workflow.WorkflowNotReadyError: WORKFLOW_SERVICE_NOT_READY：检查点存储未就绪：请先迁移数据库并检查连接。
+backend-1  | 
+backend-1  | ERROR:    Application startup failed. Exiting.
+

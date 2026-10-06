@@ -1,0 +1,76 @@
+{
+  "records": [
+    {
+      "command": [
+        "D:\\YJX\\MyCode\\EduAgent\\.cache\\e2-t157-159-20261002\\runtime\\Scripts\\python.exe",
+        "-m",
+        "pytest",
+        "tests/integration/test_m0_smoke.py",
+        "-q",
+        "--junitxml=D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t190-20261006\\docker-retest\\pytest.xml"
+      ],
+      "returncode": 0,
+      "seconds": 36.09780510002747
+    },
+    {
+      "command": [
+        "docker",
+        "compose",
+        "ps",
+        "--all",
+        "--format",
+        "json"
+      ],
+      "returncode": 0,
+      "seconds": 0.5133285999763757
+    },
+    {
+      "command": [
+        "docker",
+        "compose",
+        "exec",
+        "-T",
+        "backend",
+        "python",
+        "-c",
+        "import importlib.metadata as m,json; print(json.dumps({k:m.version(k) for k in (\"gradio\",\"fastapi\",\"pydantic\",\"SQLAlchemy\",\"langgraph\")}))"
+      ],
+      "returncode": 0,
+      "seconds": 0.8367619999917224
+    },
+    {
+      "command": [
+        "docker",
+        "compose",
+        "exec",
+        "-T",
+        "backend",
+        "alembic",
+        "current"
+      ],
+      "returncode": 0,
+      "seconds": 2.2510970999719575
+    },
+    {
+      "command": [
+        "docker",
+        "compose",
+        "exec",
+        "-T",
+        "redis",
+        "redis-cli",
+        "ping"
+      ],
+      "returncode": 0,
+      "seconds": 0.5122101999586448
+    }
+  ],
+  "ready": {
+    "http_status": 200,
+    "body": {
+      "status": "ok",
+      "service": "backend"
+    }
+  },
+  "scope": "fresh isolated fixed M0 project; existing cloud embedding constructor only, no inference; original real BGE benchmarks separately recorded"
+}

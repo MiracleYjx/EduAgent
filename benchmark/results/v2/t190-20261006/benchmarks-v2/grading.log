@@ -1,0 +1,5 @@
+Loading weights:   0%|          | 0/391 [00:00<?, ?it/s]Loading weights: 100%|██████████| 391/391 [00:00<00:00, 15668.33it/s]
+run_id=t190-real-20261006
+zero_shot: status=completed calls=4 failures=0 mae=0.50 agreement=1.0000
+rag: status=completed calls=4 failures=0 mae=0.25 agreement=1.0000
+hybrid_rerank: status=completed calls=4 failures=0 mae=0.25 agreement=1.0000

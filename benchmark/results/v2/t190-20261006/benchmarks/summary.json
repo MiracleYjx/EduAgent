@@ -1,0 +1,23 @@
+[
+  {
+    "check": "migration",
+    "args": [
+      "-m",
+      "alembic",
+      "upgrade",
+      "head"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 2.705404100008309
+  },
+  {
+    "check": "ingestion",
+    "args": [
+      "scripts/setup_benchmark_corpus.py",
+      "--output-dir",
+      "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t190-20261006\\benchmarks\\corpus"
+    ],
+    "exit_code": 1,
+    "elapsed_seconds": 66.65182439994533
+  }
+]
