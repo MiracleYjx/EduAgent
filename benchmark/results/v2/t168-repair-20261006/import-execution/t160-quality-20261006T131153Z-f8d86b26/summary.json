@@ -1,0 +1,15 @@
+{
+  "batch_id": "t160-quality-20261006T131153Z-f8d86b26",
+  "planned": 15,
+  "attempted": 15,
+  "completed_pending_review": 3,
+  "failed_imports": 12,
+  "runner_errors": 0,
+  "actual_http_attempts": 15,
+  "independent_teacher_labeled_cases": 0,
+  "reference_origin": "user_confirmed_ai_assisted",
+  "quality_thresholds": null,
+  "quality_acceptance": "not_claimed",
+  "completed_at": "2026-10-06T13:14:11.429030+00:00",
+  "output": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t168-repair-20261006\\import-execution\\t160-quality-20261006T131153Z-f8d86b26"
+}

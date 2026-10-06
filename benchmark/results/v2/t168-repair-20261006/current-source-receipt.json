@@ -1,0 +1,26 @@
+{
+  "backend/app/ai/paper_extraction/service.py": {
+    "sha256": "50761208519bd4cd44913e68220d75a9f709eff28c87e67f678893d0e8c15672",
+    "capture_kind": "post-run unchanged source receipt; semantic runner/module also verified against its actual run manifest"
+  },
+  "backend/app/ai/paper_extraction/schemas.py": {
+    "sha256": "f69a6fd91de2c587f0a1b0e1c8e59bff9e95c945d570bd09055675dbead72523",
+    "capture_kind": "post-run unchanged source receipt; semantic runner/module also verified against its actual run manifest"
+  },
+  "backend/app/ai/semantic_validation.py": {
+    "sha256": "3be65b138543b17bb6c094b354898bfab265a55df6943936da2298c7d71977bb",
+    "capture_kind": "post-run unchanged source receipt; semantic runner/module also verified against its actual run manifest"
+  },
+  "benchmark/t160/quality_runner.py": {
+    "sha256": "b6799bbaeaf9edc7b8f4c068ac6ba6e5f6bd6a125b300fa194b3b7a7b183d233",
+    "capture_kind": "post-run unchanged source receipt; semantic runner/module also verified against its actual run manifest"
+  },
+  "benchmark/t168/semantic_runner.py": {
+    "sha256": "d4457aba8fa25956a056e3511c1fee4f62e86eea2b40d3ad182d25f25f178f49",
+    "capture_kind": "post-run unchanged source receipt; semantic runner/module also verified against its actual run manifest"
+  },
+  "benchmark/t168/vision_runner.py": {
+    "sha256": "c6189d8bb26855fdf9ba6978302569ded1ebc43098d328fa043603b53a2614ca",
+    "capture_kind": "post-run unchanged source receipt; semantic runner/module also verified against its actual run manifest"
+  }
+}

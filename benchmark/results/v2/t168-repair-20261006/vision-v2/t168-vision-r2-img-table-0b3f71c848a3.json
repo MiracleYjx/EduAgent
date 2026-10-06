@@ -1,0 +1,159 @@
+{
+  "case_id": "IMG-TABLE",
+  "round": 2,
+  "run_id": "t168-vision-r2-img-table-0b3f71c848a3",
+  "started_at": "2026-10-06T13:19:06.952412Z",
+  "images": [
+    {
+      "image_index": 1,
+      "fixture_asset_id": "34fa6905-e80a-5a0f-a7fa-2abac6ba9850",
+      "identity_scope": "stable fixture only; no database asset/file identity",
+      "path": "benchmark/corpus/v2-draft-20261001/assets/table.png",
+      "sha256": "6eb1e116bbe9df9a4071a355c3b77d26e3b1e596e5c3437042dfe21918ff9dd6",
+      "size_bytes": 12983,
+      "width": 640,
+      "height": 400,
+      "mime_type": "image/png"
+    }
+  ],
+  "context": {
+    "content": "请读取所附题图中可见的条件，未知或不可靠的关键文字保留问题说明。",
+    "options": null,
+    "answer": null,
+    "analysis": null,
+    "caption": [
+      null
+    ]
+  },
+  "task": "识别本题全部图片中的图示、表格与必要条件；不识别或补写答案。",
+  "output": {
+    "observations": [
+      {
+        "image_index": 1,
+        "kind": "表格",
+        "description": "题图中为一个3列4行的表格：第一列标题为x，第二列标题为y，第三列标题为说明；下方三行数据依次为1、3、第一行；2、5、第二行；3、7、第三行。",
+        "bbox": [
+          63,
+          55,
+          537,
+          357
+        ]
+      }
+    ],
+    "conditions": [
+      {
+        "image_index": 1,
+        "text": "表格可见条件为：表头包含x、y、说明；数据行为：x=1,y=3（第一行）；x=2,y=5（第二行）；x=3,y=7（第三行）。",
+        "evidence_region": {
+          "bbox": [
+            63,
+            55,
+            537,
+            357
+          ]
+        }
+      }
+    ],
+    "unresolved_issues": [],
+    "requires_manual_review": false,
+    "provenance": {
+      "provider_name": "deepseek",
+      "model": "deepseek-flash",
+      "model_version": null,
+      "prompt_version": "vision-conditions-v1"
+    }
+  },
+  "error": null,
+  "provenance": {
+    "provider_name": "deepseek",
+    "model": "deepseek-flash",
+    "model_version": null,
+    "prompt_version": "vision-conditions-v1"
+  },
+  "assessment_status": "pending_semantic_review",
+  "reference_condition_count": 4,
+  "is_independent_teacher_truth": false,
+  "baseline_reference": {
+    "reference_standard": "AI 辅助 + 开发者审查",
+    "baseline_annotation_version": "t146-developer-reviewed-ai-assisted-20261003-2",
+    "annotation_authors": [
+      {
+        "kind": "ai_assistant",
+        "name": "Codex",
+        "role": "会话委托的源材料阅读、标注和技术复核"
+      },
+      {
+        "kind": "developer",
+        "name": "current_chat_user",
+        "identity_source": "current_chat_user_message",
+        "role": "开发者确认审查口径及将本批参考包用于学习项目质量基线"
+      }
+    ],
+    "decision_source": "current_chat_user_message",
+    "decision_recorded_at_utc": "2026-10-03T14:28:23.228504+00:00",
+    "is_independent_teacher_truth": false,
+    "source_sha256": {
+      "annotations.json": "e3df8cc30f27c96060c46bd46f60eab26fcb5ef0ec925fd2c1cccb579f161e2e",
+      "developer_review.json": "de098c686f725814c4716abddd0cfa889e14ef5efe5a29ad02adb9328f373380",
+      "manifest.json": "eedef2ff79e74eae3a7fe0d2ae29b2d29070c3b70f5e9a530577f53c4a27dca7"
+    }
+  },
+  "outcome": "completed",
+  "completed_at": "2026-10-06T13:19:19.455134Z",
+  "elapsed_ms": 12502.717,
+  "provider_trace_events": [
+    {
+      "recorded_at": "2026-10-06T13:19:19.454937Z",
+      "request_id": "t168-vision-r2-img-table-0b3f71c848a3",
+      "agent_type": "llm",
+      "status": "success",
+      "latency_ms": 12499,
+      "model": "deepseek-flash",
+      "prompt_version": "vision-conditions-v1",
+      "input_tokens": 1484,
+      "output_tokens": 2542,
+      "total_tokens": 4026,
+      "input_summary": null,
+      "output_summary": null,
+      "error_code": null,
+      "error_retryable": null
+    }
+  ],
+  "observed_provider_attempts": 1,
+  "actual_raw_responses": [
+    {
+      "received_at_utc": "2026-10-06T13:19:07.062321Z",
+      "status_code": 200,
+      "capture_scope": "response identity, usage, actual choices only; no headers/URL/credentials",
+      "id": "53ecd213-8bbc-439e-ba7e-a45d1f803536",
+      "model": "deepseek-flash",
+      "system_fingerprint": "aeb56401ca74e127821c4f9126dcb669",
+      "usage": {
+        "prompt_tokens": 1484,
+        "completion_tokens": 2542,
+        "total_tokens": 4026,
+        "prompt_tokens_details": {
+          "cached_tokens": 1280
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 2363
+        },
+        "prompt_cache_hit_tokens": 1280,
+        "prompt_cache_miss_tokens": 204
+      },
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\"observations\":[{\"image_index\":1,\"kind\":\"表格\",\"description\":\"题图中为一个3列4行的表格：第一列标题为x，第二列标题为y，第三列标题为说明；下方三行数据依次为1、3、第一行；2、5、第二行；3、7、第三行。\",\"bbox\":[63,55,537,357]}],\"conditions\":[{\"image_index\":1,\"text\":\"表格可见条件为：表头包含x、y、说明；数据行为：x=1,y=3（第一行）；x=2,y=5（第二行）；x=3,y=7（第三行）。\",\"evidence_region\":{\"bbox\":[63,55,537,357]}}],\"unresolved_issues\":[],\"requires_manual_review\":false,\"provenance\":null}",
+            "reasoning_content": "We need answer JSON only. Need inspect image. We have one image 640x400. It's a table with columns x y 说明, rows: 1 3 第一行; 2 5 第二行; 3 7 第三行. Need identify图示、表格及必要条件. Output schema. Need conditions from image. Need observations. Need unresolved issues maybe none? But task says unknown/unreliable key text keep issue. Here text is clear. However need determine if table content maybe necessary conditions. Need not solve. We need output JSON object.\n\nNeed include observations: kind maybe \"表格\" with description. image_index=1, bbox likely table region. Need estimate pixels. The image 640x400. Table appears roughly x from 60? to 540? y from 50 to 360? Let's estimate from displayed image. Need bbox [x0,y0,x1,y1]. Original 640x400. The table outer border likely around x=65, y=54? width 475? height 310? Let's inspect mentally: White background. Table starts near x 63? It is centered. There are 3 columns. Header x, y, 说明. Rows. The table outer border maybe from x=65 to x=532? y=57 to y=357. On image, table maybe top at 61, bottom 355. Need maybe not precise. But can set approximate. Need evidence_region for condition? Condition could be table text: \"x, y, 说明; 第一行 x=1,y=3; 第二行 x=2,y=5; 第三行 x=3,y=7\". Evidence_region bbox covering table. If condition text is all table. Conditions must include necessary conditions. Could include a condition per table cell? The task: \"识别本题全部图片中的图示、表格与必要条件\" and schema conditions. Need output conditions list. Probably should include table data as conditions. Maybe one condition: \"表格给出三组 x,y 对应值：x=1,y=3；x=2,y=5；x=3,y=7，并标注分别为第一行、第二行、第三行。\" Evidence region table bbox.\n\nObservations: one observation kind \"表格\", description \"题图包含一个3列4行的表格：表头为 x、y、说明；三行数据分别为 (1,3)第一行、(2,5)第二行、(3,7)第三行。\" bbox table bbox. Maybe additional observation \"图示/表格\" no other diagrams. Need maybe no unresolved issues. requires_manual_review? If no issues false. But instruction says \"没有问题的 false 也不代替真实教师核对.\" We can set false. But if bbox approximate maybe maybe issue? If uncertain bbox? We can set null for bbox if unable reliable. But I can estimate. Need not include answer. No conditions from text outside image? The context says content \"请读取所附题图中可见的条件...\" No answer. We only have image.\n\nNeed ensure JSON schema exactly. Observations required image_index, kind, description; bbox optional null. Conditions required image_index, text, evidence_region (PixelRegion or null). unresolved_issues list; requires_manual_review bool; provenance null? Schema: provenance anyOf [Provenance, null], default null. Instruction says provenance must be null, not generate identity. So include \"provenance\": null. But schema doesn't require provenance; okay.\n\nNeed possible unresolved issues? The image is clear, no missing. Could include none. But maybe table header \"说明\" etc. No contradictions. requires_manual_review false.\n\nNeed maybe \"必要条件是表格\" but not all conditions? The table is a condition. Could include table header and row data. We need maybe avoid补写答案. We can state \"表格列出 x 和 y 的对应值\" but not infer function. Good.\n\nNeed bbox. Let's estimate from image coordinates more accurately. Image dimensions 640x400. The displayed table in prompt: I see outer border. It occupies perhaps x from 60 to 539, y from 52 to 359. But let's derive: In the markdown image, original 640x400. Table is centered. We can inspect visual: left border maybe at ~65, top ~60, right ~535, bottom ~358. There is white margin. Let's estimate maybe x0=63, y0=57, x1=536, y1=358. But no need exact? Could use broad region [50,40,560,380] to cover. However evidence_region should locate table; broad is okay but less precise. The instruction says bbox as original image pixel; unable reliable keep null. I can reliably locate table visually, but exact pixels uncertain. Use approximate [60,50,540,360]? That covers table. Original 640x400. To avoid too narrow, maybe [60, 50, 540, 360]. But if actual table extends beyond? The right border maybe 538? Bottom maybe 360? Let's examine row heights: header row maybe 55-110? Actually table total height 300. 4 rows each ~75. Top maybe 60, bottom 360. x columns: first x=1, second x=27? Header row x maybe 63-198, y column 198-369, 说明 369-538. Outer left 63. So [60,50,540,360] okay.\n\nBut if schema bbox in observations maybe \"bbox\": [60,50,540,360]? Conditions evidence_region bbox same. Need maybe condition text include all cells. Could also include separate conditions for each row? \"第一行：x=1, y=3\" etc. But \"必要条件\" maybe condition as table. If multiple conditions, evidence region could be each row. But one condition simpler. The prompt says \"输出符合所给 JSON Schema 的 JSON 对象，不输出 Markdown，不补写题图未给出的答案、数值或关系。\" So include table content as condition. Could include conditions for visible text: table header \"x\", \"y\", \"说明\"; rows. But maybe enough.\n\nNeed maybe observations include \"图示\" kind? There is only table, no graph. Could include \"表格\". If \"图示\" maybe none. Could include kind \"图示/表格\" and description.\n\nPotential issue: The table has third column \"说明\" but no necessary answer? It's part of condition. We can include exact text \"x | y | 说明; 1 | 3 | 第一行; 2 | 5 | 第二行; 3 | 7 | 第三行\". This is visible. Good.\n\nNeed perhaps \"condition\" text cannot be too long? Fine. \"第1张图片中的表格显示：表头为 x、y、说明；数据行为：x=1,y=3（第一行）；x=2,y=5（第二行）；x=3,y=7（第三行）。\" Evidence region table bbox.\n\nShould we include unresolved issue about \"表格第三列说明文字是否为题目条件未知\"? But it's visible, no missing. Maybe no.\n\nNeed \"requires_manual_review\" false. But instruction says \"有问题 requires_manual_review=true。没有问题的 false 也不代替真实教师核对.\" So false okay.\n\nNeed provenance: null.\n\nNeed ensure no markdown, just JSON. Need no extra. Let's craft:\n\n{\n \"observations\": [\n  {\"image_index\":1,\"kind\":\"表格\",\"description\":\"题图中为一个3列4行的表格：第一列标题为x，第二列标题为y，第三列标题为说明；下方三行分别为1、3、第一行；2、5、第二行；3、7、第三行。\",\"bbox\":[60,50,540,360]}\n ],\n \"conditions\": [\n  {\"image_index\":1,\"text\":\"表格可见条件：x、y、说明；各行数据为：x=1,y=3（第一行）；x=2,y=5（第二行）；x=3,y=7（第三行）。\",\"evidence_region\":{\"bbox\":[60,50,540,360]}}\n ],\n \"unresolved_issues\": [],\n \"requires_manual_review\": false,\n \"provenance\": null\n}\n\nNeed maybe if bbox not reliable? I think okay. But perhaps table bbox should be more exact: top maybe 52, bottom 356. Let's maybe use [62,57,535,356]. However if wrong? The table is clearly visible; approximate okay. Could avoid bbox if uncertain? But schema allows null. The prompt says bbox ... 无法可靠定位保持 null. I think I can reliably locate table approximately. But maybe exact not crucial. Use broad [55,45,545,365]? That covers but less precise. The instruction says bbox is region original pixels; if broad, still locate. Better more precise. Let's inspect image again mentally: The table outer border: top horizontal line just below top margin; left vertical line. The image has 640x400. The table width maybe 475, height 305. If centered horizontally: margin left ~82, right ~83. But in image, left border maybe at 63, right 537; margins 63/103? Let's estimate from displayed aspect: The table appears maybe 475px wide, 300px high. Left margin 63, right margin 102? Actually image width 640, table width 475 -> margin total 165, left 62, right 103 (not centered? Maybe slightly left due to image display?). Hmm. The table might be width ~475, x0 ~63, x1 ~538. Height ~300, y0 ~55, y1 ~355. Margins bottom 45, top 55. Use [63,55,537,357].\n\nNeed maybe if bbox too exact not critical.\n\nCould include no unresolved issues. But maybe \"第三列标题为说明\" and \"第一行/第二行/第三行\" labels, but the table does not explicitly say x and y are independent/dependent; not answer. Fine.\n\nNeed maybe the context \"caption\": [null] no caption. No need.\n\nPotential requirement: \"仅依据本次全部题图和真实文字上下文识别图示、表格及必要条件。\" We did. \"输出符合所给 JSON Schema 的 JSON 对象，不输出 Markdown，不补写题图未给出的答案、数值或关系。\" No answer.\n\nNeed \"provenance 必须为 null\". Yes.\n\nLet's ensure JSON valid, no trailing commas. Use double quotes. Good.\n\nBut maybe schema requires provenance object or null; null okay. The \"provenance\" property not required. But instruction says must be null, so include.\n\nPotential issue: \"conditions\" text minLength 1. Good. \"evidence_region\" can be null. We provided. \"bbox\" list numbers. Good.\n\nNeed maybe unresolved_issues item? If no issues, empty array. Good.\n\nNeed maybe \"observations\" item bbox default null. We provided. Good.\n\nNow final should be JSON only."
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      ]
+    }
+  ],
+  "raw_capture_status": "read_only_http_response_hook"
+}

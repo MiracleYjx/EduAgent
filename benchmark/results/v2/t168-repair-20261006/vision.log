@@ -1,0 +1,23 @@
+Traceback (most recent call last):
+  File "D:\YJX\MyCode\EduAgent\benchmark\t168\vision_runner.py", line 340, in <module>
+    main()
+    ~~~~^^
+  File "D:\YJX\MyCode\EduAgent\benchmark\t168\vision_runner.py", line 334, in main
+    asyncio.run(execute(output, plan, annotations))
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\develop\Python\Lib\asyncio\runners.py", line 195, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "D:\develop\Python\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "D:\develop\Python\Lib\asyncio\base_events.py", line 725, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "D:\YJX\MyCode\EduAgent\benchmark\t168\vision_runner.py", line 127, in execute
+    provider = create_vision_provider(settings)
+  File "D:\YJX\MyCode\EduAgent\backend\app\ai\vision\provider.py", line 44, in create_vision_provider
+    raise VisionFailure(
+    ...<2 lines>...
+    )
+backend.app.ai.vision.base.VisionFailure: 未显式配置 VISION_MODEL，请先完成图像模型配置或使用人工核对。

@@ -43,6 +43,7 @@ ANNOTATIONS = (
 ).resolve()
 INPUTS = (args.input_root or REPO / "benchmark/corpus/v2-draft-20261001").resolve()
 sys.path[:0] = [str(SOURCE), str(RUN)]
+sys.path.append(str(SOURCE / "benchmark/t160"))
 os.chdir(REPO)
 from openai import AsyncOpenAI
 from sqlalchemy import select
@@ -466,6 +467,7 @@ class HTTPObservation:
 
 async def actual_import(factory, settings, actor, identity, run_id, directory, report):
     provider = create_llm_provider(settings)
+    provider._request_client()  # Prepare the actual SDK solely to bind read-only observation.
     assert isinstance(provider._client, AsyncOpenAI)
     observer = HTTPObservation(directory)
     provider._client._client.event_hooks["request"].append(observer.request)

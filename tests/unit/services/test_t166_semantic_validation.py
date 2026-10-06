@@ -258,7 +258,7 @@ def test_actual_one_shot_provider_results_are_persisted_without_fake_teacher(
     assert (
         view.provenance.provider_name is None
     )  # Duck injection cannot invent a provider identity.
-    assert view.provenance.prompt_version == "question-semantics-v1"
+    assert view.provenance.prompt_version == "question-semantics-v2"
     assert session.scalar(select(QuestionRevisionComment)) is None
     assert question.status is (
         QuestionStatus.NEEDS_REVISION

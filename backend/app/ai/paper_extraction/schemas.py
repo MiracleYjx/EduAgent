@@ -56,10 +56,21 @@ class AnswerFields(ExtractionModel):
 
 class Candidate(AnswerFields):
     source_pages: list[StrictInt] = Field(min_length=1)
+    source_anchor: SourceExcerpt | None = Field(
+        default=None,
+        description="Literal unique question start, including its original number when present; used only to prove reading order.",
+    )
+    option_sources: dict[str, SourceExcerpt] | None = Field(
+        default=None,
+        description="Each option key has its own minimal literal unique excerpt containing only its label and value. Never copy a shared whole multi-option line; excerpts must start at distinct real positions. Not persisted.",
+    )
     question_number: str | None = None
     question_type: QuestionType | None = None
     content: str | None = None
-    options: dict[str, Any] | list[Any] | None = None
+    options: dict[str, Any] | list[Any] | None = Field(
+        default=None,
+        description="Dict only for original explicit option labels; list for unlabelled options (including true/false). Preserve original values and order; never invent keys or null option values.",
+    )
     score: Amount | None = None
     knowledge_points: list[str] | None = None
 

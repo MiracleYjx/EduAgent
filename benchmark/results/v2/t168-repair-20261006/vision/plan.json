@@ -1,0 +1,278 @@
+{
+  "schema_version": "t168-vision-pixel-1",
+  "dataset_path": "benchmark/corpus/t146-ai-authorized-20261003",
+  "annotation_version": "t146-ai-authorized-image-1",
+  "annotation_sha256": "de3bf5b2a78dad55abb9e43b3a119ebe7b49328858fba57298a3eb422194faa8",
+  "baseline_reference": {
+    "reference_standard": "AI 辅助 + 开发者审查",
+    "baseline_annotation_version": "t146-developer-reviewed-ai-assisted-20261003-2",
+    "annotation_authors": [
+      {
+        "kind": "ai_assistant",
+        "name": "Codex",
+        "role": "会话委托的源材料阅读、标注和技术复核"
+      },
+      {
+        "kind": "developer",
+        "name": "current_chat_user",
+        "identity_source": "current_chat_user_message",
+        "role": "开发者确认审查口径及将本批参考包用于学习项目质量基线"
+      }
+    ],
+    "decision_source": "current_chat_user_message",
+    "decision_recorded_at_utc": "2026-10-03T14:28:23.228504+00:00",
+    "is_independent_teacher_truth": false,
+    "source_sha256": {
+      "annotations.json": "e3df8cc30f27c96060c46bd46f60eab26fcb5ef0ec925fd2c1cccb579f161e2e",
+      "developer_review.json": "de098c686f725814c4716abddd0cfa889e14ef5efe5a29ad02adb9328f373380",
+      "manifest.json": "eedef2ff79e74eae3a7fe0d2ae29b2d29070c3b70f5e9a530577f53c4a27dca7"
+    }
+  },
+  "annotation_origin": "AI 辅助 + 开发者审查",
+  "revision": "5582405380af53f0be50a53697b71bcea0c67e19",
+  "created_at": "2026-10-06T13:16:31.663660Z",
+  "runner_sha256": "c6189d8bb26855fdf9ba6978302569ded1ebc43098d328fa043603b53a2614ca",
+  "python": "3.13.13",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "prompt_version": "vision-conditions-v1",
+  "context": {
+    "content": "请读取所附题图中可见的条件，未知或不可靠的关键文字保留问题说明。",
+    "options": null,
+    "answer": null,
+    "analysis": null,
+    "caption": [
+      null
+    ]
+  },
+  "task": "识别本题全部图片中的图示、表格与必要条件；不识别或补写答案。",
+  "rounds": 3,
+  "cloud_execution_requested": true,
+  "clear_condition_denominator": 33,
+  "unknown_condition_reference": null,
+  "condition_matching_rule": "Reviewed semantic equivalence plus correct image_index; strict one-to-one. Composite outputs cannot match multiple reference conditions; duplicate outputs cannot repeat a match.",
+  "scope": "Application Vision entry point + actual fixture pixels; no service authorization/persistence or independent teacher quality claim.",
+  "calls": [
+    {
+      "round": 1,
+      "case_id": "IMG-FIGURE",
+      "run_id": "t168-vision-r1-img-figure-174bc2ccd4fc",
+      "images": [
+        {
+          "image_index": 1,
+          "fixture_asset_id": "839f8584-dff3-526a-8cbe-85ac6784a3e2",
+          "identity_scope": "stable fixture only; no database asset/file identity",
+          "path": "benchmark/corpus/v2-draft-20261001/assets/figure.png",
+          "sha256": "b5c34d74a385a5dca9bec9c56c0d5a2eb2ca5e0dc64338829aab50b90d488336",
+          "size_bytes": 16435,
+          "width": 640,
+          "height": 400,
+          "mime_type": "image/png"
+        }
+      ]
+    },
+    {
+      "round": 1,
+      "case_id": "IMG-TABLE",
+      "run_id": "t168-vision-r1-img-table-3cb5e79e9633",
+      "images": [
+        {
+          "image_index": 1,
+          "fixture_asset_id": "34fa6905-e80a-5a0f-a7fa-2abac6ba9850",
+          "identity_scope": "stable fixture only; no database asset/file identity",
+          "path": "benchmark/corpus/v2-draft-20261001/assets/table.png",
+          "sha256": "6eb1e116bbe9df9a4071a355c3b77d26e3b1e596e5c3437042dfe21918ff9dd6",
+          "size_bytes": 12983,
+          "width": 640,
+          "height": 400,
+          "mime_type": "image/png"
+        }
+      ]
+    },
+    {
+      "round": 1,
+      "case_id": "IMG-DIAGRAM",
+      "run_id": "t168-vision-r1-img-diagram-eb7e1fb60d7d",
+      "images": [
+        {
+          "image_index": 1,
+          "fixture_asset_id": "31d1b223-0422-5f9f-b323-7ecac2ad4367",
+          "identity_scope": "stable fixture only; no database asset/file identity",
+          "path": "benchmark/corpus/v2-draft-20261001/assets/diagram.png",
+          "sha256": "44bbbce885cdf7f8965364579d2007b375c069a904d79f487ac64518ae602b97",
+          "size_bytes": 9665,
+          "width": 640,
+          "height": 400,
+          "mime_type": "image/png"
+        }
+      ]
+    },
+    {
+      "round": 1,
+      "case_id": "IMG-UNCLEAR",
+      "run_id": "t168-vision-r1-img-unclear-8800c11f6a7e",
+      "images": [
+        {
+          "image_index": 1,
+          "fixture_asset_id": "f19b591c-48f9-5569-a539-e4dd526be833",
+          "identity_scope": "stable fixture only; no database asset/file identity",
+          "path": "benchmark/corpus/v2-draft-20261001/assets/diagram_low_resolution.png",
+          "sha256": "3763e327edc61924f8558605b115898fa586a097e6cc97aaad1d560d90f1eeb3",
+          "size_bytes": 654,
+          "width": 64,
+          "height": 40,
+          "mime_type": "image/png"
+        }
+      ]
+    },
+    {
+      "round": 2,
+      "case_id": "IMG-FIGURE",
+      "run_id": "t168-vision-r2-img-figure-2280e0179474",
+      "images": [
+        {
+          "image_index": 1,
+          "fixture_asset_id": "839f8584-dff3-526a-8cbe-85ac6784a3e2",
+          "identity_scope": "stable fixture only; no database asset/file identity",
+          "path": "benchmark/corpus/v2-draft-20261001/assets/figure.png",
+          "sha256": "b5c34d74a385a5dca9bec9c56c0d5a2eb2ca5e0dc64338829aab50b90d488336",
+          "size_bytes": 16435,
+          "width": 640,
+          "height": 400,
+          "mime_type": "image/png"
+        }
+      ]
+    },
+    {
+      "round": 2,
+      "case_id": "IMG-TABLE",
+      "run_id": "t168-vision-r2-img-table-c7877f1f9b0d",
+      "images": [
+        {
+          "image_index": 1,
+          "fixture_asset_id": "34fa6905-e80a-5a0f-a7fa-2abac6ba9850",
+          "identity_scope": "stable fixture only; no database asset/file identity",
+          "path": "benchmark/corpus/v2-draft-20261001/assets/table.png",
+          "sha256": "6eb1e116bbe9df9a4071a355c3b77d26e3b1e596e5c3437042dfe21918ff9dd6",
+          "size_bytes": 12983,
+          "width": 640,
+          "height": 400,
+          "mime_type": "image/png"
+        }
+      ]
+    },
+    {
+      "round": 2,
+      "case_id": "IMG-DIAGRAM",
+      "run_id": "t168-vision-r2-img-diagram-d6d295c42498",
+      "images": [
+        {
+          "image_index": 1,
+          "fixture_asset_id": "31d1b223-0422-5f9f-b323-7ecac2ad4367",
+          "identity_scope": "stable fixture only; no database asset/file identity",
+          "path": "benchmark/corpus/v2-draft-20261001/assets/diagram.png",
+          "sha256": "44bbbce885cdf7f8965364579d2007b375c069a904d79f487ac64518ae602b97",
+          "size_bytes": 9665,
+          "width": 640,
+          "height": 400,
+          "mime_type": "image/png"
+        }
+      ]
+    },
+    {
+      "round": 2,
+      "case_id": "IMG-UNCLEAR",
+      "run_id": "t168-vision-r2-img-unclear-ee2e14ed7889",
+      "images": [
+        {
+          "image_index": 1,
+          "fixture_asset_id": "f19b591c-48f9-5569-a539-e4dd526be833",
+          "identity_scope": "stable fixture only; no database asset/file identity",
+          "path": "benchmark/corpus/v2-draft-20261001/assets/diagram_low_resolution.png",
+          "sha256": "3763e327edc61924f8558605b115898fa586a097e6cc97aaad1d560d90f1eeb3",
+          "size_bytes": 654,
+          "width": 64,
+          "height": 40,
+          "mime_type": "image/png"
+        }
+      ]
+    },
+    {
+      "round": 3,
+      "case_id": "IMG-FIGURE",
+      "run_id": "t168-vision-r3-img-figure-9feb58e3f04f",
+      "images": [
+        {
+          "image_index": 1,
+          "fixture_asset_id": "839f8584-dff3-526a-8cbe-85ac6784a3e2",
+          "identity_scope": "stable fixture only; no database asset/file identity",
+          "path": "benchmark/corpus/v2-draft-20261001/assets/figure.png",
+          "sha256": "b5c34d74a385a5dca9bec9c56c0d5a2eb2ca5e0dc64338829aab50b90d488336",
+          "size_bytes": 16435,
+          "width": 640,
+          "height": 400,
+          "mime_type": "image/png"
+        }
+      ]
+    },
+    {
+      "round": 3,
+      "case_id": "IMG-TABLE",
+      "run_id": "t168-vision-r3-img-table-c7060c33b1f6",
+      "images": [
+        {
+          "image_index": 1,
+          "fixture_asset_id": "34fa6905-e80a-5a0f-a7fa-2abac6ba9850",
+          "identity_scope": "stable fixture only; no database asset/file identity",
+          "path": "benchmark/corpus/v2-draft-20261001/assets/table.png",
+          "sha256": "6eb1e116bbe9df9a4071a355c3b77d26e3b1e596e5c3437042dfe21918ff9dd6",
+          "size_bytes": 12983,
+          "width": 640,
+          "height": 400,
+          "mime_type": "image/png"
+        }
+      ]
+    },
+    {
+      "round": 3,
+      "case_id": "IMG-DIAGRAM",
+      "run_id": "t168-vision-r3-img-diagram-dacf59711940",
+      "images": [
+        {
+          "image_index": 1,
+          "fixture_asset_id": "31d1b223-0422-5f9f-b323-7ecac2ad4367",
+          "identity_scope": "stable fixture only; no database asset/file identity",
+          "path": "benchmark/corpus/v2-draft-20261001/assets/diagram.png",
+          "sha256": "44bbbce885cdf7f8965364579d2007b375c069a904d79f487ac64518ae602b97",
+          "size_bytes": 9665,
+          "width": 640,
+          "height": 400,
+          "mime_type": "image/png"
+        }
+      ]
+    },
+    {
+      "round": 3,
+      "case_id": "IMG-UNCLEAR",
+      "run_id": "t168-vision-r3-img-unclear-962eedefdb8c",
+      "images": [
+        {
+          "image_index": 1,
+          "fixture_asset_id": "f19b591c-48f9-5569-a539-e4dd526be833",
+          "identity_scope": "stable fixture only; no database asset/file identity",
+          "path": "benchmark/corpus/v2-draft-20261001/assets/diagram_low_resolution.png",
+          "sha256": "3763e327edc61924f8558605b115898fa586a097e6cc97aaad1d560d90f1eeb3",
+          "size_bytes": 654,
+          "width": 64,
+          "height": 40,
+          "mime_type": "image/png"
+        }
+      ]
+    }
+  ],
+  "source_digests": {
+    "backend/app/ai/vision/provider.py": "f92a8c4c9b70eb9ba0b75dc861d3d1695164a913fe9743cf48a2f0404915f9d8",
+    "backend/app/ai/vision/base.py": "9a79fa8542e30de34d2566715fa1d8b02a111cbd583b6e997f8add89593c76b8",
+    "backend/app/ai/llm/deepseek.py": "e164f79eccf95500a908bdad899002fc7191e36210e2c30bdfb8cc3a358d35d5",
+    "backend/app/core/retry_policy.py": "636b053bc6d95c9b70e916bd7aa9c77aaff8b4306c4a2c5221c0c9272b485f8e"
+  }
+}

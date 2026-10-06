@@ -1,0 +1,108 @@
+.......FF.......                                                         [100%]
+================================== FAILURES ===================================
+____ test_literal_anchors_produce_reading_order_not_question_number_order _____
+
+    def test_literal_anchors_produce_reading_order_not_question_number_order():
+        page = TextPage(uuid4(), 1, "9. First stem.\n2. Second stem.", "TEXT")
+        provider = Provider([{"questions": [
+            question([1], question_number="2", content="Second stem.",
+                     source_anchor={"page_number": 1, "text": "2. Second stem."}),
+            question([1], question_number="9", content="First stem.",
+                     source_anchor={"page_number": 1, "text": "9. First stem."}),
+        ]}])
+>       questions = run_extract([page], provider)[0].questions
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\unit\ingestion\test_paper_extraction.py:121: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\unit\ingestion\test_paper_extraction.py:43: in run_extract
+    return asyncio.run(run())
+           ^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\asyncio\runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\asyncio\runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\asyncio\base_events.py:725: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+tests\unit\ingestion\test_paper_extraction.py:39: in run
+    async for batch in PaperExtractor(provider, batch_size=1).extract(pages):
+backend\app\ai\paper_extraction\service.py:106: in extract
+    raw = await self.provider.generate_structured(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <tests.unit.ingestion.test_paper_extraction.Provider object at 0x000002648D516BE0>
+messages = [{'role': 'system', 'content': '你负责忠实拆分原试卷，不出新题、不解题、不补答案或评分标准。\n只输出符合给定 JSON Schema 的对象。questions 是本批新完成的原题；禁止重复 compl...text": "9. First stem.\\n2. Second stem."}], "pending": [], "completed_questions": [], "allowed_update_indices": []}'}]
+schema = <class 'backend.app.ai.paper_extraction.schemas.ExtractionBatch'>
+model = None
+
+    async def generate_structured(self, messages, schema, model=None):
+        self.inputs.append(json.loads(messages[-1]["content"]))
+>       return schema.model_validate(next(self.results))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       pydantic_core._pydantic_core.ValidationError: 2 validation errors for ExtractionBatch
+E       questions.0.source_anchor
+E         Extra inputs are not permitted [type=extra_forbidden, input_value={'page_number': 1, 'text': '2. Second stem.'}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.13/v/extra_forbidden
+E       questions.1.source_anchor
+E         Extra inputs are not permitted [type=extra_forbidden, input_value={'page_number': 1, 'text': '9. First stem.'}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.13/v/extra_forbidden
+
+tests\unit\ingestion\test_paper_extraction.py:20: ValidationError
+_____ test_option_literal_positions_preserve_keys_and_real_reading_order ______
+
+    def test_option_literal_positions_preserve_keys_and_real_reading_order():
+        page = TextPage(uuid4(), 1, "9. Stem.\nC. third\nA. first\nB. second\nD. fourth", "OCR")
+        sources = {key: {"page_number": 1, "text": f"{key}. {value}"}
+                   for key, value in {"A": "first", "B": "second", "C": "third", "D": "fourth"}.items()}
+        provider = Provider([{"questions": [question(
+            [1], options={"A": "first", "B": "second", "C": "third", "D": "fourth"},
+            source_anchor={"page_number": 1, "text": "9. Stem."}, option_sources=sources,
+        )]}])
+>       result = run_extract([page], provider)[0].questions[0]
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\unit\ingestion\test_paper_extraction.py:136: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\unit\ingestion\test_paper_extraction.py:43: in run_extract
+    return asyncio.run(run())
+           ^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\asyncio\runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\asyncio\runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+D:\develop\Python\Lib\asyncio\base_events.py:725: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+tests\unit\ingestion\test_paper_extraction.py:39: in run
+    async for batch in PaperExtractor(provider, batch_size=1).extract(pages):
+backend\app\ai\paper_extraction\service.py:106: in extract
+    raw = await self.provider.generate_structured(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <tests.unit.ingestion.test_paper_extraction.Provider object at 0x000002648D516030>
+messages = [{'role': 'system', 'content': '你负责忠实拆分原试卷，不出新题、不解题、不补答案或评分标准。\n只输出符合给定 JSON Schema 的对象。questions 是本批新完成的原题；禁止重复 compl...third\\nA. first\\nB. second\\nD. fourth"}], "pending": [], "completed_questions": [], "allowed_update_indices": []}'}]
+schema = <class 'backend.app.ai.paper_extraction.schemas.ExtractionBatch'>
+model = None
+
+    async def generate_structured(self, messages, schema, model=None):
+        self.inputs.append(json.loads(messages[-1]["content"]))
+>       return schema.model_validate(next(self.results))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       pydantic_core._pydantic_core.ValidationError: 2 validation errors for ExtractionBatch
+E       questions.0.source_anchor
+E         Extra inputs are not permitted [type=extra_forbidden, input_value={'page_number': 1, 'text': '9. Stem.'}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.13/v/extra_forbidden
+E       questions.0.option_sources
+E         Extra inputs are not permitted [type=extra_forbidden, input_value={'A': {'page_number': 1, ...1, 'text': 'D. fourth'}}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.13/v/extra_forbidden
+
+tests\unit\ingestion\test_paper_extraction.py:20: ValidationError
+=========================== short test summary info ===========================
+FAILED tests/unit/ingestion/test_paper_extraction.py::test_literal_anchors_produce_reading_order_not_question_number_order
+FAILED tests/unit/ingestion/test_paper_extraction.py::test_option_literal_positions_preserve_keys_and_real_reading_order
+2 failed, 14 passed in 0.73s

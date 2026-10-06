@@ -159,6 +159,9 @@ class RecordingProvider(BaseLLMProvider):
         self.actual = actual
         self.messages: list[dict[str, Any]] = []
         self.raw_responses: list[dict[str, Any]] = []
+        prepare = getattr(actual, "_request_client", None)
+        if callable(prepare):
+            prepare()  # Bind observation before the first authorized request.
         sdk = getattr(actual, "_client", None)
         http_client = getattr(sdk, "_client", None)
         secret = getattr(sdk, "api_key", None)

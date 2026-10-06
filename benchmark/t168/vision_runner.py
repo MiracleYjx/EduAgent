@@ -131,6 +131,9 @@ async def execute(output: Path, plan: dict[str, Any], annotations: dict[str, Any
     entries = {row["case_id"]: row for row in annotations["entries"]}
     rows: list[dict[str, Any]] = []
     raw_responses: list[dict[str, Any]] = []
+    prepare = getattr(provider, "_request_client", None)
+    if callable(prepare):
+        prepare()  # Bind observation before the first authorized request.
     sdk = getattr(provider, "_client", None)
     http_client = getattr(sdk, "_client", None)
     secret_value = getattr(sdk, "api_key", None)

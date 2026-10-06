@@ -1,0 +1,28 @@
+paper_import=00918787-9959-4cb9-baac-be4d1fbad23a phase=分批拆题与结构化暂存 error=PAPER_EXTRACTION_FAILED cause=PaperExtractionError
+{"position": 1, "planned": 15, "run_id": "t160-quality-20261006T131153Z-f8d86b26-01-IMP-TEXT-r1", "status": "Failed", "http_attempts": 1, "elapsed_ms": 6293.131600017659, "utc": "2026-10-06T13:12:01.668313+00:00"}
+paper_import=b247f69b-e4f0-4cc7-99ff-56bb69a40864 phase=分批拆题与结构化暂存 error=PAPER_EXTRACTION_FAILED cause=PaperExtractionError
+{"position": 2, "planned": 15, "run_id": "t160-quality-20261006T131153Z-f8d86b26-02-IMP-TEXT-r2", "status": "Failed", "http_attempts": 1, "elapsed_ms": 4800.936100073159, "utc": "2026-10-06T13:12:08.225868+00:00"}
+paper_import=cde95b02-2597-46f1-a576-eaa300fea4c7 phase=分批拆题与结构化暂存 error=PAPER_EXTRACTION_FAILED cause=PaperExtractionError
+{"position": 3, "planned": 15, "run_id": "t160-quality-20261006T131153Z-f8d86b26-03-IMP-TEXT-r3", "status": "Failed", "http_attempts": 1, "elapsed_ms": 4666.6062999283895, "utc": "2026-10-06T13:12:14.750619+00:00"}
+paper_import=e1ece85f-9555-4d8c-9824-d8022546699a phase=分批拆题与结构化暂存 error=PAPER_EXTRACTION_FAILED cause=PaperExtractionError
+{"position": 4, "planned": 15, "run_id": "t160-quality-20261006T131153Z-f8d86b26-04-IMP-SCAN-r1", "status": "Failed", "http_attempts": 1, "elapsed_ms": 11180.547300027683, "utc": "2026-10-06T13:12:28.227387+00:00"}
+paper_import=94f2ff87-d14c-4440-bcbe-48c70a80280a phase=分批拆题与结构化暂存 error=PAPER_EXTRACTION_FAILED cause=PaperExtractionError
+{"position": 5, "planned": 15, "run_id": "t160-quality-20261006T131153Z-f8d86b26-05-IMP-SCAN-r2", "status": "Failed", "http_attempts": 1, "elapsed_ms": 7981.487900018692, "utc": "2026-10-06T13:12:38.432219+00:00"}
+paper_import=b3923eba-5274-4f32-9387-eddbbe0e1e43 phase=分批拆题与结构化暂存 error=PAPER_EXTRACTION_FAILED cause=PaperExtractionError
+{"position": 6, "planned": 15, "run_id": "t160-quality-20261006T131153Z-f8d86b26-06-IMP-SCAN-r3", "status": "Failed", "http_attempts": 1, "elapsed_ms": 8052.633799961768, "utc": "2026-10-06T13:12:48.664685+00:00"}
+paper_import=9ca8a2aa-a7e3-4466-b064-892cacbb4f60 phase=分批拆题与结构化暂存 error=PAPER_EXTRACTION_FAILED cause=PaperExtractionError
+{"position": 7, "planned": 15, "run_id": "t160-quality-20261006T131153Z-f8d86b26-07-IMP-IMAGE-r1", "status": "Failed", "http_attempts": 1, "elapsed_ms": 8169.190299930051, "utc": "2026-10-06T13:12:58.875161+00:00"}
+paper_import=b887528d-0485-4d09-9f47-0585a2432611 phase=分批拆题与结构化暂存 error=PAPER_EXTRACTION_FAILED cause=PaperExtractionError
+{"position": 8, "planned": 15, "run_id": "t160-quality-20261006T131153Z-f8d86b26-08-IMP-IMAGE-r2", "status": "Failed", "http_attempts": 1, "elapsed_ms": 8277.029999997467, "utc": "2026-10-06T13:13:09.071673+00:00"}
+paper_import=a0d71295-247a-41d9-a492-3c67903e1871 phase=分批拆题与结构化暂存 error=PAPER_EXTRACTION_FAILED cause=PaperExtractionError
+{"position": 9, "planned": 15, "run_id": "t160-quality-20261006T131153Z-f8d86b26-09-IMP-IMAGE-r3", "status": "Failed", "http_attempts": 1, "elapsed_ms": 8050.050599966198, "utc": "2026-10-06T13:13:19.302160+00:00"}
+paper_import=532ca12c-c087-4aeb-a6e0-23aabcda83f9 phase=分批拆题与结构化暂存 error=PAPER_EXTRACTION_FAILED cause=PaperExtractionError
+{"position": 10, "planned": 15, "run_id": "t160-quality-20261006T131153Z-f8d86b26-10-IMP-MIXED-r1", "status": "Failed", "http_attempts": 1, "elapsed_ms": 9857.637500041164, "utc": "2026-10-06T13:13:30.907343+00:00"}
+paper_import=7738036f-2691-427c-9aa2-d02c645a6dd6 phase=分批拆题与结构化暂存 error=PAPER_EXTRACTION_FAILED cause=PaperExtractionError
+{"position": 11, "planned": 15, "run_id": "t160-quality-20261006T131153Z-f8d86b26-11-IMP-MIXED-r2", "status": "Failed", "http_attempts": 1, "elapsed_ms": 9776.417499990202, "utc": "2026-10-06T13:13:42.433186+00:00"}
+paper_import=0971a22b-cfc9-49f1-949e-3d63131f0c3d phase=分批拆题与结构化暂存 error=PAPER_EXTRACTION_FAILED cause=PaperExtractionError
+{"position": 12, "planned": 15, "run_id": "t160-quality-20261006T131153Z-f8d86b26-12-IMP-MIXED-r3", "status": "Failed", "http_attempts": 1, "elapsed_ms": 9962.823399924673, "utc": "2026-10-06T13:13:54.699336+00:00"}
+{"position": 13, "planned": 15, "run_id": "t160-quality-20261006T131153Z-f8d86b26-13-IMP-CROSS-r1", "status": "Pending Review", "http_attempts": 1, "elapsed_ms": 3651.3920999132097, "utc": "2026-10-06T13:14:00.320248+00:00"}
+{"position": 14, "planned": 15, "run_id": "t160-quality-20261006T131153Z-f8d86b26-14-IMP-CROSS-r2", "status": "Pending Review", "http_attempts": 1, "elapsed_ms": 3651.396799948998, "utc": "2026-10-06T13:14:05.812570+00:00"}
+{"position": 15, "planned": 15, "run_id": "t160-quality-20261006T131153Z-f8d86b26-15-IMP-CROSS-r3", "status": "Pending Review", "http_attempts": 1, "elapsed_ms": 3734.692699974403, "utc": "2026-10-06T13:14:11.410481+00:00"}
+{"batch_id": "t160-quality-20261006T131153Z-f8d86b26", "planned": 15, "attempted": 15, "completed_pending_review": 3, "failed_imports": 12, "runner_errors": 0, "actual_http_attempts": 15, "independent_teacher_labeled_cases": 0, "reference_origin": "user_confirmed_ai_assisted", "quality_thresholds": null, "quality_acceptance": "not_claimed", "completed_at": "2026-10-06T13:14:11.429030+00:00", "output": "D:\\YJX\\MyCode\\EduAgent\\benchmark\\results\\v2\\t168-repair-20261006\\import-execution\\t160-quality-20261006T131153Z-f8d86b26"}

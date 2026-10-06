@@ -1,0 +1,435 @@
+{
+  "task": "T168 scoped repair",
+  "reference": "AI-assisted + developer review",
+  "independent_teachers": 0,
+  "reference_sha256": "c6965254e670225224ef28d4abc9efd54fef7d2b7a1841134c3fa11bfcc99350",
+  "thresholds_ref": "benchmark\\results\\v2\\t168-20261003\\thresholds.json",
+  "thresholds_sha256": "da0170dfd014b41b284ec13934626a78b326f4aea282291ae0d4a462a37016d3",
+  "import": {
+    "automatic": {
+      "identity": [
+        48,
+        48
+      ],
+      "all_fields": [
+        0,
+        48
+      ],
+      "fields": {
+        "question_number": [
+          48,
+          48
+        ],
+        "order_index": [
+          48,
+          48
+        ],
+        "source_page_numbers": [
+          48,
+          48
+        ],
+        "question_type": [
+          45,
+          45
+        ],
+        "content": [
+          18,
+          48
+        ],
+        "options": [
+          48,
+          48
+        ],
+        "reference_answer": [
+          48,
+          48
+        ],
+        "analysis": [
+          39,
+          48
+        ],
+        "score": [
+          48,
+          48
+        ],
+        "scoring_rubric": [
+          38,
+          48
+        ],
+        "knowledge_points": [
+          15,
+          48
+        ],
+        "source_regions": [
+          0,
+          0
+        ],
+        "assets": [
+          0,
+          48
+        ]
+      },
+      "unknown_fields_excluded": 51
+    },
+    "assisted_corrected": {
+      "identity": [
+        48,
+        48
+      ],
+      "all_fields": [
+        15,
+        48
+      ],
+      "fields": {
+        "question_number": [
+          48,
+          48
+        ],
+        "order_index": [
+          48,
+          48
+        ],
+        "source_page_numbers": [
+          48,
+          48
+        ],
+        "question_type": [
+          45,
+          45
+        ],
+        "content": [
+          48,
+          48
+        ],
+        "options": [
+          48,
+          48
+        ],
+        "reference_answer": [
+          48,
+          48
+        ],
+        "analysis": [
+          48,
+          48
+        ],
+        "score": [
+          48,
+          48
+        ],
+        "scoring_rubric": [
+          48,
+          48
+        ],
+        "knowledge_points": [
+          48,
+          48
+        ],
+        "source_regions": [
+          0,
+          0
+        ],
+        "assets": [
+          15,
+          48
+        ]
+      },
+      "unknown_fields_excluded": 51
+    }
+  },
+  "import_pending_review": 15,
+  "semantic": {
+    "answer_correctness": {
+      "TN": 18,
+      "TP": 6,
+      "recall": 1.0,
+      "false_positive_rate": 0.0,
+      "coverage": 1.0,
+      "assessed": 24,
+      "planned": 24,
+      "input_blocked": 0,
+      "abstained": 0
+    },
+    "condition_sufficiency": {
+      "TN": 20,
+      "TP": 6,
+      "FP": 4,
+      "recall": 1.0,
+      "false_positive_rate": 0.16666666666666666,
+      "coverage": 0.9090909090909091,
+      "assessed": 30,
+      "planned": 33,
+      "input_blocked": 3,
+      "abstained": 0
+    },
+    "option_ambiguity": {
+      "TP": 3,
+      "TN": 3,
+      "recall": 1.0,
+      "false_positive_rate": 0.0,
+      "coverage": 1.0,
+      "assessed": 6,
+      "planned": 6,
+      "input_blocked": 0,
+      "abstained": 0
+    },
+    "rubric_clarity": {
+      "TP": 3,
+      "TN": 10,
+      "FP": 1,
+      "recall": 1.0,
+      "false_positive_rate": 0.09090909090909091,
+      "coverage": 0.7777777777777778,
+      "assessed": 14,
+      "planned": 18,
+      "input_blocked": 3,
+      "abstained": 1
+    }
+  },
+  "vision": {
+    "matched": 24,
+    "outputs": 24,
+    "references": 33,
+    "precision": 1.0,
+    "completeness": 0.7272727272727273,
+    "unclear_handoffs": [
+      3,
+      3
+    ]
+  },
+  "assessments": [
+    {
+      "metric": "import.automatic.identity_recall",
+      "actual": 1.0,
+      "target": 0.95,
+      "operator": ">=",
+      "met": true
+    },
+    {
+      "metric": "import.automatic.question_number",
+      "actual": 1.0,
+      "target": 0.95,
+      "operator": ">=",
+      "met": true
+    },
+    {
+      "metric": "import.automatic.order_index",
+      "actual": 1.0,
+      "target": 0.95,
+      "operator": ">=",
+      "met": true
+    },
+    {
+      "metric": "import.automatic.source_page_numbers",
+      "actual": 1.0,
+      "target": 0.95,
+      "operator": ">=",
+      "met": true
+    },
+    {
+      "metric": "import.automatic.question_type",
+      "actual": 1.0,
+      "target": 0.95,
+      "operator": ">=",
+      "met": true
+    },
+    {
+      "metric": "import.automatic.content",
+      "actual": 0.375,
+      "target": 0.95,
+      "operator": ">=",
+      "met": false
+    },
+    {
+      "metric": "import.automatic.options",
+      "actual": 1.0,
+      "target": 0.95,
+      "operator": ">=",
+      "met": true
+    },
+    {
+      "metric": "import.automatic.reference_answer",
+      "actual": 1.0,
+      "target": 0.95,
+      "operator": ">=",
+      "met": true
+    },
+    {
+      "metric": "import.automatic.analysis",
+      "actual": 0.8125,
+      "target": 0.95,
+      "operator": ">=",
+      "met": false
+    },
+    {
+      "metric": "import.automatic.score",
+      "actual": 1.0,
+      "target": 0.95,
+      "operator": ">=",
+      "met": true
+    },
+    {
+      "metric": "import.automatic.scoring_rubric",
+      "actual": 0.7916666666666666,
+      "target": 0.95,
+      "operator": ">=",
+      "met": false
+    },
+    {
+      "metric": "import.automatic.knowledge_points",
+      "actual": 0.3125,
+      "target": 0.95,
+      "operator": ">=",
+      "met": false
+    },
+    {
+      "metric": "import.automatic.source_regions",
+      "actual": null,
+      "target": 0.95,
+      "operator": ">=",
+      "met": null
+    },
+    {
+      "metric": "import.automatic.assets",
+      "actual": 0.0,
+      "target": 0.95,
+      "operator": ">=",
+      "met": false
+    },
+    {
+      "metric": "import.automatic.all_evaluable_fields_match",
+      "actual": 0.0,
+      "target": 0.9,
+      "operator": ">=",
+      "met": false
+    },
+    {
+      "metric": "import.after_image_assistance.each_evaluable_field_accuracy",
+      "actual": null,
+      "target": 1.0,
+      "operator": ">=",
+      "met": null
+    },
+    {
+      "metric": "semantic.answer_correctness.recall",
+      "actual": 1.0,
+      "target": 0.9,
+      "operator": ">=",
+      "met": true
+    },
+    {
+      "metric": "semantic.condition_sufficiency.recall",
+      "actual": 1.0,
+      "target": 0.9,
+      "operator": ">=",
+      "met": true
+    },
+    {
+      "metric": "semantic.option_ambiguity.recall",
+      "actual": 1.0,
+      "target": 0.9,
+      "operator": ">=",
+      "met": true
+    },
+    {
+      "metric": "semantic.rubric_clarity.recall",
+      "actual": 1.0,
+      "target": 0.9,
+      "operator": ">=",
+      "met": true
+    },
+    {
+      "metric": "semantic.answer_correctness.false_positive_rate",
+      "actual": 0.0,
+      "target": 0.1,
+      "operator": "<=",
+      "met": true
+    },
+    {
+      "metric": "semantic.condition_sufficiency.false_positive_rate",
+      "actual": 0.16666666666666666,
+      "target": 0.1,
+      "operator": "<=",
+      "met": false
+    },
+    {
+      "metric": "semantic.option_ambiguity.false_positive_rate",
+      "actual": 0.0,
+      "target": 0.1,
+      "operator": "<=",
+      "met": true
+    },
+    {
+      "metric": "semantic.rubric_clarity.false_positive_rate",
+      "actual": 0.09090909090909091,
+      "target": 0.1,
+      "operator": "<=",
+      "met": true
+    },
+    {
+      "metric": "semantic.answer_correctness.coverage",
+      "actual": 1.0,
+      "target": 0.9,
+      "operator": ">=",
+      "met": true
+    },
+    {
+      "metric": "semantic.condition_sufficiency.coverage",
+      "actual": 0.9090909090909091,
+      "target": 0.9,
+      "operator": ">=",
+      "met": true
+    },
+    {
+      "metric": "semantic.option_ambiguity.coverage",
+      "actual": 1.0,
+      "target": 0.9,
+      "operator": ">=",
+      "met": true
+    },
+    {
+      "metric": "semantic.rubric_clarity.coverage",
+      "actual": 0.7777777777777778,
+      "target": 0.9,
+      "operator": ">=",
+      "met": false
+    },
+    {
+      "metric": "vision.one_to_one_condition_precision",
+      "actual": 1.0,
+      "target": 0.95,
+      "operator": ">=",
+      "met": true
+    },
+    {
+      "metric": "vision.one_to_one_condition_completeness",
+      "actual": 0.7272727272727273,
+      "target": 0.95,
+      "operator": ">=",
+      "met": false
+    },
+    {
+      "metric": "vision.unclear_handoff_correct",
+      "actual": 1.0,
+      "target": 1.0,
+      "operator": ">=",
+      "met": true
+    },
+    {
+      "metric": "semantic_and_vision.technical_failure_rate",
+      "actual": 0.0,
+      "target": 0.05,
+      "operator": "<=",
+      "met": true
+    }
+  ],
+  "quality_gate_passed": false,
+  "limitations": [
+    "Automatic assets remain unknown null; no automatic crops implemented.",
+    "After-image-assistance not rerun; old crops are not reused for new page IDs.",
+    "SEM-ADAPT-GOOD lacks a student-visible formula; original negative label preserved as disputed.",
+    "NO-BASIS remains input-blocked, never counted as a correct negative.",
+    "Strict text comparison unchanged; no internal whitespace normalization.",
+    "Startup performance gate remains failed independently."
+  ]
+}

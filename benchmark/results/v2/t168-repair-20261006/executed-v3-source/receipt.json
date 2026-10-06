@@ -1,0 +1,10 @@
+{
+  "backend\\app\\ai\\paper_extraction\\service.py": {
+    "sha256": "d832cd7d4aad912253fe931fe471761193444deb509f2d59e4b6562b82e7ba41",
+    "captured_after_run_before_next_edit": true
+  },
+  "backend\\app\\ai\\paper_extraction\\schemas.py": {
+    "sha256": "16d756dc1711414b3c69ca28744973ef1ff2a4b89ecb4238593fed3c314e561c",
+    "captured_after_run_before_next_edit": true
+  }
+}

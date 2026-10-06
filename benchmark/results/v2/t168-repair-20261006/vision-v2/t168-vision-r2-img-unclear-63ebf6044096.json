@@ -1,0 +1,183 @@
+{
+  "case_id": "IMG-UNCLEAR",
+  "round": 2,
+  "run_id": "t168-vision-r2-img-unclear-63ebf6044096",
+  "started_at": "2026-10-06T13:19:42.496994Z",
+  "images": [
+    {
+      "image_index": 1,
+      "fixture_asset_id": "f19b591c-48f9-5569-a539-e4dd526be833",
+      "identity_scope": "stable fixture only; no database asset/file identity",
+      "path": "benchmark/corpus/v2-draft-20261001/assets/diagram_low_resolution.png",
+      "sha256": "3763e327edc61924f8558605b115898fa586a097e6cc97aaad1d560d90f1eeb3",
+      "size_bytes": 654,
+      "width": 64,
+      "height": 40,
+      "mime_type": "image/png"
+    }
+  ],
+  "context": {
+    "content": "请读取所附题图中可见的条件，未知或不可靠的关键文字保留问题说明。",
+    "options": null,
+    "answer": null,
+    "analysis": null,
+    "caption": [
+      null
+    ]
+  },
+  "task": "识别本题全部图片中的图示、表格与必要条件；不识别或补写答案。",
+  "output": {
+    "observations": [
+      {
+        "image_index": 1,
+        "kind": "diagram",
+        "description": "图中可见三个纵向排列的矩形框，深色边框；上框与中框、中框与下框之间各有一条竖直连接线，整体呈流程图/结构图形式。",
+        "bbox": [
+          0,
+          0,
+          64,
+          40
+        ]
+      },
+      {
+        "image_index": 1,
+        "kind": "text",
+        "description": "矩形框内文字模糊，无法辨认具体内容。",
+        "bbox": null
+      }
+    ],
+    "conditions": [
+      {
+        "image_index": 1,
+        "text": "图中可见三个纵向排列的矩形框，框间以短竖线相连，呈流程图/结构图形式。",
+        "evidence_region": {
+          "bbox": [
+            0,
+            0,
+            64,
+            40
+          ]
+        }
+      },
+      {
+        "image_index": 1,
+        "text": "矩形框内文字因图像分辨率过低无法辨认，不能确认各框标题或框间连接文字。",
+        "evidence_region": null
+      }
+    ],
+    "unresolved_issues": [
+      {
+        "image_indices": [
+          1
+        ],
+        "message": "第1张图中三个矩形框内的文字均因分辨率过低而无法辨认，无法读取节点名称或连接语义。"
+      },
+      {
+        "image_indices": [
+          1
+        ],
+        "message": "该图是否对应题目中的流程图/结构图条件无法确认，需人工核对。"
+      }
+    ],
+    "requires_manual_review": true,
+    "provenance": {
+      "provider_name": "deepseek",
+      "model": "deepseek-flash",
+      "model_version": null,
+      "prompt_version": "vision-conditions-v1"
+    }
+  },
+  "error": null,
+  "provenance": {
+    "provider_name": "deepseek",
+    "model": "deepseek-flash",
+    "model_version": null,
+    "prompt_version": "vision-conditions-v1"
+  },
+  "assessment_status": "pending_semantic_review",
+  "reference_condition_count": 0,
+  "is_independent_teacher_truth": false,
+  "baseline_reference": {
+    "reference_standard": "AI 辅助 + 开发者审查",
+    "baseline_annotation_version": "t146-developer-reviewed-ai-assisted-20261003-2",
+    "annotation_authors": [
+      {
+        "kind": "ai_assistant",
+        "name": "Codex",
+        "role": "会话委托的源材料阅读、标注和技术复核"
+      },
+      {
+        "kind": "developer",
+        "name": "current_chat_user",
+        "identity_source": "current_chat_user_message",
+        "role": "开发者确认审查口径及将本批参考包用于学习项目质量基线"
+      }
+    ],
+    "decision_source": "current_chat_user_message",
+    "decision_recorded_at_utc": "2026-10-03T14:28:23.228504+00:00",
+    "is_independent_teacher_truth": false,
+    "source_sha256": {
+      "annotations.json": "e3df8cc30f27c96060c46bd46f60eab26fcb5ef0ec925fd2c1cccb579f161e2e",
+      "developer_review.json": "de098c686f725814c4716abddd0cfa889e14ef5efe5a29ad02adb9328f373380",
+      "manifest.json": "eedef2ff79e74eae3a7fe0d2ae29b2d29070c3b70f5e9a530577f53c4a27dca7"
+    }
+  },
+  "outcome": "completed",
+  "completed_at": "2026-10-06T13:19:49.672589Z",
+  "elapsed_ms": 7175.583,
+  "provider_trace_events": [
+    {
+      "recorded_at": "2026-10-06T13:19:49.672462Z",
+      "request_id": "t168-vision-r2-img-unclear-63ebf6044096",
+      "agent_type": "llm",
+      "status": "success",
+      "latency_ms": 7172,
+      "model": "deepseek-flash",
+      "prompt_version": "vision-conditions-v1",
+      "input_tokens": 1484,
+      "output_tokens": 1408,
+      "total_tokens": 2892,
+      "input_summary": null,
+      "output_summary": null,
+      "error_code": null,
+      "error_retryable": null
+    }
+  ],
+  "observed_provider_attempts": 1,
+  "actual_raw_responses": [
+    {
+      "received_at_utc": "2026-10-06T13:19:42.593989Z",
+      "status_code": 200,
+      "capture_scope": "response identity, usage, actual choices only; no headers/URL/credentials",
+      "id": "4c618a8e-0c9f-41ba-9ea3-74debc29dd1d",
+      "model": "deepseek-flash",
+      "system_fingerprint": "aeb56401ca74e127821c4f9126dcb669",
+      "usage": {
+        "prompt_tokens": 1484,
+        "completion_tokens": 1408,
+        "total_tokens": 2892,
+        "prompt_tokens_details": {
+          "cached_tokens": 1280
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 1140
+        },
+        "prompt_cache_hit_tokens": 1280,
+        "prompt_cache_miss_tokens": 204
+      },
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\"observations\":[{\"image_index\":1,\"kind\":\"diagram\",\"description\":\"图中可见三个纵向排列的矩形框，深色边框；上框与中框、中框与下框之间各有一条竖直连接线，整体呈流程图/结构图形式。\",\"bbox\":[0,0,64,40]},{\"image_index\":1,\"kind\":\"text\",\"description\":\"矩形框内文字模糊，无法辨认具体内容。\",\"bbox\":null}],\"conditions\":[{\"image_index\":1,\"text\":\"图中可见三个纵向排列的矩形框，框间以短竖线相连，呈流程图/结构图形式。\",\"evidence_region\":{\"bbox\":[0,0,64,40]}},{\"image_index\":1,\"text\":\"矩形框内文字因图像分辨率过低无法辨认，不能确认各框标题或框间连接文字。\",\"evidence_region\":null}],\"unresolved_issues\":[{\"image_indices\":[1],\"message\":\"第1张图中三个矩形框内的文字均因分辨率过低而无法辨认，无法读取节点名称或连接语义。\"},{\"image_indices\":[1],\"message\":\"该图是否对应题目中的流程图/结构图条件无法确认，需人工核对。\"}],\"requires_manual_review\":true,\"provenance\":null}",
+            "reasoning_content": "我需要按题图真实可见内容输出 JSON。第1张图尺寸 64×40，很小，图形似乎是三个矩形框垂直排列，中间用短线段/箭头连接，像流程图。框内文字极模糊，无法辨认。我不能补写内容。需要描述图示、表格、必要条件。识别为流程图样的三框结构，但文字不可读。bbox 可估计各框位置，但分辨率低，坐标可能可靠定位？原图 64x40，三个矩形水平居中。我可以给出大概 bbox，但要求无法可靠定位保持 null。我可以定位图示大致区域，但文字不可辨认。也许可以给 observation 描述整个流程图 bbox [8,2,56,38] 或 null。需谨慎：如果无法可靠定位子元素，bbox null。\n\n第1张图：三个矩形框垂直堆叠，矩形框轮廓为深色线，框间有连接线。文字模糊。需要写入 unresolved_issues：框内文字无法辨认；无法确定图示表达的具体流程/条件。requires_manual_review=true。conditions 中可写可见条件：图示为纵向三框流程图；上下居中排列；框间有竖线连接；文字不可辨。但 conditions 要求 text 非空，image_index，evidence_region 可选。可以写 \"图中为三个纵向排列的矩形框，框间以短线/竖直连线相连；框内可见文字因分辨率过低无法辨认。\" evidence_region bbox 可能整个图 [0,0,64,40]。但我无法可靠定位各框像素，可给整体 bbox 没问题。观察 observations 可有 kind \"diagram\" 描述。\n\n需确保不生成答案。不补写题图未给出的答案、数值或关系。provenance 必须为 null。JSON 对象。\n\n注意：输出 JSON，不要 Markdown。schema required observations, conditions, unresolved_issues, requires_manual_review；provenance 默认 null 可省略或 null。但用户要求 provenance 必须为 null，所以包含 \"provenance\": null。\n\n我要不要识别表格？无表格。必要条件？图中可见：三个矩形框，纵向排列，有连接线。没有其他数值条件。文字无法辨认。\n\n考虑 bbox 坐标：原图 64x40。第一个框大约 x=17-56? 实际上图：顶部框约 x=18 到 56，y=2 到 12。第二个框 x=14 到 58，y=16 到 27。第三个框 x=18 到 56，y=31 到 39。但很模糊，我或许可给整体 bbox [12,0,60,40]。可给每个观察 bbox null 或大致。要求 bbox/evidence_region.bbox 为该资产原图左上/右下像素，无法可靠定位保持 null，不使用归一化坐标。既然我能大概定位，但精确不确定。为确保准确，可保持 null，但 evidence_region 可为 null？schema 允许 null。条件 evidence_region anyOf PixelRegion/null。可 null。\n\nObservation bbox 默认 null，可给 null。描述：第1张图中存在一个流程图式图示，由三个纵向排列的矩形框构成。我不知道框内文字。好。\n\nunresolved_issues 包含：\n- image_indices [1]，message \"第1张图中三个矩形框内的文字均因分辨率过低而无法辨认，无法读取节点名称或连接语义。\"\n- image_indices [1]，message \"该图是否对应题目中的流程图/结构图条件无法确认，需人工核对。\"\n可能整个题面没有其他图片，只有第1张。context caption null。所以 unknown image ownership 不必要。\n\nconditions:\n- image_index 1, text \"图中可见三个纵向排列的矩形框，框间以短竖线相连，呈流程图/结构图形式。\", evidence_region null。\n- image_index 1, text \"框内文字因图像分辨率过低无法辨认，不能确认各框标题或框间连接文字。\" 这算条件？可作为不可辨说明。conditions 中最好只记录可见条件，但也可包括文字不可读。实际上 unresolved_issues 已写，conditions 可写可见图形。\n\nobservations:\n- image_index 1, kind \"diagram\", description \"三个纵向排列的矩形框，深色边框；上框与中框、中框与下框之间各有一条竖直连接线。\", bbox null。\n- image_index 1, kind \"text\", description \"矩形框内文字模糊，无法辨认。\", bbox null。\n\nrequires_manual_review true。\n\n不要写答案。JSON 有效。\n\n注意 schema 中 conditions 的 text minLength 1。observations 的 kind minLength 1, description minLength 1。unresolved_issues message minLength 1。\n\n我可以给 evidence_region bbox null。但可能希望有证据区域，给整个图像 bbox [0,0,64,40] 对应图示，条件文本证据整体。这可靠吗？整体区域可靠。可以给 [0,0,64,40]。但是 bbox 要求原图左上/右下，给整图没问题。对于图示观察，给整体 bbox [0,0,64,40]。对于框内文字，无法定位具体框，null。\n\n最终输出。确保 JSON 没有 Markdown。"
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      ]
+    }
+  ],
+  "raw_capture_status": "read_only_http_response_hook"
+}

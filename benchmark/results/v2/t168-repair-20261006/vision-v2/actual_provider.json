@@ -1,0 +1,15 @@
+{
+  "provider": "deepseek",
+  "model": "deepseek-flash",
+  "prompt_version": "vision-conditions-v1",
+  "call_path": "backend.app.ai.llm.deepseek.DeepSeekProvider.generate_structured",
+  "supports_vision": true,
+  "call_boundary": "ProviderVisionUnderstanding.understand",
+  "default_timeout_seconds": 30,
+  "max_network_retries": 2,
+  "max_schema_retries": 1,
+  "quality_reference_origin": "AI-assisted + developer review (learning project)",
+  "teacher_metrics": null,
+  "service_authorization_and_persistence_evaluated": false,
+  "raw_capture_status": "read_only_http_response_hook"
+}

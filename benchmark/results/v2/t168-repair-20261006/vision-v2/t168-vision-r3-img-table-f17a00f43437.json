@@ -1,0 +1,153 @@
+{
+  "case_id": "IMG-TABLE",
+  "round": 3,
+  "run_id": "t168-vision-r3-img-table-f17a00f43437",
+  "started_at": "2026-10-06T13:20:13.118645Z",
+  "images": [
+    {
+      "image_index": 1,
+      "fixture_asset_id": "34fa6905-e80a-5a0f-a7fa-2abac6ba9850",
+      "identity_scope": "stable fixture only; no database asset/file identity",
+      "path": "benchmark/corpus/v2-draft-20261001/assets/table.png",
+      "sha256": "6eb1e116bbe9df9a4071a355c3b77d26e3b1e596e5c3437042dfe21918ff9dd6",
+      "size_bytes": 12983,
+      "width": 640,
+      "height": 400,
+      "mime_type": "image/png"
+    }
+  ],
+  "context": {
+    "content": "请读取所附题图中可见的条件，未知或不可靠的关键文字保留问题说明。",
+    "options": null,
+    "answer": null,
+    "analysis": null,
+    "caption": [
+      null
+    ]
+  },
+  "task": "识别本题全部图片中的图示、表格与必要条件；不识别或补写答案。",
+  "output": {
+    "observations": [
+      {
+        "image_index": 1,
+        "kind": "table",
+        "description": "图示为一张三列四行（含表头）的表格，列标题依次为“x”“y”“说明”，数据部分有三行。",
+        "bbox": null
+      },
+      {
+        "image_index": 1,
+        "kind": "text",
+        "description": "表格可见文字：表头为 x、y、说明；第一行数据为 1、3、第一行；第二行数据为 2、5、第二行；第三行数据为 3、7、第三行。",
+        "bbox": null
+      }
+    ],
+    "conditions": [
+      {
+        "image_index": 1,
+        "text": "表格列标题为 x、y、说明；数据行为：x=1, y=3, 说明=第一行；x=2, y=5, 说明=第二行；x=3, y=7, 说明=第三行。",
+        "evidence_region": null
+      }
+    ],
+    "unresolved_issues": [],
+    "requires_manual_review": false,
+    "provenance": {
+      "provider_name": "deepseek",
+      "model": "deepseek-flash",
+      "model_version": null,
+      "prompt_version": "vision-conditions-v1"
+    }
+  },
+  "error": null,
+  "provenance": {
+    "provider_name": "deepseek",
+    "model": "deepseek-flash",
+    "model_version": null,
+    "prompt_version": "vision-conditions-v1"
+  },
+  "assessment_status": "pending_semantic_review",
+  "reference_condition_count": 4,
+  "is_independent_teacher_truth": false,
+  "baseline_reference": {
+    "reference_standard": "AI 辅助 + 开发者审查",
+    "baseline_annotation_version": "t146-developer-reviewed-ai-assisted-20261003-2",
+    "annotation_authors": [
+      {
+        "kind": "ai_assistant",
+        "name": "Codex",
+        "role": "会话委托的源材料阅读、标注和技术复核"
+      },
+      {
+        "kind": "developer",
+        "name": "current_chat_user",
+        "identity_source": "current_chat_user_message",
+        "role": "开发者确认审查口径及将本批参考包用于学习项目质量基线"
+      }
+    ],
+    "decision_source": "current_chat_user_message",
+    "decision_recorded_at_utc": "2026-10-03T14:28:23.228504+00:00",
+    "is_independent_teacher_truth": false,
+    "source_sha256": {
+      "annotations.json": "e3df8cc30f27c96060c46bd46f60eab26fcb5ef0ec925fd2c1cccb579f161e2e",
+      "developer_review.json": "de098c686f725814c4716abddd0cfa889e14ef5efe5a29ad02adb9328f373380",
+      "manifest.json": "eedef2ff79e74eae3a7fe0d2ae29b2d29070c3b70f5e9a530577f53c4a27dca7"
+    }
+  },
+  "outcome": "completed",
+  "completed_at": "2026-10-06T13:20:27.414865Z",
+  "elapsed_ms": 14296.201,
+  "provider_trace_events": [
+    {
+      "recorded_at": "2026-10-06T13:20:27.414778Z",
+      "request_id": "t168-vision-r3-img-table-f17a00f43437",
+      "agent_type": "llm",
+      "status": "success",
+      "latency_ms": 14293,
+      "model": "deepseek-flash",
+      "prompt_version": "vision-conditions-v1",
+      "input_tokens": 1484,
+      "output_tokens": 3075,
+      "total_tokens": 4559,
+      "input_summary": null,
+      "output_summary": null,
+      "error_code": null,
+      "error_retryable": null
+    }
+  ],
+  "observed_provider_attempts": 1,
+  "actual_raw_responses": [
+    {
+      "received_at_utc": "2026-10-06T13:20:13.296222Z",
+      "status_code": 200,
+      "capture_scope": "response identity, usage, actual choices only; no headers/URL/credentials",
+      "id": "74a3ff3f-7d83-4075-b173-947f7c6098d6",
+      "model": "deepseek-flash",
+      "system_fingerprint": "aeb56401ca74e127821c4f9126dcb669",
+      "usage": {
+        "prompt_tokens": 1484,
+        "completion_tokens": 3075,
+        "total_tokens": 4559,
+        "prompt_tokens_details": {
+          "cached_tokens": 1280
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 2861
+        },
+        "prompt_cache_hit_tokens": 1280,
+        "prompt_cache_miss_tokens": 204
+      },
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\"observations\":[{\"image_index\":1,\"kind\":\"table\",\"description\":\"图示为一张三列四行（含表头）的表格，列标题依次为“x”“y”“说明”，数据部分有三行。\",\"bbox\":null},{\"image_index\":1,\"kind\":\"text\",\"description\":\"表格可见文字：表头为 x、y、说明；第一行数据为 1、3、第一行；第二行数据为 2、5、第二行；第三行数据为 3、7、第三行。\",\"bbox\":null}],\"conditions\":[{\"image_index\":1,\"text\":\"表格列标题为 x、y、说明；数据行为：x=1, y=3, 说明=第一行；x=2, y=5, 说明=第二行；x=3, y=7, 说明=第三行。\",\"evidence_region\":null}],\"unresolved_issues\":[],\"requires_manual_review\":false,\"provenance\":null}",
+            "reasoning_content": "We need to output JSON per schema. Need identify images, tables, conditions. Only one image, 640x400. We need observations, conditions, unresolved_issues, requires_manual_review, provenance null. The image shows a table with columns x, y, 说明; rows: 1,3,第一行; 2,5,第二行; 3,7,第三行. Need maybe bbox entire table. Since only one image, image_index 1. Need conditions as VisionCondition: text of visible conditions. Observational: kind maybe \"table\", description. bbox approximate. Need careful with pixel coordinates. Image dimensions 640x400. Table appears in center, maybe x from ~100 to 540? Need estimate. Let's inspect: table has borders. Left edge maybe ~100, right edge ~540, top ~30, bottom ~360? Let's estimate from image. It's 640x400. Table width maybe 440? Height ~330. Top margin maybe 30, bottom margin maybe 40. Left margin ~100, right ~540. Bbox maybe [100, 30, 540, 360]. But need not be exact? \"无法可靠定位保持 null\" but if can identify approximate table region? We can set bbox for observation maybe approximate. However schema says bbox for observation optional? It has default null. Could provide approximate. Need maybe more than one observation: table. Maybe also text recognition.\n\nBut task: \"识别本题全部图片中的图示、表格与必要条件；不识别或补写答案。\" So output observations describing table and conditions. Conditions: explicit visible conditions. Could include table content. For VisionCondition, text should be e.g. \"表格列标题：x、y、说明；第一行：x=1, y=3, 说明=第一行；第二行：x=2, y=5, 说明=第二行；第三行：x=3, y=7, 说明=第三行。\" But is that a condition? It's table data, yes. Also maybe caption none. There is no answer, no options. Unresolved_issues maybe none, but need if unable to reliably locate? We can locate table but approximate. Should we include issue? If bbox approximate, may not be reliable? But schema allows null if cannot reliably locate. We can include approximate bbox but mention in unresolved? We need decide requires_manual_review. The instruction: \"有问题 requires_manual_review=true。没有问题的 false 也不代替真实教师核对。\" There are no issues? But maybe bounding box uncertain? Could set true? Hmm. We need output JSON only. Since image is clear, no unresolved issues. But \"未知或不可靠的关键文字保留问题说明\" - no unknown. Could set unresolved_issues empty, requires_manual_review false. But maybe need mention table bbox approximate? Not a problem. However, the table is clear. Let's see if any issue with image? no. So false.\n\nBut wait \"仅依据本次全部题图和真实文字上下文识别图示、表格及必要条件。\" So conditions should only include explicit conditions. We can include one condition with image_index 1 and text listing visible table. Evidence_region maybe bbox of table. If we set bbox, it's pixel region. Need maybe evidence_region can be null if not reliable. But we can estimate. Let's estimate coordinates precisely: The image has white background. Table has black border. Let's determine likely coordinates. Image 640x400. The table appears centered. Left vertical line at about x=100? Right at about x=540? Top horizontal line at about y=30? Bottom at about y=360? Let's inspect proportions. The table width relative to image: left margin maybe 100/640 = 0.156, right margin 100/640 =0.156; width 440. Height: top margin 30, bottom margin 40? Table height 330. In the displayed image, top border maybe at y=28? bottom at y=362? Let's assume [100, 28, 540, 362]. But maybe we don't need exact. If we include bbox, should be as accurate as possible. Could also set null to avoid unreliable. The schema says \"bbox/evidence_region.bbox 为该资产原图左上/右下像素 (x0,y0,x1,y1)，无法可靠定位保持 null，不使用归一化坐标。\" Since we can't reliably locate exact table boundary? Actually we can see it. But pixel coordinates from mental estimate less precise. Might be okay but if uncertain, null is acceptable. However, conditions evidence_region can be null if no reliable. But maybe we can provide approximate. Better to set null if not sure? But the task expects identification, maybe bbox helpful. The instructions: \"无法可靠定位保持 null\". I am not able to measure exact pixels visually. But I can make a rough guess. However, we should avoid false precision. So maybe set evidence_region bbox null for conditions, and for observations table bbox null, and add unresolved issue about table bounding box not reliably determined? But unresolved_issues should be for issues. If I include null bbox and issue, requires_manual_review maybe true? Hmm.\n\nLet's think: The output should be JSON. The model must recognize image content. It can include observations and conditions. For table, we can describe content. Bbox optional. Since no exact pixel coordinates given by task, maybe not required. But schema includes bbox optional. So we can omit bbox (default null). That's allowed. The instruction says \"无法可靠定位保持 null\" so null is preferred if not reliable. I can't reliably locate exact pixel region, so null. Then unresolved_issues maybe empty. requires_manual_review false? But is there any issue? Maybe not. However, \"bbox=null\" may be acceptable. The schema does not require bbox for conditions? evidence_region has anyOf PixelRegion or null. So null okay. Observations bbox default null. So we can set null.\n\nBut there is a subtlety: The prompt says \"图片 image_index 从 1 开始，按下列输入顺序对应；bbox/evidence_region.bbox 为该资产原图左上/右下像素 (x0,y0,x1,y1)，无法可靠定位保持 null\". So if we set null, it's fine. Need not force.\n\nNow, what exactly conditions? The table data itself may be conditions: x y 说明 table. The problem likely asks something using the table? But task says \"识别本题全部图片中的图示、表格与必要条件；不识别或补写答案。\" So we just output table as condition. We can set condition text maybe:\n\n\"表格为三列三行数据：列标题依次为 x、y、说明；数据行依次为 (x=1, y=3, 说明=第一行)、(x=2, y=5, 说明=第二行)、(x=3, y=7, 说明=第三行)。\"\n\nThis captures all visible conditions. Also maybe caption null. No other images.\n\nObservations: one observation kind \"table\" with description: \"图示为一张 3 列 4 行（含表头）的表格，列标题为 x、y、说明，数据为三行对应关系。\" Bbox null.\n\nShould we include observation kind \"text\" with recognized text? Could. But observation can be one. Maybe include multiple observations: one for table structure, one for textual content? But the schema allows multiple observations. Let's provide 2 observations maybe: \n1. image_index 1, kind \"table\", description \"表格共有四行三列，包含表头 x、y、说明和三行数据。\"\n2. image_index 1, kind \"text\", description \"表格内容：x列值 1、2、3；y列值 3、5、7；说明列值 第一行、第二行、第三行。\"\n\nBut overkill? Fine.\n\nConditions: one condition with text listing explicit table content. Maybe no other conditions. Could also include an \"unknown\" if no answer? But task says no answer. We don't need.\n\nUnresolved_issues: maybe none. Could include \"无\" but schema expects list of issue objects. Empty list.\n\nRequires_manual_review: false. Because no contradiction or missing. But \"没有问题的 false 也不代替真实教师核对\" so false.\n\nProvenance: null. The schema says provenance anyOf Provenance or null, default null. So include \"provenance\": null.\n\nNeed ensure final JSON only, no Markdown. The output must be valid JSON object. Use double quotes. No trailing commas.\n\nLet's construct:\n\n{\n  \"observations\": [\n    {\n      \"image_index\": 1,\n      \"kind\": \"table\",\n      \"description\": \"图示为一张三列四行（含表头）的表格，列标题依次为“x”“y”“说明”，数据部分有三行。\",\n      \"bbox\": null\n    },\n    {\n      \"image_index\": 1,\n      \"kind\": \"text\",\n      \"description\": \"表格可见文字：表头 x、y、说明；第一行数据 1、3、第一行；第二行数据 2、5、第二行；第三行数据 3、7、第三行。\",\n      \"bbox\": null\n    }\n  ],\n  \"conditions\": [\n    {\n      \"image_index\": 1,\n      \"text\": \"表格列标题为 x、y、说明；数据行为：x=1, y=3, 说明=第一行；x=2, y=5, 说明=第二行；x=3, y=7, 说明=第三行。\",\n      \"evidence_region\": null\n    }\n  ],\n  \"unresolved_issues\": [],\n  \"requires_manual_review\": false,\n  \"provenance\": null\n}\n\nBut wait, the condition text \"数据行为：x=1, y=3\" maybe not exactly \"条件是\"? It is visible text. Should be fine. But \"说明\" column values \"第一行\" etc. The table maybe not \"x=1\" but column values. Fine.\n\nCould there be a condition that the table is a function? No, not explicitly. Do not infer.\n\nNeed maybe issue if cannot reliably locate bbox? But no.\n\nBut \"图像尺寸 640×400\" is given. Is that a condition? It's metadata, not in image? The task says \"识别本题全部图片中的图示、表格与必要条件\" not metadata. Not include.\n\nShould we include an unresolved issue because no image coordinates? No, not an issue.\n\nMaybe we should include \"description\" of table but not overly infer. The text \"第一行\" etc visible. Yes.\n\nPotential issue: The table row labels \"第一行\" maybe actually \"第一行\" in the 说明 column. So condition should include. Good.\n\nOne more: The image might have no other text. So fine.\n\nNow, need ensure JSON schema: observations array items require image_index integer, kind string, description string, bbox optional. We include bbox null. Good.\n\nconditions items require image_index, text, evidence_region optional? Wait condition schema includes \"evidence_region\" anyOf PixelRegion or null. It doesn't have \"required\" specified? Let's check: VisionCondition has properties image_index, text, evidence_region; required? The schema snippet: {\"additionalProperties\": false, \"properties\": {...}, \"required\": [\"image_index\", \"text\", \"evidence_region\"], \"title\": \"VisionCondition\", \"type\": \"object\"}? Wait in the given schema, I need parse: \n```\n\"VisionCondition\": {\"additionalProperties\": false, \"properties\": {\"image_index\": {...}, \"text\": {...}, \"evidence_region\": {\"anyOf\": [{\"$ref\": \"#/$defs/PixelRegion\"}, {\"type\": \"null\"}]}}, \"required\": [\"image_index\", \"text\", \"evidence_region\"], \"title\": \"VisionCondition\", \"type\": \"object\"}\n```\nYes required includes evidence_region. So we must include evidence_region, can be null. Good.\n\nVisionObservation required: image_index, kind, description; bbox optional default null. So we can include bbox null. Good.\n\nProvenance: required? The root schema has \"provenance\": {\"anyOf\": [{\"$ref\": \"#/$defs/Provenance\"}, {\"type\": \"null\"}], \"default\": null}. It's not in required? Root required: [\"observations\", \"conditions\", \"unresolved_issues\", \"requires_manual_review\"]. provenance not required but default null; we can include null. Good.\n\nNow, final response must be raw JSON object. No code fences. Do not include markdown.\n\nDouble-check if need \"conditions\" text maybe include \"题图未给出...\"? Not needed. But maybe conditions should only include necessary conditions, not all table data? The task says \"图示、表格及必要条件\". So table is an object, conditions are necessary conditions. The table content is the condition. Yes.\n\nCould there be \"x,y\" variables? The table defines relation between x and y? It lists pairs. It's a condition. So fine.\n\nNow perhaps \"unresolved_issues\" empty and requires_manual_review false. But \"没有问题的 false 也不代替真实教师核对\" means false is okay.\n\nLet's ensure no provenance fields; provenance null.\n\nFinal output."
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      ]
+    }
+  ],
+  "raw_capture_status": "read_only_http_response_hook"
+}

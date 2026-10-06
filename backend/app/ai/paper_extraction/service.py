@@ -11,10 +11,38 @@ from uuid import UUID
 from backend.app.ai.llm.base import BaseLLMProvider
 from backend.app.schemas.paper_import import ExtractedQuestionData
 
-from .schemas import AnswerFields, AnswerUpdate, ExtractionBatch, SourceExcerpt
+from .schemas import (
+    AnswerFields,
+    AnswerUpdate,
+    Candidate,
+    ExtractionBatch,
+    SourceExcerpt,
+)
 
-PROMPT_VERSION = "paper-extraction-v2"
-INSTRUCTION = """你负责忠实拆分原试卷，不出新题、不解题、不补答案或评分标准。
+PROMPT_VERSION = "paper-extraction-v5"
+INSTRUCTION = """先按实际页内阅读顺序处理每题，不按原题号大小排序。
+字段分工优先：content 只摘录题干，不保留题号、题型标题和表示本题分数的括号；
+这些结构字段分别存 question_number、question_type、score。数学表达式中的括号必须保留。
+例如原文“8. 简答：求 3+4 的值。（5分）”，content="求 3+4 的值。"，score=5，
+不是“简答：求 3+4 的值。（5分）”。不得删去题目实际数学/文字条件。
+保留原文条件与“如图/表”等引用；原题号、单选/判断/简答等类型标题、
+选项、答案/解析/评分说明另存各自字段，不混入题干。页眉页脚、图注和表格行不是题干，
+不要把 OCR 图表文字拼接进题干。不可改写原文字词或为了匹配而补充条件。
+每题 source_anchor 摘录原页中唯一的题目起始原文（含原题号/类型前缀时一并摘录），
+page_number 指向真实来源页。跨页题锚点指向其起始页；不能只用在同页重复的短句。
+options 的表示必须对应原稿：有明确选项标签（如A/B/C/D）才用字典，键保留原标签；
+无标签的选项用字符串列表，保留原顺序，不能发明键或将值写成 null。
+例如原文“正确 / 错误”输出 options=["正确","错误"]、option_sources=null。
+列表 options 或没有选项时 option_sources=null。字典 options 的 option_sources
+必须逐键提供唯一原文（含选项标签及其内容），
+按原页真实顺序保留键；不能按字母排序。无选项时 option_sources=null。
+option_sources 每项的 text 只能摘录这一项的标签和内容，不能复制包含多个选项的整行。
+例如原文 "C. three A. one B. two"，C.text="C. three"、A.text="A. one"、
+B.text="B. two"；三项必须定位不同的实际起点，不可三项都写整行。
+如果选项跨多行，可包含这一项连续多行原文，但不能包含下一项的标签/内容。
+定位证据不能伪造；无法唯一定位时保留 null，供教师校正。图片资产和边界由其他流程核对。
+
+你负责忠实拆分原试卷，不出新题、不解题、不补答案或评分标准。
 只输出符合给定 JSON Schema 的对象。questions 是本批新完成的原题；禁止重复 completed_questions。
 保留原题号、题型、选项顺序、真实分值；未知字段为 null。仅支持 SINGLE_CHOICE、
 TRUE_FALSE、SHORT_ANSWER；不能确定的题型为 null 留待教师校正。
@@ -76,6 +104,62 @@ def _answers(value: AnswerFields, sources: dict[int, TextPage]) -> None:
             _excerpt(excerpt, sources)
 
 
+def _position(
+    excerpt: SourceExcerpt, candidate: Candidate, sources: dict[int, TextPage]
+) -> tuple[int, int]:
+    _excerpt(excerpt, sources)
+    if excerpt.page_number not in candidate.source_pages:
+        raise PaperExtractionError(
+            "reading-order source must belong to question sources"
+        )
+    text = sources[excerpt.page_number].text
+    if text.count(excerpt.text) != 1:
+        raise PaperExtractionError(
+            "reading-order excerpt must identify a unique source position"
+        )
+    return excerpt.page_number, text.index(excerpt.text)
+
+
+def _reading_order(
+    candidates: list[Candidate], sources: dict[int, TextPage]
+) -> list[Candidate]:
+    positions = {}
+    for index, candidate in enumerate(candidates):
+        if candidate.source_anchor is not None:
+            positions[index] = _position(candidate.source_anchor, candidate, sources)
+        if candidate.option_sources is not None:
+            if not isinstance(candidate.options, dict) or set(
+                candidate.option_sources
+            ) != set(candidate.options):
+                raise PaperExtractionError(
+                    "option sources must cover exactly the supplied option keys"
+                )
+            option_positions = {}
+            for key, excerpt in candidate.option_sources.items():
+                value = candidate.options[key]
+                if not isinstance(value, str) or "".join(value.split()) not in "".join(
+                    excerpt.text.split()
+                ):
+                    raise PaperExtractionError(
+                        "option value must be included in its literal source"
+                    )
+                option_positions[key] = _position(excerpt, candidate, sources)
+            if len(set(option_positions.values())) != len(option_positions):
+                raise PaperExtractionError(
+                    "option sources must identify distinct positions"
+                )
+            candidate.options = {
+                key: candidate.options[key]
+                for key in sorted(option_positions, key=option_positions.__getitem__)
+            }
+    # Older providers lacking proof keep their original order; never infer source locations.
+    if len(positions) != len(candidates):
+        return candidates
+    if len(set(positions.values())) != len(positions):
+        raise PaperExtractionError("question anchors must identify distinct positions")
+    return [candidates[index] for index in sorted(positions, key=positions.__getitem__)]
+
+
 class PaperExtractor:
     def __init__(self, provider: BaseLLMProvider, *, batch_size: int = 2):
         if batch_size < 1:
@@ -130,7 +214,7 @@ class PaperExtractor:
                     "final batch left unfinished question content"
                 )
             questions = []
-            for candidate in batch.questions:
+            for candidate in _reading_order(batch.questions, sources):
                 if not set(candidate.source_pages) <= allowed:
                     raise PaperExtractionError(
                         "question source is outside current pages and pending content"
@@ -141,7 +225,14 @@ class PaperExtractor:
                         raise PaperExtractionError(
                             "answer source must be part of the question sources"
                         )
-                data = candidate.model_dump(exclude={"source_pages", "evidence"})
+                data = candidate.model_dump(
+                    exclude={
+                        "source_pages",
+                        "evidence",
+                        "source_anchor",
+                        "option_sources",
+                    }
+                )
                 data.update(
                     source_page_ids=[
                         sources[n].id for n in sorted(candidate.source_pages)
