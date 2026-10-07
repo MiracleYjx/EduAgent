@@ -1,0 +1,1 @@
+{"run_id": "t160-quality-20261007T012224Z-1f7eeede-10-IMP-MIXED-r1", "case_id": "IMP-MIXED", "stage": "automatic", "code": "PAPER_EXTRACTION_FAILED", "message": "分批拆题与结构化暂存失败：原文来源校验失败：extraction excerpt is absent from its actual source page", "evidence_ref": "runs\\t160-quality-20261007T012224Z-1f7eeede-10-IMP-MIXED-r1\\result.json"}

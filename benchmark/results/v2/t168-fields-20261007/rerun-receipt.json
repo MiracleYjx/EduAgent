@@ -1,0 +1,188 @@
+{
+  "task": "T168 authorized field baseline rerun",
+  "recorded_at": "2026-10-07T01:29:32.710095+00:00",
+  "authorization": {
+    "source": "current human user message, 2026-10-07",
+    "scope": "one batch, five synthetic paper cases x three rounds; extraction text only",
+    "allowed_destination": "api.deepseek.com",
+    "allowed_source_root": "benchmark/corpus/v2-draft-20261001/",
+    "excludes": [
+      "real user data",
+      "production data",
+      "secrets or credentials in extraction content"
+    ],
+    "extra_quality_batches_executed": 0
+  },
+  "source_commit": "ddeaf263a9fd2b4f235b288feee7314ed1b4e374",
+  "business_code_commit": "cd20d6d6ec6e070587754b6ed57ba724d3ca0e22",
+  "prompt_version": "paper-extraction-v6",
+  "requested_model": "deepseek-chat",
+  "actual_response_models": {
+    "deepseek-flash": 15
+  },
+  "model_identity_note": "Configured model unchanged; Provider responses report deepseek-flash. Preserve requested and actual identities separately; no intentional model switch.",
+  "reference": "AI-assisted + developer review",
+  "independent_teachers": 0,
+  "reference_sha256": "c6965254e670225224ef28d4abc9efd54fef7d2b7a1841134c3fa11bfcc99350",
+  "runner_reference_sha256": "13095b3d62f9e0db14e92412e58923f6b2c1c83c0acf49ea356e306397e2ff9e",
+  "planned_imports": 15,
+  "attempted_imports": 15,
+  "pending_review_imports": 14,
+  "failed_imports": 1,
+  "actual_http_attempts": 15,
+  "http_status_counts": {
+    "200": 15
+  },
+  "usage": {
+    "prompt_tokens": 45744,
+    "completion_tokens": 9933,
+    "total_tokens": 55677
+  },
+  "fee": null,
+  "fee_reason": "Provider usage has tokens but no billed currency amount",
+  "failed_import_diagnostics": [
+    {
+      "case_id": "IMP-MIXED",
+      "repeat_index": 1,
+      "run_id": "t160-quality-20261007T012224Z-1f7eeede-10-IMP-MIXED-r1",
+      "status": "Failed",
+      "error": "PAPER_EXTRACTION_FAILED",
+      "offline_source_validation": "PaperExtractionError: extraction excerpt is absent from its actual source page",
+      "invalid_literal_excerpts": [
+        {
+          "question_number": "4",
+          "field": "evidence.analysis",
+          "excerpt": {
+            "page_number": 2,
+            "text": "原稿解析：2 × 3 + 1 = 7。"
+          }
+        },
+        {
+          "question_number": "6",
+          "field": "evidence.scoring_rubric",
+          "excerpt": {
+            "page_number": 2,
+            "text": "评分要点：正确关系式 1.00；说明代入过程 2.00。"
+          }
+        }
+      ],
+      "reference_questions_affected": 6,
+      "evidence_ref": "import-v6/t160-quality-20261007T012224Z-1f7eeede/runs/t160-quality-20261007T012224Z-1f7eeede-10-IMP-MIXED-r1/result.json"
+    }
+  ],
+  "field_acceptance": "not_met",
+  "assessments": [
+    {
+      "field": "identity",
+      "numerator": 42,
+      "denominator": 48,
+      "value": 0.875,
+      "target": 1.0,
+      "met": false
+    },
+    {
+      "field": "question_number",
+      "numerator": 42,
+      "denominator": 48,
+      "value": 0.875,
+      "target": 1.0,
+      "met": false
+    },
+    {
+      "field": "order_index",
+      "numerator": 42,
+      "denominator": 48,
+      "value": 0.875,
+      "target": 1.0,
+      "met": false
+    },
+    {
+      "field": "source_page_numbers",
+      "numerator": 42,
+      "denominator": 48,
+      "value": 0.875,
+      "target": 1.0,
+      "met": false
+    },
+    {
+      "field": "question_type",
+      "numerator": 39,
+      "denominator": 45,
+      "value": 0.8666666666666667,
+      "target": 1.0,
+      "met": false
+    },
+    {
+      "field": "options",
+      "numerator": 42,
+      "denominator": 48,
+      "value": 0.875,
+      "target": 1.0,
+      "met": false
+    },
+    {
+      "field": "reference_answer",
+      "numerator": 42,
+      "denominator": 48,
+      "value": 0.875,
+      "target": 1.0,
+      "met": false
+    },
+    {
+      "field": "score",
+      "numerator": 42,
+      "denominator": 48,
+      "value": 0.875,
+      "target": 1.0,
+      "met": false
+    },
+    {
+      "field": "content",
+      "numerator": 35,
+      "denominator": 48,
+      "value": 0.7291666666666666,
+      "target": 0.8,
+      "met": false
+    },
+    {
+      "field": "analysis",
+      "numerator": 39,
+      "denominator": 48,
+      "value": 0.8125,
+      "target": 0.8,
+      "met": true
+    },
+    {
+      "field": "scoring_rubric",
+      "numerator": 36,
+      "denominator": 48,
+      "value": 0.75,
+      "target": 0.8,
+      "met": false
+    },
+    {
+      "field": "knowledge_points",
+      "numerator": 40,
+      "denominator": 48,
+      "value": 0.8333333333333334,
+      "target": 0.7,
+      "met": true
+    }
+  ],
+  "prior_full_regression_reused": {
+    "business_source_unchanged_since_code_commit": true,
+    "receipt": "full-regression/receipt.json",
+    "passed": 2661,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 2,
+    "m0_original_case_supplement": "m0-supplement/receipt.json",
+    "m0_supplement_passed": 1,
+    "note": "The standalone evaluator emits full_regression_still_required=true because it does not read regression evidence; this receipt resolves that prerequisite against the existing identical business source. Do not sum the supplement into full-suite counts."
+  },
+  "t168_task_checked": false,
+  "prior_baseline_registration_complete": true,
+  "quality_accepted": false,
+  "cleanup_receipt": "import-v6/cleanup.json",
+  "private_files_receipt": "business-files-preservation.json"
+}

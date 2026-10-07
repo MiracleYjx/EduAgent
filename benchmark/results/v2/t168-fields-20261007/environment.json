@@ -24,7 +24,12 @@
   ],
   "model_receipt": "ocr-restoration.json",
   "project_dependency_file_changed": false,
-  "quality_calls_executed": 0,
+  "quality_calls_executed": 15,
   "full_first_attempt": "interrupted after missing original PDF dependency; no completed full result claim",
-  "field_comparison_unchanged": true
+  "field_comparison_unchanged": true,
+  "quality_rerun_receipt": "rerun-receipt.json",
+  "requested_quality_model": "deepseek-chat",
+  "actual_response_models": {
+    "deepseek-flash": 15
+  }
 }

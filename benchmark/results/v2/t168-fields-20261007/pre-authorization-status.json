@@ -1,0 +1,56 @@
+{
+  "recorded_before_authorization": true,
+  "repair_summary": {
+    "task": "T168 field revision and repair",
+    "recorded_at": "2026-10-06T18:07:59.410120+00:00",
+    "code_commit": "cd20d6d6ec6e070587754b6ed57ba724d3ca0e22",
+    "prompt_version": "paper-extraction-v6",
+    "reference": "AI-assisted + developer review",
+    "independent_teachers": 0,
+    "reference_sha256": "c6965254e670225224ef28d4abc9efd54fef7d2b7a1841134c3fa11bfcc99350",
+    "comparison_unchanged": true,
+    "new_baseline_executed": false,
+    "quality_model_requests": 0,
+    "cloud_baseline_status": "blocked_pending_explicit_destination_consent",
+    "destination": "https://api.deepseek.com",
+    "model": "deepseek-chat",
+    "planned_imports": 15,
+    "new_content_accuracy": null,
+    "new_knowledge_points_accuracy": null,
+    "new_field_gate_met": null,
+    "new_t168_quality_accepted": false,
+    "regression": {
+      "collected": 2663,
+      "passed": 2661,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 2
+    },
+    "full_regression_passed": true,
+    "lifecycle_case_passed": true,
+    "m0_case_passed": false,
+    "m0_supplement_passed": true,
+    "m0_supplement_counts": {
+      "passed": 1,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "technical_checks_passed": true,
+    "skip_reasons": [
+      "Docker 前置条件不可用，跳过 M0 容器冒烟测试：Docker 引擎响应超时。",
+      "Host does not permit creation of this test symlink."
+    ],
+    "earlier_failed_and_incomplete_attempts_retained": true,
+    "source_scope": "git archive committed source and corpus; protected user fixture unmodified",
+    "t168_existing_task_check": "Historical baseline measurement/threshold registration [X] retained; no new quality acceptance mark",
+    "known_limitations_nonblocking_t168": [
+      "Subsequent startup about 15-16s; original <10s target unchanged",
+      "Semantic condition false-positive rate 16.67%",
+      "Semantic rubric coverage 77.78%",
+      "Image condition completeness 72.73%"
+    ]
+  },
+  "environment_quality_calls_executed": 0,
+  "superseded_by": "rerun-receipt.json"
+}
