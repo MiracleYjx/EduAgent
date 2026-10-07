@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import socket
 import subprocess
 import time
@@ -14,6 +15,11 @@ import psutil
 from dotenv import dotenv_values
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import make_url
+
+
+def actual_failure_step(messages: str) -> str | None:
+    match = re.search(r"^启动失败：\[([^\]\r\n]+)\]", messages, re.MULTILINE)
+    return match.group(1) if match else None
 
 
 def save(path, value):
@@ -65,7 +71,7 @@ def run(args):
                 "EMBEDDING_PROVIDER": "local",
                 "EMBEDDING_MODEL": str(private / "missing-model"),
             },
-            "本地模型",
+            "外置模型",
         ),
         (
             "missing_ocr_weights",
@@ -156,7 +162,8 @@ def run(args):
                 "case": label,
                 "exit_code": exit_code,
                 "expected_step": expected,
-                "observed_step": expected in messages,
+                "observed_step": actual_failure_step(messages) == expected,
+                "actual_failure_step": actual_failure_step(messages),
                 "no_business_port_observed": not listening,
                 "owned_preload_pids_observed": list(owned),
                 "owned_preload_exited": not remaining,
