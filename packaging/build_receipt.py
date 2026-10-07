@@ -34,6 +34,7 @@ source_paths = sorted(
     | set(root.glob("migrations/**/*.py"))
     | {
         root / "scripts/launch_windows.py",
+        root / "scripts/freeze_gradio.py",
         root / "packaging/EduAgent.spec",
         root / "packaging/requirements-windows.txt",
         root / "config/windows.env.example",
