@@ -6,15 +6,13 @@ RAG-assisted educational assessment with structured AI outputs and human review.
 
 EduAgent connects course materials, question preparation, student submissions, grading, and learning feedback. Teachers review AI-generated question candidates and low-confidence grades; students receive results and diagnosis based on confirmed scores.
 
-## Project status
+The Gradio interface provides role-based workspaces, primarily in Chinese.
 
-**M0–M5 are complete within the agreed development/demo scope**, including T080–T091. The completion tag is **`v1.0.0-m5-complete`** (2026-09-29). The Python package version in `pyproject.toml` remains **0.1.0**; the Git milestone tag does not change the package version.
+## Project status — v2.0
 
-- **Real-model validation:** the host-Python development setup exercised retrieval/rerank, question approval, mixed grading, human review, Workflow recovery, and diagnosis with synthetic data and real DeepSeek calls.
-- **Docker validation:** all three containers became healthy, `/ready` returned 200, and an unauthenticated course request returned 401. This used a cached Backend image and did **not** validate the Docker AI chain or a clean image build.
-- **Release boundary:** suitable as a development-complete milestone, not an unconditional production-readiness claim. Recorded checks and remaining limitations are summarized below.
+The **`v2.0` Git tag** marks the accepted learning-project delivery on 2026-10-07. The 58 tasks T134–T191 are complete under the agreed acceptance criteria. The package version in `pyproject.toml` remains `0.1.0`; the Git release tag is tracked separately.
 
-The current Gradio interface is primarily in Chinese. See the [task list](.specify/tasks.md) for milestone details and separately tracked follow-up work.
+This version adds paper import and correction, CPU OCR, chapter-scoped retrieval, question adaptation and semantic validation, conditional exam assembly, exam-specific scoring, richer results, and Windows EXE packaging. The [delivery checklist](docs/v2.0-delivery-checklist.md) indexes the final artifacts, acceptance evidence, database state, and remaining limitations. The original business database was still at `0012_audit_logs` during that review; a source release does not upgrade an existing database.
 
 ## Core capabilities
 
@@ -26,7 +24,17 @@ The current Gradio interface is primarily in Chinese. See the [task list](.speci
 - **Human review and recovery:** LangGraph routes individual answers, pauses for review, and resumes from persisted checkpoints after a Teacher decision.
 - **Results and diagnosis:** pending review is distinct from a final score; diagnosis uses accepted or manually reviewed results, and outdated reports are marked stale.
 - **Role boundaries:** Teacher, Student, and Admin permissions are enforced on the backend. Admin does not replace Teacher approval or grading review.
-- **Engineering support:** JWT-authorized in-app tools, audit logs with 180-day retention, Agent/Workflow Trace with 30-day retention and a query API, reproducible Benchmark runners, and idempotent demo seeds. Dashboard access still requires explicit read authorization.
+- **Engineering support:** JWT-authorized in-app tools, audit logs, Agent/Workflow traces, reproducible Benchmark runners, and idempotent demo seeds. Dashboard access requires explicit read authorization.
+
+## What is new in v2.0
+
+- **Paper import and correction:** import text, scanned, or mixed PDFs and images; compare original pages with structured questions; correct, reject, and confirm questions idempotently. Options retain JSON key order, and unknown answers, boundaries, or image assets remain explicitly unknown.
+- **Local CPU OCR:** RapidOCR 3.9.2 + ONNX Runtime 1.30.0, with external PP-OCRv5 mobile weights. OCR is explicitly enabled; unavailable OCR or extraction failures retain their actual error state. Source papers are excluded from teaching-material retrieval.
+- **Chapter and knowledge-point scope:** confirm chapter/section locations and chunk tags, then pass an explicit retrieval scope to generation and grading. Knowledge-point tags remain in JSONB metadata.
+- **Question adaptation and review:** adapt imported questions, check images with a separately configured vision model, persist semantic-validation reports, and require current validation before approval. Input changes invalidate earlier evidence. Student-visible images default to off; source papers and answer-bearing full pages remain private.
+- **Conditional assembly and exam scoring:** select questions by teaching requirements, show shortages, reorder or replace questions, and set exam-specific scores and Rubrics. Assembly constraints record intent; `ExamQuestion` supplies the actual order and scores. Publishing freezes the grading basis.
+- **Teaching and learning feedback:** teacher distributions, per-question results, knowledge-point losses, and attention lists; student answer feedback and recommendations backed by accessible course sources. Pending, failed, and unavailable results remain distinct.
+- **Durable files and Windows delivery:** registered storage, explicit historical-file migration, coordinated database/file backup and isolated restore, and a PyInstaller onedir package with external configuration and data.
 
 ## Architecture
 
@@ -59,7 +67,59 @@ PostgreSQL holds business records, pgvector embeddings, full-text search data, a
 | Default local Embedding | `BAAI/bge-large-zh-v1.5`, 1024 dimensions |
 | Rerank | LLM adapter or an optional local Cross Encoder |
 
-Four Agent modules define distinct responsibilities: Supervisor routing, Question generation, Grading orchestration, and Reviewer decisions. Production request paths use Question, Grading, and Reviewer; Supervisor is not wired into the production grading graph.
+## How it works
+
+### Course material to retrieval context
+
+The [ingestion pipeline](backend/app/ai/ingestion/service.py) parses documents, cleans text, splits it into chunks, and requests vectors from an Embedding provider. The knowledge-base service persists the chunks with their source metadata and vectors in PostgreSQL. Retrieval stays within the requested course.
+
+| Mode | Retrieval method |
+| --- | --- |
+| `vector_only` | Embed the query and retrieve semantically similar chunks through pgvector |
+| `keyword_only` | Match terms using PostgreSQL full-text search |
+| `hybrid` | Normalize vector and keyword scores separately, then combine them with configurable weights |
+| `hybrid_rerank` | Rerank the hybrid candidate set with the selected Rerank provider |
+
+The [hybrid retriever](backend/app/ai/retrieval/hybrid_search.py) preserves source identifiers and scores so downstream question generation and grading can reference the retrieved evidence. PostgreSQL's `simple` text-search configuration does not segment Chinese words; corpus language and query formulation affect keyword matching.
+
+### Structured Agents and question generation
+
+Agent inputs and outputs use typed schemas rather than free-form text between components. Each Agent has a distinct responsibility:
+
+| Agent | Responsibility |
+| --- | --- |
+| Question | Generate structured candidates from course context for validation and Teacher approval |
+| Grading | Coordinate objective and subjective grading and return structured results |
+| Reviewer | Check structured result consistency and recommend acceptance, revision, or regrading without replacing Teacher decisions |
+| Supervisor | Provide deterministic routing decisions from explicit task types and state snapshots; the grading execution path is controlled by the LangGraph graph |
+
+The [Question Agent](backend/app/ai/agents/question_agent.py) calls the resolved LLM provider and passes its output to validation. The [generation service](backend/app/api/question_generation.py) writes each batch's questions, source snapshots, and generation metadata in one transaction. Provider and model identity come from the actual provider instance, not guessed configuration values. Teacher approval is a separate operation.
+
+Source snapshots store the text used for generation. If the original chunk is deleted, the live reference becomes null while the snapshot remains available as historical evidence. Revision comments are stored alongside the question's review history.
+
+### Grading as a resumable graph
+
+The [grading workflow](backend/app/ai/workflows/grading_workflow.py) processes answers through explicit nodes and conditional edges:
+
+1. `load_submission` and `classify_question` load the submission and choose a grading branch.
+2. `objective_rule_grade` uses deterministic scoring rules; `subjective_retrieve_grade` combines retrieved course material with an LLM grading request.
+3. `structured_validation` checks the result schema, then `confidence_check` routes it to acceptance or human review.
+4. `pending_review` pauses through LangGraph's native interrupt mechanism. A Teacher can confirm, modify, or request regrading; the saved checkpoint lets the same workflow resume across requests.
+5. `next_answer` advances through the submission. `unified_result` aggregates scores, and `generate_diagnosis` produces learning feedback only when the finalization conditions are satisfied.
+
+The [checkpoint service](backend/app/services/workflow_checkpoint.py) stores graph state in PostgreSQL. Business result persistence and review decisions use database transactions; a pending-review score is not presented as a final result. The review round identifier distinguishes a retry from a new review decision.
+
+The start request runs the graph until it pauses or finishes, so its response time includes model calls. Query requests read the persisted workflow state.
+
+### Provider, authorization, and observability boundaries
+
+LLM, Embedding, and Rerank have separate interfaces. The [LLM provider interface](backend/app/ai/llm/base.py) exposes structured generation and provider metadata; callers can inject a provider without changing grading rules or graph structure. Rerank failures are returned explicitly rather than silently switching algorithms. Embeddings use a 1024-dimensional schema, and changing models requires re-ingesting the affected documents.
+
+[JWT authentication and permissions](backend/app/core/security.py) establish the caller identity, while domain services enforce course ownership and access to results. Teacher, Student, and Admin are distinct roles; administrative access does not imply permission to perform Teacher-only AI operations.
+
+The `mcp/` package exposes an in-app, JWT-authorized tool boundary, not an external MCP transport. Tools pass the trusted actor to existing services. The replaceable email adapter defaults to `not_configured`, never claiming that an email was sent.
+
+AuditLog records sanitized business actions. AgentRun and WorkflowRun correlate model calls and graph execution with request/workflow identifiers. Trace data excludes credentials, full prompts, and student answer text. Explicit maintenance methods apply 180-day audit retention and 30-day AgentRun trace retention without deleting WorkflowRun recovery state.
 
 ## Quickstart
 
@@ -90,6 +150,8 @@ export HF_HOME="$PWD/.cache/huggingface"
 ```
 
 The `rerank-local` extra supplies `sentence-transformers` for both BGE Embedding and the optional Cross Encoder. The first model use downloads its weights; allow time and disk space for this. Set `HF_HOME` in the shell that launches the backend to reuse the repository cache.
+
+Scanned-paper import additionally needs the OCR extra (`python -m pip install -e ".[ocr]"`), `OCR_ENABLED=true`, and the three preinstalled PP-OCRv5 mobile weights in `OCR_MODEL_DIR`. See the [OCR selection and setup](docs/evaluation.md) and [paper-import guide](docs/paper-import.md). The Windows build below includes the OCR runtime; weights remain external.
 
 ### 2. Configure the environment
 
@@ -170,20 +232,56 @@ docker compose up -d --wait backend
 
 Compose supplies container-internal PostgreSQL and Redis URLs. Stop the host backend before starting the container on the same port. For a seeded demo, enable `DEV_MODE=true`, configure cloud Embedding in `.env`, then run `./scripts/run_demo.ps1`. It starts the three containers, migrates, and idempotently seeds a course, knowledge base, questions, and exam. A healthy container does not prove AI calls work; seeding may incur provider charges.
 
-The completed Docker check used temporary Embedding placeholders only for startup/readiness checks. Those placeholders are **not working model credentials**. The Docker AI chain still needs a usable cloud Embedding configuration and separate validation; use the host-Python setup for the already validated AI walkthrough.
+Use real provider settings for document ingestion and AI operations; placeholder credentials cannot supply embeddings.
+
+## Build and run a Windows EXE
+
+On Windows with **Python 3.12+**, run the repository's [build script](scripts/build_exe.ps1) from the project root. This variant includes local BGE/Cross Encoder runtime libraries:
+
+```powershell
+.\scripts\build_exe.ps1 -WithLocalModels
+```
+
+The script creates its own build environment, installs `packaging/requirements-windows.txt`, and uses `packaging/EduAgent.spec`. Output is **`.cache/exe-build/dist/EduAgent/`**, containing `EduAgent.exe`, `_internal/`, a configuration template, and `build-receipt.json`. Copy the **entire directory** to the target machine. The tag on GitHub provides source; this command builds the binary locally.
+
+For a cloud-Embedding-only package, omit `-WithLocalModels`; configure a real 1024-dimensional Embedding service. Local-model runtime libraries do not include model weights. Supply complete external BGE/Cross Encoder and, if enabled, OCR model directories; the Windows launcher does not download them.
+
+Prepare PostgreSQL + pgvector and Redis separately. Create the external configuration without overwriting an existing one:
+
+```powershell
+$taskConfigDir = Join-Path $env:LOCALAPPDATA 'EduAgent'
+New-Item -ItemType Directory -Path $taskConfigDir -Force | Out-Null
+$taskConfigFile = Join-Path $taskConfigDir 'config.env'
+if (-not (Test-Path -LiteralPath $taskConfigFile)) {
+    Copy-Item .\config\windows.env.example $taskConfigFile
+}
+notepad $taskConfigFile
+```
+
+Fill the database/Redis URLs, JWT secret, model credentials, and model paths. For the local-Embedding build, set `EMBEDDING_PROVIDER=local` and `EMBEDDING_MODEL` to the complete external model directory. For cloud Embedding, retain `openai_compatible` and fill its own model, endpoint, and credentials. Set `DEV_MODE=true` only when intentionally using demo quick-login.
+
+After backing up an existing database and confirming the target database, start the package:
+
+```powershell
+& .\.cache\exe-build\dist\EduAgent\EduAgent.exe --config $taskConfigFile --no-browser
+```
+
+The launcher checks dependencies and applies migrations before serving. Open `http://127.0.0.1:8000/gradio/` after readiness; omitting `--no-browser` opens it automatically. Ctrl+C stops the owned application process. The target machine does not need Python. Configuration, model weights, and business data stay outside the package; default data is `%LOCALAPPDATA%/EduAgent/storage`.
+
+See the [deployment guide](docs/exe-deployment.md), [package notes](packaging/README.md), and [current delivery checklist](docs/v2.0-delivery-checklist.md). Earlier failure sections in deployment evidence are historical; the final T189 result is the current startup result. A new build needs its own verification; a build receipt records identity, not acceptance.
 
 ## Assessment workflow
 
-Use the available Gradio views and API documentation to follow these checkpoints. A fresh database does not seed itself: use `python scripts/demo_seed.py` in development mode, or `./scripts/run_demo.ps1` for Docker Demo with cloud Embedding configured. Neither seed path creates a student submission.
+Use the Gradio views and API documentation to follow this workflow. A fresh database does not seed itself: use `python scripts/demo_seed.py` in development mode, or `./scripts/run_demo.ps1` for Docker Demo with cloud Embedding configured. Neither seed path creates a student submission.
 
 1. **Teacher:** create a course and its knowledge base, upload a supported document, and confirm that processing reaches `Ready`.
 2. **Teacher:** create questions manually or generate AI candidates from course material. Review candidates before adding approved questions to an exam.
-3. **Student:** open an available exam and submit answers. Single-choice, true/false, and short-answer questions form a representative MVP example.
+3. **Student:** open an available exam and submit answers. An exam can combine single-choice, true/false, and short-answer questions.
 4. **Teacher:** start the LangGraph grading path with `POST /api/workflow/submissions/{submission_id}/runs`; inspect `GET /api/workflow/runs/{workflow_id}` for status.
 5. **Teacher:** confirm or modify low-confidence grades through the review workspace/API. If the decision is saved but resumption fails, use `POST /api/workflow/runs/{workflow_id}/resume` to continue the original run.
 6. **Student / Teacher:** view confirmed results and diagnosis. Pending review must not appear as a final score.
 
-The separate `/api/grading` task API remains available. Its M3 background-task checkpoints are not interchangeable with LangGraph runtime checkpoints; use `/api/workflow` for the pause/resume walkthrough.
+The separate `/api/grading` task API uses background-task checkpoints that are not interchangeable with LangGraph runtime checkpoints; use `/api/workflow` for pause and resume.
 
 ## Testing
 
@@ -200,24 +298,26 @@ python -m alembic current
 python -m alembic check
 ```
 
-The M0 container smoke test also requires the isolated settings `COMPOSE_PROJECT_NAME=eduagent-test`, `POSTGRES_PORT=15432`, `REDIS_PORT=16379`, and `BACKEND_PORT=18000`; see its [prerequisites](tests/integration/test_m0_smoke.py). A skipped smoke test is not a deployment verification.
-
-### Recorded completion gates
-
-The final T091.3 checks on 2026-09-29 validated the implementation associated with `v1.0.0-m5-complete`; they are not a claim that later checkouts have been retested.
-
-| Check | Recorded result |
-| --- | --- |
-| Full pytest suite | **1546 passed, 0 failed, 1 skipped, 14 warnings**, 308.78 s |
-| Model tests | 137 passed |
-| Two isolated-schema migration tests | 2 passed; original assertions retained |
-| Mypy | No issues in 140 source files |
-| Ruff | All checks passed |
-| Alembic | `0012_audit_logs (head)`; no new upgrade operations detected in the preceding T091.3 schema check |
-
-The skipped test was the M0 Docker smoke test without its four required isolation variables. It is not counted as passed, and the separate Docker readiness check does not replace it. The 14 warnings comprise 3 Starlette deprecations, 7 Alembic configuration deprecations, and 4 SQLAlchemy fixture warnings. Two migration tests initially failed because reflection also saw public-schema tables; explicitly scoping those queries fixed the tests without weakening their assertions. Rerun gates after code or environment changes.
+The container smoke test also requires the isolated settings `COMPOSE_PROJECT_NAME=eduagent-test`, `POSTGRES_PORT=15432`, `REDIS_PORT=16379`, and `BACKEND_PORT=18000`; see its [prerequisites](tests/integration/test_m0_smoke.py).
 
 ## Evaluation
+
+### v2.0 recorded acceptance
+
+T146/T168 use **AI-assisted labels + developer review**, synthetic papers, and no independent teacher labels. T168 formally adopts the v8 run: five papers, three rounds, 16 distinct reference questions and 48 evaluated instances. Unknown question types are excluded from that field's denominator (45).
+
+| Field group | Recorded v8 result | Target |
+| --- | --- | --- |
+| Identity, number, order, source pages, options, answer, score | Each 48/48 (100%) | 100% |
+| Question type | 45/45 (100%) | 100% of known labels |
+| Content | 40/48 (83.33%) | ≥80% |
+| Analysis | 41/48 (85.42%) | ≥80% |
+| Scoring Rubric | 42/48 (87.50%) | ≥80% |
+| Knowledge points | 43/48 (89.58%) | ≥70% |
+
+Image assets are outside these thresholds: automatic image extraction is not implemented, and unknown assets are not treated as verified empty lists. [v8 field evidence](benchmark/results/v2/t168-bounded-20261007/round2-fields/summary.json) supersedes the earlier v6 field results; historical runs remain available.
+
+The final Windows package reached both `/ready` and `/gradio/` in **9.005–9.670 s** on three first starts and **8.307–8.865 s** on five subsequent starts. Startup resource windows and normal exits passed 8/8. These are prepared-host measurements, excluding browser rendering and long-running model workloads. See [startup evidence](benchmark/results/v2/t189-optimize-20261007/README.md), [evaluation](docs/evaluation.md), and the [validation report](docs/validation-report.md). This README update does not rerun those checks.
 
 ### Grading pipeline self-test
 
@@ -227,11 +327,11 @@ After configuring the environment, this uses deterministic substitutes and does 
 python scripts/run_grading_benchmark.py --mode selftest
 ```
 
-It exercises Zero-shot, RAG, and Hybrid + Rerank strategies. The committed [grading self-test report](benchmark/results/grading_selftest-t059.json) contains synthetic reference scores and no Teacher-labeled ground truth, so it does not establish grading accuracy, MAE, RMSE, or agreement with Teachers.
+It exercises Zero-shot, RAG, and Hybrid + Rerank strategies. Self-tests check pipeline behavior, not grading quality. MAE, RMSE, and agreement metrics require Teacher-labeled ground truth; without it, these metrics remain `null` rather than using synthetic reference scores as human labels.
 
 ### Reproducible retrieval benchmark
 
-Retrieval Benchmark now initializes an isolated schema and records real runtime UUIDs in a manifest; it does not require pre-existing database IDs from the [old corpus list](benchmark/corpus/chunks.json). To check the reproducible pipeline with stubs:
+The retrieval Benchmark initializes an isolated schema and records runtime document/chunk UUIDs in a manifest, so no pre-existing database IDs are required. To check the reproducible pipeline with stubs:
 
 ```powershell
 python scripts/setup_benchmark_corpus.py --self-test --output-dir .cache/benchmark/corpus-stub
@@ -242,18 +342,28 @@ Use each script's `--help` for available real-provider options. `--self-test` pr
 
 The small synthetic retrieval dataset and Chinese tokenization limitations restrict what can be concluded. Compare runs only with their dataset, model, Prompt, and configuration metadata; synthetic grading reference scores are not Teacher ground truth.
 
-## Known limits and roadmap
+## Known limits
 
-- PostgreSQL `simple` full-text search does not provide Chinese word segmentation; the recorded Chinese benchmark has zero keyword recall. Hybrid/Rerank quality gains are not guaranteed for a new dataset.
-- The current schema requires 1024-dimensional embeddings. Changing the Embedding model requires re-ingesting affected documents, even if dimensions stay the same.
-- LLM Rerank and real grading depend on external provider availability and latency. LLM Rerank failure does not automatically select the Cross Encoder.
-- Workflow startup currently waits synchronously for model work: the two real T089 requests took **10.317 s and 19.122 s**, missing the <1 s target. Workflow query GET p95 was **59.483 ms** over 50 local, serial samples; this is not a cold-start or concurrent-load guarantee.
-- Docker AI end-to-end validation, a clean image build, and three-container peak/resource-limit verification remain unperformed. The startup-only check reused a cached image and already healthy dependencies.
-- Teacher-labeled grading data is still absent, so grading quality metrics remain `null`. Synthetic data and pipeline self-tests do not establish real student grading accuracy.
-- Some UI integration and responsive-layout acceptance work remains separately tracked. Backend integration tests do not establish that every screen has been manually verified.
-- Supervisor is not wired into the production grading graph. A unified JSON log pipeline is not yet fully wired.
+- The quality baseline is small, synthetic, and AI-assisted. It verifies the accepted learning-project workflow; further quality improvement needs independent teacher annotations and broader data.
+- Semantic condition false positives remain **16.67%** (target ≤10%); semantic Rubric coverage **77.78%** (target ≥90%); image-condition completeness **72.73%** (target ≥95%). These separate metrics remain recorded limitations despite the passing v8 import-field thresholds.
+- Automatic image detection, cropping, and question association remain future work (`assets` 0/48 in automatic extraction). Current image understanding and teacher correction do not constitute an automatic image-extraction pipeline.
+- The original database review found 11 unapplied v2.0 migrations, 0013–0023; the source chain ends at `0023_grading_exam_question`. Back up and verify before upgrading an existing environment. Restore verification does not automatically activate the restored environment.
+- Windows acceptance used an already prepared local machine, not a clean target installation. Docker readiness and synthetic tests do not establish the Docker cloud-AI chain or real-school production readiness.
+- PostgreSQL `simple` search does not segment Chinese; Embedding requires 1024 dimensions and re-ingestion when changing models. Model quality, external-service latency, and workflow response times are distinct from EXE startup time.
 
-M5 includes an in-app JWT-authorized MCP-style tool boundary, audit/Trace, evaluation dashboard code, and Docker demo seeding. It does **not** provide external standard MCP transport or real email delivery; the default email adapter returns `not_configured`, not `sent`. The evaluation dashboard entry remains hidden until an explicit production read-authorization contract exists. T089 development-mode validation and T091 completion gates are recorded, with the limitations above retained. Phase 6/7 partial acceptance records and the unimplemented Phase 9 prefix-cache plan remain separately tracked; the M0–M5 tag does not mark those tasks complete.
+The [delivery checklist](docs/v2.0-delivery-checklist.md) retains the full limitations and measurement boundaries.
+
+## Documentation
+
+| Guide | Contents |
+| --- | --- |
+| [Delivery checklist](docs/v2.0-delivery-checklist.md) | Current v2.0 status, artifacts, database state, and limits |
+| [Paper import](docs/paper-import.md) | OCR, correction, images, and confirmation |
+| [File lifecycle](docs/file-lifecycle.md) | Durable file identities and access rules |
+| [Storage operations](docs/v2.0-storage-operations.md) | Migration, coordinated backup, and isolated restore |
+| [EXE deployment](docs/exe-deployment.md) / [package notes](packaging/README.md) | Build and launch configuration |
+| [Evaluation](docs/evaluation.md) / [validation](docs/validation-report.md) | Protocols, current results, and historical evidence |
+| [Test change record](docs/test-change-record-v2.md) | Test changes and their coverage |
 
 ## Repository guide
 
@@ -270,16 +380,10 @@ backend/
     ui/                   Gradio views and loaders
     core/                 Configuration, database, Redis, authentication
 migrations/               Alembic migrations
-scripts/                  Demo seeds/launcher, smoke checks, and benchmark runners
+scripts/                  Launch/build, storage maintenance, demo seeds, benchmark runners
+packaging/                PyInstaller spec, pinned Windows dependencies, build receipts
+config/                   External Windows configuration template
+docs/                     User guides, acceptance evidence, delivery checklist
 tests/                    Unit, contract, and integration tests
 benchmark/                Evaluation corpora, manifests, and recorded results
 ```
-
-## Further reading
-
-Public repository references:
-
-| Document | Contents |
-| --- | --- |
-| [Benchmark result index](benchmark/results/README.md) | Result files and metadata conventions |
-| [Milestones](.specify/tasks.md) | Implementation tasks and follow-up work |
