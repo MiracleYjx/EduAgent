@@ -1,1 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="0" skipped="0" tests="1" time="10.965" timestamp="2026-10-04T02:36:10.089148+08:00" hostname="YJX"><testcase classname="tests.integration.test_teacher_setup" name="test_teacher_prepares_course_document_question_and_exam" time="1.208" /></testsuite></testsuites>

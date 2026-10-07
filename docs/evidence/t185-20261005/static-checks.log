@@ -1,9 +1,0 @@
-python -m ruff check --no-cache backend/app/ui/design_system.py backend/app/ui/layout_view.py backend/app/ui/paper_correction_view.py backend/app/ui/paper_import_view.py backend/app/ui/question_view.py backend/app/ui/results_view.py tests/unit/ui/test_shared_ui_acceptance.py
-All checks passed!
-
-python -m black --check --target-version py312 backend/app/ui/design_system.py backend/app/ui/layout_view.py backend/app/ui/paper_correction_view.py backend/app/ui/paper_import_view.py backend/app/ui/question_view.py backend/app/ui/results_view.py tests/unit/ui/test_shared_ui_acceptance.py
-All done! ✨ 🍰 ✨
-7 files would be left unchanged.
-
-python -m mypy backend
-Success: no issues found in 213 source files

@@ -1,3 +1,0 @@
-Full backend mypy: Success: no issues found in 205 source files
-Ruff backend + T172 tests: All checks passed!
-Initial API import sort failed I001; import-only fix and final Ruff passed.

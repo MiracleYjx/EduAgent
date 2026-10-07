@@ -1,4 +1,0 @@
-Traceback (most recent call last):
-  File "D:\YJX\MyCode\EduAgent\.cache\t175-178-20261004\inspect_workflow_state.py", line 3, in <module>
-    from tests.contract.test_workflow_api_contract import env, _service
-ModuleNotFoundError: No module named 'tests'

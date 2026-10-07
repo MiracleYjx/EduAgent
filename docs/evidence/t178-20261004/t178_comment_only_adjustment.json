@@ -1,5 +1,0 @@
-{
-  "path": "tests\\integration\\test_review_fixed_input_display.py",
-  "reason": "Explicit noqa for imported pytest fixture shadowing; no behavioral change",
-  "test_ast_identical_to_full_test_snapshot": true
-}

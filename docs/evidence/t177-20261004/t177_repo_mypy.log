@@ -1,3 +1,0 @@
-backend\app\services\grading\objective_grader.py:672: error: Argument "score" to "GradingResult" has incompatible type "Decimal | float"; expected "Decimal"  [arg-type]
-backend\app\services\grading\objective_grader.py:673: error: Argument "max_score" to "GradingResult" has incompatible type "Decimal | float"; expected "Decimal"  [arg-type]
-Found 2 errors in 1 file (checked 4 source files)

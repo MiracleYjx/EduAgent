@@ -1,3 +1,0 @@
-backend\app\ui\review_loaders.py:185: error: Argument "key" to "sorted" has incompatible type "Callable[[QuestionAssetView], int | None]"; expected "Callable[[QuestionAssetView], SupportsDunderLT[Any] | SupportsDunderGT[Any]]"  [arg-type]
-backend\app\ui\review_loaders.py:185: error: Incompatible return value type (got "int | None", expected "SupportsDunderLT[Any] | SupportsDunderGT[Any]")  [return-value]
-Found 2 errors in 1 file (checked 209 source files)

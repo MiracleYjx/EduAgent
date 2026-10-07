@@ -1,1 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="0" skipped="0" tests="1" time="1.836" timestamp="2026-10-03T23:51:04.030064+08:00" hostname="YJX"><testcase classname="tests.contract.test_grading_benchmark_contract" name="test_metrics_are_null_without_teacher_ground_truth" time="0.019" /></testsuite></testsuites>

@@ -1,4 +1,0 @@
-{"run_id": "ASM-1-SAT-pilot-0-a5a82191", "passed": true, "ms": 707.6000000238419, "memory_complete": true}
-{"run_id": "ASM-25-SAT-pilot-0-43726001", "passed": true, "ms": 997.8000000119209, "memory_complete": true}
-{"run_id": "ASM-100-SAT-pilot-0-18fbcde7", "passed": true, "ms": 1270.699999988079, "memory_complete": true}
-{"planned": 3, "attempted": 3, "business_passed": 3, "latency_passed": 3, "resource_complete": 3, "memory_passed": 3, "completed_at": "2026-10-05T02:18:56.436003+00:00", "passed": true}

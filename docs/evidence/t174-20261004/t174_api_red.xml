@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="1" failures="0" skipped="0" tests="1" time="1.224" timestamp="2026-10-04T02:04:02.821714+08:00" hostname="YJX"><testcase classname="" name="tests.contract.test_exam_scoring_api" time="0.000"><error message="collection failure">ImportError while importing test module 'D:\YJX\MyCode\EduAgent\tests\contract\test_exam_scoring_api.py'.
-Hint: make sure your test modules/packages have valid Python names.
-Traceback:
-D:\develop\Python\Lib\importlib\__init__.py:88: in import_module
-    return _bootstrap._gcd_import(name[level:], package, level)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-tests\contract\test_exam_scoring_api.py:6: in &lt;module&gt;
-    from backend.app.api.exams import get_exam_scoring_service
-E   ImportError: cannot import name 'get_exam_scoring_service' from 'backend.app.api.exams' (D:\YJX\MyCode\EduAgent\backend\app\api\exams.py)</error></testcase></testsuite></testsuites>

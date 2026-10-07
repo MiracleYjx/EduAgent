@@ -1,3 +1,0 @@
-Mypy five changed backend files: no issues
-Ruff backend and T173 tests: All checks passed!
-Initial nullable reference_answer type corrected to preserve real missing answers.

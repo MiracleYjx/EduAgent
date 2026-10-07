@@ -1,5 +1,0 @@
-backend\app\services\grading\scoring_images.py:26: error: Invalid "type: ignore" comment  [syntax]
-backend\app\services\grading\scoring_images.py:26: error: Cannot assign to class variable "error_code" via instance  [misc]
-backend\app\services\grading\scoring_images.py:27: error: Invalid "type: ignore" comment  [syntax]
-backend\app\services\grading\scoring_images.py:27: error: Cannot assign to class variable "retryable" via instance  [misc]
-Found 4 errors in 1 file (checked 7 source files)

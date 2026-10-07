@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="1" failures="0" skipped="0" tests="1" time="0.879" timestamp="2026-10-04T02:01:11.791253+08:00" hostname="YJX"><testcase classname="" name="tests.integration.test_exam_scoring" time="0.000"><error message="collection failure">ImportError while importing test module 'D:\YJX\MyCode\EduAgent\tests\integration\test_exam_scoring.py'.
-Hint: make sure your test modules/packages have valid Python names.
-Traceback:
-D:\develop\Python\Lib\importlib\__init__.py:88: in import_module
-    return _bootstrap._gcd_import(name[level:], package, level)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-tests\integration\test_exam_scoring.py:13: in &lt;module&gt;
-    from backend.app.schemas.exam_scoring import ScoringConfirmRequest, ScoringPrepareRequest
-E   ImportError: cannot import name 'ScoringConfirmRequest' from 'backend.app.schemas.exam_scoring' (D:\YJX\MyCode\EduAgent\backend\app\schemas\exam_scoring.py)</error></testcase></testsuite></testsuites>

@@ -1,6 +1,0 @@
-backend\app\services\learning_recommendation_service.py:80: error: Argument "order" to "FeedbackAssetDTO" has incompatible type "int | None"; expected "int"  [arg-type]
-backend\app\api\results.py:211: error: Argument 2 to "published_result_items" has incompatible type "ExamResultDTO | None"; expected "ExamResultDTO"  [arg-type]
-backend\app\api\results.py:250: error: Unsupported operand types for - ("Decimal" and "None")  [operator]
-backend\app\api\results.py:250: note: Right operand is of type "Decimal | None"
-backend\app\api\results.py:269: error: Argument 1 to "final_learning_observations" of "DiagnosisService" has incompatible type "ExamResultDTO | None"; expected "ExamResultDTO"  [arg-type]
-Found 4 errors in 2 files (checked 4 source files)

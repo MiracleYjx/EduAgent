@@ -1,6 +1,0 @@
-{
-  "pid": 106364,
-  "port": 11518,
-  "url": "http://127.0.0.1:11518",
-  "provenance": "isolated in-memory SQLite; actual production results loaders and Gradio; synthetic teacher session, submissions and semantic evidence; cloud calls 0"
-}

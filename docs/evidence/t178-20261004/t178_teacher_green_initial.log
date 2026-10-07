@@ -1,9 +1,0 @@
-......................                                                   [100%]
-============================== warnings summary ===============================
-tests/unit/ui/test_exam_assembly_view.py::test_new_write_controls_exist_and_failure_clears_previous_confirmations
-tests/unit/ui/test_exam_scoring_view.py::test_panel_uses_text_amounts_readonly_source_and_explicit_teacher_actions
-  D:\develop\Python\Lib\site-packages\gradio\components\dataframe.py:183: UserWarning: The `row_limits` parameter is not yet implemented.
-    warnings.warn(
-
--- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
-22 passed, 2 warnings in 13.37s
