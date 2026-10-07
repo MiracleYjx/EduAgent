@@ -27,5 +27,25 @@
     "cause": "Six lost question_type instances belong to a whole mixed-paper import rejected for non-literal answer/rubric evidence; 39/39 successful known types were correct",
     "hypothesis": "v6 content formatting leaked into evidence; no direct type schema or classifier change",
     "content_v6_rules_retained": true
+  },
+  "round_2": {
+    "prompt": "paper-extraction-v8",
+    "prior_result": {
+      "question_type": "42/45",
+      "content": "36/48",
+      "scoring_rubric": "38/48"
+    },
+    "causes": [
+      "One mixed import omitted three independent question starts with similar content on a later page",
+      "Content formatting was incomplete and continuation metadata remained",
+      "Rubric OCR omitted layout whitespace; one known rubric was dropped; one retained its field label"
+    ],
+    "changes": [
+      "Keep distinct source positions independently of textual similarity",
+      "Check content layout boundaries and remove only continuation metadata",
+      "Retain explicit rubric even without an answer; strip field label and restore layout whitespace only, with literal evidence unchanged"
+    ],
+    "schema_or_comparison_changed": false,
+    "sample_specific_values_added": false
   }
 }
