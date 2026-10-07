@@ -20,6 +20,7 @@ from urllib.request import ProxyHandler, build_opener
 from dotenv import dotenv_values
 
 from backend.app.core.config import AppSettings, ConfigurationError, get_settings
+from backend.app.deployment.configuration_validation import validate_configuration
 
 _LOCAL_HTTP = build_opener(ProxyHandler({}))
 
@@ -51,7 +52,9 @@ def configure(config: Path) -> AppSettings:
     os.chdir(config.parent)
     get_settings.cache_clear()
     try:
-        return get_settings()
+        settings = get_settings()
+        validate_configuration(settings)
+        return settings
     except ConfigurationError as exc:
         raise LaunchError(
             "配置校验", str(exc), "使用 --configure 修正列出的配置项"
@@ -333,6 +336,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.configure and args.child:
         parser.error("--configure 不能与内部工作进程参数一起使用")
     child = None
+    log_path: Path | None = None
     try:
         if not 1 <= args.port <= 65535 or args.startup_timeout <= 0:
             raise LaunchError(
@@ -417,9 +421,8 @@ def main(argv: list[str] | None = None) -> int:
                 encoding="utf-8",
             )
 
-        with (settings.storage_root / "logs/application.log").open(
-            "a", encoding="utf-8"
-        ) as log:
+        log_path = settings.storage_root / "logs/application.log"
+        with log_path.open("a", encoding="utf-8") as log:
             if getattr(sys, "frozen", False):
                 child = spawn(log, preload=True)
             for label, operation in (
@@ -457,7 +460,14 @@ def main(argv: list[str] | None = None) -> int:
         print("正在停止所属应用进程…", flush=True)
         return 0
     except LaunchError as exc:
-        print(f"启动失败：{exc}", file=sys.stderr, flush=True)
+        message = f"启动失败：{exc}"
+        print(message, file=sys.stderr, flush=True)
+        if log_path is not None:
+            try:
+                with log_path.open("a", encoding="utf-8") as log:
+                    log.write(message + "\n")
+            except OSError:
+                pass  # Keep the original failure if its log cannot be written.
         return 1
     except Exception as exc:  # noqa: BLE001 - CLI boundary must redact credentials
         # Keep the actual child failure location without logging exception values/credentials.

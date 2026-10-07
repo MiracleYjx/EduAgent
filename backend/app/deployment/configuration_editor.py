@@ -25,10 +25,10 @@ from pydantic_settings import (
 )
 
 from backend.app.core.config import (
-    EMBEDDING_DIMENSION_DEFAULT,
     AppSettings,
     ConfigurationError,
 )
+from backend.app.deployment.configuration_validation import validate_configuration
 
 
 @dataclass(frozen=True)
@@ -81,9 +81,11 @@ FIELD_GROUPS: tuple[tuple[str, tuple[ConfigField, ...]], ...] = (
                 "openai_compatible",
                 ("openai_compatible", "local", "bge", "huggingface"),
             ),
-            ConfigField("EMBEDDING_MODEL", "模型名／本地完整目录", directory=True),
+            ConfigField("EMBEDDING_MODEL", "模型名／本地完整目录 *", directory=True),
             ConfigField("EMBEDDING_BASE_URL", "云 Embedding 地址"),
-            ConfigField("EMBEDDING_API_KEY", "云 Embedding Key", secret=True),
+            ConfigField(
+                "EMBEDDING_API_KEY", "云 Embedding Key（云模式必填）", secret=True
+            ),
             ConfigField(
                 "EMBEDDING_DIMENSION", "向量维度（固定 1024）", "1024", ("1024",)
             ),
@@ -257,11 +259,7 @@ class ConfigDocument:
             settings = _FileSettings(**data)
         except ValidationError as exc:
             raise ConfigurationError.from_validation_error(exc) from None
-        if settings.embedding_dimension != EMBEDDING_DIMENSION_DEFAULT:
-            raise ConfigurationError(
-                "EMBEDDING_DIMENSION 必须为 1024，与现有向量表一致。",
-                ("EMBEDDING_DIMENSION",),
-            )
+        validate_configuration(settings)
         if getattr(sys, "frozen", False):
             resources = Path(
                 getattr(sys, "_MEIPASS", Path(sys.executable).parent)
@@ -372,6 +370,15 @@ class ConfigurationWindow:
                     ttk.Button(
                         frame, text="生成密钥", command=self.generate_secret
                     ).grid(row=row, column=2, padx=(8, 0))
+            if title in {"连接与存储", "Embedding"}:
+                hint = (
+                    "数据库地址中的 USER/PASSWORD 是示例，需替换为真实账号和密码；PostgreSQL 与 Redis 须另外安装并运行。"
+                    if title == "连接与存储"
+                    else "云模式需独立的 Embedding 模型和 Key；本地模式选择完整权重目录，无需云 Key。文字 API Key 不能补齐此项。"
+                )
+                ttk.Label(frame, text=hint, wraplength=740).grid(
+                    row=len(group), column=0, columnspan=3, sticky="w", pady=(8, 0)
+                )
         self.show_secrets = tk.BooleanVar(root, value=False)
         ttk.Checkbutton(
             outer,
@@ -381,7 +388,7 @@ class ConfigurationWindow:
         ).pack(anchor="w", pady=(10, 6))
         ttk.Label(
             outer,
-            text="* 为必填。保存只校验配置格式，不测试连接；模型权重需自行准备。修改已运行服务的配置后需重启。",
+            text="* 为必填。保存校验格式与当前模型的必填项，不测试连接；模型权重需自行准备。修改已运行服务的配置后需重启。",
             wraplength=840,
         ).pack(anchor="w")
         self.status = tk.StringVar(root)

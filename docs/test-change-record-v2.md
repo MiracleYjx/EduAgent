@@ -972,3 +972,21 @@ content/knowledge_points只改现有模型提示词：区分明确未标注与�
 修改的两个部署模块Mypy通过（follow-imports=silent，使用实际构建环境依赖，只报告变更模块）；Ruff/Black通过。完整依赖检查曾分别遇到开发环境缺pypdfium2、构建环境缺pandas-stubs，未修改无关源码消除环境差异，也不称全项目类型门禁。真实合成表单布局、保存、取消及密钥遮罩已检查；无图形会话只跳过Tk表单用例，纯文件与启动器用例照常执行，Windows Tcl错误不跳过。
 
 EXE仍使用现有独立构建环境，新的包及构建/冻结窗口/ZIP回执保存到 `.cache/exe-config-build-20261007/`；旧包不覆盖。新功能不重写T189历史性能结论，不将源码表单测试称为新包完整业务验收。用户原grading_samples.json SHA保持9f8c56328973fb56f88564560f1166bc0415a54fb5022f98c07fc6c168f94fca。
+
+
+## 54. 本机配置完整性与启动失败提示修复（2026-10-07，修改测试前）
+
+用户反馈新配置 EXE 填写 Key 后启动失败。只读诊断确认实际保存文件中的 DeepSeek Key/JWT 已填写，DATABASE_URL 仍为模板 USER/PASSWORD，云 Embedding 缺 EMBEDDING_MODEL 与 EMBEDDING_API_KEY；单独模型预检实际抛出 EmbeddingProviderNotReadyError。本机 PG/Redis TCP 可达，8000 未监听；未执行迁移、未发送模型请求，未记录任何凭据。前两次辅助诊断误用 JWT 属性名，已更正为实际字段 JWT_SECRET_KEY 后完成定位，不作为产品缺陷。
+
+根因是表单仅校验 AppSettings 基础格式，遗漏启动所需的条件字段；启动器将模型异常收敛为类型名，且父进程错误未写入已创建的 application.log。局部修复：在 Windows 部署边界复用同一纯配置检查，拒绝模板数据库凭据，云 Embedding 必须同时提供模型与独立 Key，本地必须提供模型目录字段；原 1024 维约束保留。界面保存与显式配置启动均给出字段名称和可操作说明，不测试连接、不打印输入值；可用日志目录中的父进程 LaunchError 写入日志，失败仍不启动业务服务。
+
+必要测试：扩展现有 test_configuration_editor.py / test_windows_launcher.py，覆盖本次真实配置组合的多字段报告、云模型/Key 单独缺失、合法云/本地配置可保存、缺本地目录字段拒绝、现有文件与密钥不被无效保存覆盖；启动入口对不完整显式文件在存储/子进程/依赖/迁移前退出，日志记录父进程失败且不泄露凭据。保留原断言，不借助真实凭据或原业务库。只进行受影响部署/配置/TLS/冻结测试与静态检查，不扩展业务测试矩阵。
+
+用户已选择既有本地 BGE 与此前验收的 v2 隔离库。运行前仅核对选定库版本与模型文件，配置备份后仅更新明确授权字段，保留用户已填 Key/JWT。重建包后用 --no-browser 后台启动验证 /ready、/gradio/ 及所属进程退出；不重跑云模型、完整性能协议或升级原业务库，不将启动就绪声明为 Key 实际调用成功。
+
+
+### §54 源码检查与配置核对
+
+首轮69 passed/1 Tcl初始化错误（tcl_findLibrary）；独立8次Tk创建/销毁均通过，失败单项独立通过；保留原断言后重验70 passed、2条既有Gradio警告。现有开发环境重复初始化Tk偶发失败继续保留，不以重验掩盖首轮记录。三个变更部署模块聚焦Mypy通过，Ruff/Black（py313）通过。
+
+原业务库只读核对为0012_audit_logs。先前T189性能临时库已清理；实际采用仍存在的T191源隔离库 eduagent_t191_3bed6c35ed68（0023_grading_exam_question）和course-storage，不连接带维护标记的恢复目标。用户配置已按确认备份后更新4项，原Key/JWT/Redis保持；完整BGE权重存在且模型配置预检通过。配置辅助回执初次使用configure切换目录后的相对输出路径失败，修正为绝对路径后保存，不重复写配置或伪称首次回执成功。实际冻结运行及新包回执归档至 `.cache/exe-config-fix-20261007/`，本段源码检查不替代其运行结果。

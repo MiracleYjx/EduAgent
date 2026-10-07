@@ -21,3 +21,6 @@ build-receipt.json 记录实际版本、体积、源码和EXE哈希用于追溯�
 首次双击 EXE 缺少默认 config.env 时自动打开配置窗口；之后双击同目录 Configure-EduAgent.cmd，或运行 `EduAgent.exe --configure`。EXE 仍保存到 `%LOCALAPPDATA%/EduAgent/config.env`；`--config <绝对路径>` 可指定外置文件。源码编辑 .env 使用 `python scripts/launch_windows.py --configure --config .env`。
 
 窗口支持连接、模型、OCR、JWT、演示模式与检索参数，密钥遮罩，JWT生成需显式点击。保存保留注释和未管理项，先校验再原子替换；检测到其他程序改动时拒绝覆盖。取消不写文件，编辑模式保存后退出，重启服务生效；首次配置保存后继续原预检。窗口不测试连接、不迁移数据库、不自动下载模型。--no-browser 后台启动及显式缺失配置不自动弹窗。Tcl/Tk 运行资源随包附带，目标机无需安装 Python。
+
+
+配置注意：DATABASE_URL 中 USER/PASSWORD 必须替换；仅填写文字 Key 不能提供 Embedding。云模式需独立 EMBEDDING_MODEL / EMBEDDING_API_KEY（模型须支持1024维）；本地模式需完整外置目录及包含本地推理库的包。窗口与启动器会直接列出缺失字段，未完成时保留输入、拒绝启动。选择已有数据库还需沿用其配套业务存储目录。

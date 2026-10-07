@@ -248,3 +248,73 @@ def test_loopback_readiness_cannot_use_an_external_proxy(monkeypatch):
         server.shutdown()
         server.server_close()
         thread.join(timeout=2)
+
+
+def test_incomplete_file_reports_fields_before_any_business_work(
+    tmp_path, monkeypatch, capsys
+):
+    values = {
+        "DATABASE_URL": "postgresql+psycopg://USER:PASSWORD@127.0.0.1:5432/eduagent",
+        "REDIS_URL": "redis://127.0.0.1:6379/0",
+        "LLM_PROVIDER": "deepseek",
+        "DEEPSEEK_API_KEY": "synthetic-private-text-key",
+        "DEEPSEEK_BASE_URL": "https://api.deepseek.com",
+        "DEEPSEEK_MODEL": "deepseek-chat",
+        "EMBEDDING_PROVIDER": "openai_compatible",
+        "EMBEDDING_MODEL": "",
+        "EMBEDDING_API_KEY": "",
+        "RERANK_PROVIDER": "llm",
+        "CONFIDENCE_THRESHOLD": "0.7",
+        "JWT_SECRET_KEY": "synthetic-private-signing-key-at-least-32-characters",
+    }
+    path = tmp_path / "config.env"
+    path.write_text("".join(f"{k}={v}\n" for k, v in values.items()), encoding="utf-8")
+    before = path.read_bytes()
+    monkeypatch.chdir(tmp_path)
+    for name, value in values.items():
+        monkeypatch.setenv(name, value)
+    operations = []
+    for name in ("check_storage", "check_models", "check_dependencies", "migrate"):
+        operation = Mock()
+        operations.append(operation)
+        monkeypatch.setattr(launcher, name, operation)
+    spawn = Mock()
+    monkeypatch.setattr(launcher.subprocess, "Popen", spawn)
+    try:
+        assert launcher.main(["--config", str(path), "--no-browser"]) == 1
+        error = capsys.readouterr().err
+        for field in ("DATABASE_URL", "EMBEDDING_MODEL", "EMBEDDING_API_KEY"):
+            assert field in error
+        assert "synthetic-private" not in error
+        assert path.read_bytes() == before
+        for operation in operations:
+            operation.assert_not_called()
+        spawn.assert_not_called()
+    finally:
+        launcher.get_settings.cache_clear()
+
+
+def test_parent_preflight_failure_is_written_to_application_log(
+    monkeypatch, tmp_path, capsys
+):
+    monkeypatch.setattr(launcher, "configure", lambda _: Mock(storage_root=tmp_path))
+
+    def fail(_):
+        raise launcher.LaunchError("模型配置", "缺少 EMBEDDING_MODEL", "编辑本机配置")
+
+    monkeypatch.setattr(launcher, "check_models", fail)
+    dependencies = Mock()
+    migration = Mock()
+    spawn = Mock()
+    monkeypatch.setattr(launcher, "check_dependencies", dependencies)
+    monkeypatch.setattr(launcher, "migrate", migration)
+    monkeypatch.setattr(launcher.subprocess, "Popen", spawn)
+    assert (
+        launcher.main(["--config", str(tmp_path / "config.env"), "--no-browser"]) == 1
+    )
+    logged = (tmp_path / "logs/application.log").read_text(encoding="utf-8")
+    assert "启动失败：[模型配置] 缺少 EMBEDDING_MODEL" in logged
+    assert logged.strip() == capsys.readouterr().err.strip()
+    dependencies.assert_not_called()
+    migration.assert_not_called()
+    spawn.assert_not_called()

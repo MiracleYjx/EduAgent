@@ -280,3 +280,81 @@ def test_file_validation_does_not_read_the_working_directory_dotenv(
     )
     document.save(document.values)
     assert document.path.exists()
+
+
+@pytest.mark.parametrize(
+    ("changes", "expected_fields"),
+    [
+        (
+            {
+                "DATABASE_URL": "postgresql+psycopg://USER:PASSWORD@127.0.0.1:5432/eduagent",
+                "EMBEDDING_PROVIDER": "openai_compatible",
+                "EMBEDDING_MODEL": "",
+                "EMBEDDING_API_KEY": "",
+            },
+            ("DATABASE_URL", "EMBEDDING_MODEL", "EMBEDDING_API_KEY"),
+        ),
+        (
+            {
+                "DATABASE_URL": "postgresql+psycopg://USER:synthetic-private-password@localhost/db"
+            },
+            ("DATABASE_URL",),
+        ),
+        (
+            {"EMBEDDING_PROVIDER": "openai_compatible", "EMBEDDING_API_KEY": ""},
+            ("EMBEDDING_API_KEY",),
+        ),
+        (
+            {
+                "EMBEDDING_PROVIDER": "openai_compatible",
+                "EMBEDDING_MODEL": "",
+                "EMBEDDING_API_KEY": "synthetic-private-embedding-key",
+            },
+            ("EMBEDDING_MODEL",),
+        ),
+        ({"EMBEDDING_MODEL": ""}, ("EMBEDDING_MODEL",)),
+    ],
+)
+def test_incomplete_runtime_fields_preserve_existing_configuration(
+    document, changes, expected_fields
+):
+    document.save(document.values)
+    before = document.path.read_bytes()
+    with pytest.raises(ConfigurationError) as error:
+        document.save(document.values | changes)
+    assert error.value.fields == expected_fields
+    assert all(name in str(error.value) for name in expected_fields)
+    assert "synthetic-private" not in str(error.value)
+    assert "synthetic-key" not in str(error.value)
+    assert document.path.read_bytes() == before
+
+
+def test_complete_cloud_embedding_configuration_can_be_saved(document):
+    values = document.values | {
+        "EMBEDDING_PROVIDER": "openai_compatible",
+        "EMBEDDING_MODEL": "synthetic-1024-model",
+        "EMBEDDING_API_KEY": "synthetic-embedding-key",
+    }
+    document.save(values)
+    saved = dotenv_values(document.path)
+    assert saved["EMBEDDING_MODEL"] == values["EMBEDDING_MODEL"]
+    assert saved["EMBEDDING_API_KEY"] == values["EMBEDDING_API_KEY"]
+
+
+def test_real_tk_reports_all_incomplete_fields_without_discarding_key(
+    document, tk_root
+):
+    window = editor.ConfigurationWindow(tk_root, document)
+    window.variables["DATABASE_URL"].set(
+        "postgresql+psycopg://USER:PASSWORD@127.0.0.1:5432/eduagent"
+    )
+    window.variables["EMBEDDING_PROVIDER"].set("openai_compatible")
+    window.variables["EMBEDDING_MODEL"].set("")
+    window.save_button.invoke()
+    assert not window.saved
+    assert not document.path.exists()
+    assert tk_root.winfo_exists()
+    for field in ("DATABASE_URL", "EMBEDDING_MODEL", "EMBEDDING_API_KEY"):
+        assert field in window.status.get()
+    assert window.variables["DEEPSEEK_API_KEY"].get() == "synthetic-key"
+    assert "synthetic-key" not in window.status.get()
