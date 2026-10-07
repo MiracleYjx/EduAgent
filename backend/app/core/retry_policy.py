@@ -8,8 +8,6 @@ from collections.abc import Awaitable, Callable, Mapping
 from dataclasses import dataclass
 from typing import Any, TypeVar
 
-from openai import APIConnectionError, APIError, APITimeoutError, RateLimitError
-
 T = TypeVar("T")
 type AsyncOperation[T] = Callable[[], Awaitable[T]]
 type AsyncSleep = Callable[[float], Awaitable[Any]]
@@ -111,6 +109,10 @@ def classify_provider_exception(error: Exception) -> ProviderCallError:
             error.info.message,
             retryable=False,
         )
+    # SDK types are needed only when classifying a real call failure.
+    # Importing them at module load also initializes every SDK client schema.
+    from openai import APIConnectionError, APIError, APITimeoutError, RateLimitError
+
     if isinstance(error, (APITimeoutError, TimeoutError)):
         return ProviderCallError(
             "ProviderTimeout",
