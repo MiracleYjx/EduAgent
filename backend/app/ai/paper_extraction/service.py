@@ -19,8 +19,16 @@ from .schemas import (
     SourceExcerpt,
 )
 
-PROMPT_VERSION = "paper-extraction-v6"
-INSTRUCTION = """先按实际页内阅读顺序处理每题，不按原题号大小排序。
+PROMPT_VERSION = "paper-extraction-v7"
+INSTRUCTION = """按以下边界拆题，先核对原文来源，再整理题干展示；两者不能互相覆盖。
+原文来源优先：source_anchor、option_sources、evidence.text 必须逐字复制指定页中的连续原文，
+包括该页原有空格、标点和 OCR 字符；每页独立摘录，不能用另一页相似题目的文本替代。
+不要把 content 的排版恢复应用到证据。输出前逐项检查每个摘录是否确实存在于所指页；
+不得在证据中补空格、改标点、恢复上标或修正 OCR，再声称是原文。未知仍按原规则保留。
+question_type 独立读取原题明确类型：单选=SINGLE_CHOICE、判断=TRUE_FALSE、简答=SHORT_ANSWER；
+从 content 移除题型标题不等于清空类型字段；没有明确类型且无法确定时保留 null。
+
+先按实际页内阅读顺序处理每题，不按原题号大小排序。
 字段分工优先：content 只摘录题干，不保留题号、题型标题和表示本题分数的括号；
 这些结构字段分别存 question_number、question_type、score。数学表达式中的括号必须保留。
 例如原文“8. 简答：求 3+4 的值。（5分）”，content="求 3 + 4 的值。"，score=5，

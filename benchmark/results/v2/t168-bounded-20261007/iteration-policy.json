@@ -1,0 +1,31 @@
+{
+  "task": "T168 bounded prompt repair",
+  "created_at": "2026-10-07T01:35:52.965419+00:00",
+  "base_commit": "d7a868e56818c07dcc4761f4ffa6d859c35ae702",
+  "max_rounds": 3,
+  "imports_per_round": 15,
+  "stop_when_all_field_targets_met": true,
+  "stop_after_round_three": true,
+  "on_remaining_failures": "partial acceptance with explicit known limitations; no further prompt tuning",
+  "authorization": {
+    "source": "current human user request to repair and rerun at most three iterations",
+    "destination": "api.deepseek.com",
+    "data_scope": "only existing synthetic v2-draft-20261001 paper extraction text",
+    "real_or_production_data": false
+  },
+  "reference": "AI-assisted + developer review",
+  "independent_teachers": 0,
+  "reference_sha256": "c6965254e670225224ef28d4abc9efd54fef7d2b7a1841134c3fa11bfcc99350",
+  "runner_reference_sha256": "13095b3d62f9e0db14e92412e58923f6b2c1c83c0acf49ea356e306397e2ff9e",
+  "thresholds_ref": "../t168-fields-20261007/thresholds.json",
+  "comparison": "unchanged benchmark.t168.import_baseline.compare; no new text normalization in evaluation",
+  "no_sample_specific_rules": true,
+  "no_reference_edits": true,
+  "round_1": {
+    "prompt": "paper-extraction-v7",
+    "change": "Prioritize per-page literal evidence; separate content layout from source copying; retain explicit type independently of content metadata removal",
+    "cause": "Six lost question_type instances belong to a whole mixed-paper import rejected for non-literal answer/rubric evidence; 39/39 successful known types were correct",
+    "hypothesis": "v6 content formatting leaked into evidence; no direct type schema or classifier change",
+    "content_v6_rules_retained": true
+  }
+}
