@@ -656,7 +656,9 @@ TCR §47旧生命周期用例 test_close_only_provider_owned_client 已随de8551
 新阈值、原始完整/中断证据、实际环境与清理回执见[本批结果](../benchmark/results/v2/t168-fields-20261007/README.md)、[机器汇总](../benchmark/results/v2/t168-fields-20261007/repair-summary.json)。原标注与比较规则、用户四文件、原库0012及业务行数保持；最终测试库零连接后删除，隔离M0仅down且保留既有卷，共享原服务保留。
 
 
-## T168 授权逐字段基线重跑（2026-10-07，最终结果）
+## T168 授权逐字段基线重跑（2026-10-07，v6 历史记录，已被 v8 取代）
+
+> 历史状态：本节 v6 验收结论已被 v8 取代。原始计数、失败和当时的任务状态原样保留，仅用于迭代追溯；T168 当前正式结果以本文 v8 正式验收节及[v8 实测字段证据](../benchmark/results/v2/t168-bounded-20261007/round2-fields/summary.json)为准。
 
 **本次完整 5 份 × 3 轮重跑已完成，新口径未达标；T168 改回 [ ]。** 本节替代前一阶段“等待目的地确认”的当前状态，历史拒绝、原结果及已完成的基线/阈值登记记录保留。用户已直接授权仅向 api.deepseek.com 发送 v2-draft-20261001 合成试卷的提取文字；没有追加批次。基准仍为 **AI 辅助 + 开发者审查**，独立教师0；原标注、比较规则和未知项不变。
 
@@ -688,7 +690,9 @@ content 从18/48（37.50%）升到35/48（72.92%），仍低于80%；除失败�
 证据：[本批说明](../benchmark/results/v2/t168-fields-20261007/README.md)、[逐字段汇总](../benchmark/results/v2/t168-fields-20261007/baseline-v6/summary.json)、[真实请求/快照](../benchmark/results/v2/t168-fields-20261007/import-v6/)、[最终回执](../benchmark/results/v2/t168-fields-20261007/rerun-receipt.json)。原业务库0012/24张公共表及关键行数、用户四文件均保持；独占库零连接后删除，72个合成原始业务文件按SHA一致移至私有.cache保存，共享PG/Redis健康。只改T168状态，其他任务不改；T169已完成，后续仍需T168修复与T189性能优化。
 
 
-## T168 有止损的修复第2轮收尾（2026-10-07）
+## T168 v8 正式验收与最终收口（2026-10-07）
+
+**用户最终确认：复用既有 paper-extraction-v8 实测作为 T168 正式验收，当前 v8 已满足目标阈值，T168 保持 [X]。本次仅更新文档，不修改 prompt、标注或比较规则，不追加模型调用和复验。**
 
 **第2轮按确认的新字段口径全部达标，T168恢复[X]；停止prompt迭代，不执行第3轮。** 最多3轮的预算实际使用2轮，每轮5份合成原稿×3次。基准仍为AI辅助＋开发者审查，独立教师0；原标签、严格字段比较、未知项及阈值不改。旧v6失败、第1轮未通过和全部剩余差异保留。本节是当前结论，覆盖同日先前未达标状态，不回写原测量。
 
@@ -727,6 +731,19 @@ content共性是OCR数学排版空格、续题结构前缀和少量图表行污�
 原业务库revision0012、24张公共表/关键行数及用户README两份、grading_samples.json、.env原字节保持；两轮导入库及最终回归库零连接后删除，共144个合成原始业务文件SHA不变移至私有.cache。没有重新打开页面。启动15–16秒、语义条件误报16.67%、语义Rubric覆盖77.78%、图片完整性72.73%仍按原已知限制保留，原T189<10秒目标不改；本节只确认本批T168字段门槛，不宣称最终发布通过。
 
 完整证据：[本批说明](../benchmark/results/v2/t168-bounded-20261007/README.md)、[逐轮及最终汇总](../benchmark/results/v2/t168-bounded-20261007/summary.json)、[第2轮字段](../benchmark/results/v2/t168-bounded-20261007/round2-fields/summary.json)、[全量原始日志/XML/清理](../benchmark/results/v2/t168-bounded-20261007/final-full-regression/)。T169已完成，下一步可单独推进T189性能优化；本批停止。
+
+
+### AI 辅助基准局限与最终验收边界
+
+基准为 **AI 辅助 + 开发者审查，无独立教师**；输入为5份合成试卷和对应AI辅助标注，16道不同参考题各重复3次，共48个题目实例，不能视作48道独立题。question_type排除原参考中3个未知实例，分母45；未知项与严格比较规则保持。
+
+- 当前v8达到本批确认的100%/80%/70%逐字段目标；这是该合成基准上的学习项目验收，不是独立教师质量或真实试卷泛化证明。
+- **进一步提升需要真实教师标注作为独立基准才能继续验证。** 后续应另建教师标注版本，保留当前AI辅助基准及迭代证据，不能通过改写现有标签制造提升。现有差异不能仅凭标注作者身份就全部归因于基准质量。
+- content、analysis、scoring_rubric和knowledge_points仍有已记录差异；达到阈值不表示逐字段全部正确。当前证据足以支持本批流程完整性及已确认字段目标的验收；assets仍待自动图像提取流程，source_regions未知，不由本次收口解除。
+
+正式验收依据：[v8实测说明](../benchmark/results/v2/t168-bounded-20261007/README.md)、[第2轮逐字段结果](../benchmark/results/v2/t168-bounded-20261007/round2-fields/summary.json)、[实际请求与运行回执](../benchmark/results/v2/t168-bounded-20261007/round2-receipt.json)、[实际提示词快照](../benchmark/results/v2/t168-bounded-20261007/round2-prompt.txt)、[既有完整回归回执](../benchmark/results/v2/t168-bounded-20261007/final-full-regression/receipt.json)。这些均为已有实测；完整回归回执对应当时v8修复的提交快照，本次不重新运行测试或生成新的模型质量结果。
+
+[v6历史证据目录](../benchmark/results/v2/t168-fields-20261007/)及[原字段计数](../benchmark/results/v2/t168-fields-20261007/baseline-v6/summary.json)全部保留，不修改原始数据；content72.92%、scoring_rubric75.00%和question_type86.67%仅表示v6历史水平，已被v8当前正式结果取代。该目录README中的未达标/未勾选状态是当时快照，不是T168当前状态。
 
 
 ## T189 启动性能达标与已知限制更新（2026-10-07，当前结论）
