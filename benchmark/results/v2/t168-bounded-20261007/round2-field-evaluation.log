@@ -1,0 +1,141 @@
+{
+  "task": "T168 field acceptance",
+  "reference": "AI-assisted + developer review",
+  "independent_teachers": 0,
+  "reference_sha256": "c6965254e670225224ef28d4abc9efd54fef7d2b7a1841134c3fa11bfcc99350",
+  "thresholds_sha256": "4a387513ca715a698436f35fea540eb40ee7660ff09019fb0ed98d40919eae62",
+  "planned_imports": 15,
+  "attempted_imports": 15,
+  "completed_pending_review": 15,
+  "assessments": [
+    {
+      "field": "identity",
+      "numerator": 48,
+      "denominator": 48,
+      "value": 1.0,
+      "target": 1.0,
+      "met": true
+    },
+    {
+      "field": "question_number",
+      "numerator": 48,
+      "denominator": 48,
+      "value": 1.0,
+      "target": 1.0,
+      "met": true
+    },
+    {
+      "field": "order_index",
+      "numerator": 48,
+      "denominator": 48,
+      "value": 1.0,
+      "target": 1.0,
+      "met": true
+    },
+    {
+      "field": "source_page_numbers",
+      "numerator": 48,
+      "denominator": 48,
+      "value": 1.0,
+      "target": 1.0,
+      "met": true
+    },
+    {
+      "field": "question_type",
+      "numerator": 45,
+      "denominator": 45,
+      "value": 1.0,
+      "target": 1.0,
+      "met": true
+    },
+    {
+      "field": "options",
+      "numerator": 48,
+      "denominator": 48,
+      "value": 1.0,
+      "target": 1.0,
+      "met": true
+    },
+    {
+      "field": "reference_answer",
+      "numerator": 48,
+      "denominator": 48,
+      "value": 1.0,
+      "target": 1.0,
+      "met": true
+    },
+    {
+      "field": "score",
+      "numerator": 48,
+      "denominator": 48,
+      "value": 1.0,
+      "target": 1.0,
+      "met": true
+    },
+    {
+      "field": "content",
+      "numerator": 40,
+      "denominator": 48,
+      "value": 0.8333333333333334,
+      "target": 0.8,
+      "met": true
+    },
+    {
+      "field": "analysis",
+      "numerator": 41,
+      "denominator": 48,
+      "value": 0.8541666666666666,
+      "target": 0.8,
+      "met": true
+    },
+    {
+      "field": "scoring_rubric",
+      "numerator": 42,
+      "denominator": 48,
+      "value": 0.875,
+      "target": 0.8,
+      "met": true
+    },
+    {
+      "field": "knowledge_points",
+      "numerator": 43,
+      "denominator": 48,
+      "value": 0.8958333333333334,
+      "target": 0.7,
+      "met": true
+    }
+  ],
+  "field_thresholds_passed": true,
+  "all_fields_diagnostic": [
+    0,
+    48
+  ],
+  "excluded_from_thresholds": {
+    "assets": "待 T164 图像提取流程；不计入 T168 阈值。既有 T164 完成图片理解与核对，自动图像提取尚未实现。",
+    "source_regions": "原标注全部未知，不设本批阈值",
+    "all_evaluable_fields_match": "only a diagnostic; not an acceptance threshold"
+  },
+  "known_limitations_not_blocking_t168": {
+    "startup": "15–16 seconds; original subsequent <10 seconds T189 target unchanged",
+    "semantic_condition_false_positive_rate": 0.16666666666666666,
+    "semantic_rubric_coverage": 0.7777777777777778,
+    "vision_condition_completeness": 0.7272727272727273
+  },
+  "full_regression_still_required": true,
+  "field_unknown_counts": {
+    "analysis": 0,
+    "assets": 0,
+    "content": 0,
+    "knowledge_points": 0,
+    "options": 0,
+    "order_index": 0,
+    "question_number": 0,
+    "question_type": 3,
+    "reference_answer": 0,
+    "score": 0,
+    "scoring_rubric": 0,
+    "source_page_numbers": 0,
+    "source_regions": 48
+  },
+  "comparison": "unchanged strict T168 comparison; trim and line endings only; no internal whitespace normalization"
+}

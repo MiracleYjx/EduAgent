@@ -1,0 +1,354 @@
+{
+  "task": "T168 bounded repair",
+  "round": 2,
+  "max_rounds": 3,
+  "completed_at": "2026-10-07T01:44:02.400552+00:00",
+  "source_commit": "14a550eb58bb1af6e8ebebf46b8a6af52e662274",
+  "prompt_version": "paper-extraction-v8",
+  "prompt_source_sha256": "1f7f4c5aaae97204fdcde4920e1b6e9036698bea36e29dc01beada45eb478143",
+  "prompt_snapshot": "round2-prompt.txt",
+  "actual_request_matches_prompt": true,
+  "reference": "AI-assisted + developer review",
+  "independent_teachers": 0,
+  "reference_sha256": "c6965254e670225224ef28d4abc9efd54fef7d2b7a1841134c3fa11bfcc99350",
+  "runner_reference_sha256": "13095b3d62f9e0db14e92412e58923f6b2c1c83c0acf49ea356e306397e2ff9e",
+  "thresholds_sha256": "4a387513ca715a698436f35fea540eb40ee7660ff09019fb0ed98d40919eae62",
+  "planned_imports": 15,
+  "actual_imports": 15,
+  "pending_review": 15,
+  "failed_imports": [],
+  "actual_http_attempts": 15,
+  "http_status_counts": {
+    "200": 15
+  },
+  "requested_model": "deepseek-chat",
+  "actual_response_models": {
+    "deepseek-flash": 15
+  },
+  "token_usage": {
+    "prompt_tokens": 52014,
+    "completion_tokens": 9403,
+    "total_tokens": 61417
+  },
+  "fee": null,
+  "fee_reason": "Provider does not return billed currency amount",
+  "assessments": [
+    {
+      "field": "identity",
+      "numerator": 48,
+      "denominator": 48,
+      "value": 1.0,
+      "target": 1.0,
+      "met": true
+    },
+    {
+      "field": "question_number",
+      "numerator": 48,
+      "denominator": 48,
+      "value": 1.0,
+      "target": 1.0,
+      "met": true
+    },
+    {
+      "field": "order_index",
+      "numerator": 48,
+      "denominator": 48,
+      "value": 1.0,
+      "target": 1.0,
+      "met": true
+    },
+    {
+      "field": "source_page_numbers",
+      "numerator": 48,
+      "denominator": 48,
+      "value": 1.0,
+      "target": 1.0,
+      "met": true
+    },
+    {
+      "field": "question_type",
+      "numerator": 45,
+      "denominator": 45,
+      "value": 1.0,
+      "target": 1.0,
+      "met": true
+    },
+    {
+      "field": "options",
+      "numerator": 48,
+      "denominator": 48,
+      "value": 1.0,
+      "target": 1.0,
+      "met": true
+    },
+    {
+      "field": "reference_answer",
+      "numerator": 48,
+      "denominator": 48,
+      "value": 1.0,
+      "target": 1.0,
+      "met": true
+    },
+    {
+      "field": "score",
+      "numerator": 48,
+      "denominator": 48,
+      "value": 1.0,
+      "target": 1.0,
+      "met": true
+    },
+    {
+      "field": "content",
+      "numerator": 40,
+      "denominator": 48,
+      "value": 0.8333333333333334,
+      "target": 0.8,
+      "met": true
+    },
+    {
+      "field": "analysis",
+      "numerator": 41,
+      "denominator": 48,
+      "value": 0.8541666666666666,
+      "target": 0.8,
+      "met": true
+    },
+    {
+      "field": "scoring_rubric",
+      "numerator": 42,
+      "denominator": 48,
+      "value": 0.875,
+      "target": 0.8,
+      "met": true
+    },
+    {
+      "field": "knowledge_points",
+      "numerator": 43,
+      "denominator": 48,
+      "value": 0.8958333333333334,
+      "target": 0.7,
+      "met": true
+    }
+  ],
+  "field_thresholds_passed": true,
+  "groups": {
+    "1.0": true,
+    "0.8": true,
+    "0.7": true
+  },
+  "failed_slot_denominators_retained": true,
+  "unknown_question_types": 3,
+  "matched_failures": [
+    {
+      "case_id": "IMP-TEXT",
+      "repeat_index": 3,
+      "field": "knowledge_points",
+      "expected": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "actual": [
+        "一次函数、表达与计算。"
+      ]
+    },
+    {
+      "case_id": "IMP-SCAN",
+      "repeat_index": 1,
+      "field": "content",
+      "expected": "y = 2x + 1，x = 3 时 y 为多少？",
+      "actual": "y = 2x +1，x = 3 时 y 为多少？"
+    },
+    {
+      "case_id": "IMP-SCAN",
+      "repeat_index": 1,
+      "field": "analysis",
+      "expected": "2 × 3 + 1 = 7。",
+      "actual": "2 × 3 +1=7。"
+    },
+    {
+      "case_id": "IMP-SCAN",
+      "repeat_index": 1,
+      "field": "content",
+      "expected": "右图三角形面积为 24 cm²。",
+      "actual": "右图三角形面积为 24cm²。"
+    },
+    {
+      "case_id": "IMP-SCAN",
+      "repeat_index": 1,
+      "field": "scoring_rubric",
+      "expected": "正确关系式 1.00；说明代入过程 2.00。",
+      "actual": "正确关系式1.00；说明代入过程2.00。"
+    },
+    {
+      "case_id": "IMP-SCAN",
+      "repeat_index": 1,
+      "field": "knowledge_points",
+      "expected": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "actual": [
+        "一次函数、表达与计算"
+      ]
+    },
+    {
+      "case_id": "IMP-SCAN",
+      "repeat_index": 2,
+      "field": "analysis",
+      "expected": "2 × 3 + 1 = 7。",
+      "actual": "2 × 3 +1=7。"
+    },
+    {
+      "case_id": "IMP-SCAN",
+      "repeat_index": 2,
+      "field": "content",
+      "expected": "右图三角形面积为 24 cm²。",
+      "actual": "右图三角形面积为 24cm²。"
+    },
+    {
+      "case_id": "IMP-SCAN",
+      "repeat_index": 2,
+      "field": "scoring_rubric",
+      "expected": "正确关系式 1.00；说明代入过程 2.00。",
+      "actual": "正确关系式1.00；说明代入过程2.00。"
+    },
+    {
+      "case_id": "IMP-SCAN",
+      "repeat_index": 3,
+      "field": "analysis",
+      "expected": "2 × 3 + 1 = 7。",
+      "actual": "2 × 3 +1=7。"
+    },
+    {
+      "case_id": "IMP-SCAN",
+      "repeat_index": 3,
+      "field": "content",
+      "expected": "右图三角形面积为 24 cm²。",
+      "actual": "右图三角形面积为 24cm²。"
+    },
+    {
+      "case_id": "IMP-SCAN",
+      "repeat_index": 3,
+      "field": "scoring_rubric",
+      "expected": "正确关系式 1.00；说明代入过程 2.00。",
+      "actual": "正确关系式1.00；说明代入过程2.00。"
+    },
+    {
+      "case_id": "IMP-IMAGE",
+      "repeat_index": 1,
+      "field": "analysis",
+      "expected": "2 × 3 + 1 = 7。",
+      "actual": "2 × 3 +1=7。"
+    },
+    {
+      "case_id": "IMP-IMAGE",
+      "repeat_index": 1,
+      "field": "content",
+      "expected": "右图三角形面积为 24 cm²。",
+      "actual": "右图三角形面积为 24cm²。"
+    },
+    {
+      "case_id": "IMP-IMAGE",
+      "repeat_index": 1,
+      "field": "scoring_rubric",
+      "expected": "正确关系式 1.00；说明代入过程 2.00。",
+      "actual": "正确关系式1.00；说明代入过程2.00。"
+    },
+    {
+      "case_id": "IMP-IMAGE",
+      "repeat_index": 2,
+      "field": "analysis",
+      "expected": "2 × 3 + 1 = 7。",
+      "actual": "2 × 3 +1=7。"
+    },
+    {
+      "case_id": "IMP-IMAGE",
+      "repeat_index": 2,
+      "field": "content",
+      "expected": "右图三角形面积为 24 cm²。",
+      "actual": "右图三角形面积为 24cm²。"
+    },
+    {
+      "case_id": "IMP-IMAGE",
+      "repeat_index": 2,
+      "field": "content",
+      "expected": "根据下表写出 y 关于 x 的关系式。",
+      "actual": "根据下表写出 y 关于 x 的关系式。\n说明\nX\ny\n1\n3\n第一行\n2\n5\n第二行\n3\n7\n第三行"
+    },
+    {
+      "case_id": "IMP-IMAGE",
+      "repeat_index": 2,
+      "field": "scoring_rubric",
+      "expected": "正确关系式 1.00；说明代入过程 2.00。",
+      "actual": "正确关系式1.00；说明代入过程2.00。"
+    },
+    {
+      "case_id": "IMP-IMAGE",
+      "repeat_index": 3,
+      "field": "analysis",
+      "expected": "2 × 3 + 1 = 7。",
+      "actual": "2 × 3 +1=7。"
+    },
+    {
+      "case_id": "IMP-IMAGE",
+      "repeat_index": 3,
+      "field": "content",
+      "expected": "右图三角形面积为 24 cm²。",
+      "actual": "右图三角形面积为24cm²。"
+    },
+    {
+      "case_id": "IMP-IMAGE",
+      "repeat_index": 3,
+      "field": "scoring_rubric",
+      "expected": "正确关系式 1.00；说明代入过程 2.00。",
+      "actual": "正确关系式1.00；说明代入过程2.00。"
+    },
+    {
+      "case_id": "IMP-IMAGE",
+      "repeat_index": 3,
+      "field": "knowledge_points",
+      "expected": [
+        "一次函数",
+        "表达与计算"
+      ],
+      "actual": [
+        "一次函数、表达与计算"
+      ]
+    },
+    {
+      "case_id": "IMP-MIXED",
+      "repeat_index": 2,
+      "field": "analysis",
+      "expected": "2 × 3 + 1 = 7。",
+      "actual": "2 × 3 +1=7。"
+    },
+    {
+      "case_id": "IMP-CROSS",
+      "repeat_index": 2,
+      "field": "knowledge_points",
+      "expected": [],
+      "actual": null
+    },
+    {
+      "case_id": "IMP-CROSS",
+      "repeat_index": 3,
+      "field": "knowledge_points",
+      "expected": [],
+      "actual": null
+    }
+  ],
+  "excluded": {
+    "assets": "待 T164 图像提取流程；不计入 T168 阈值。既有 T164 完成图片理解与核对，自动图像提取尚未实现。",
+    "source_regions": "原标注全部未知，不设本批阈值",
+    "all_evaluable_fields_match": "only a diagnostic; not an acceptance threshold"
+  },
+  "cleanup": {
+    "database": "eduagent_e2_acceptance_998988d8e55e",
+    "active_connections": 0,
+    "database_removed": true,
+    "runner_exit_code": 0,
+    "completed_at": "2026-10-07T01:43:32.075232+00:00",
+    "baseline": "AI-assisted + developer review; independent teachers=0"
+  },
+  "regression_scope": "existing extraction/source/lifecycle/field unit tests and HTTP import/correction contracts; no modified tests; final broader verification recorded separately"
+}

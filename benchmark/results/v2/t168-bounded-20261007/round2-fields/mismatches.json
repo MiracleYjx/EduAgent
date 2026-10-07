@@ -1,0 +1,1473 @@
+[
+  {
+    "run_id": "t160-quality-20261007T014124Z-fbbe8ec7-01-IMP-TEXT-r1",
+    "case_id": "IMP-TEXT",
+    "repeat_index": 1,
+    "stage": "automatic",
+    "reference_question_identity": "1194af49-5301-51bb-a173-0e6f524ac810",
+    "extracted_question_id": "6e22ab43-e079-465e-acd4-d36d1dcbbae0",
+    "modality": "native_text",
+    "field": "assets",
+    "reference_state": "source_provided",
+    "evaluable": true,
+    "correct": false,
+    "expected": [],
+    "actual": null,
+    "reason": "matched",
+    "evidence_ref": "round2-import\\t160-quality-20261007T014124Z-fbbe8ec7\\runs\\t160-quality-20261007T014124Z-fbbe8ec7-01-IMP-TEXT-r1\\result.json"
+  },
+  {
+    "run_id": "t160-quality-20261007T014124Z-fbbe8ec7-01-IMP-TEXT-r1",
+    "case_id": "IMP-TEXT",
+    "repeat_index": 1,
+    "stage": "automatic",
+    "reference_question_identity": "8e0aecaf-072d-5ed7-9b43-5d33ad202cc1",
+    "extracted_question_id": "b2a74906-df0c-4126-ae06-e03e57a96edf",
+    "modality": "native_text",
+    "field": "assets",
+    "reference_state": "source_provided",
+    "evaluable": true,
+    "correct": false,
+    "expected": [
+      {
+        "asset_type": "figure",
+        "source_page_number": 1,
+        "order_index": 1
+      }
+    ],
+    "actual": null,
+    "reason": "matched",
+    "evidence_ref": "round2-import\\t160-quality-20261007T014124Z-fbbe8ec7\\runs\\t160-quality-20261007T014124Z-fbbe8ec7-01-IMP-TEXT-r1\\result.json"
+  },
+  {
+    "run_id": "t160-quality-20261007T014124Z-fbbe8ec7-01-IMP-TEXT-r1",
+    "case_id": "IMP-TEXT",
+    "repeat_index": 1,
+    "stage": "automatic",
+    "reference_question_identity": "fdef73bd-f984-58d1-8a53-3eea668a9f83",
+    "extracted_question_id": "f3885622-07aa-42a6-8aa9-ad453deeba19",
+    "modality": "native_text",
+    "field": "assets",
+    "reference_state": "source_provided",
+    "evaluable": true,
+    "correct": false,
+    "expected": [
+      {
+        "asset_type": "table",
+        "source_page_number": 1,
+        "order_index": 1
+      }
+    ],
+    "actual": null,
+    "reason": "matched",
+    "evidence_ref": "round2-import\\t160-quality-20261007T014124Z-fbbe8ec7\\runs\\t160-quality-20261007T014124Z-fbbe8ec7-01-IMP-TEXT-r1\\result.json"
+  },
+  {
+    "run_id": "t160-quality-20261007T014124Z-fbbe8ec7-02-IMP-TEXT-r2",
+    "case_id": "IMP-TEXT",
+    "repeat_index": 2,
+    "stage": "automatic",
+    "reference_question_identity": "1194af49-5301-51bb-a173-0e6f524ac810",
+    "extracted_question_id": "4f0bcf9c-f6dc-4d21-9b2f-0f202f11bdf5",
+    "modality": "native_text",
+    "field": "assets",
+    "reference_state": "source_provided",
+    "evaluable": true,
+    "correct": false,
+    "expected": [],
+    "actual": null,
+    "reason": "matched",
+    "evidence_ref": "round2-import\\t160-quality-20261007T014124Z-fbbe8ec7\\runs\\t160-quality-20261007T014124Z-fbbe8ec7-02-IMP-TEXT-r2\\result.json"
+  },
+  {
+    "run_id": "t160-quality-20261007T014124Z-fbbe8ec7-02-IMP-TEXT-r2",
+    "case_id": "IMP-TEXT",
+    "repeat_index": 2,
+    "stage": "automatic",
+    "reference_question_identity": "8e0aecaf-072d-5ed7-9b43-5d33ad202cc1",
+    "extracted_question_id": "c1df263b-1a35-40df-8359-1d0ce310a16b",
+    "modality": "native_text",
+    "field": "assets",
+    "reference_state": "source_provided",
+    "evaluable": true,
+    "correct": false,
+    "expected": [
+      {
+        "asset_type": "figure",
+        "source_page_number": 1,
+        "order_index": 1
+      }
+    ],
+    "actual": null,
+    "reason": "matched",
+    "evidence_ref": "round2-import\\t160-quality-20261007T014124Z-fbbe8ec7\\runs\\t160-quality-20261007T014124Z-fbbe8ec7-02-IMP-TEXT-r2\\result.json"
+  },
+  {
+    "run_id": "t160-quality-20261007T014124Z-fbbe8ec7-02-IMP-TEXT-r2",
+    "case_id": "IMP-TEXT",
+    "repeat_index": 2,
+    "stage": "automatic",
+    "reference_question_identity": "fdef73bd-f984-58d1-8a53-3eea668a9f83",
+    "extracted_question_id": "de91b896-8786-4ed3-a4b2-25ea39a96be4",
+    "modality": "native_text",
+    "field": "assets",
+    "reference_state": "source_provided",
+    "evaluable": true,
+    "correct": false,
+    "expected": [
+      {
+        "asset_type": "table",
+        "source_page_number": 1,
+        "order_index": 1
+      }
+    ],
+    "actual": null,
+    "reason": "matched",
+    "evidence_ref": "round2-import\\t160-quality-20261007T014124Z-fbbe8ec7\\runs\\t160-quality-20261007T014124Z-fbbe8ec7-02-IMP-TEXT-r2\\result.json"
+  },
+  {
+    "run_id": "t160-quality-20261007T014124Z-fbbe8ec7-03-IMP-TEXT-r3",
+    "case_id": "IMP-TEXT",
+    "repeat_index": 3,
+    "stage": "automatic",
+    "reference_question_identity": "1194af49-5301-51bb-a173-0e6f524ac810",
+    "extracted_question_id": "77dbaacd-3912-423f-b3e0-f1f048c3a06b",
+    "modality": "native_text",
+    "field": "assets",
+    "reference_state": "source_provided",
+    "evaluable": true,
+    "correct": false,
+    "expected": [],
+    "actual": null,
+    "reason": "matched",
+    "evidence_ref": "round2-import\\t160-quality-20261007T014124Z-fbbe8ec7\\runs\\t160-quality-20261007T014124Z-fbbe8ec7-03-IMP-TEXT-r3\\result.json"
+  },
+  {
+    "run_id": "t160-quality-20261007T014124Z-fbbe8ec7-03-IMP-TEXT-r3",
+    "case_id": "IMP-TEXT",
+    "repeat_index": 3,
+    "stage": "automatic",
+    "reference_question_identity": "8e0aecaf-072d-5ed7-9b43-5d33ad202cc1",
+    "extracted_question_id": "5a7bf40c-ca74-4d7e-a06e-64c53ca7f2d9",
+    "modality": "native_text",
+    "field": "assets",
+    "reference_state": "source_provided",
+    "evaluable": true,
+    "correct": false,
+    "expected": [
+      {
+        "asset_type": "figure",
+        "source_page_number": 1,
+        "order_index": 1
+      }
+    ],
+    "actual": null,
+    "reason": "matched",
+    "evidence_ref": "round2-import\\t160-quality-20261007T014124Z-fbbe8ec7\\runs\\t160-quality-20261007T014124Z-fbbe8ec7-03-IMP-TEXT-r3\\result.json"
+  },
+  {
+    "run_id": "t160-quality-20261007T014124Z-fbbe8ec7-03-IMP-TEXT-r3",
+    "case_id": "IMP-TEXT",
+    "repeat_index": 3,
+    "stage": "automatic",
+    "reference_question_identity": "fdef73bd-f984-58d1-8a53-3eea668a9f83",
+    "extracted_question_id": "0402f5ba-02d8-40d1-960d-a87dff6459df",
+    "modality": "native_text",
+    "field": "knowledge_points",
+    "reference_state": "source_provided",
+    "evaluable": true,
+    "correct": false,
+    "expected": [
+      "一次函数",
+      "表达与计算"
+    ],
+    "actual": [
+      "一次函数、表达与计算。"
+    ],
+    "reason": "matched",
+    "evidence_ref": "round2-import\\t160-quality-20261007T014124Z-fbbe8ec7\\runs\\t160-quality-20261007T014124Z-fbbe8ec7-03-IMP-TEXT-r3\\result.json"
+  },
+  {
+    "run_id": "t160-quality-20261007T014124Z-fbbe8ec7-03-IMP-TEXT-r3",
+    "case_id": "IMP-TEXT",
+    "repeat_index": 3,
+    "stage": "automatic",
+    "reference_question_identity": "fdef73bd-f984-58d1-8a53-3eea668a9f83",
+    "extracted_question_id": "0402f5ba-02d8-40d1-960d-a87dff6459df",
+    "modality": "native_text",
+    "field": "assets",
+    "reference_state": "source_provided",
+    "evaluable": true,
+    "correct": false,
+    "expected": [
+      {
+        "asset_type": "table",
+        "source_page_number": 1,
+        "order_index": 1
+      }
+    ],
+    "actual": null,
+    "reason": "matched",
+    "evidence_ref": "round2-import\\t160-quality-20261007T014124Z-fbbe8ec7\\runs\\t160-quality-20261007T014124Z-fbbe8ec7-03-IMP-TEXT-r3\\result.json"
+  },
+  {
+    "run_id": "t160-quality-20261007T014124Z-fbbe8ec7-04-IMP-SCAN-r1",
+    "case_id": "IMP-SCAN",
+    "repeat_index": 1,
+    "stage": "automatic",
+    "reference_question_identity": "74d666eb-fc46-5106-8ea2-ea5c967c6457",
+    "extracted_question_id": "351b8cd0-04f8-4e9b-b4a6-c94058306977",
+    "modality": "ocr_required",
+    "field": "content",
+    "reference_state": "source_provided",
+    "evaluable": true,
+    "correct": false,
+    "expected": "y = 2x + 1，x = 3 时 y 为多少？",
+    "actual": "y = 2x +1，x = 3 时 y 为多少？",
+    "reason": "matched",
+    "evidence_ref": "round2-import\\t160-quality-20261007T014124Z-fbbe8ec7\\runs\\t160-quality-20261007T014124Z-fbbe8ec7-04-IMP-SCAN-r1\\result.json"
+  },
+  {
+    "run_id": "t160-quality-20261007T014124Z-fbbe8ec7-04-IMP-SCAN-r1",
+    "case_id": "IMP-SCAN",
+    "repeat_index": 1,
+    "stage": "automatic",
+    "reference_question_identity": "74d666eb-fc46-5106-8ea2-ea5c967c6457",
+    "extracted_question_id": "351b8cd0-04f8-4e9b-b4a6-c94058306977",
+    "modality": "ocr_required",
+    "field": "analysis",
+    "reference_state": "source_provided",
+    "evaluable": true,
+    "correct": false,
+    "expected": "2 × 3 + 1 = 7。",
+    "actual": "2 × 3 +1=7。",
+    "reason": "matched",
+    "evidence_ref": "round2-import\\t160-quality-20261007T014124Z-fbbe8ec7\\runs\\t160-quality-20261007T014124Z-fbbe8ec7-04-IMP-SCAN-r1\\result.json"
+  },
+  {
+    "run_id": "t160-quality-20261007T014124Z-fbbe8ec7-04-IMP-SCAN-r1",
+    "case_id": "IMP-SCAN",
+    "repeat_index": 1,
+    "stage": "automatic",
+    "reference_question_identity": "74d666eb-fc46-5106-8ea2-ea5c967c6457",
+    "extracted_question_id": "351b8cd0-04f8-4e9b-b4a6-c94058306977",
+    "modality": "ocr_required",
+    "field": "assets",
+    "reference_state": "source_provided",
+    "evaluable": true,
+    "correct": false,
+    "expected": [],
+    "actual": null,
+    "reason": "matched",
+    "evidence_ref": "round2-import\\t160-quality-20261007T014124Z-fbbe8ec7\\runs\\t160-quality-20261007T014124Z-fbbe8ec7-04-IMP-SCAN-r1\\result.json"
+  },
+  {
+    "run_id": "t160-quality-20261007T014124Z-fbbe8ec7-04-IMP-SCAN-r1",
+    "case_id": "IMP-SCAN",
+    "repeat_index": 1,
+    "stage": "automatic",
+    "reference_question_identity": "5f47ee64-edec-5327-9172-bb8454c7640d",
+    "extracted_question_id": "42af5d3c-a1ef-484e-be58-f04e5a5ea3d7",
+    "modality": "ocr_required",
+    "field": "content",
+    "reference_state": "source_provided",
+    "evaluable": true,
+    "correct": false,
+    "expected": "右图三角形面积为 24 cm²。",
+    "actual": "右图三角形面积为 24cm²。",
+    "reason": "matched",
+    "evidence_ref": "round2-import\\t160-quality-20261007T014124Z-fbbe8ec7\\runs\\t160-quality-20261007T014124Z-fbbe8ec7-04-IMP-SCAN-r1\\result.json"
+  },
+  {
+    "run_id": "t160-quality-20261007T014124Z-fbbe8ec7-04-IMP-SCAN-r1",
+    "case_id": "IMP-SCAN",
+    "repeat_index": 1,
+    "stage": "automatic",
+    "reference_question_identity": "5f47ee64-edec-5327-9172-bb8454c7640d",
+    "extracted_question_id": "42af5d3c-a1ef-484e-be58-f04e5a5ea3d7",
+    "modality": "ocr_required",
+    "field": "assets",
+    "reference_state": "source_provided",
+    "evaluable": true,
+    "correct": false,
+    "expected": [
+      {
+        "asset_type": "figure",
+        "source_page_number": 1,
+        "order_index": 1
+      }
+    ],
+    "actual": null,
+    "reason": "matched",
+    "evidence_ref": "round2-import\\t160-quality-20261007T014124Z-fbbe8ec7\\runs\\t160-quality-20261007T014124Z-fbbe8ec7-04-IMP-SCAN-r1\\result.json"
+  },
+  {
+    "run_id": "t160-quality-20261007T014124Z-fbbe8ec7-04-IMP-SCAN-r1",
+    "case_id": "IMP-SCAN",
+    "repeat_index": 1,
+    "stage": "automatic",
+    "reference_question_identity": "d6acd365-a6d5-5eb8-9b54-66f26a915094",
+    "extracted_question_id": "bd486b2d-78c0-4ba8-addb-bdae00843da6",
+    "modality": "ocr_required",
+    "field": "scoring_rubric",
+    "reference_state": "source_provided",
+    "evaluable": true,
+    "correct": false,
+    "expected": "正确关系式 1.00；说明代入过程 2.00。",
+    "actual": "正确关系式1.00；说明代入过程2.00。",
+    "reason": "matched",
+    "evidence_ref": "round2-import\\t160-quality-20261007T014124Z-fbbe8ec7\\runs\\t160-quality-20261007T014124Z-fbbe8ec7-04-IMP-SCAN-r1\\result.json"
+  },
+  {
+    "run_id": "t160-quality-20261007T014124Z-fbbe8ec7-04-IMP-SCAN-r1",
+    "case_id": "IMP-SCAN",
+    "repeat_index": 1,
+    "stage": "automatic",
+    "reference_question_identity": "d6acd365-a6d5-5eb8-9b54-66f26a915094",
+    "extracted_question_id": "bd486b2d-78c0-4ba8-addb-bdae00843da6",
+    "modality": "ocr_required",
+    "field": "knowledge_points",
+    "reference_state": "source_provided",
+    "evaluable": true,
+    "correct": false,
+    "expected": [
+      "一次函数",
+      "表达与计算"
+    ],
+    "actual": [
+      "一次函数、表达与计算"
+    ],
+    "reason": "matched",
+    "evidence_ref": "round2-import\\t160-quality-20261007T014124Z-fbbe8ec7\\runs\\t160-quality-20261007T014124Z-fbbe8ec7-04-IMP-SCAN-r1\\result.json"
+  },
+  {
+    "run_id": "t160-quality-20261007T014124Z-fbbe8ec7-04-IMP-SCAN-r1",
+    "case_id": "IMP-SCAN",
+    "repeat_index": 1,
+    "stage": "automatic",
+    "reference_question_identity": "d6acd365-a6d5-5eb8-9b54-66f26a915094",
+    "extracted_question_id": "bd486b2d-78c0-4ba8-addb-bdae00843da6",
+    "modality": "ocr_required",
+    "field": "assets",
+    "reference_state": "source_provided",
+    "evaluable": true,
+    "correct": false,
+    "expected": [
+      {
+        "asset_type": "table",
+        "source_page_number": 1,
+        "order_index": 1
+      }
+    ],
+    "actual": null,
+    "reason": "matched",
+    "evidence_ref": "round2-import\\t160-quality-20261007T014124Z-fbbe8ec7\\runs\\t160-quality-20261007T014124Z-fbbe8ec7-04-IMP-SCAN-r1\\result.json"
+  },
+  {
+    "run_id": "t160-quality-20261007T014124Z-fbbe8ec7-05-IMP-SCAN-r2",
+    "case_id": "IMP-SCAN",
+    "repeat_index": 2,
+    "stage": "automatic",
+    "reference_question_identity": "74d666eb-fc46-5106-8ea2-ea5c967c6457",
+    "extracted_question_id": "882a5f3c-e592-4898-8dcd-5e3af0f8746e",
+    "modality": "ocr_required",
+    "field": "analysis",
+    "reference_state": "source_provided",
+    "evaluable": true,
+    "correct": false,
+    "expected": "2 × 3 + 1 = 7。",
+    "actual": "2 × 3 +1=7。",
+    "reason": "matched",
+    "evidence_ref": "round2-import\\t160-quality-20261007T014124Z-fbbe8ec7\\runs\\t160-quality-20261007T014124Z-fbbe8ec7-05-IMP-SCAN-r2\\result.json"
+  },
+  {
+    "run_id": "t160-quality-20261007T014124Z-fbbe8ec7-05-IMP-SCAN-r2",
+    "case_id": "IMP-SCAN",
+    "repeat_index": 2,
+    "stage": "automatic",
+    "reference_question_identity": "74d666eb-fc46-5106-8ea2-ea5c967c6457",
+    "extracted_question_id": "882a5f3c-e592-4898-8dcd-5e3af0f8746e",
+    "modality": "ocr_required",
+    "field": "assets",
+    "reference_state": "source_provided",
+    "evaluable": true,
+    "correct": false,
+    "expected": [],
+    "actual": null,
+    "reason": "matched",
+    "evidence_ref": "round2-import\\t160-quality-20261007T014124Z-fbbe8ec7\\runs\\t160-quality-20261007T014124Z-fbbe8ec7-05-IMP-SCAN-r2\\result.json"
+  },
+  {
+    "run_id": "t160-quality-20261007T014124Z-fbbe8ec7-05-IMP-SCAN-r2",
+    "case_id": "IMP-SCAN",
+    "repeat_index": 2,
+    "stage": "automatic",
+    "reference_question_identity": "5f47ee64-edec-5327-9172-bb8454c7640d",
+    "extracted_question_id": "9511d80d-ca4b-4dc6-95c7-52df40741635",
+    "modality": "ocr_required",
+    "field": "content",
+    "reference_state": "source_provided",
+    "evaluable": true,
+    "correct": false,
+    "expected": "右图三角形面积为 24 cm²。",
+    "actual": "右图三角形面积为 24cm²。",
+    "reason": "matched",
+    "evidence_ref": "round2-import\\t160-quality-20261007T014124Z-fbbe8ec7\\runs\\t160-quality-20261007T014124Z-fbbe8ec7-05-IMP-SCAN-r2\\result.json"
+  },
+  {
+    "run_id": "t160-quality-20261007T014124Z-fbbe8ec7-05-IMP-SCAN-r2",
+    "case_id": "IMP-SCAN",
+    "repeat_index": 2,
+    "stage": "automatic",
+    "reference_question_identity": "5f47ee64-edec-5327-9172-bb8454c7640d",
+    "extracted_question_id": "9511d80d-ca4b-4dc6-95c7-52df40741635",
+    "modality": "ocr_required",
+    "field": "assets",
+    "reference_state": "source_provided",
+    "evaluable": true,
+    "correct": false,
+    "expected": [
+      {
+        "asset_type": "figure",
+        "source_page_number": 1,
+        "order_index": 1
+      }
+    ],
+    "actual": null,
+    "reason": "matched",
+    "evidence_ref": "round2-import\\t160-quality-20261007T014124Z-fbbe8ec7\\runs\\t160-quality-20261007T014124Z-fbbe8ec7-05-IMP-SCAN-r2\\result.json"
+  },
+  {
+    "run_id": "t160-quality-20261007T014124Z-fbbe8ec7-05-IMP-SCAN-r2",
+    "case_id": "IMP-SCAN",
+    "repeat_index": 2,
+    "stage": "automatic",
+    "reference_question_identity": "d6acd365-a6d5-5eb8-9b54-66f26a915094",
+    "extracted_question_id": "2d353677-9fa3-489f-bf27-102f42e8e702",
+    "modality": "ocr_required",
+    "field": "scoring_rubric",
+    "reference_state": "source_provided",
+    "evaluable": true,
+    "correct": false,
+    "expected": "正确关系式 1.00；说明代入过程 2.00。",
+    "actual": "正确关系式1.00；说明代入过程2.00。",
+    "reason": "matched",
+    "evidence_ref": "round2-import\\t160-quality-20261007T014124Z-fbbe8ec7\\runs\\t160-quality-20261007T014124Z-fbbe8ec7-05-IMP-SCAN-r2\\result.json"
+  },
+  {
+    "run_id": "t160-quality-20261007T014124Z-fbbe8ec7-05-IMP-SCAN-r2",
+    "case_id": "IMP-SCAN",
+    "repeat_index": 2,
+    "stage": "automatic",
+    "reference_question_identity": "d6acd365-a6d5-5eb8-9b54-66f26a915094",
+    "extracted_question_id": "2d353677-9fa3-489f-bf27-102f42e8e702",
+    "modality": "ocr_required",
+    "field": "assets",
+    "reference_state": "source_provided",
+    "evaluable": true,
+    "correct": false,
+    "expected": [
+      {
+        "asset_type": "table",
+        "source_page_number": 1,
+        "order_index": 1
+      }
+    ],
+    "actual": null,
+    "reason": "matched",
+    "evidence_ref": "round2-import\\t160-quality-20261007T014124Z-fbbe8ec7\\runs\\t160-quality-20261007T014124Z-fbbe8ec7-05-IMP-SCAN-r2\\result.json"
+  },
+  {
+    "run_id": "t160-quality-20261007T014124Z-fbbe8ec7-06-IMP-SCAN-r3",
+    "case_id": "IMP-SCAN",
+    "repeat_index": 3,
+    "stage": "automatic",
+    "reference_question_identity": "74d666eb-fc46-5106-8ea2-ea5c967c6457",
+    "extracted_question_id": "6f8645a2-dd55-40b1-8ffb-234e9b76233d",
+    "modality": "ocr_required",
+    "field": "analysis",
+    "reference_state": "source_provided",
+    "evaluable": true,
+    "correct": false,
+    "expected": "2 × 3 + 1 = 7。",
+    "actual": "2 × 3 +1=7。",
+    "reason": "matched",
+    "evidence_ref": "round2-import\\t160-quality-20261007T014124Z-fbbe8ec7\\runs\\t160-quality-20261007T014124Z-fbbe8ec7-06-IMP-SCAN-r3\\result.json"
+  },
+  {
+    "run_id": "t160-quality-20261007T014124Z-fbbe8ec7-06-IMP-SCAN-r3",
+    "case_id": "IMP-SCAN",
+    "repeat_index": 3,
+    "stage": "automatic",
+    "reference_question_identity": "74d666eb-fc46-5106-8ea2-ea5c967c6457",
+    "extracted_question_id": "6f8645a2-dd55-40b1-8ffb-234e9b76233d",
+    "modality": "ocr_required",
+    "field": "assets",
+    "reference_state": "source_provided",
+    "evaluable": true,
+    "correct": false,
+    "expected": [],
+    "actual": null,
+    "reason": "matched",
+    "evidence_ref": "round2-import\\t160-quality-20261007T014124Z-fbbe8ec7\\runs\\t160-quality-20261007T014124Z-fbbe8ec7-06-IMP-SCAN-r3\\result.json"
+  },
+  {
+    "run_id": "t160-quality-20261007T014124Z-fbbe8ec7-06-IMP-SCAN-r3",
+    "case_id": "IMP-SCAN",
+    "repeat_index": 3,
+    "stage": "automatic",
+    "reference_question_identity": "5f47ee64-edec-5327-9172-bb8454c7640d",
+    "extracted_question_id": "53b1a3b6-6a39-4d81-9b1d-68ff58e89d6d",
+    "modality": "ocr_required",
+    "field": "content",
+    "reference_state": "source_provided",
+    "evaluable": true,
+    "correct": false,
+    "expected": "右图三角形面积为 24 cm²。",
+    "actual": "右图三角形面积为 24cm²。",
+    "reason": "matched",
+    "evidence_ref": "round2-import\\t160-quality-20261007T014124Z-fbbe8ec7\\runs\\t160-quality-20261007T014124Z-fbbe8ec7-06-IMP-SCAN-r3\\result.json"
+  },
+  {
+    "run_id": "t160-quality-20261007T014124Z-fbbe8ec7-06-IMP-SCAN-r3",
+    "case_id": "IMP-SCAN",
+    "repeat_index": 3,
+    "stage": "automatic",
+    "reference_question_identity": "5f47ee64-edec-5327-9172-bb8454c7640d",
+    "extracted_question_id": "53b1a3b6-6a39-4d81-9b1d-68ff58e89d6d",
+    "modality": "ocr_required",
+    "field": "assets",
+    "reference_state": "source_provided",
+    "evaluable": true,
+    "correct": false,
+    "expected": [
+      {
+        "asset_type": "figure",
+        "source_page_number": 1,
+        "order_index": 1
+      }
+    ],
+    "actual": null,
+    "reason": "matched",
+    "evidence_ref": "round2-import\\t160-quality-20261007T014124Z-fbbe8ec7\\runs\\t160-quality-20261007T014124Z-fbbe8ec7-06-IMP-SCAN-r3\\result.json"
+  },
+  {
+    "run_id": "t160-quality-20261007T014124Z-fbbe8ec7-06-IMP-SCAN-r3",
+    "case_id": "IMP-SCAN",
+    "repeat_index": 3,
+    "stage": "automatic",
+    "reference_question_identity": "d6acd365-a6d5-5eb8-9b54-66f26a915094",
+    "extracted_question_id": "518be708-406a-41c9-89df-2d324699283c",
+    "modality": "ocr_required",
+    "field": "scoring_rubric",
+    "reference_state": "source_provided",
+    "evaluable": true,
+    "correct": false,
+    "expected": "正确关系式 1.00；说明代入过程 2.00。",
+    "actual": "正确关系式1.00；说明代入过程2.00。",
+    "reason": "matched",
+    "evidence_ref": "round2-import\\t160-quality-20261007T014124Z-fbbe8ec7\\runs\\t160-quality-20261007T014124Z-fbbe8ec7-06-IMP-SCAN-r3\\result.json"
+  },
+  {
+    "run_id": "t160-quality-20261007T014124Z-fbbe8ec7-06-IMP-SCAN-r3",
+    "case_id": "IMP-SCAN",
+    "repeat_index": 3,
+    "stage": "automatic",
+    "reference_question_identity": "d6acd365-a6d5-5eb8-9b54-66f26a915094",
+    "extracted_question_id": "518be708-406a-41c9-89df-2d324699283c",
+    "modality": "ocr_required",
+    "field": "assets",
+    "reference_state": "source_provided",
+    "evaluable": true,
+    "correct": false,
+    "expected": [
+      {
+        "asset_type": "table",
+        "source_page_number": 1,
+        "order_index": 1
+      }
+    ],
+    "actual": null,
+    "reason": "matched",
+    "evidence_ref": "round2-import\\t160-quality-20261007T014124Z-fbbe8ec7\\runs\\t160-quality-20261007T014124Z-fbbe8ec7-06-IMP-SCAN-r3\\result.json"
+  },
+  {
+    "run_id": "t160-quality-20261007T014124Z-fbbe8ec7-07-IMP-IMAGE-r1",
+    "case_id": "IMP-IMAGE",
+    "repeat_index": 1,
+    "stage": "automatic",
+    "reference_question_identity": "c4d750a5-4dc4-5a35-83e2-dee4ca44aca1",
+    "extracted_question_id": "104362a8-a0ac-4657-a806-a68b8288025f",
+    "modality": "ocr_required",
+    "field": "analysis",
+    "reference_state": "source_provided",
+    "evaluable": true,
+    "correct": false,
+    "expected": "2 × 3 + 1 = 7。",
+    "actual": "2 × 3 +1=7。",
+    "reason": "matched",
+    "evidence_ref": "round2-import\\t160-quality-20261007T014124Z-fbbe8ec7\\runs\\t160-quality-20261007T014124Z-fbbe8ec7-07-IMP-IMAGE-r1\\result.json"
+  },
+  {
+    "run_id": "t160-quality-20261007T014124Z-fbbe8ec7-07-IMP-IMAGE-r1",
+    "case_id": "IMP-IMAGE",
+    "repeat_index": 1,
+    "stage": "automatic",
+    "reference_question_identity": "c4d750a5-4dc4-5a35-83e2-dee4ca44aca1",
+    "extracted_question_id": "104362a8-a0ac-4657-a806-a68b8288025f",
+    "modality": "ocr_required",
+    "field": "assets",
+    "reference_state": "source_provided",
+    "evaluable": true,
+    "correct": false,
+    "expected": [],
+    "actual": null,
+    "reason": "matched",
+    "evidence_ref": "round2-import\\t160-quality-20261007T014124Z-fbbe8ec7\\runs\\t160-quality-20261007T014124Z-fbbe8ec7-07-IMP-IMAGE-r1\\result.json"
+  },
+  {
+    "run_id": "t160-quality-20261007T014124Z-fbbe8ec7-07-IMP-IMAGE-r1",
+    "case_id": "IMP-IMAGE",
+    "repeat_index": 1,
+    "stage": "automatic",
+    "reference_question_identity": "e418791a-1462-52b7-98fe-396ce71b8d48",
+    "extracted_question_id": "b6b9a998-de7c-4244-852b-b53f23ab38e7",
+    "modality": "ocr_required",
+    "field": "content",
+    "reference_state": "source_provided",
+    "evaluable": true,
+    "correct": false,
+    "expected": "右图三角形面积为 24 cm²。",
+    "actual": "右图三角形面积为 24cm²。",
+    "reason": "matched",
+    "evidence_ref": "round2-import\\t160-quality-20261007T014124Z-fbbe8ec7\\runs\\t160-quality-20261007T014124Z-fbbe8ec7-07-IMP-IMAGE-r1\\result.json"
+  },
+  {
+    "run_id": "t160-quality-20261007T014124Z-fbbe8ec7-07-IMP-IMAGE-r1",
+    "case_id": "IMP-IMAGE",
+    "repeat_index": 1,
+    "stage": "automatic",
+    "reference_question_identity": "e418791a-1462-52b7-98fe-396ce71b8d48",
+    "extracted_question_id": "b6b9a998-de7c-4244-852b-b53f23ab38e7",
+    "modality": "ocr_required",
+    "field": "assets",
+    "reference_state": "source_provided",
+    "evaluable": true,
+    "correct": false,
+    "expected": [
+      {
+        "asset_type": "figure",
+        "source_page_number": 1,
+        "order_index": 1
+      }
+    ],
+    "actual": null,
+    "reason": "matched",
+    "evidence_ref": "round2-import\\t160-quality-20261007T014124Z-fbbe8ec7\\runs\\t160-quality-20261007T014124Z-fbbe8ec7-07-IMP-IMAGE-r1\\result.json"
+  },
+  {
+    "run_id": "t160-quality-20261007T014124Z-fbbe8ec7-07-IMP-IMAGE-r1",
+    "case_id": "IMP-IMAGE",
+    "repeat_index": 1,
+    "stage": "automatic",
+    "reference_question_identity": "e5c1555f-e927-575c-b68c-85eb341a3202",
+    "extracted_question_id": "0aa15e92-c22e-4a71-9376-777ff8b0b9fb",
+    "modality": "ocr_required",
+    "field": "scoring_rubric",
+    "reference_state": "source_provided",
+    "evaluable": true,
+    "correct": false,
+    "expected": "正确关系式 1.00；说明代入过程 2.00。",
+    "actual": "正确关系式1.00；说明代入过程2.00。",
+    "reason": "matched",
+    "evidence_ref": "round2-import\\t160-quality-20261007T014124Z-fbbe8ec7\\runs\\t160-quality-20261007T014124Z-fbbe8ec7-07-IMP-IMAGE-r1\\result.json"
+  },
+  {
+    "run_id": "t160-quality-20261007T014124Z-fbbe8ec7-07-IMP-IMAGE-r1",
+    "case_id": "IMP-IMAGE",
+    "repeat_index": 1,
+    "stage": "automatic",
+    "reference_question_identity": "e5c1555f-e927-575c-b68c-85eb341a3202",
+    "extracted_question_id": "0aa15e92-c22e-4a71-9376-777ff8b0b9fb",
+    "modality": "ocr_required",
+    "field": "assets",
+    "reference_state": "source_provided",
+    "evaluable": true,
+    "correct": false,
+    "expected": [
+      {
+        "asset_type": "table",
+        "source_page_number": 1,
+        "order_index": 1
+      }
+    ],
+    "actual": null,
+    "reason": "matched",
+    "evidence_ref": "round2-import\\t160-quality-20261007T014124Z-fbbe8ec7\\runs\\t160-quality-20261007T014124Z-fbbe8ec7-07-IMP-IMAGE-r1\\result.json"
+  },
+  {
+    "run_id": "t160-quality-20261007T014124Z-fbbe8ec7-08-IMP-IMAGE-r2",
+    "case_id": "IMP-IMAGE",
+    "repeat_index": 2,
+    "stage": "automatic",
+    "reference_question_identity": "c4d750a5-4dc4-5a35-83e2-dee4ca44aca1",
+    "extracted_question_id": "72418332-b528-471b-b587-895e2d16ecb5",
+    "modality": "ocr_required",
+    "field": "analysis",
+    "reference_state": "source_provided",
+    "evaluable": true,
+    "correct": false,
+    "expected": "2 × 3 + 1 = 7。",
+    "actual": "2 × 3 +1=7。",
+    "reason": "matched",
+    "evidence_ref": "round2-import\\t160-quality-20261007T014124Z-fbbe8ec7\\runs\\t160-quality-20261007T014124Z-fbbe8ec7-08-IMP-IMAGE-r2\\result.json"
+  },
+  {
+    "run_id": "t160-quality-20261007T014124Z-fbbe8ec7-08-IMP-IMAGE-r2",
+    "case_id": "IMP-IMAGE",
+    "repeat_index": 2,
+    "stage": "automatic",
+    "reference_question_identity": "c4d750a5-4dc4-5a35-83e2-dee4ca44aca1",
+    "extracted_question_id": "72418332-b528-471b-b587-895e2d16ecb5",
+    "modality": "ocr_required",
+    "field": "assets",
+    "reference_state": "source_provided",
+    "evaluable": true,
+    "correct": false,
+    "expected": [],
+    "actual": null,
+    "reason": "matched",
+    "evidence_ref": "round2-import\\t160-quality-20261007T014124Z-fbbe8ec7\\runs\\t160-quality-20261007T014124Z-fbbe8ec7-08-IMP-IMAGE-r2\\result.json"
+  },
+  {
+    "run_id": "t160-quality-20261007T014124Z-fbbe8ec7-08-IMP-IMAGE-r2",
+    "case_id": "IMP-IMAGE",
+    "repeat_index": 2,
+    "stage": "automatic",
+    "reference_question_identity": "e418791a-1462-52b7-98fe-396ce71b8d48",
+    "extracted_question_id": "fe288c87-5e59-43b3-a4a2-24e6d53cc118",
+    "modality": "ocr_required",
+    "field": "content",
+    "reference_state": "source_provided",
+    "evaluable": true,
+    "correct": false,
+    "expected": "右图三角形面积为 24 cm²。",
+    "actual": "右图三角形面积为 24cm²。",
+    "reason": "matched",
+    "evidence_ref": "round2-import\\t160-quality-20261007T014124Z-fbbe8ec7\\runs\\t160-quality-20261007T014124Z-fbbe8ec7-08-IMP-IMAGE-r2\\result.json"
+  },
+  {
+    "run_id": "t160-quality-20261007T014124Z-fbbe8ec7-08-IMP-IMAGE-r2",
+    "case_id": "IMP-IMAGE",
+    "repeat_index": 2,
+    "stage": "automatic",
+    "reference_question_identity": "e418791a-1462-52b7-98fe-396ce71b8d48",
+    "extracted_question_id": "fe288c87-5e59-43b3-a4a2-24e6d53cc118",
+    "modality": "ocr_required",
+    "field": "assets",
+    "reference_state": "source_provided",
+    "evaluable": true,
+    "correct": false,
+    "expected": [
+      {
+        "asset_type": "figure",
+        "source_page_number": 1,
+        "order_index": 1
+      }
+    ],
+    "actual": null,
+    "reason": "matched",
+    "evidence_ref": "round2-import\\t160-quality-20261007T014124Z-fbbe8ec7\\runs\\t160-quality-20261007T014124Z-fbbe8ec7-08-IMP-IMAGE-r2\\result.json"
+  },
+  {
+    "run_id": "t160-quality-20261007T014124Z-fbbe8ec7-08-IMP-IMAGE-r2",
+    "case_id": "IMP-IMAGE",
+    "repeat_index": 2,
+    "stage": "automatic",
+    "reference_question_identity": "e5c1555f-e927-575c-b68c-85eb341a3202",
+    "extracted_question_id": "23fe2089-951b-4cc9-934a-726ebed5dace",
+    "modality": "ocr_required",
+    "field": "content",
+    "reference_state": "source_provided",
+    "evaluable": true,
+    "correct": false,
+    "expected": "根据下表写出 y 关于 x 的关系式。",
+    "actual": "根据下表写出 y 关于 x 的关系式。\n说明\nX\ny\n1\n3\n第一行\n2\n5\n第二行\n3\n7\n第三行",
+    "reason": "matched",
+    "evidence_ref": "round2-import\\t160-quality-20261007T014124Z-fbbe8ec7\\runs\\t160-quality-20261007T014124Z-fbbe8ec7-08-IMP-IMAGE-r2\\result.json"
+  },
+  {
+    "run_id": "t160-quality-20261007T014124Z-fbbe8ec7-08-IMP-IMAGE-r2",
+    "case_id": "IMP-IMAGE",
+    "repeat_index": 2,
+    "stage": "automatic",
+    "reference_question_identity": "e5c1555f-e927-575c-b68c-85eb341a3202",
+    "extracted_question_id": "23fe2089-951b-4cc9-934a-726ebed5dace",
+    "modality": "ocr_required",
+    "field": "scoring_rubric",
+    "reference_state": "source_provided",
+    "evaluable": true,
+    "correct": false,
+    "expected": "正确关系式 1.00；说明代入过程 2.00。",
+    "actual": "正确关系式1.00；说明代入过程2.00。",
+    "reason": "matched",
+    "evidence_ref": "round2-import\\t160-quality-20261007T014124Z-fbbe8ec7\\runs\\t160-quality-20261007T014124Z-fbbe8ec7-08-IMP-IMAGE-r2\\result.json"
+  },
+  {
+    "run_id": "t160-quality-20261007T014124Z-fbbe8ec7-08-IMP-IMAGE-r2",
+    "case_id": "IMP-IMAGE",
+    "repeat_index": 2,
+    "stage": "automatic",
+    "reference_question_identity": "e5c1555f-e927-575c-b68c-85eb341a3202",
+    "extracted_question_id": "23fe2089-951b-4cc9-934a-726ebed5dace",
+    "modality": "ocr_required",
+    "field": "assets",
+    "reference_state": "source_provided",
+    "evaluable": true,
+    "correct": false,
+    "expected": [
+      {
+        "asset_type": "table",
+        "source_page_number": 1,
+        "order_index": 1
+      }
+    ],
+    "actual": null,
+    "reason": "matched",
+    "evidence_ref": "round2-import\\t160-quality-20261007T014124Z-fbbe8ec7\\runs\\t160-quality-20261007T014124Z-fbbe8ec7-08-IMP-IMAGE-r2\\result.json"
+  },
+  {
+    "run_id": "t160-quality-20261007T014124Z-fbbe8ec7-09-IMP-IMAGE-r3",
+    "case_id": "IMP-IMAGE",
+    "repeat_index": 3,
+    "stage": "automatic",
+    "reference_question_identity": "c4d750a5-4dc4-5a35-83e2-dee4ca44aca1",
+    "extracted_question_id": "34af1298-1881-438b-a77f-822dccbd8af7",
+    "modality": "ocr_required",
+    "field": "analysis",
+    "reference_state": "source_provided",
+    "evaluable": true,
+    "correct": false,
+    "expected": "2 × 3 + 1 = 7。",
+    "actual": "2 × 3 +1=7。",
+    "reason": "matched",
+    "evidence_ref": "round2-import\\t160-quality-20261007T014124Z-fbbe8ec7\\runs\\t160-quality-20261007T014124Z-fbbe8ec7-09-IMP-IMAGE-r3\\result.json"
+  },
+  {
+    "run_id": "t160-quality-20261007T014124Z-fbbe8ec7-09-IMP-IMAGE-r3",
+    "case_id": "IMP-IMAGE",
+    "repeat_index": 3,
+    "stage": "automatic",
+    "reference_question_identity": "c4d750a5-4dc4-5a35-83e2-dee4ca44aca1",
+    "extracted_question_id": "34af1298-1881-438b-a77f-822dccbd8af7",
+    "modality": "ocr_required",
+    "field": "assets",
+    "reference_state": "source_provided",
+    "evaluable": true,
+    "correct": false,
+    "expected": [],
+    "actual": null,
+    "reason": "matched",
+    "evidence_ref": "round2-import\\t160-quality-20261007T014124Z-fbbe8ec7\\runs\\t160-quality-20261007T014124Z-fbbe8ec7-09-IMP-IMAGE-r3\\result.json"
+  },
+  {
+    "run_id": "t160-quality-20261007T014124Z-fbbe8ec7-09-IMP-IMAGE-r3",
+    "case_id": "IMP-IMAGE",
+    "repeat_index": 3,
+    "stage": "automatic",
+    "reference_question_identity": "e418791a-1462-52b7-98fe-396ce71b8d48",
+    "extracted_question_id": "a57dd9f7-5fd0-4acd-a37a-8aa581100f57",
+    "modality": "ocr_required",
+    "field": "content",
+    "reference_state": "source_provided",
+    "evaluable": true,
+    "correct": false,
+    "expected": "右图三角形面积为 24 cm²。",
+    "actual": "右图三角形面积为24cm²。",
+    "reason": "matched",
+    "evidence_ref": "round2-import\\t160-quality-20261007T014124Z-fbbe8ec7\\runs\\t160-quality-20261007T014124Z-fbbe8ec7-09-IMP-IMAGE-r3\\result.json"
+  },
+  {
+    "run_id": "t160-quality-20261007T014124Z-fbbe8ec7-09-IMP-IMAGE-r3",
+    "case_id": "IMP-IMAGE",
+    "repeat_index": 3,
+    "stage": "automatic",
+    "reference_question_identity": "e418791a-1462-52b7-98fe-396ce71b8d48",
+    "extracted_question_id": "a57dd9f7-5fd0-4acd-a37a-8aa581100f57",
+    "modality": "ocr_required",
+    "field": "assets",
+    "reference_state": "source_provided",
+    "evaluable": true,
+    "correct": false,
+    "expected": [
+      {
+        "asset_type": "figure",
+        "source_page_number": 1,
+        "order_index": 1
+      }
+    ],
+    "actual": null,
+    "reason": "matched",
+    "evidence_ref": "round2-import\\t160-quality-20261007T014124Z-fbbe8ec7\\runs\\t160-quality-20261007T014124Z-fbbe8ec7-09-IMP-IMAGE-r3\\result.json"
+  },
+  {
+    "run_id": "t160-quality-20261007T014124Z-fbbe8ec7-09-IMP-IMAGE-r3",
+    "case_id": "IMP-IMAGE",
+    "repeat_index": 3,
+    "stage": "automatic",
+    "reference_question_identity": "e5c1555f-e927-575c-b68c-85eb341a3202",
+    "extracted_question_id": "619eff39-85e8-4e41-8cc8-bbe72422431e",
+    "modality": "ocr_required",
+    "field": "scoring_rubric",
+    "reference_state": "source_provided",
+    "evaluable": true,
+    "correct": false,
+    "expected": "正确关系式 1.00；说明代入过程 2.00。",
+    "actual": "正确关系式1.00；说明代入过程2.00。",
+    "reason": "matched",
+    "evidence_ref": "round2-import\\t160-quality-20261007T014124Z-fbbe8ec7\\runs\\t160-quality-20261007T014124Z-fbbe8ec7-09-IMP-IMAGE-r3\\result.json"
+  },
+  {
+    "run_id": "t160-quality-20261007T014124Z-fbbe8ec7-09-IMP-IMAGE-r3",
+    "case_id": "IMP-IMAGE",
+    "repeat_index": 3,
+    "stage": "automatic",
+    "reference_question_identity": "e5c1555f-e927-575c-b68c-85eb341a3202",
+    "extracted_question_id": "619eff39-85e8-4e41-8cc8-bbe72422431e",
+    "modality": "ocr_required",
+    "field": "knowledge_points",
+    "reference_state": "source_provided",
+    "evaluable": true,
+    "correct": false,
+    "expected": [
+      "一次函数",
+      "表达与计算"
+    ],
+    "actual": [
+      "一次函数、表达与计算"
+    ],
+    "reason": "matched",
+    "evidence_ref": "round2-import\\t160-quality-20261007T014124Z-fbbe8ec7\\runs\\t160-quality-20261007T014124Z-fbbe8ec7-09-IMP-IMAGE-r3\\result.json"
+  },
+  {
+    "run_id": "t160-quality-20261007T014124Z-fbbe8ec7-09-IMP-IMAGE-r3",
+    "case_id": "IMP-IMAGE",
+    "repeat_index": 3,
+    "stage": "automatic",
+    "reference_question_identity": "e5c1555f-e927-575c-b68c-85eb341a3202",
+    "extracted_question_id": "619eff39-85e8-4e41-8cc8-bbe72422431e",
+    "modality": "ocr_required",
+    "field": "assets",
+    "reference_state": "source_provided",
+    "evaluable": true,
+    "correct": false,
+    "expected": [
+      {
+        "asset_type": "table",
+        "source_page_number": 1,
+        "order_index": 1
+      }
+    ],
+    "actual": null,
+    "reason": "matched",
+    "evidence_ref": "round2-import\\t160-quality-20261007T014124Z-fbbe8ec7\\runs\\t160-quality-20261007T014124Z-fbbe8ec7-09-IMP-IMAGE-r3\\result.json"
+  },
+  {
+    "run_id": "t160-quality-20261007T014124Z-fbbe8ec7-10-IMP-MIXED-r1",
+    "case_id": "IMP-MIXED",
+    "repeat_index": 1,
+    "stage": "automatic",
+    "reference_question_identity": "1faa8619-84cc-5d65-86ae-244c7f68645e",
+    "extracted_question_id": "ac2b28d6-bc48-487b-b885-0d9643c110ce",
+    "modality": "native_text",
+    "field": "assets",
+    "reference_state": "source_provided",
+    "evaluable": true,
+    "correct": false,
+    "expected": [],
+    "actual": null,
+    "reason": "matched",
+    "evidence_ref": "round2-import\\t160-quality-20261007T014124Z-fbbe8ec7\\runs\\t160-quality-20261007T014124Z-fbbe8ec7-10-IMP-MIXED-r1\\result.json"
+  },
+  {
+    "run_id": "t160-quality-20261007T014124Z-fbbe8ec7-10-IMP-MIXED-r1",
+    "case_id": "IMP-MIXED",
+    "repeat_index": 1,
+    "stage": "automatic",
+    "reference_question_identity": "545de13f-3fe9-524b-a917-7ab04807806f",
+    "extracted_question_id": "ee962b62-3880-4b7f-b20d-d5e268840886",
+    "modality": "native_text",
+    "field": "assets",
+    "reference_state": "source_provided",
+    "evaluable": true,
+    "correct": false,
+    "expected": [
+      {
+        "asset_type": "figure",
+        "source_page_number": 1,
+        "order_index": 1
+      }
+    ],
+    "actual": null,
+    "reason": "matched",
+    "evidence_ref": "round2-import\\t160-quality-20261007T014124Z-fbbe8ec7\\runs\\t160-quality-20261007T014124Z-fbbe8ec7-10-IMP-MIXED-r1\\result.json"
+  },
+  {
+    "run_id": "t160-quality-20261007T014124Z-fbbe8ec7-10-IMP-MIXED-r1",
+    "case_id": "IMP-MIXED",
+    "repeat_index": 1,
+    "stage": "automatic",
+    "reference_question_identity": "85533f46-eb86-5893-8742-33939e77750f",
+    "extracted_question_id": "1a081e19-3f28-43a5-a83f-89e3259b738a",
+    "modality": "native_text",
+    "field": "assets",
+    "reference_state": "source_provided",
+    "evaluable": true,
+    "correct": false,
+    "expected": [
+      {
+        "asset_type": "table",
+        "source_page_number": 1,
+        "order_index": 1
+      }
+    ],
+    "actual": null,
+    "reason": "matched",
+    "evidence_ref": "round2-import\\t160-quality-20261007T014124Z-fbbe8ec7\\runs\\t160-quality-20261007T014124Z-fbbe8ec7-10-IMP-MIXED-r1\\result.json"
+  },
+  {
+    "run_id": "t160-quality-20261007T014124Z-fbbe8ec7-10-IMP-MIXED-r1",
+    "case_id": "IMP-MIXED",
+    "repeat_index": 1,
+    "stage": "automatic",
+    "reference_question_identity": "0fa8d57e-58c2-5aa4-b8cd-e52e96380a38",
+    "extracted_question_id": "65464876-7002-4e81-a045-e88b8d27318d",
+    "modality": "ocr_required",
+    "field": "assets",
+    "reference_state": "source_provided",
+    "evaluable": true,
+    "correct": false,
+    "expected": [],
+    "actual": null,
+    "reason": "matched",
+    "evidence_ref": "round2-import\\t160-quality-20261007T014124Z-fbbe8ec7\\runs\\t160-quality-20261007T014124Z-fbbe8ec7-10-IMP-MIXED-r1\\result.json"
+  },
+  {
+    "run_id": "t160-quality-20261007T014124Z-fbbe8ec7-10-IMP-MIXED-r1",
+    "case_id": "IMP-MIXED",
+    "repeat_index": 1,
+    "stage": "automatic",
+    "reference_question_identity": "455720b9-9061-5bce-83af-d6d53c6c84e1",
+    "extracted_question_id": "62757c33-cd3d-458c-8725-4321afe5a423",
+    "modality": "ocr_required",
+    "field": "assets",
+    "reference_state": "source_provided",
+    "evaluable": true,
+    "correct": false,
+    "expected": [
+      {
+        "asset_type": "figure",
+        "source_page_number": 2,
+        "order_index": 1
+      }
+    ],
+    "actual": null,
+    "reason": "matched",
+    "evidence_ref": "round2-import\\t160-quality-20261007T014124Z-fbbe8ec7\\runs\\t160-quality-20261007T014124Z-fbbe8ec7-10-IMP-MIXED-r1\\result.json"
+  },
+  {
+    "run_id": "t160-quality-20261007T014124Z-fbbe8ec7-10-IMP-MIXED-r1",
+    "case_id": "IMP-MIXED",
+    "repeat_index": 1,
+    "stage": "automatic",
+    "reference_question_identity": "bf862f8d-df39-5559-bab5-d942fccb2432",
+    "extracted_question_id": "4ee472b2-2cf5-4f7e-87f7-2bc7499d44eb",
+    "modality": "ocr_required",
+    "field": "assets",
+    "reference_state": "source_provided",
+    "evaluable": true,
+    "correct": false,
+    "expected": [
+      {
+        "asset_type": "table",
+        "source_page_number": 2,
+        "order_index": 1
+      }
+    ],
+    "actual": null,
+    "reason": "matched",
+    "evidence_ref": "round2-import\\t160-quality-20261007T014124Z-fbbe8ec7\\runs\\t160-quality-20261007T014124Z-fbbe8ec7-10-IMP-MIXED-r1\\result.json"
+  },
+  {
+    "run_id": "t160-quality-20261007T014124Z-fbbe8ec7-11-IMP-MIXED-r2",
+    "case_id": "IMP-MIXED",
+    "repeat_index": 2,
+    "stage": "automatic",
+    "reference_question_identity": "1faa8619-84cc-5d65-86ae-244c7f68645e",
+    "extracted_question_id": "6f1ac883-968f-4ea9-9df9-0d3abe27da02",
+    "modality": "native_text",
+    "field": "assets",
+    "reference_state": "source_provided",
+    "evaluable": true,
+    "correct": false,
+    "expected": [],
+    "actual": null,
+    "reason": "matched",
+    "evidence_ref": "round2-import\\t160-quality-20261007T014124Z-fbbe8ec7\\runs\\t160-quality-20261007T014124Z-fbbe8ec7-11-IMP-MIXED-r2\\result.json"
+  },
+  {
+    "run_id": "t160-quality-20261007T014124Z-fbbe8ec7-11-IMP-MIXED-r2",
+    "case_id": "IMP-MIXED",
+    "repeat_index": 2,
+    "stage": "automatic",
+    "reference_question_identity": "545de13f-3fe9-524b-a917-7ab04807806f",
+    "extracted_question_id": "2679d9e9-e027-444f-a267-305030efef24",
+    "modality": "native_text",
+    "field": "assets",
+    "reference_state": "source_provided",
+    "evaluable": true,
+    "correct": false,
+    "expected": [
+      {
+        "asset_type": "figure",
+        "source_page_number": 1,
+        "order_index": 1
+      }
+    ],
+    "actual": null,
+    "reason": "matched",
+    "evidence_ref": "round2-import\\t160-quality-20261007T014124Z-fbbe8ec7\\runs\\t160-quality-20261007T014124Z-fbbe8ec7-11-IMP-MIXED-r2\\result.json"
+  },
+  {
+    "run_id": "t160-quality-20261007T014124Z-fbbe8ec7-11-IMP-MIXED-r2",
+    "case_id": "IMP-MIXED",
+    "repeat_index": 2,
+    "stage": "automatic",
+    "reference_question_identity": "85533f46-eb86-5893-8742-33939e77750f",
+    "extracted_question_id": "9063bc21-9839-4d32-9bab-4b27c70720c1",
+    "modality": "native_text",
+    "field": "assets",
+    "reference_state": "source_provided",
+    "evaluable": true,
+    "correct": false,
+    "expected": [
+      {
+        "asset_type": "table",
+        "source_page_number": 1,
+        "order_index": 1
+      }
+    ],
+    "actual": null,
+    "reason": "matched",
+    "evidence_ref": "round2-import\\t160-quality-20261007T014124Z-fbbe8ec7\\runs\\t160-quality-20261007T014124Z-fbbe8ec7-11-IMP-MIXED-r2\\result.json"
+  },
+  {
+    "run_id": "t160-quality-20261007T014124Z-fbbe8ec7-11-IMP-MIXED-r2",
+    "case_id": "IMP-MIXED",
+    "repeat_index": 2,
+    "stage": "automatic",
+    "reference_question_identity": "0fa8d57e-58c2-5aa4-b8cd-e52e96380a38",
+    "extracted_question_id": "622740dd-cdbc-46a4-ac33-d05fa00266d9",
+    "modality": "ocr_required",
+    "field": "analysis",
+    "reference_state": "source_provided",
+    "evaluable": true,
+    "correct": false,
+    "expected": "2 × 3 + 1 = 7。",
+    "actual": "2 × 3 +1=7。",
+    "reason": "matched",
+    "evidence_ref": "round2-import\\t160-quality-20261007T014124Z-fbbe8ec7\\runs\\t160-quality-20261007T014124Z-fbbe8ec7-11-IMP-MIXED-r2\\result.json"
+  },
+  {
+    "run_id": "t160-quality-20261007T014124Z-fbbe8ec7-11-IMP-MIXED-r2",
+    "case_id": "IMP-MIXED",
+    "repeat_index": 2,
+    "stage": "automatic",
+    "reference_question_identity": "0fa8d57e-58c2-5aa4-b8cd-e52e96380a38",
+    "extracted_question_id": "622740dd-cdbc-46a4-ac33-d05fa00266d9",
+    "modality": "ocr_required",
+    "field": "assets",
+    "reference_state": "source_provided",
+    "evaluable": true,
+    "correct": false,
+    "expected": [],
+    "actual": null,
+    "reason": "matched",
+    "evidence_ref": "round2-import\\t160-quality-20261007T014124Z-fbbe8ec7\\runs\\t160-quality-20261007T014124Z-fbbe8ec7-11-IMP-MIXED-r2\\result.json"
+  },
+  {
+    "run_id": "t160-quality-20261007T014124Z-fbbe8ec7-11-IMP-MIXED-r2",
+    "case_id": "IMP-MIXED",
+    "repeat_index": 2,
+    "stage": "automatic",
+    "reference_question_identity": "455720b9-9061-5bce-83af-d6d53c6c84e1",
+    "extracted_question_id": "7dfad851-db1b-498d-8c02-4289d2b1a5a4",
+    "modality": "ocr_required",
+    "field": "assets",
+    "reference_state": "source_provided",
+    "evaluable": true,
+    "correct": false,
+    "expected": [
+      {
+        "asset_type": "figure",
+        "source_page_number": 2,
+        "order_index": 1
+      }
+    ],
+    "actual": null,
+    "reason": "matched",
+    "evidence_ref": "round2-import\\t160-quality-20261007T014124Z-fbbe8ec7\\runs\\t160-quality-20261007T014124Z-fbbe8ec7-11-IMP-MIXED-r2\\result.json"
+  },
+  {
+    "run_id": "t160-quality-20261007T014124Z-fbbe8ec7-11-IMP-MIXED-r2",
+    "case_id": "IMP-MIXED",
+    "repeat_index": 2,
+    "stage": "automatic",
+    "reference_question_identity": "bf862f8d-df39-5559-bab5-d942fccb2432",
+    "extracted_question_id": "6624a49d-e825-4e7a-af0e-a6b3da890cf8",
+    "modality": "ocr_required",
+    "field": "assets",
+    "reference_state": "source_provided",
+    "evaluable": true,
+    "correct": false,
+    "expected": [
+      {
+        "asset_type": "table",
+        "source_page_number": 2,
+        "order_index": 1
+      }
+    ],
+    "actual": null,
+    "reason": "matched",
+    "evidence_ref": "round2-import\\t160-quality-20261007T014124Z-fbbe8ec7\\runs\\t160-quality-20261007T014124Z-fbbe8ec7-11-IMP-MIXED-r2\\result.json"
+  },
+  {
+    "run_id": "t160-quality-20261007T014124Z-fbbe8ec7-12-IMP-MIXED-r3",
+    "case_id": "IMP-MIXED",
+    "repeat_index": 3,
+    "stage": "automatic",
+    "reference_question_identity": "1faa8619-84cc-5d65-86ae-244c7f68645e",
+    "extracted_question_id": "c92788b7-5046-4456-84d6-7618a22ab060",
+    "modality": "native_text",
+    "field": "assets",
+    "reference_state": "source_provided",
+    "evaluable": true,
+    "correct": false,
+    "expected": [],
+    "actual": null,
+    "reason": "matched",
+    "evidence_ref": "round2-import\\t160-quality-20261007T014124Z-fbbe8ec7\\runs\\t160-quality-20261007T014124Z-fbbe8ec7-12-IMP-MIXED-r3\\result.json"
+  },
+  {
+    "run_id": "t160-quality-20261007T014124Z-fbbe8ec7-12-IMP-MIXED-r3",
+    "case_id": "IMP-MIXED",
+    "repeat_index": 3,
+    "stage": "automatic",
+    "reference_question_identity": "545de13f-3fe9-524b-a917-7ab04807806f",
+    "extracted_question_id": "663a41e1-d9ef-4b58-a09d-dd2ccb5be2b6",
+    "modality": "native_text",
+    "field": "assets",
+    "reference_state": "source_provided",
+    "evaluable": true,
+    "correct": false,
+    "expected": [
+      {
+        "asset_type": "figure",
+        "source_page_number": 1,
+        "order_index": 1
+      }
+    ],
+    "actual": null,
+    "reason": "matched",
+    "evidence_ref": "round2-import\\t160-quality-20261007T014124Z-fbbe8ec7\\runs\\t160-quality-20261007T014124Z-fbbe8ec7-12-IMP-MIXED-r3\\result.json"
+  },
+  {
+    "run_id": "t160-quality-20261007T014124Z-fbbe8ec7-12-IMP-MIXED-r3",
+    "case_id": "IMP-MIXED",
+    "repeat_index": 3,
+    "stage": "automatic",
+    "reference_question_identity": "85533f46-eb86-5893-8742-33939e77750f",
+    "extracted_question_id": "2bbcada7-73d3-4dc3-85f7-c6389ac6618f",
+    "modality": "native_text",
+    "field": "assets",
+    "reference_state": "source_provided",
+    "evaluable": true,
+    "correct": false,
+    "expected": [
+      {
+        "asset_type": "table",
+        "source_page_number": 1,
+        "order_index": 1
+      }
+    ],
+    "actual": null,
+    "reason": "matched",
+    "evidence_ref": "round2-import\\t160-quality-20261007T014124Z-fbbe8ec7\\runs\\t160-quality-20261007T014124Z-fbbe8ec7-12-IMP-MIXED-r3\\result.json"
+  },
+  {
+    "run_id": "t160-quality-20261007T014124Z-fbbe8ec7-12-IMP-MIXED-r3",
+    "case_id": "IMP-MIXED",
+    "repeat_index": 3,
+    "stage": "automatic",
+    "reference_question_identity": "0fa8d57e-58c2-5aa4-b8cd-e52e96380a38",
+    "extracted_question_id": "e83b233a-0dce-4dcb-aac2-4d680eeffeb2",
+    "modality": "ocr_required",
+    "field": "assets",
+    "reference_state": "source_provided",
+    "evaluable": true,
+    "correct": false,
+    "expected": [],
+    "actual": null,
+    "reason": "matched",
+    "evidence_ref": "round2-import\\t160-quality-20261007T014124Z-fbbe8ec7\\runs\\t160-quality-20261007T014124Z-fbbe8ec7-12-IMP-MIXED-r3\\result.json"
+  },
+  {
+    "run_id": "t160-quality-20261007T014124Z-fbbe8ec7-12-IMP-MIXED-r3",
+    "case_id": "IMP-MIXED",
+    "repeat_index": 3,
+    "stage": "automatic",
+    "reference_question_identity": "455720b9-9061-5bce-83af-d6d53c6c84e1",
+    "extracted_question_id": "3752e4bb-4761-4dfb-81f9-0afd8b3d640f",
+    "modality": "ocr_required",
+    "field": "assets",
+    "reference_state": "source_provided",
+    "evaluable": true,
+    "correct": false,
+    "expected": [
+      {
+        "asset_type": "figure",
+        "source_page_number": 2,
+        "order_index": 1
+      }
+    ],
+    "actual": null,
+    "reason": "matched",
+    "evidence_ref": "round2-import\\t160-quality-20261007T014124Z-fbbe8ec7\\runs\\t160-quality-20261007T014124Z-fbbe8ec7-12-IMP-MIXED-r3\\result.json"
+  },
+  {
+    "run_id": "t160-quality-20261007T014124Z-fbbe8ec7-12-IMP-MIXED-r3",
+    "case_id": "IMP-MIXED",
+    "repeat_index": 3,
+    "stage": "automatic",
+    "reference_question_identity": "bf862f8d-df39-5559-bab5-d942fccb2432",
+    "extracted_question_id": "03057925-e921-4b3c-9b93-530e79a4e129",
+    "modality": "ocr_required",
+    "field": "assets",
+    "reference_state": "source_provided",
+    "evaluable": true,
+    "correct": false,
+    "expected": [
+      {
+        "asset_type": "table",
+        "source_page_number": 2,
+        "order_index": 1
+      }
+    ],
+    "actual": null,
+    "reason": "matched",
+    "evidence_ref": "round2-import\\t160-quality-20261007T014124Z-fbbe8ec7\\runs\\t160-quality-20261007T014124Z-fbbe8ec7-12-IMP-MIXED-r3\\result.json"
+  },
+  {
+    "run_id": "t160-quality-20261007T014124Z-fbbe8ec7-13-IMP-CROSS-r1",
+    "case_id": "IMP-CROSS",
+    "repeat_index": 1,
+    "stage": "automatic",
+    "reference_question_identity": "239d78f4-ab44-59ec-ab7f-e11e454e26f1",
+    "extracted_question_id": "5e04f711-234a-400d-8dab-ac6c0536d64a",
+    "modality": "native_text",
+    "field": "assets",
+    "reference_state": "source_provided",
+    "evaluable": true,
+    "correct": false,
+    "expected": [
+      {
+        "asset_type": "diagram",
+        "source_page_number": 2,
+        "order_index": 1
+      }
+    ],
+    "actual": null,
+    "reason": "matched",
+    "evidence_ref": "round2-import\\t160-quality-20261007T014124Z-fbbe8ec7\\runs\\t160-quality-20261007T014124Z-fbbe8ec7-13-IMP-CROSS-r1\\result.json"
+  },
+  {
+    "run_id": "t160-quality-20261007T014124Z-fbbe8ec7-14-IMP-CROSS-r2",
+    "case_id": "IMP-CROSS",
+    "repeat_index": 2,
+    "stage": "automatic",
+    "reference_question_identity": "239d78f4-ab44-59ec-ab7f-e11e454e26f1",
+    "extracted_question_id": "f43fc52c-bd77-4f00-83dc-b06301f8cf62",
+    "modality": "native_text",
+    "field": "knowledge_points",
+    "reference_state": "known_missing",
+    "evaluable": true,
+    "correct": false,
+    "expected": [],
+    "actual": null,
+    "reason": "matched",
+    "evidence_ref": "round2-import\\t160-quality-20261007T014124Z-fbbe8ec7\\runs\\t160-quality-20261007T014124Z-fbbe8ec7-14-IMP-CROSS-r2\\result.json"
+  },
+  {
+    "run_id": "t160-quality-20261007T014124Z-fbbe8ec7-14-IMP-CROSS-r2",
+    "case_id": "IMP-CROSS",
+    "repeat_index": 2,
+    "stage": "automatic",
+    "reference_question_identity": "239d78f4-ab44-59ec-ab7f-e11e454e26f1",
+    "extracted_question_id": "f43fc52c-bd77-4f00-83dc-b06301f8cf62",
+    "modality": "native_text",
+    "field": "assets",
+    "reference_state": "source_provided",
+    "evaluable": true,
+    "correct": false,
+    "expected": [
+      {
+        "asset_type": "diagram",
+        "source_page_number": 2,
+        "order_index": 1
+      }
+    ],
+    "actual": null,
+    "reason": "matched",
+    "evidence_ref": "round2-import\\t160-quality-20261007T014124Z-fbbe8ec7\\runs\\t160-quality-20261007T014124Z-fbbe8ec7-14-IMP-CROSS-r2\\result.json"
+  },
+  {
+    "run_id": "t160-quality-20261007T014124Z-fbbe8ec7-15-IMP-CROSS-r3",
+    "case_id": "IMP-CROSS",
+    "repeat_index": 3,
+    "stage": "automatic",
+    "reference_question_identity": "239d78f4-ab44-59ec-ab7f-e11e454e26f1",
+    "extracted_question_id": "61bb6881-c0ca-4ec0-ab95-bce3608d220f",
+    "modality": "native_text",
+    "field": "knowledge_points",
+    "reference_state": "known_missing",
+    "evaluable": true,
+    "correct": false,
+    "expected": [],
+    "actual": null,
+    "reason": "matched",
+    "evidence_ref": "round2-import\\t160-quality-20261007T014124Z-fbbe8ec7\\runs\\t160-quality-20261007T014124Z-fbbe8ec7-15-IMP-CROSS-r3\\result.json"
+  },
+  {
+    "run_id": "t160-quality-20261007T014124Z-fbbe8ec7-15-IMP-CROSS-r3",
+    "case_id": "IMP-CROSS",
+    "repeat_index": 3,
+    "stage": "automatic",
+    "reference_question_identity": "239d78f4-ab44-59ec-ab7f-e11e454e26f1",
+    "extracted_question_id": "61bb6881-c0ca-4ec0-ab95-bce3608d220f",
+    "modality": "native_text",
+    "field": "assets",
+    "reference_state": "source_provided",
+    "evaluable": true,
+    "correct": false,
+    "expected": [
+      {
+        "asset_type": "diagram",
+        "source_page_number": 2,
+        "order_index": 1
+      }
+    ],
+    "actual": null,
+    "reason": "matched",
+    "evidence_ref": "round2-import\\t160-quality-20261007T014124Z-fbbe8ec7\\runs\\t160-quality-20261007T014124Z-fbbe8ec7-15-IMP-CROSS-r3\\result.json"
+  }
+]
