@@ -1,0 +1,65 @@
+{
+  "original_receipt_unchanged": true,
+  "original_reported_passed": 7,
+  "audited_valid": 6,
+  "planned": 8,
+  "reason": "Reused deleted isolated DB caused early PostgreSQL failures; substring matching falsely accepted Redis preflight heading. Strict explicit failure-step audit; final fresh valid fixture passed all 8.",
+  "cases": [
+    {
+      "case": "missing_config",
+      "reported_passed": true,
+      "expected_actual_step": "外置配置",
+      "actual_failure_step": "外置配置",
+      "audited_valid": true
+    },
+    {
+      "case": "invalid_config",
+      "reported_passed": true,
+      "expected_actual_step": "配置校验",
+      "actual_failure_step": "配置校验",
+      "audited_valid": true
+    },
+    {
+      "case": "database_unreachable",
+      "reported_passed": true,
+      "expected_actual_step": "PostgreSQL / pgvector",
+      "actual_failure_step": "PostgreSQL / pgvector",
+      "audited_valid": true
+    },
+    {
+      "case": "redis_unreachable",
+      "reported_passed": true,
+      "expected_actual_step": "Redis",
+      "actual_failure_step": "PostgreSQL / pgvector",
+      "audited_valid": false
+    },
+    {
+      "case": "model_network",
+      "reported_passed": false,
+      "expected_actual_step": "模型网络",
+      "actual_failure_step": "PostgreSQL / pgvector",
+      "audited_valid": false
+    },
+    {
+      "case": "missing_local_model",
+      "reported_passed": true,
+      "expected_actual_step": "外置模型",
+      "actual_failure_step": "外置模型",
+      "audited_valid": true
+    },
+    {
+      "case": "missing_ocr_weights",
+      "reported_passed": true,
+      "expected_actual_step": "OCR",
+      "actual_failure_step": "OCR",
+      "audited_valid": true
+    },
+    {
+      "case": "migration_unknown_revision",
+      "reported_passed": true,
+      "expected_actual_step": "数据库迁移",
+      "actual_failure_step": "数据库迁移",
+      "audited_valid": true
+    }
+  ]
+}

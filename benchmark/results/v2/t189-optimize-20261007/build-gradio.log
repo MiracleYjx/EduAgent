@@ -1,0 +1,257 @@
+245 INFO: PyInstaller: 6.22.3, contrib hooks: 2026.8
+245 INFO: Python: 3.13.13
+309 INFO: Platform: Windows-11-10.0.26200-SP0
+309 INFO: Python environment: D:\YJX\MyCode\EduAgent\.cache\t189-t191-20261006\local-build\runtime
+294 WARNING: Failed to collect submodules for 'rapidocr.inference_engine.tensorrt' because importing 'rapidocr.inference_engine.tensorrt' raised: ModuleNotFoundError: No module named 'tensorrt'
+27899 INFO: Module search paths (PYTHONPATH):
+['D:\\YJX\\MyCode\\EduAgent',
+ 'D:\\develop\\Python\\python313.zip',
+ 'D:\\develop\\Python\\DLLs',
+ 'D:\\develop\\Python\\Lib',
+ 'D:\\develop\\Python',
+ 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime',
+ 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages',
+ 'D:\\YJX\\MyCode\\EduAgent\\scripts',
+ 'D:\\YJX\\MyCode\\EduAgent']
+28501 INFO: Appending 'datas' from .spec
+28598 INFO: checking Analysis
+28864 INFO: Building because excludes changed
+28864 INFO: Looking for Python shared library...
+28864 INFO: Using Python shared library: D:\develop\Python\python313.dll
+28864 INFO: Running Analysis Analysis-00.toc
+28864 INFO: Target bytecode optimization level: 0
+28864 INFO: Initializing module dependency graph...
+28866 INFO: Initializing module graph hook caches...
+28888 INFO: Analyzing modules for base_library.zip ...
+30419 INFO: Processing standard module hook 'hook-encodings.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\PyInstaller\\hooks'
+30924 INFO: Processing standard module hook 'hook-math.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\PyInstaller\\hooks'
+31187 INFO: Processing standard module hook 'hook-heapq.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\PyInstaller\\hooks'
+32561 INFO: Processing standard module hook 'hook-pickle.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\PyInstaller\\hooks'
+34257 INFO: Caching module dependency graph...
+34302 INFO: Analyzing D:\YJX\MyCode\EduAgent\scripts\launch_windows.py
+34408 INFO: Processing standard module hook 'hook-webbrowser.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\PyInstaller\\hooks'
+34465 INFO: Processing standard module hook 'hook-sysconfig.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\PyInstaller\\hooks'
+34472 INFO: Processing standard module hook 'hook-_ctypes.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\PyInstaller\\hooks'
+34860 INFO: Processing standard module hook 'hook-pydantic.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+35340 INFO: Processing pre-safe-import-module hook 'hook-typing_extensions.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\PyInstaller\\hooks\\pre_safe_import_module'
+35342 INFO: SetuptoolsInfo: initializing cached setuptools info...
+36382 INFO: Processing standard module hook 'hook-multiprocessing.util.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\PyInstaller\\hooks'
+36494 INFO: Processing standard module hook 'hook-xml.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\PyInstaller\\hooks'
+37435 INFO: Processing standard module hook 'hook-platform.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\PyInstaller\\hooks'
+37720 INFO: Processing standard module hook 'hook-rich.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+38562 INFO: Processing standard module hook 'hook-pygments.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\PyInstaller\\hooks'
+41364 INFO: Processing standard module hook 'hook-zoneinfo.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+42723 INFO: Processing pre-safe-import-module hook 'hook-tomli.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\PyInstaller\\hooks\\pre_safe_import_module'
+42724 INFO: Setuptools: 'tomli' appears to be a setuptools-vendored copy - creating alias to 'setuptools._vendor.tomli'!
+42732 INFO: Processing standard module hook 'hook-setuptools.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\PyInstaller\\hooks'
+42751 INFO: Processing pre-safe-import-module hook 'hook-distutils.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\PyInstaller\\hooks\\pre_safe_import_module'
+42790 INFO: Processing pre-safe-import-module hook 'hook-jaraco.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\PyInstaller\\hooks\\pre_safe_import_module'
+42791 INFO: Setuptools: 'jaraco' appears to be a full setuptools-vendored copy - creating alias to 'setuptools._vendor.jaraco'!
+42804 INFO: Processing pre-safe-import-module hook 'hook-more_itertools.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\PyInstaller\\hooks\\pre_safe_import_module'
+42805 INFO: Setuptools: 'more_itertools' appears to be a setuptools-vendored copy - creating alias to 'setuptools._vendor.more_itertools'!
+42981 INFO: Processing standard module hook 'hook-_osx_support.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\PyInstaller\\hooks'
+43003 INFO: Processing pre-safe-import-module hook 'hook-packaging.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\PyInstaller\\hooks\\pre_safe_import_module'
+43338 INFO: Processing standard module hook 'hook-setuptools._vendor.jaraco.text.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\PyInstaller\\hooks'
+43340 INFO: Processing pre-safe-import-module hook 'hook-importlib_resources.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\PyInstaller\\hooks\\pre_safe_import_module'
+43351 INFO: Processing pre-safe-import-module hook 'hook-backports.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\PyInstaller\\hooks\\pre_safe_import_module'
+43352 INFO: Setuptools: 'backports' appears to be a full setuptools-vendored copy - creating alias to 'setuptools._vendor.backports'!
+44561 INFO: Processing pre-safe-import-module hook 'hook-wheel.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\PyInstaller\\hooks\\pre_safe_import_module'
+44562 INFO: Setuptools: 'wheel' appears to be a setuptools-vendored copy - creating alias to 'setuptools._vendor.wheel'!
+44967 INFO: Processing standard module hook 'hook-transformers.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+48562 INFO: Processing standard module hook 'hook-regex.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+48866 INFO: Processing standard module hook 'hook-numpy.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\PyInstaller\\hooks'
+50758 INFO: Processing standard module hook 'hook-difflib.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\PyInstaller\\hooks'
+51611 INFO: Processing standard module hook 'hook-charset_normalizer.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+52503 INFO: Processing standard module hook 'hook-certifi.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+52773 INFO: Processing standard module hook 'hook-anyio.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+54662 INFO: Processing standard module hook 'hook-sqlite3.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\PyInstaller\\hooks'
+55592 INFO: Processing standard module hook 'hook-pandas.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\PyInstaller\\hooks'
+57536 INFO: Processing standard module hook 'hook-scipy.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\PyInstaller\\hooks'
+58592 INFO: Processing standard module hook 'hook-torch.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+2228 WARNING: Failed to collect submodules for 'torch.utils.tensorboard' because importing 'torch.utils.tensorboard' raised: ModuleNotFoundError: No module named 'tensorboard'
+D:\YJX\MyCode\EduAgent\.cache\t189-t191-20261006\local-build\runtime\Lib\site-packages\PyInstaller\utils\hooks\__init__.py:665: DeprecationWarning: `torch.distributed._sharding_spec` will be deprecated, use `torch.distributed._shard.sharding_spec` instead
+  __import__(name)
+D:\YJX\MyCode\EduAgent\.cache\t189-t191-20261006\local-build\runtime\Lib\site-packages\PyInstaller\utils\hooks\__init__.py:665: DeprecationWarning: `torch.distributed._sharded_tensor` will be deprecated, use `torch.distributed._shard.sharded_tensor` instead
+  __import__(name)
+D:\YJX\MyCode\EduAgent\.cache\t189-t191-20261006\local-build\runtime\Lib\site-packages\PyInstaller\utils\hooks\__init__.py:665: DeprecationWarning: `torch.distributed._shard.checkpoint` will be deprecated, use `torch.distributed.checkpoint` instead
+  __import__(name)
+71221 INFO: hook-torch: this torch build does not depend on MKL...
+83673 INFO: Processing standard module hook 'hook-scipy.linalg.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\PyInstaller\\hooks'
+83854 INFO: Processing standard module hook 'hook-scipy.special._ufuncs.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\PyInstaller\\hooks'
+87818 INFO: Processing standard module hook 'hook-PIL.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\PyInstaller\\hooks'
+87950 INFO: Processing standard module hook 'hook-PIL.Image.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\PyInstaller\\hooks'
+88441 INFO: Processing standard module hook 'hook-xml.etree.cElementTree.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\PyInstaller\\hooks'
+88660 INFO: Processing standard module hook 'hook-PIL.ImageFilter.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\PyInstaller\\hooks'
+94861 INFO: Processing pre-safe-import-module hook 'hook-win32com.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\pre_safe_import_module'
+106565 INFO: Processing standard module hook 'hook-onnxruntime.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+106678 INFO: Processing pre-safe-import-module hook 'hook-tensorflow.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\pre_safe_import_module'
+110384 INFO: Processing standard module hook 'hook-scipy.spatial._ckdtree.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\PyInstaller\\hooks'
+111882 INFO: Processing standard module hook 'hook-scipy.spatial.transform.rotation.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\PyInstaller\\hooks'
+113297 INFO: Processing standard module hook 'hook-scipy.stats._stats.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\PyInstaller\\hooks'
+114020 INFO: Processing standard module hook 'hook-scipy.sparse.csgraph.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\PyInstaller\\hooks'
+119263 INFO: Processing standard module hook 'hook-scipy.io.matlab.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\PyInstaller\\hooks'
+122826 INFO: Processing standard module hook 'hook-urllib3.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+131086 INFO: Processing standard module hook 'hook-jinja2.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+135879 INFO: Processing standard module hook 'hook-fsspec.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+140389 INFO: Processing standard module hook 'hook-orjson.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+142839 INFO: Processing standard module hook 'hook-scipy.special._ellip_harm_2.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\PyInstaller\\hooks'
+146721 INFO: Processing standard module hook 'hook-xml.dom.domreg.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\PyInstaller\\hooks'
+151509 INFO: Processing standard module hook 'hook-pandas.io.formats.style.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\PyInstaller\\hooks'
+154991 INFO: Processing standard module hook 'hook-pandas.plotting.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\PyInstaller\\hooks'
+155613 INFO: Processing standard module hook 'hook-dateutil.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+155802 INFO: Processing pre-safe-import-module hook 'hook-six.moves.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\PyInstaller\\hooks\\pre_safe_import_module'
+157368 INFO: Processing standard module hook 'hook-sqlalchemy.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\PyInstaller\\hooks'
+158315 INFO: Processing pre-safe-import-module hook 'hook-importlib_metadata.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\PyInstaller\\hooks\\pre_safe_import_module'
+158316 INFO: Setuptools: 'importlib_metadata' appears to be a setuptools-vendored copy - creating alias to 'setuptools._vendor.importlib_metadata'!
+158349 INFO: Processing standard module hook 'hook-setuptools._vendor.importlib_metadata.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\PyInstaller\\hooks'
+158384 INFO: Processing pre-safe-import-module hook 'hook-zipp.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\PyInstaller\\hooks\\pre_safe_import_module'
+158385 INFO: Setuptools: 'zipp' appears to be a setuptools-vendored copy - creating alias to 'setuptools._vendor.zipp'!
+162569 INFO: Processing standard module hook 'hook-pandas.io.clipboard.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\PyInstaller\\hooks'
+167541 INFO: Processing standard module hook 'hook-uvicorn.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+168256 INFO: Processing standard module hook 'hook-websockets.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+D:\YJX\MyCode\EduAgent\.cache\t189-t191-20261006\local-build\runtime\Lib\site-packages\pydub\utils.py:300: SyntaxWarning: invalid escape sequence '\('
+  m = re.match('([su]([0-9]{1,2})p?) \(([0-9]{1,2}) bit\)$', token)
+D:\YJX\MyCode\EduAgent\.cache\t189-t191-20261006\local-build\runtime\Lib\site-packages\pydub\utils.py:301: SyntaxWarning: invalid escape sequence '\('
+  m2 = re.match('([su]([0-9]{1,2})p?)( \(default\))?$', token)
+D:\YJX\MyCode\EduAgent\.cache\t189-t191-20261006\local-build\runtime\Lib\site-packages\pydub\utils.py:310: SyntaxWarning: invalid escape sequence '\('
+  elif re.match('(flt)p?( \(default\))?$', token):
+D:\YJX\MyCode\EduAgent\.cache\t189-t191-20261006\local-build\runtime\Lib\site-packages\pydub\utils.py:314: SyntaxWarning: invalid escape sequence '\('
+  elif re.match('(dbl)p?( \(default\))?$', token):
+172079 INFO: Processing standard module hook 'hook-cv2.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+174187 INFO: Processing standard module hook 'hook-sklearn.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+174721 INFO: Processing standard module hook 'hook-sklearn.utils.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+174921 INFO: Processing standard module hook 'hook-cloudpickle.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+175371 INFO: Processing standard module hook 'hook-narwhals.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+177556 INFO: Processing standard module hook 'hook-sklearn.externals.array_api_compat.numpy.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+177617 INFO: Processing standard module hook 'hook-sklearn.externals.array_api_compat.cupy.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+177637 INFO: Processing standard module hook 'hook-sklearn.externals.array_api_compat.torch.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+177687 INFO: Processing standard module hook 'hook-sklearn.externals.array_api_compat.dask.array.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+178155 INFO: Processing standard module hook 'hook-sklearn.metrics.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+182562 INFO: Processing standard module hook 'hook-sklearn.metrics.cluster.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+182665 INFO: Processing standard module hook 'hook-sklearn.metrics.pairwise.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+182904 INFO: Processing standard module hook 'hook-sklearn.cluster.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+183142 INFO: Processing standard module hook 'hook-sklearn.neighbors.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+183298 INFO: Processing standard module hook 'hook-sklearn.linear_model.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+226406 INFO: Processing standard module hook 'hook-pytz.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\PyInstaller\\hooks'
+230111 INFO: Processing standard module hook 'hook-psycopg_binary.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+231735 INFO: Processing standard module hook 'hook-mako.codegen.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+236396 INFO: Processing standard module hook 'hook-pypdfium2.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+236416 INFO: Processing standard module hook 'hook-pypdfium2_raw.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+240854 INFO: Processing standard module hook 'hook-langchain.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+244599 INFO: Processing standard module hook 'hook-ormsgpack.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\ormsgpack\\_pyinstaller'
+247366 INFO: Analyzing hidden import 'backend.app.ai.agents.supervisor'
+247385 INFO: Analyzing hidden import 'backend.app.ai.evaluation'
+247387 INFO: Analyzing hidden import 'backend.app.ai.prompts'
+247388 INFO: Analyzing hidden import 'backend.app.ai.retrieval.keyword_search'
+247394 INFO: Analyzing hidden import 'backend.app.ai.retrieval.vector_search'
+247402 INFO: Analyzing hidden import 'backend.app.mcp'
+247403 INFO: Analyzing hidden import 'backend.app.mcp.registry'
+247413 INFO: Analyzing hidden import 'backend.app.mcp.server'
+247417 INFO: Analyzing hidden import 'backend.app.mcp.tools'
+247419 INFO: Analyzing hidden import 'backend.app.mcp.tools.email_tool'
+247426 INFO: Analyzing hidden import 'backend.app.mcp.tools.knowledge_tools'
+247437 INFO: Analyzing hidden import 'backend.app.mcp.tools.report_tools'
+247454 INFO: Analyzing hidden import 'backend.app.repositories'
+247455 INFO: Analyzing hidden import 'backend.app.services.backup_restore_service'
+247491 INFO: Analyzing hidden import 'backend.app.services.exam_history_service'
+247517 INFO: Analyzing hidden import 'backend.main'
+247518 INFO: Analyzing hidden import 'langgraph.func'
+247531 INFO: Analyzing hidden import 'langgraph.graph.ui'
+247538 INFO: Analyzing hidden import 'langgraph.prebuilt'
+247669 INFO: Analyzing hidden import 'langgraph.prebuilt.interrupt'
+247672 INFO: Analyzing hidden import 'langgraph.pregel._config'
+247673 INFO: Analyzing hidden import 'langgraph.pregel.remote'
+247712 INFO: Analyzing hidden import 'langgraph.pregel.types'
+247714 INFO: Analyzing hidden import 'langgraph.utils'
+247715 INFO: Analyzing hidden import 'langgraph.utils.config'
+247717 INFO: Analyzing hidden import 'langgraph.utils.runnable'
+247718 INFO: Analyzing hidden import 'langgraph.version'
+247720 INFO: Analyzing hidden import 'langchain.agents'
+248061 INFO: Analyzing hidden import 'langchain.messages'
+248065 INFO: Analyzing hidden import 'langchain.rate_limiters'
+248067 INFO: Analyzing hidden import 'langchain_core._security._ssrf_protection'
+248073 INFO: Analyzing hidden import 'langchain_core.chat_loaders'
+248076 INFO: Analyzing hidden import 'langchain_core.cross_encoders'
+248078 INFO: Analyzing hidden import 'langchain_core.document_loaders'
+248094 INFO: Analyzing hidden import 'langchain_core.indexing'
+248135 INFO: Analyzing hidden import 'langchain_core.indexing.in_memory'
+248141 INFO: Analyzing hidden import 'langchain_core.output_parsers.openai_functions'
+248152 INFO: Analyzing hidden import 'langchain_core.stores'
+248161 INFO: Analyzing hidden import 'langchain_core.structured_query'
+248167 INFO: Analyzing hidden import 'langchain_core.sys_info'
+248176 INFO: Analyzing hidden import 'langchain_core.utils.html'
+248184 INFO: Analyzing hidden import 'langchain_openai.middleware'
+248208 INFO: Analyzing hidden import 'langchain_openai.output_parsers'
+248210 INFO: Analyzing hidden import 'langchain_openai.output_parsers.tools'
+248212 INFO: Analyzing hidden import 'rapidocr'
+D:\YJX\MyCode\EduAgent\.cache\t189-t191-20261006\local-build\runtime\Lib\site-packages\rapidocr\inference_engine\pytorch\networks\heads\multiheadAttention.py:14: SyntaxWarning: invalid escape sequence '\d'
+  \text{MultiHead}(Q, K, V) = \text{Concat}(head_1,\dots,head_h)W^O
+250022 INFO: Processing standard module hook 'hook-shapely.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+250282 INFO: Analyzing hidden import 'rapidocr._version'
+250284 INFO: Analyzing hidden import 'uvicorn.__main__'
+250285 INFO: Analyzing hidden import 'uvicorn.lifespan'
+250287 INFO: Analyzing hidden import 'uvicorn.lifespan.off'
+250290 INFO: Analyzing hidden import 'uvicorn.lifespan.on'
+250297 INFO: Analyzing hidden import 'uvicorn.loops'
+250299 INFO: Analyzing hidden import 'uvicorn.loops.asyncio'
+250300 INFO: Analyzing hidden import 'uvicorn.loops.auto'
+250304 INFO: Analyzing hidden import 'uvicorn.protocols.http.auto'
+250306 INFO: Analyzing hidden import 'uvicorn.protocols.websockets.auto'
+250307 INFO: Analyzing hidden import 'uvicorn.workers'
+250314 INFO: Analyzing hidden import 'sentence_transformers.cross_encoder.evaluation'
+250371 INFO: Analyzing hidden import 'sentence_transformers.cross_encoder.util'
+250372 INFO: Analyzing hidden import 'sentence_transformers.multi_vector_encoder.evaluation'
+250403 INFO: Analyzing hidden import 'sentence_transformers.multi_vector_encoder.interpretability'
+250415 INFO: Analyzing hidden import 'sentence_transformers.sparse_encoder.evaluation'
+250496 INFO: Analyzing hidden import 'sentence_transformers.sparse_encoder.search_engines'
+250519 INFO: Processing module hooks (post-graph stage)...
+251671 INFO: Processing standard module hook 'hook-sklearn.tree.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+261255 INFO: Processing standard module hook 'hook-PIL.SpiderImagePlugin.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\PyInstaller\\hooks'
+263872 WARNING: Hidden import "scipy.special._cdflib" not found!
+263920 INFO: Processing standard module hook 'hook-sqlalchemy.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\PyInstaller\\hooks'
+264527 WARNING: Hidden import "pysqlite2" not found!
+264527 WARNING: Hidden import "MySQLdb" not found!
+264671 INFO: Processing standard module hook 'hook-tzdata.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+265436 INFO: Performing binary vs. data reclassification (4516 entries)
+267008 INFO: Looking for ctypes DLLs
+267230 WARNING: Ignoring /usr/lib64/libgomp.so.1 imported from D:\YJX\MyCode\EduAgent\.cache\t189-t191-20261006\local-build\runtime\Lib\site-packages\torch\_inductor\codecache.py - only basenames are supported with ctypes imports!
+267920 INFO: Analyzing run-time hooks ...
+267977 INFO: Including run-time hook 'pyi_rth_pkgutil.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks'
+267981 INFO: Including run-time hook 'pyi_rth_setuptools.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks'
+267984 INFO: Including run-time hook 'pyi_rth_multiprocessing.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks'
+267990 INFO: Including run-time hook 'pyi_rth_inspect.py' from 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks'
+268353 INFO: Creating base_library.zip...
+268391 INFO: Looking for dynamic libraries
+D:\YJX\MyCode\EduAgent\.cache\t189-t191-20261006\local-build\runtime\Lib\site-packages\PyInstaller\building\build_main.py:227: DeprecationWarning: `torch.distributed._sharding_spec` will be deprecated, use `torch.distributed._shard.sharding_spec` instead
+  __import__(package)
+D:\YJX\MyCode\EduAgent\.cache\t189-t191-20261006\local-build\runtime\Lib\site-packages\PyInstaller\building\build_main.py:227: DeprecationWarning: `torch.distributed._sharded_tensor` will be deprecated, use `torch.distributed._shard.sharded_tensor` instead
+  __import__(package)
+D:\YJX\MyCode\EduAgent\.cache\t189-t191-20261006\local-build\runtime\Lib\site-packages\PyInstaller\building\build_main.py:227: DeprecationWarning: `torch.distributed._shard.checkpoint` will be deprecated, use `torch.distributed.checkpoint` instead
+  __import__(package)
+304655 INFO: Extra DLL search directories (AddDllDirectory): ['D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\scipy.libs', 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\numpy.libs', 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\torch\\lib', 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\pandas.libs', 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\psycopg_binary.libs', 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\psycopg_binary.libs', 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\cv2\\../../x64/vc17/bin', 'D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\shapely.libs']
+304655 INFO: Extra DLL search directories (PATH): ['D:\\YJX\\MyCode\\EduAgent\\.cache\\t189-t191-20261006\\local-build\\runtime\\Lib\\site-packages\\cv2\\../../x64/vc17/bin']
+309495 INFO: Warnings written to D:\YJX\MyCode\EduAgent\.cache\t189-optimize-20261007\build-gradio\work\EduAgent\warn-EduAgent.txt
+310853 INFO: Graph cross-reference written to D:\YJX\MyCode\EduAgent\.cache\t189-optimize-20261007\build-gradio\work\EduAgent\xref-EduAgent.html
+311479 INFO: checking PYZ
+311609 INFO: Building because name changed
+311610 INFO: Building PYZ (ZlibArchive) D:\YJX\MyCode\EduAgent\.cache\t189-optimize-20261007\build-gradio\work\EduAgent\PYZ-00.pyz
+321362 INFO: Building PYZ (ZlibArchive) D:\YJX\MyCode\EduAgent\.cache\t189-optimize-20261007\build-gradio\work\EduAgent\PYZ-00.pyz completed successfully.
+321642 INFO: checking PKG
+321643 INFO: Building because name changed
+321643 INFO: Building PKG (CArchive) EduAgent.pkg
+321746 INFO: Building PKG (CArchive) EduAgent.pkg completed successfully.
+321749 INFO: Bootloader D:\YJX\MyCode\EduAgent\.cache\t189-t191-20261006\local-build\runtime\Lib\site-packages\PyInstaller\bootloader\Windows-64bit-intel\run.exe
+321749 INFO: checking EXE
+321750 INFO: Building because name changed
+321750 INFO: Building EXE from EXE-00.toc
+321750 INFO: Copying bootloader EXE to D:\YJX\MyCode\EduAgent\.cache\t189-optimize-20261007\build-gradio\work\EduAgent\EduAgent.exe
+321765 INFO: Copying icon to EXE
+321776 INFO: Copying 0 resources to EXE
+321776 INFO: Embedding manifest in EXE
+321786 INFO: Appending PKG archive to EXE
+321870 INFO: Fixing EXE headers
+322307 INFO: Building EXE from EXE-00.toc completed successfully.
+322417 INFO: checking COLLECT
+322552 INFO: Building COLLECT COLLECT-00.toc
+345500 INFO: Building COLLECT COLLECT-00.toc completed successfully.
+345740 INFO: Build complete! The results are available in: D:\YJX\MyCode\EduAgent\.cache\t189-optimize-20261007\build-gradio\dist

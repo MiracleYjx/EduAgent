@@ -1,0 +1,52 @@
+{
+  "database": "eduagent_t189_a6e06ab822f1",
+  "source": "real frozen EXE",
+  "browser_disabled": "user requested no repeated opening",
+  "cases": [
+    {
+      "case": "OCR disabled scan",
+      "status": "Failed",
+      "error_code": "OCR_PROVIDER_NOT_READY",
+      "passed": true
+    },
+    {
+      "case": "real PNG teacher read/student private",
+      "bytes": 157944,
+      "sha256": "31cdc03d0d958c33d6d7815e330f521febe40e23eab0122f687344f8ed311199",
+      "teacher_status": 200,
+      "student_status": 403,
+      "passed": true
+    },
+    {
+      "case": "restart persistent status and image",
+      "passed": true
+    },
+    {
+      "case": "real OCR and frozen SDK against controlled local 503",
+      "status": "Failed",
+      "error_code": "PAPER_EXTRACTION_FAILED",
+      "ocr_page_count": 1,
+      "passed": true
+    }
+  ],
+  "exits": [
+    0,
+    0
+  ],
+  "cloud_usage": "0 cloud calls; synthetic scan to local controlled 503 only; real OCR/SDK failure propagation, not extraction quality",
+  "local_calls": [
+    {
+      "path": "/v1/chat/completions",
+      "bytes": 14104
+    },
+    {
+      "path": "/v1/chat/completions",
+      "bytes": 14104
+    },
+    {
+      "path": "/v1/chat/completions",
+      "bytes": 14104
+    }
+  ],
+  "database_removed": true
+}

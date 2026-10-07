@@ -1,0 +1,5 @@
+D:\develop\Python\Lib\site-packages\gradio\components\dataframe.py:197: UserWarning: The `column_limits` parameter is not yet implemented.
+  warnings.warn(
+D:\develop\Python\Lib\site-packages\gradio\components\dataframe.py:183: UserWarning: The `row_limits` parameter is not yet implemented.
+  warnings.warn(
+{'imports': 6.330616099992767, 'construction': 1.2642108000582084}

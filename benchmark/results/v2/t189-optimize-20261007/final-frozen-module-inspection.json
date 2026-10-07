@@ -1,0 +1,12 @@
+{
+  "actual_exe_sha256": "a34a141ad94c4c8125f62fe49162c5c820f6532096097a74066d44ab3530c88d",
+  "module": "gradio.component_meta",
+  "actual_function_disassembly": " 31           RESUME                   0\n\n 32           RETURN_CONST             0 (None)\n",
+  "all_other_ast_unchanged": true,
+  "source_library_sha256": "346f302f1d31ffb3e4839b2611fb339cf35c6c12fbfb73014d303027d7ab98e4",
+  "generated_module_sha256": "e84158582ff5585237915d4f5737d31d145545eb8820c09b11995936e5ea5ff7",
+  "meaning": "IDE stub writer disabled and API component lookups indexed; all other module AST unchanged",
+  "api_lookup_actual_compiled_body_matches": true,
+  "api_module_other_ast_unchanged": true,
+  "api_method_bytecode_sha256": "831100cd044f70ecaa4423214c3eb245ea914ec4d3240ae6e422e431a9363abd"
+}

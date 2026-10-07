@@ -1,0 +1,46 @@
+{
+  "meaning": "Executed observer source snapshots; private .env/JWT/business files excluded. Private helper paths assume original .cache placement and should not be launched from this archive. Active reusable entry points remain benchmark/t189/.",
+  "files": [
+    {
+      "executed_path": "benchmark/t189/windows_acceptance.py",
+      "archived_path": "executed-source/windows_acceptance.py",
+      "sha256": "94e4079ea0609af798e5c957f2b5ffed3e4ea455056110496d19aa622643273a"
+    },
+    {
+      "executed_path": "benchmark/t189/fault_acceptance.py",
+      "archived_path": "executed-source/fault_acceptance.py",
+      "sha256": "bf5854463073a8c074a5a6c47a37fd93400f93f69b3b253c2b1cb530e12f65ad"
+    },
+    {
+      "executed_path": "benchmark/t160/resource_sampler.py",
+      "archived_path": "executed-source/resource_sampler.py",
+      "sha256": "c9c2de120aaa855344dde5186ef440a1e008160ff8331929090141efe25e181d"
+    },
+    {
+      "executed_path": ".cache/t189-optimize-20261007/run_final_faults.py",
+      "archived_path": "executed-source/run_final_faults.py",
+      "sha256": "b1fbb9a877e429dd07a82adcbbaeeb7fe620517c2c58663bb1c46800edb503e3"
+    },
+    {
+      "executed_path": ".cache/t189-optimize-20261007/run_frozen_ui_final.py",
+      "archived_path": "executed-source/run_frozen_ui_final.py",
+      "sha256": "636495e1fdee8e8d61db97ca11a5c8e117d74c86ae56818c4303d9600ddbf14a"
+    },
+    {
+      "executed_path": ".cache/t189-optimize-20261007/runtime_local.py",
+      "archived_path": null,
+      "sha256": "eac67725c00be79e273c500e83f80b563fc06b19e412124f7c5d1566e91c32e5",
+      "meaning": "Private execution helper contains synthetic isolated authentication configuration constants; source remains private .cache, only original SHA and path registered."
+    },
+    {
+      "executed_path": ".cache/t189-optimize-20261007/inspect_bundle_final.py",
+      "archived_path": "executed-source/inspect_bundle_final.py",
+      "sha256": "e5b6faeb66043c42130c917bbf1a6836b8b095d3c7efe7ac48854924ff408201"
+    },
+    {
+      "executed_path": ".cache/t189-optimize-20261007/finalize_metrics.py",
+      "archived_path": "executed-source/finalize_metrics.py",
+      "sha256": "630d775dab73acd01e8a5b2b3c97e3b877e77a90035c7aaa87d4128fe4b0cf7e"
+    }
+  ]
+}

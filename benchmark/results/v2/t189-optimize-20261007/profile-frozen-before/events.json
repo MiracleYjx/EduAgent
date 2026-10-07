@@ -1,0 +1,255 @@
+{
+  "events": [
+    {
+      "seconds": 2.773481599986553,
+      "source": "launcher.log",
+      "line": "检查：持久目录"
+    },
+    {
+      "seconds": 2.7734903999371454,
+      "source": "launcher.log",
+      "line": "通过：持久目录"
+    },
+    {
+      "seconds": 2.7734928999561816,
+      "source": "launcher.log",
+      "line": "检查：模型配置"
+    },
+    {
+      "seconds": 3.54034219996538,
+      "source": "launcher.log",
+      "line": "通过：模型配置"
+    },
+    {
+      "seconds": 3.5403561999555677,
+      "source": "launcher.log",
+      "line": "检查：PostgreSQL / pgvector / Redis"
+    },
+    {
+      "seconds": 4.10200920002535,
+      "source": "launcher.log",
+      "line": "通过：PostgreSQL / pgvector / Redis"
+    },
+    {
+      "seconds": 4.102011699927971,
+      "source": "launcher.log",
+      "line": "检查：必要网络"
+    },
+    {
+      "seconds": 4.154475999996066,
+      "source": "launcher.log",
+      "line": "通过：必要网络"
+    },
+    {
+      "seconds": 4.154479300021194,
+      "source": "launcher.log",
+      "line": "检查：数据库迁移"
+    },
+    {
+      "seconds": 4.668507999973372,
+      "source": "launcher.log",
+      "line": "INFO  [alembic.runtime.migration] Context impl PostgresqlImpl."
+    },
+    {
+      "seconds": 4.668510399991646,
+      "source": "launcher.log",
+      "line": "INFO  [alembic.runtime.migration] Will assume transactional DDL."
+    },
+    {
+      "seconds": 4.719800699967891,
+      "source": "launcher.log",
+      "line": "INFO  [alembic.runtime.migration] Running upgrade  -> 0001_enable_pgvector, Enable PostgreSQL pgvector for the application database."
+    },
+    {
+      "seconds": 4.719805000000633,
+      "source": "launcher.log",
+      "line": "INFO  [alembic.runtime.migration] Running upgrade 0001_enable_pgvector -> 7c00941eb6e3, 创建 M1 业务模型"
+    },
+    {
+      "seconds": 5.027685199980624,
+      "source": "launcher.log",
+      "line": "INFO  [alembic.runtime.migration] Running upgrade 7c00941eb6e3 -> 0003_exam_participants, 新增考试学生分配表，保留无分配考试的历史开放语义。"
+    },
+    {
+      "seconds": 5.027689400012605,
+      "source": "launcher.log",
+      "line": "INFO  [alembic.runtime.migration] Running upgrade 0003_exam_participants -> 0004_document_chunks, 新增 knowledge chunk 表：pgvector 向量列、全文检索列与检索索引。"
+    },
+    {
+      "seconds": 5.078828500001691,
+      "source": "launcher.log",
+      "line": "INFO  [alembic.runtime.migration] Running upgrade 0004_document_chunks -> 0005_grading_results, 新增单题评分结果与整卷结果表"
+    },
+    {
+      "seconds": 5.129779899958521,
+      "source": "launcher.log",
+      "line": "INFO  [alembic.runtime.migration] Running upgrade 0005_grading_results -> 0006_diagnosis_reports, 新增学生诊断报告表"
+    },
+    {
+      "seconds": 5.180867700022645,
+      "source": "launcher.log",
+      "line": "INFO  [alembic.runtime.migration] Running upgrade 0006_diagnosis_reports -> 0007_review_records, 新增教师复核记录表"
+    },
+    {
+      "seconds": 5.23202739993576,
+      "source": "launcher.log",
+      "line": "INFO  [alembic.runtime.migration] Running upgrade 0007_review_records -> 0008_workflow_runs, 新增阅卷工作流运行表"
+    },
+    {
+      "seconds": 5.232030099956319,
+      "source": "launcher.log",
+      "line": "INFO  [alembic.runtime.migration] Running upgrade 0008_workflow_runs -> 0009_agent_runs, 新增 Agent 运行追踪表"
+    },
+    {
+      "seconds": 5.28328249999322,
+      "source": "launcher.log",
+      "line": "INFO  [alembic.runtime.migration] Running upgrade 0009_agent_runs -> 0010_review_round_ids, 新增当前待复核轮次和复核审计轮次；历史数据保持 NULL。"
+    },
+    {
+      "seconds": 5.283285100013018,
+      "source": "launcher.log",
+      "line": "INFO  [alembic.runtime.migration] Running upgrade 0010_review_round_ids -> 0011_question_source_persistence, Persist question source snapshots, generation metadata and revision comments."
+    },
+    {
+      "seconds": 5.334647399955429,
+      "source": "launcher.log",
+      "line": "INFO  [alembic.runtime.migration] Running upgrade 0011_question_source_persistence -> 0012_audit_logs, Create sanitized append-only audit events."
+    },
+    {
+      "seconds": 5.386109899962321,
+      "source": "launcher.log",
+      "line": "INFO  [alembic.runtime.migration] Running upgrade 0012_audit_logs -> 0013_file_storage, Persist file metadata and actual export ownership."
+    },
+    {
+      "seconds": 5.437326699960977,
+      "source": "launcher.log",
+      "line": "INFO  [alembic.runtime.migration] Running upgrade 0013_file_storage -> 0014_paper_import, T153 paper import/correction foundation; preserve unknown legacy sources."
+    },
+    {
+      "seconds": 5.539664599928074,
+      "source": "launcher.log",
+      "line": "INFO  [alembic.runtime.migration] Running upgrade 0014_paper_import -> 0015_question_assets, T154 question image relationships and G05 formal evidence column."
+    },
+    {
+      "seconds": 5.591130299959332,
+      "source": "launcher.log",
+      "line": "INFO  [alembic.runtime.migration] Running upgrade 0015_question_assets -> 0016_asset_visibility, T154: explicit student display grant, default closed."
+    },
+    {
+      "seconds": 5.591133099980652,
+      "source": "launcher.log",
+      "line": "INFO  [alembic.runtime.migration] Running upgrade 0016_asset_visibility -> 0017_extracted_order, Persistent extracted question order; legacy unknown order stays NULL."
+    },
+    {
+      "seconds": 5.64249649993144,
+      "source": "launcher.log",
+      "line": "INFO  [alembic.runtime.migration] Running upgrade 0017_extracted_order -> 0018_options_json, Preserve option JSON order and record unrecoverable legacy object ordering."
+    },
+    {
+      "seconds": 5.69373950001318,
+      "source": "launcher.log",
+      "line": "INFO  [alembic.runtime.migration] Running upgrade 0018_options_json -> 0019_chapter_scope, T161 stable course chapters and nullable confirmed chunk locations."
+    },
+    {
+      "seconds": 5.745351599995047,
+      "source": "launcher.log",
+      "line": "INFO  [alembic.runtime.migration] Running upgrade 0019_chapter_scope -> 0020_content_validation, T163 durable semantic reports; old questions retain unknown validation."
+    },
+    {
+      "seconds": 5.745355500024743,
+      "source": "launcher.log",
+      "line": "INFO  [alembic.runtime.migration] Running upgrade 0020_content_validation -> 0021_question_source_paper, T165 parent question sources; do not infer historical source paths."
+    },
+    {
+      "seconds": 5.796550499973819,
+      "source": "launcher.log",
+      "line": "INFO  [alembic.runtime.migration] Running upgrade 0021_question_source_paper -> 0022_exam_question, T170 upgrade the existing exam relation without inventing historical facts."
+    },
+    {
+      "seconds": 5.847719599958509,
+      "source": "launcher.log",
+      "line": "INFO  [alembic.runtime.migration] Running upgrade 0022_exam_question -> 0023_grading_exam_question, T177 retain the actual scoring association; historical results stay unknown."
+    },
+    {
+      "seconds": 5.950617099995725,
+      "source": "launcher.log",
+      "line": "INFO  [alembic.runtime.migration] Context impl PostgresqlImpl."
+    },
+    {
+      "seconds": 5.950618900009431,
+      "source": "launcher.log",
+      "line": "INFO  [alembic.runtime.migration] Will assume transactional DDL."
+    },
+    {
+      "seconds": 5.950619300012477,
+      "source": "launcher.log",
+      "line": "通过：数据库迁移"
+    },
+    {
+      "seconds": 9.739838799927384,
+      "source": "application.log",
+      "line": "gradio\\components\\dataframe.py:197: UserWarning: The `column_limits` parameter is not yet implemented."
+    },
+    {
+      "seconds": 9.739840799942613,
+      "source": "application.log",
+      "line": "  warnings.warn("
+    },
+    {
+      "seconds": 9.79096999997273,
+      "source": "application.log",
+      "line": "gradio\\components\\dataframe.py:183: UserWarning: The `row_limits` parameter is not yet implemented."
+    },
+    {
+      "seconds": 9.790971499984153,
+      "source": "application.log",
+      "line": "  warnings.warn("
+    },
+    {
+      "seconds": 10.714991700020619,
+      "source": "application.log",
+      "line": "应用预加载完成，等待启动预检。"
+    },
+    {
+      "seconds": 10.766136499936692,
+      "source": "application.log",
+      "line": "INFO:     Started server process [127080]"
+    },
+    {
+      "seconds": 10.766137999948114,
+      "source": "application.log",
+      "line": "INFO:     Waiting for application startup."
+    },
+    {
+      "seconds": 11.021895900019445,
+      "source": "application.log",
+      "line": "INFO:     Application startup complete."
+    },
+    {
+      "seconds": 11.021897699916735,
+      "source": "application.log",
+      "line": "INFO:     Uvicorn running on http://127.0.0.1:19501 (Press CTRL+C to quit)"
+    },
+    {
+      "seconds": 11.740831999923103,
+      "source": "application.log",
+      "line": "INFO:     127.0.0.1:12907 - \"GET /ready HTTP/1.1\" 200 OK"
+    },
+    {
+      "seconds": 13.124736899975687,
+      "source": "launcher.log",
+      "line": "应用已就绪：http://127.0.0.1:19501/gradio/；所属 PID=127080；Ctrl+C 退出"
+    },
+    {
+      "seconds": 13.124968599993736,
+      "source": "application.log",
+      "line": "INFO:     127.0.0.1:12921 - \"GET /gradio/ HTTP/1.1\" 200 OK"
+    },
+    {
+      "seconds": 13.959281799965538,
+      "line": "observer ready"
+    }
+  ],
+  "normal_exit": 0,
+  "database_removed": true
+}

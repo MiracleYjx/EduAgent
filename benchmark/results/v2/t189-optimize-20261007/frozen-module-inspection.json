@@ -1,0 +1,9 @@
+{
+  "actual_exe_sha256": "5f280e22c8d3d5a57d05ab0cb3b3cbb4e0ed3a141f0a7be5789a28c13d301896",
+  "module": "gradio.component_meta",
+  "actual_function_disassembly": " 31           RESUME                   0\n\n 32           RETURN_CONST             0 (None)\n",
+  "all_other_ast_unchanged": true,
+  "source_library_sha256": "346f302f1d31ffb3e4839b2611fb339cf35c6c12fbfb73014d303027d7ab98e4",
+  "generated_module_sha256": "e84158582ff5585237915d4f5737d31d145545eb8820c09b11995936e5ea5ff7",
+  "meaning": "Only the IDE type-hint writer is disabled; no runtime API/validation replacement"
+}

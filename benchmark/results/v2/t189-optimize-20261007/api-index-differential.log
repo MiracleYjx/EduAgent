@@ -1,0 +1,14 @@
+...{'all_endpoints': False, 'original_seconds': 0.7487768999999389, 'indexed_seconds': 0.284682699944824}
+{'all_endpoints': True, 'original_seconds': 0.7400966000277549, 'indexed_seconds': 0.17345859995111823}
+...
+============================== warnings summary ===============================
+tests/unit/deployment/test_frozen_gradio.py::test_indexed_api_information_matches_full_production_workbench
+  D:\develop\Python\Lib\site-packages\gradio\components\dataframe.py:197: UserWarning: The `column_limits` parameter is not yet implemented.
+    warnings.warn(
+
+tests/unit/deployment/test_frozen_gradio.py::test_indexed_api_information_matches_full_production_workbench
+  D:\develop\Python\Lib\site-packages\gradio\components\dataframe.py:183: UserWarning: The `row_limits` parameter is not yet implemented.
+    warnings.warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+6 passed, 2 warnings in 25.57s

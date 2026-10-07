@@ -1,0 +1,1 @@
+{"cases": [["OCR disabled scan", true], ["real PNG teacher read/student private", true], ["restart persistent status and image", true], ["real OCR and frozen SDK against controlled local 503", true]], "exits": [0, 0]}

@@ -1,0 +1,45 @@
+Wed Oct  7 10:13:52 2026    .cache/t189-optimize-20261007/source-lazy.prof
+
+         10164399 function calls (9885916 primitive calls) in 10.725 seconds
+
+   Ordered by: cumulative time
+   List reduced from 13612 to 35 due to restriction <35>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+      272    0.010    0.000   20.386    0.075 __init__.py:1(<module>)
+  2586/11    0.019    0.000    7.925    0.720 <frozen importlib._bootstrap>:1349(_find_and_load)
+  2494/11    0.013    0.000    7.924    0.720 <frozen importlib._bootstrap>:1304(_find_and_load_unlocked)
+ 5434/102    0.006    0.000    7.919    0.078 <frozen importlib._bootstrap>:480(_call_with_frames_removed)
+   2380/3    0.010    0.000    7.917    2.639 <frozen importlib._bootstrap>:911(_load_unlocked)
+   2267/3    0.009    0.000    7.917    2.639 <frozen importlib._bootstrap_external>:1017(exec_module)
+   3332/3    0.230    0.000    7.915    2.638 {built-in method builtins.exec}
+        2    0.000    0.000    7.874    3.937 app.py:1(<module>)
+  880/115    0.002    0.000    5.034    0.044 {built-in method builtins.__import__}
+        1    0.000    0.000    4.004    4.004 simpledropdown.py:1(<module>)
+7990/7677    0.127    0.000    3.688    0.000 {built-in method builtins.__build_class__}
+5544/3318    0.007    0.000    3.536    0.001 <frozen importlib._bootstrap>:1398(_handle_fromlist)
+        1    0.000    0.000    3.004    3.004 annotated_image.py:1(<module>)
+        1    0.005    0.005    2.922    2.922 app.py:88(create_app)
+        1    0.000    0.000    2.158    2.158 app.py:67(create_gradio_app)
+        1    0.003    0.003    2.158    2.158 gradio_app.py:2342(create_gradio_app)
+       36    0.002    0.000    2.034    0.057 base.py:1(<module>)
+       76    0.002    0.000    1.386    0.018 component_meta.py:200(__new__)
+      429    0.015    0.000    1.283    0.003 _model_construction.py:84(__new__)
+        1    0.000    0.000    1.271    1.271 admin.py:1(<module>)
+12750/11232    0.087    0.000    1.244    0.000 inspect.py:2500(_signature_from_callable)
+        5    0.000    0.000    1.209    0.242 blocks.py:2435(get_config_file)
+        5    0.010    0.002    1.156    0.231 blocks.py:950(get_config)
+       81    0.031    0.000    1.148    0.014 component_meta.py:112(create_or_modify_pyi)
+     4040    0.025    0.000    1.123    0.000 blocks.py:904(config_for_block)
+276340/265904    0.077    0.000    1.114    0.000 {built-in method builtins.hasattr}
+        1    0.000    0.000    1.091    1.091 processing_utils.py:1(<module>)
+      376    0.001    0.000    1.055    0.003 routing.py:3003(decorator)
+      376    0.005    0.000    1.054    0.003 routing.py:2889(add_api_route)
+      376    0.004    0.000    1.048    0.003 routing.py:1161(__init__)
+9536/9535    0.008    0.000    1.047    0.000 inspect.py:3387(signature)
+9536/9535    0.009    0.000    1.039    0.000 inspect.py:3108(from_callable)
+1697/1010    0.014    0.000    1.038    0.001 component_meta.py:172(wrapper)
+    11043    0.235    0.000    1.036    0.000 inspect.py:2396(_signature_from_function)
+       29    0.002    0.000    1.036    0.036 utils.py:1(<module>)
+
+

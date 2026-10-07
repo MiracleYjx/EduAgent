@@ -1,0 +1,8 @@
+{
+  "database": "eduagent_t189_4786bd9ec26c",
+  "baseline_revision": "0023_grading_exam_question",
+  "exit_code": 0,
+  "active_connections": 0,
+  "removed": true,
+  "meaning": "Source migration prepares only the isolated fault fixture; all faults execute actual frozen EXE"
+}

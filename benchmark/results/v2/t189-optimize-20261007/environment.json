@@ -1,0 +1,15 @@
+{
+  "platform": "Windows-11-10.0.26200-SP0",
+  "machine": "AMD64",
+  "logical_cpus": 12,
+  "physical_cpus": 6,
+  "host_memory_bytes": 16505966592,
+  "build_environment": "build-api-receipt.json lists exact pinned build distributions; source/test runtime 3.13.13; no dependency version changes",
+  "startup_scope": "Same prepared Windows host as previous T189 runs; 3 fresh independent DB/storage first starts, 5 normal-stop/restart subsequent starts. No OS filesystem cache flush. --no-browser on all runs.",
+  "network": "Configured DeepSeek TCP/TLS preflight only in startup; no cloud inference. Local synthetic runtime smoke sends only synthetic text to owned loopback controlled 503.",
+  "external_services": [
+    "eduagent-postgres-1",
+    "eduagent-redis-1"
+  ],
+  "model_weights": "External BGE and locked PP-OCRv5-mobile; never bundled/downloaded/replaced by this task"
+}

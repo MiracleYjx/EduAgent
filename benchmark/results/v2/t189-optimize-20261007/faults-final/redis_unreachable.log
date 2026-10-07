@@ -1,0 +1,7 @@
+检查：持久目录
+通过：持久目录
+检查：模型配置
+通过：模型配置
+检查：PostgreSQL / pgvector / Redis
+启动失败：[Redis] RedisNotReadyError；下一步：启动 Redis 并核对 REDIS_URL
+启动失败，请按上面的步骤修正。按回车退出…

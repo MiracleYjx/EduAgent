@@ -1,0 +1,17 @@
+[
+  {
+    "database": "eduagent_t189_47dd08379b9a",
+    "active_connections": 0,
+    "removed": true
+  },
+  {
+    "database": "eduagent_t189_bb83de1f1058",
+    "active_connections": 0,
+    "removed": true
+  },
+  {
+    "database": "eduagent_t189_db876c87e6ed",
+    "active_connections": 0,
+    "removed": true
+  }
+]

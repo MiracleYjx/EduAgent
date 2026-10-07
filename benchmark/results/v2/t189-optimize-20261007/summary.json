@@ -1,0 +1,96 @@
+{
+  "task": "T189",
+  "created_utc": "2026-10-07T03:03:37.354786+00:00",
+  "accepted": true,
+  "protocol": "v2-evaluation-1",
+  "scope": "Final actual Windows frozen package performance and related technical gates; no browser rendering, cloud inference or clean-host installation claim",
+  "startup": {
+    "first": {
+      "target_seconds_exclusive": 30,
+      "planned": 3,
+      "passed": 3,
+      "seconds": [
+        9.670336000039242,
+        9.031900499947369,
+        9.005392099963501
+      ],
+      "min_seconds": 9.005392099963501,
+      "median_seconds": 9.031900499947369,
+      "max_seconds": 9.670336000039242
+    },
+    "subsequent": {
+      "target_seconds_exclusive": 10,
+      "planned": 5,
+      "passed": 5,
+      "seconds": [
+        8.865277200005949,
+        8.353497800067998,
+        8.83590920001734,
+        8.30716470000334,
+        8.805475400062278
+      ],
+      "min_seconds": 8.30716470000334,
+      "median_seconds": 8.805475400062278,
+      "max_seconds": 8.865277200005949
+    }
+  },
+  "resources": {
+    "sampled_windows": 8,
+    "complete": 8,
+    "budget_passed": 8,
+    "peaks_mib": {
+      "app_working_set_bytes": 401.4453125,
+      "postgres_container_process_rss_bytes": 258.53515625,
+      "redis_container_process_rss_bytes": 8.5234375,
+      "simultaneous_observed_sum_bytes": 656.77734375
+    },
+    "limits_bytes": {
+      "app_working_set_bytes": 4000000000,
+      "postgres_container_process_rss_bytes": 1500000000,
+      "redis_container_process_rss_bytes": 512000000,
+      "simultaneous_observed_sum_bytes": 6000000000
+    },
+    "scope": "owned frozen launcher plus actual child subtree working set; shared PostgreSQL container and Redis process RSS; excludes browser/OS; not unique physical pages",
+    "note": "Startup windows only; one-second sampled peaks, not continuous physical-memory high-water or long model workload; shared PG pages may repeat. Per-run legacy scope excludes parent redirector wording; actual observer includes owned launcher and descendants as top-level summary states."
+  },
+  "normal_exit_passed": 8,
+  "faults": {
+    "passed": 8,
+    "planned": 8,
+    "source": "faults-final/summary.json"
+  },
+  "runtime": {
+    "passed": 4,
+    "planned": 4,
+    "cloud_calls": 0,
+    "local_controlled_503_requests": 3,
+    "source": "runtime-local/receipt.json"
+  },
+  "cleanup": {
+    "startup-sdk": true,
+    "startup-gradio": true,
+    "startup-final": true,
+    "fault-baseline-receipt.json": true,
+    "frozen-ui-regression-receipt.json": true,
+    "final-frozen-ui-regression-receipt.json": true,
+    "fault-final-owned-migration-db": true,
+    "runtime-local": true
+  },
+  "build": {
+    "source_commit": "fcba66dd99c4d8eb6e061dde266f143d79b34ad4",
+    "source_dirty": true,
+    "source_hashes_match_current": true,
+    "actual_executable_matches_receipt": true,
+    "executable_sha256": "a34a141ad94c4c8125f62fe49162c5c820f6532096097a74066d44ab3530c88d",
+    "file_count": 9643,
+    "size_bytes": 969472546
+  },
+  "prior_attempts_retained": [
+    "startup-sdk (subsequent 1/5)",
+    "startup-gradio (subsequent 4/5)",
+    "faults (raw 7/8; strict audited 6/8)",
+    "profile-frozen-before and v2 (native py-spy capture failed)",
+    "runtime-local.log (observer import error before creating DB/server)"
+  ],
+  "annotation": "AI-assisted + developer review; independent teacher 0; no label changes"
+}

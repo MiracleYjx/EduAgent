@@ -1,0 +1,8 @@
+{
+  "exit_code": 0,
+  "owned_database": "eduagent_t189_5c66a84c7668",
+  "active_connections": 0,
+  "removed": true,
+  "scope": "Unchanged original UI/deployment/SDK tests using both exact build-only Gradio transforms; not frozen EXE performance",
+  "model_calls": 0
+}

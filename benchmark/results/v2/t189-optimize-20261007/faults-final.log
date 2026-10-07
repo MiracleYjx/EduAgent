@@ -1,0 +1,8 @@
+missing_config True
+invalid_config True
+database_unreachable True
+redis_unreachable True
+model_network True
+missing_local_model True
+missing_ocr_weights True
+migration_unknown_revision True

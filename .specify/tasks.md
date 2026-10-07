@@ -642,7 +642,7 @@ M0 工程骨架 + Benchmark
 
 - [X] T188 [HIGH] [E6] **构建 onedir EXE 交付包**：在 `packaging/` 和 `scripts/build_exe.ps1` 增加 PyInstaller onedir 构建清单/脚本，收集 Gradio 静态资源、动态模块、Alembic迁移和 T155 锁定 OCR 的可选推理资源；外置配置与业务数据，不捆绑数据库安装器、不强制 onefile，记录实际依赖/构建版本而不制造跨组件版本相等门禁。依赖版本/体积以验证记录为准。 依赖：T155、T156、T186、T187。per FR-042/052、plan §9/14、Constitution I/III（F055） (missing)
 
-- [ ] T189 [HIGH] [E6] **执行真实 Windows 交付验收**：在准备好依赖的 Windows 单机运行 T188 包，覆盖首次/后续启动、配置/数据库/Redis/迁移/模型网络失败、OCR启用/禁用、图片读取、重启及退出进程所有权；按 T142 冷暖/重复协议记录首次<30s、后续<10s目标和相关应用/数据库/Redis同时峰值≤6GB及各预算，超标如实报告。证据写 `docs/v2.0-exe-acceptance.md`，不以源码运行替代打包运行。 依赖：T142、T146、T188。per FR-052、SC-014、plan Gate 17/非功能目标（F056） (missing)
+- [X] T189 [HIGH] [E6] **执行真实 Windows 交付验收**：在准备好依赖的 Windows 单机运行 T188 包，覆盖首次/后续启动、配置/数据库/Redis/迁移/模型网络失败、OCR启用/禁用、图片读取、重启及退出进程所有权；按 T142 冷暖/重复协议记录首次<30s、后续<10s目标和相关应用/数据库/Redis同时峰值≤6GB及各预算，超标如实报告。证据写 `docs/v2.0-exe-acceptance.md`，不以源码运行替代打包运行。 依赖：T142、T146、T188。per FR-052、SC-014、plan Gate 17/非功能目标（F056） (missing)
 
 - [X] T190 [HIGH] [E6] **完成兼容回归与 v2.0 测量汇总**：按既有框架执行全量 pytest、mypy、ruff、隔离迁移/历史读取、Docker M0/三容器 readiness及原检索/阅卷 Benchmark；汇总 T160/T168/T179/T189 的质量、耗时、资源和失败样本到 `benchmark/results/`、`docs/evaluation.md`，仅有新修改/失败时重测相关场景。保留 v1.0 用例、原证据和所有真实未通过项，不修改旧任务勾选。 依赖：T145、T152、T160、T169、T179、T184、T186、T189。per plan Gate 1–19/兼容性目标、Constitution I/V（F057） (partial)
 
