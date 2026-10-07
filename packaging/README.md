@@ -13,3 +13,5 @@ build-receipt.json 记录实际版本、体积、源码和EXE哈希用于追溯�
 构建依据：[PyInstaller spec 文件官方说明](https://pyinstaller.org/en/stable/spec-files.html) 与[冻结运行路径官方说明](https://pyinstaller.org/en/stable/runtime-information.html)。业务验收以本项目运行证据为准。
 
 冻结构建会在独立 work 目录转换 Gradio 的 create_or_modify_pyi，仅跳过运行时的 IDE `.pyi` 文件生成；原安装库与源码运行路径保持原样，组件校验、事件和 API 信息保留。转换工具 scripts/freeze_gradio.py 进入构建回执；当前固定 Gradio 6.26.0，升级该依赖时须重新审查此转换并运行真实组件差分与冻结启动验收。
+
+同一冻结副本还为 get_api_info 建立本次调用的组件 ID 索引，替换逐输入/输出的全表扫描；重复 ID 保留首项，缺失组件仍跳过原端点，API 信息与可见性保持。完整生产工作台双模式逐值差分和原 UI 回归用于核对；升级 Gradio 时连同类型提示转换重新审查。

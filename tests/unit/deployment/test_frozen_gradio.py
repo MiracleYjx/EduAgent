@@ -90,3 +90,85 @@ def test_unrecognized_type_hint_writer_requires_review(tmp_path, source):
     with pytest.raises(ValueError, match="Review"):
         freeze_type_hint_writer(original, tmp_path / "frozen.py")
     assert not (tmp_path / "frozen.py").exists()
+
+
+def _indexed_api_method(tmp_path):
+    import ast
+
+    import gradio.blocks as blocks_module
+
+    from scripts.freeze_gradio import freeze_api_component_lookup
+
+    source = Path(blocks_module.__file__)
+    original = source.read_bytes()
+    frozen = freeze_api_component_lookup(source, tmp_path / "blocks.py")
+    assert source.read_bytes() == original
+    tree = ast.parse(frozen.read_text(encoding="utf-8"))
+    blocks = next(
+        n for n in tree.body if isinstance(n, ast.ClassDef) and n.name == "Blocks"
+    )
+    method = next(
+        n
+        for n in blocks.body
+        if isinstance(n, ast.FunctionDef) and n.name == "get_api_info"
+    )
+    namespace = vars(blocks_module).copy()
+    code = ast.fix_missing_locations(ast.Module(body=[method], type_ignores=[]))
+    exec(  # noqa: S102 - trusted build copy
+        compile(code, str(frozen), "exec"), namespace
+    )
+    return namespace["get_api_info"]
+
+
+def test_indexed_api_information_matches_full_production_workbench(
+    tmp_path, monkeypatch
+):
+    import time
+
+    from backend.app.ui.gradio_app import create_gradio_app
+
+    monkeypatch.setenv("GRADIO_ANALYTICS_ENABLED", "False")
+    method = _indexed_api_method(tmp_path)
+    demo = create_gradio_app()
+    for all_endpoints in (False, True):
+        start = time.perf_counter()
+        original = demo.get_api_info(all_endpoints=all_endpoints)
+        original_seconds = time.perf_counter() - start
+        start = time.perf_counter()
+        indexed = method(demo, all_endpoints=all_endpoints)
+        indexed_seconds = time.perf_counter() - start
+        assert original == indexed
+        assert len(indexed["named_endpoints"]) > 100
+        print(
+            {
+                "all_endpoints": all_endpoints,
+                "original_seconds": original_seconds,
+                "indexed_seconds": indexed_seconds,
+            }
+        )
+
+
+@pytest.mark.parametrize("change", ["missing", "duplicate"])
+def test_indexed_api_keeps_missing_and_first_duplicate_component_semantics(
+    tmp_path, change
+):
+    import copy
+
+    import gradio as gr
+
+    method = _indexed_api_method(tmp_path)
+    with gr.Blocks(analytics_enabled=False) as demo:
+        value = gr.Textbox(label="First", value="a")
+        output = gr.JSON()
+        gr.Button().click(lambda text: {"text": text}, inputs=value, outputs=output)
+    if change == "missing":
+        demo.config["components"] = [
+            c for c in demo.config["components"] if c["id"] != value._id
+        ]
+    else:
+        duplicate = copy.deepcopy(
+            next(c for c in demo.config["components"] if c["id"] == value._id)
+        )
+        duplicate["props"]["label"] = "Shadow"
+        demo.config["components"].append(duplicate)
+    assert method(demo) == demo.get_api_info()

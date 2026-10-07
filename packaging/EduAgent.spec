@@ -24,7 +24,7 @@ else:
 a = Analysis([str(root / 'scripts' / 'launch_windows.py')], pathex=[str(root)], binaries=[], datas=data, hiddenimports=hidden, hookspath=[], hooksconfig={}, runtime_hooks=[], excludes=excludes, noarchive=False)
 # Freeze an explicit build-only copy; preserve the installed Gradio sources.
 from PyInstaller.config import CONF
-from scripts.freeze_gradio import freeze_type_hint_writer
+from scripts.freeze_gradio import freeze_api_component_lookup, freeze_type_hint_writer
 for index, (name, path, kind) in enumerate(a.pure):
     if name == 'gradio.component_meta':
         frozen_source = freeze_type_hint_writer(Path(path), Path(CONF['workpath']) / 'gradio-runtime' / 'component_meta.py')
@@ -35,6 +35,16 @@ for index, (name, path, kind) in enumerate(a.pure):
         break
 else:
     raise RuntimeError('Gradio component metadata module was not collected')
+for index, (name, path, kind) in enumerate(a.pure):
+    if name == 'gradio.blocks':
+        frozen_source = freeze_api_component_lookup(Path(path), Path(CONF['workpath']) / 'gradio-runtime' / 'blocks.py')
+        a.pure[index] = (name, str(frozen_source), kind)
+        code_cache = CONF['code_cache'].get(id(a.pure))
+        if code_cache is not None:
+            code_cache.pop(name, None)
+        break
+else:
+    raise RuntimeError('Gradio blocks module was not collected')
 pyz = PYZ(a.pure)
 exe = EXE(pyz, a.scripts, [], exclude_binaries=True, name='EduAgent', debug=False, bootloader_ignore_signals=False, strip=False, upx=False, console=True)
 coll = COLLECT(exe, a.binaries, a.datas, strip=False, upx=False, name='EduAgent')
