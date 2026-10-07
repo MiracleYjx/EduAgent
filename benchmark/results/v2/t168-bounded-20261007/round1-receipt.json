@@ -1,0 +1,332 @@
+{
+  "task": "T168 bounded repair",
+  "round": 1,
+  "max_rounds": 3,
+  "completed_at": "2026-10-07T01:39:23.332611+00:00",
+  "source_commit": "ed19a4637d318309033008f3ce7796573190b50d",
+  "prompt_version": "paper-extraction-v7",
+  "prompt_source_sha256": "97d5382f244c0cf99680bd3109ab6f9391202357a4591311ee21ce283a4eb392",
+  "prompt_snapshot": "round1-prompt.txt",
+  "actual_request_matches_prompt": true,
+  "reference": "AI-assisted + developer review",
+  "independent_teachers": 0,
+  "reference_sha256": "c6965254e670225224ef28d4abc9efd54fef7d2b7a1841134c3fa11bfcc99350",
+  "runner_reference_sha256": "13095b3d62f9e0db14e92412e58923f6b2c1c83c0acf49ea356e306397e2ff9e",
+  "thresholds_sha256": "4a387513ca715a698436f35fea540eb40ee7660ff09019fb0ed98d40919eae62",
+  "planned_imports": 15,
+  "actual_imports": 15,
+  "pending_review": 15,
+  "failed_imports": [],
+  "actual_http_attempts": 15,
+  "http_status_counts": {
+    "200": 15
+  },
+  "requested_model": "deepseek-chat",
+  "actual_response_models": {
+    "deepseek-flash": 15
+  },
+  "token_usage": {
+    "prompt_tokens": 48444,
+    "completion_tokens": 8459,
+    "total_tokens": 56903
+  },
+  "fee": null,
+  "fee_reason": "Provider does not return billed currency amount",
+  "assessments": [
+    {
+      "field": "identity",
+      "numerator": 45,
+      "denominator": 48,
+      "value": 0.9375,
+      "target": 1.0,
+      "met": false
+    },
+    {
+      "field": "question_number",
+      "numerator": 45,
+      "denominator": 48,
+      "value": 0.9375,
+      "target": 1.0,
+      "met": false
+    },
+    {
+      "field": "order_index",
+      "numerator": 45,
+      "denominator": 48,
+      "value": 0.9375,
+      "target": 1.0,
+      "met": false
+    },
+    {
+      "field": "source_page_numbers",
+      "numerator": 45,
+      "denominator": 48,
+      "value": 0.9375,
+      "target": 1.0,
+      "met": false
+    },
+    {
+      "field": "question_type",
+      "numerator": 42,
+      "denominator": 45,
+      "value": 0.9333333333333333,
+      "target": 1.0,
+      "met": false
+    },
+    {
+      "field": "options",
+      "numerator": 45,
+      "denominator": 48,
+      "value": 0.9375,
+      "target": 1.0,
+      "met": false
+    },
+    {
+      "field": "reference_answer",
+      "numerator": 45,
+      "denominator": 48,
+      "value": 0.9375,
+      "target": 1.0,
+      "met": false
+    },
+    {
+      "field": "score",
+      "numerator": 45,
+      "denominator": 48,
+      "value": 0.9375,
+      "target": 1.0,
+      "met": false
+    },
+    {
+      "field": "content",
+      "numerator": 36,
+      "denominator": 48,
+      "value": 0.75,
+      "target": 0.8,
+      "met": false
+    },
+    {
+      "field": "analysis",
+      "numerator": 39,
+      "denominator": 48,
+      "value": 0.8125,
+      "target": 0.8,
+      "met": true
+    },
+    {
+      "field": "scoring_rubric",
+      "numerator": 38,
+      "denominator": 48,
+      "value": 0.7916666666666666,
+      "target": 0.8,
+      "met": false
+    },
+    {
+      "field": "knowledge_points",
+      "numerator": 42,
+      "denominator": 48,
+      "value": 0.875,
+      "target": 0.7,
+      "met": true
+    }
+  ],
+  "field_thresholds_passed": false,
+  "groups": {
+    "1.0": false,
+    "0.8": false,
+    "0.7": true
+  },
+  "failed_slot_denominators_retained": true,
+  "unknown_question_types": 3,
+  "matched_failures": [
+    {
+      "case_id": "IMP-SCAN",
+      "repeat_index": 1,
+      "field": "content",
+      "expected": "y = 2x + 1，x = 3 时 y 为多少？",
+      "actual": "y = 2x +1，x = 3 时y 为多少？"
+    },
+    {
+      "case_id": "IMP-SCAN",
+      "repeat_index": 1,
+      "field": "analysis",
+      "expected": "2 × 3 + 1 = 7。",
+      "actual": "2 × 3 +1=7。"
+    },
+    {
+      "case_id": "IMP-SCAN",
+      "repeat_index": 1,
+      "field": "content",
+      "expected": "右图三角形面积为 24 cm²。",
+      "actual": "右图三角形面积为24cm²。"
+    },
+    {
+      "case_id": "IMP-SCAN",
+      "repeat_index": 1,
+      "field": "content",
+      "expected": "根据下表写出 y 关于 x 的关系式。",
+      "actual": "根据下表写出y关于x的关系式。"
+    },
+    {
+      "case_id": "IMP-SCAN",
+      "repeat_index": 1,
+      "field": "scoring_rubric",
+      "expected": "正确关系式 1.00；说明代入过程 2.00。",
+      "actual": "正确关系式1.00；说明代入过程2.00。"
+    },
+    {
+      "case_id": "IMP-SCAN",
+      "repeat_index": 2,
+      "field": "content",
+      "expected": "y = 2x + 1，x = 3 时 y 为多少？",
+      "actual": "y = 2x +1，x = 3 时 y 为多少？"
+    },
+    {
+      "case_id": "IMP-SCAN",
+      "repeat_index": 2,
+      "field": "analysis",
+      "expected": "2 × 3 + 1 = 7。",
+      "actual": "2 × 3 +1=7。"
+    },
+    {
+      "case_id": "IMP-SCAN",
+      "repeat_index": 2,
+      "field": "content",
+      "expected": "右图三角形面积为 24 cm²。",
+      "actual": "右图三角形面积为 24cm²。"
+    },
+    {
+      "case_id": "IMP-SCAN",
+      "repeat_index": 2,
+      "field": "scoring_rubric",
+      "expected": "正确关系式 1.00；说明代入过程 2.00。",
+      "actual": "正确关系式1.00；说明代入过程2.00。"
+    },
+    {
+      "case_id": "IMP-SCAN",
+      "repeat_index": 3,
+      "field": "analysis",
+      "expected": "2 × 3 + 1 = 7。",
+      "actual": "2 × 3 +1=7。"
+    },
+    {
+      "case_id": "IMP-SCAN",
+      "repeat_index": 3,
+      "field": "scoring_rubric",
+      "expected": "正确关系式 1.00；说明代入过程 2.00。",
+      "actual": null
+    },
+    {
+      "case_id": "IMP-IMAGE",
+      "repeat_index": 1,
+      "field": "analysis",
+      "expected": "2 × 3 + 1 = 7。",
+      "actual": "2 × 3 +1=7。"
+    },
+    {
+      "case_id": "IMP-IMAGE",
+      "repeat_index": 1,
+      "field": "content",
+      "expected": "右图三角形面积为 24 cm²。",
+      "actual": "右图三角形面积为24cm²。"
+    },
+    {
+      "case_id": "IMP-IMAGE",
+      "repeat_index": 1,
+      "field": "scoring_rubric",
+      "expected": "正确关系式 1.00；说明代入过程 2.00。",
+      "actual": "正确关系式1.00；说明代入过程2.00。"
+    },
+    {
+      "case_id": "IMP-IMAGE",
+      "repeat_index": 2,
+      "field": "analysis",
+      "expected": "2 × 3 + 1 = 7。",
+      "actual": "2 × 3 +1=7。"
+    },
+    {
+      "case_id": "IMP-IMAGE",
+      "repeat_index": 2,
+      "field": "content",
+      "expected": "右图三角形面积为 24 cm²。",
+      "actual": "右图三角形面积为 24cm²。"
+    },
+    {
+      "case_id": "IMP-IMAGE",
+      "repeat_index": 2,
+      "field": "scoring_rubric",
+      "expected": "正确关系式 1.00；说明代入过程 2.00。",
+      "actual": "正确关系式1.00；说明代入过程2.00。"
+    },
+    {
+      "case_id": "IMP-IMAGE",
+      "repeat_index": 3,
+      "field": "analysis",
+      "expected": "2 × 3 + 1 = 7。",
+      "actual": "2 × 3 +1=7。"
+    },
+    {
+      "case_id": "IMP-IMAGE",
+      "repeat_index": 3,
+      "field": "knowledge_points",
+      "expected": [],
+      "actual": null
+    },
+    {
+      "case_id": "IMP-IMAGE",
+      "repeat_index": 3,
+      "field": "content",
+      "expected": "右图三角形面积为 24 cm²。",
+      "actual": "右图三角形面积为 24cm²。"
+    },
+    {
+      "case_id": "IMP-IMAGE",
+      "repeat_index": 3,
+      "field": "knowledge_points",
+      "expected": [],
+      "actual": null
+    },
+    {
+      "case_id": "IMP-IMAGE",
+      "repeat_index": 3,
+      "field": "scoring_rubric",
+      "expected": "正确关系式 1.00；说明代入过程 2.00。",
+      "actual": "正确关系式1.00；说明代入过程2.00。"
+    },
+    {
+      "case_id": "IMP-CROSS",
+      "repeat_index": 2,
+      "field": "content",
+      "expected": "阅读下页流程图：输入 x = 3，计算输出 y。\n按下图流程完成计算。",
+      "actual": "阅读下页流程图：输入 x = 3，计算输出 y。\n第 4 题续：按下图流程完成计算。"
+    },
+    {
+      "case_id": "IMP-CROSS",
+      "repeat_index": 2,
+      "field": "knowledge_points",
+      "expected": [],
+      "actual": null
+    },
+    {
+      "case_id": "IMP-CROSS",
+      "repeat_index": 3,
+      "field": "scoring_rubric",
+      "expected": "正确中间计算 2.00；最终输出 3.00。",
+      "actual": "评分标准：正确中间计算 2.00；最终输出 3.00。"
+    }
+  ],
+  "excluded": {
+    "assets": "待 T164 图像提取流程；不计入 T168 阈值。既有 T164 完成图片理解与核对，自动图像提取尚未实现。",
+    "source_regions": "原标注全部未知，不设本批阈值",
+    "all_evaluable_fields_match": "only a diagnostic; not an acceptance threshold"
+  },
+  "cleanup": {
+    "database": "eduagent_e2_acceptance_259039ae8f2e",
+    "active_connections": 0,
+    "database_removed": true,
+    "runner_exit_code": 0,
+    "completed_at": "2026-10-07T01:38:53.749910+00:00",
+    "baseline": "AI-assisted + developer review; independent teachers=0"
+  },
+  "regression_scope": "existing extraction/source/lifecycle/field unit tests and HTTP import/correction contracts; no modified tests; final broader verification recorded separately"
+}
