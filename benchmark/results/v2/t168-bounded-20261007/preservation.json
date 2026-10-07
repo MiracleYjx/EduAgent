@@ -1,0 +1,24 @@
+{
+  "checked_at": "2026-10-07T02:05:15.862677+00:00",
+  "protected_file_hashes": {
+    "README.md": "93277070d870ff09eb524acd8cae57df80aaed2eb382c8f58c0b995b8045fa2e",
+    "README.zh-CN.md": "d621fd9a82a4e4b06751fa50562a34140bf05c22997a4331e0343c4448382b8d",
+    "benchmark/corpus/grading_samples.json": "9f8c56328973fb56f88564560f1166bc0415a54fb5022f98c07fc6c168f94fca",
+    ".env": "0834523cc6a2ce5742012f62b903397f1b404d678d9e066a5a4fe19875a02566"
+  },
+  "unchanged": true,
+  "original_database": {
+    "revision": "0012_audit_logs",
+    "public_base_tables": 24,
+    "business_counts": {
+      "exams": 1,
+      "exam_questions": 2,
+      "submissions": 1,
+      "answers": 2,
+      "grading_results": 0,
+      "review_records": 0
+    }
+  },
+  "original_database_unchanged": true,
+  "extensions_manifest_present": false
+}

@@ -1,0 +1,25 @@
+{
+  "files": {
+    "pytest.log": {
+      "bytes": 11826,
+      "sha256": "b95f2f4abccf19f562a85e55a8f7f5c7b4f09a1f41e5c87229a40ad6199dfa59",
+      "same_as_private_original": true
+    },
+    "pytest.xml": {
+      "bytes": 396192,
+      "sha256": "68dd48bc18969b79eabbabd359cd9ee1e976a99549d2c3d2172ad006fe311e37",
+      "same_as_private_original": true
+    },
+    "receipt.json": {
+      "bytes": 659,
+      "sha256": "fe5e91536c61d40262b1d37fb8dfcc928f07605e4a9e0f633f7b2a3e676ff046",
+      "same_as_private_original": true
+    },
+    "owned-test-project-down.log": {
+      "bytes": 627,
+      "sha256": "0302afc57fa318d456106f5e2154d4d77c265a64bd7e2d7161723923d9074e9e",
+      "same_as_private_original": true
+    }
+  },
+  "whitespace_note": "Original Docker cleanup output includes trailing spaces; preserved unchanged under existing TCR section 44. git diff --check applies to active source, report and machine-summary files."
+}

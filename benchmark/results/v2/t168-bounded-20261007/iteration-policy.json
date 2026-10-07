@@ -47,5 +47,10 @@
     ],
     "schema_or_comparison_changed": false,
     "sample_specific_values_added": false
-  }
+  },
+  "rounds_executed": 2,
+  "stopped": true,
+  "stop_reason": "all confirmed field targets met in round two",
+  "third_round_executed": false,
+  "further_prompt_tuning": false
 }

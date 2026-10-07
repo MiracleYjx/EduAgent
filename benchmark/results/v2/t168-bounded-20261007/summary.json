@@ -1,0 +1,294 @@
+{
+  "task": "T168 bounded prompt repair",
+  "completed_at": "2026-10-07T02:05:16.116130+00:00",
+  "max_rounds": 3,
+  "rounds_executed": 2,
+  "final_round": 2,
+  "stop_reason": "all confirmed field thresholds met; no third round",
+  "current_prompt": "paper-extraction-v8",
+  "prompt_source_sha256": "1f7f4c5aaae97204fdcde4920e1b6e9036698bea36e29dc01beada45eb478143",
+  "reference": "AI-assisted + developer review",
+  "independent_teachers": 0,
+  "reference_sha256": "c6965254e670225224ef28d4abc9efd54fef7d2b7a1841134c3fa11bfcc99350",
+  "runner_reference_sha256": "13095b3d62f9e0db14e92412e58923f6b2c1c83c0acf49ea356e306397e2ff9e",
+  "rounds": [
+    {
+      "round": 1,
+      "source_commit": "ed19a4637d318309033008f3ce7796573190b50d",
+      "prompt": "paper-extraction-v7",
+      "field_thresholds_passed": false,
+      "actual_http_attempts": 15,
+      "pending_review": 15,
+      "assessments": [
+        {
+          "field": "identity",
+          "numerator": 45,
+          "denominator": 48,
+          "value": 0.9375,
+          "target": 1.0,
+          "met": false
+        },
+        {
+          "field": "question_number",
+          "numerator": 45,
+          "denominator": 48,
+          "value": 0.9375,
+          "target": 1.0,
+          "met": false
+        },
+        {
+          "field": "order_index",
+          "numerator": 45,
+          "denominator": 48,
+          "value": 0.9375,
+          "target": 1.0,
+          "met": false
+        },
+        {
+          "field": "source_page_numbers",
+          "numerator": 45,
+          "denominator": 48,
+          "value": 0.9375,
+          "target": 1.0,
+          "met": false
+        },
+        {
+          "field": "question_type",
+          "numerator": 42,
+          "denominator": 45,
+          "value": 0.9333333333333333,
+          "target": 1.0,
+          "met": false
+        },
+        {
+          "field": "options",
+          "numerator": 45,
+          "denominator": 48,
+          "value": 0.9375,
+          "target": 1.0,
+          "met": false
+        },
+        {
+          "field": "reference_answer",
+          "numerator": 45,
+          "denominator": 48,
+          "value": 0.9375,
+          "target": 1.0,
+          "met": false
+        },
+        {
+          "field": "score",
+          "numerator": 45,
+          "denominator": 48,
+          "value": 0.9375,
+          "target": 1.0,
+          "met": false
+        },
+        {
+          "field": "content",
+          "numerator": 36,
+          "denominator": 48,
+          "value": 0.75,
+          "target": 0.8,
+          "met": false
+        },
+        {
+          "field": "analysis",
+          "numerator": 39,
+          "denominator": 48,
+          "value": 0.8125,
+          "target": 0.8,
+          "met": true
+        },
+        {
+          "field": "scoring_rubric",
+          "numerator": 38,
+          "denominator": 48,
+          "value": 0.7916666666666666,
+          "target": 0.8,
+          "met": false
+        },
+        {
+          "field": "knowledge_points",
+          "numerator": 42,
+          "denominator": 48,
+          "value": 0.875,
+          "target": 0.7,
+          "met": true
+        }
+      ]
+    },
+    {
+      "round": 2,
+      "source_commit": "14a550eb58bb1af6e8ebebf46b8a6af52e662274",
+      "prompt": "paper-extraction-v8",
+      "field_thresholds_passed": true,
+      "actual_http_attempts": 15,
+      "pending_review": 15,
+      "assessments": [
+        {
+          "field": "identity",
+          "numerator": 48,
+          "denominator": 48,
+          "value": 1.0,
+          "target": 1.0,
+          "met": true
+        },
+        {
+          "field": "question_number",
+          "numerator": 48,
+          "denominator": 48,
+          "value": 1.0,
+          "target": 1.0,
+          "met": true
+        },
+        {
+          "field": "order_index",
+          "numerator": 48,
+          "denominator": 48,
+          "value": 1.0,
+          "target": 1.0,
+          "met": true
+        },
+        {
+          "field": "source_page_numbers",
+          "numerator": 48,
+          "denominator": 48,
+          "value": 1.0,
+          "target": 1.0,
+          "met": true
+        },
+        {
+          "field": "question_type",
+          "numerator": 45,
+          "denominator": 45,
+          "value": 1.0,
+          "target": 1.0,
+          "met": true
+        },
+        {
+          "field": "options",
+          "numerator": 48,
+          "denominator": 48,
+          "value": 1.0,
+          "target": 1.0,
+          "met": true
+        },
+        {
+          "field": "reference_answer",
+          "numerator": 48,
+          "denominator": 48,
+          "value": 1.0,
+          "target": 1.0,
+          "met": true
+        },
+        {
+          "field": "score",
+          "numerator": 48,
+          "denominator": 48,
+          "value": 1.0,
+          "target": 1.0,
+          "met": true
+        },
+        {
+          "field": "content",
+          "numerator": 40,
+          "denominator": 48,
+          "value": 0.8333333333333334,
+          "target": 0.8,
+          "met": true
+        },
+        {
+          "field": "analysis",
+          "numerator": 41,
+          "denominator": 48,
+          "value": 0.8541666666666666,
+          "target": 0.8,
+          "met": true
+        },
+        {
+          "field": "scoring_rubric",
+          "numerator": 42,
+          "denominator": 48,
+          "value": 0.875,
+          "target": 0.8,
+          "met": true
+        },
+        {
+          "field": "knowledge_points",
+          "numerator": 43,
+          "denominator": 48,
+          "value": 0.8958333333333334,
+          "target": 0.7,
+          "met": true
+        }
+      ]
+    }
+  ],
+  "actual_http_attempts": 30,
+  "total_token_usage": {
+    "prompt_tokens": 100458,
+    "completion_tokens": 17862,
+    "total_tokens": 118320
+  },
+  "billed_currency_amount": null,
+  "requested_model": "deepseek-chat",
+  "actual_response_models": {
+    "deepseek-flash": 30
+  },
+  "final_field_thresholds_passed": true,
+  "final_groups": {
+    "1.0": true,
+    "0.8": true,
+    "0.7": true
+  },
+  "task_checked": true,
+  "remaining_disagreements_recorded": true,
+  "all_quality_generalization_claimed": false,
+  "source_type_decline_diagnosis": "v6 lost 6 known types with a whole-paper source validation rejection; successful 39 known types all correct. Round1 then omitted 3 distinct later-page starts, not three misclassifications.",
+  "changes": [
+    "per-page literal source proof separate from display layout",
+    "distinct original question starts retained despite similar content",
+    "general content spacing and continuation metadata removal",
+    "explicit rubric retention, field-name removal and whitespace-only display restoration within unchanged source validator"
+  ],
+  "schema_migration_or_comparison_changed": false,
+  "test_cases_or_assertions_changed": false,
+  "protected_files_receipt": "preservation.json",
+  "final_full_regression": {
+    "tests": 2663,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 1,
+    "passed": 2662
+  },
+  "final_full_regression_receipt": "final-full-regression/receipt.json",
+  "full_skip_reasons": [
+    {
+      "test": "tests.unit.services.test_file_storage_service::test_symlink_escape_is_rejected",
+      "reason": "Host does not permit creation of this test symlink."
+    }
+  ],
+  "final_full_matches_prompt_source": true,
+  "focused_regression": {
+    "passed": 168,
+    "failed": 0,
+    "receipt": "round2-regression.xml"
+  },
+  "backend_mypy_source_files": 214,
+  "ruff_passed": true,
+  "quality_scope": "Only the confirmed synthetic 16-question AI-assisted/developer-review reference repeated three times in each round; no independent teacher or broader quality claim",
+  "known_limits_not_blocking_t168": [
+    "startup 15–16 seconds; original subsequent <10 seconds target unchanged",
+    "semantic condition false positives 16.67%",
+    "semantic rubric coverage 77.78%",
+    "image condition completeness 72.73%"
+  ],
+  "excluded_from_t168": {
+    "assets": "待 T164 图像提取流程；不计入 T168 阈值。既有 T164 完成图片理解与核对，自动图像提取尚未实现。",
+    "source_regions": "原标注全部未知，不设本批阈值",
+    "all_evaluable_fields_match": "only a diagnostic; not an acceptance threshold"
+  },
+  "standalone_evaluator_full_regression_flag": "round2-fields/summary.json full_regression_still_required=true is fulfilled by the final full-regression receipt; raw evaluator output preserved",
+  "no_extra_quality_requests": true
+}

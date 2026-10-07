@@ -592,8 +592,9 @@ M0 工程骨架 + Benchmark
 
 - [X] T167 [HIGH] [E3] **扩展候选审核与题库补全 UI**：在 `ui/question_generation_view.py`、`question_view.py`、相关 API/加载器展示范围、教学片段/位置、父题/原卷、解析、图像核对与分项核验，允许补全和显式修订/再提交/批准；只消费服务端真实状态和有效报告。复用当前工作区已有列表/详情/编辑与设计系统改动，实施时核实其合并状态，不覆盖用户成果。 依赖：T159、T165、T166。per FR-018/028/043/046/047、SC-011（F034） (partial)
 
-- [ ] T168 [MEDIUM] [E3] **运行质量基线并确认验收阈值**：在 `benchmark/`、`scripts/` 与 `docs/evaluation.md` 按 T142/T146 执行真实 OCR/拆题、图片条件、语义核验标注评测；记录自动/人工结果、TP/FP/TN/FN、覆盖率和失败样本、实际模型/Prompt/数据版本。依据真实基线提出质量阈值供用户确认后补齐评测协议；无可评数据不填伪造百分比，未达目标如实报告并只列当前所需修复。 依赖：T142、T146、T160、T162、T164、T166。per G09、SC-010/011、plan 可评测目标、Constitution V（F035） (missing)
-  本批逐字段复验（用户确认新口径，2026-10-07）：5份×3轮实际运行，content35/48、knowledge_points40/48，混合卷1轮来源校验失败导致100%字段未通过，scoring_rubric36/48未通过；故本次保持未达标并改回[ ]。原基线测量/阈值登记已完成事实保留，不修改任务定义；详见 benchmark/results/v2/t168-fields-20261007/rerun-receipt.json。
+- [X] T168 [MEDIUM] [E3] **运行质量基线并确认验收阈值**：在 `benchmark/`、`scripts/` 与 `docs/evaluation.md` 按 T142/T146 执行真实 OCR/拆题、图片条件、语义核验标注评测；记录自动/人工结果、TP/FP/TN/FN、覆盖率和失败样本、实际模型/Prompt/数据版本。依据真实基线提出质量阈值供用户确认后补齐评测协议；无可评数据不填伪造百分比，未达目标如实报告并只列当前所需修复。 依赖：T142、T146、T160、T162、T164、T166。per G09、SC-010/011、plan 可评测目标、Constitution V（F035） (missing)
+  本次有止损修复（2026-10-07）：第2轮v8全部新字段门槛通过，question_type45/45、content40/48、scoring_rubric42/48、knowledge_points43/48；最终完整回归无failed，恢复[X]并停止迭代，未执行第3轮。原标签/比较不变，旧失败和剩余差异保留；见 benchmark/results/v2/t168-bounded-20261007/summary.json。
+  前次逐字段复验（用户确认新口径，2026-10-07）：5份×3轮实际运行，content35/48、knowledge_points40/48，混合卷1轮来源校验失败导致100%字段未通过，scoring_rubric36/48未通过；故本次保持未达标并改回[ ]。原基线测量/阈值登记已完成事实保留，不修改任务定义；详见 benchmark/results/v2/t168-fields-20261007/rerun-receipt.json。
 
 - [X] T169 [HIGH] [E3] **验收范围、改编、图片与重核验**：按 T145 执行四模式 Top-K 前范围过滤/旧默认回归、跨课程/未知章节拒绝、父题无环与事务、支持/不支持图片、教师处置、持久报告与内容变更失效用例；用五类错误/无问题样本核对不能批准的场景，保留 Candidate Generation 与教师审核职责。将实际生成/改编证据写入 `docs/validation-report.md`，不得用 Schema 通过代替语义评测。 依赖：T145、T165、T166、T167、T168。per FR-024/025/043/046/047、SC-011、plan Gate 12/19（F036） (partial)
 
