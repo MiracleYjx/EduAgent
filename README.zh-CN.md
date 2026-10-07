@@ -236,6 +236,19 @@ Compose 会提供容器内部的 PostgreSQL 与 Redis 地址。启动容器前�
 
 ## 打包与运行 Windows EXE
 
+双击 EXE 时若默认配置尚不存在，会先打开**本机配置窗口**。窗口按连接与存储、文字/图像模型、Embedding、检索与评分、OCR、账号与运行分组；密码默认遮罩，可显式生成 JWT 密钥和选择本地模型目录。保存只校验文件格式，不测试连接；首次保存后继续原启动检查，取消不会写文件或启动业务服务。
+
+已有配置时，双击包内 `Configure-EduAgent.cmd`，或运行下面的命令重新编辑。编辑现有配置时保留未管理项与注释；保存并关闭后，重新启动应用生效，不热更新正在运行的服务。
+
+```powershell
+.\EduAgent.exe --configure
+# 源码模式编辑指定 .env：
+python scripts/launch_windows.py --configure --config .env
+```
+
+EXE 默认保存到 `%LOCALAPPDATA%/EduAgent/config.env`；界面顶部显示本次目标路径。`--no-browser` 无人值守启动和显式指定的缺失配置仍报告原错误，不自动弹窗。
+
+
 在 Windows 上准备 **Python 3.12+**，于项目根目录运行现有[构建脚本](scripts/build_exe.ps1)。下面的构建包含本地 BGE/Cross Encoder 推理库：
 
 ```powershell

@@ -236,6 +236,19 @@ Use real provider settings for document ingestion and AI operations; placeholder
 
 ## Build and run a Windows EXE
 
+When the EXE is launched without a default configuration, a **local configuration window** opens first. Tabs cover connections/storage, text/vision models, Embedding, retrieval/grading, OCR, and authentication. Secrets are masked by default; buttons explicitly generate a JWT secret or select model directories. Saving validates file settings without testing connections. First-time saving continues normal startup checks; cancellation neither writes a file nor starts the service.
+
+To edit an existing configuration, double-click `Configure-EduAgent.cmd` in the package or use the commands below. Unknown settings and comments are preserved. Save and close, then restart the application; changes do not hot-reload a running service.
+
+```powershell
+.\EduAgent.exe --configure
+# Source-mode editing of an explicit .env:
+python scripts/launch_windows.py --configure --config .env
+```
+
+The EXE defaults to `%LOCALAPPDATA%/EduAgent/config.env`; the window shows the exact target path. Unattended `--no-browser` startup and explicitly missing configuration paths retain their normal errors instead of opening a window.
+
+
 On Windows with **Python 3.12+**, run the repository's [build script](scripts/build_exe.ps1) from the project root. This variant includes local BGE/Cross Encoder runtime libraries:
 
 ```powershell

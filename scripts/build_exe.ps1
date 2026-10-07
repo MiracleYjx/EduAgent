@@ -37,6 +37,7 @@ try {
     $taskPackage = Join-Path $taskDist 'EduAgent'
     Copy-Item -LiteralPath (Join-Path $taskRepo 'config/windows.env.example') -Destination (Join-Path $taskPackage 'config.env.example')
     Copy-Item -LiteralPath (Join-Path $taskRepo 'packaging/README.md') -Destination (Join-Path $taskPackage 'README.md')
+    Copy-Item -LiteralPath (Join-Path $taskRepo 'packaging/Configure-EduAgent.cmd') -Destination (Join-Path $taskPackage 'Configure-EduAgent.cmd')
     & $taskPython (Join-Path $taskRepo 'packaging/build_receipt.py') --package $taskPackage --output (Join-Path $taskPackage 'build-receipt.json')
     if ($LASTEXITCODE -ne 0) { throw '构建回执生成失败。' }
     Write-Host "构建完成：$taskPackage"

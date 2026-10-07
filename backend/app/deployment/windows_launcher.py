@@ -40,7 +40,7 @@ def configure(config: Path) -> AppSettings:
         raise LaunchError(
             "外置配置",
             f"未找到 {config}",
-            "复制 config.env.example 到该路径，填写实际配置后重启",
+            "运行 EduAgent.exe --configure 编辑配置，或复制 config.env.example 后填写",
         )
     if getattr(sys, "frozen", False) and config.is_relative_to(resource_root()):
         raise LaunchError("外置配置", "配置位于应用资源目录", "移至用户可写目录")
@@ -53,7 +53,9 @@ def configure(config: Path) -> AppSettings:
     try:
         return get_settings()
     except ConfigurationError as exc:
-        raise LaunchError("配置校验", str(exc), "修正列出的配置项") from exc
+        raise LaunchError(
+            "配置校验", str(exc), "使用 --configure 修正列出的配置项"
+        ) from exc
 
 
 def check_storage(root: Path, *, frozen: bool) -> None:
@@ -314,7 +316,10 @@ def main(argv: list[str] | None = None) -> int:
         Path(os.environ.get("LOCALAPPDATA", str(Path.home() / "AppData/Local")))
         / "EduAgent"
     )
-    parser.add_argument("--config", type=Path, default=data_root / "config.env")
+    parser.add_argument("--config", type=Path)
+    parser.add_argument(
+        "--configure", action="store_true", help="打开本机配置窗口，保存后退出"
+    )
     parser.add_argument("--port", type=int, default=8000)
     parser.add_argument("--startup-timeout", type=float, default=60)
     parser.add_argument("--no-browser", action="store_true")
@@ -323,13 +328,49 @@ def main(argv: list[str] | None = None) -> int:
         "--await-preflight", action="store_true", help=argparse.SUPPRESS
     )
     args = parser.parse_args(argv)
-    args.config = args.config.expanduser().resolve()
+    explicit_config = args.config is not None
+    args.config = (args.config or data_root / "config.env").expanduser().resolve()
+    if args.configure and args.child:
+        parser.error("--configure 不能与内部工作进程参数一起使用")
     child = None
     try:
         if not 1 <= args.port <= 65535 or args.startup_timeout <= 0:
             raise LaunchError(
                 "启动参数", "端口或超时无效", "端口应为1–65535，超时应大于0"
             )
+        first_configuration = (
+            bool(getattr(sys, "frozen", False))
+            and not args.child
+            and not explicit_config
+            and not args.no_browser
+            and not args.config.exists()
+        )
+        if args.configure or first_configuration:
+            from backend.app.deployment.configuration_editor import open_configuration
+
+            template = (
+                Path(sys.executable).parent / "config.env.example"
+                if getattr(sys, "frozen", False)
+                else resource_root() / "config/windows.env.example"
+            )
+            saved = open_configuration(
+                args.config,
+                template,
+                continue_launch=first_configuration and not args.configure,
+            )
+            if args.configure:
+                print(
+                    (
+                        "配置已保存，重新启动 EduAgent 后生效。"
+                        if saved
+                        else "已取消配置，未保存。"
+                    ),
+                    flush=True,
+                )
+                return 0
+            if not saved:
+                print("已取消首次配置，未启动业务服务。", flush=True)
+                return 0
         from backend.app.deployment.windows_tls import install_windows_tls_loader
 
         install_windows_tls_loader()

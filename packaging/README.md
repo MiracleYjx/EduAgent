@@ -15,3 +15,9 @@ build-receipt.json 记录实际版本、体积、源码和EXE哈希用于追溯�
 冻结构建会在独立 work 目录转换 Gradio 的 create_or_modify_pyi，仅跳过运行时的 IDE `.pyi` 文件生成；原安装库与源码运行路径保持原样，组件校验、事件和 API 信息保留。转换工具 scripts/freeze_gradio.py 进入构建回执；当前固定 Gradio 6.26.0，升级该依赖时须重新审查此转换并运行真实组件差分与冻结启动验收。
 
 同一冻结副本还为 get_api_info 建立本次调用的组件 ID 索引，替换逐输入/输出的全表扫描；重复 ID 保留首项，缺失组件仍跳过原端点，API 信息与可见性保持。完整生产工作台双模式逐值差分和原 UI 回归用于核对；升级 Gradio 时连同类型提示转换重新审查。
+
+## 本机配置窗口
+
+首次双击 EXE 缺少默认 config.env 时自动打开配置窗口；之后双击同目录 Configure-EduAgent.cmd，或运行 `EduAgent.exe --configure`。EXE 仍保存到 `%LOCALAPPDATA%/EduAgent/config.env`；`--config <绝对路径>` 可指定外置文件。源码编辑 .env 使用 `python scripts/launch_windows.py --configure --config .env`。
+
+窗口支持连接、模型、OCR、JWT、演示模式与检索参数，密钥遮罩，JWT生成需显式点击。保存保留注释和未管理项，先校验再原子替换；检测到其他程序改动时拒绝覆盖。取消不写文件，编辑模式保存后退出，重启服务生效；首次配置保存后继续原预检。窗口不测试连接、不迁移数据库、不自动下载模型。--no-browser 后台启动及显式缺失配置不自动弹窗。Tcl/Tk 运行资源随包附带，目标机无需安装 Python。
