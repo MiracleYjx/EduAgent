@@ -990,3 +990,12 @@ EXE仍使用现有独立构建环境，新的包及构建/冻结窗口/ZIP回执
 首轮69 passed/1 Tcl初始化错误（tcl_findLibrary）；独立8次Tk创建/销毁均通过，失败单项独立通过；保留原断言后重验70 passed、2条既有Gradio警告。现有开发环境重复初始化Tk偶发失败继续保留，不以重验掩盖首轮记录。三个变更部署模块聚焦Mypy通过，Ruff/Black（py313）通过。
 
 原业务库只读核对为0012_audit_logs。先前T189性能临时库已清理；实际采用仍存在的T191源隔离库 eduagent_t191_3bed6c35ed68（0023_grading_exam_question）和course-storage，不连接带维护标记的恢复目标。用户配置已按确认备份后更新4项，原Key/JWT/Redis保持；完整BGE权重存在且模型配置预检通过。配置辅助回执初次使用configure切换目录后的相对输出路径失败，修正为绝对路径后保存，不重复写配置或伪称首次回执成功。实际冻结运行及新包回执归档至 `.cache/exe-config-fix-20261007/`，本段源码检查不替代其运行结果。
+
+
+### §54 冻结包与最终状态
+
+修复前现有包应用正确配置后8.106秒就绪；新包按同一固定构建环境生成，源码a0e9b6c、252份源文件哈希匹配，EXE SHA256 `33d4f347813802b1eec852032e5d69ba0ba1d350400a8667deae30fc0d04d812`。新EXE使用合成不完整配置时一次报告DATABASE_URL/EMBEDDING_MODEL/EMBEDDING_API_KEY，返回1，不创建持久目录、不启动服务、不输出合成密钥。Tcl/Tk资源及包内无私有.env检查通过；本次未额外打开配置窗口。
+
+保留旧ZIP，备份4份被替换文件后更新用户原 `.cache/exe-config-build-20261007/dist/EduAgent/`（EXE、base_library.zip、README、构建回执）；其余文件保留。该路径实际新包8.109秒就绪，/ready与/gradio/均200，定向Ctrl+C返回0，所属Worker退出且8000释放。隐藏控制台运行，不打开浏览器；没有云模型调用，不将就绪声明为Key在线有效性或完整T189性能复验。
+
+修复ZIP `.cache/exe-config-fix-20261007/EduAgent-v2.0-config-fix-windows.zip`（383191537字节），SHA256 `31244e9cbee70a34565c687475c82f01777eca241fade1a8d98b07f37a0c5264`，CRC与清单通过，无私有配置。配置、构建、失败夹具、启动/退出、更新备份和保护状态回执均在同目录。最终只读复核原业务库仍0012，用户grading_samples.json SHA保持不变。原构建verification.json作为旧SHA/旧ZIP历史，现目录版本以新build-receipt与本次更新回执为准。

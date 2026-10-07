@@ -56,3 +56,6 @@ T188构建包与T189真实Windows重复启动/故障/资源预算另验；本页
 仅填写 DeepSeek 文字 Key 不足以完成运行配置：DATABASE_URL 中 USER/PASSWORD 是模板占位值，需填写实际 PostgreSQL 账号与数据库；云 Embedding 需独立 EMBEDDING_MODEL 与 EMBEDDING_API_KEY，并确认支持 1024 维。使用本地 BGE 可选择 bge Provider 与完整外置模型目录，无需云 Embedding Key；安装包必须包含本地推理库。界面现在保存前一次列出这些未完成字段并保留当前输入，显式文件启动也在访问数据库或创建工作进程前拒绝不完整配置。
 
 保存只验证字段完整性与格式，连接、权重和实际模型调用仍分别检查。不会把文字 Key 自动复用给 Embedding，不自动选择 Provider 或下载权重。已创建日志目录后的父进程预检失败会写入 application.log；更早的配置错误在窗口或控制台显示。更换数据库时须核对关联 STORAGE_ROOT，已有业务库升级前仍需备份，不以模板校验代替恢复或迁移流程。
+
+
+本次实际修复包（含本地推理库）源码为a0e9b6c，完整目录与压缩包位于 `.cache/exe-config-fix-20261007/`；用户原 `.cache/exe-config-build-20261007/dist/EduAgent/` 也已备份后更新。明确选择已有T191源隔离库及其配套持久根、完整外置BGE，保留原Key/JWT；新包一次实际就绪8.109秒，两个端点200并正常退出。仅为本次配置缺陷验证，非完整性能复验或云Key有效性测试，原0012业务库与恢复停写目标未升级/激活。旧ZIP保留为历史，新目录版本核对build-receipt.json及本次更新回执。
