@@ -1,10 +1,10 @@
 {
   "metadata": {
     "name": "grading_samples",
-    "version": "t059-v1",
-    "label_source": "synthetic_reference",
+    "version": "t059-v2",
+    "label_source": "developer_review",
     "score_scale": "0-10",
-    "note": "教师人工评分尚未标注：teacher_score 为 null，MAE/RMSE 与一致率不可计算；reference_score 仅为合成参考分，不等同于教师评分。"
+    "note": "由开发者（非一线教师）根据参考答案与评分标准独立评分，用于验证评分流程和对比 AI 评分；不作为教师质量基准。"
   },
   "samples": [
     {
@@ -17,8 +17,10 @@
       "max_score": "10.00",
       "knowledge_points": ["变量"],
       "reference_score": "6.00",
-      "teacher_score": null,
-      "label_source": "synthetic_reference"
+      "teacher_score": "5.00",
+      "teacher_reason": "学生只答出“保存数据”一点，未提及“引用数据”；按评分标准两点满分，故给一半分。",
+      "label_source": "developer_review",
+      "annotated_at": "2026-10-02T00:00:00Z"
     },
     {
       "sample_id": "g-002",
@@ -30,8 +32,10 @@
       "max_score": "10.00",
       "knowledge_points": ["函数", "参数"],
       "reference_score": "10.00",
-      "teacher_score": null,
-      "label_source": "synthetic_reference"
+      "teacher_score": "10.00",
+      "teacher_reason": "学生完整答出“可省略参数”与“未传参使用默认值”两点，符合评分标准。",
+      "label_source": "developer_review",
+      "annotated_at": "2026-10-02T00:00:00Z"
     },
     {
       "sample_id": "g-003",
@@ -43,8 +47,10 @@
       "max_score": "10.00",
       "knowledge_points": ["默认参数", "可变对象"],
       "reference_score": "7.00",
-      "teacher_score": null,
-      "label_source": "synthetic_reference"
+      "teacher_score": "8.00",
+      "teacher_reason": "学生答出“定义时求值一次”（只创建一次）和“共享同一对象”两点，满足“至少两点”要求；但未说明由此导致的“状态累积”后果，故未给满分。",
+      "label_source": "developer_review",
+      "annotated_at": "2026-10-02T00:00:00Z"
     },
     {
       "sample_id": "g-004",
@@ -56,8 +62,10 @@
       "max_score": "10.00",
       "knowledge_points": ["列表推导式", "循环"],
       "reference_score": "6.00",
-      "teacher_score": null,
-      "label_source": "synthetic_reference"
+      "teacher_score": "6.00",
+      "teacher_reason": "学生答到“简洁”和“速度更快”两点，覆盖评分标准的“性能或简洁性”；但未提到“单表达式构建”与“复杂逻辑可读性”的对比，给基本达标分。",
+      "label_source": "developer_review",
+      "annotated_at": "2026-10-02T00:00:00Z"
     }
   ]
 }
