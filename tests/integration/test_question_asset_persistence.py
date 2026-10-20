@@ -26,12 +26,20 @@ from backend.app.services.file_storage_service import (
 from backend.app.services.question_asset_service import QuestionAssetService
 from backend.app.services.question_service import QuestionService
 from backend.app.services.storage_migration_service import storage_references
-from tests.postgres_helpers import isolated_postgres_engine
+from tests.postgres_helpers import (
+    isolated_postgres_engine,
+    isolated_test_resource_profile,
+)
 from tests.unit.services.test_question_asset_service import png
 
 
 def test_staging_to_formal_projects_same_identity_and_retains_origin(tmp_path):
-    with isolated_postgres_engine() as engine, Session(engine, expire_on_commit=False) as session:
+    with (
+        isolated_test_resource_profile(tmp_path / "owned-profile") as profile,
+        isolated_postgres_engine() as engine,
+        Session(engine, expire_on_commit=False) as session,
+    ):
+        tmp_path = profile.storage_root
         teacher = User(username="e2_teacher", email="e2@example.test", password_hash="unused", roles=[Role(name="Teacher")])
         session.add(teacher)
         session.flush()
@@ -116,7 +124,11 @@ def test_real_backup_restores_original_pages_staged_and_formal_assets(backup_cas
     from sqlalchemy import create_engine
     from sqlalchemy.pool import NullPool
 
-    from tests.integration.test_backup_restore import backup, restore
+    from tests.integration.test_backup_restore import (
+        _activate_backup_profile,
+        backup,
+        restore,
+    )
     service, ids, tmp_path, _token, name = backup_case
     with Session(service.engine, expire_on_commit=False) as session:
         files = FileStorageService(session, root=service.root)
@@ -156,8 +168,8 @@ def test_real_backup_restores_original_pages_staged_and_formal_assets(backup_cas
     assert restore(backup_case, destination).outcome == "verified"
     restored = create_engine(service.engine.url.set(database=name), poolclass=NullPool)
     try:
-        with Session(restored) as session:
-            files = FileStorageService(session, root=tmp_path / "restored")
+        with _activate_backup_profile(tmp_path / "restored"), Session(restored) as session:
+            files = FileStorageService(session, root=tmp_path / "restored" / "storage")
             assert files.download("d_" + identifiers[0].hex, actor_id=ids["teacher"])[0].read_bytes() == png()
             assert files.download("p_" + identifiers[1].hex, actor_id=ids["teacher"])[0].read_bytes() == png()
             assert files.download(staged.file_id, actor_id=ids["teacher"])[0].read_bytes() == png()

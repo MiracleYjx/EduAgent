@@ -16,9 +16,12 @@ from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_vali
 if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from backend.app.core.environment import resolve_results_directory, result_file_path
 from backend.app.schemas.ai import GradingResult, QuestionType
+from backend.app.schemas.settings import EnvironmentProfile
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
+# Historical explicit path only; defaults are resolved for the selected environment.
 DEFAULT_RESULTS_DIR = PROJECT_ROOT / "benchmark" / "results"
 DEFAULT_JSON_NAME = "synthetic_benchmark.json"
 DEFAULT_CSV_NAME = "synthetic_benchmark.csv"
@@ -251,8 +254,8 @@ def _build_case(
         scoring_criteria=template["scoring_criteria"],
         reference_answer=template["reference_answer"],
         student_answer=template["student_answer"],
-        score=grading_result.score,
-        max_score=grading_result.max_score,
+        score=float(grading_result.score),
+        max_score=float(grading_result.max_score),
         reason=grading_result.reason,
         knowledge_points=grading_result.knowledge_points,
         validation_status=grading_result.validation_status,
@@ -299,14 +302,16 @@ def generate_synthetic_benchmark(
 def write_benchmark_results(
     dataset: Mapping[str, Any],
     *,
-    output_dir: Path = DEFAULT_RESULTS_DIR,
+    output_dir: Path | None = None,
+    profile: EnvironmentProfile | None = None,
 ) -> tuple[Path, Path]:
     """将 Benchmark 元数据和种子记录写入 JSON 与 CSV 文件。"""
 
     validated_dataset = SyntheticBenchmarkDataset.model_validate(dataset)
+    output_dir = resolve_results_directory(output_dir, profile=profile)
+    json_path = result_file_path(output_dir, DEFAULT_JSON_NAME)
+    csv_path = result_file_path(output_dir, DEFAULT_CSV_NAME)
     output_dir.mkdir(parents=True, exist_ok=True)
-    json_path = output_dir / DEFAULT_JSON_NAME
-    csv_path = output_dir / DEFAULT_CSV_NAME
 
     json_path.write_text(
         json.dumps(
@@ -382,8 +387,8 @@ def build_argument_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--output-dir",
         type=Path,
-        default=DEFAULT_RESULTS_DIR,
-        help="Benchmark 结果输出目录。",
+        default=None,
+        help="Benchmark 结果输出目录，默认使用当前环境的 results 目录。",
     )
     return parser
 

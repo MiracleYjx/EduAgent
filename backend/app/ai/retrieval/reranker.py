@@ -22,9 +22,10 @@ import importlib.util
 import json
 import math
 from abc import ABC, abstractmethod
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import replace
-from typing import Any, ClassVar, Final, Protocol, cast
+from pathlib import Path
+from typing import TYPE_CHECKING, Any, ClassVar, Final, Protocol, cast
 
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
@@ -46,6 +47,9 @@ from backend.app.ai.retrieval.base import (
 )
 from backend.app.ai.retrieval.hybrid_search import DEFAULT_CANDIDATE_K
 from backend.app.core.config import AppSettings, get_settings
+
+if TYPE_CHECKING:
+    from backend.app.services.settings.runtime_snapshot import RunSnapshotContext
 
 #: Rerank 相关失败码。
 RERANK_INVALID_INPUT: Final[str] = "RERANK_INVALID_INPUT"
@@ -251,6 +255,8 @@ class LLMRerankAdapter(BaseReranker):
         self.max_candidates = _resolve_max_candidates(max_candidates)
         self.timeout = _resolve_timeout(timeout)
         self._model = model
+        self._owns_provider = provider is None
+        self._closed = False
         if provider is not None:
             self._provider = provider
         else:
@@ -264,6 +270,15 @@ class LLMRerankAdapter(BaseReranker):
                 raise RerankProviderNotReadyError(
                     f"LLM Rerank 依赖的 LLM Provider 未就绪：{type(exc).__name__}。"
                 ) from exc
+
+    async def aclose(self) -> None:
+        """只释放本适配器创建的 LLM；调用方注入的 Provider 仍由调用方持有。"""
+
+        if self._closed:
+            return
+        self._closed = True
+        if self._owns_provider:
+            await self._provider.aclose()
 
     def rerank(
         self,
@@ -308,6 +323,8 @@ class LLMRerankAdapter(BaseReranker):
     async def _invoke(self, text: str, candidates: Sequence[RetrievedChunk]) -> LLMRerankResponse:
         """执行一次结构化重排调用，超时与 Provider 错误统一收敛。"""
 
+        if self._closed:
+            raise RerankProviderNotReadyError("LLM Rerank 已关闭，请重新创建适配器。")
         messages: list[LLMMessage] = [
             {
                 "role": "system",
@@ -360,8 +377,10 @@ class CrossEncoderRerankAdapter(BaseReranker):
         model: str = DEFAULT_CROSS_ENCODER_MODEL,
         max_candidates: int | None = None,
         model_loader: CrossEncoderLoader | None = None,
+        resource_directory: str | Path | None = None,
     ) -> None:
         self.model_name = model
+        self._model_path = str(resource_directory) if resource_directory is not None else model
         self.max_candidates = _resolve_max_candidates(max_candidates)
         if model_loader is None and not sentence_transformers_available():
             raise RerankProviderNotReadyError(
@@ -407,7 +426,7 @@ class CrossEncoderRerankAdapter(BaseReranker):
 
         if self._model is None:
             try:
-                self._model = self._model_loader(self.model_name)
+                self._model = self._model_loader(self._model_path)
             except RerankError:
                 raise
             except Exception as exc:
@@ -427,7 +446,7 @@ def _load_cross_encoder(model_name: str) -> Any:
         )
     from sentence_transformers import CrossEncoder  # type: ignore[import-not-found]
 
-    return CrossEncoder(model_name)
+    return CrossEncoder(model_name, local_files_only=True)
 
 
 def _resolve_max_candidates(value: int | None) -> int:
@@ -460,42 +479,34 @@ def build_reranker(
     name: str | None = None,
     *,
     settings: AppSettings | None = None,
+    runtime: RunSnapshotContext | None = None,
     **kwargs: Any,
 ) -> BaseReranker:
-    """按 ``RERANK_PROVIDER`` 创建 Rerank 适配器；未知或未配置时明确失败。
+    """按 ``RERANK_PROVIDER`` 或运行快照创建 Rerank 适配器；未配置时明确失败。
 
     ``name`` 是 ``RERANK_PROVIDER`` 取值（未提供时读取配置）；显式 ``settings`` 贯穿
     Provider、模型、候选上限与超时，其余参数仍保持最高优先级并透传给具体适配器。
     """
 
+    if runtime is not None:
+        return cast(BaseReranker, runtime.acquire("rerank").client)
     runtime_settings = settings if settings is not None else get_settings()
     resolved = name if name is not None else runtime_settings.rerank_provider
     normalized = (resolved or "").strip().lower()
-    if normalized in {"llm", "openai_compatible", "cross_encoder"}:
-        kwargs.setdefault("max_candidates", runtime_settings.rerank_max_candidates)
-    if normalized in {"llm", "openai_compatible", "cross_encoder"} and "model" not in kwargs:
-        # 显式切换路线时不套用另一条路线的模型；显式 model 参数始终优先。
-        configured_model = (
-            runtime_settings.rerank_model
-            if normalized == runtime_settings.rerank_provider
-            else None
-        )
-        if configured_model:
-            kwargs["model"] = configured_model
-        elif normalized in {"llm", "openai_compatible"}:
-            kwargs["model"] = runtime_settings.deepseek_model
-    if normalized in {"llm", "openai_compatible"}:
-        kwargs.setdefault("timeout", runtime_settings.rerank_timeout_seconds)
-        if settings is not None:
-            kwargs.setdefault("settings", runtime_settings)
-        return LLMRerankAdapter(**kwargs)
-    if normalized == "cross_encoder":
-        return CrossEncoderRerankAdapter(**kwargs)
     if normalized == "none":
         raise RerankProviderNotReadyError(
             "RERANK_PROVIDER=none 表示未启用重排；Hybrid + Rerank 模式必须配置可用 reranker。"
         )
-    raise RerankInputError(f"不支持的 RERANK_PROVIDER 取值：{normalized or '（空）'}。")
+    from backend.app.services.settings.provider_registry import (
+        RegistryValidationError,
+        get_provider_registry,
+    )
+
+    try:
+        record = get_provider_registry().entry("rerank", normalized)
+    except RegistryValidationError:
+        raise RerankInputError(f"不支持的 RERANK_PROVIDER 取值：{normalized or '（空）'}。") from None
+    return record.legacy_factory(runtime_settings, **kwargs)
 
 
 class HybridRerankRetriever(BaseRetriever):
@@ -511,14 +522,19 @@ class HybridRerankRetriever(BaseRetriever):
         fusion_top_k: int = DEFAULT_CANDIDATE_K,
         candidate_k: int = DEFAULT_CANDIDATE_K,
         vector_weight: float | None = None,
+        index_identity: Mapping[str, Any] | None = None,
     ) -> None:
         self.fusion_top_k = normalize_top_k(fusion_top_k)
+        self.index_identity = (
+            dict(index_identity) if index_identity is not None else None
+        )
         # 基础契约的查询参数型为 str | Sequence[float]，Hybrid 实现额外接受 RetrievalQuery；
         # 这里用 cast 保持 vector/keyword 实现不被修改。
         candidate = hybrid_retriever or get_retriever(
             RetrievalMode.HYBRID,
             vector_weight=vector_weight,
             candidate_k=candidate_k,
+            index_identity=self.index_identity,
         )
         self._hybrid = cast("_HybridLike", candidate)
         self._reranker = reranker

@@ -203,38 +203,49 @@ def test_real_tk_validation_keeps_window_and_original_file(document, tk_root):
     assert document.path.read_bytes() == before
 
 
-@pytest.mark.parametrize("saved", [True, False])
-def test_configure_command_never_runs_business_preflight_or_child(
-    tmp_path, monkeypatch, saved
-):
-    opened = Mock(return_value=saved)
+@pytest.mark.parametrize("arguments", [["--configure"], ["--configure", "--no-browser"]])
+def test_configure_command_opens_setup_without_legacy_editor(tmp_path, monkeypatch, arguments):
+    from tests.unit.deployment.test_windows_launcher import FakeClient, _prepare
+
+    children = _prepare(monkeypatch, tmp_path)
+    opened = Mock()
+    browser = Mock(return_value=True)
     monkeypatch.setattr(editor, "open_configuration", opened)
+    monkeypatch.setattr(launcher.webbrowser, "open", browser)
+    assert launcher.main(arguments + ["--config", str(tmp_path / ".env")]) == 0
+    opened.assert_not_called()
+    browser.assert_called_once()
+    assert browser.call_args.args[0].endswith("#code=SYNTHETIC")
+    assert len(children) == 1
+    assert children[0].poll() == 0
+    assert not children[0].terminated and not children[0].killed
+    assert FakeClient.instances[0].shutdown_calls == 1
+    assert FakeClient.instances[0].closed
+    assert not (tmp_path / ".env").exists()
     for name in ("configure", "check_models", "check_dependencies", "migrate"):
-        monkeypatch.setattr(
-            launcher,
-            name,
-            lambda *a: pytest.fail("configuration must not start business checks"),
-        )
-    spawn = Mock()
-    monkeypatch.setattr(launcher.subprocess, "Popen", spawn)
-    assert launcher.main(["--configure", "--config", str(tmp_path / ".env")]) == 0
-    opened.assert_called_once()
-    spawn.assert_not_called()
+        assert not hasattr(launcher, name)
 
 
-def test_frozen_first_launch_opens_default_editor_and_cancel_stops(
-    tmp_path, monkeypatch
-):
+def test_frozen_first_launch_opens_setup_and_exit_stops_worker(tmp_path, monkeypatch):
+    from tests.unit.deployment.test_windows_launcher import FakeClient, _prepare
+
+    children = _prepare(monkeypatch, tmp_path)
     monkeypatch.setattr(launcher.sys, "frozen", True, raising=False)
     monkeypatch.setenv("LOCALAPPDATA", str(tmp_path))
-    opened = Mock(return_value=False)
+    opened = Mock()
+    browser = Mock(return_value=True)
     monkeypatch.setattr(editor, "open_configuration", opened)
-    monkeypatch.setattr(
-        launcher, "configure", lambda *a: pytest.fail("cancel cannot load settings")
-    )
+    monkeypatch.setattr(launcher.webbrowser, "open", browser)
     assert launcher.main([]) == 0
-    assert opened.call_args.args[0] == tmp_path / "EduAgent/config.env"
-    assert opened.call_args.kwargs["continue_launch"] is True
+    opened.assert_not_called()
+    browser.assert_called_once()
+    assert browser.call_args.args[0].endswith("#code=SYNTHETIC")
+    assert not (tmp_path / "EduAgent/config.env").exists()
+    assert len(children) == 1
+    assert children[0].poll() == 0
+    assert not children[0].terminated and not children[0].killed
+    assert FakeClient.instances[0].shutdown_calls == 1
+    assert FakeClient.instances[0].closed
 
 
 @pytest.mark.parametrize(
@@ -243,12 +254,23 @@ def test_frozen_first_launch_opens_default_editor_and_cancel_stops(
 def test_unattended_or_explicit_missing_config_never_opens_editor(
     tmp_path, monkeypatch, arguments
 ):
+    from tests.unit.deployment.test_windows_launcher import FakeClient, _prepare
+
+    children = _prepare(monkeypatch, tmp_path)
     monkeypatch.setattr(launcher.sys, "frozen", True, raising=False)
     monkeypatch.setenv("LOCALAPPDATA", str(tmp_path))
     opened = Mock()
+    browser = Mock(return_value=True)
     monkeypatch.setattr(editor, "open_configuration", opened)
-    assert launcher.main(arguments) == 1
+    monkeypatch.setattr(launcher.webbrowser, "open", browser)
+    assert launcher.main(arguments) == 0
     opened.assert_not_called()
+    assert browser.call_count == (0 if "--no-browser" in arguments else 1)
+    assert len(children) == 1
+    assert children[0].poll() == 0
+    assert not children[0].terminated and not children[0].killed
+    assert FakeClient.instances[0].shutdown_calls == 1
+    assert FakeClient.instances[0].closed
 
 
 def test_frozen_editor_refuses_installation_directory(document, monkeypatch):

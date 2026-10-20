@@ -48,6 +48,9 @@ def _require_isolated_environment() -> None:
 def _find_powershell() -> str | None:
     """查找 Windows PowerShell 或 PowerShell Core。"""
 
+    configured = os.environ.get("T202_POWERSHELL")
+    if configured and Path(configured).is_file():
+        return configured
     return (
         shutil.which("pwsh")
         or shutil.which("powershell.exe")

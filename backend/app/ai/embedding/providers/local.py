@@ -10,6 +10,7 @@ from __future__ import annotations
 import asyncio
 import importlib.util
 from collections.abc import Callable, Sequence
+from pathlib import Path
 from typing import Any, Final
 
 from backend.app.ai.embedding.base import (
@@ -45,7 +46,7 @@ def load_sentence_transformer(model_name: str) -> Any:
         SentenceTransformer,
     )
 
-    return SentenceTransformer(model_name)
+    return SentenceTransformer(model_name, local_files_only=True)
 
 
 class LocalEmbeddingProvider(BaseEmbeddingProvider):
@@ -62,9 +63,12 @@ class LocalEmbeddingProvider(BaseEmbeddingProvider):
         batch_size: int = DEFAULT_BATCH_SIZE,
         model_loader: ModelLoader | None = None,
         provider_name: str = "local",
+        resource_directory: str | Path | None = None,
     ) -> None:
         self.provider_name = provider_name
         self.model_name = model
+        # 模型身份用于溯源，实际加载位置可以是 Registry 核验的预置目录。
+        self._model_path = str(resource_directory) if resource_directory is not None else model
         self.dimension = dimension
         self._query_prefix = query_prefix
         self._batch_size = batch_size
@@ -85,6 +89,15 @@ class LocalEmbeddingProvider(BaseEmbeddingProvider):
             model=model,
             dimension=settings.embedding_dimension,
         )
+
+    def semantic_parameters(self) -> dict[str, Any]:
+        """本地实现固定归一化文档向量，并保留查询前缀这一语义事实。"""
+
+        return {
+            "normalize": True,
+            "document_prefix": "",
+            "query_prefix": self._query_prefix,
+        }
 
     def is_ready(self) -> bool:
         """注入自定义加载器或已安装本地依赖时视为就绪。"""
@@ -126,7 +139,7 @@ class LocalEmbeddingProvider(BaseEmbeddingProvider):
 
     def _load_model(self) -> Any:
         try:
-            model = self._model_loader(self.model_name)
+            model = self._model_loader(self._model_path)
         except EmbeddingProviderError:
             raise
         except Exception as exc:

@@ -39,7 +39,10 @@ from backend.app.services.grading.grading_task_service import (
     DatabaseGradingSubmissionReader,
     GradingNotAllowedError,
 )
-from tests.postgres_helpers import isolated_postgres_engine
+from tests.postgres_helpers import (
+    isolated_postgres_engine,
+    isolated_test_resource_profile,
+)
 from tests.support.exam_scoring_fixtures import confirm_synthetic_exam_basis
 from tests.unit.models.sqlite_support import seed_submission
 
@@ -168,6 +171,12 @@ def test_real_postgres_two_exams_do_not_reuse_question_score_or_labels(database)
         )
 
 
+@pytest.fixture
+def image_storage_root(tmp_path):
+    with isolated_test_resource_profile(tmp_path / "owned-profile") as profile:
+        yield profile.storage_root
+
+
 def image_fixture(database, root):
     engine, info = database
     pixels = BytesIO()
@@ -236,8 +245,9 @@ def image_fixture(database, root):
 
 
 def test_real_current_image_review_is_carried_without_bytes_paths_or_new_events(
-    database, tmp_path
+    database, image_storage_root
 ):
+    tmp_path = image_storage_root
     image_path, asset_id, check_id = image_fixture(database, tmp_path)
     current = load(database, root=tmp_path)
     value = current.scoring_inputs[str(database[1].objective_answer_id)]
@@ -271,8 +281,9 @@ def test_real_current_image_review_is_carried_without_bytes_paths_or_new_events(
     ],
 )
 def test_real_image_failure_never_produces_confirmed_input(
-    database, tmp_path, change, code
+    database, image_storage_root, change, code
 ):
+    tmp_path = image_storage_root
     path, _asset, _check = image_fixture(database, tmp_path)
     if change == "missing":
         path.unlink()

@@ -57,19 +57,6 @@ def test_concurrent_start_reuses_one_run_and_releases_submission_lock(
     """两请求确实并发争锁；模型尚未返回时另一请求已复用，独立 Session 可取得锁。"""
 
     submission_id = UUID(solo_env.paper.submission_id)
-    if with_m3_run:
-        with Session(solo_env.engine) as session, session.begin():
-            session.add(
-                WorkflowRun(
-                    workflow_id="m3-running",
-                    request_id="m3-request",
-                    submission_id=submission_id,
-                    status=WorkflowStatus.RUNNING,
-                    checkpoint={"kind": CHECKPOINT_KIND, "task": {}},
-                    current_node="score",
-                )
-            )
-
     scoring = HeldScoringProvider()
     contenders = Event()
     contenders_guard = Lock()
@@ -89,6 +76,20 @@ def test_concurrent_start_reuses_one_run_and_releases_submission_lock(
         _api_client(solo_env, scoring_provider=scoring) as second,
         ThreadPoolExecutor(max_workers=2) as executor,
     ):
+        # This is an active M3 in the current process, not an interrupted row
+        # from before either real application startup/recovery.
+        if with_m3_run:
+            with Session(solo_env.engine) as session, session.begin():
+                session.add(
+                    WorkflowRun(
+                        workflow_id="m3-running",
+                        request_id="m3-request",
+                        submission_id=submission_id,
+                        status=WorkflowStatus.RUNNING,
+                        checkpoint={"kind": CHECKPOINT_KIND, "task": {}},
+                        current_node="score",
+                    )
+                )
         # 先持有真实行锁，使两个请求均到达锁竞争点；不是依赖线程调度碰巧重叠。
         gate = Session(solo_env.engine)
         futures = []

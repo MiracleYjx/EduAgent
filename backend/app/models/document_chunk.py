@@ -129,8 +129,12 @@ class DocumentChunk(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     document_id: Mapped[UUID] = mapped_column(
         ForeignKey("documents.id", ondelete="CASCADE"), nullable=False, index=True
     )
-    course_id: Mapped[UUID] = mapped_column(
-        ForeignKey("courses.id", ondelete="CASCADE"), nullable=False, index=True
+    course_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("courses.id", ondelete="CASCADE"), nullable=True, index=True
+    )
+    #: 个人资料归属；与 course_id 互斥，保证科目/空间隔离（T028）。
+    subject_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("subjects.id", ondelete="RESTRICT"), nullable=True, index=True
     )
     knowledge_base_id: Mapped[UUID] = mapped_column(
         ForeignKey("knowledge_bases.id", ondelete="CASCADE"), nullable=False, index=True

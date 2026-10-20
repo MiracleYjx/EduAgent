@@ -21,8 +21,18 @@ from backend.app.services.question_service import (
 )
 from tests.integration.test_exam_assembly import database as _assembly_database
 from tests.integration.test_reference_lifecycle import png
+from tests.postgres_helpers import isolated_test_resource_profile
 
 database = _assembly_database
+
+
+@pytest.fixture
+def publication_asset_root(tmp_path, action):
+    if action != "asset":
+        yield tmp_path
+        return
+    with isolated_test_resource_profile(tmp_path / "owned-profile") as profile:
+        yield profile.storage_root
 
 
 def assert_blocked_by(engine, waiter, holder, future):
@@ -40,8 +50,9 @@ def assert_blocked_by(engine, waiter, holder, future):
 
 @pytest.mark.parametrize("action", ["revision", "asset"])
 def test_publication_first_rejects_inflight_revision_and_asset_write(
-    database, tmp_path, action
+    database, publication_asset_root, action
 ):
+    tmp_path = publication_asset_root
     engine, info = database
     qid = info["questions"][1]
     pid_queue = Queue()

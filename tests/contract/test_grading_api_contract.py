@@ -61,6 +61,7 @@ from backend.app.services.grading.grading_task_service import (
 from backend.app.services.grading.subjective_grader import ProviderNotReadyError
 from backend.app.services.grading.subjective_pipeline import build_subjective_scorer
 from backend.app.services.question_service import QuestionService
+from tests.support.application_lifecycle import bind_startup_to_session
 from tests.support.exam_scoring_fixtures import confirm_synthetic_exam_basis
 from tests.support.grading_doubles import (
     InMemoryGradingRepository,
@@ -144,8 +145,10 @@ def scenario(session: Session) -> dict[str, object]:
 
 
 @pytest.fixture
-def client_factory(session: Session) -> Generator[object, None, None]:
+def client_factory(session: Session, monkeypatch: pytest.MonkeyPatch) -> Generator[object, None, None]:
     """按需装配应用服务替身的 TestClient 工厂。"""
+
+    bind_startup_to_session(monkeypatch, session)
 
     with ExitStack() as stack:
 

@@ -1,0 +1,89 @@
+name: eduagent-test
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    restart: "no"
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: eduagent_test_admin
+      POSTGRES_PASSWORD: ${EDUAGENT_TEST_ADMIN_PASSWORD:?Test administrator credential required}
+      POSTGRES_HOST_AUTH_METHOD: scram-sha-256
+    ports:
+      - "127.0.0.1:15432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U eduagent_test_admin -d postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 5s
+
+  redis:
+    image: redis:7.4-alpine
+    restart: "no"
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "127.0.0.1:16379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 5s
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        PIP_INDEX_URL: ${EDUAGENT_TEST_PIP_INDEX_URL:-https://pypi.org/simple}
+    restart: "no"
+    env_file:
+      - ${EDUAGENT_ENV_FILE:?Dedicated Test environment file required}
+    environment:
+      EDUAGENT_ENVIRONMENT: test
+      EDUAGENT_RUNTIME_KIND: docker
+      EDUAGENT_DATA_ROOT: /app
+      EDUAGENT_TEST_RESOURCE_PROFILE: /run/eduagent/test-resource-profile.json
+      DATABASE_URL: postgresql+psycopg://eduagent_test_runner:${EDUAGENT_TEST_RUNNER_PASSWORD:?Test runner credential required}@postgres:5432/eduagent_test
+      REDIS_URL: redis://redis:6379/0
+      STORAGE_ROOT: /app/storage
+      CONFIDENCE_THRESHOLD: "0.80"
+      EMBEDDING_PROVIDER: openai_compatible
+      EMBEDDING_MODEL: synthetic-test-embedding
+      EMBEDDING_BASE_URL: http://127.0.0.1:9/v1
+      EMBEDDING_API_KEY: synthetic-test-no-network
+      GRADIO_ANALYTICS_ENABLED: "false"
+      HF_HUB_DISABLE_TELEMETRY: "1"
+      DO_NOT_TRACK: "1"
+      LANGSMITH_TRACING: "false"
+    volumes:
+      - storage_data:/app/storage
+      - type: bind
+        source: ${EDUAGENT_TEST_CONTAINER_PROFILE:?Dedicated container Test profile required}
+        target: /run/eduagent/test-resource-profile.json
+        read_only: true
+        bind:
+          create_host_path: false
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:18000:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/ready', timeout=4)"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+
+volumes:
+  postgres_data:
+  redis_data:
+  storage_data:

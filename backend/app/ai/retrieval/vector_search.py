@@ -16,8 +16,8 @@
 from __future__ import annotations
 
 import math
-from collections.abc import Sequence
-from typing import ClassVar, Final, cast
+from collections.abc import Mapping, Sequence
+from typing import Any, ClassVar, Final, cast
 
 from sqlalchemy import Float, select, text
 from sqlalchemy.orm import Session
@@ -40,6 +40,10 @@ from backend.app.ai.retrieval.base import (
     resolve_dialect_name,
 )
 from backend.app.models import DocumentChunk
+from backend.app.services.settings.index_identity import (
+    IndexIdentityService,
+    SqlAlchemyIndexRepository,
+)
 
 POSTGRES_DIALECT: Final[str] = "postgresql"
 
@@ -81,9 +85,18 @@ class VectorSearchRetriever(BaseRetriever):
 
     mode: ClassVar[RetrievalMode] = RetrievalMode.VECTOR_ONLY
 
-    def __init__(self, *, exact: bool = False) -> None:
+    def __init__(
+        self,
+        *,
+        exact: bool = False,
+        index_identity: Mapping[str, Any] | None = None,
+    ) -> None:
         #: 是否强制精确近邻搜索；用于 Benchmark 基线与结果对照。
         self.exact = bool(exact)
+        #: 本次查询实际使用的 Embedding 身份；未提供时保持旧调用兼容，不读 active 配置。
+        self.index_identity = (
+            dict(index_identity) if index_identity is not None else None
+        )
 
     def search(
         self,
@@ -102,9 +115,34 @@ class VectorSearchRetriever(BaseRetriever):
         scope = resolve_retrieval_scope(
             session, query if isinstance(query, RetrievalQuery) else None, filters
         )
+        if self.index_identity is not None:
+            declared = self.index_identity.get("dimension")
+            if declared is not None and len(vector) != int(declared):
+                raise RetrievalInputError(
+                    f"查询向量维度 {len(vector)} 与显式 Embedding 身份维度 {declared} 不一致。"
+                )
+        self._require_compatible(session, scope)
         if resolve_dialect_name(session) == POSTGRES_DIALECT:
             return self._search_postgresql(session, vector, limit, scope)
         return self._search_exact(session, vector, limit, scope)
+
+    def _require_compatible(self, session: Session, scope: RetrievalFilters) -> None:
+        """在检索前核对目标 KB 身份；未知历史向量必须先经受控接纳。"""
+
+        if self.index_identity is None:
+            return
+        # Resolve every eligible KB before scoring/Top-K, including version-only,
+        # document-only and unrestricted queries. Do not widen the SQL filters.
+        statement = apply_retrieval_filters(
+            select(DocumentChunk.knowledge_base_id).where(
+                DocumentChunk.embedding.is_not(None)
+            ),
+            scope,
+        ).distinct()
+        knowledge_base_ids = session.scalars(statement).all()
+        service = IndexIdentityService(repository=SqlAlchemyIndexRepository(session))
+        for kb_id in knowledge_base_ids:
+            service.require_compatible(kb_id=kb_id, identity=self.index_identity)
 
     def _search_postgresql(
         self,

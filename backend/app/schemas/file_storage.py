@@ -86,7 +86,8 @@ class OperationReceipt(BaseModel):
     resource_type: Literal["document", "source_page", "staged_asset", "question_asset", "export"]
     resource_id: UUID
     owner: dict[str, str]
-    actor_id: UUID
+    #: 旧业务写入者；个人资料没有浏览器/用户主体，因此允许为空。
+    actor_id: UUID | None = None
     candidate_locator: str
     stage: Literal["prepared", "written", "committed", "failed"]
     started_at: AwareDatetime

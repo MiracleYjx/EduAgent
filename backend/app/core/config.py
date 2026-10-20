@@ -8,10 +8,9 @@ from __future__ import annotations
 
 import os
 import re
-import sys
 from functools import lru_cache
 from pathlib import Path
-from typing import Any, ClassVar, Final
+from typing import TYPE_CHECKING, Any, ClassVar, Final, Literal
 from urllib.parse import urlsplit, urlunsplit
 
 from pydantic import (
@@ -25,6 +24,11 @@ from pydantic import (
 )
 from pydantic.networks import PostgresDsn, RedisDsn
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+from backend.app.core.environment import resolve_environment_profile
+
+if TYPE_CHECKING:
+    from backend.app.schemas.settings import ResolvedConfiguration
 
 REDACTED_VALUE = "[REDACTED]"
 _PROVIDER_NAME_PATTERN = r"^[a-z][a-z0-9_-]*$"
@@ -98,12 +102,26 @@ def _redact_url(url: AnyUrl | PostgresDsn | RedisDsn | str) -> str:
 
 
 def default_storage_root() -> Path:
-    """Use a persistent development root or writable user data for an EXE."""
+    """Use the selected profile, retaining unadopted Development storage."""
 
-    if getattr(sys, "frozen", False):
-        data_root = Path(os.environ.get("LOCALAPPDATA") or Path.home() / "AppData" / "Local")
-        return data_root / "EduAgent" / "storage"
-    return Path(__file__).resolve().parents[3] / "storage"
+    return resolve_environment_profile().storage_root
+
+
+class _ProviderNames:
+    """Compatibility attribute backed by executable Registry records, not a list."""
+
+    def __init__(self, kind: str) -> None:
+        self.kind = kind
+
+    def __get__(self, instance: object, owner: type | None = None) -> frozenset[str]:
+        from backend.app.services.settings.provider_registry import (
+            get_provider_registry,
+        )
+
+        names = {entry.adapter_id for entry in get_provider_registry().entries(kind=self.kind)}
+        if self.kind == "rerank":
+            names.add("none")  # Disabled state, never a fabricated runnable entry.
+        return frozenset(names)
 
 
 class AppSettings(BaseSettings):
@@ -118,15 +136,9 @@ class AppSettings(BaseSettings):
         hide_input_in_errors=True,
     )
 
-    SUPPORTED_LLM_PROVIDERS: ClassVar[frozenset[str]] = frozenset(
-        {"deepseek", "openai_compatible"}
-    )
-    SUPPORTED_EMBEDDING_PROVIDERS: ClassVar[frozenset[str]] = frozenset(
-        {"bge", "deepseek", "huggingface", "local", "openai_compatible"}
-    )
-    SUPPORTED_RERANK_PROVIDERS: ClassVar[frozenset[str]] = frozenset(
-        {"cross_encoder", "llm", "none", "openai_compatible"}
-    )
+    SUPPORTED_LLM_PROVIDERS: ClassVar[_ProviderNames] = _ProviderNames("llm")
+    SUPPORTED_EMBEDDING_PROVIDERS: ClassVar[_ProviderNames] = _ProviderNames("embedding")
+    SUPPORTED_RERANK_PROVIDERS: ClassVar[_ProviderNames] = _ProviderNames("rerank")
 
     storage_root: Path = Field(
         default_factory=default_storage_root,
@@ -149,18 +161,20 @@ class AppSettings(BaseSettings):
 
     database_url: PostgresDsn
     redis_url: RedisDsn
-    llm_provider: str
-    deepseek_api_key: SecretStr
-    deepseek_base_url: AnyUrl
-    deepseek_model: str
+    #: 显式 `none` 表示本环境未配置 LLM；不是默认付费模型，也不填假 Key。
+    llm_provider: str = "none"
+    llm_auth_mode: Literal["api_key", "none"] = "api_key"
+    deepseek_api_key: SecretStr = SecretStr("")
+    deepseek_base_url: AnyUrl | None = None
+    deepseek_model: str = ""
     # 图像使用显式独立模型；缺省不自动切换旧文字模型。
     vision_model: str | None = None
-    embedding_provider: str
+    embedding_provider: str = "none"
     embedding_model: str | None = None
     embedding_dimension: int = Field(default=EMBEDDING_DIMENSION_DEFAULT, gt=0)
     embedding_base_url: AnyUrl | None = None
     embedding_api_key: SecretStr | None = None
-    rerank_provider: str
+    rerank_provider: str = "none"
     #: 未配置时，LLM 沿用 DEEPSEEK_MODEL，Cross Encoder 使用自身默认模型。
     rerank_model: str | None = None
     confidence_threshold: float = Field(ge=0.0, le=1.0)
@@ -184,6 +198,8 @@ class AppSettings(BaseSettings):
             raise ValueError("storage root must not be empty")
         path = Path(value).expanduser()
         # Normalize on the execution host; Compose uses its container path syntax.
+        if any(name in os.environ for name in ("EDUAGENT_ENVIRONMENT", "EDUAGENT_DATA_ROOT", "EDUAGENT_RUNTIME_KIND")):
+            return resolve_environment_profile(storage_root=path).storage_root
         return path.resolve()
 
     @property
@@ -202,12 +218,18 @@ class AppSettings(BaseSettings):
     @field_validator("deepseek_model", mode="before")
     @classmethod
     def _validate_model_name(cls, value: Any) -> str:
+        # 显式 none 下允许空模型；已配置 LLM 时由模型级校验拒绝空值。
+        if value is None or not str(value).strip():
+            return ""
         return _normalize_text(value)
 
     @field_validator("deepseek_api_key")
     @classmethod
-    def _validate_api_key(cls, value: SecretStr) -> SecretStr:
-        if not value.get_secret_value().strip():
+    def _validate_api_key(cls, value: SecretStr, info: Any) -> SecretStr:
+        # 只有已选择 LLM 时才要求非空；显式 none 下空值就是“未配置”。
+        if (info.data.get("llm_provider", "none") != "none"
+                and info.data.get("llm_auth_mode", "api_key") == "api_key"
+                and not value.get_secret_value().strip()):
             raise ValueError("must not be empty")
         return value
 
@@ -264,26 +286,73 @@ class AppSettings(BaseSettings):
 
     @field_validator("deepseek_base_url")
     @classmethod
-    def _validate_base_url(cls, value: AnyUrl) -> AnyUrl:
-        if value.scheme not in {"http", "https"}:
+    def _validate_base_url(cls, value: AnyUrl | None) -> AnyUrl | None:
+        if value is not None and value.scheme not in {"http", "https"}:
             raise ValueError("must use http or https")
         return value
 
+    @property
+    def llm_configured(self) -> bool:
+        """LLM 是否被显式启用（`none` 是未配置，不是可运行 Provider）。"""
+
+        return self.llm_provider != "none"
+
+    @property
+    def embedding_configured(self) -> bool:
+        return self.embedding_provider != "none"
+
     @model_validator(mode="after")
     def _validate_supported_providers(self) -> AppSettings:
+        # `none` 是显式禁用态（与 rerank 一致），不计算成伪造 Provider。
         checks = (
-            ("LLM_PROVIDER", self.llm_provider, self.SUPPORTED_LLM_PROVIDERS),
+            ("LLM_PROVIDER", self.llm_provider, self.SUPPORTED_LLM_PROVIDERS | {"none"}),
             (
                 "EMBEDDING_PROVIDER",
                 self.embedding_provider,
-                self.SUPPORTED_EMBEDDING_PROVIDERS,
+                self.SUPPORTED_EMBEDDING_PROVIDERS | {"none"},
             ),
             ("RERANK_PROVIDER", self.rerank_provider, self.SUPPORTED_RERANK_PROVIDERS),
         )
-        unsupported = [name for name, value, allowed in checks if value not in allowed]
+        # Historical settings may select DeepSeek Embedding so its existing
+        # factory can emit the explicit unsupported-API error. This is not a
+        # supported preset and never appears in Registry/UI enumerations.
+        unsupported = [name for name, value, allowed in checks if value not in allowed
+                       and not (name == "EMBEDDING_PROVIDER" and value == "deepseek")]
         if unsupported:
             raise ValueError(
                 f"unsupported provider selection: {', '.join(unsupported)}"
+            )
+        if self.llm_configured:
+            if self.llm_auth_mode == "none" and self.llm_provider != "openai_compatible":
+                raise ValueError("only openai_compatible supports explicit LLM auth_mode=none")
+            missing = [
+                name
+                for name, satisfied in (
+                    ("DEEPSEEK_API_KEY", self.llm_auth_mode == "none" or self.deepseek_api_key.get_secret_value().strip()),
+                    ("DEEPSEEK_BASE_URL", self.deepseek_base_url is not None),
+                    ("DEEPSEEK_MODEL", bool(self.deepseek_model.strip())),
+                )
+                if not satisfied
+            ]
+            if missing:
+                raise ValueError(
+                    f"configured LLM provider requires: {', '.join(missing)}"
+                )
+        elif (
+            self.deepseek_api_key.get_secret_value().strip()
+            or self.deepseek_base_url is not None
+            or self.deepseek_model.strip()
+        ):
+            raise ValueError(
+                "LLM_PROVIDER=none must not carry a key, base URL or model"
+            )
+        if not self.embedding_configured and (
+            self.embedding_model
+            or self.embedding_base_url is not None
+            or self.embedding_api_key is not None
+        ):
+            raise ValueError(
+                "EMBEDDING_PROVIDER=none must not carry a model, base URL or key"
             )
         return self
 
@@ -300,7 +369,11 @@ class AppSettings(BaseSettings):
             "redis_url": _redact_url(self.redis_url),
             "llm_provider": self.llm_provider,
             "deepseek_api_key": REDACTED_VALUE,
-            "deepseek_base_url": _redact_url(self.deepseek_base_url),
+            "deepseek_base_url": (
+                _redact_url(self.deepseek_base_url)
+                if self.deepseek_base_url is not None
+                else None
+            ),
             "deepseek_model": self.deepseek_model,
             "vision_model": self.vision_model,
             "embedding_provider": self.embedding_provider,
@@ -324,10 +397,28 @@ class AppSettings(BaseSettings):
         }
 
 
+#: 已激活配置的进程内投影；只在设置启动协调里安装，不进进程环境/文件。
+_runtime_settings: AppSettings | None = None
+
+
+def install_runtime_settings(settings: AppSettings | None) -> None:
+    """把已激活配置交给业务消费者；不写 env、不读仓库 `.env`。
+
+    业务模块都通过同一个 ``get_settings`` 函数取得设置，因此这里不需要改
+    各消费者；调用方必须先完成激活与前置检查。
+    """
+
+    global _runtime_settings
+    _runtime_settings = settings
+    get_settings.cache_clear()
+
+
 @lru_cache(maxsize=1)
 def get_settings() -> AppSettings:
     """Load runtime configuration once and cache the validated result."""
 
+    if _runtime_settings is not None:
+        return _runtime_settings
     try:
         return AppSettings()  # type: ignore[call-arg]
     except (
@@ -337,8 +428,10 @@ def get_settings() -> AppSettings:
 
 
 def reset_settings_cache() -> None:
-    """Clear cached settings for tests or process restarts."""
+    """Clear cached settings and any installed runtime projection."""
 
+    global _runtime_settings
+    _runtime_settings = None
     get_settings.cache_clear()
 
 
@@ -348,5 +441,162 @@ __all__ = [
     "AppSettings",
     "ConfigurationError",
     "get_settings",
+    "install_runtime_settings",
     "reset_settings_cache",
 ]
+
+# New v3 entry points explicitly select non-secret inputs. Legacy AppSettings
+# remains the compatibility boundary until bootstrap/credential wiring (T220).
+def resolve_configuration(
+    *,
+    defaults: dict[str, Any] | None = None,
+    saved: dict[str, Any] | None = None,
+    dotenv_path: Path | None = None,
+    process_env: dict[str, str] | None = None,
+    saved_source: str = "saved",
+) -> ResolvedConfiguration:
+    """Resolve selected inputs without opening a DB or parsing process secrets."""
+    import json
+
+    from dotenv import dotenv_values
+    from pydantic import TypeAdapter
+
+    from backend.app.schemas.settings import (
+        BootstrapOptions,
+        BusinessSettings,
+        ConfigurationValues,
+        FieldSource,
+        Policies,
+        ProviderProfile,
+        ResolvedConfiguration,
+        SegmentError,
+        TaskBinding,
+    )
+
+    if saved_source not in {"saved", "mounted_config"}:
+        raise ValueError("INVALID_SAVED_SOURCE")
+    merged: dict[str, Any] = {}
+    sources: dict[str, FieldSource] = {}
+    errors: list[SegmentError] = []
+
+    def merge(target: dict, values: dict, source: str, prefix: str = "") -> None:
+        for key, value in values.items():
+            field = f"{prefix}.{key}" if prefix else key
+            if isinstance(value, dict) and value:
+                # An object overlay supersedes the earlier scalar/null source;
+                # provenance now belongs to its individual leaf fields.
+                sources.pop(field, None)
+                if not isinstance(target.get(key), dict):
+                    target[key] = {}
+                merge(target[key], value, source, field)
+            else:
+                target[key] = value
+                # A scalar overlay also supersedes any descendant sources.
+                for old in tuple(sources):
+                    if old.startswith(field + "."):
+                        del sources[old]
+                sources[field] = FieldSource.model_validate({"source": source})
+
+    merge(merged, ConfigurationValues().model_dump(mode="json"), "default")
+    merge(merged, defaults or {}, "default")
+    merge(merged, saved or {}, saved_source)
+    aliases = {
+        "DEV_MODE": "business.dev_mode",
+        "JWT_ALGORITHM": "business.jwt_algorithm",
+        "JWT_EXPIRE_MINUTES": "business.jwt_expire_minutes",
+        "STORAGE_ROOT": "business.storage_root",
+    }
+    secret_keys = {
+        "DEEPSEEK_API_KEY", "EMBEDDING_API_KEY", "JWT_SECRET_KEY",
+        "DATABASE_URL", "REDIS_URL",
+    }
+
+    def named_source(values: dict, source: str) -> dict:
+        result: dict = {}
+        for key, value in values.items():
+            upper = key.upper()
+            field = aliases.get(upper)
+            if upper.startswith("EDUAGENT__"):
+                field = upper[len("EDUAGENT__"):].lower().replace("__", ".")
+            if source == "dotenv" and upper in secret_keys:
+                errors.append(SegmentError(segment="source", fields=(upper,), code="SECRET_IN_DOTENV"))
+                continue
+            if not field:
+                continue
+            if any(part in {"api_key", "password", "jwt_secret_key", "secret"} for part in field.split(".")):
+                errors.append(SegmentError(segment="source", fields=(field,), code="PLAINTEXT_SECRET_REJECTED"))
+                continue
+            if value is None:
+                # A selected empty value is invalid rather than absent.
+                value = ""
+            if isinstance(value, str):
+                try:
+                    value = json.loads(value)
+                except (ValueError, TypeError):
+                    pass
+            cursor = result
+            parts = field.split(".")
+            for part in parts[:-1]:
+                child = cursor.get(part)
+                if not isinstance(child, dict):
+                    child = {}
+                    cursor[part] = child
+                cursor = child
+            cursor[parts[-1]] = value
+        return result
+
+    if dotenv_path is not None:
+        try:
+            if not dotenv_path.is_file():
+                raise OSError("missing explicit file")
+            selected = dict(dotenv_values(dotenv_path, interpolate=False))
+        except OSError:
+            errors.append(SegmentError(segment="source", fields=("dotenv",), code="DOTENV_UNAVAILABLE"))
+        else:
+            merge(merged, named_source(selected, "dotenv"), "dotenv")
+    if process_env is None:
+        # Inspect only declared non-secret names; never materialize a copy of all
+        # process values (which may contain inherited real credentials).
+        process_env = {
+            key: os.environ[key] for key in os.environ
+            if key.upper() in aliases or (
+                key.upper().startswith("EDUAGENT__")
+                and not any(part in {"API_KEY", "PASSWORD", "JWT_SECRET_KEY", "SECRET"}
+                            for part in key.upper().split("__"))
+            )
+        }
+    merge(merged, named_source(process_env, "process_env"), "process_env")
+    types = {
+        "bootstrap": BootstrapOptions, "business": BusinessSettings, "policies": Policies,
+        "providers": dict[str, ProviderProfile], "bindings": dict[str, TaskBinding],
+    }
+    segments: dict[str, Any] = {}
+    for segment, value in merged.items():
+        if segment not in types:
+            errors.append(SegmentError(segment=segment, fields=(segment,)))
+            continue
+        try:
+            segments[segment] = TypeAdapter(types[segment]).validate_python(value)
+        except ValidationError as exc:
+            issues = exc.errors(include_input=False)
+            for issue in issues:
+                if issue["type"] == "extra_forbidden":
+                    bad_field = ".".join((segment, *(str(part) for part in issue["loc"])))
+                    for field in tuple(sources):
+                        if field == bad_field or field.startswith(bad_field + "."):
+                            del sources[field]
+            fields: tuple[str, ...]
+            if segment in {"providers", "bindings"}:
+                # Dynamic map keys are untrusted identifiers, not safe error fields.
+                for field in tuple(sources):
+                    if field.startswith(segment + "."):
+                        del sources[field]
+                fields = (f"{segment}.item",)
+            else:
+                fields = tuple(sorted({
+                    f"{segment}.UNKNOWN_FIELD" if issue["type"] == "extra_forbidden" else
+                    ".".join([segment, *(str(part) for part in issue["loc"])])
+                    for issue in issues
+                }))
+            errors.append(SegmentError(segment=segment, fields=fields))
+    return ResolvedConfiguration(segments=segments, sources=sources, errors=tuple(errors))

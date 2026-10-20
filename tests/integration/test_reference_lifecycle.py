@@ -28,9 +28,19 @@ from backend.app.services.question_service import (
     QuestionService,
 )
 from tests.integration.test_exam_assembly import database as _assembly_database
+from tests.postgres_helpers import isolated_test_resource_profile
 from tests.unit.services.test_submission_service import add_user
 
 database = _assembly_database
+
+
+@pytest.fixture
+def protected_asset_root(tmp_path, action):
+    if action != "asset":
+        yield tmp_path
+        return
+    with isolated_test_resource_profile(tmp_path / "owned-profile") as profile:
+        yield profile.storage_root
 
 
 def freeze(session, info, status=ExamStatus.PUBLISHED):
@@ -51,8 +61,9 @@ def png():
     "action", ["content", "analysis", "revision", "delete", "asset"]
 )
 def test_all_published_lifecycle_references_block_in_place_changes(
-    database, tmp_path, status, action
+    database, protected_asset_root, status, action
 ):
+    tmp_path = protected_asset_root
     engine, info = database
     qid = info["questions"][1]
     with Session(engine) as session:

@@ -31,7 +31,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
-from typing import ClassVar, Final
+from typing import TYPE_CHECKING, ClassVar, Final
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -166,6 +166,10 @@ def _error_reason(item: QuestionResultDTO, effective: Decimal) -> str:
     )
 
 
+if TYPE_CHECKING:
+    from backend.app.services.settings.runtime_snapshot import RunSnapshotContext
+
+
 class DiagnosisService:
     """基于最终 ExamResult 生成学生诊断报告。
 
@@ -222,7 +226,12 @@ class DiagnosisService:
         entries, weak, _reasons, insufficient = self._compute_platform_fields(projected)
         return entries, weak, insufficient
 
-    async def generate(self, exam_result: ExamResultDTO) -> DiagnosisReportDTO:
+    async def generate(
+        self,
+        exam_result: ExamResultDTO,
+        *,
+        runtime: RunSnapshotContext | None = None,
+    ) -> DiagnosisReportDTO:
         """生成诊断报告；未就绪时不调用 LLM，失败时不伪造成功。"""
 
         if not exam_result.is_final:
@@ -238,6 +247,7 @@ class DiagnosisService:
                 entries,
                 weak,
                 error_reasons,
+                runtime=runtime,
             )
         except DiagnosisError as error:
             return DiagnosisReportDTO(
@@ -363,19 +373,33 @@ class DiagnosisService:
         entries: list[MasteryByKnowledgePointDTO],
         weak: list[WeakKnowledgePointDTO],
         error_reasons: list[str],
+        *,
+        runtime: RunSnapshotContext | None = None,
     ) -> list[str]:
         """通过结构化输出生成学习建议，失败时保留脱敏来源语义。"""
 
         messages = _build_suggestion_messages(exam_result, entries, weak, error_reasons)
         provider = self._provider
-        if provider is None:
+        lease = None
+        if provider is None and runtime is not None:
+            try:
+                lease = runtime.acquire("diagnosis")
+                provider = lease.client
+            except Exception as error:  # noqa: BLE001 - 只暴露安全依赖码
+                raise ProviderNotReadyError(
+                    "诊断建议 Provider 未就绪：运行快照缺少可用绑定或依赖。",
+                    source_code=getattr(error, "code", None),
+                ) from None
+        elif provider is None:
             try:
                 provider = create_llm_provider()
             except Exception:  # noqa: BLE001 - 未就绪不得静默降级
                 raise ProviderNotReadyError(
                     "诊断建议 Provider 未就绪，请检查 LLM_PROVIDER 与模型配置。"
                 ) from None
+        attempted = False
         try:
+            attempted = True
             payload = await provider.generate_structured(messages, LearningSuggestions)
         except ProviderExecutionError as exc:
             info = exc.info
@@ -389,11 +413,29 @@ class DiagnosisService:
             raise
         except Exception:  # noqa: BLE001 - 统一收敛为脱敏失败
             raise SuggestionGenerationError("诊断建议生成失败。") from None
+        finally:
+            if runtime is not None and attempted:
+                runtime.record_invocation(
+                    "diagnosis",
+                    returned_model=_observed_model(provider),
+                )
+            if lease is not None:
+                await lease.arelease()
         if not isinstance(payload, LearningSuggestions):
             raise SuggestionGenerationError(
                 "诊断建议 Provider 未返回约定的结构化结果。"
             )
         return list(payload.suggestions)
+
+
+def _observed_model(provider: object) -> str | None:
+    """只读取 Provider 明确暴露的响应模型；未知保持未知。"""
+
+    for name in ("last_response_model", "response_model", "returned_model"):
+        value = getattr(provider, name, None)
+        if isinstance(value, str) and value.strip():
+            return value.strip()
+    return None
 
 
 def _build_suggestion_messages(

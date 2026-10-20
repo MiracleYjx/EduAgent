@@ -17,6 +17,7 @@ from backend.app.core.database import Base, get_db
 from backend.app.domain.enums import SubmissionStatus, UserRole
 from backend.app.models import Exam, ExamParticipant, Submission, User
 from backend.app.services.auth_service import create_access_token
+from tests.support.application_lifecycle import bind_startup_to_session
 from tests.unit.services.test_submission_service import (
     add_approved_question,
     add_course,
@@ -43,9 +44,10 @@ def session() -> Generator[Session, None, None]:
 
 
 @pytest.fixture
-def client(session: Session) -> Generator[TestClient, None, None]:
+def client(session: Session, monkeypatch: pytest.MonkeyPatch) -> Generator[TestClient, None, None]:
     """保留真实认证、API 与服务，只替换数据库连接。"""
 
+    bind_startup_to_session(monkeypatch, session)
     with gr.Blocks() as ui:
         gr.Markdown("考试范围契约测试")
     app = create_app(settings=build_test_settings(), gradio_app=ui)

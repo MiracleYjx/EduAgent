@@ -6,20 +6,22 @@ import re
 import subprocess
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Literal
+from typing import Any, Literal
 from uuid import UUID, uuid4
 
-from sqlalchemy import create_engine, inspect, text
+from sqlalchemy import create_engine, inspect, select, text
 from sqlalchemy.engine import Connection, Engine
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
+from backend.app.core.environment import environment_path, resolve_environment_profile
 from backend.app.core.maintenance import (
     MARKER,
     MaintenanceWindow,
     durable_json,
     require_admin_user,
 )
+from backend.app.domain.enums import WorkflowStatus
 from backend.app.models import (
     Course,
     Exam,
@@ -30,6 +32,7 @@ from backend.app.models import (
     SourcePage,
     Submission,
     User,
+    WorkflowRun,
 )
 from backend.app.schemas.file_storage import OperationReceipt
 from backend.app.schemas.storage_maintenance import (
@@ -47,10 +50,16 @@ from backend.app.services.file_storage_service import (
     FileStorageService,
 )
 from backend.app.services.postgres_backup import PostgresTools
+from backend.app.services.settings.config_service import ConfigService
+from backend.app.services.settings.runtime_snapshot import RuntimeSnapshotService
 from backend.app.services.storage_migration_service import (
     copy_verified,
     fingerprint,
     storage_references,
+)
+from backend.app.services.workflow_checkpoint import (
+    run_kind_criteria,
+    snapshot_bindings_from_rows,
 )
 
 BUCKETS = ("uploads", "papers", "assets", "exports")
@@ -78,6 +87,17 @@ def verify_foreign_keys(connection: Connection) -> None:
                              f"(SELECT 1 FROM {quote(target_schema)}.{quote(fk['referred_table'])} b WHERE {joins}) LIMIT 1")
                 if connection.scalar(text(statement)):
                     raise FileStorageError("RESTORE_REFERENCE_CONFLICT", f"恢复后的外键关系不完整：{schema}.{table}。")
+
+
+def _runtime_snapshot_ids(connection: Connection) -> set[UUID]:
+    """Read original nonterminal Workflow bindings within the maintenance window."""
+    if not inspect(connection).has_table("workflow_runs"):
+        return set()
+    rows = connection.execute(select(WorkflowRun.workflow_id, WorkflowRun.status, WorkflowRun.checkpoint)
+        .where(WorkflowRun.status.in_([WorkflowStatus.QUEUED, WorkflowStatus.RUNNING, WorkflowStatus.PAUSED]))
+        .where(run_kind_criteria())).all()
+    return {UUID(item.snapshot_id) for item in snapshot_bindings_from_rows(
+        (str(row[0]), row[1], row[2]) for row in rows) if item.snapshot_id is not None}
 
 
 class BackupRestoreService:
@@ -199,6 +219,7 @@ class BackupRestoreService:
         return not (isinstance(question, Question) and question.course_id != course_id)
 
     def backup(self, *, backup_root: Path, actor_id: UUID, writers_stopped: bool,
+               runtime_snapshots: Any = None,
                timeout: float = 10) -> tuple[Path, BackupManifest]:
         self._check_actor(actor_id)
         backup_root = backup_root.resolve()
@@ -254,6 +275,21 @@ class BackupRestoreService:
                         if relative not in owned:
                             manifest.issues.append(BackupIssue(code="UNOWNED_MATERIAL", relative_path=relative,
                                                               stage="copy", message="实际材料未能核对所属资源或真实操作收据。"))
+                stage = "runtime_snapshots"
+                required_snapshots = _runtime_snapshot_ids(window.connection)
+                if runtime_snapshots is None and required_snapshots:
+                    profile = resolve_environment_profile()
+                    if environment_path(profile, "storage") != self.root:
+                        raise FileStorageError("BACKUP_SETTINGS_PROFILE_MISMATCH", "快照与业务文件根不属于同一选定环境。")
+                    with ConfigService(profile.config_root.parent, profile.environment_id, writable=False) as config:
+                        entries = RuntimeSnapshotService(config).copy_backup_entries(destination, tuple(required_snapshots))
+                else:
+                    entries = tuple(runtime_snapshots.copy_entries(destination)) if runtime_snapshots is not None else ()
+                for entry in entries:
+                    manifest.runtime_snapshots.append(BackupFile(relative_path=entry.relative_path,
+                        size_bytes=entry.size_bytes, sha256=entry.sha256))
+                if not required_snapshots.issubset({UUID(Path(item.relative_path).stem) for item in manifest.runtime_snapshots}):
+                    raise FileStorageError("SNAPSHOT_BACKUP_UNAVAILABLE", "备份缺少非终态运行的原快照，未替换当前配置。")
                 stage = "verify"
                 self._verify_bytes(destination, manifest)
                 window.assert_quiet()
@@ -294,6 +330,18 @@ class BackupRestoreService:
             path = (root / entry.relative_path).resolve()
             if not path.is_relative_to(root) or fingerprint(path) != (entry.size_bytes, entry.sha256):
                 raise FileStorageError("BACKUP_CONTENT_CHANGED", f"备份文件不一致：{entry.relative_path}。")
+        snapshot_root = (destination / "runtime_snapshots").resolve()
+        expected_snapshots = {entry.relative_path.split("/", 1)[1] for entry in manifest.runtime_snapshots}
+        actual_snapshots = (
+            {path.relative_to(snapshot_root).as_posix() for path in snapshot_root.rglob("*") if path.is_file()}
+            if snapshot_root.exists() else set()
+        )
+        if actual_snapshots != expected_snapshots:
+            raise FileStorageError("BACKUP_FILE_SET_MISMATCH", "备份运行快照集合与清单不一致。")
+        for entry in manifest.runtime_snapshots:
+            path = (snapshot_root / entry.relative_path.split("/", 1)[1]).resolve()
+            if not path.is_relative_to(snapshot_root) or fingerprint(path) != (entry.size_bytes, entry.sha256):
+                raise FileStorageError("BACKUP_CONTENT_CHANGED", f"备份运行快照不一致：{entry.relative_path}。")
 
     def restore(self, *, backup_set: Path, target_database: str, target_root: Path,
                 report_path: Path, actor_id: UUID) -> RestoreReport:
@@ -325,6 +373,14 @@ class BackupRestoreService:
                     or self.root.is_relative_to(target_root) or target_root.is_relative_to(backup_set)
                     or backup_set.is_relative_to(target_root)):
                 raise FileStorageError("RESTORE_INVALID_TARGET", "恢复文件根必须全新且独立，不能覆盖原环境或备份集。")
+            target_snapshots = None
+            if manifest.runtime_snapshots:
+                profile = resolve_environment_profile()
+                if environment_path(profile, "storage") != target_root:
+                    raise FileStorageError("RESTORE_SETTINGS_PROFILE_MISMATCH", "恢复快照要求匹配目标 storage 的显式环境。")
+                target_snapshots = environment_path(profile, "config", "snapshots")
+                if target_snapshots.exists():
+                    raise FileStorageError("RESTORE_SNAPSHOTS_EXIST", "目标快照目录已存在，不能覆盖。")
             stage = "create_target"
             control = create_engine(self.engine.url.set(database="postgres"), isolation_level="AUTOCOMMIT")
             try:
@@ -347,10 +403,24 @@ class BackupRestoreService:
                 target = target_root / entry.relative_path
                 target.parent.mkdir(parents=True, exist_ok=True)
                 copy_verified(backup_set / "files" / entry.relative_path, target)
+            if target_snapshots is not None:
+                stage = "restore_snapshots"
+                target_snapshots.mkdir(parents=True, exist_ok=False)
+                for entry in manifest.runtime_snapshots:
+                    relative = entry.relative_path.split("/", 1)[1]
+                    target = (target_snapshots / relative).resolve()
+                    if not target.is_relative_to(target_snapshots):
+                        raise FileStorageError("RESTORE_INVALID_TARGET", "运行快照越出目标配置目录。")
+                    target.parent.mkdir(parents=True, exist_ok=True)
+                    if copy_verified(backup_set / entry.relative_path, target) != (entry.size_bytes, entry.sha256):
+                        raise FileStorageError("RESTORE_CONTENT_CHANGED", "恢复快照与同集清单不同。")
             target_engine = create_engine(self.engine.url.set(database=target_database), pool_pre_ping=True)
             stage = "verify_resources"
             with target_engine.connect() as connection:
                 verify_foreign_keys(connection)
+                restored_bindings = _runtime_snapshot_ids(connection)
+                if not restored_bindings.issubset({UUID(Path(item.relative_path).stem) for item in manifest.runtime_snapshots}):
+                    raise FileStorageError("SNAPSHOT_BACKUP_UNAVAILABLE", "恢复数据库引用的快照未包含在备份内，保留停写目标。")
                 with Session(bind=connection, join_transaction_mode="create_savepoint") as session:
                     references, receipts, owned, resource_issues = self._collect(session, target_root)
                 issues.extend(resource_issues)

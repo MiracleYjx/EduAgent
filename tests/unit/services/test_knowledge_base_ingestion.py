@@ -53,7 +53,10 @@ from backend.app.services.knowledge_base_service import (
     KnowledgeBasePermissionError,
     KnowledgeBaseService,
 )
-from tests.postgres_helpers import isolated_postgres_engine
+from tests.postgres_helpers import (
+    isolated_postgres_engine,
+    isolated_test_resource_profile,
+)
 
 LESSON_TEXT = (
     "第一节 检索增强生成。\n\n"
@@ -373,19 +376,23 @@ def test_ingest_document_rejects_dimension_mismatch(session: Session) -> None:
 def test_ingest_document_reads_storage_file(postgres_session: Session, tmp_path: Path) -> None:
     """未直接传入字节时从 storage_path 读取真实文件内容。"""
 
-    session = postgres_session
-    lesson = tmp_path / "lesson.txt"
-    lesson.write_text(LESSON_TEXT.decode("utf-8"), encoding="utf-8")
-    teacher, service, document_id = seed_document(session, storage_path=str(lesson))
+    with isolated_test_resource_profile(tmp_path / "owned-profile") as profile:
+        session = postgres_session
+        lesson = profile.storage_root / "lesson.txt"
+        lesson.parent.mkdir()
+        lesson.write_text(LESSON_TEXT.decode("utf-8"), encoding="utf-8")
+        # Trusted internal history registration keeps unknown metadata; the exact
+        # original is inside this Test profile, not adopted from another root.
+        teacher, service, document_id = seed_document(session, storage_path=str(lesson))
 
-    result = service.ingest_document(
-        document_id,
-        teacher_id=teacher.id,
-        ingestion_service_factory=build_factory(provider=StubEmbeddingProvider()),
-    )
+        result = service.ingest_document(
+            document_id,
+            teacher_id=teacher.id,
+            ingestion_service_factory=build_factory(provider=StubEmbeddingProvider()),
+        )
 
-    assert result.status is DocumentStatus.READY
-    assert result.chunk_count >= 1
+        assert result.status is DocumentStatus.READY
+        assert result.chunk_count >= 1
 
 
 def test_ingest_document_requires_readable_file(session: Session, tmp_path: Path) -> None:

@@ -7,10 +7,13 @@
 
 from __future__ import annotations
 
+import logging
 from collections.abc import Sequence
-from typing import Final
+from contextvars import ContextVar
+from typing import Any, Final, Literal
 
-from openai import AsyncOpenAI, OpenAIError
+import httpx
+from openai import DEFAULT_TIMEOUT, AsyncOpenAI, Omit, OpenAIError
 from openai.types import CreateEmbeddingResponse
 
 from backend.app.ai.embedding.base import (
@@ -21,6 +24,30 @@ from backend.app.ai.embedding.base import (
 from backend.app.core.config import AppSettings
 
 DEFAULT_BATCH_SIZE: Final[int] = 64
+_SDK_CALL: ContextVar[bool] = ContextVar("embedding_private_sdk_call", default=False)
+
+
+class _PrivateSDKLogs(logging.Filter):
+    """只阻止本 Provider 调用上下文的 SDK 正文及原始异常日志。"""
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        return not _SDK_CALL.get()
+
+
+_sdk_log_filter = _PrivateSDKLogs()
+for _logger_name in ("openai._base_client", "openai._response", "openai._legacy_response"):
+    logging.getLogger(_logger_name).addFilter(_sdk_log_filter)
+
+
+class _BorrowedTransport(httpx.AsyncBaseTransport):
+    """仅借用传输；自有 HTTP 视图构造请求，不继承外部池的默认头部。"""
+
+    def __init__(self, client: httpx.AsyncClient) -> None:
+        self._client = client
+
+    async def handle_async_request(self, request: httpx.Request) -> httpx.Response:
+        # 默认 aclose 不关闭外部池；认证和重定向策略也不能从外部池继承。
+        return await self._client.send(request, stream=True, auth=None, follow_redirects=False)
 
 
 class OpenAICompatibleEmbeddingProvider(BaseEmbeddingProvider):
@@ -37,14 +64,63 @@ class OpenAICompatibleEmbeddingProvider(BaseEmbeddingProvider):
         dimension: int | None = None,
         batch_size: int = DEFAULT_BATCH_SIZE,
         client: AsyncOpenAI | None = None,
+        auth_mode: Literal["api_key", "none"] = "api_key",
+        timeout: float | httpx.Timeout | None = DEFAULT_TIMEOUT,
+        max_retries: int = 2,
+        http_client: httpx.AsyncClient | None = None,
     ) -> None:
+        if auth_mode not in {"api_key", "none"}:
+            raise ValueError("不支持的 Embedding 认证模式。")
+        if auth_mode == "none" and api_key:
+            raise ValueError("无认证 Embedding 不接受 API Key。")
+        if client is not None and http_client is not None:
+            raise ValueError("Embedding SDK 客户端与 HTTP 连接池不能同时注入。")
+        from backend.app.services.settings.provider_registry import (
+            validate_provider_endpoint,
+        )
+
+        endpoint = validate_provider_endpoint(base_url or "https://api.openai.com/v1")
+        self._endpoint_identity = endpoint
         self.model_name = model
         self.dimension = dimension
         self._batch_size = batch_size
-        # client 允许注入，便于测试与复用连接池。
-        self._client = (
-            client if client is not None else AsyncOpenAI(api_key=api_key, base_url=base_url)
-        )
+        self._auth_mode = auth_mode
+        self._closed = False
+        self._owns_client = client is None
+        self._client: AsyncOpenAI
+        self._owned_http: httpx.AsyncClient | None = None
+        if client is not None and isinstance(client, AsyncOpenAI):
+            # 真实 SDK 只出借 HTTP 池；端点、Key、重试与超时均由本实例决定。
+            http_client = client._client
+            client = None
+            self._owns_client = True
+        if client is not None:
+            self._client = client
+        else:
+            if http_client is None:
+                transport = httpx.AsyncClient(
+                    timeout=timeout, follow_redirects=False, trust_env=False
+                )
+            else:
+                transport = httpx.AsyncClient(
+                    transport=_BorrowedTransport(http_client), timeout=timeout,
+                    follow_redirects=False, trust_env=False,
+                )
+            self._owned_http = transport
+            self._client = AsyncOpenAI(
+                api_key=api_key if auth_mode == "api_key" else "",
+                admin_api_key="",
+                organization="",
+                project="",
+                webhook_secret="",
+                base_url=endpoint,
+                timeout=timeout,
+                max_retries=max_retries,
+                http_client=transport,
+                _enforce_credentials=auth_mode != "none",
+            )
+            # SDK 2.54 会合并 OPENAI_CUSTOM_HEADERS；从不使用进程的隐式头部。
+            self._client._custom_headers = {}
 
     @classmethod
     def from_settings(cls, settings: AppSettings) -> OpenAICompatibleEmbeddingProvider:
@@ -73,10 +149,45 @@ class OpenAICompatibleEmbeddingProvider(BaseEmbeddingProvider):
             dimension=settings.embedding_dimension,
         )
 
+    def endpoint_identity(self) -> str:
+        """返回已验证、无 userinfo/query/fragment 的端点身份。"""
+
+        return self._endpoint_identity
+
+    def semantic_parameters(self) -> dict[str, Any]:
+        """云端协议未声明文档归一化或前缀处理，保持明确事实。"""
+
+        return {
+            "normalize": False,
+            "document_prefix": "",
+            "query_prefix": "",
+        }
+
     def is_ready(self) -> bool:
         """存在模型标识与客户端即视为可调用；连接错误在调用时统一收敛。"""
 
-        return bool(self.model_name.strip()) and self._client is not None
+        return not self._closed and bool(self.model_name.strip()) and self._client is not None
+
+    async def aclose(self) -> None:
+        """幂等关闭自有 SDK；注入的 SDK 或底层 HTTP 池仍由调用方关闭。"""
+
+        if self._closed:
+            return
+        self._closed = True
+        token = _SDK_CALL.set(True)
+        try:
+            try:
+                if self._owns_client:
+                    await self._client.close()
+            finally:
+                if self._owned_http is not None and not self._owned_http.is_closed:
+                    await self._owned_http.aclose()
+        except Exception:  # noqa: BLE001 - 释放边界须收敛任意第三方错误，避免秘密正文外泄。
+            raise EmbeddingProviderError(
+                "云端 Embedding 客户端释放失败。", provider_name=self.provider_name
+            ) from None
+        finally:
+            _SDK_CALL.reset(token)
 
     async def embed_documents(self, documents: Sequence[str]) -> list[list[float]]:
         normalized = self.ensure_documents(documents)
@@ -99,7 +210,20 @@ class OpenAICompatibleEmbeddingProvider(BaseEmbeddingProvider):
     async def _create_embeddings(self, inputs: list[str]) -> CreateEmbeddingResponse:
         """调用云端接口，并把 SDK 异常映射为统一的 Embedding 失败状态。"""
 
+        if self._closed:
+            raise EmbeddingProviderNotReadyError(
+                "云端 Embedding Provider 已关闭，请重新创建实例。",
+                provider_name=self.provider_name,
+            )
+        token = _SDK_CALL.set(True)
         try:
+            if self._auth_mode == "none":
+                # 每次请求显式 omit 才同时满足 SDK 校验与无 Authorization 传输。
+                return await self._client.embeddings.create(
+                    model=self.model_name,
+                    input=list(inputs),
+                    extra_headers={"Authorization": Omit()},
+                )
             return await self._client.embeddings.create(
                 model=self.model_name, input=list(inputs)
             )
@@ -108,7 +232,9 @@ class OpenAICompatibleEmbeddingProvider(BaseEmbeddingProvider):
             raise EmbeddingProviderError(
                 f"云端 Embedding 调用失败：{type(exc).__name__}。",
                 provider_name=self.provider_name,
-            ) from exc
+            ) from None
+        finally:
+            _SDK_CALL.reset(token)
 
 
 __all__ = ["DEFAULT_BATCH_SIZE", "OpenAICompatibleEmbeddingProvider"]

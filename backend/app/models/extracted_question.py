@@ -35,6 +35,8 @@ def nullable_json():
 class ExtractedQuestion(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     __tablename__ = "extracted_questions"
     __table_args__ = (
+        CheckConstraint("edit_revision >= 1", name="ck_extracted_edit_revision"),
+        CheckConstraint("personal_content IS NULL OR jsonb_typeof(personal_content) = 'object'", name="ck_extracted_personal_content").ddl_if(dialect="postgresql"),
         UniqueConstraint("paper_import_id", "order_index", name="uq_extracted_import_order"),
         CheckConstraint("order_index IS NULL OR order_index >= 1", name="ck_extracted_order"),
         Index("ix_extracted_questions_import_status", "paper_import_id", "status"),
@@ -47,6 +49,8 @@ class ExtractedQuestion(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         CheckConstraint("assets IS NULL OR jsonb_array_length(assets) <= 5", name="ck_extracted_assets_count").ddl_if(dialect="postgresql"),
         CheckConstraint("image_assessment IS NULL OR jsonb_typeof(image_assessment) = 'object'", name="ck_extracted_image_assessment").ddl_if(dialect="postgresql"),
     )
+    personal_content: Mapped[dict[str, Any] | None] = mapped_column(nullable_json())
+    edit_revision: Mapped[int] = mapped_column(Integer, nullable=False, default=1, server_default="1")
     paper_import_id: Mapped[UUID] = mapped_column(ForeignKey("paper_imports.id", ondelete="RESTRICT"), nullable=False)
     source_page_ids: Mapped[list[str]] = mapped_column(nullable_json(), default=list, server_default="[]", nullable=False)
     question_type: Mapped[QuestionType | None] = mapped_column(enum_type(QuestionType, "extracted_question_type", length=32))

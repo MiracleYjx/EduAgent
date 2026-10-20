@@ -37,6 +37,7 @@ class QuestionAsset(UUIDPrimaryKeyMixin, Base):
         CheckConstraint("width > 0 AND height > 0", name="ck_question_asset_dimensions"),
         CheckConstraint("order_index IS NULL OR order_index BETWEEN 1 AND 5", name="ck_question_asset_order"),
         CheckConstraint("region IS NULL OR source_page_id IS NOT NULL", name="ck_question_asset_region_page"),
+        CheckConstraint("(source_document_id IS NULL) = (source_anchor IS NULL)", name="ck_question_asset_anchor"),
         CheckConstraint("region IS NULL OR jsonb_typeof(region) = 'object'", name="ck_question_asset_region").ddl_if(dialect="postgresql"),
         CheckConstraint("file_metadata IS NULL OR jsonb_typeof(file_metadata) = 'object'", name="ck_question_asset_metadata").ddl_if(dialect="postgresql"),
     )
@@ -49,6 +50,8 @@ class QuestionAsset(UUIDPrimaryKeyMixin, Base):
     caption: Mapped[str | None] = mapped_column(Text)
     student_visible: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false(), nullable=False)
     source_page_id: Mapped[UUID | None] = mapped_column(ForeignKey("source_pages.id", ondelete="RESTRICT"), index=True)
+    source_document_id: Mapped[UUID | None] = mapped_column(ForeignKey("documents.id", ondelete="RESTRICT"))
+    source_anchor: Mapped[str | None] = mapped_column(Text)
     region: Mapped[dict[str, Any] | None] = mapped_column(JSON(none_as_null=True).with_variant(JSONB(none_as_null=True), "postgresql"))
     order_index: Mapped[int | None] = mapped_column(Integer)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(UTC), server_default=func.now(), nullable=False)
@@ -58,6 +61,10 @@ class QuestionAsset(UUIDPrimaryKeyMixin, Base):
     @property
     def imported_asset(self) -> dict[str, Any] | None:
         if self.question is None:
+            return None
+        # Personal revisions own slots/order; they never borrow legacy staging
+        # rows as a second mutable file registration.
+        if self.question.subject_id is not None:
             return None
         extracted = self.question.imported_extracted_question
         if extracted is None:

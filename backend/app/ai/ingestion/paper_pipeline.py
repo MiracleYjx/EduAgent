@@ -1,4 +1,17 @@
-"""Single-file page decoding. No persistence, OCR calls or question creation."""
+"""Single-file page decoding. No persistence, OCR calls or question creation.
+
+Two callers share this module:
+
+- the legacy paper-import path, which keeps its historical 50-page refusal and
+  full-page rendering defaults (T034 owns its semantics);
+- the personal learning path (T027), which passes the approved L02/L03 values:
+  one batch of at most 10 pages, a 10 MiB decoded-page budget, and an explicit
+  starting page.
+
+Neither caller silently truncates: a batch exposes exactly how far it processed
+and which pages remain, so continuing is a user action, not an automatic
+background retry.
+"""
 
 from __future__ import annotations
 
@@ -17,6 +30,8 @@ from backend.app.ai.ingestion.parsers import PdfDocumentParser
 # PDFium is not thread safe, even for separate documents.
 _PDF_LOCK = RLock()
 _DPI = 150
+#: 旧试卷导入路径的历史页数上限；新个人路径使用自己的批次参数。
+LEGACY_MAX_PAGES = 50
 
 
 class PaperInputError(ValueError):
@@ -36,11 +51,23 @@ class RenderedPage:
 
 
 class PaperPages:
-    def __init__(self, data: bytes):
+    def __init__(
+        self,
+        data: bytes,
+        *,
+        batch_pages: int | None = None,
+        decoded_rgba_bytes: int | None = None,
+        start_page: int = 1,
+    ):
         self.data = data
         self.pdf: Any = None
         self.reader: PdfReader | None = None
         self.image: Image.Image | None = None
+        self.batch_pages = batch_pages
+        self.decoded_rgba_bytes = decoded_rgba_bytes
+        self.start_page = start_page
+        if batch_pages is not None and (batch_pages <= 0 or start_page <= 0):
+            raise PaperInputError("PAPER_INVALID_RANGE", "页码范围必须从 1 开始。")
         if data.startswith(b"%PDF-"):
             self.file_format = "pdf"
             self.reader = PdfReader(BytesIO(data), strict=True)
@@ -58,13 +85,38 @@ class PaperPages:
                 source.load()
                 self.image = source.convert("RGB")
             self.page_count = 1
-        if self.page_count > 50:
+        if batch_pages is None and self.page_count > LEGACY_MAX_PAGES:
             raise PaperInputError(
                 "PAPER_TOO_MANY_PAGES",
-                f"试卷实际为 {self.page_count} 页，最多允许 50 页。",
+                f"试卷实际为 {self.page_count} 页，最多允许 {LEGACY_MAX_PAGES} 页。",
             )
         if self.page_count < 1:
             raise ValueError("PDF has no pages")
+        if start_page > self.page_count:
+            raise PaperInputError("PAPER_INVALID_RANGE", "起始页超出实际页数。")
+        if batch_pages is not None:
+            self.processed_through = min(
+                self.page_count, start_page - 1 + batch_pages
+            )
+        else:
+            self.processed_through = self.page_count
+
+    @property
+    def unprocessed_pages(self) -> tuple[int, ...]:
+        """Pages this batch deliberately did not process; still in the original."""
+
+        return tuple(range(self.processed_through + 1, self.page_count + 1))
+
+    def _check_budget(self, width: float, height: float) -> None:
+        if self.decoded_rgba_bytes is None:
+            return
+        scale = _DPI / 72
+        pixels = int(width * scale) * int(height * scale)
+        if pixels <= 0 or pixels * 4 > self.decoded_rgba_bytes:
+            raise PaperInputError(
+                "PAPER_PAGE_TOO_LARGE",
+                "单页解码超过已批准的像素预算，请缩小或拆分该页。",
+            )
 
     def pages(self) -> Iterator[RenderedPage]:
         if self.image is not None:
@@ -82,7 +134,8 @@ class PaperPages:
                     "PAPER_PARSE_FAILED", "PDF 解析器的实际页数不一致。"
                 )
         assert self.reader is not None
-        for index, original in enumerate(self.reader.pages):
+        for index in range(self.start_page - 1, self.processed_through):
+            original = self.reader.pages[index]
             text = PdfDocumentParser._extract_page_text(original, index + 1)
             with _PDF_LOCK:
                 page = self.pdf[index]
@@ -93,6 +146,7 @@ class PaperPages:
                         Image.MAX_IMAGE_PIXELS or 89478485
                     ):
                         raise ValueError("page dimensions exceed supported image size")
+                    self._check_budget(width, height)
                     # A large scanned region with only a header/text fragment still needs OCR.
                     scanned = False
                     for obj in page.get_objects(filter=[raw.FPDF_PAGEOBJ_IMAGE]):
@@ -136,10 +190,21 @@ class PaperPages:
 
 
 @contextmanager
-def open_paper(data: bytes) -> Iterator[PaperPages]:
+def open_paper(
+    data: bytes,
+    *,
+    batch_pages: int | None = None,
+    decoded_rgba_bytes: int | None = None,
+    start_page: int = 1,
+) -> Iterator[PaperPages]:
     paper = None
     try:
-        paper = PaperPages(data)
+        paper = PaperPages(
+            data,
+            batch_pages=batch_pages,
+            decoded_rgba_bytes=decoded_rgba_bytes,
+            start_page=start_page,
+        )
     except PaperInputError:
         raise
     except Exception as exc:
@@ -150,3 +215,12 @@ def open_paper(data: bytes) -> Iterator[PaperPages]:
         yield paper
     finally:
         paper.close()
+
+
+__all__ = [
+    "LEGACY_MAX_PAGES",
+    "PaperInputError",
+    "PaperPages",
+    "RenderedPage",
+    "open_paper",
+]

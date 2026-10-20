@@ -39,32 +39,24 @@ services:
       context: .
       dockerfile: Dockerfile
     restart: unless-stopped
-    env_file:
-      - ${EDUAGENT_ENV_FILE:-.env}
+    # --env-file is an explicit interpolation source, never an unrestricted app env_file.
     environment:
-      STORAGE_ROOT: /app/storage
+      EDUAGENT_ENVIRONMENT: ${EDUAGENT_ENVIRONMENT:-development}
+      EDUAGENT_RUNTIME_KIND: docker
+      EDUAGENT_DATA_ROOT: /app/storage
+      EDUAGENT_PUBLIC_PORT: ${BACKEND_PORT:-8000}
+      EDUAGENT_SECRET_BACKEND: mounted_secret
+      EDUAGENT_SECRET_MOUNTS: ${EDUAGENT_SECRET_MOUNTS:-}
+      STORAGE_ROOT: /app/storage/storage
       DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-eduagent}@postgres:5432/${POSTGRES_DB:-eduagent}
       REDIS_URL: redis://redis:6379/0
-      # Demo 明确使用已有云端适配器；与主机开发的本地 BGE 配置分离。
-      # 空值不回退到主机模型/密钥，启动检查会明确报告缺失配置。
-      EMBEDDING_PROVIDER: openai_compatible
-      EMBEDDING_MODEL: ${DEMO_EMBEDDING_MODEL:-}
-      EMBEDDING_BASE_URL: ${DEMO_EMBEDDING_BASE_URL:-}
-      EMBEDDING_API_KEY: ${DEMO_EMBEDDING_API_KEY:-}
+      DEV_MODE: ${DEV_MODE:-false}
+      GRADIO_ANALYTICS_ENABLED: "false"
     volumes:
       - storage_data:/app/storage
-    depends_on:
-      # 基础服务健康后才启动 backend；迁移和种子由 scripts/run_demo.ps1 顺序执行。
-      # /ready 只证明连接就绪，Demo 成功还需要迁移、资料摄取和种子全部完成。
-      postgres:
-        condition: service_healthy
-        required: true
-      redis:
-        condition: service_healthy
-        required: true
     ports:
       - "127.0.0.1:${BACKEND_PORT:-8000}:8000"
-    # 启动命令统一使用 Dockerfile CMD（Embedding 配置检查后启动 uvicorn）。
+    # Setup remains available while /ready is 503; unhealthy is not a restart policy.
     healthcheck:
       test:
         [

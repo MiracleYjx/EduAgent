@@ -69,3 +69,20 @@ def test_repeated_uuid_filter_values_keep_order() -> None:
 
     filters = RetrievalFilters(course_ids=(COURSE_ID, COURSE_ID))
     assert filters.course_ids == (COURSE_ID, COURSE_ID)
+
+
+@pytest.mark.parametrize("field", [
+    "course_ids", "knowledge_base_ids", "document_ids", "subject_ids", "material_version_ids",
+])
+@pytest.mark.parametrize("value", [False, 0, "", {}])
+def test_invalid_filter_values_are_not_unrestricted(field, value):
+    with pytest.raises(RetrievalInputError):
+        resolve_filters({field: value})
+    with pytest.raises(RetrievalInputError):
+        RetrievalFilters(**{field: value})
+
+
+def test_mapping_filters_keep_legal_optional_and_sequence_inputs():
+    assert resolve_filters({"subject_ids": None}).subject_ids == ()
+    assert resolve_filters({"subject_ids": []}).subject_ids == ()
+    assert resolve_filters({"subject_ids": [str(COURSE_ID)]}).subject_ids == (COURSE_ID,)

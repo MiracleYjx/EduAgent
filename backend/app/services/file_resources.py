@@ -114,6 +114,12 @@ def resource_kind(resource: object) -> FileResourceType:
 
 def paper_owner(session: Session, imported: PaperImport) -> dict[str, str]:
     doc = imported.document
+    if imported.subject_id is not None:
+        if (imported.course_id is not None or imported.uploaded_by is not None
+                or doc.subject_id != imported.subject_id or doc.course_id is not None
+                or doc.purpose != DocumentPurpose.PAPER_SOURCE or doc.knowledge_base_id is not None):
+            raise ValueError("个人导入与原文件科目关系不一致。")
+        return {"subject_id":str(imported.subject_id),"paper_import_id":str(imported.id)}
     course = session.get(Course, imported.course_id)
     if course is None or doc.course_id != imported.course_id or doc.purpose != DocumentPurpose.PAPER_SOURCE or doc.knowledge_base_id is not None:
         raise ValueError("导入、原文件及课程关系不一致。")
@@ -132,6 +138,23 @@ def image_owner(session: Session, resource: SourcePage | StagedAssetResource | Q
         if data.region:
             data.region.within(page.width, page.height)
         return paper_owner(session, extracted.paper_import) | {"extracted_question_id": str(extracted.id), "source_page_id": str(page.id)}
+    question = resource.question
+    if question is not None and question.subject_id is not None:
+        if question.course_id is not None or question.created_by is not None:
+            raise ValueError("个人题图不得混用旧课程归属。")
+        owner = {"subject_id":str(question.subject_id),"question_id":str(question.id)}
+        if resource.source_document_id is not None:
+            document = session.get(Document,resource.source_document_id)
+            if (document is None or document.subject_id != question.subject_id
+                    or resource.source_page_id is not None):
+                raise ValueError("个人题图来源资料科目不一致。")
+            owner["document_id"] = str(document.id)
+        elif resource.source_page_id is not None:
+            page = session.get(SourcePage,resource.source_page_id)
+            if page is None or page.paper_import.subject_id != question.subject_id:
+                raise ValueError("个人题图来源页科目不一致。")
+            owner |= paper_owner(session,page.paper_import) | {"source_page_id":str(page.id)}
+        return owner
     course = session.get(Course, resource.question.course_id)
     if course is None:
         raise ValueError("正式题图课程不存在。")

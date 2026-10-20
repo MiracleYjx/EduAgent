@@ -33,6 +33,7 @@ from backend.app.models import (
     User,
 )
 from backend.app.services.auth_service import hash_password
+from tests.support.application_lifecycle import bind_startup_session_factory
 from tests.support.question_validation_fixtures import persist_current_semantic_pass
 from tests.unit.settings_helpers import build_test_settings
 
@@ -75,8 +76,11 @@ def teacher_id(session_factory: sessionmaker[Session]) -> UUID:
 @pytest.fixture
 def client(
     session_factory: sessionmaker[Session],
+    monkeypatch: pytest.MonkeyPatch,
 ) -> Generator[TestClient, None, None]:
     """构造使用隔离数据库和测试 JWT 密钥的 API 客户端。"""
+
+    bind_startup_session_factory(monkeypatch, session_factory)
 
     with gr.Blocks() as test_gradio_app:
         gr.Markdown("教师准备流程集成测试")

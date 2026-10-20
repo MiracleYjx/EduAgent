@@ -17,6 +17,7 @@ from backend.app.ai.embedding.base import (
     BaseEmbeddingProvider,
     EmbeddingProviderNotReadyError,
 )
+from backend.app.ai.errors import AIConfigurationError
 from backend.app.core.config import AppSettings, get_settings
 
 type EmbeddingProviderBuilder = Callable[[AppSettings], BaseEmbeddingProvider]
@@ -64,19 +65,33 @@ class EmbeddingProviderFactory:
         normalized_name = self._normalize_name(name)
         if not callable(builder):
             raise TypeError("Embedding Provider 工厂必须是可调用对象。")
-        if normalized_name in self._providers and not replace:
-            raise EmbeddingProviderAlreadyRegisteredError(
-                f"Embedding Provider 已注册：{normalized_name}。"
-            )
-        self._providers[normalized_name] = builder
+        self._register_builder(normalized_name, builder, replace=replace)
         return self
+
+    def _register_builder(
+        self,
+        name: str,
+        builder: EmbeddingProviderBuilder,
+        *,
+        replace: bool,
+    ) -> None:
+        if name in self._providers and not replace:
+            raise EmbeddingProviderAlreadyRegisteredError(
+                f"Embedding Provider 已注册：{name}。"
+            )
+        self._providers[name] = builder
+
+    def _get_builder(self, name: str) -> EmbeddingProviderBuilder | None:
+        return self._providers.get(name)
 
     def create(self, settings: AppSettings | None = None) -> BaseEmbeddingProvider:
         """根据 EMBEDDING_PROVIDER 配置创建就绪的 Provider 实例。"""
 
         runtime_settings = settings or get_settings()
+        if not runtime_settings.embedding_configured:
+            raise AIConfigurationError("Embedding")
         provider_name = self._normalize_name(runtime_settings.embedding_provider)
-        builder = self._providers.get(provider_name)
+        builder = self._get_builder(provider_name)
         if builder is None:
             supported = ", ".join(self.supported_providers()) or "无"
             raise UnsupportedEmbeddingProviderError(
@@ -105,7 +120,7 @@ class EmbeddingProviderFactory:
             self.create(settings)
         except EmbeddingProviderFactoryError as exc:
             return False, str(exc)
-        except EmbeddingProviderNotReadyError as exc:
+        except (EmbeddingProviderNotReadyError, AIConfigurationError) as exc:
             return False, str(exc)
         return True, None
 
@@ -115,56 +130,56 @@ class EmbeddingProviderFactory:
         return tuple(sorted(self._providers))
 
 
-_default_factory = EmbeddingProviderFactory()
+class _RegistryEmbeddingProviderFactory(EmbeddingProviderFactory):
+    """默认工厂只读取 Registry，不保留第二份内置 Provider 清单。"""
 
+    def _register_builder(
+        self,
+        name: str,
+        builder: EmbeddingProviderBuilder,
+        *,
+        replace: bool,
+    ) -> None:
+        from backend.app.services.settings.provider_registry import (
+            DuplicateProviderError,
+            get_provider_registry,
+        )
 
-def _ensure_builtin_providers() -> None:
-    """按需注册内置 Provider，避免调用方关心模块导入顺序。"""
-
-    if _default_factory.supported_providers():
-        return
-    def bge_builder(settings: AppSettings) -> BaseEmbeddingProvider:
-        from .providers.bge import BgeEmbeddingProvider
-
-        return BgeEmbeddingProvider.from_settings(settings)
-
-    def cloud_builder(settings: AppSettings) -> BaseEmbeddingProvider:
-        from .providers.openai_compatible import OpenAICompatibleEmbeddingProvider
-
-        return OpenAICompatibleEmbeddingProvider.from_settings(settings)
-
-    def local_builder(name: str) -> EmbeddingProviderBuilder:
-        """构造本地 Provider，并把注册名称写入 Provider 标识以支持溯源。"""
-
-        def build(settings: AppSettings) -> BaseEmbeddingProvider:
-            from .providers.bge import BgeEmbeddingProvider
-            from .providers.local import LocalEmbeddingProvider
-
-            # 本地 BGE 通过任一别名加载，都遵循仅在查询侧添加指令的模型约定。
-            provider = (
-                BgeEmbeddingProvider.from_settings(settings)
-                if (settings.embedding_model or "").lower().startswith("baai/bge-")
-                else LocalEmbeddingProvider.from_settings(settings)
+        try:
+            get_provider_registry().register_legacy(
+                "embedding", name, builder, replace=replace
             )
-            provider.provider_name = name
-            return provider
+        except DuplicateProviderError:
+            raise EmbeddingProviderAlreadyRegisteredError(
+                f"Embedding Provider 已注册：{name}。"
+            ) from None
 
-        return build
+    def _get_builder(self, name: str) -> EmbeddingProviderBuilder | None:
+        from backend.app.services.settings.provider_registry import (
+            get_provider_registry,
+        )
 
-    _default_factory.register("bge", bge_builder, replace=True)
-    _default_factory.register("huggingface", local_builder("huggingface"), replace=True)
-    _default_factory.register("local", local_builder("local"), replace=True)
-    _default_factory.register(
-        "openai_compatible",
-        cloud_builder,
-        replace=True,
-    )
+        owner = get_provider_registry()
+        if not any(entry.adapter_id == name for entry in owner.entries(kind="embedding")):
+            return None
+        return owner.entry("embedding", name).legacy_factory
+
+    def supported_providers(self) -> tuple[str, ...]:
+        from backend.app.services.settings.provider_registry import (
+            get_provider_registry,
+        )
+
+        return tuple(sorted(
+            entry.adapter_id for entry in get_provider_registry().entries(kind="embedding")
+        ))
+
+
+_default_factory = _RegistryEmbeddingProviderFactory()
 
 
 def get_embedding_provider_factory() -> EmbeddingProviderFactory:
     """返回进程级默认 Provider 工厂。"""
 
-    _ensure_builtin_providers()
     return _default_factory
 
 
@@ -186,7 +201,6 @@ def create_embedding_provider(
 ) -> BaseEmbeddingProvider:
     """使用默认工厂创建 Provider。"""
 
-    _ensure_builtin_providers()
     return _default_factory.create(settings)
 
 

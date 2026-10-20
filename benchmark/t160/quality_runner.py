@@ -69,6 +69,8 @@ from backend.app.services.trace_service import (
     bind_trace,
     trace_prompt_version,
 )
+from benchmark.t160.http_observation import HTTPObservation
+from scripts.benchmark_runtime import error_code
 
 CASES = ("IMP-TEXT", "IMP-SCAN", "IMP-IMAGE", "IMP-MIXED", "IMP-CROSS")
 FIELDS = (
@@ -117,8 +119,8 @@ def save(path, data):
 def error(exc):
     return {
         "type": type(exc).__name__,
-        "code": getattr(exc, "code", None),
-        "message": str(exc) if type(exc).__module__.startswith("backend.") else None,
+        "code": error_code(exc),
+        "message": None,
         "cause_type": type(exc.__cause__).__name__ if exc.__cause__ else None,
     }
 
@@ -416,65 +418,16 @@ def plan():
     return settings, isolation, entries, manifest
 
 
-class HTTPObservation:
-    def __init__(self, directory):
-        self.directory, self.attempts = directory, []
-
-    async def request(self, request):
-        assert request.method == "POST" and request.url.path.endswith(
-            "/chat/completions"
-        )
-        body = json.loads(request.content)
-        attempt = {
-            "attempt_index": len(self.attempts) + 1,
-            "started_at": now(),
-            "start_perf": time.perf_counter(),
-            "route": request.url.path,
-            "status": "request_started",
-            "request": {
-                k: body.get(k) for k in ("model", "messages", "response_format")
-            },
-        }
-        request.extensions["t160_attempt"] = attempt["attempt_index"]
-        self.attempts.append(attempt)
-        save(self.directory / f"http-{attempt['attempt_index']:03d}.json", attempt)
-
-    async def response(self, response):
-        attempt = self.attempts[response.request.extensions["t160_attempt"] - 1]
-        await response.aread()
-        attempt.update(
-            completed_at=now(),
-            elapsed_ms=(time.perf_counter() - attempt["start_perf"]) * 1000,
-            status="response_received",
-            http_status=response.status_code,
-        )
-        try:
-            body = response.json()
-            if response.status_code == 200:
-                attempt.update(
-                    response=body,
-                    actual_response_model=body.get("model"),
-                    usage=body.get("usage"),
-                )
-            else:
-                attempt["error"] = {
-                    k: body.get("error", {}).get(k) for k in ("type", "code")
-                }
-        except (ValueError, AttributeError):
-            attempt["response_parse_status"] = "not_json"
-        save(self.directory / f"http-{attempt['attempt_index']:03d}.json", attempt)
-
-
 async def actual_import(factory, settings, actor, identity, run_id, directory, report):
     provider = create_llm_provider(settings)
-    provider._request_client()  # Prepare the actual SDK solely to bind read-only observation.
-    assert isinstance(provider._client, AsyncOpenAI)
     observer = HTTPObservation(directory)
-    provider._client._client.event_hooks["request"].append(observer.request)
-    provider._client._client.event_hooks["response"].append(observer.response)
-    report["provenance"] = provider.describe(prompt_version=PROMPT_VERSION)
-    assert report["provenance"]["model"] == "deepseek-chat"
     try:
+        provider._request_client()  # Prepare the actual SDK solely to bind read-only observation.
+        assert isinstance(provider._client, AsyncOpenAI)
+        provider._client._client.event_hooks["request"].append(observer.request)
+        provider._client._client.event_hooks["response"].append(observer.response)
+        report["provenance"] = provider.describe(prompt_version=PROMPT_VERSION)
+        assert report["provenance"]["model"] == "deepseek-chat"
         with (
             bind_trace(
                 request_id=run_id,

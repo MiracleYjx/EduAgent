@@ -60,6 +60,10 @@ from backend.app.schemas.chapter_scope import SourceSplit
 
 #: 资料未形成任何有效知识片段；属于摄取终态失败，不重试。
 KNOWLEDGE_BASE_EMPTY: Final[str] = "KNOWLEDGE_BASE_EMPTY"
+#: Provider 未提供可核验的模型身份；不得以 unknown 冒充索引来源。
+EMBEDDING_IDENTITY_UNAVAILABLE: Final[str] = "EMBEDDING_IDENTITY_UNAVAILABLE"
+#: 目标知识库已有向量但身份未知，必须先经受控接纳。
+EMBEDDING_INCOMPATIBLE: Final[str] = "EMBEDDING_INCOMPATIBLE"
 
 #: 摄取失败码对应的可读提示；解析类文案直接复用解析器注册表的定义。
 INGESTION_ERROR_MESSAGES: Final[Mapping[str, str]] = MappingProxyType(
@@ -69,6 +73,12 @@ INGESTION_ERROR_MESSAGES: Final[Mapping[str, str]] = MappingProxyType(
         EMBEDDING_FAILED: "知识向量生成失败，请稍后重试或切换 Embedding Provider。",
         EMBEDDING_INVALID_INPUT: "形成的知识片段不符合向量化输入要求，请检查资料内容后重新处理。",
         EMBEDDING_DIMENSION_MISMATCH: "知识向量维度与 Provider 声明不一致，请检查 Embedding 配置。",
+        EMBEDDING_IDENTITY_UNAVAILABLE: (
+            "Embedding Provider 未提供可核验的模型身份，不能登记或写入索引。"
+        ),
+        EMBEDDING_INCOMPATIBLE: (
+            "目标知识库的向量身份未知或与当前模型不兼容，已阻止混写并保留原向量。"
+        ),
         EMBEDDING_PROVIDER_NOT_READY: (
             "Embedding Provider 当前不可用，请检查配置或切换 Provider 后重新处理。"
         ),
@@ -122,6 +132,7 @@ class IngestionResult:
     error_message: str | None = None
     detail: str | None = None
     retryable: bool = False
+    embedding_identity: dict[str, object] | None = None
 
     @property
     def succeeded(self) -> bool:
@@ -301,6 +312,25 @@ class IngestionService:
                     f"向量数量 {len(vectors)} 与知识片段数量 {len(chunks)} 不一致。",
                     provider_name=provider.provider_name,
                 )
+            actual_dimension = len(vectors[0]) if vectors else 0
+            if actual_dimension <= 0 or any(
+                len(vector) != actual_dimension for vector in vectors
+            ):
+                raise EmbeddingDimensionError(
+                    "同一批文档向量必须具有一致且非零的维度。",
+                    provider_name=provider.provider_name,
+                )
+            embedding_identity = dict(
+                provider.index_identity(dimension=actual_dimension)
+            )
+            model_identity = str(embedding_identity.get("model_id") or "").strip()
+            if not model_identity or model_identity.lower() == "unknown":
+                return fail(
+                    error_code=EMBEDDING_IDENTITY_UNAVAILABLE,
+                    retryable=False,
+                    detail="Embedding Provider 未暴露可核验的 model_id。",
+                    file_format=parsed.file_format,
+                )
         except UnsupportedEmbeddingProviderError as exc:
             # 未注册的 Provider 属于配置问题，统一映射为“Provider 未就绪”。
             return fail(
@@ -340,6 +370,7 @@ class IngestionService:
             original_filename=filename,
             file_format=parsed.file_format,
             transitions=tuple(transitions),
+            embedding_identity=embedding_identity,
             chunks=tuple(
                 IngestedChunk(
                     chunk_index=chunk.index,
@@ -376,6 +407,8 @@ class IngestionService:
 
 
 __all__ = [
+    "EMBEDDING_IDENTITY_UNAVAILABLE",
+    "EMBEDDING_INCOMPATIBLE",
     "INGESTION_ERROR_MESSAGES",
     "KNOWLEDGE_BASE_EMPTY",
     "Chunker",

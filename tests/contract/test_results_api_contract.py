@@ -65,6 +65,7 @@ from backend.app.services.grading.grading_repository import DatabaseGradingRepos
 from backend.app.services.grading.grading_task_service import (
     NotConfiguredGradingRepository,
 )
+from tests.support.application_lifecycle import bind_startup_to_session
 from tests.support.grading_doubles import InMemoryGradingRepository
 from tests.unit.services.test_submission_service import (
     add_approved_question,
@@ -135,8 +136,10 @@ def scenario(session: Session) -> dict[str, object]:
 
 
 @pytest.fixture
-def client_factory(session: Session) -> Generator[object, None, None]:
+def client_factory(session: Session, monkeypatch: pytest.MonkeyPatch) -> Generator[object, None, None]:
     """按需装配查询服务替身的 TestClient 工厂。"""
+
+    bind_startup_to_session(monkeypatch, session)
 
     with ExitStack() as stack:
 
@@ -567,8 +570,9 @@ def test_teacher_detail_reports_unmigrated_result_store_as_503(
 
     service, _, _ = _t057_service(session)
     session.commit()
-    WorkflowRun.__table__.drop(session.get_bind())
     client = client_factory(service)
+    # Inject the missing table after real startup recovery so the request boundary is exercised.
+    WorkflowRun.__table__.drop(session.get_bind())
     teacher_headers = headers(scenario["teacher"], UserRole.TEACHER)
     exam = scenario["exam"]
     submission = scenario["submissions"]["a"]
@@ -684,8 +688,8 @@ def t184_pg_session():
 
 
 @pytest.fixture
-def t184_client_factory(t184_pg_session):
-    yield from client_factory.__wrapped__(t184_pg_session)
+def t184_client_factory(t184_pg_session, monkeypatch):
+    yield from client_factory.__wrapped__(t184_pg_session, monkeypatch)
 
 
 @pytest.mark.parametrize("case_id", ["STATS-MIXED", "STATS-EMPTY", "STATS-STARTED"])

@@ -41,6 +41,7 @@ from backend.app.ai.workflows.state import (
     IDENTITY_STATE_FIELDS,
     LEGACY_BACKGROUND_TASK_CHECKPOINT_KIND,
     RUN_CONTROL_STATE_FIELDS,
+    SNAPSHOT_STATE_FIELDS,
     SUBMISSION_COLLECTION_FIELDS,
     TASK_MANDATED_STATE_FIELDS,
     WORKFLOW_STATE_INVALID,
@@ -404,11 +405,14 @@ def test_state_fields_are_partitioned_into_identity_control_and_payload_sets() -
         "exam_result",
         "diagnosis",
     }
+    # 运行快照绑定可缺省（旧运行＝legacy_unknown），不属于必需身份字段。
+    assert set(SNAPSHOT_STATE_FIELDS) == {"snapshot_id"}
     groups = [
         set(IDENTITY_STATE_FIELDS),
         set(RUN_CONTROL_STATE_FIELDS),
         set(ANSWER_SLOT_FIELDS),
         set(SUBMISSION_COLLECTION_FIELDS),
+        set(SNAPSHOT_STATE_FIELDS),
     ]
     assert set().union(*groups) == all_fields
     for index, group in enumerate(groups):
@@ -808,7 +812,8 @@ def test_checkpoint_payload_kind_and_version_are_enforced() -> None:
     """检查点载荷必须带明确 kind/version，并拒绝未知版本与 M3 后台任务检查点。"""
 
     assert WORKFLOW_STATE_PAYLOAD_KIND == "langgraph-grading-state-payload"
-    assert WORKFLOW_STATE_PAYLOAD_VERSION == "2"
+    # v3 承载 snapshot_id（T212）；v1/v2 仍必须可读。
+    assert WORKFLOW_STATE_PAYLOAD_VERSION == "3"
     assert LEGACY_BACKGROUND_TASK_CHECKPOINT_KIND == LEGACY_M3_KIND
 
     payload = workflow_state_to_checkpoint_payload(_complete_state())
@@ -828,9 +833,11 @@ def test_checkpoint_payload_kind_and_version_are_enforced() -> None:
             {"version": WORKFLOW_STATE_PAYLOAD_VERSION, "state": {}}
         )
 
+    # 当前版本的后继版本仍必须被拒绝（版本升级时该断言自动保持有效）。
+    future_version = str(int(WORKFLOW_STATE_PAYLOAD_VERSION) + 1)
     with pytest.raises(WorkflowStatePayloadVersionError) as version_error:
         workflow_state_from_checkpoint_payload(
-            {**payload, "version": "3"}
+            {**payload, "version": future_version}
         )
     assert version_error.value.error_code == WORKFLOW_STATE_PAYLOAD_VERSION_UNSUPPORTED
 
@@ -861,3 +868,98 @@ def test_non_serializable_payload_is_reported_explicitly(monkeypatch: pytest.Mon
     with pytest.raises(WorkflowStateNotSerializableError) as excinfo:
         workflow_state_to_json(_complete_state())
     assert excinfo.value.error_code == WORKFLOW_STATE_NOT_SERIALIZABLE
+
+
+# ---------------------------------------------------------------------------
+# T211 / TCR-S5-RUNTIME-SNAPSHOT-INDEX-013：运行快照身份与旧版本兼容（先行红灯）
+#
+# T212 尚未实现：需要新载荷版本/字段的用例以 T212_IMPLEMENTATION_REQUIRED 显式红灯；
+# 旧版本兼容、旧 unknown 不回填与结构事实这些用例当前必须通过，用来锁住原语义。
+# 注意：T212 递增版本后，既有的“未来版本被拒绝”断言（当前硬编码 "3"）必须由 T212
+# 在新批次 TCR 下改为真正未支持的版本，不能因为新版本受支持而删除或放宽该断言。
+# ---------------------------------------------------------------------------
+
+
+T211_MARKER = "T212_IMPLEMENTATION_REQUIRED"
+SNAPSHOT_ID = "snapshot-t211-1"
+
+
+def _state_with_snapshot(snapshot_id: str = SNAPSHOT_ID) -> dict[str, Any]:
+    """新运行状态：在既有字段集上显式携带 snapshot_id。"""
+
+    state = dict(_complete_state())
+    state["snapshot_id"] = snapshot_id
+    return state
+
+
+def test_t211_new_payload_version_carries_snapshot_identity() -> None:
+    """新运行载荷必须递增版本并承载 snapshot_id，而不是继续沿用 v2。"""
+
+    if WORKFLOW_STATE_PAYLOAD_VERSION == "2":
+        pytest.fail(
+            f"{T211_MARKER}: WORKFLOW_STATE_PAYLOAD_VERSION -> 3"
+            f"（当前 {WORKFLOW_STATE_PAYLOAD_VERSION}）",
+            pytrace=False,
+        )
+    payload = workflow_state_to_checkpoint_payload(_state_with_snapshot())
+    assert payload["kind"] == WORKFLOW_STATE_PAYLOAD_KIND
+    assert payload["version"] == WORKFLOW_STATE_PAYLOAD_VERSION
+    assert payload["state"]["snapshot_id"] == SNAPSHOT_ID
+    json.dumps(payload, ensure_ascii=False, allow_nan=False)
+
+
+def test_t211_snapshot_identity_round_trips_and_rejects_empty() -> None:
+    """snapshot_id 必须无损往返；空身份不得被当成合法快照。"""
+
+    if WORKFLOW_STATE_PAYLOAD_VERSION == "2":
+        pytest.fail(f"{T211_MARKER}: payload v3 snapshot_id round trip", pytrace=False)
+    restored = workflow_state_from_checkpoint_payload(
+        workflow_state_to_checkpoint_payload(_state_with_snapshot())
+    )
+    assert dict(restored)["snapshot_id"] == SNAPSHOT_ID
+    with pytest.raises(WorkflowStateError):
+        workflow_state_to_json(_state_with_snapshot(""))
+
+
+def test_t211_legacy_payload_without_snapshot_is_not_backfilled() -> None:
+    """旧 v2 载荷仍可读，且解码/再编码都不得凭空补出快照身份。"""
+
+    payload = workflow_state_to_checkpoint_payload(_complete_state())
+    payload["version"] = "2"
+    restored = workflow_state_from_checkpoint_payload(json.loads(json.dumps(payload)))
+    assert "snapshot_id" not in restored
+    assert restored["submission_id"] == SUBMISSION_ID
+    assert "snapshot_id" not in workflow_state_to_json(restored)
+
+
+def test_t211_legacy_v1_payload_stays_readable_without_identity_inference() -> None:
+    """v1 载荷兼容性保持；旧运行不得被推断出当前配置的快照身份。"""
+
+    body = workflow_state_to_json(_complete_state())
+    payload = {"kind": WORKFLOW_STATE_PAYLOAD_KIND, "version": "1", "state": body}
+    restored = workflow_state_from_checkpoint_payload(payload)
+    assert restored["submission_id"] == SUBMISSION_ID
+    assert "snapshot_id" not in restored
+
+
+def test_t211_unknown_future_payload_version_is_still_rejected() -> None:
+    """超出已知支持范围的版本继续显式拒绝。"""
+
+    payload = workflow_state_to_checkpoint_payload(_complete_state())
+    with pytest.raises(WorkflowStatePayloadVersionError) as error:
+        workflow_state_from_checkpoint_payload({**payload, "version": "99"})
+    assert error.value.error_code == WORKFLOW_STATE_PAYLOAD_VERSION_UNSUPPORTED
+
+
+def test_t211_no_second_workflow_state_table_is_introduced() -> None:
+    """快照身份必须沿用既有 WorkflowRun.checkpoint，不新增并行状态表。"""
+
+    import backend.app.models  # noqa: F401  仅用于填充 SQLAlchemy 元数据
+    from backend.app.models.base import Base
+    from backend.app.services import workflow_checkpoint as checkpoint_module
+
+    tables = {name for name in Base.metadata.tables if "workflow" in name or "snapshot" in name}
+    assert tables == {"workflow_runs"}
+    for name in ("WorkflowCheckpointStore", "DatabaseCheckpointSaver"):
+        assert hasattr(checkpoint_module, name)
+    assert "checkpoint" in {column.name for column in Base.metadata.tables["workflow_runs"].columns}

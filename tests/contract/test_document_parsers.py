@@ -13,10 +13,14 @@ import pytest
 
 from backend.app.ai.ingestion.parsers import (
     DOCUMENT_CORRUPTED,
+    DOCUMENT_DECODED_LIMIT,
     DOCUMENT_EMPTY,
     DOCUMENT_ERROR_MESSAGES,
+    DOCUMENT_EXPANDED_LIMIT,
+    DOCUMENT_IMAGE_LIMIT,
     DOCUMENT_NO_TEXT,
     DOCUMENT_PARSE_FAILED,
+    DOCUMENT_SIZE_LIMIT,
     DOCUMENT_UNSUPPORTED_FORMAT,
     RETRYABLE_ERROR_CODES,
     DocumentParseError,
@@ -176,19 +180,44 @@ def test_pdf_parser_contract_extracts_text_with_page_locations() -> None:
 
 
 def test_supported_formats_contract_covers_pdf_txt_and_markdown() -> None:
-    """注册表必须声明 PDF、TXT 和 Markdown，且扩展名判定不区分大小写。"""
+    """注册表必须声明已批准首版格式，且扩展名判定不区分大小写。"""
 
     registry = build_default_registry()
 
-    assert registry.supported_formats == ("markdown", "pdf", "txt")
-    assert registry.supported_extensions == ("markdown", "md", "pdf", "txt")
-    for filename in ("course.pdf", "课程.TXT", "notes.md", "notes.markdown"):
+    # T027 已批准首版格式集：PDF、TXT、Markdown、DOCX 与 PNG/JPEG 图片。
+    assert registry.supported_formats == (
+        "docx",
+        "jpeg",
+        "markdown",
+        "pdf",
+        "png",
+        "txt",
+    )
+    assert registry.supported_extensions == (
+        "docx",
+        "jpeg",
+        "jpg",
+        "markdown",
+        "md",
+        "pdf",
+        "png",
+        "txt",
+    )
+    for filename in (
+        "course.pdf",
+        "课程.TXT",
+        "notes.md",
+        "notes.markdown",
+        "教材.docx",
+        "scan.png",
+        "photo.jpg",
+    ):
         assert registry.is_supported(filename), filename
-    for filename in ("lesson.docx", "slides.pptx", "archive", "notes.rtf"):
+    for filename in ("slides.pptx", "archive", "notes.rtf", "book.epub"):
         assert not registry.is_supported(filename), filename
 
 
-@pytest.mark.parametrize("filename", ["lesson.docx", "slides.pptx", "archive"])
+@pytest.mark.parametrize("filename", ["slides.pptx", "archive", "book.epub"])
 def test_unsupported_format_contract_blocks_knowledge_creation(filename: str) -> None:
     """不支持格式必须直接失败，不得产生任何可入库的知识内容。"""
 
@@ -197,7 +226,7 @@ def test_unsupported_format_contract_blocks_knowledge_creation(filename: str) ->
 
     error = captured.value
     assert error.error_code == DOCUMENT_UNSUPPORTED_FORMAT
-    assert error.user_message == "当前仅支持 PDF、TXT 和 Markdown 文件。"
+    assert error.user_message == "当前仅支持 PDF、DOCX、TXT、Markdown 与 PNG/JPEG 图片。"
     # 不支持格式属于输入问题，不允许重试，也不得返回任何解析结果。
     assert error.retryable is False
     assert build_default_registry().is_supported(filename) is False
@@ -242,14 +271,13 @@ def test_corrupted_file_contract_reports_retryable_corruption(
     [
         ("空白资料.txt", WHITESPACE_ONLY_TXT_BYTES),
         ("无标题资料.md", b"#\n\n   \n"),
-        ("无正文资料.pdf", _build_pdf([""])),
     ],
-    ids=["whitespace-txt", "empty-heading-markdown", "textless-pdf"],
+    ids=["whitespace-txt", "empty-heading-markdown"],
 )
 def test_no_text_document_contract_reports_not_retryable_no_text(
     filename: str, payload: bytes
 ) -> None:
-    """没有可提取文本的资料必须报告 DOCUMENT_NO_TEXT，且不得重试。"""
+    """没有可提取文本的文本类资料必须报告 DOCUMENT_NO_TEXT，且不得重试。"""
 
     with pytest.raises(DocumentParseError) as captured:
         parse_document(filename, payload)
@@ -260,20 +288,38 @@ def test_no_text_document_contract_reports_not_retryable_no_text(
     assert error.retryable is False
 
 
+def test_textless_pdf_is_kept_as_ocr_page_without_fabricated_text() -> None:
+    """T027 之后无正文 PDF 保留为需 OCR 的页面，不得伪造正文。"""
+
+    parsed = parse_document("无正文资料.pdf", _build_pdf([""]))
+
+    # 关键安全/业务断言：无正文时不得输出任何可入库文本。
+    assert parsed.text == ""
+    assert parsed.sections == ()
+    assert parsed.requires_ocr is True
+    assert parsed.issues == ("PDF_REQUIRES_OCR",)
+    assert [block.kind for block in parsed.blocks] == ["image"]
+    assert parsed.blocks[0].page == 1
+
+
 def test_error_code_contract_matches_plan_retry_semantics() -> None:
     """失败码提示与重试语义必须与计划中的摄取失败表一致。"""
 
     assert DOCUMENT_ERROR_MESSAGES == {
         DOCUMENT_EMPTY: "上传的文件为空，请选择包含教学内容的文件。",
-        DOCUMENT_UNSUPPORTED_FORMAT: "当前仅支持 PDF、TXT 和 Markdown 文件。",
+        DOCUMENT_UNSUPPORTED_FORMAT: "当前仅支持 PDF、DOCX、TXT、Markdown 与 PNG/JPEG 图片。",
         DOCUMENT_CORRUPTED: "文件无法读取，可能已损坏，请重新导出后上传。",
         DOCUMENT_NO_TEXT: "资料中没有可提取的文本内容，请检查扫描或文件内容。",
         DOCUMENT_PARSE_FAILED: "资料解析失败，请检查文件内容后重新上传。",
+        DOCUMENT_SIZE_LIMIT: "文件超过单次上传限制，请自行拆分或缩小后重试；系统不会静默截断。",
+        DOCUMENT_EXPANDED_LIMIT: "DOCX 实际解包内容超过限制，请拆分文档后重试；系统不会截断内容。",
+        DOCUMENT_IMAGE_LIMIT: "文档中的图片数量或解码尺寸超过限制，请拆分文档后重试。",
+        DOCUMENT_DECODED_LIMIT: "图片解码尺寸超过限制，请缩小图片后重试；系统不会静默降采样。",
     }
     assert RETRYABLE_ERROR_CODES == frozenset({DOCUMENT_PARSE_FAILED, DOCUMENT_CORRUPTED})
 
     with pytest.raises(DocumentParseError) as captured:
-        parse_document("lesson.docx", b"unsupported-format-payload")
+        parse_document("slides.pptx", b"unsupported-format-payload")
     assert str(captured.value).startswith(DOCUMENT_UNSUPPORTED_FORMAT)
 
 

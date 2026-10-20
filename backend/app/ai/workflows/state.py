@@ -25,8 +25,10 @@ thread/checkpoint 标识、待写入任务或执行记录；完整恢复由 T073
 - **状态分离（O02）**：流程状态复用 ``WorkflowStatus``，复核状态复用 ``ReviewStatus``，两者与
   Agent Trace 状态（``backend.app.ai.agents.state.AgentStatus``）分离。待复核既不是失败也不是
   完成；教师的人工结论可以覆盖自动决策，但 Agent 不得声明人工结论。
-- **载荷版本**：``kind="langgraph-grading-state-payload"``、``version="2"``（明确读取已知 v1；缺失新事实保持缺失），与 M3（T056）的
+- **载荷版本**：``kind="langgraph-grading-state-payload"``、``version="3"``（明确读取已知 v1/v2；缺失新事实保持缺失），与 M3（T056）的
   ``background-task-checkpoint`` 显式区分；编解码不推断 ``resumable``，也不自动置真。
+- **运行快照绑定**：``snapshot_id`` 只记录运行创建时已持久化的非敏感快照标识；旧运行缺该键即 ``legacy_unknown``，
+  解码与再编码都不得用当前配置回填或伪造身份。
 - **可序列化**：状态只承载文本、数值、枚举、既有 Pydantic DTO 与递归 JSON 值，禁止 Session、
   Provider、ORM 实体或其它不可 JSON 序列化对象。
 """
@@ -80,7 +82,7 @@ WORKFLOW_STATE_PAYLOAD_VERSION_UNSUPPORTED: Final[str] = (
 #: 业务状态快照载荷的 kind；与 M3 的后台任务检查点显式区分。
 WORKFLOW_STATE_PAYLOAD_KIND: Final[str] = "langgraph-grading-state-payload"
 #: 业务状态快照载荷版本；字段或语义变化时必须递增。
-WORKFLOW_STATE_PAYLOAD_VERSION: Final[str] = "2"
+WORKFLOW_STATE_PAYLOAD_VERSION: Final[str] = "3"
 #: M3（T056）后台任务检查点的 kind；本模块必须拒绝该载荷。
 LEGACY_BACKGROUND_TASK_CHECKPOINT_KIND: Final[str] = "background-task-checkpoint"
 #: 载荷中承载业务状态的键名。
@@ -149,6 +151,8 @@ SUBMISSION_COLLECTION_FIELDS: Final[frozenset[str]] = frozenset(
         "diagnosis",
     }
 )
+#: 运行快照绑定：可缺省（旧运行＝legacy_unknown），不属于必需身份字段，也不随换题清空。
+SNAPSHOT_STATE_FIELDS: Final[frozenset[str]] = frozenset({"snapshot_id"})
 
 #: 严格整数：拒绝字符串与布尔值被隐式转换为计数。
 StrictCount = Annotated[int, Field(strict=True, ge=0)]
@@ -168,6 +172,7 @@ class GradingWorkflowState(TypedDict, total=False):
     workflow_id: str
     request_id: str
     submission_id: str
+    snapshot_id: NonEmptyText | None
     status: WorkflowStatus | None
     current_node: str | None
     current_answer_id: str | None
@@ -248,6 +253,10 @@ class WorkflowStateSnapshot(BaseModel):
     workflow_id: NonEmptyText = Field(description="工作流实例标识。")
     request_id: NonEmptyText = Field(description="贯穿请求的追踪标识。")
     submission_id: NonEmptyText = Field(description="本次运行处理的答卷。")
+    snapshot_id: NonEmptyText | None = Field(
+        default=None,
+        description="运行创建时持久化的非敏感快照标识；旧运行为空，不得回填。",
+    )
 
     status: WorkflowStatus | None = Field(default=None, description="工作流流程状态。")
     current_node: NonEmptyText | None = Field(default=None, description="当前节点名。")
@@ -535,9 +544,9 @@ def workflow_state_from_checkpoint_payload(
             "业务状态载荷。"
         )
     version = checkpoint.get("version")
-    if version not in {"1", WORKFLOW_STATE_PAYLOAD_VERSION}:
+    if version not in {"1", "2", WORKFLOW_STATE_PAYLOAD_VERSION}:
         raise WorkflowStatePayloadVersionError(
-            f"检查点版本必须为 {WORKFLOW_STATE_PAYLOAD_VERSION!r}，收到 {version!r}。"
+            f"检查点版本必须为 {WORKFLOW_STATE_PAYLOAD_VERSION!r}（或已知旧版 1/2），收到 {version!r}。"
         )
     raw_state = checkpoint.get(CHECKPOINT_STATE_KEY)
     if not isinstance(raw_state, Mapping):
@@ -546,6 +555,8 @@ def workflow_state_from_checkpoint_payload(
         )
     if version == "1" and ({"scoring_input", "scoring_inputs"} & raw_state.keys()):
         raise WorkflowStatePayloadVersionError("旧版本不得携带新版固定评分字段。")
+    if version != WORKFLOW_STATE_PAYLOAD_VERSION and "snapshot_id" in raw_state:
+        raise WorkflowStatePayloadVersionError("旧版本不得携带新增强制快照身份。")
     return workflow_state_from_json(raw_state)
 
 
@@ -556,6 +567,7 @@ __all__ = [
     "IDENTITY_STATE_FIELDS",
     "LEGACY_BACKGROUND_TASK_CHECKPOINT_KIND",
     "RUN_CONTROL_STATE_FIELDS",
+    "SNAPSHOT_STATE_FIELDS",
     "SUBMISSION_COLLECTION_FIELDS",
     "TASK_MANDATED_STATE_FIELDS",
     "WORKFLOW_STATE_INVALID",

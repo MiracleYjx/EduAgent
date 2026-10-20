@@ -55,6 +55,8 @@ class ChunkSourceMetadata:
     content_sha256: str
     heading_level: int | None = None
     heading_path: tuple[str, ...] = ()
+    #: 个人资料归属；旧课程片段保持为空，不从课程反推科目。
+    subject_id: UUID | None = None
 
     def as_dict(self) -> dict[str, object]:
         """返回可写入 ``DocumentChunk.metadata`` 的 JSON 兼容字典。"""
@@ -69,6 +71,7 @@ class ChunkSourceMetadata:
                 if self.knowledge_base_id is not None
                 else None
             ),
+            "subject_id": str(self.subject_id) if self.subject_id is not None else None,
             "original_filename": self.original_filename,
             "file_format": self.file_format,
             "location": self.location,
@@ -177,6 +180,7 @@ def _build_chunk(
     section_index: int,
     heading_level: int | None = None,
     heading_path: tuple[str, ...] = (),
+    subject_id: UUID | None = None,
 ) -> TextChunk:
     """按切片区间构造带来源元数据的片段。"""
 
@@ -195,6 +199,7 @@ def _build_chunk(
             section_index=section_index,
             start_char=start,
             end_char=end,
+            subject_id=subject_id,
             content_sha256=_content_sha256(content),
             heading_level=heading_level,
             heading_path=heading_path,
@@ -261,6 +266,7 @@ def chunk_document(
     document_id: UUID | None = None,
     course_id: UUID | None = None,
     knowledge_base_id: UUID | None = None,
+    subject_id: UUID | None = None,
     original_filename: str = "",
     max_chars: int = DEFAULT_MAX_CHARS,
     overlap_chars: int = DEFAULT_OVERLAP_CHARS,
@@ -283,6 +289,7 @@ def chunk_document(
                         document_id=document_id,
                         course_id=course_id,
                         knowledge_base_id=knowledge_base_id,
+                        subject_id=subject_id,
                         original_filename=original_filename,
                         file_format=document.file_format,
                         location=section.location,

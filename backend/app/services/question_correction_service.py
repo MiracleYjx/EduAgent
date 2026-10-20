@@ -24,6 +24,8 @@ from backend.app.models import (
     QuestionAsset,
     SourcePage,
 )
+from backend.app.models.document import Document
+from backend.app.schemas.content_blocks import RevisionContent, SourceLocation
 from backend.app.schemas.image_assessment import (
     ImageAssessment,
     ImageInput,
@@ -41,7 +43,11 @@ from backend.app.schemas.paper_import import (
 )
 from backend.app.schemas.question_assets import StoredStagedAsset
 from backend.app.services.file_storage_service import FileStorageError
-from backend.app.services.paper_import_service import PaperImportService, question_view
+from backend.app.services.paper_import_service import (
+    PaperImportService,
+    PersonalPaperImportService,
+    question_view,
+)
 from backend.app.services.question_asset_service import actual_image
 
 IMAGE_TEXT_FIELDS = (
@@ -503,3 +509,175 @@ class QuestionCorrectionService(PaperImportService):
         except Exception:
             self.session.rollback()
             raise
+
+
+class PersonalQuestionCorrection(PersonalPaperImportService):
+    """Atomic personal confirmation; storage never implies admission or approval."""
+
+    def patch_personal(self, identity: UUID, question_id: UUID, body):
+        from types import SimpleNamespace
+
+        from backend.app.services.learning_material_service import MaterialError
+
+        with self.sessions.begin() as session:
+            paper = self._record(session, identity, lock=True)
+            row = session.scalar(select(ExtractedQuestion).where(
+                ExtractedQuestion.paper_import_id == identity,
+                ExtractedQuestion.id == question_id,
+            ).with_for_update())
+            if row is None:
+                raise MaterialError("PAPER_QUESTION_NOT_FOUND", 404)
+            if row.question_id is not None:
+                raise MaterialError("PAPER_QUESTION_ALREADY_CONFIRMED", 409)
+            if row.edit_revision != body.expected_revision:
+                raise MaterialError("REVISION_CHANGED", 409)
+            document = session.get(Document, paper.document_id)
+            old = dict(row.personal_content)
+            data = body.model_dump(mode="json", exclude={"expected_revision"})
+            if data["reference_answer"] != old.get("reference_answer"):
+                origin = "user_correction" if data["reference_answer"] else None
+                evidence = {k: v for k, v in old.get("evidence", {}).items()
+                            if k not in {"reference_answer", "scoring_rubric"}}
+            else:
+                origin = old.get("answer_origin")
+                evidence = dict(old.get("evidence", {}))
+                if data["scoring_rubric"] != old.get("scoring_rubric"):
+                    evidence.pop("scoring_rubric", None)
+            from backend.app.ai.paper_extraction.schemas import PersonalFieldEvidence
+            if data["explanation_blocks"] != old.get("explanation_blocks", []):
+                evidence.pop("explanation", None)
+            check = SimpleNamespace(
+                source_locations=body.source_locations,
+                evidence={k:PersonalFieldEvidence.model_validate(v) for k,v in evidence.items()},
+                asset_ids=body.asset_ids, blocks=body.blocks,
+                knowledge_point_ids=body.knowledge_point_ids,
+            )
+            self._validate_sources(check, document, self._catalog(document))
+            data.update(answer_origin=origin, evidence=evidence)
+            row.personal_content = data
+            row.edit_revision += 1
+        return self.get(identity)
+
+    def confirm(self, identity: UUID, body):
+        from backend.app.ai.paper_extraction.schemas import PersonalPaperConfirm
+        from backend.app.models.question_origin import QuestionOrigin
+        from backend.app.models.question_revision import (
+            QuestionRevision,
+            question_revision_assets,
+            question_revision_knowledge_points,
+        )
+        from backend.app.services.learning_material_service import MaterialError
+
+        body = PersonalPaperConfirm.model_validate(body)
+        with self.sessions.begin() as session:
+            paper = self._record(session, identity, lock=True)
+            document = session.get(Document, paper.document_id)
+            catalog = self._catalog(document)
+            rows = list(session.scalars(select(ExtractedQuestion).where(
+                ExtractedQuestion.paper_import_id == identity,
+                ExtractedQuestion.id.in_(body.question_ids),
+            ).with_for_update()))
+            by_id = {r.id: r for r in rows}
+            if set(by_id) != set(body.question_ids):
+                raise MaterialError("PAPER_QUESTION_NOT_FOUND", 404)
+            for row in rows:
+                if row.edit_revision != body.expected_revisions[row.id]:
+                    raise MaterialError("REVISION_CHANGED", 409)
+                if row.question_id is not None:
+                    continue
+                if not row.personal_content:
+                    raise MaterialError("PAPER_CONTENT_INVALID", 409)
+                content = RevisionContent.model_validate({
+                    k: row.personal_content[k] for k in
+                    ("question_type", "stem_blocks", "options", "explanation_blocks")
+                })
+                from types import SimpleNamespace
+
+                from backend.app.ai.paper_extraction.schemas import (
+                    PersonalFieldEvidence,
+                )
+                self._validate_sources(SimpleNamespace(
+                    source_locations=[SourceLocation.model_validate(v) for v in row.personal_content["source_locations"]],
+                    evidence={k:PersonalFieldEvidence.model_validate(v) for k,v in row.personal_content.get("evidence",{}).items()},
+                    asset_ids=content.asset_ids, blocks=content.blocks,
+                    knowledge_point_ids=[UUID(v) for v in row.personal_content.get("knowledge_point_ids",[])],
+                ),document,catalog)
+            for row in rows:
+                if row.question_id is not None:
+                    continue
+                data = dict(row.personal_content)
+                content = RevisionContent.model_validate({
+                    k: data[k] for k in
+                    ("question_type", "stem_blocks", "options", "explanation_blocks")
+                })
+                question = Question(
+                    id=uuid4(), subject_id=paper.subject_id, course_id=None, created_by=None,
+                    source_type=QuestionSourceType.PAPER_IMPORTED,
+                )
+                session.add(question)
+                session.flush()
+                # Each question owns its asset identity; managed source bytes remain shared.
+                from uuid import uuid5
+                mapped = {old: uuid5(question.id, str(old)) for old in content.asset_ids()}
+                serialized = content.model_dump(mode="json")
+                for blocks in [serialized["stem_blocks"], serialized["explanation_blocks"],
+                               *[o["blocks"] for o in serialized["options"]]]:
+                    for block in blocks:
+                        if "asset_id" in block:
+                            block["asset_id"] = str(mapped[UUID(block["asset_id"])])
+                admission = ("incomplete" if not data.get("reference_answer") else "needs_validation")
+                revision = QuestionRevision(
+                    id=uuid4(), question_id=question.id, subject_id=paper.subject_id,
+                    revision=1, **serialized, reference_answer=data.get("reference_answer"),
+                    scoring_rubric=data.get("scoring_rubric"), grounding="uploaded_material",
+                    grounding_refs={"document_id": str(document.id), "uncertainties": data.get("uncertainties", []),
+                                    "answer_origin": data.get("answer_origin"),
+                                    "confirmed_asset_ids": [str(mapped[UUID(a)]) for a in data.get("confirmed_asset_ids", [])]},
+                    admission_state=admission, difficulty=data.get("difficulty"),
+                    default_score=data.get("score") or 10,
+                )
+                session.add(revision)
+                session.flush()
+                question.current_revision_id = revision.id
+                locations = {loc.model_dump_json(): loc for loc in
+                    [SourceLocation.model_validate(raw) for raw in data["source_locations"]]
+                    + [catalog[old].source for old in mapped]}
+                for loc in locations.values():
+                    session.add(QuestionOrigin(
+                        id=uuid4(), question_id=question.id, subject_id=paper.subject_id,
+                        source_kind="uploaded", document_id=document.id,
+                        source_location=loc.model_dump(mode="json", exclude={"document_id"}, exclude_none=True),
+                        answer_origin=data.get("answer_origin"),
+                    ))
+                for raw_id in data.get("knowledge_point_ids", []):
+                    session.execute(question_revision_knowledge_points.insert().values(
+                        revision_id=revision.id, subject_id=paper.subject_id,
+                        knowledge_point_id=UUID(raw_id),
+                    ))
+                for old, new in mapped.items():
+                    asset = catalog[old]
+                    path, mime = self.materials.asset_path(paper.subject_id, document.id, asset.sha256)
+                    with actual_image(path.read_bytes()) as image:
+                        width, height = image.width, image.height
+                    session.add(QuestionAsset(
+                        id=new, question_id=question.id, asset_type="figure",
+                        width=width, height=height, order_index=None,
+                        source_document_id=document.id, source_anchor=asset.source.anchor,
+                        file_path=path.relative_to(self.space.storage_root).as_posix(),
+                        file_metadata={"media_type": mime, "sha256": asset.sha256,
+                                       "size_bytes": path.stat().st_size,
+                                       "migration": {"status": "not_required"}},
+                        student_visible=(str(old) in data.get("confirmed_asset_ids", [])
+                                         and asset.source.page is None),
+                    ))
+                    session.flush()
+                    session.execute(question_revision_assets.insert().values(
+                        revision_id=revision.id, asset_id=new,
+                    ))
+                row.question_id = question.id
+                row.status = ES.CORRECTED
+            all_rows = list(session.scalars(select(ExtractedQuestion).where(
+                ExtractedQuestion.paper_import_id == identity,
+            )))
+            paper.status = PS.READY if all(r.question_id is not None for r in all_rows) else PS.PENDING_REVIEW
+        return self.get(identity)

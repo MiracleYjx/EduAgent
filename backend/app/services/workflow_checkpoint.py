@@ -51,8 +51,16 @@ from __future__ import annotations
 import base64
 import copy
 import random
-from collections.abc import AsyncIterator, Callable, Iterator, Mapping, Sequence
+from collections.abc import (
+    AsyncIterator,
+    Callable,
+    Iterable,
+    Iterator,
+    Mapping,
+    Sequence,
+)
 from contextlib import contextmanager
+from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import Any, Final
 from uuid import UUID
@@ -77,6 +85,7 @@ from sqlalchemy.orm import Session
 from backend.app.ai.agents.state import AgentError
 from backend.app.ai.workflows.grading_handoff import ACCEPTED_REVIEW_STATES
 from backend.app.ai.workflows.state import (
+    CHECKPOINT_STATE_KEY,
     WORKFLOW_STATE_PAYLOAD_KIND,
     GradingWorkflowState,
     WorkflowStateError,
@@ -243,6 +252,48 @@ def _as_status(value: object) -> WorkflowStatus | None:
                 f"状态 {value!r} 不是合法的工作流状态。"
             ) from error
     raise WorkflowCheckpointError(f"状态必须是 WorkflowStatus 或其取值，收到 {value!r}。")
+
+
+#: 非终态运行：仍需保留快照与引用事实；终态为 Completed/Failed。
+NONTERMINAL_WORKFLOW_STATUSES: Final[frozenset[WorkflowStatus]] = frozenset(
+    {WorkflowStatus.QUEUED, WorkflowStatus.RUNNING, WorkflowStatus.PAUSED}
+)
+
+
+@dataclass(frozen=True, slots=True)
+class RunSnapshotBinding:
+    """可信运行事实：工作流、状态与已持久化的快照标识；缺失即 None，不猜值。"""
+
+    workflow_id: str
+    status: str
+    snapshot_id: str | None
+
+
+def snapshot_bindings_from_rows(
+    rows: Iterable[tuple[str, object, object]],
+) -> tuple[RunSnapshotBinding, ...]:
+    """把 ``(workflow_id, status, checkpoint)`` 行投影为快照绑定事实。
+
+    只读、不修复、不写库：只有 kind 为本模块业务载荷且 ``state.snapshot_id`` 为非空文本时才
+    记录标识；其他情况（旧版无该键、M3 后台任务检查点、损坏载荷）保持 ``None``，
+    交由“遗留运行/引用未知”的闭锁路径处理，不得用当前配置补造。
+    """
+
+    result: list[RunSnapshotBinding] = []
+    for workflow_id, status, checkpoint in rows:
+        identifier = str(workflow_id).strip()
+        if not identifier:
+            raise WorkflowCheckpointError("运行记录缺少 workflow_id，拒绝生成快照事实。")
+        snapshot_id: str | None = None
+        if isinstance(checkpoint, Mapping) and checkpoint.get("kind") == WORKFLOW_STATE_PAYLOAD_KIND:
+            payload = checkpoint.get(CHECKPOINT_STATE_KEY)
+            if isinstance(payload, Mapping):
+                value = payload.get("snapshot_id")
+                if isinstance(value, str) and value.strip():
+                    snapshot_id = value.strip()
+        raw_status = getattr(status, "value", status)
+        result.append(RunSnapshotBinding(identifier, str(raw_status), snapshot_id))
+    return tuple(result)
 
 
 def _retry_count(value: object) -> int:
@@ -1528,6 +1579,7 @@ __all__ = [
     "CHECKPOINT_SAVED_AT_KEY",
     "CHECKPOINT_THREAD_ID_KEY",
     "DEFAULT_RUNTIME_HISTORY_LIMIT",
+    "NONTERMINAL_WORKFLOW_STATUSES",
     "REQUIRED_TABLES",
     "RUNTIME_ENVELOPE_KEY",
     "RUNTIME_ENVELOPE_KIND",
@@ -1544,6 +1596,7 @@ __all__ = [
     "WORKFLOW_CHECKPOINT_THREAD_UNBOUND",
     "WORKFLOW_RUN_KIND",
     "DatabaseCheckpointSaver",
+    "RunSnapshotBinding",
     "WorkflowCheckpointCompletionError",
     "WorkflowCheckpointError",
     "WorkflowCheckpointNotFoundError",
@@ -1563,4 +1616,5 @@ __all__ = [
     "runtime_pending_write_count",
     "runtime_section",
     "runtime_thread_id",
+    "snapshot_bindings_from_rows",
 ]

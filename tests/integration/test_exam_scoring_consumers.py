@@ -13,6 +13,7 @@ from sqlalchemy.orm import Session
 
 from backend.app.ai.vision.base import ProviderImage
 from backend.app.ai.workflows.state import CHECKPOINT_STATE_KEY
+from backend.app.core.config import get_settings
 from backend.app.domain.enums import ReviewStatus, WorkflowStatus
 from backend.app.models import (
     Exam,
@@ -42,7 +43,10 @@ from tests.integration.test_langgraph_grading_workflow import (
     _student_result,
     _teacher_headers,
 )
-from tests.postgres_helpers import isolated_postgres_engine
+from tests.postgres_helpers import (
+    isolated_postgres_engine,
+    isolated_test_resource_profile,
+)
 from tests.support.subjective_grading_doubles import (
     StubEmbeddingProvider,
     StubReranker,
@@ -66,8 +70,12 @@ class ConfirmedPointProvider(SequenceScoringProvider):
 
 
 @pytest.fixture
-def environment():
-    with isolated_postgres_engine() as engine, Session(engine) as session:
+def environment(tmp_path):
+    with (
+        isolated_test_resource_profile(tmp_path / "owned-profile"),
+        isolated_postgres_engine() as engine,
+        Session(engine) as session,
+    ):
         paper = _seed_paper(session, "fixed-consumer", solo=True)
         exam = session.get(Exam, UUID(paper.exam_id))
         link = exam.exam_question_links[0]
@@ -210,6 +218,7 @@ class OwnedVisionProvider(ConfirmedPointProvider):
 def test_real_image_bytes_and_current_conditions_enter_vision_only(
     environment, tmp_path, monkeypatch, failure
 ):
+    tmp_path = get_settings().storage_root
     with Session(environment.engine) as session:
         question_id = (
             session.get(Exam, UUID(environment.paper.exam_id))

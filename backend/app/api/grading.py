@@ -22,7 +22,7 @@ FR-033～FR-037。
 
 from __future__ import annotations
 
-from typing import Annotated
+from typing import Annotated, Any
 from uuid import uuid4
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
@@ -65,11 +65,16 @@ from backend.app.services.grading.grading_task_service import (
     GRADING_TRIGGER_CONFLICT,
     DatabaseGradingSubmissionReader,
     DefaultScoringPipeline,
+    GradingExecutionNotReadyError,
     GradingTaskError,
     GradingTaskService,
     InlineGradingTaskExecutor,
 )
 from backend.app.services.grading.subjective_pipeline import build_subjective_scorer
+from backend.app.services.settings.runtime_snapshot import (
+    RuntimeSnapshotError,
+    RuntimeSnapshotService,
+)
 
 router = APIRouter(prefix="/api/grading", tags=["AI 阅卷"])
 
@@ -116,8 +121,59 @@ def get_grading_task_service(request: Request) -> GradingTaskService:
     return build_production_grading_service()
 
 
+class _RuntimeScoringPipeline:
+    """一次任务运行固定一个快照；同提交重试不重新读取 active 配置。"""
+
+    def __init__(
+        self,
+        *,
+        session_factory: Any,
+        settings: AppSettings | None,
+        runtime_snapshots: RuntimeSnapshotService,
+    ) -> None:
+        self._session_factory = session_factory
+        self._settings = settings
+        self._runtime_snapshots = runtime_snapshots
+        self._runs: dict[str, DefaultScoringPipeline] = {}
+
+    def score(self, snapshot: Any) -> Any:
+        key = str(snapshot.submission_id)
+        pipeline = self._runs.get(key)
+        if pipeline is None:
+            try:
+                runtime = self._runtime_snapshots.open_run(
+                    workflow_id=f"grading-task-{key}",
+                    request_id=f"grading-task-{key}",
+                    task_kinds=("subjective_grading",),
+                    optional_task_kinds=(
+                        "embedding",
+                        "rerank",
+                        "vision",
+                        "diagnosis",
+                    ),
+                    storage_root=(
+                        self._settings.storage_root if self._settings else None
+                    ),
+                )
+            except RuntimeSnapshotError as error:
+                raise GradingExecutionNotReadyError(
+                    f"运行快照不可用：{error.code}。"
+                ) from None
+            pipeline = DefaultScoringPipeline(
+                subjective_scorer=build_subjective_scorer(
+                    session_factory=self._session_factory,
+                    settings=self._settings,
+                    runtime=runtime,
+                )
+            )
+            self._runs[key] = pipeline
+        return pipeline.score(snapshot)
+
+
 def build_production_grading_service(
     settings: AppSettings | None = None,
+    *,
+    runtime_snapshots: RuntimeSnapshotService | None = None,
 ) -> GradingTaskService:
     """构造生产阅卷任务服务：真实仓储 + 真实评分管道 + 后台任务执行器。
 
@@ -131,12 +187,19 @@ def build_production_grading_service(
     session_factory = get_session_factory()
     repository = DatabaseGradingRepository(session_factory=session_factory)
     reader = DatabaseGradingSubmissionReader(session_factory=session_factory)
-    pipeline = DefaultScoringPipeline(
-        subjective_scorer=build_subjective_scorer(
+    if runtime_snapshots is None:
+        pipeline: Any = DefaultScoringPipeline(
+            subjective_scorer=build_subjective_scorer(
+                session_factory=session_factory,
+                settings=settings,
+            )
+        )
+    else:
+        pipeline = _RuntimeScoringPipeline(
             session_factory=session_factory,
             settings=settings,
+            runtime_snapshots=runtime_snapshots,
         )
-    )
     return GradingTaskService(
         repository=repository,
         reader=reader,

@@ -25,10 +25,11 @@ def identity():
 
 def test_new_payload_and_agent_versions_register_fixed_input_fields():
     assert AGENT_STATE_VERSION == "2"
-    assert WORKFLOW_STATE_PAYLOAD_VERSION == "2"
+    # v3 承载 snapshot_id（T212）；固定评分字段仍在当前版本中登记。
+    assert WORKFLOW_STATE_PAYLOAD_VERSION == "3"
     assert "scoring_input" in ANSWER_SLOT_FIELDS
     assert "scoring_inputs" in SUBMISSION_COLLECTION_FIELDS
-    assert workflow_state_to_checkpoint_payload(identity())["version"] == "2"
+    assert workflow_state_to_checkpoint_payload(identity())["version"] == WORKFLOW_STATE_PAYLOAD_VERSION
 
 
 def test_current_slot_is_cleared_without_erasing_submission_inputs():
@@ -56,7 +57,10 @@ def test_v1_cannot_claim_fields_from_new_fixed_input_contract():
         )
 
 
-@pytest.mark.parametrize("version", ["3", "unknown", 2, None])
+_FUTURE_PAYLOAD_VERSION = str(int(WORKFLOW_STATE_PAYLOAD_VERSION) + 1)
+
+
+@pytest.mark.parametrize("version", [_FUTURE_PAYLOAD_VERSION, "unknown", 2, None])
 def test_unknown_payload_versions_remain_rejected(version):
     with pytest.raises(WorkflowStateError):
         workflow_state_from_checkpoint_payload(

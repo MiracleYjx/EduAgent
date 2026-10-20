@@ -24,7 +24,7 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from types import MappingProxyType
-from typing import Any, ClassVar, Final, Protocol, cast
+from typing import TYPE_CHECKING, Any, ClassVar, Final, Literal, Protocol, cast
 from uuid import UUID
 
 from sqlalchemy.orm import Session
@@ -56,6 +56,9 @@ from backend.app.services.grading.question_router import (
     QuestionRouter,
     normalize_question_type,
 )
+
+if TYPE_CHECKING:
+    from backend.app.services.settings.runtime_snapshot import RunSnapshotContext
 
 #: 必填输入非法或缺失（题型与标准答案有各自专用错误码）。
 GRADING_INVALID_INPUT: Final[str] = "GRADING_INVALID_INPUT"
@@ -226,19 +229,24 @@ class SubjectiveGradingSource:
     """
 
     question_type: QuestionType | str | None
-    course_id: UUID | str
     question_content: str
     reference_answer: str
     student_answer: str | Sequence[str] | None | _MissingArgument = _MISSING
+    #: 旧考试链按课程隔离；个人练习链按科目隔离，二者恰好提供一个。
+    course_id: UUID | str | None = None
+    subject_id: UUID | str | None = None
     scoring_rubric: str | None = None
     knowledge_points: tuple[str, ...] = ()
     knowledge_base_ids: tuple[str, ...] = ()
+    material_version_ids: tuple[str, ...] = ()
     question_id: UUID | str | None = None
     answer_id: UUID | str | None = None
     submission_id: UUID | str | None = None
     retrieval_scope: RetrievalScope = field(default_factory=RetrievalScope)
     scoring_input: ScoringInput | None = None
     teacher_id: UUID | str | None = None
+    #: 通用知识题不检索教材，也不伪造空片段引用。
+    grounding: Literal["uploaded_material", "general_knowledge"] = "uploaded_material"
     #: 平台侧的评分模式校验器；默认使用无状态 :class:`QuestionRouter`。
     _router: QuestionRouter = field(
         default_factory=QuestionRouter, repr=False, compare=False
@@ -263,8 +271,28 @@ class SubjectiveGradingSource:
             raise GradingInputError("题目缺少非空的评分标准，无法按规则评分。")
         object.__setattr__(self, "scoring_rubric", self.scoring_rubric.strip())
 
+        if (self.course_id is None) == (self.subject_id is None):
+            raise GradingInputError("课程标识与个人科目标识必须恰好提供一个。")
+        if self.course_id is not None:
+            object.__setattr__(
+                self, "course_id", _as_uuid_text(self.course_id, label="课程标识")
+            )
+        if self.subject_id is not None:
+            object.__setattr__(
+                self, "subject_id", _as_uuid_text(self.subject_id, label="个人科目标识")
+            )
+        if self.grounding not in {"uploaded_material", "general_knowledge"}:
+            raise GradingInputError("评分依据必须是上传资料或通用知识。")
+        if self.grounding == "general_knowledge" and (
+            self.material_version_ids or not self.retrieval_scope.is_empty
+        ):
+            raise GradingInputError("通用知识评分不得携带教材检索范围。")
         object.__setattr__(
-            self, "course_id", _as_uuid_text(self.course_id, label="课程标识")
+            self,
+            "material_version_ids",
+            _as_uuid_text_tuple(
+                self.material_version_ids, label="资料版本标识"
+            ),
         )
         object.__setattr__(
             self,
@@ -288,6 +316,8 @@ class SubjectiveGradingSource:
         object.__setattr__(self, "student_answer", self._normalize_answer())
         fixed = self.scoring_input
         if fixed is not None:
+            if self.subject_id is not None:
+                raise GradingInputError("个人练习不沿用旧考试评分输入。")
             expected_answer = fixed.student_answer
             if isinstance(expected_answer, list):
                 expected_answer = "\n".join(expected_answer)
@@ -458,14 +488,15 @@ def _merge_filters(
     source: SubjectiveGradingSource,
     filters: RetrievalFilters | None,
 ) -> RetrievalFilters:
-    """合并调用方过滤条件：课程范围始终强制为题目所属课程。
+    """合并调用方过滤条件，只允许收窄既有评分范围。
 
-    - ``course_ids`` 永远只包含题目课程；调用方限定其它课程时显式失败，
-      防止主观题评分检索到其它课程内容；
-    - ``knowledge_base_ids`` 与题目知识库范围取交集，交集为空时显式失败；
-    - ``document_ids`` 由调用方提供并透传，但仍受强制课程过滤约束。
-      （不查库无法验证资料归属，因此依赖课程过滤与上游数据一致性。）
+    旧考试链强制课程范围；个人练习链强制科目范围，并以练习开始时冻结的
+    资料版本/资料标识为上限。调用方提供任何交集为空的过滤条件时显式失败，
+    不得静默退回到更大范围。
     """
+
+    if source.subject_id is not None:
+        return _merge_personal_filters(source, filters)
 
     course_id = UUID(str(source.course_id))
     source_knowledge_bases = tuple(UUID(value) for value in source.knowledge_base_ids)
@@ -477,6 +508,10 @@ def _merge_filters(
             document_ids=document_ids,
         )
     resolved = resolve_filters(filters)
+    if resolved.subject_ids or resolved.material_version_ids:
+        raise GradingInputError(
+            "Course grading does not support subject or material-version filters."
+        )
     if resolved.course_ids and course_id not in resolved.course_ids:
         raise GradingInputError("调用方过滤条件与题目所属课程不一致，拒绝跨课程检索。")
     knowledge_base_ids = resolved.knowledge_base_ids or source_knowledge_bases
@@ -508,6 +543,45 @@ def _merge_filters(
     )
 
 
+def _merge_personal_filters(
+    source: SubjectiveGradingSource,
+    filters: RetrievalFilters | None,
+) -> RetrievalFilters:
+    """个人科目范围；资料版本与资料标识只能收窄，不能扩大到其他科目。"""
+
+    subject_id = UUID(str(source.subject_id))
+    allowed_documents = source.retrieval_scope.document_ids
+    allowed_versions = tuple(UUID(value) for value in source.material_version_ids)
+    if filters is None:
+        return RetrievalFilters(
+            subject_ids=(subject_id,),
+            document_ids=allowed_documents,
+            material_version_ids=allowed_versions,
+        )
+    resolved = resolve_filters(filters)
+    if resolved.course_ids or resolved.knowledge_base_ids:
+        raise GradingInputError(
+            "个人评分不接受旧课程或知识库过滤条件。"
+        )
+    if resolved.subject_ids and resolved.subject_ids != (subject_id,):
+        raise GradingInputError("调用方科目范围与题目所属科目不一致，拒绝跨科目检索。")
+    document_ids = allowed_documents
+    if resolved.document_ids:
+        if not set(resolved.document_ids) <= set(allowed_documents):
+            raise GradingInputError("调用方资料范围超出本场冻结依据，拒绝扩大检索。")
+        document_ids = resolved.document_ids
+    material_version_ids = allowed_versions
+    if resolved.material_version_ids:
+        if not set(resolved.material_version_ids) <= set(allowed_versions):
+            raise GradingInputError("调用方资料版本超出本场冻结依据，拒绝扩大检索。")
+        material_version_ids = resolved.material_version_ids
+    return RetrievalFilters(
+        subject_ids=(subject_id,),
+        document_ids=document_ids,
+        material_version_ids=material_version_ids,
+    )
+
+
 def _resolve_positive_int(value: Any, *, label: str) -> int:
     """校验正整数配置；非法时显式失败。"""
 
@@ -524,6 +598,8 @@ def _resolve_retriever(
     candidate_k: int,
     retriever: BaseRetriever | None,
     settings: AppSettings | None,
+    vector_weight: float | None = None,
+    index_identity: Mapping[str, Any] | None = None,
 ) -> BaseRetriever:
     """按模式解析检索实现；只传各构造器支持的参数。"""
 
@@ -531,10 +607,16 @@ def _resolve_retriever(
         return retriever
     if mode in {RetrievalMode.HYBRID, RetrievalMode.HYBRID_RERANK}:
         kwargs: dict[str, Any] = {"candidate_k": candidate_k}
-        if settings is not None:
+        if vector_weight is not None:
+            kwargs["vector_weight"] = vector_weight
+        elif settings is not None:
             kwargs["vector_weight"] = settings.hybrid_vector_weight
+        if index_identity is not None:
+            kwargs["index_identity"] = index_identity
         return get_retriever(RetrievalMode.HYBRID, **kwargs)
     # vector_only / keyword_only 的构造器不接受候选数参数。
+    if index_identity is not None and mode is RetrievalMode.VECTOR_ONLY:
+        return get_retriever(mode, index_identity=index_identity)
     return get_retriever(mode)
 
 
@@ -603,7 +685,7 @@ async def build_grading_context(
     session: Session,
     source: SubjectiveGradingSource,
     *,
-    mode: RetrievalMode | str = RetrievalMode.HYBRID_RERANK,
+    mode: RetrievalMode | str | None = None,
     top_k: int = DEFAULT_TOP_K,
     candidate_k: int | None = None,
     fusion_top_k: int | None = None,
@@ -613,6 +695,7 @@ async def build_grading_context(
     embedding_provider: BaseEmbeddingProvider | None = None,
     require_context: bool = True,
     settings: AppSettings | None = None,
+    runtime: RunSnapshotContext | None = None,
 ) -> GradingContext:
     """组装主观题评分上下文（Query → Hybrid 检索 → Rerank → Final Context）。
 
@@ -629,14 +712,41 @@ async def build_grading_context(
     ``asyncio.run``。
     """
 
+    if mode is None:
+        configured_mode = (
+            runtime.retrieval_mode("subjective_grading") if runtime is not None else None
+        )
+        mode = configured_mode or RetrievalMode.HYBRID_RERANK
     resolved_mode = normalize_mode(mode)
-    resolved_settings = settings if settings is not None else get_settings()
+    query_text = build_query_text(source)
+    if source.grounding == "general_knowledge":
+        # 通用知识路径不检索教材，也不把空结果冒充为资料依据。
+        return GradingContext(
+            source=source,
+            query_text=query_text,
+            retrieval_mode=resolved_mode,
+            filters=RetrievalFilters(),
+            chunks=(),
+            retrieved_context_ids=(),
+            final_context="",
+            candidate_count=0,
+        )
+    resolved_settings = (
+        settings
+        if settings is not None
+        else (None if runtime is not None else get_settings())
+    )
+    configured_candidate_k = (
+        runtime.rerank_max_candidates
+        if runtime is not None
+        else (
+            resolved_settings.rerank_max_candidates
+            if resolved_settings is not None
+            else None
+        )
+    )
     resolved_candidate_k = _resolve_positive_int(
-        (
-            candidate_k
-            if candidate_k is not None
-            else resolved_settings.rerank_max_candidates
-        ),
+        candidate_k if candidate_k is not None else configured_candidate_k,
         label="candidate_k",
     )
     resolved_fusion_top_k = _resolve_positive_int(
@@ -645,7 +755,6 @@ async def build_grading_context(
     )
     limit = normalize_top_k(top_k)
 
-    query_text = build_query_text(source)
     scope = _merge_filters(source, filters)
     if not source.retrieval_scope.is_empty:
         scope = resolve_retrieval_scope(
@@ -661,6 +770,8 @@ async def build_grading_context(
         )
 
     embedding: list[float] | None = None
+    embedding_lease = None
+    query_identity: Mapping[str, Any] | None = None
     if resolved_mode in {
         RetrievalMode.HYBRID,
         RetrievalMode.HYBRID_RERANK,
@@ -668,17 +779,28 @@ async def build_grading_context(
     }:
         if embedding_provider is not None:
             provider = embedding_provider
+        elif runtime is not None:
+            embedding_lease = runtime.acquire("embedding")
+            provider = embedding_lease.client
         elif settings is not None:
             provider = create_embedding_provider(resolved_settings)
         else:
             provider = get_embedding_provider()
-        embedding = await provider.embed_query(query_text)
+        try:
+            embedding = await provider.embed_query(query_text)
+        finally:
+            if embedding_lease is not None:
+                await embedding_lease.arelease()
 
+    if runtime is not None and embedding is not None:
+        query_identity = provider.index_identity(dimension=len(embedding))
     active_retriever = _resolve_retriever(
         resolved_mode,
         candidate_k=resolved_candidate_k,
         retriever=retriever,
         settings=settings,
+        vector_weight=runtime.hybrid_vector_weight if runtime is not None else None,
+        index_identity=query_identity,
     )
     search_query = _build_search_query(
         resolved_mode,
@@ -706,13 +828,21 @@ async def build_grading_context(
 
     ranked: list[RetrievedChunk] = list(candidates)
     if resolved_mode is RetrievalMode.HYBRID_RERANK and ranked:
+        reranker_lease = None
         if reranker is not None:
             active_reranker = reranker
+        elif runtime is not None:
+            reranker_lease = runtime.acquire("rerank")
+            active_reranker = reranker_lease.client
         elif settings is not None:
             active_reranker = build_reranker(settings=resolved_settings)
         else:
             active_reranker = build_reranker()
-        ranked = await active_reranker.rerank_async(query_text, ranked, limit)
+        try:
+            ranked = await active_reranker.rerank_async(query_text, ranked, limit)
+        finally:
+            if reranker_lease is not None:
+                await reranker_lease.arelease()
 
     written, final_context = _compose_final_context(ranked)
     context = GradingContext(

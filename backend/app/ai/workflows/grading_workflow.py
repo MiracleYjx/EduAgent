@@ -236,6 +236,7 @@ class GradingWorkflowDeps:
     :param session: 借入会话；由调用方负责释放，本模块不关闭。
     :param settings: 与 T069 同一个 ``AppSettings``（显式组件 > 逐次设置 > 构造设置 > 全局）。
     :param max_regrades: 每题业务重评预算；``0`` 表示禁止重评。
+    :param runtime: 运行快照上下文；存在时只由快照提供模型/策略/凭据绑定。
     """
 
     snapshot: SubmissionSnapshot
@@ -246,6 +247,7 @@ class GradingWorkflowDeps:
     session: Any = None
     settings: AppSettings | None = None
     max_regrades: int = DEFAULT_MAX_REGRADES_PER_ANSWER
+    runtime: Any = None
 
 
 def _same_max_score(left: object, right: object) -> bool:
@@ -342,6 +344,7 @@ class GradingWorkflow:
         workflow_id: str,
         submission_id: str,
         thread_id: str | None = None,
+        snapshot_id: str | None = None,
     ) -> GradingWorkflowResult:
         """异步运行整卷工作流；中断时返回被中断的状态与待复核答案。"""
 
@@ -356,6 +359,8 @@ class GradingWorkflow:
             "status": WorkflowStatus.RUNNING,
             "current_node": LOAD_SUBMISSION,
         }
+        if snapshot_id is not None:
+            initial["snapshot_id"] = snapshot_id
         raw = await self._compiled.ainvoke(initial, self._config(thread_id))
         return self._to_result(raw)
 
@@ -366,6 +371,7 @@ class GradingWorkflow:
         workflow_id: str,
         submission_id: str,
         thread_id: str | None = None,
+        snapshot_id: str | None = None,
     ) -> GradingWorkflowResult:
         """同步入口：无运行中事件循环时包装 ``asyncio.run``，否则显式报错。"""
 
@@ -378,6 +384,7 @@ class GradingWorkflow:
                     workflow_id=workflow_id,
                     submission_id=submission_id,
                     thread_id=thread_id,
+                    snapshot_id=snapshot_id,
                 )
             )
         raise GradingWorkflowError(
@@ -1175,13 +1182,18 @@ class GradingWorkflow:
         session, owned = self._acquire_session(mode)
         agent_started_at = perf_counter()
         try:
+            call_kwargs: dict[str, Any] = {
+                "request_id": str(state.get("request_id") or ""),
+                "workflow_id": str(state.get("workflow_id") or ""),
+                "session": session,
+                "settings": self._deps.settings,
+            }
+            if self._deps.runtime is not None:
+                call_kwargs["runtime"] = self._deps.runtime
             invocation = await self._deps.agent.grade_answer_async(
                 self._deps.snapshot,
                 target,
-                request_id=str(state.get("request_id") or ""),
-                workflow_id=str(state.get("workflow_id") or ""),
-                session=session,
-                settings=self._deps.settings,
+                **call_kwargs,
             )
         finally:
             if owned and session is not None:

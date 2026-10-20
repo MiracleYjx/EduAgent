@@ -1,7 +1,7 @@
 """四模式检索 Benchmark 执行器（T045）。
 
 按 ``.specify/plan.md`` §2 的规范分别运行 ``vector_only``、``keyword_only``、``hybrid`` 与
-``hybrid_rerank``，把每次运行的完整结果写入 ``benchmark/results/``。默认加载
+``hybrid_rerank``，把每次运行的完整结果写入当前环境的 results 目录。默认加载
 ``--manifest`` 指定 setup_benchmark_corpus.py 生成的隔离教材、Query 和标注快照；
 不再要求数据库预置旧 UUID。保留旧合成数据入口供既有契约测试使用：
 
@@ -13,8 +13,8 @@
 - 运行失败（Provider 未就绪、方言不支持等）也写入记录，不伪造指标，不把失败当作 0 分。
 - 新数据集使用 ``annotations.json`` 中的多正样本标注，并排除 ``out_of_scope``；旧合成
   数据没有 query-chunk 标签时，才按参考答案所在片段构造单一正样本。
-- ``--self-test`` 使用确定性哈希替身 Embedding/Rerank，仅用于验证四模式管道能端到端
-  跑通，记录中的 ``model_version`` 会标注为 stub，**不得当作模型质量对比结果**。
+- 默认 ``--self-test`` 使用确定性哈希替身 Embedding/Rerank，仅用于验证四模式管道能端到端
+  跑通，记录中的 ``model_version`` 来自实际实例，**不得当作模型质量对比结果**；真实调用须显式 ``--real``。
 """
 
 from __future__ import annotations
@@ -29,6 +29,7 @@ import re
 import sys
 import time
 from collections.abc import Mapping, Sequence
+from contextlib import ExitStack
 from dataclasses import dataclass, replace
 from datetime import UTC, datetime
 from pathlib import Path
@@ -58,6 +59,11 @@ from backend.app.ai.retrieval.reranker import (
 )
 from backend.app.core.config import get_settings
 from backend.app.core.database import create_database_engine
+from backend.app.core.environment import (
+    resolve_results_directory,
+    result_file_path,
+    validate_result_run_id,
+)
 from backend.app.domain.enums import DocumentStatus, UserRole
 from backend.app.models import (
     Course,
@@ -67,8 +73,16 @@ from backend.app.models import (
     Role,
     User,
 )
+from backend.app.schemas.settings import EnvironmentProfile
+from scripts.benchmark_runtime import (
+    BenchmarkValidationError,
+    close_owned,
+    error_code,
+    safe_error_detail,
+)
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
+# Historical explicit paths only; defaults are resolved for the selected environment.
 DEFAULT_OUTPUT_DIR = PROJECT_ROOT / "benchmark" / "results"
 DATASET_PATH = DEFAULT_OUTPUT_DIR / "synthetic_benchmark.json"
 CORPUS_DIR = PROJECT_ROOT / "benchmark" / "corpus"
@@ -308,11 +322,14 @@ def compute_metrics(
     return metrics
 
 
-def load_dataset(path: Path = DATASET_PATH) -> dict[str, Any]:
+def load_dataset(path: Path | None = None) -> dict[str, Any]:
     """读取合成数据集；不存在时按既有生成器重新生成（不写随机数据）。"""
 
+    default_dataset = path is None or path == DATASET_PATH
+    if path is None:
+        path = resolve_results_directory(None) / DATASET_PATH.name
     if (
-        path == DATASET_PATH
+        default_dataset
         and NEW_CHUNKS_PATH.is_file()
         and NEW_QUERIES_PATH.is_file()
         and NEW_ANNOTATIONS_PATH.is_file()
@@ -337,7 +354,7 @@ def load_dataset(path: Path = DATASET_PATH) -> dict[str, Any]:
     return dict(generate_synthetic_benchmark())
 
 
-def _make_embedding_provider(self_test: bool) -> BaseEmbeddingProvider:
+def _make_embedding_provider(self_test: bool = True) -> BaseEmbeddingProvider:
     """构造 Embedding Provider：自检使用确定性替身，否则使用运行配置。"""
 
     if self_test:
@@ -350,19 +367,19 @@ def _make_embedding_provider(self_test: bool) -> BaseEmbeddingProvider:
     return create_embedding_provider()
 
 
-def _embed_texts(provider: BaseEmbeddingProvider, texts: Sequence[str]) -> list[list[float]]:
+def _embed_texts(provider: BaseEmbeddingProvider, texts: Sequence[str], *, runner: asyncio.Runner | None = None) -> list[list[float]]:
     """同步调用异步 Embedding Provider，批量编码语料文档。"""
 
-    return asyncio.run(provider.embed_documents(list(texts)))
+    return (runner.run if runner is not None else asyncio.run)(provider.embed_documents(list(texts)))
 
 
-def _embed_queries(provider: BaseEmbeddingProvider, queries: Sequence[str]) -> list[list[float]]:
+def _embed_queries(provider: BaseEmbeddingProvider, queries: Sequence[str], *, runner: asyncio.Runner | None = None) -> list[list[float]]:
     """逐条调用查询编码接口，保留 Provider 的查询前缀和语义约定。"""
 
     async def encode() -> list[list[float]]:
         return [await provider.embed_query(query) for query in queries]
 
-    return asyncio.run(encode())
+    return (runner.run if runner is not None else asyncio.run)(encode())
 
 
 def seed_corpus(
@@ -458,6 +475,14 @@ def _build_retriever(
     return get_retriever(config)
 
 
+async def _close_retriever(retriever: Any) -> None:
+    if isinstance(retriever, HybridRerankRetriever):
+        reranker = retriever.reranker
+        if isinstance(reranker, _LoopBoundReranker):
+            reranker = reranker.delegate
+        await close_owned(reranker)
+
+
 def run_config(
     session: Session,
     config: RetrievalMode,
@@ -484,9 +509,10 @@ def run_config(
         )
     query_vectors: Sequence[Sequence[float]] = vectors or [() for _ in cases]
     per_query: list[dict[str, Any]] = []
+    runner = asyncio.Runner() if retriever is None else None
     try:
         if retriever is None:
-            retriever = _build_retriever(config, self_test=self_test)
+            retriever = _build_retriever(config, self_test=self_test, runner=runner)
         for index, (case, vector) in enumerate(
             zip(cases, query_vectors, strict=False)
         ):
@@ -523,9 +549,15 @@ def run_config(
             per_query=[],
             metrics=compute_metrics([]),
             status="failed",
-            error_code=getattr(exc, "error_code", type(exc).__name__),
-            error_message=f"{type(exc).__name__}: {exc}",
+            error_code=error_code(exc),
+            error_message=f"{type(exc).__name__}：检索失败，原始正文不持久化。",
         )
+    finally:
+        if runner is not None:
+            try:
+                runner.run(_close_retriever(retriever))
+            finally:
+                runner.close()
     return ConfigRun(
         config=config,
         per_query=per_query,
@@ -538,16 +570,21 @@ def write_run_records(
     run: ConfigRun,
     *,
     run_id: str,
-    output_dir: Path,
+    output_dir: Path | None = None,
     dataset_version: str,
     model_version: str,
     prompt_version: str | None,
     top_k: int,
     analysis: str,
     reproducibility: Mapping[str, Any] | None = None,
+    profile: EnvironmentProfile | None = None,
 ) -> Path:
     """写入单次运行 JSON（失败运行同样写入错误状态）并追加汇总行。"""
 
+    validate_result_run_id(run_id)
+    output_dir = resolve_results_directory(output_dir, profile=profile)
+    result_path = result_file_path(output_dir, f"retrieval_{run_id}_{run.config.value}.json")
+    summary_path = result_file_path(output_dir, SUMMARY_NAME)
     output_dir.mkdir(parents=True, exist_ok=True)
     run_at = datetime.now(UTC).isoformat()
     payload = {
@@ -572,13 +609,11 @@ def write_run_records(
     }
     if reproducibility is not None:
         payload["reproducibility"] = dict(reproducibility)
-    result_path = output_dir / f"retrieval_{run_id}_{run.config.value}.json"
     result_path.write_text(
         json.dumps(payload, ensure_ascii=False, indent=2),
         encoding="utf-8",
     )
 
-    summary_path = output_dir / SUMMARY_NAME
     header = (
         "run_id,run_at,config,dataset_version,model_version,prompt_version,status,"
         "error_code,recall_at_5,recall_at_10,precision_at_5,mrr,ndcg_at_10,"
@@ -623,11 +658,14 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--run-id", default=None, help="运行标识，默认按时间生成。")
     parser.add_argument("--queries", type=int, default=DEFAULT_QUERY_LIMIT)
     parser.add_argument("--top-k", type=int, default=5)
-    parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
+    parser.add_argument("--output-dir", type=Path, default=None,
+                        help="结果目录，默认使用当前环境的 results 目录。")
     parser.add_argument("--manifest", type=Path, help="setup_benchmark_corpus.py 生成的清单。")
-    parser.add_argument(
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument("--real", dest="self_test", action="store_false", help="显式启用已授权真实 Provider。")
+    mode.add_argument(
         "--self-test",
-        action="store_true",
+        action="store_true", default=True,
         help="使用确定性替身 Embedding/Rerank 验证四模式管道（结果标注为 stub）。",
     )
     parser.add_argument(
@@ -676,7 +714,16 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = parse_args(argv)
     if args.manifest is not None:
         return run_manifest_benchmark(args)
-    run_id = args.run_id or datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
+    run_id = (
+        args.run_id if args.run_id is not None
+        else datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
+    )
+    try:
+        validate_result_run_id(run_id)
+        output_dir = resolve_results_directory(args.output_dir)
+    except ValueError as exc:
+        print(f"Benchmark 参数无效：{exc}", file=sys.stderr)
+        return 1
     dataset = load_dataset()
     is_ingested_dataset = "corpus" in dataset and "queries" in dataset
     if is_ingested_dataset:
@@ -694,6 +741,10 @@ def main(argv: Sequence[str] | None = None) -> int:
     engine = create_database_engine(get_settings(), connect_timeout=5)
     failed_configs = 0
     session: Session | None = None
+    seed: dict[str, Any] = {}
+    seeded_temp = False
+    provider: BaseEmbeddingProvider | None = None
+    runner = asyncio.Runner()
     try:
         with engine.connect() as connection:
             connection.execute(text("SELECT 1"))
@@ -702,7 +753,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 for row in connection.execute(
                     text(
                         "SELECT table_name FROM information_schema.tables "
-                        "WHERE table_schema = 'public'"
+                        "WHERE table_schema = current_schema()"
                     )
                 )
             }
@@ -713,22 +764,19 @@ def main(argv: Sequence[str] | None = None) -> int:
         corpus_vectors: list[list[float]] | None = None
         query_vectors: list[list[float]] | None = None
         embedding_error: Exception | None = None
-        provider: BaseEmbeddingProvider | None = None
         try:
             provider = _make_embedding_provider(args.self_test)
             if not is_ingested_dataset:
                 corpus_vectors = _embed_texts(
-                    provider, [case.corpus_text for case in cases]
+                    provider, [case.corpus_text for case in cases], runner=runner
                 )
             # 查询逐条使用 embed_query，保留模型查询前缀与 Provider 约定。
-            query_vectors = _embed_queries(provider, [case.query for case in cases])
+            query_vectors = _embed_queries(provider, [case.query for case in cases], runner=runner)
         except Exception as exc:  # noqa: BLE001  # 原始失败按模式写入记录
             embedding_error = exc
-            print(f"Embedding 执行失败：{type(exc).__name__}: {exc}", file=sys.stderr)
+            print(f"Embedding 执行失败：{error_code(exc)}", file=sys.stderr)
 
         session = Session(bind=engine, expire_on_commit=False)
-        seed: dict[str, Any] = {}
-        seeded_temp = False
         if is_ingested_dataset:
             try:
                 document_id, chunk_ids = _load_ingested_corpus(session, dataset)
@@ -736,7 +784,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             except Exception as exc:  # noqa: BLE001
                 embedding_error = embedding_error or exc
                 chunk_ids = []
-                print(f"教材校验失败：{type(exc).__name__}: {exc}", file=sys.stderr)
+                print(f"教材校验失败：{error_code(exc)}", file=sys.stderr)
         elif corpus_vectors is not None:
             seed = seed_corpus(session, cases, corpus_vectors, run_id=run_id)
             seeded_temp = True
@@ -747,15 +795,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             document_ids=(seed["document_id"],) if seed else (),
         )
 
-        model_version = (
-            "stub-hash-v1"
-            if args.self_test
-            else (
-                "bge-large-zh-v1.5"
-                if is_ingested_dataset
-                else (get_settings().embedding_model or "unknown")
-            )
-        )
+        metadata = provider.describe() if provider is not None else {"provider": "unknown", "model": "unknown"}
+        model_version = str(metadata.get("model") or "unknown")
         analysis = (
             "harness 自检运行：使用确定性替身 Embedding/Rerank 验证四模式管道，"
             "不得作为模型质量对比结果。"
@@ -777,8 +818,8 @@ def main(argv: Sequence[str] | None = None) -> int:
                     per_query=[],
                     metrics={},
                     status="failed",
-                    error_code=getattr(embedding_error, "error_code", type(embedding_error).__name__),
-                    error_message=f"{reason}：{type(embedding_error).__name__}: {embedding_error}",
+                    error_code=error_code(embedding_error),
+                    error_message=f"{reason}：{type(embedding_error).__name__}，原始正文不持久化。",
                 )
             else:
                 run = run_config(
@@ -794,7 +835,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             path = write_run_records(
                 run,
                 run_id=run_id,
-                output_dir=args.output_dir,
+                output_dir=output_dir,
                 dataset_version=str(
                     dataset.get("metadata", {}).get("dataset_version", "unknown")
                 ),
@@ -807,19 +848,28 @@ def main(argv: Sequence[str] | None = None) -> int:
                 ),
                 top_k=args.top_k,
                 analysis=analysis,
+                reproducibility={"embedding": metadata, "configuration_source": "runtime_factory",
+                    "evidence_kind": "pipeline_selftest" if args.self_test or metadata.get("provider") == "stub" else "provider_run"},
             )
             state = "OK" if run.status == "ok" else f"FAILED({run.error_code})"
             print(f"[{config.value}] {state} -> {path.name}")
             if run.status != "ok":
                 failed_configs += 1
 
-        if session is not None and seed and seeded_temp:
-            cleanup_corpus(session, seed)
         return 1 if failed_configs else 0
     finally:
-        if session is not None:
-            session.close()
-        engine.dispose()
+        try:
+            if session is not None and seed and seeded_temp:
+                session.rollback()
+                cleanup_corpus(session, seed)
+        finally:
+            if session is not None:
+                session.close()
+            try:
+                runner.run(close_owned(provider))
+            finally:
+                runner.close()
+                engine.dispose()
 
 
 def _retriever_metadata(retriever: Any) -> dict[str, Any]:
@@ -862,11 +912,20 @@ def run_manifest_benchmark(args: argparse.Namespace) -> int:
         schema_engine,
     )
 
-    run_id = args.run_id or uuid4().hex
+    run_id = args.run_id if args.run_id is not None else uuid4().hex
+    try:
+        validate_result_run_id(run_id)
+    except ValueError as exc:
+        print(f"Benchmark 运行标识无效：{exc}", file=sys.stderr)
+        return 1
     if re.fullmatch(r"[A-Za-z0-9_-]+", run_id) is None or args.queries < 1 or args.top_k < 1:
         print("run-id 只能包含字母/数字/下划线/横线，queries/top-k 必须为正数。", file=sys.stderr)
         return 1
-    output_dir = args.output_dir / run_id
+    try:
+        output_dir = resolve_results_directory(args.output_dir) / run_id
+    except ValueError as exc:
+        print(f"Benchmark 结果目录无效：{exc}", file=sys.stderr)
+        return 1
     engine = None
     try:
         output_dir.mkdir(parents=True, exist_ok=False)
@@ -875,6 +934,7 @@ def run_manifest_benchmark(args: argparse.Namespace) -> int:
         return 1
     manifest: dict[str, Any] = {}
     runner = asyncio.Runner()
+    clients = ExitStack()
     try:
         manifest = load_manifest(args.manifest)
         cases = build_retrieval_cases(manifest, limit=args.queries)
@@ -891,10 +951,11 @@ def run_manifest_benchmark(args: argparse.Namespace) -> int:
                 if row.content != item["content"]:
                     raise ValueError("数据库片段与 manifest 内容不一致，请重新初始化。")
             provider = _make_embedding_provider(args.self_test)
+            clients.callback(runner.run, close_owned(provider))
             metadata = embedding_metadata(provider)
             if metadata != manifest["embedding"]:
-                raise ValueError("查询 Embedding 与摄取 Provider/配置不匹配，请用相同配置或重新摄取。")
-            vectors = _embed_queries(provider, [case.query for case in cases])
+                raise BenchmarkValidationError("查询 Embedding 与摄取 Provider/配置不匹配，请用相同配置或重新摄取。")
+            vectors = _embed_queries(provider, [case.query for case in cases], runner=runner)
             stable = {item["chunk_id"]: item["stable_id"] for item in manifest["corpus"]["chunks"]}
             scope = RetrievalFilters(document_ids=(document_id,))
             failed = False
@@ -903,6 +964,7 @@ def run_manifest_benchmark(args: argparse.Namespace) -> int:
                 config_metadata: dict[str, Any] = {"mode": mode, "effective_top_k": max(RECALL_KS)}
                 try:
                     retriever = _build_retriever(config, self_test=args.self_test, runner=runner)
+                    clients.callback(runner.run, _close_retriever(retriever))
                     config_metadata.update(_retriever_metadata(retriever))
                     run = run_config(
                         session, config, cases, vectors, chunk_ids, scope,
@@ -942,16 +1004,19 @@ def run_manifest_benchmark(args: argparse.Namespace) -> int:
                 session.rollback()  # 模式失败后的读事务不影响其他模式。
             return int(failed)
     except Exception as exc:  # noqa: BLE001 - 失败报告不包含连接字符串或 SQL 参数
-        detail = str(exc) if isinstance(exc, ValueError) else type(exc).__name__
+        detail = safe_error_detail(exc)
         with (output_dir / "failure.json").open("x", encoding="utf-8") as handle:
             json.dump({"status": "failed", "error_code": type(exc).__name__,
                        "detail": detail, "manifest": manifest}, handle, ensure_ascii=False, indent=2)
         print(f"Benchmark 失败：{detail}", file=sys.stderr)
         return 1
     finally:
-        runner.close()
-        if engine is not None:
-            engine.dispose()
+        try:
+            clients.close()
+        finally:
+            runner.close()
+            if engine is not None:
+                engine.dispose()
 
 
 if __name__ == "__main__":

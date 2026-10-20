@@ -65,10 +65,17 @@ EXPECTED_CHAIN: dict[str, str] = {
     "0021_question_source_paper": "0020_content_validation",
     "0022_exam_question": "0021_question_source_paper",
     "0023_grading_exam_question": "0022_exam_question",
+    "0024_embedding_index_identity": "0023_grading_exam_question",
+    "0025_personal_foundation": "0024_embedding_index_identity",
+    "0026_learning_operations": "0025_personal_foundation",
+    "0027_personal_content_assets": "0026_learning_operations",
+    "0028_personal_materials": "0027_personal_content_assets",
+    "0029_personal_paper_import": "0028_personal_materials",
+    "0030_personal_duplicates": "0029_personal_paper_import",
 }
 
 #: 当前 head（逐个任务向后移动）。
-EXPECTED_HEAD = "0023_grading_exam_question"
+EXPECTED_HEAD = "0030_personal_duplicates"
 
 
 @dataclass(frozen=True, slots=True)

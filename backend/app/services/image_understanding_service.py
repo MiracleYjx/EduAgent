@@ -4,7 +4,7 @@ from __future__ import annotations
 import asyncio
 import math
 from pathlib import Path
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 from uuid import UUID, uuid4
 
 from sqlalchemy.orm import Session
@@ -31,7 +31,22 @@ from backend.app.services.content_validation_service import (
 )
 from backend.app.services.file_storage_service import FileStorageError
 
+if TYPE_CHECKING:
+    from backend.app.services.settings.runtime_snapshot import RunSnapshotContext
+
 OwnerKind = Literal["question", "extracted_question"]
+
+
+def _observed_model(provider: object | None) -> str | None:
+    """只读取 Provider 明确暴露的响应模型；未知保持未知。"""
+
+    if provider is None:
+        return None
+    for name in ("last_response_model", "response_model", "returned_model"):
+        value = getattr(provider, name, None)
+        if isinstance(value, str) and value.strip():
+            return value.strip()
+    return None
 
 
 def _map_region(region: PixelRegion | None, image: PreparedImage) -> PixelRegion | None:
@@ -75,9 +90,15 @@ def bind_vision_result(result: VisionResult, prepared: PreparedImageRun) -> Imag
 
 
 class ImageUnderstandingService:
-    def __init__(self, session: Session, *, root: Path | None = None, settings: AppSettings | None = None):
-        self.persistence = ContentValidationService(session, root=root)
-        self.settings = settings or get_settings()
+    def __init__(self, session: Session, *, root: Path | None = None, settings: AppSettings | None = None,
+                 runtime: RunSnapshotContext | None = None):
+        self.persistence = ContentValidationService(session, root=root, runtime=runtime)
+        self.settings = (
+            settings
+            if settings is not None
+            else (None if runtime is not None else get_settings())
+        )
+        self.runtime = runtime
 
     async def understand(self, owner_kind: OwnerKind, owner_id: UUID, *,
         task: str = "提取题图中作答所需条件", actor_id: UUID) -> ImageAssessmentView:
@@ -85,15 +106,23 @@ class ImageUnderstandingService:
         run = self.persistence.start_image_run(owner_kind, owner_id, task=task,
             actor_id=actor_id, executor_name="vision")
         provider = None
+        vision_lease = None
         provenance = None
         vision = None
         bound = None
         failure = None
+        vision_attempted = False
         close_error: BaseException | None = None
         try:
             prepared = self.persistence.prepare_image_run(owner_kind, owner_id, run.id, actor_id=actor_id)
-            provider = create_vision_provider(self.settings)
+            if self.runtime is not None:
+                vision_lease = self.runtime.acquire("vision")
+                provider = vision_lease.client
+            else:
+                assert self.settings is not None
+                provider = create_vision_provider(self.settings)
             vision = ProviderVisionUnderstanding(provider)
+            vision_attempted = True
             result = await vision.understand(context=prepared.context, task=task,
                 images=[VisionImage(data=image.data, mime_type=image.mime_type,
                     width=image.width, height=image.height) for image in prepared.images])
@@ -128,6 +157,14 @@ class ImageUnderstandingService:
                 except (asyncio.CancelledError, Exception) as exc:  # noqa: BLE001
                     # 即使关闭被取消也先保存已取得的真实调用结果，再传播清理失败。
                     close_error = exc
+            if vision_lease is not None:
+                await vision_lease.arelease()
+            if self.runtime is not None and vision_attempted:
+                self.runtime.record_invocation(
+                    "vision",
+                    returned_model=_observed_model(provider),
+                    prompt_version=getattr(provenance, "prompt_version", None),
+                )
         # Persistence failures propagate as actual failures; never retry an ended run as an error.
         view = self.persistence.finish_image_run(owner_kind, owner_id, run.id, actor_id=actor_id,
             result=bound if failure is None else None, error=failure, provenance=provenance)

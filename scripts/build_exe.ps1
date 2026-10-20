@@ -1,5 +1,6 @@
 param(
     [string]$Python = 'python',
+    [string]$Npm = 'npm.cmd',
     [string]$BuildRoot = '',
     [switch]$WithLocalModels
 )
@@ -28,14 +29,27 @@ if ($WithLocalModels) {
 } else { $env:EDUAGENT_BUILD_LOCAL_MODELS = '0' }
 & $taskPython -m pip check
 if ($LASTEXITCODE -ne 0) { throw '构建环境依赖冲突。' }
-$taskDist = Join-Path $taskBuild 'dist'
-$taskWork = Join-Path $taskBuild 'work'
+# Each build gets a new output directory; a failed build cannot replace a prior package.
+$taskSession = Join-Path $taskBuild ('build-' + [guid]::NewGuid().ToString('N'))
+$taskDist = Join-Path $taskSession 'dist'
+$taskWork = Join-Path $taskSession 'work'
+$taskPreviousPython = $env:EDUAGENT_PYTHON
+$env:EDUAGENT_PYTHON = $taskPython
+Push-Location (Join-Path $taskRepo 'frontend')
+try {
+    & $Npm ci --no-audit --no-fund
+    if ($LASTEXITCODE -ne 0) { throw '锁定前端依赖安装失败。' }
+    & $Npm run build
+    if ($LASTEXITCODE -ne 0) { throw '设置页类型检查或生产构建失败。' }
+} finally {
+    Pop-Location
+    $env:EDUAGENT_PYTHON = $taskPreviousPython
+}
 Push-Location $taskRepo
 try {
     & $taskPython -m PyInstaller --noconfirm --distpath $taskDist --workpath $taskWork (Join-Path $taskRepo 'packaging/EduAgent.spec')
     if ($LASTEXITCODE -ne 0) { throw 'PyInstaller onedir 构建失败。' }
     $taskPackage = Join-Path $taskDist 'EduAgent'
-    Copy-Item -LiteralPath (Join-Path $taskRepo 'config/windows.env.example') -Destination (Join-Path $taskPackage 'config.env.example')
     Copy-Item -LiteralPath (Join-Path $taskRepo 'packaging/README.md') -Destination (Join-Path $taskPackage 'README.md')
     Copy-Item -LiteralPath (Join-Path $taskRepo 'packaging/Configure-EduAgent.cmd') -Destination (Join-Path $taskPackage 'Configure-EduAgent.cmd')
     & $taskPython (Join-Path $taskRepo 'packaging/build_receipt.py') --package $taskPackage --output (Join-Path $taskPackage 'build-receipt.json')

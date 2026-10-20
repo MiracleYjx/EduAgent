@@ -70,6 +70,7 @@ from backend.app.services.auth_service import create_access_token
 from backend.app.services.course_service import CourseService
 from backend.app.services.question_service import QuestionService
 from backend.app.services.question_validator import QuestionValidator
+from tests.support.application_lifecycle import bind_startup_to_session
 from tests.support.question_generation_doubles import (
     StubEmbeddingProvider,
     StubQuestionProvider,
@@ -286,8 +287,10 @@ def _headers(user: User, role: UserRole) -> dict[str, str]:
 
 
 @pytest.fixture
-def client_factory(session: Session) -> Generator[Any, None, None]:
+def client_factory(session: Session, monkeypatch: pytest.MonkeyPatch) -> Generator[Any, None, None]:
     """装配可注入出题服务的 TestClient 工厂。"""
+
+    bind_startup_to_session(monkeypatch, session)
 
     with ExitStack() as stack:
 

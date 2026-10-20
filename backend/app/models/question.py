@@ -14,9 +14,12 @@ from sqlalchemy import (
     CheckConstraint,
     DateTime,
     ForeignKey,
+    ForeignKeyConstraint,
     Index,
     Numeric,
     Text,
+    UniqueConstraint,
+    Uuid,
     true,
 )
 from sqlalchemy.dialects.postgresql import JSONB
@@ -40,18 +43,26 @@ class Question(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     """人工或 AI 生成、需经过审核后才能用于考试的题目。"""
 
     __tablename__ = "questions"
-    __table_args__ = (Index("ix_questions_course_status", "course_id", "status"), CheckConstraint("validation_revision >= 0", name="ck_question_validation_revision"), CheckConstraint("image_assessment IS NULL OR jsonb_typeof(image_assessment) = 'object'", name="ck_question_image_assessment").ddl_if(dialect="postgresql"))
+    __table_args__ = (UniqueConstraint("id", "subject_id"),
+        ForeignKeyConstraint(["id", "current_revision_id"], ["question_revisions.question_id", "question_revisions.id"], name="fk_question_current_revision", use_alter=True),
+        ForeignKeyConstraint(["canonical_id", "subject_id"], ["questions.id", "questions.subject_id"], name="fk_question_canonical"),
+        CheckConstraint("(subject_id IS NULL AND course_id IS NOT NULL AND created_by IS NOT NULL AND content IS NOT NULL AND type IS NOT NULL AND score IS NOT NULL) OR (subject_id IS NOT NULL AND course_id IS NULL AND created_by IS NULL)", name="ck_question_domain"),Index("ix_questions_course_status", "course_id", "status"), CheckConstraint("validation_revision >= 0", name="ck_question_validation_revision"), CheckConstraint("image_assessment IS NULL OR jsonb_typeof(image_assessment) = 'object'", name="ck_question_image_assessment").ddl_if(dialect="postgresql"))
 
     validation_revision: Mapped[int] = mapped_column(BigInteger, default=0, server_default="0", nullable=False)
     validation_results: Mapped[list[QuestionValidationResult]] = relationship("QuestionValidationResult", back_populates="question", passive_deletes="all", order_by="QuestionValidationResult.run_no")
 
-    course_id: Mapped[UUID] = mapped_column(
-        ForeignKey("courses.id", ondelete="CASCADE"), nullable=False, index=True
+    subject_id: Mapped[UUID | None] = mapped_column(ForeignKey("subjects.id", ondelete="RESTRICT"), nullable=True)
+    current_revision_id: Mapped[UUID | None] = mapped_column(Uuid)
+    canonical_id: Mapped[UUID | None] = mapped_column(Uuid)
+
+
+    course_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("courses.id", ondelete="CASCADE"), nullable=True, index=True
     )
-    type: Mapped[QuestionType] = mapped_column(
-        enum_type(QuestionType, "question_type"), nullable=False, index=True
+    type: Mapped[QuestionType | None] = mapped_column(
+        enum_type(QuestionType, "question_type"), nullable=True, index=True
     )
-    content: Mapped[str] = mapped_column(Text, nullable=False)
+    content: Mapped[str | None] = mapped_column(Text, nullable=True)
     options: Mapped[dict[str, Any] | list[Any] | None] = mapped_column(JSON)
     order_preserved: Mapped[bool] = mapped_column(Boolean, default=True, server_default=true(), nullable=False)
     reference_answer: Mapped[str | None] = mapped_column(Text)
@@ -66,15 +77,15 @@ class Question(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     knowledge_points: Mapped[list[str]] = mapped_column(
         JSON, default=list, nullable=False
     )
-    score: Mapped[Decimal] = mapped_column(Numeric(8, 2), nullable=False)
+    score: Mapped[Decimal | None] = mapped_column(Numeric(8, 2), nullable=True)
     status: Mapped[QuestionStatus] = mapped_column(
         enum_type(QuestionStatus, "question_status"),
         default=QuestionStatus.DRAFT,
         nullable=False,
         index=True,
     )
-    created_by: Mapped[UUID] = mapped_column(
-        ForeignKey("users.id", ondelete="RESTRICT"), nullable=False, index=True
+    created_by: Mapped[UUID | None] = mapped_column(
+        ForeignKey("users.id", ondelete="RESTRICT"), nullable=True, index=True
     )
     course: Mapped[Course] = relationship("Course", back_populates="questions")
     creator: Mapped[User] = relationship(

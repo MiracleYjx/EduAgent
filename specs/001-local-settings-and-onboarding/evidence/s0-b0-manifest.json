@@ -1,0 +1,2362 @@
+{
+  "artifact_kind": "S0 B0 audit evidence; not runtime configuration",
+  "captured_at_utc": "2026-10-10T06:28:30.9817039Z",
+  "host_observation_at_utc": "2026-10-10T06:29:28.5812984Z",
+  "source_commit": "e89458156d15b10a2a0ae9ac3af5d20ca2dc9229",
+  "git_branch": "deepcode",
+  "scope": "Captured before any S0 document writes; no source/test/runtime changes or dynamic validation",
+  "git_before": "deepcode\ne89458156d15b10a2a0ae9ac3af5d20ca2dc9229\n M .gitignore\n?? specs/001-local-settings-and-onboarding/analysis-report.md\n?? specs/001-local-settings-and-onboarding/audit.md\n?? specs/001-local-settings-and-onboarding/checklists/readiness.md\n?? specs/001-local-settings-and-onboarding/checklists/requirements.md\n?? specs/001-local-settings-and-onboarding/contracts/runtime-configuration.md\n?? specs/001-local-settings-and-onboarding/contracts/settings-api.md\n?? specs/001-local-settings-and-onboarding/data-model.md\n?? specs/001-local-settings-and-onboarding/plan.md\n?? specs/001-local-settings-and-onboarding/quickstart.md\n?? specs/001-local-settings-and-onboarding/research.md\n?? specs/001-local-settings-and-onboarding/roadmap.md\n?? specs/001-local-settings-and-onboarding/spec.md\n?? specs/001-local-settings-and-onboarding/tasks.md\n?? specs/001-local-settings-and-onboarding/test-change-plan.md\n1\t0\t.gitignore\ndiff --git a/.gitignore b/.gitignore\nindex e36efe9..2bf69b2 100644\n--- a/.gitignore\n+++ b/.gitignore\n@@ -3,6 +3,7 @@\n \n # Local documentation (not published)\n /docs/\n+/项目相关技术栈.md\n \n # Speckit generated development documents and templates\n # Track the approved spec/plan and required contracts; ignore other local Spec Kit artifacts.\n",
+  "feature_resolution": {
+    "paths": {
+      "REPO_ROOT": "D:\\YJX\\MyCode\\EduAgent",
+      "BRANCH": "001-local-settings-and-onboarding",
+      "FEATURE_DIR": "D:\\YJX\\MyCode\\EduAgent\\specs\\001-local-settings-and-onboarding",
+      "FEATURE_SPEC": "D:\\YJX\\MyCode\\EduAgent\\specs\\001-local-settings-and-onboarding\\spec.md",
+      "IMPL_PLAN": "D:\\YJX\\MyCode\\EduAgent\\specs\\001-local-settings-and-onboarding\\plan.md",
+      "TASKS": "D:\\YJX\\MyCode\\EduAgent\\specs\\001-local-settings-and-onboarding\\tasks.md"
+    },
+    "pointer_content": "{\n  \"feature_directory\": \".specify\"\n}\n",
+    "pointer_hash": "3F61275BCCDDFFC1D359A848D1E02A222F24ECA7CFC46DF8D479751F6581F535",
+    "hooks_present": false
+  },
+  "protected_tracked_files": [
+    {
+      "path": ".dockerignore",
+      "hash": "91BE94045D662D9A33B95B8C8C1E22F979A8C62B7E64F105CDFCD036B8336E7A"
+    },
+    {
+      "path": ".gitignore",
+      "hash": "077E3B0A65723C5EAE1E9F6C57FBDB94DEB2C0F4F22E848BE19EDA2BD603E5C4"
+    },
+    {
+      "path": ".specify/checklists/v2-readiness.md",
+      "hash": "F4B3D5BECB5116BD06E9A874C421DB092FA48EC69900D18AB1A15E1EEB995ACB"
+    },
+    {
+      "path": ".specify/contracts/agent-workflow.md",
+      "hash": "757DCB983AD598A4E87417C5C67172ACDCDE52EE005FA6A4F87DB7F2F77CD63B"
+    },
+    {
+      "path": ".specify/contracts/embedding-provider.md",
+      "hash": "A00E5B18962260FAEA8C5D04883834220520B09BD1EBDABECABD98AEB390FF94"
+    },
+    {
+      "path": ".specify/contracts/exam-assembly.md",
+      "hash": "D4DECF91E56CC64D1A2EE43C3101DEA5992C539638D3025B1E1888F60FCF27F8"
+    },
+    {
+      "path": ".specify/contracts/exam-scoring.md",
+      "hash": "D8488E2E3A6FEE567C62A912A318AC93CBD2CA75BA0675F6C3DB56B1BBDC0B8C"
+    },
+    {
+      "path": ".specify/contracts/file-storage.md",
+      "hash": "E883608E27E648B3EF115C13EA58C2709F9A74F59A9BDC54CF6B6485A4D004F1"
+    },
+    {
+      "path": ".specify/contracts/ocr-provider.md",
+      "hash": "DE9261116EFE66B9A85186B2D69944981A90D48A836F7F99973B9A190E641C9B"
+    },
+    {
+      "path": ".specify/contracts/paper-import.md",
+      "hash": "C3C168AFD2B3A8FA7D301E8E2A2F78508B5D4AC751FE4223E960EE07863E78DF"
+    },
+    {
+      "path": ".specify/contracts/question-source-persistence.md",
+      "hash": "391036BA99F435E91F363A04F7FCEBE20700471FD22D7DC0F2009CB6CCCE6C4B"
+    },
+    {
+      "path": ".specify/contracts/rag-retrieval.md",
+      "hash": "E7E1D94CF10294CCACB8EE807AA0A656CA65C067FDEE0360A67644866B6A73FA"
+    },
+    {
+      "path": ".specify/contracts/vision-capability.md",
+      "hash": "D540EF15223F44655EDD8C0024E7C557A5623D880DCF7EA78EA39AB05BB4A403"
+    },
+    {
+      "path": ".specify/data-model.md",
+      "hash": "1D25FF8A13D7E83490FA10CFBB9091089388E03F70EAB90B07A888EEC489851F"
+    },
+    {
+      "path": ".specify/plan.md",
+      "hash": "0E65F829799784544A1EBD47519941227DD68CDCA273180473E54525D6251030"
+    },
+    {
+      "path": ".specify/spec.md",
+      "hash": "329473EC3A1FCB86F371B0317F04D1D0713F09BE7B99DCB970A60D5962635C50"
+    },
+    {
+      "path": ".specify/tasks.md",
+      "hash": "8614A7A29F87E896EACFD94C6715FCD4ADE85EEE38DB4BDFA10DD41D185F82EF"
+    },
+    {
+      "path": "Dockerfile",
+      "hash": "AB4C28358FB5C38004C1C0F0B0D237CBE4424FDDCE6CCD753E702799556BE738"
+    },
+    {
+      "path": "alembic.ini",
+      "hash": "32D44C1347DC804E0EB59829FCAE5F14A0D8C5116E15EA3DE3D39725499532FE"
+    },
+    {
+      "path": "backend/__init__.py",
+      "hash": "A7FFDBF930E2C34BB95CE7824FFFAEF6A993A0AE064531F0AC31C2428019D369"
+    },
+    {
+      "path": "backend/app/__init__.py",
+      "hash": "01FEDC22F12A680534E37CB3C0AE5A89DEB7AF5A30514170EC7B7A193A7A121C"
+    },
+    {
+      "path": "backend/app/ai/__init__.py",
+      "hash": "A5CDB0B7B6BC56E77440D4CF657706B5202BE5C8A8D11F0FE79B68E9C4862BF4"
+    },
+    {
+      "path": "backend/app/ai/agents/__init__.py",
+      "hash": "8EFB2DD101CF8C248AF9F600BC3E1F332E854448D1B124E532860661A2FC63E3"
+    },
+    {
+      "path": "backend/app/ai/agents/grading_agent.py",
+      "hash": "6F2E04E3D66B5EB1E1886563D3AF57EF5247AD2AD9D4F66AE414A9145CF3003D"
+    },
+    {
+      "path": "backend/app/ai/agents/invocation.py",
+      "hash": "75482B675F5B3E17AFCAEEA074F37858C4B6C4560CFB244704A5FA4359CF8253"
+    },
+    {
+      "path": "backend/app/ai/agents/question_agent.py",
+      "hash": "69F18F0CC021123134B75DFA613F750EF0A3CCC93EF95FD71919784E17BAB296"
+    },
+    {
+      "path": "backend/app/ai/agents/reviewer_agent.py",
+      "hash": "FEC6C51DED088CA60EE98BD4E7155BD7E7B0A7FC7E32270907E5A6DF85E5567B"
+    },
+    {
+      "path": "backend/app/ai/agents/state.py",
+      "hash": "08688721E3C2A253050E62E9D156F05A86182E398ED24488775FC0B8148C7194"
+    },
+    {
+      "path": "backend/app/ai/agents/supervisor.py",
+      "hash": "FC1F555EE3A5B0477C7E69EB3AA663960900B4A26F835BA891819A662A887934"
+    },
+    {
+      "path": "backend/app/ai/embedding/__init__.py",
+      "hash": "A46CEDE1C8C7EF6EF7003F279F84E855AABA4D6798B0A2295F8E8DC9BE8EAAE1"
+    },
+    {
+      "path": "backend/app/ai/embedding/base.py",
+      "hash": "FCD70045EF4A7CAE595E05BC62CAB3DD2483054D88DA2CA09E7E2C9CBAC79717"
+    },
+    {
+      "path": "backend/app/ai/embedding/factory.py",
+      "hash": "F9FE138F374B84E3B059BBDD5E07838EB8315A6A9855EAD51449803329F116E6"
+    },
+    {
+      "path": "backend/app/ai/embedding/providers/__init__.py",
+      "hash": "59B3BFF559F66014C6D4C2C43919CDECC3276AA04F18E870D8D680261AC3FC1E"
+    },
+    {
+      "path": "backend/app/ai/embedding/providers/bge.py",
+      "hash": "C7073F220C494A3469979ED2812EDC3DC0D06371F1FD9974657B5D332E0F2703"
+    },
+    {
+      "path": "backend/app/ai/embedding/providers/local.py",
+      "hash": "9B6E3589C3984EB41E6EDC3980D616EF5491B6799AA44429B1A6B40024E4611C"
+    },
+    {
+      "path": "backend/app/ai/embedding/providers/openai_compatible.py",
+      "hash": "47943806E3849FA2E7108B89D25DEEDB4F466CD2D6DF2E8383E74D2D73D53E1F"
+    },
+    {
+      "path": "backend/app/ai/evaluation/__init__.py",
+      "hash": "20CF8C8BA0BD0276F60D1DBBE36090947735ABFEF2CD61B5066BC15234D49035"
+    },
+    {
+      "path": "backend/app/ai/ingestion/__init__.py",
+      "hash": "4A6FB7B67684E73310BC659D26E89FF3D2E0E9B8873D4117972EFF7420B848B1"
+    },
+    {
+      "path": "backend/app/ai/ingestion/chunking.py",
+      "hash": "AB70EA0947F180BA4C7FD9769CCE28429532501088C7DE704D3ACD13ABD1597E"
+    },
+    {
+      "path": "backend/app/ai/ingestion/cleaning.py",
+      "hash": "542C16E24AB67E50B2647C210888FEEBE50F63A0F8463C1DE88DBCBC9138A07B"
+    },
+    {
+      "path": "backend/app/ai/ingestion/ocr/__init__.py",
+      "hash": "00BB8E4436746D76E8D24695CB31FB2F2BE54DDA4E4978D525EE4CD762F32D9D"
+    },
+    {
+      "path": "backend/app/ai/ingestion/ocr/base.py",
+      "hash": "C414CC3EFE215CC75417A217B337FAAEE4956A75EB88BB95DAB657DD91FCE3B4"
+    },
+    {
+      "path": "backend/app/ai/ingestion/ocr/factory.py",
+      "hash": "07466C3E0B263A2A46BA2BBA5AEBB855C8C6AC8D44A47899E4B9AA7DA2FA16C0"
+    },
+    {
+      "path": "backend/app/ai/ingestion/ocr/rapidocr.py",
+      "hash": "13FCAAD2CF5C44CB50D6B696AD902E15D080703F3C335CCA97A32D9F918B37C9"
+    },
+    {
+      "path": "backend/app/ai/ingestion/ocr/schemas.py",
+      "hash": "1C60B8AB1497FF40F2D263C423A5AC71176B4AB208343C17794B1C3B5EE27120"
+    },
+    {
+      "path": "backend/app/ai/ingestion/paper_pipeline.py",
+      "hash": "DE839DAFB2C6E395FA13C5D225452BCADEA9F38FE6F2510A1C376136302C22AC"
+    },
+    {
+      "path": "backend/app/ai/ingestion/parsers.py",
+      "hash": "0B3FC011084C0849C30F999CFEC478D8C518CF9C90BE16D3124EFF21575C5D1E"
+    },
+    {
+      "path": "backend/app/ai/ingestion/service.py",
+      "hash": "43B626C19B1168069DCE7A68BF534063BBABBB0FCD0E131B580C6B0AEB74E003"
+    },
+    {
+      "path": "backend/app/ai/llm/__init__.py",
+      "hash": "EAB4431E253C92C9BEB1862368CEED4DE115A2C289DA64912B7AB9A9D9205BE9"
+    },
+    {
+      "path": "backend/app/ai/llm/base.py",
+      "hash": "2871BB974622269A7DA6A95788AFCCC4F64CE2AA6F2430D8FCFEC9AF6F98855C"
+    },
+    {
+      "path": "backend/app/ai/llm/deepseek.py",
+      "hash": "E164F79ECCF95500A908BDAD899002FC7191E36210E2C30BDFB8CC3A358D35D5"
+    },
+    {
+      "path": "backend/app/ai/llm/factory.py",
+      "hash": "90D75AD3994D7C62F89C94D03E8BD4B619DA65E1A11F5C24B94C9D34E63F72FC"
+    },
+    {
+      "path": "backend/app/ai/paper_extraction/__init__.py",
+      "hash": "6C76A4C97CABA4392F89AD077D72E446ED47BF846601B4803A6B2D930070F389"
+    },
+    {
+      "path": "backend/app/ai/paper_extraction/schemas.py",
+      "hash": "F69A6FD91DE2C587F0A1B0E1C8E59BFF9E95C945D570BD09055675DBEAD72523"
+    },
+    {
+      "path": "backend/app/ai/paper_extraction/service.py",
+      "hash": "1F7F4C5AAAE97204FDCDE4920E1B6E9036698BEA36E29DC01BEADA45EB478143"
+    },
+    {
+      "path": "backend/app/ai/prompts/__init__.py",
+      "hash": "42F340EE333CD8A27C5D4C181A2B1CF079B9D3A81D3FD0ED2D7C5E1313AE5C77"
+    },
+    {
+      "path": "backend/app/ai/retrieval/__init__.py",
+      "hash": "688E1F494E337180491049F5D0122B85E623D791F641914BCF139112A7983BC2"
+    },
+    {
+      "path": "backend/app/ai/retrieval/_filters.py",
+      "hash": "2CB9BC6A9CF3D9249D669E330E436897B25DB7D02F691F3B60A7222F62DFC915"
+    },
+    {
+      "path": "backend/app/ai/retrieval/base.py",
+      "hash": "5CF7F6356DA699ABAF185F108E50D58FF1775B9BE98ED993F28305BDC07509AA"
+    },
+    {
+      "path": "backend/app/ai/retrieval/hybrid_search.py",
+      "hash": "10DAA16E60043E0A3E266412DBA57E13C74A96C8459D184A3E4FFA6BA0EB9DD0"
+    },
+    {
+      "path": "backend/app/ai/retrieval/keyword_search.py",
+      "hash": "403E336A979A6ACB85010D58FD948E19853F211DAA050B9FFD63706A66B6C359"
+    },
+    {
+      "path": "backend/app/ai/retrieval/reranker.py",
+      "hash": "0FBC8B6EF1279769C88CFEECC2AC875B2E5D68DB2132828DF7640431FC36C398"
+    },
+    {
+      "path": "backend/app/ai/retrieval/vector_search.py",
+      "hash": "B68D17048BD535F9C9B8EAE7F36FBCD32465881BB6B0BCB41DF1A76A680D145B"
+    },
+    {
+      "path": "backend/app/ai/semantic_validation.py",
+      "hash": "3BE65B138543B17BB6C094B354898BFAB265A55DF6943936DA2298C7D71977BB"
+    },
+    {
+      "path": "backend/app/ai/vision/__init__.py",
+      "hash": "98943D75F7D1FF3BDAE8AF3789F274FB9A0224E6DD06E9B0E85F743E61C097D4"
+    },
+    {
+      "path": "backend/app/ai/vision/base.py",
+      "hash": "9A79FA8542E30DE34D2566715FA1D8B02A111CBD583B6E997F8ADD89593C76B8"
+    },
+    {
+      "path": "backend/app/ai/vision/provider.py",
+      "hash": "F92A8C4C9B70EB9BA0B75DC861D3D1695164A913FE9743CF48A2F0404915F9D8"
+    },
+    {
+      "path": "backend/app/ai/workflows/__init__.py",
+      "hash": "661B00B9B6A293F8B90B868E6B261633006D4293A788FBB6112EDD9FA0A3E2F9"
+    },
+    {
+      "path": "backend/app/ai/workflows/grading_handoff.py",
+      "hash": "3ACBF27B843C2FBC042E5B92233D941084C924D29107904389883EC2696924E6"
+    },
+    {
+      "path": "backend/app/ai/workflows/grading_workflow.py",
+      "hash": "4B6905A0FD506BE9D1EE440FAD266877DE1D2B28D9DD69E73A7B019EBCDC8F89"
+    },
+    {
+      "path": "backend/app/ai/workflows/state.py",
+      "hash": "2D1299DFEB0F4EDDD6CD97303DDDA537E9AB45DF322185C94A19DF1EF5E61CFA"
+    },
+    {
+      "path": "backend/app/api/__init__.py",
+      "hash": "C470D802751333ED87C9BA2BE1FDD0B58AA17632175F4271B1BC94067B2880C1"
+    },
+    {
+      "path": "backend/app/api/admin.py",
+      "hash": "F029CC0C5177B156AED8A9CB2F3AEBD569E52B291DAE99F63BF6F611A474A545"
+    },
+    {
+      "path": "backend/app/api/auth.py",
+      "hash": "FC0F79B8757555EAE2306C757C7C4282D4DFFD42A9A43C182AD830DF4BF6AB79"
+    },
+    {
+      "path": "backend/app/api/content_validation.py",
+      "hash": "51BAB7D600BDB2051C974E78E3A4C78D5DA80E177337D659E2CFC49235625B12"
+    },
+    {
+      "path": "backend/app/api/courses.py",
+      "hash": "E6CB26827BE025D56A07D585C4E29BB12B33F0D8B3EB46D49879D4C7F5DFE4A8"
+    },
+    {
+      "path": "backend/app/api/exams.py",
+      "hash": "3D786A4670BB59EB093F05177F8D6946A2D04CF65ABAC5CD0C0B51D858FBF8C9"
+    },
+    {
+      "path": "backend/app/api/file_storage.py",
+      "hash": "DA6D1F7431FD1E6DC30C006991A212A01A59A5F4269127A54C7DB40E9D662E79"
+    },
+    {
+      "path": "backend/app/api/grading.py",
+      "hash": "CA237032028ABC0FBA79A51BAF8DAD617893AE02BCF352BE436D76730448836B"
+    },
+    {
+      "path": "backend/app/api/image_understanding.py",
+      "hash": "4C992B42D42DB4C359B82E7407E1D33EF7C580F255C187EE177533E1E569E6A0"
+    },
+    {
+      "path": "backend/app/api/knowledge_bases.py",
+      "hash": "6B5A60C6AC296D8C045681C12B8CA723BD446E12B9F960BFA6D88CC7ECB1C133"
+    },
+    {
+      "path": "backend/app/api/paper_import.py",
+      "hash": "7BC5E7016DA660211804E2A046249972C73FCF94D78FE11A4417EBF8D7669229"
+    },
+    {
+      "path": "backend/app/api/question_assets.py",
+      "hash": "23E4C210623F40E61FC45131A21EDC3ADD500BA0D39B17ECC56DA3DB01036FBD"
+    },
+    {
+      "path": "backend/app/api/question_generation.py",
+      "hash": "FEAAE60D5999986AECAF445B18E1892E9B86F4B2C197A6D46EF6476E561C57AF"
+    },
+    {
+      "path": "backend/app/api/questions.py",
+      "hash": "589C477090759FEE7A7FEF8CB6D8BC4856D947DAF16A6F55442A9618F4F04C50"
+    },
+    {
+      "path": "backend/app/api/results.py",
+      "hash": "87B3B97C982F38D73E84CAF8703EEE13259AF210D68E0F0E2CB44523BF10D98F"
+    },
+    {
+      "path": "backend/app/api/reviews.py",
+      "hash": "AF5F3CBF2B798D3A65FBD04D6DE77475A09902CC8D55D9A7CE2CB3B503D4D693"
+    },
+    {
+      "path": "backend/app/api/submissions.py",
+      "hash": "D491941553591CA4BED5E2080E1BDED6B9CC88CD81F69629C1918ACEFCD028D6"
+    },
+    {
+      "path": "backend/app/api/traces.py",
+      "hash": "D7CC1FE59D05D5F6CF123F723131DEA22792E8DCA786A15D76AC7E538B6AC059"
+    },
+    {
+      "path": "backend/app/api/workflow.py",
+      "hash": "FF82F401E126D848BFCDA8B6BDC503F2E127902E155530BD6A53E0385BEEC067"
+    },
+    {
+      "path": "backend/app/core/__init__.py",
+      "hash": "AD060B53557881A6165BF4C18E8F33AC3FEEF613EA5CBADF21E3A9BF1B2765E9"
+    },
+    {
+      "path": "backend/app/core/app.py",
+      "hash": "F63281E2666CD98B9B8AE8AFC248AF681B99DFCE73EEB36C9ACF2F004B7282C1"
+    },
+    {
+      "path": "backend/app/core/config.py",
+      "hash": "FD862A32B26D17E1CFC8FD7867319276F612D57A88ECB6C453FC1737C7D47291"
+    },
+    {
+      "path": "backend/app/core/database.py",
+      "hash": "AD7C37B8AB2392C308436A1FB6661366DFCE02563F3305939CD6AAFA28A5AC50"
+    },
+    {
+      "path": "backend/app/core/maintenance.py",
+      "hash": "5DD209FCA178DA9BE418B51B8FD17B7FA0EA6DC31BD3766F4BA3C244DC6FE1FA"
+    },
+    {
+      "path": "backend/app/core/redis.py",
+      "hash": "ADADF6E8F1287A99275A640C4ACB586EE9CDF2E69923AB4445F6512283F3A71B"
+    },
+    {
+      "path": "backend/app/core/retry_policy.py",
+      "hash": "9ADCA21B61D8E28A004A19AFDE704A861BFB54B3FA3BDDF17752F864F450CF4C"
+    },
+    {
+      "path": "backend/app/core/security.py",
+      "hash": "DB47C4D095682C043033E7B936CF356AF836143E318ABC062DB8AA98AE5EC462"
+    },
+    {
+      "path": "backend/app/deployment/__init__.py",
+      "hash": "C1A17BE623E933245546233E0EE9CA94C0D529C651B84244CC4436F12E2E9326"
+    },
+    {
+      "path": "backend/app/deployment/configuration_editor.py",
+      "hash": "C74975718AB6160AB7545B831EE08437B0123EA41DAD7CE48323D898D9E567E7"
+    },
+    {
+      "path": "backend/app/deployment/configuration_validation.py",
+      "hash": "E58E4DE0762F6E75C019E9F199273735479D992382BE378BDA1AAD0A258B36AB"
+    },
+    {
+      "path": "backend/app/deployment/windows_launcher.py",
+      "hash": "9C60645A2B72D8BFD6A85440C0D760DF4222DD782EE4DE34BCFB64197CDF27BF"
+    },
+    {
+      "path": "backend/app/deployment/windows_tls.py",
+      "hash": "A8ED253A77CF28E3F99FAC6C9CF8F50823430F7EDA2E22224E68DA7B3F411FA0"
+    },
+    {
+      "path": "backend/app/domain/__init__.py",
+      "hash": "5235128C77E3C139FEB022F78BAFEFD235632866CDF4AA76A872257A20DA8DE3"
+    },
+    {
+      "path": "backend/app/domain/enums.py",
+      "hash": "68775B44656B79829B35133B7927ED6EE95FDC0C71E50C3A6F0C33724ADFC2B2"
+    },
+    {
+      "path": "backend/app/domain/permissions.py",
+      "hash": "D857722E2C8B107BF3DFD8B7F7756A5D9B7EB8278CE45D78B232530AD18C4572"
+    },
+    {
+      "path": "backend/app/domain/question_options.py",
+      "hash": "2B85B3264ECCBC690FE86B01E8FBF7A2904A1ECD660E15E5AAA1D6B6365920C1"
+    },
+    {
+      "path": "backend/app/mcp/__init__.py",
+      "hash": "BB3258F0B09438D9B3C4DF82838C79B5C986D27D2D46B1632EA82A1540F7E61C"
+    },
+    {
+      "path": "backend/app/mcp/registry.py",
+      "hash": "45598FA15D5CF7363A2C95DFC935FF0FA2A4A7CDFD8B4FB16D4670F193336D80"
+    },
+    {
+      "path": "backend/app/mcp/server.py",
+      "hash": "7FBE77B2A89D98800CA094E5309C122189D54889FE115C9CC012F521091D66FE"
+    },
+    {
+      "path": "backend/app/mcp/tools/__init__.py",
+      "hash": "997121CE80F945BFB2E76C8B176066F65B037ADAA28C58D92F8B517F8539FDE1"
+    },
+    {
+      "path": "backend/app/mcp/tools/email_tool.py",
+      "hash": "3947FAE8139084C72F804A3C92CE4AB5E93367B550615F84196C4E15E83D7A9D"
+    },
+    {
+      "path": "backend/app/mcp/tools/knowledge_tools.py",
+      "hash": "154CC171510AD68DF08A481FCD2F97F70272E19BB0522C3ED7070AA5D4E148DE"
+    },
+    {
+      "path": "backend/app/mcp/tools/report_tools.py",
+      "hash": "A736337B489AD77E0626E03F788B6BBCA5D6253464F26DB07A12B6143772D9E6"
+    },
+    {
+      "path": "backend/app/models/__init__.py",
+      "hash": "BB51D43A3BDF33B2B2500F7AA3F018473C3AB2BD9481BC1D6D071758B71B04BE"
+    },
+    {
+      "path": "backend/app/models/agent_run.py",
+      "hash": "9FF8D0F85A986905836AF61A9AED9B0328E7697BFA0C5935B221E31FBA43C29E"
+    },
+    {
+      "path": "backend/app/models/answer.py",
+      "hash": "DA3962D37CCEF415E2D237CB440F783899D20C8331EFE22CF16CD2D888B37F0C"
+    },
+    {
+      "path": "backend/app/models/associations.py",
+      "hash": "351272525BFB17F87CE489D85D0C3D48F8A4BCE92D921B965998C40510722E05"
+    },
+    {
+      "path": "backend/app/models/audit_log.py",
+      "hash": "9AF0292E8E00340BA14559BAA4CDD014D7BDFA265C6C457B673B18437342AEB5"
+    },
+    {
+      "path": "backend/app/models/base.py",
+      "hash": "DC98E655F1C6C86CC2E96FD088589A5254EF5F2A6FA7A0E4908E454F480C3E81"
+    },
+    {
+      "path": "backend/app/models/chapter.py",
+      "hash": "00057EC9E2A29E7518E49CAF62EE386D07F5FC030EEFA838C361EE01F55EBA13"
+    },
+    {
+      "path": "backend/app/models/course.py",
+      "hash": "418A80C6C13E5CCB92C4459316443D6DE20C560FCD5CB46231ECEDFE18AE099C"
+    },
+    {
+      "path": "backend/app/models/diagnosis_report.py",
+      "hash": "974EBBA43A882CA24CE8D6C27614B8F884D18516E1320E86D315B78AB4952FCF"
+    },
+    {
+      "path": "backend/app/models/document.py",
+      "hash": "6713F46693152FDE43997624E4F48D360E8292F89A5C299BA2EB51C1205E69B6"
+    },
+    {
+      "path": "backend/app/models/document_chunk.py",
+      "hash": "19C2C39DF9BB6A1BC90CADAEEFF4FE5BA60F737A57498CB2A5910C7BF84A1F5B"
+    },
+    {
+      "path": "backend/app/models/exam.py",
+      "hash": "A5F61C6B31AC8039B886C95819F146F6B836FC6F5465FB0B7EAD195D94FD07FA"
+    },
+    {
+      "path": "backend/app/models/exam_participant.py",
+      "hash": "4C0A93EA3A55BAEAEB45D3C696C8F66295F603737FFA1134F96BBA5AEF29D1D3"
+    },
+    {
+      "path": "backend/app/models/exam_question.py",
+      "hash": "1773147AC0D682B195468E7AC319D77FEAD31D098DF318BED9E52BD36518DCA5"
+    },
+    {
+      "path": "backend/app/models/exam_result.py",
+      "hash": "27C185CF81694430B29AAB50CDEFC8887FA71FF9FFB019BCC4E61C7E39EC54C4"
+    },
+    {
+      "path": "backend/app/models/export_file.py",
+      "hash": "DCD9A2C3903DC7CF12FAECBA6B84819387AC99A72B9B7AF006FFB00E97527DC1"
+    },
+    {
+      "path": "backend/app/models/extracted_question.py",
+      "hash": "283F694BACF93E98D9D3FAEF69C8A1FF754C15359BAFD17D7BF8F939B493BDFF"
+    },
+    {
+      "path": "backend/app/models/grading_result.py",
+      "hash": "74BE469C7561AC69B75D538048FF76174EB8388FD7C9ECC20BAA75A7E7E5146A"
+    },
+    {
+      "path": "backend/app/models/knowledge_base.py",
+      "hash": "9BA8C423EFBD4BECD439DBA7CBF164D60B4CC63F2CBE4F460C6AA79F17E82A65"
+    },
+    {
+      "path": "backend/app/models/paper_import.py",
+      "hash": "FE74C806FFD2B11B2AB4959C7CF1536EF30A21CAE85D2914B0383599BBBC0FF7"
+    },
+    {
+      "path": "backend/app/models/question.py",
+      "hash": "B3744250E9E8DA12814170D882B89D487443B5ACD575704AF1B2E795702B9C3C"
+    },
+    {
+      "path": "backend/app/models/question_asset.py",
+      "hash": "DD0FDDD0B51752524A91FEAAF8ED1544A6F84D7D166F12E59C3E223B150CB15A"
+    },
+    {
+      "path": "backend/app/models/question_generation_metadata.py",
+      "hash": "0882728552A2296B5B984E78B540AF21FB16A7DDFD18A1771002A6BB107F3025"
+    },
+    {
+      "path": "backend/app/models/question_revision_comment.py",
+      "hash": "898F40573F66F342C5F8A3E726CD441A66F4BD0A1DEE4EBF68A998D0DA93D853"
+    },
+    {
+      "path": "backend/app/models/question_source_chunk.py",
+      "hash": "105EDFFF636DB96521F2BB24CA35ACD2579EFE8E7B9BEE1EFB0732DEF55D4104"
+    },
+    {
+      "path": "backend/app/models/question_source_paper.py",
+      "hash": "0C698D3DF97096E4ACC63603A35CF9B43475EED4D404E765A97BF2793939DF4B"
+    },
+    {
+      "path": "backend/app/models/question_validation_result.py",
+      "hash": "C8D6017F2A1256B06ABB15F8C7204496A13D8A5D67C9C96A6EF09E2B35A55C73"
+    },
+    {
+      "path": "backend/app/models/review_record.py",
+      "hash": "1B4697DB52B39E230BF879BAC5E5428E7C83DE73119C22D4FA437A32AA275D7A"
+    },
+    {
+      "path": "backend/app/models/role.py",
+      "hash": "1627C0FF9151B9EC2FC31A99A98266A405313D3E1FF94FEF96F15FD617B146CA"
+    },
+    {
+      "path": "backend/app/models/source_page.py",
+      "hash": "6062C09A158D90C0ABFC1F7BCE2FE57A2178D2F26210F4232F874A18CC0C3BF1"
+    },
+    {
+      "path": "backend/app/models/submission.py",
+      "hash": "4431BA6BC78681EA40347ADEAEBCA5ED24141FA3C6463065AEFD37D80CBACF0B"
+    },
+    {
+      "path": "backend/app/models/user.py",
+      "hash": "53DA43C2813A2A38EFB70D7EDD0A440EAA1F32888418DB4B9707D11FDBE0E95D"
+    },
+    {
+      "path": "backend/app/models/workflow_run.py",
+      "hash": "48D23CC54CD18FDF188935C43B020ADBF587E3D785DA2692098027108EFA2CED"
+    },
+    {
+      "path": "backend/app/repositories/__init__.py",
+      "hash": "E0F07C6402D2119A65FA9463D3E2BD6B0CE6340603334DF8CE205E5BBC1C8480"
+    },
+    {
+      "path": "backend/app/schemas/__init__.py",
+      "hash": "132F341A810F96CAB7121FEF249302671875F28C69539C2FD66F53A5C8B0C835"
+    },
+    {
+      "path": "backend/app/schemas/ai.py",
+      "hash": "500B9D9C08CBBCFDA671AFE9D024CEDD7572BE192BDC39F5BCF34EE4C3F43EFA"
+    },
+    {
+      "path": "backend/app/schemas/chapter_scope.py",
+      "hash": "6A3D5629283FFB5D2ECBC662AF8D82EBAA7F19F34B58E4E7FFDDC427F44B49D1"
+    },
+    {
+      "path": "backend/app/schemas/content_validation.py",
+      "hash": "CF88AB85F9BE66AEE418A9EC9D892B775C8139CC25F8E06FCD2198047DCC7816"
+    },
+    {
+      "path": "backend/app/schemas/exam_assembly.py",
+      "hash": "B29EA6309305506DB2E611F74267DC01D17221AE68DE8D34E51438F425CBF1DE"
+    },
+    {
+      "path": "backend/app/schemas/exam_scoring.py",
+      "hash": "4FF832E43944526744DDDAFD463536D3ACB2692E3396FEA373F198BDB00CE214"
+    },
+    {
+      "path": "backend/app/schemas/file_storage.py",
+      "hash": "7F9A1855ACF66A45CC70F4F3401D166FA85970DBD89BE78AB43235546567A0B6"
+    },
+    {
+      "path": "backend/app/schemas/grading.py",
+      "hash": "CD3A8B92AD4FD7C44BD5509B00DF98EBB45AAA889AA1E5197D74C9A11343F3DD"
+    },
+    {
+      "path": "backend/app/schemas/image_assessment.py",
+      "hash": "C1036F592661F02136A1383D82D38BC67463132005B548385533DF962149A1A3"
+    },
+    {
+      "path": "backend/app/schemas/paper_import.py",
+      "hash": "44CA3FEEC02D5C0EB8C6D8CCF04F1CF70653E8851B16BE934137CE2C1292624B"
+    },
+    {
+      "path": "backend/app/schemas/question_assets.py",
+      "hash": "9F9AFDFCA7E8365D9B845A74F4E3830E648E398D2D4BF46491B373181F9EE8E0"
+    },
+    {
+      "path": "backend/app/schemas/retrieval_scope.py",
+      "hash": "5A92A9504829286346A46F8AED8E7CA5212703B1D5C07EACEBD2EEA3775917A1"
+    },
+    {
+      "path": "backend/app/schemas/storage_maintenance.py",
+      "hash": "FF06265728B7C921414F7561AD327E4282FD323D0E2109D83DBCBC53223D21C4"
+    },
+    {
+      "path": "backend/app/services/__init__.py",
+      "hash": "8EAD370FE249CE8460C1BFEF38CC1E18ED0CD9ABFE1F741DD3E819B6C6A15D96"
+    },
+    {
+      "path": "backend/app/services/admin_service.py",
+      "hash": "C8F32208C2AB5155484A8C8ABDD7C9F8FDA8BF02CBE532F72AA19711461D3376"
+    },
+    {
+      "path": "backend/app/services/audit_service.py",
+      "hash": "12781C3CE33B410E717BB6C1CCADE9732BD5C63F19F062A1F4609D01602F6689"
+    },
+    {
+      "path": "backend/app/services/auth_service.py",
+      "hash": "545B9966A7EA359E9141C749A3BA6DF973C6583CBE1BE0F7FFDE20D66D205DB0"
+    },
+    {
+      "path": "backend/app/services/backup_restore_service.py",
+      "hash": "E6396815870235BA50D3DEFFD2E8EBE4B3C2F45F7E38F2426ECF9F55D6347979"
+    },
+    {
+      "path": "backend/app/services/content_validation_service.py",
+      "hash": "0E9EDAF50997B1DCB593D8D87C3D1885F3D3A44208D424B88D986286376DCDA5"
+    },
+    {
+      "path": "backend/app/services/course_service.py",
+      "hash": "BFB6585CA5698F04BB8AC82D3AFCE398FA6786F75F137D0C75230236CDBFF906"
+    },
+    {
+      "path": "backend/app/services/diagnosis_service.py",
+      "hash": "09FCD2F9CDF276ECE50E0F7F0B37B11FB913168928BE8C1773C541E7945A7432"
+    },
+    {
+      "path": "backend/app/services/evaluation_service.py",
+      "hash": "96DDBB125F433A13D769F7706B1DA5F761C303F3285F1A3AF9A390587FDC869C"
+    },
+    {
+      "path": "backend/app/services/exam_assembly_service.py",
+      "hash": "F2F7EB42DEFB6AFD790A4367BCE197CA5FD391C98A9C7822AAB6CE1B9714CD94"
+    },
+    {
+      "path": "backend/app/services/exam_history_service.py",
+      "hash": "D8444DF3F5DC8C0B5BB7876D039D76098E76E86E2B0A95C8EB24F76421008610"
+    },
+    {
+      "path": "backend/app/services/exam_scoring_rules.py",
+      "hash": "29A9F4B1297E6ABBDCFB1457AA173DCC59B27E61403EBB5E9EA6E443F1EB29F9"
+    },
+    {
+      "path": "backend/app/services/exam_scoring_service.py",
+      "hash": "EFEE636A6FD9159ACECD5BE43698DDECD08AE8FDAD47657CF489952190CAB97E"
+    },
+    {
+      "path": "backend/app/services/exam_service.py",
+      "hash": "A3035975297CB8D7430A3EAA10E6CD07411AAFE3FE117A64C70974AB26B8DF7F"
+    },
+    {
+      "path": "backend/app/services/file_resources.py",
+      "hash": "E9E90A399831CF2CE71DB43A4746B3453EAF0A5D6A4220769A12883209DE6D0C"
+    },
+    {
+      "path": "backend/app/services/file_storage_service.py",
+      "hash": "D5596F94009D2086E667B93621EE25B1C31689F33D0ECAA627026CB1A44165E6"
+    },
+    {
+      "path": "backend/app/services/grading/__init__.py",
+      "hash": "986C47AA005D2F870CF47A1C64065FB5DF93241EDEA6C3D3343A2FEA744246CC"
+    },
+    {
+      "path": "backend/app/services/grading/confidence_mapping.py",
+      "hash": "CF8600B784A220D6D01ECF534F75EAC699379610C8AD234F2BC1F3D585FAF01F"
+    },
+    {
+      "path": "backend/app/services/grading/confidence_policy.py",
+      "hash": "63A10A68C002BE0B6F35F573F74437CC458E4AA84C359FA4495922AAAEA429C2"
+    },
+    {
+      "path": "backend/app/services/grading/diagnosis_report_store.py",
+      "hash": "2368074C2BADDA25678EC5F8FE4AE36A51D250C8219AC01108117285A1BE0E28"
+    },
+    {
+      "path": "backend/app/services/grading/grading_context.py",
+      "hash": "B4D8844E7AFC7C24F51B8F0BEA00F15A74D679966AA55F69B88D235B4592A31D"
+    },
+    {
+      "path": "backend/app/services/grading/grading_repository.py",
+      "hash": "32793D5EFCE02A5495C3DC772837D053692974E6B3BF10F1DA18931DC94D5C68"
+    },
+    {
+      "path": "backend/app/services/grading/grading_task_service.py",
+      "hash": "DF35D881F09225079CB43B13F29F8D2FF405058412E65B1CAECA4BD1BF247B16"
+    },
+    {
+      "path": "backend/app/services/grading/objective_grader.py",
+      "hash": "6E37184D9F568670A70ECB324D2CB8EBBDDC809982C756A468627DC7D2D943E7"
+    },
+    {
+      "path": "backend/app/services/grading/question_router.py",
+      "hash": "1574BC47A6F82F15843DEF77690E11833C94D8B8548C3B11CCFC16E25302DBC1"
+    },
+    {
+      "path": "backend/app/services/grading/result_aggregator.py",
+      "hash": "D1B3F60888A4E117EBF255AA41E5B92B54807175055A4E9481623C3237F449BE"
+    },
+    {
+      "path": "backend/app/services/grading/scoring_images.py",
+      "hash": "BC094CD2CA2AEC30A2D5D2ECC98FCAC5C37DCC142F21F9EF1E9F0C8A391AC206"
+    },
+    {
+      "path": "backend/app/services/grading/subjective_grader.py",
+      "hash": "EDE3B5F9F2D2C3C715D7CA64F191F90650BC6E959D7CA978CA5CE659BB52B07F"
+    },
+    {
+      "path": "backend/app/services/grading/subjective_pipeline.py",
+      "hash": "B30E61D2C774EEAB59FFA4F57F703991309C9A61B2FCD7C35BB4EB9E3ED8894B"
+    },
+    {
+      "path": "backend/app/services/image_understanding_service.py",
+      "hash": "054C76333ACB44A48A17F96F9C98E6C9BF392E0032C516161706A42476FAE318"
+    },
+    {
+      "path": "backend/app/services/knowledge_base_service.py",
+      "hash": "DF0292BA69FD3CA1E4A5A36D12F83188368A7696F10CC268801F1C3CBD08CF05"
+    },
+    {
+      "path": "backend/app/services/learning_recommendation_service.py",
+      "hash": "4D818A53A0B0BF30D27469B200ADF2B621CB1DE5155379426391AF381AD8719C"
+    },
+    {
+      "path": "backend/app/services/paper_import_service.py",
+      "hash": "B3DD30391C020E024D5D34398E1F9ACDD5D380FFC8B565F95B9F4CCFC4A2C359"
+    },
+    {
+      "path": "backend/app/services/postgres_backup.py",
+      "hash": "B80C5251E200C24640605675CFAE40912D6D0BA84D0E386CC811EE8A70E940D1"
+    },
+    {
+      "path": "backend/app/services/question_adaptation_service.py",
+      "hash": "3102FD3ABAA6903EC4212BD35D1C6545A907453CBEB84098356DD25C116D1F92"
+    },
+    {
+      "path": "backend/app/services/question_asset_access.py",
+      "hash": "858976B47F1B56E5E37675E02723FAB49EC51B392030B1DDD1D8095958146B0F"
+    },
+    {
+      "path": "backend/app/services/question_asset_service.py",
+      "hash": "E715B2F4E02A26D59D86325DF571BAA642096611363D9340B0A1BF1B043D5168"
+    },
+    {
+      "path": "backend/app/services/question_correction_service.py",
+      "hash": "5F5C163F5378B61C8191DB9C54473D334F098832D363BC545E706387C02C0726"
+    },
+    {
+      "path": "backend/app/services/question_scoring_invalidation.py",
+      "hash": "185A34995474C5444302D9BA580081A363CCA0D85F39C62B7FC8968A5F5F1455"
+    },
+    {
+      "path": "backend/app/services/question_service.py",
+      "hash": "A1E3AE84CCC478015E0F4703E0466ACA47C1E48DD80C7D987006A4906761037C"
+    },
+    {
+      "path": "backend/app/services/question_validator.py",
+      "hash": "A29D79B926D4AA92BF23108F96AB5AEDD81F2AD986BED6281BA47D17FC49A33C"
+    },
+    {
+      "path": "backend/app/services/reference_lifecycle.py",
+      "hash": "561FABAA04B423369475B880C21D01341DBC6D00C8CC80F0CF024B48B702E8AC"
+    },
+    {
+      "path": "backend/app/services/result_analysis.py",
+      "hash": "1D85FD1F806FC0FE5AEAC0858D977196DD3643A65439060E3057411159737608"
+    },
+    {
+      "path": "backend/app/services/review_service.py",
+      "hash": "D806663ED3E915CB07157A93CD92756E069927B4BC4FE450CB2FE8B3D101BB0F"
+    },
+    {
+      "path": "backend/app/services/storage_migration_service.py",
+      "hash": "14BA456BBD3038EBCFBDD0C43CB4FC9DD388FC271B0F132EA7CA39DA32D739BB"
+    },
+    {
+      "path": "backend/app/services/submission_service.py",
+      "hash": "AE0B4742DBAC67F58E4789C07AA08BFBC69F2BC11CD19B7CF328542033BD90B0"
+    },
+    {
+      "path": "backend/app/services/trace_service.py",
+      "hash": "48CD5F02B19C0810061636FADEF39452F4894A246223468E86DFFBACD9748579"
+    },
+    {
+      "path": "backend/app/services/workflow_checkpoint.py",
+      "hash": "2A9C668119DFD965112DA5A54C720DCF8F4A767E720F1F186F13534DDFC08B25"
+    },
+    {
+      "path": "backend/app/ui/__init__.py",
+      "hash": "AC9D70C8072FD100E4C0D89C6328A81107957D70F485B9773686332E6FBBDF61"
+    },
+    {
+      "path": "backend/app/ui/admin_view.py",
+      "hash": "26FAE7DDCA023C7300185FDD1B9C8EAB01DB1AF0A7C3E02DCF6121BCD89C8264"
+    },
+    {
+      "path": "backend/app/ui/chapter_scope_loaders.py",
+      "hash": "53FDBEAA1EAF9082DEE9175EC175B43DB428CB723BEE8CF782E6EE0FE47B1B92"
+    },
+    {
+      "path": "backend/app/ui/chapter_scope_view.py",
+      "hash": "F42BBEBDF88B8F9A2D805ADCF958F08734F41887F9E31DC9E887A7D679107E6C"
+    },
+    {
+      "path": "backend/app/ui/design_system.py",
+      "hash": "C5D865770CC68DA77241F354FF17545B4219053721D62CEC75FCA6220F9D3F73"
+    },
+    {
+      "path": "backend/app/ui/evaluation_dashboard.py",
+      "hash": "3DC6913A00FCBA5B392D35741ED85006B6CA840D2D898BB7262799F2AFCDD2AA"
+    },
+    {
+      "path": "backend/app/ui/exam_view.py",
+      "hash": "3BC23A03E6C51096AFBBD940D061A2D4A089F491D5551DC29259F3D2D134781A"
+    },
+    {
+      "path": "backend/app/ui/gradio_app.py",
+      "hash": "F525464DC7BE2A0F3B3D7E6938E94012B390A716274119BBB7CCAFD7CAF2E003"
+    },
+    {
+      "path": "backend/app/ui/knowledge_base_view.py",
+      "hash": "C3CD92C7BC115A43D4FDD15F5D1C445C59534E2275C07FD68F1C7A420AAA44E9"
+    },
+    {
+      "path": "backend/app/ui/layout_view.py",
+      "hash": "2F95BFE9DCD0974492AE8C8E0A9E37E22A8E41F106857E849C1A0C80BE81A143"
+    },
+    {
+      "path": "backend/app/ui/paper_correction_view.py",
+      "hash": "50AA7C497773853218F266756441698578A1C7E4DF2F09DF7679BAC56BA06875"
+    },
+    {
+      "path": "backend/app/ui/paper_image_review_view.py",
+      "hash": "A9A7EC202E9E2BAFAA25614C83C2B859623BAB64CCFD2632EA07E98EE2BC2A38"
+    },
+    {
+      "path": "backend/app/ui/paper_import_loaders.py",
+      "hash": "6BCBBE209457F5D21586EA49B9E1CE9465C2C0E671D3A30B42194A5BAA24EF50"
+    },
+    {
+      "path": "backend/app/ui/paper_import_view.py",
+      "hash": "2301312B64648EA77A97C658309506C2691274D70D9F2530695FB3143B31264C"
+    },
+    {
+      "path": "backend/app/ui/question_generation_loaders.py",
+      "hash": "B0579D3A1F9409CE579887642483DC53ACBC1E90326468389B94B49EEC7D68A2"
+    },
+    {
+      "path": "backend/app/ui/question_generation_view.py",
+      "hash": "BDDB6550481D06F32B7040FCE6AB0160AD10F1664573893EEC2CD6B12AD64309"
+    },
+    {
+      "path": "backend/app/ui/question_review_loaders.py",
+      "hash": "96336DA5D677B26AF708EAC5964C0BD606BB5BB2AEB97A17E728ED712F1C8A30"
+    },
+    {
+      "path": "backend/app/ui/question_review_view.py",
+      "hash": "2582AD6E291963932FBA850AACE78FEB3CB490205681DF46AB95FF1339AEB1E2"
+    },
+    {
+      "path": "backend/app/ui/question_view.py",
+      "hash": "68C6C5A367D7C61ABC87D6B603BFC9969EAC180D5E34AC49C8D60EDF5557F416"
+    },
+    {
+      "path": "backend/app/ui/results_analysis.py",
+      "hash": "C0982FFA50585446B75BB2593A033D90ABFD393213005FD8E4106FE468BF15BF"
+    },
+    {
+      "path": "backend/app/ui/results_diagnosis.py",
+      "hash": "7F1280D2D661B1116E7368289EDD7DBB937C1EC8C7BFD45EE0D4F661E297291C"
+    },
+    {
+      "path": "backend/app/ui/results_learning.py",
+      "hash": "116A2FCC1CA433776B6AF2E1ACA4AB7FF3C48A6303F801E39187C87FABBD6FE5"
+    },
+    {
+      "path": "backend/app/ui/results_loaders.py",
+      "hash": "91206E43F2E69528BF00B14638A6225D188C7430D169A7486F7A1175AD4C1BC7"
+    },
+    {
+      "path": "backend/app/ui/results_view.py",
+      "hash": "2D66DE52EF46638ABCA1E7D8FA24FA8FA9E99D611F5B5D8E0D1577C01F98FDA2"
+    },
+    {
+      "path": "backend/app/ui/review_loaders.py",
+      "hash": "3343B3B9DE0D4DCBC0806E01E0CDB2F583C5936C89F97869FC44A020C2299E78"
+    },
+    {
+      "path": "backend/app/ui/review_view.py",
+      "hash": "4C7D53ED56C69355A5141D06D6B3CFEF3C2BEE640CCBFE9664A3E1E4918B964F"
+    },
+    {
+      "path": "backend/app/ui/student_exam_view.py",
+      "hash": "96E9E0D7F41744E1ACDA8AA28D239CA823A517DB374FD60D8BCE32496CB3A585"
+    },
+    {
+      "path": "backend/main.py",
+      "hash": "2244888DC21975BF3DB2A64E861A43D1E256BD34ACE45D52E84CC968DDD7C38D"
+    },
+    {
+      "path": "config/windows.env.example",
+      "hash": "F840EB81C72FC76143EAB4F77C809D26278E60D64FBC97738E00FBA541A56728"
+    },
+    {
+      "path": "docker-compose.yml",
+      "hash": "3828C8F5C8AB4C4AC5015B014830E5D314625D7EB3325A13D6C12C58812C3A33"
+    },
+    {
+      "path": "migrations/__init__.py",
+      "hash": "167CF996BFE564B8C3ECBC83C1AFCAE97DE5BCE03F7B2BB0E2C088ABFA84D6E3"
+    },
+    {
+      "path": "migrations/env.py",
+      "hash": "81C1CACC6362D0567293BB7AA51C05EFE7D394C4A5C5BAC9001BF5B8C24A53CE"
+    },
+    {
+      "path": "migrations/script.py.mako",
+      "hash": "A6A3BDF72B127549D586201DE533F9F8548156B304A0EDEEB8553D72F1D4E345"
+    },
+    {
+      "path": "migrations/versions/.gitkeep",
+      "hash": "01BA4719C80B6FE911B091A7C05124B64EEECE964E09C058EF8F9805DACA546B"
+    },
+    {
+      "path": "migrations/versions/0001_enable_pgvector.py",
+      "hash": "C0EF1D5A4BFD94FBD19DE9FB5F5D0AF1CF3366BB711C94D8DD172F6134265908"
+    },
+    {
+      "path": "migrations/versions/0002_m1_business_models.py",
+      "hash": "883A7B90325AB6002B4576CB6C6B5CE4C2BBF072AABE87E61A0A2047BF109F33"
+    },
+    {
+      "path": "migrations/versions/0003_exam_participants.py",
+      "hash": "28F6204B14940571EDCD9CA0B5ABF3674728A9FF54063BEB87B502A5D8476B4B"
+    },
+    {
+      "path": "migrations/versions/0004_document_chunks.py",
+      "hash": "B56E3E312F07C032967BB7A87DAF1CCA3A02875A0DC99A36D1323280B19C72C9"
+    },
+    {
+      "path": "migrations/versions/0005_grading_results.py",
+      "hash": "0EBC8904AD1B980DBE37FE80081B8F93AA354C326144B1FB581A25A2DEBAE8BA"
+    },
+    {
+      "path": "migrations/versions/0006_diagnosis_reports.py",
+      "hash": "68F55A7B65C6D2B1EC1269C2FA55729A5EFC28AA2323E18129844FF4B388F0B5"
+    },
+    {
+      "path": "migrations/versions/0007_review_records.py",
+      "hash": "973265AF63CD21E375FD15DBEA8BC6E1525026097B26DF36FA0036C7C4BD62AB"
+    },
+    {
+      "path": "migrations/versions/0008_workflow_runs.py",
+      "hash": "BA6E4D313536253424D392F8FA52DA1B991393DD118ECB3491C932E6315450B1"
+    },
+    {
+      "path": "migrations/versions/0009_agent_runs.py",
+      "hash": "BF55D79DA6AC4679E070D886A9E99FAF3237066DFA2AA9946F399ED6A477748B"
+    },
+    {
+      "path": "migrations/versions/0010_review_round_ids.py",
+      "hash": "BB61C9F36BC20AA5E1BB8E6AB843691F3E85E94E897081E38A473EE42733374F"
+    },
+    {
+      "path": "migrations/versions/0011_question_source_persistence.py",
+      "hash": "10185F61D67196A553B67F2C93B4ED244FA78B8FFA7B955A3F3AA8F2D0BC3424"
+    },
+    {
+      "path": "migrations/versions/0012_audit_logs.py",
+      "hash": "9113C3F1ADFA131EE3C46061F4A8FBF5E7C425B9D8001428420DCBA2C3CC9031"
+    },
+    {
+      "path": "migrations/versions/0013_file_storage.py",
+      "hash": "4464F1F4574943002A793E860A989C34A79748DE335CCE53290EA1C280C41EA2"
+    },
+    {
+      "path": "migrations/versions/0014_paper_import.py",
+      "hash": "BE1B3893B4A5F82787E260EBC8CAE1B39D24B20395FA2C4592DA08B614F50C41"
+    },
+    {
+      "path": "migrations/versions/0015_question_assets.py",
+      "hash": "3C94036ABDF3BB32B5460F996B29DB95751D8D6C42452CFBB88395922DEA4256"
+    },
+    {
+      "path": "migrations/versions/0016_asset_visibility.py",
+      "hash": "69F69A5A0A47090991BEAB2285D9533FEBDD4D121121BD19BC4DCE7FD9F5FF8D"
+    },
+    {
+      "path": "migrations/versions/0017_extracted_order.py",
+      "hash": "F7F5073264EA63A3F1B932233FCFBCC249E028E88C29C0ECF68CE13D4479F591"
+    },
+    {
+      "path": "migrations/versions/0018_options_json.py",
+      "hash": "170F07F9526F33F959AB8A5CBC42D7DF28149F49BB3B9774E8B1DEC64DCB508C"
+    },
+    {
+      "path": "migrations/versions/0019_chapter_scope.py",
+      "hash": "A99DAEEC421267D7A50503DFB39A3DF597A999F4C0817BB4CBCC95EF0957644F"
+    },
+    {
+      "path": "migrations/versions/0020_content_validation.py",
+      "hash": "C0B79C489F6E516294E00A745F8D2AE279989FE5D82FB887967B296270E59FA3"
+    },
+    {
+      "path": "migrations/versions/0021_question_source_paper.py",
+      "hash": "7835E99C593A4C7CB3072321C37FD20326A35A35316FC62971BBE18BB1033AC7"
+    },
+    {
+      "path": "migrations/versions/0022_exam_question.py",
+      "hash": "8AA7EF80FB2A2F2F7CACE7CF87D380C06C12C230027D7C20C6A40BEFC1DF6216"
+    },
+    {
+      "path": "migrations/versions/0023_grading_exam_question.py",
+      "hash": "45A55059E76A26472EF192EBD47DCE7AE888A89D827E5DDE0D40A5CC9592C626"
+    },
+    {
+      "path": "packaging/Configure-EduAgent.cmd",
+      "hash": "8414B726D91F5AFA1E29AD7B56F2E86EA5FDDC6AAE949352EE683E6E8B14D284"
+    },
+    {
+      "path": "packaging/EduAgent.spec",
+      "hash": "A050C164E47C05D5AF983E95101DF0544AC0F64C8D00CA4E05326573523371C5"
+    },
+    {
+      "path": "packaging/README.md",
+      "hash": "53EF43A7BC1A6B20436B610C16477DE29AA739CFA7849CD8451B9937A47488E4"
+    },
+    {
+      "path": "packaging/build_receipt.py",
+      "hash": "E510B0FAEBD74F810A72FBDA3FAC012276317EDDD88B78E2C54AFDBD9EA35C86"
+    },
+    {
+      "path": "packaging/requirements-windows.txt",
+      "hash": "698BB0F9D693AF1D6F9E1ECF1C187F00006923DD6B5B12B30778F1F07939C37B"
+    },
+    {
+      "path": "pyproject.toml",
+      "hash": "280F7238199769D9E2453E786F7B8207A96A6F087AA4D8CBC7952C3A77018E60"
+    },
+    {
+      "path": "scripts/.gitkeep",
+      "hash": "01BA4719C80B6FE911B091A7C05124B64EEECE964E09C058EF8F9805DACA546B"
+    },
+    {
+      "path": "scripts/audit_exam_history.py",
+      "hash": "778BB893C667AA5B2426127B5EE3240F13E8772E7D8ED0E530E1B1E3A18E8280"
+    },
+    {
+      "path": "scripts/backup_restore.py",
+      "hash": "8AD6E302BB0772AF55379B8300C27F2833C501B2F0191C75495E4C2D178CCD2C"
+    },
+    {
+      "path": "scripts/benchmark_corpus.py",
+      "hash": "0F98CA494C5BD3F2A7831E6B0E17A120AAC53723EE3F4413765110059D00ED50"
+    },
+    {
+      "path": "scripts/build_exe.ps1",
+      "hash": "9986D8F481A977B85C4AB76D863DC2E8988A8055C0434E94C5B7D2FEC6AF3D17"
+    },
+    {
+      "path": "scripts/demo_materials/python_basics.md",
+      "hash": "E8EF2035B597E5B827D5EC3692F1CDA4CB7E24419BA57CBFA837F115E62C0030"
+    },
+    {
+      "path": "scripts/demo_seed.py",
+      "hash": "0D73742983E4100C3ABCD3253EBEDBC99BABDADD93A84DB5335B2AD4FDB58B71"
+    },
+    {
+      "path": "scripts/freeze_gradio.py",
+      "hash": "9664CAD51FDBBA64192B335F1BC5D90FF628F70259DFEA481D0710015290D1E7"
+    },
+    {
+      "path": "scripts/generate_synthetic_benchmark.py",
+      "hash": "BFB35F9583B3FFDF09C2C6254D5149F813104137E6B7AD4440E1DB4FA32B074F"
+    },
+    {
+      "path": "scripts/launch_windows.py",
+      "hash": "D66E3501819DE21442C22675FAE8ECC6A8BD5CE5E567376B5EC7D52D84457B43"
+    },
+    {
+      "path": "scripts/migrate_storage_paths.py",
+      "hash": "B62B48DA5DF5E2D0850001DE0176EFC622C33DF5E3B32EC567751C6570753805"
+    },
+    {
+      "path": "scripts/purge_agent_traces.py",
+      "hash": "E2BF747F51B03F83449BC044E0628E7F4077C670820B1A1655A4717A5236A9A6"
+    },
+    {
+      "path": "scripts/purge_audit_logs.py",
+      "hash": "8E90FC80533F3A0FD969D344D3272B156880F5BD801FB22643D1256196F19DCF"
+    },
+    {
+      "path": "scripts/run_demo.ps1",
+      "hash": "B5C1BD3896235D7DB5928EA35BA92E34F6484659B30B12A8496270AD1A101613"
+    },
+    {
+      "path": "scripts/run_grading_benchmark.py",
+      "hash": "2C3DD64F135CB7D7CC915E59002C1B521DE002E7916D7092DB48FA597B474EBB"
+    },
+    {
+      "path": "scripts/run_retrieval_benchmark.py",
+      "hash": "2DA3F15AEA1B46D68468D45024A133322561867D028D0E91C058060FA2A83A86"
+    },
+    {
+      "path": "scripts/setup_benchmark_corpus.py",
+      "hash": "E3C9532223B9AF31882800F68B3668DEE6C7761A84A2A667D6DB198821DB3872"
+    },
+    {
+      "path": "scripts/smoke_m0.ps1",
+      "hash": "8F6D69ECB04EB828C239C53D2143E8059E1352BD2F41D5D6A0D92BA2E4B80D73"
+    },
+    {
+      "path": "scripts/smoke_rag_providers.py",
+      "hash": "E9E56E678587820416B1BF92D34292A5273D6454AD831134A0BB0749734BEAFB"
+    },
+    {
+      "path": "tests/__init__.py",
+      "hash": "7E9AF23C4D8769E855436C950C52874EF9D5AC0C36F24531913B3CA965D6860F"
+    },
+    {
+      "path": "tests/contract/__init__.py",
+      "hash": "50DB9C7E8CB3435EDA93162D3F75840722810AA2F2CED4BE0B7C8F2E1DA2986F"
+    },
+    {
+      "path": "tests/contract/test_admin_api_contract.py",
+      "hash": "6078973933BA17BC42DBCA950247E87705BB21E06FD933C952D7C1F252E256FD"
+    },
+    {
+      "path": "tests/contract/test_auth_api_contract.py",
+      "hash": "CDC71813FED29674982AC49FEC1453D3773D9FD665ED5760BE3563E9989293FE"
+    },
+    {
+      "path": "tests/contract/test_auth_contract.py",
+      "hash": "4222AF1FD7C8589CA8EE1FAC0F0DB91D295602ACD9DE88289195B16B1F08151F"
+    },
+    {
+      "path": "tests/contract/test_chapter_scope_contract.py",
+      "hash": "D1200C4CD0DFAFB2DC4E2B96CEAF07987EC1CC3D7CBA7FDD06FF0EE93D4F637F"
+    },
+    {
+      "path": "tests/contract/test_content_validation_api.py",
+      "hash": "C256DCAD641CEDAA6B8ABD683CD820917C8CB537563FC86826F7E744F15332F6"
+    },
+    {
+      "path": "tests/contract/test_course_reference_api.py",
+      "hash": "A01EDC1FA1BCCA019E2325A57ECEA20F8BF719995588354646DD32A956BA9F17"
+    },
+    {
+      "path": "tests/contract/test_docker_demo_config.py",
+      "hash": "66571EDF8C792D5A44DDF70A18BC155101B74CB75666C916EE972D55BD22A92F"
+    },
+    {
+      "path": "tests/contract/test_document_parsers.py",
+      "hash": "687A5B58DA24E34C5193F33C6240F33F47627A8F5426706485A93BE0E54904CB"
+    },
+    {
+      "path": "tests/contract/test_embedding_provider.py",
+      "hash": "BEBCBB59561A00A371B8AE1090739262D58A58952710348438754FA30D0C51CB"
+    },
+    {
+      "path": "tests/contract/test_exam_assembly_api.py",
+      "hash": "CCB56769FE0E013DE228772578EB0C6A874FA6E89389669344A360845D530769"
+    },
+    {
+      "path": "tests/contract/test_exam_lifecycle_api.py",
+      "hash": "3ED5FC7C5BCE1EEFA6D3F4957D7AB63324485917A758DC4378990E24A3B215ED"
+    },
+    {
+      "path": "tests/contract/test_exam_participation_contract.py",
+      "hash": "34DEAAA4E5DEC6F75894EE2F108C6DC131371B617B36C6BD0C05506E5E0E5BCC"
+    },
+    {
+      "path": "tests/contract/test_exam_question_patch_api.py",
+      "hash": "8CB10843BAC0551CA95A05685064449AF54AAD674578184480F50C6A5236BF17"
+    },
+    {
+      "path": "tests/contract/test_exam_scoring_api.py",
+      "hash": "144C9DD9099EE97BAB1FF8B2807AB1F643623553BE09FB7A0BD45CFABC9C333B"
+    },
+    {
+      "path": "tests/contract/test_file_storage_api.py",
+      "hash": "1804E49956E8E11922991941D0942FAFAA31A413EDCE0522DEC184E81BA61073"
+    },
+    {
+      "path": "tests/contract/test_grading_api_contract.py",
+      "hash": "B471FE185A4B8AEE0811CA37F7DBEECDBB465FE14AE55A1D0497A4A732253EFD"
+    },
+    {
+      "path": "tests/contract/test_grading_benchmark_contract.py",
+      "hash": "65CB07FE6BDF733A8A4135441E834A9B44F1006D83D6C50AB8C2FA5F384821DA"
+    },
+    {
+      "path": "tests/contract/test_image_understanding_api.py",
+      "hash": "41F6DFC5D0341985445284E52388CE012531C33948F65F2938A527AF33BB998A"
+    },
+    {
+      "path": "tests/contract/test_knowledge_base_upload_contract.py",
+      "hash": "A632B416619ED6FF3B41A6972324A09875407470EFEFF5D0CAA2386DB46B3A1F"
+    },
+    {
+      "path": "tests/contract/test_ocr_provider.py",
+      "hash": "927A22A9E0FFC8F10F26FDC86D9DCA9E96F98B687F523FF572B0013E27E6A56E"
+    },
+    {
+      "path": "tests/contract/test_paper_import_api.py",
+      "hash": "410277A5DFCB7FF4B294CF513AD8295C3CCC88E7D206AE7ADEF91377C49E4FD1"
+    },
+    {
+      "path": "tests/contract/test_paper_import_schemas.py",
+      "hash": "CEB39332608AFA11A2FFF5E7D080CD3CC3395B28AE0F432DE1503C026AA4103E"
+    },
+    {
+      "path": "tests/contract/test_question_adaptation_api.py",
+      "hash": "14359B498EA1F8C29770756172A2A36D17B0CD21E4C4DDA4B8955BD8559FB454"
+    },
+    {
+      "path": "tests/contract/test_question_agent_retrieval_modes.py",
+      "hash": "60143032A3BC81FE7BFFAF4E5CA770B287C73CEAE2F2E3A5E08CA56F7D337DD6"
+    },
+    {
+      "path": "tests/contract/test_question_asset_visibility.py",
+      "hash": "6529B376BB66F4120C2B21DDC8E4BA76698927CC898D088B45FE615E3F5EC696"
+    },
+    {
+      "path": "tests/contract/test_question_assets_api.py",
+      "hash": "3681181470C74BD034A5891030EC661E3B94DD8019544AA80C8C60C7EEBEE117"
+    },
+    {
+      "path": "tests/contract/test_question_correction_api.py",
+      "hash": "3470D7E249ED230EBDD75B61495587784B3A077632BA416D7A25E130290EA8B3"
+    },
+    {
+      "path": "tests/contract/test_question_generation_api_contract.py",
+      "hash": "8C61730428BED4E417603FBC03CA9BB646B7C160D5DC0C16E7A7EA05AD7D9445"
+    },
+    {
+      "path": "tests/contract/test_question_update_api_contract.py",
+      "hash": "BA2355129176CC463AB03238630EF7800B506224462AF39AC18DBB801464CAA7"
+    },
+    {
+      "path": "tests/contract/test_results_analysis_api.py",
+      "hash": "F003480C27BE1816720402B7FCAE8D09F249997B0E54DFED784E658147F1676D"
+    },
+    {
+      "path": "tests/contract/test_results_api_contract.py",
+      "hash": "02C2781B121EE35B1113DD77F5D3BCF81020AEEAD958CB5B00B52FB0D0F89354"
+    },
+    {
+      "path": "tests/contract/test_retrieval_benchmark_contract.py",
+      "hash": "5F0C8A3274BD65659F2042DB99A314873542087763839BF0B114B8F4BD980573"
+    },
+    {
+      "path": "tests/contract/test_retrieval_contract.py",
+      "hash": "EC0627961A358BD98AB40BFE64813AB5A2F10DA8E885E0E0E4F765E082AFDD18"
+    },
+    {
+      "path": "tests/contract/test_retrieval_scope_contract.py",
+      "hash": "C211C56C19DE9A13A6905450ED1DB5DA63BAB836828C97DAECBEDB9A7C70A8E3"
+    },
+    {
+      "path": "tests/contract/test_reviews_api_contract.py",
+      "hash": "255679F6DAA51EBA575E1586E7FBA0D2E6D75450C8DC6E18E8D79D126965FA72"
+    },
+    {
+      "path": "tests/contract/test_run_demo.py",
+      "hash": "0656EA32854E921942AF1970E7DFB4EFA1031275F810FD544B65DC2879E71FCC"
+    },
+    {
+      "path": "tests/contract/test_storage_maintenance_contract.py",
+      "hash": "91B3BA22A155987F6A17656813D90F9044EFCA89D6F1DA14FF423F35EB8A4FC4"
+    },
+    {
+      "path": "tests/contract/test_t166_generation_review.py",
+      "hash": "B6325B49C58696521582B8FF32D3E360997A165668DCE3E1F7AE846081C0994A"
+    },
+    {
+      "path": "tests/contract/test_t166_validation_command.py",
+      "hash": "1CFDC6BB628C1E7EFB83698AF0CDF46E946A48F4FB89085CE436A6C3ABC380DF"
+    },
+    {
+      "path": "tests/contract/test_traces_api_contract.py",
+      "hash": "A7D5F09656CD0D259BF1781086799D010D5C315AA997E0EABC2C2382A069F78B"
+    },
+    {
+      "path": "tests/contract/test_workflow_api_contract.py",
+      "hash": "A54526C09AA63FD6A15096E2F1C83221F0316DAEF2CD70E2354FED0DF8AA4630"
+    },
+    {
+      "path": "tests/integration/__init__.py",
+      "hash": "AC685699A0C0A25FDE518D92FD2F8D17C97948008060C87A9E33828CBA1092F4"
+    },
+    {
+      "path": "tests/integration/legacy_question_fixture.py",
+      "hash": "8B7382D577432AB68146DA0EC8FA90802471BA6DEF4525223E28D93A84DF77B8"
+    },
+    {
+      "path": "tests/integration/test_analysis_review_acceptance.py",
+      "hash": "914B0FE517EC04E185EEE8DE59D473B8B0ED358F112564CE2C61CE493DE7261B"
+    },
+    {
+      "path": "tests/integration/test_audit_migration.py",
+      "hash": "F3AF3A8D8C550E7214F32A473499FE0C286387F1BB0CD60AAFF619CA675B76A5"
+    },
+    {
+      "path": "tests/integration/test_backup_restore.py",
+      "hash": "126D82307FEB5D95E35A5466355484D51C1670E6C206B94D0BB9935DFCAE37C9"
+    },
+    {
+      "path": "tests/integration/test_benchmark_reproducibility.py",
+      "hash": "FA78BAA25940768B2E60C8E62BA19BD298F67D9E789C67D04D35457377EDBD88"
+    },
+    {
+      "path": "tests/integration/test_chapter_scope_migration.py",
+      "hash": "520E8B09951FF9976145655F59FA292FB7320355135D6CCD8FD98EF3285E70A5"
+    },
+    {
+      "path": "tests/integration/test_chapter_scope_workflow.py",
+      "hash": "F524CED45DC145679CB666670309B0C0A455B06189EB58302C979D73D266C915"
+    },
+    {
+      "path": "tests/integration/test_content_validation_persistence.py",
+      "hash": "6447865E96FFF39EA6A7B8A73E1F4BAC7D060686AE8B1ACC786020D4E4478A9D"
+    },
+    {
+      "path": "tests/integration/test_demo_seed.py",
+      "hash": "29A532D1531FCABEADDC6C3A0306052551AF93043BE2B8408579EB4464A6B9A5"
+    },
+    {
+      "path": "tests/integration/test_diagnosis_concurrency.py",
+      "hash": "B27F4B627A83A2C3CBD52188B18B3AE3BD65B2173BAB528B8CD0AEF4241A0E46"
+    },
+    {
+      "path": "tests/integration/test_exam_assembly.py",
+      "hash": "6D2847B4BDA730A30563932C24C4857383C67DB4918EA113D8DE2415ACD8ECCB"
+    },
+    {
+      "path": "tests/integration/test_exam_history_audit.py",
+      "hash": "D5D64248BC698FF512B1C876D4117F3677FB3076272C982435C20ADBD6F39FEE"
+    },
+    {
+      "path": "tests/integration/test_exam_lifecycle_freeze.py",
+      "hash": "E1B838DDA011855D9773A8516D45C8D5B7951D25EEAB3E83BCA16B95768B2F02"
+    },
+    {
+      "path": "tests/integration/test_exam_question_migration.py",
+      "hash": "C69228ABD9FDEC370C0BBA012785EF4BC1B9824737A23D392205376233ADE8E5"
+    },
+    {
+      "path": "tests/integration/test_exam_question_patch.py",
+      "hash": "718A0F9C3AA5D9250784B9A00918864876464B4882C31FCD88EA1A47C1481FF1"
+    },
+    {
+      "path": "tests/integration/test_exam_scoring.py",
+      "hash": "EA507D92A2324E6D1F640D2708FCAC2DAEDD7CF4C294C9A4052AF16348D6E2B0"
+    },
+    {
+      "path": "tests/integration/test_exam_scoring_consumers.py",
+      "hash": "909A28B8E0EBDF931A4B6B8D7FBE71CC10C3A44F1A37E933510FA6FCA208BD6D"
+    },
+    {
+      "path": "tests/integration/test_exam_scoring_execution_gate.py",
+      "hash": "52946993EF5BCF04E35270DA8B33924E628351472027ABFD4C1EE90A6388AA3A"
+    },
+    {
+      "path": "tests/integration/test_exam_scoring_publication.py",
+      "hash": "47F7793E1D71F7BCCDB98D3CDD01AF2340211A0B35E9CBFED36691886DCC7BF3"
+    },
+    {
+      "path": "tests/integration/test_extracted_question_order_migration.py",
+      "hash": "4E6A170EED97C07379CB442EA383553A49C24FCAD5C774E4983CA4A06D2131D9"
+    },
+    {
+      "path": "tests/integration/test_file_storage_migration.py",
+      "hash": "F92739A5A469A2E6DB3E0B10756449EAA2802906BA8523C330C9C79CC83F9692"
+    },
+    {
+      "path": "tests/integration/test_fixed_result_repository.py",
+      "hash": "F3169E4817E2E0A865BFCDA5F7E920C502C10312AE7893F401BCD72CED196A99"
+    },
+    {
+      "path": "tests/integration/test_fixed_scoring_input.py",
+      "hash": "DEFABEFA8A17AACD39C95D8FB95D205CC0794B7BC4F94669CC050C87D09412AB"
+    },
+    {
+      "path": "tests/integration/test_grading_benchmark_real.py",
+      "hash": "E5762287FD92B74E8F390BB21471BD2CD99BD37F2A76E20538C109F8E91223FE"
+    },
+    {
+      "path": "tests/integration/test_grading_exam_question_migration.py",
+      "hash": "B0CBBD09ABC5B89EBC6414C9CEFC043AA6677B0DD924E9C060741F44B4AC29B2"
+    },
+    {
+      "path": "tests/integration/test_grading_pipeline.py",
+      "hash": "8AD817CC9549F8ABDAD0C44A627A526AFD7B5998FAE3B7C76063DA199997B475"
+    },
+    {
+      "path": "tests/integration/test_langgraph_grading_workflow.py",
+      "hash": "C6B585FE501D4F7728327EEFD3D4652FE1F13C0CA1F89D627D541C13B31A0B9C"
+    },
+    {
+      "path": "tests/integration/test_learning_feedback.py",
+      "hash": "CCE9F5D13C588BA05DD595D7D3AC5DA21EECD894AE09F6A67978E564443A42AC"
+    },
+    {
+      "path": "tests/integration/test_m0_smoke.py",
+      "hash": "4B77ACE2B3B38C62C546869121232A84CA70D4BBEAE2D0729A885FE5D5FA6FEC"
+    },
+    {
+      "path": "tests/integration/test_options_json_migration.py",
+      "hash": "8D047418A0FB26689D913031F61C7821828A2681FEDD9623FD22DC0234FCBA24"
+    },
+    {
+      "path": "tests/integration/test_paper_import_flow.py",
+      "hash": "E56564121EF98F8EEA248908151796BB1C64D93260CA149A2AE4F710DA8F6426"
+    },
+    {
+      "path": "tests/integration/test_paper_import_migration.py",
+      "hash": "3F30CBEC24C98FDA5F08391C6FB0E91BF76BA0832BD381F7CC162D57759F32AF"
+    },
+    {
+      "path": "tests/integration/test_question_adaptation.py",
+      "hash": "D523A71333353696FE622B2E09A75F9EE14F65FBDA85D20D3423CB4E7AADBF96"
+    },
+    {
+      "path": "tests/integration/test_question_asset_persistence.py",
+      "hash": "EDA04A7DE2D9F4400E2E9748C2E53EFB8A603583019AD007515EF7400FC26D9B"
+    },
+    {
+      "path": "tests/integration/test_question_asset_visibility_migration.py",
+      "hash": "F32ECD1FE5DB569B7D0323FD6997F7C10D635C8FA518CFF31F25A704CBD72C27"
+    },
+    {
+      "path": "tests/integration/test_question_generation_workflow.py",
+      "hash": "EB81D989BBF01BB04F15C9A0F08FD217A1DEBC8AF5D4AD904369A1A2EEE6B5E2"
+    },
+    {
+      "path": "tests/integration/test_question_source_migration.py",
+      "hash": "C801DBC204DA6A75684B6D7599C0966C6ADBAA617FF9892291C2A885A48F0B62"
+    },
+    {
+      "path": "tests/integration/test_question_source_paper_migration.py",
+      "hash": "BDAFC7017DEC687950A624C0753C90AB4E0DC52BEF6296BBD53CF28239B8AFB1"
+    },
+    {
+      "path": "tests/integration/test_reference_lifecycle.py",
+      "hash": "745352019454BC9272D794E2ADDC88D588F8FAA2DA4686EFAACAF3771C2AEAD5"
+    },
+    {
+      "path": "tests/integration/test_review_fixed_input_display.py",
+      "hash": "D22137D8E27CD397B2FB6F5445F86AA0C9A694BDEE5FB8BAF5B0D612ADCCB07F"
+    },
+    {
+      "path": "tests/integration/test_review_round_migration.py",
+      "hash": "6C9C4C7B2F2EE7173B3F7B6D13AC143FC9EBE97A2D81D167AAC67A1496FEA52C"
+    },
+    {
+      "path": "tests/integration/test_storage_migration.py",
+      "hash": "5953B9F29814121ABED55949865FC5F7CA631AEB52CB7D82ED2A3CABD836F97E"
+    },
+    {
+      "path": "tests/integration/test_student_learning_ui.py",
+      "hash": "16D205A2CFC4B0C1CE763F6D40F4A9A2379F77EB36F68578374E54D2155DFBCF"
+    },
+    {
+      "path": "tests/integration/test_submission_finalization.py",
+      "hash": "189F618A1DD72B2BFE6DEA5D7362CD8BAB7B48DDEF3DF13FDAF20BBB10AA9937"
+    },
+    {
+      "path": "tests/integration/test_t160_import_acceptance.py",
+      "hash": "BDD2EFE99E77C29C5B76FAD16CECF81E2170A9286387496620A22A66547C40CC"
+    },
+    {
+      "path": "tests/integration/test_t166_semantic_transactions.py",
+      "hash": "DB5CF589D1FC4A71939A6AA6159902E640577BDE3D13071F7611E113AB77CB4E"
+    },
+    {
+      "path": "tests/integration/test_t169_e3_acceptance.py",
+      "hash": "47CCBAC286A1280FA5995605A111F781A9290054AE9B868A9AF57CB3C0D1794C"
+    },
+    {
+      "path": "tests/integration/test_t179_publication_races.py",
+      "hash": "862FEC425C98426B1E72E3AEDA27A43EB9D6241B316C79E375AC373E6AEB1704"
+    },
+    {
+      "path": "tests/integration/test_teacher_analysis_ui.py",
+      "hash": "3946A04FA4D09C1AB2FA68B5DE5694E6DC6069BF49AE5827F9EE037770AFDAC2"
+    },
+    {
+      "path": "tests/integration/test_teacher_results_ui.py",
+      "hash": "4573D2FE7EF46829FBFFFBADCEFD93B6428F5503F475B9EA792D7ADA349688E4"
+    },
+    {
+      "path": "tests/integration/test_teacher_setup.py",
+      "hash": "97040669D7A7A313CB1309A5645EB7EB74D0199D81881719CB89D34E910FE616"
+    },
+    {
+      "path": "tests/integration/test_workflow_start_concurrency.py",
+      "hash": "0B3A9F9A697789E2430BB1B19AEB4721AC696C5DD5A4B852BCFDB7065C18DA65"
+    },
+    {
+      "path": "tests/postgres_helpers.py",
+      "hash": "7068AE7A8FE0D4999E0F2B849E406DBDCC4A7AE197496DC6116E8F9C472AA48F"
+    },
+    {
+      "path": "tests/support/__init__.py",
+      "hash": "8B64828E364E351F9E71E094AA11EF523682B592086713FADAD5886808039476"
+    },
+    {
+      "path": "tests/support/exam_scoring_fixtures.py",
+      "hash": "4AEA86C99C400FF3ACCCCBA68AA204B4E8485DDEE736D19BBCBB3FDF44213741"
+    },
+    {
+      "path": "tests/support/grading_doubles.py",
+      "hash": "5BB0623F7DE627F267526786CEA0F9BEB64765142A369EBB6308D7110A277E60"
+    },
+    {
+      "path": "tests/support/question_generation_doubles.py",
+      "hash": "D14A312FC4A0B00AECA64F1B0DF5681FD33A47CF68E0262D12172DFE611A10F4"
+    },
+    {
+      "path": "tests/support/question_validation_fixtures.py",
+      "hash": "06209FC1C1B8A123D49B5EB8E5B266084B78A561425C8A5CABFCBFF842FED330"
+    },
+    {
+      "path": "tests/support/semantic_validation_doubles.py",
+      "hash": "64341BC14BB1CC46CBBFC969845D6395E41AF95EE71357CA7A787FE5EE5E908C"
+    },
+    {
+      "path": "tests/support/subjective_grading_doubles.py",
+      "hash": "B7130298D8C089C478FCBB720FE0BF29CDDAE62757BF38484B393A70F7CCF8D5"
+    },
+    {
+      "path": "tests/support/t184_statistics.py",
+      "hash": "3882FA261A961DD1E53FC6C2C800CE92498ED9D21D1F771867769C82C6302051"
+    },
+    {
+      "path": "tests/unit/__init__.py",
+      "hash": "3B2BEC5485BB3FB3BB29A41FF8B1D86FEB92BBC6587A20491C94A0B29D2A195B"
+    },
+    {
+      "path": "tests/unit/agents/__init__.py",
+      "hash": "0163ECDE930C3A53CC722A504480B02183E9616269E2F6028E76B8EA001FAD8E"
+    },
+    {
+      "path": "tests/unit/agents/test_agent_state.py",
+      "hash": "E352519B93145290F10C9552E3EC9EE5A787B2FB3F4872EC4ED85CD2F9DBFD32"
+    },
+    {
+      "path": "tests/unit/agents/test_fixed_reviewer_inputs.py",
+      "hash": "63CDB07BC3DCFF0A891CF698AFBA9974519E08247A664596D4065210DF4E11A5"
+    },
+    {
+      "path": "tests/unit/agents/test_grading_agent.py",
+      "hash": "246325519822450D87065BA083ED351174609EB672D4AF7DF604D15F99B01793"
+    },
+    {
+      "path": "tests/unit/agents/test_question_agent.py",
+      "hash": "5DB37C68814C8BF9F4EBB3EDEF3F166076DD67C9DE04BD2932E8734F47FF95B5"
+    },
+    {
+      "path": "tests/unit/agents/test_reviewer_agent.py",
+      "hash": "A5A57BD3FED51580DD2228BE6D511D75A16F6CCC1A43C01310414B6BB2E9B22B"
+    },
+    {
+      "path": "tests/unit/agents/test_supervisor.py",
+      "hash": "0E64F25350776F5D4E564EBD510A1C320147BCD07CB6E34C5E832D52342373A2"
+    },
+    {
+      "path": "tests/unit/ai/test_vision_provider.py",
+      "hash": "FC96F4C34D7997C3980136865A46CC351FCFC170E789A033FD9EBEED76491FB0"
+    },
+    {
+      "path": "tests/unit/benchmark/test_t160_resource_sampling.py",
+      "hash": "A9A2DEF64B7365A784789F92EBFCF9D3366F7629AA4773FEB76F0BC9FFD4C628"
+    },
+    {
+      "path": "tests/unit/benchmark/test_t168_field_acceptance.py",
+      "hash": "5AC08A142FEDD21F48710A3A4B6CF4C05F72CA94E1546AE1DCA5F03C0CF77053"
+    },
+    {
+      "path": "tests/unit/deployment/test_configuration_editor.py",
+      "hash": "D774468D329FE9BDC999A89F268BCE4E1FAD6EE2107E8928C68C866E9205350A"
+    },
+    {
+      "path": "tests/unit/deployment/test_frozen_gradio.py",
+      "hash": "BA52B3C1493F1BDB4D1904CB405285E09AFD0E5E217E98C099F699564D130F04"
+    },
+    {
+      "path": "tests/unit/deployment/test_windows_fault_observer.py",
+      "hash": "EB869BE7BB66716042B188F9AE47259B00EA66ADCF66949AF89E453658F62AB1"
+    },
+    {
+      "path": "tests/unit/deployment/test_windows_launcher.py",
+      "hash": "725C4FCDF97C7F8079831A7278F4B145A67A5BB9AE99136CB02BB6D2A12F75B4"
+    },
+    {
+      "path": "tests/unit/deployment/test_windows_tls.py",
+      "hash": "30C30E9450F1B474A46685FE12981B296C34A8E3B7D0B926DD1036EAB381EE52"
+    },
+    {
+      "path": "tests/unit/domain/test_permissions.py",
+      "hash": "A6846D0ABD617256DF758CDC2C496EA0165AB51FE3F6E66005E2C7BF80FB23DE"
+    },
+    {
+      "path": "tests/unit/evaluation/__init__.py",
+      "hash": "33905E3D47FEB3305325CE1BEA31D7D36B728D9315680F2BE2EEBE00E6798561"
+    },
+    {
+      "path": "tests/unit/evaluation/test_benchmark.py",
+      "hash": "C7B0F6F13672FD2CE80D1D1BEB7BD090B3228149FC8AFF87BE094E676BB389BA"
+    },
+    {
+      "path": "tests/unit/grading/__init__.py",
+      "hash": "43B3428E14760AFAA5E0D0422CDF0D81BF9279620F9BBE1D8F6D8ABC24752168"
+    },
+    {
+      "path": "tests/unit/grading/test_confidence_policy.py",
+      "hash": "C06A9B7DA7C8688B0299043438E0B8C8FCF1D9AFCE4FCCEDBEEE8157A4462809"
+    },
+    {
+      "path": "tests/unit/grading/test_diagnosis_report_store.py",
+      "hash": "8C8EF2E060104BF5AE9D876345A5A7892234ABE731A4E2269BDE6AD938E93625"
+    },
+    {
+      "path": "tests/unit/grading/test_exam_scoring_consumption.py",
+      "hash": "D77AF1255FE8CCD38C3D3337C4592C08FD4CE7C4BFDEE1A2AFCFAADDE22651D3"
+    },
+    {
+      "path": "tests/unit/grading/test_fixed_result_aggregation.py",
+      "hash": "C16553AB6C1A391533A0AAD0B5D61A208FDECD1288E8FB0083C49B37CD52CA5B"
+    },
+    {
+      "path": "tests/unit/grading/test_grading_context.py",
+      "hash": "42C5B7FB80C6932194C667C5474501DF013A0E3143B8B0F27BA3690EF8B2188A"
+    },
+    {
+      "path": "tests/unit/grading/test_grading_repository.py",
+      "hash": "7A46E9D53D84439D0A1161B7B6478094374592A92DF6F56CD2C106184B62E3A2"
+    },
+    {
+      "path": "tests/unit/grading/test_grading_task_service.py",
+      "hash": "E4FDA3D51E612655BEE15DFF2539AF02E780222E0128ACF53C9E0BF5B2AC475E"
+    },
+    {
+      "path": "tests/unit/grading/test_objective_grader.py",
+      "hash": "97405544F4EB80C52FA614AB9CC8B5BDD1854D06BB17EC979D3D05A723AEF794"
+    },
+    {
+      "path": "tests/unit/grading/test_question_router.py",
+      "hash": "021118EBA25A25A62AC0718824E7F9D8C17A340B6699C7DB65FA8B5810CC6C70"
+    },
+    {
+      "path": "tests/unit/grading/test_result_aggregator.py",
+      "hash": "53A5CE74371BFBE46F9E0BC6BDE616C97F8C3EB95E9B5DA7D30120A287E6EA73"
+    },
+    {
+      "path": "tests/unit/grading/test_scoring_input_enrichment.py",
+      "hash": "B722B284E0C143D1A401A17BC97A0C99B85A6B2103F41E54A9D0587CDD94A8F7"
+    },
+    {
+      "path": "tests/unit/grading/test_scoring_inputs.py",
+      "hash": "9939C97DB9FFAF8B8E633E826955AFB6042F82CC7278CB25805D93E14BA5E160"
+    },
+    {
+      "path": "tests/unit/grading/test_structured_grading.py",
+      "hash": "6BDF7CC90F0228F38B6500E3DF54690B82439242110680F9989201DCD15AF900"
+    },
+    {
+      "path": "tests/unit/grading/test_subjective_pipeline.py",
+      "hash": "6176C4610874A71789A810BBCBD4B3F58A2ECE6AF62D2C77FFFDD89A8C07CA24"
+    },
+    {
+      "path": "tests/unit/ingestion/__init__.py",
+      "hash": "8F64BC6EDEAE5BC32AA09049DA603A52FFD896FF36F9304C3A494DE2E71BCD3A"
+    },
+    {
+      "path": "tests/unit/ingestion/test_chapter_scope_production.py",
+      "hash": "EAF7CB7DC4671FBB3C0BCFA9DE73E9E1A4FA2342F132EE332B82D26FE056CB84"
+    },
+    {
+      "path": "tests/unit/ingestion/test_chunking.py",
+      "hash": "B9FFB4763BBFCAB3991F2DF67DB6DC74B903CFFB350469E00F9EFD9E13624DA5"
+    },
+    {
+      "path": "tests/unit/ingestion/test_cleaning.py",
+      "hash": "74254D3581929DF51F6A7EF0E50D863076895E06FB873B7A119F90D9BF7D07BA"
+    },
+    {
+      "path": "tests/unit/ingestion/test_ingestion_service.py",
+      "hash": "D04A7432795552021DCABA3F9B27F3A365287BD3CA9830A23905F2551702CB9C"
+    },
+    {
+      "path": "tests/unit/ingestion/test_paper_extraction.py",
+      "hash": "87A830BD837FCB0BEEAE03464E7C3ABE27DC2C7684A141728632305BCC476C9D"
+    },
+    {
+      "path": "tests/unit/ingestion/test_paper_pipeline.py",
+      "hash": "4895B0033CA74B1A39EA28EDB95FAF093E4D1C18F9470C59EAFF5006523B7019"
+    },
+    {
+      "path": "tests/unit/ingestion/test_paper_provider_lifecycle.py",
+      "hash": "849DB3B4390700F87EFE02AFD25D7538D9E40BBDE47D87E57F24DE69E5EA40F8"
+    },
+    {
+      "path": "tests/unit/ingestion/test_rapidocr_provider.py",
+      "hash": "FB131B43308900463A6E218876D9EF0D7031C8273B91D9B336702D8B225D9670"
+    },
+    {
+      "path": "tests/unit/ingestion/test_t160_extraction_constraints.py",
+      "hash": "E372AC499B5C0F38A6EE5D3C7AD4DD8BCE21EC84CC64A8F867F9B08A5BA18E1A"
+    },
+    {
+      "path": "tests/unit/mcp/test_email_tool.py",
+      "hash": "DFA5C416F2D6DDD5E3A104ECA315514355F6C64570D77FE860D3BD855FF04AD6"
+    },
+    {
+      "path": "tests/unit/mcp/test_knowledge_tools.py",
+      "hash": "49C79C27C0E39D86C1D749C33757B47A8C4C85C481EB89728A5BC7EC62BC837F"
+    },
+    {
+      "path": "tests/unit/mcp/test_report_tools.py",
+      "hash": "83D6C3C841C8DD9B0BE2B14731DE5B233C286E695CBE56005BA22CF7D3292DE1"
+    },
+    {
+      "path": "tests/unit/mcp/test_server.py",
+      "hash": "BFF45A3E63F9BA9DE4DA736B3A58E6229979F0BF329CAE02C05294279706DBEA"
+    },
+    {
+      "path": "tests/unit/models/__init__.py",
+      "hash": "80DEEAB87BF66C701B14746311BB4654DC3C2C05DB77DDC535DE94EFAA554BCF"
+    },
+    {
+      "path": "tests/unit/models/sqlite_support.py",
+      "hash": "B95D63BF61A731FFEA3ECFE9458FD42D33E5AAC5DC1D1C7F3B30F899F2A6EC12"
+    },
+    {
+      "path": "tests/unit/models/test_agent_run.py",
+      "hash": "E2C18311B52B262A1880D4B48C70D42F1363E7D1B647D9758329475D44C73D38"
+    },
+    {
+      "path": "tests/unit/models/test_diagnosis_report.py",
+      "hash": "82F254A8C7DBCFF40BA9ED85DAFD687D4CBAC75DCCDFE3C5C3EC76680BDBA9F8"
+    },
+    {
+      "path": "tests/unit/models/test_document_chunk.py",
+      "hash": "E32851CF625A196E911A13442F48935A3898DFEECCBE66221E934B6DDAA66C78"
+    },
+    {
+      "path": "tests/unit/models/test_grading_result.py",
+      "hash": "81C1E36CD94B952B7AA5A0CAC3A0CB73F79BAC4FFD4833925CA404CF4CCCE35D"
+    },
+    {
+      "path": "tests/unit/models/test_m3_migrations.py",
+      "hash": "D80E838F9A9ED314A906D49EE55C4F8B7AE11F66D847E12DCB095110709B287F"
+    },
+    {
+      "path": "tests/unit/models/test_models.py",
+      "hash": "BB88FE1EE5564106B48F2CC4679CB6DA17F72A5E52A119D69431DDD59259ACB9"
+    },
+    {
+      "path": "tests/unit/models/test_paper_import_models.py",
+      "hash": "558FB17D37184CE44CD472B7F62EC79F34233B9478C605490F6E38B1C4073F6C"
+    },
+    {
+      "path": "tests/unit/models/test_question_source_persistence.py",
+      "hash": "75869F488FDDB4C95CEDEF89DCCF1FE2A0E0FCF7C3AAD501AD5C482547BDD792"
+    },
+    {
+      "path": "tests/unit/models/test_review_record.py",
+      "hash": "A6FD7C5059FF11934D27D56527CA356751C94A4EE7F0942A3A5DAD7B622AB5A7"
+    },
+    {
+      "path": "tests/unit/models/test_review_round.py",
+      "hash": "4A8E27147318E2284F31281B7F57FA3BB6570BEA44492615AC5F57CCAB3B29CA"
+    },
+    {
+      "path": "tests/unit/models/test_workflow_run.py",
+      "hash": "A49462B103B0B1F9044028491AF100410A4C31227A58D961514167097E69E1BE"
+    },
+    {
+      "path": "tests/unit/retrieval/test_hybrid_search.py",
+      "hash": "DEA9F1EE9DAE20144843734BC7A2DC22B6618CC1E369B6699303254972394401"
+    },
+    {
+      "path": "tests/unit/retrieval/test_reranker.py",
+      "hash": "FCC00E03DE7DB04E22FD7A14B4A72DA696F6D2485A318C1F12D2C25D56A8ADB9"
+    },
+    {
+      "path": "tests/unit/retrieval/test_retrieval_benchmark.py",
+      "hash": "9D569AEF6E9CEE3E608433FC882AA9E0310188DE4D45B70093113BBBC0C5B6DE"
+    },
+    {
+      "path": "tests/unit/retrieval/test_retrieval_inputs.py",
+      "hash": "A894FB3CCD4AEA9E8DA77B99AD7A466905A5DF829FE534DA49F5F45B936E2A9F"
+    },
+    {
+      "path": "tests/unit/retrieval/test_retrieval_scope.py",
+      "hash": "BDCFD20611BFC6DFE95349321070C0C52FEFDC97800AD3CF9C1B8FA996A87B79"
+    },
+    {
+      "path": "tests/unit/services/test_admin_service.py",
+      "hash": "071E9795C8F732C4AF659985A470E932C78CE1CBE519877D2636FA3F89F31AD2"
+    },
+    {
+      "path": "tests/unit/services/test_audit_service.py",
+      "hash": "7D6BF2B543A99E20E7EAD10642BAB26DE6DEE57A31788B9F693DE3209F0A012B"
+    },
+    {
+      "path": "tests/unit/services/test_chapter_scope_service.py",
+      "hash": "F54ABCFEAA86DEE36180E43E9BC260A4A4C65320B9BEDA8EF711EA4A1B96B24E"
+    },
+    {
+      "path": "tests/unit/services/test_content_validation_service.py",
+      "hash": "B863E528554A6878519351F901D6D74471D27E9886CCFFBD33E3B396DD16E33D"
+    },
+    {
+      "path": "tests/unit/services/test_course_service.py",
+      "hash": "AD0F565E66D69A7B405FF2C23D2C5436DB781B1C41D4757E3F117FFC1BBCEA43"
+    },
+    {
+      "path": "tests/unit/services/test_diagnosis_service.py",
+      "hash": "7F3A216D5967133533396F83E8C1E278E9CF00A5FD97744E02BB76B4947811C7"
+    },
+    {
+      "path": "tests/unit/services/test_evaluation_service.py",
+      "hash": "B507DDA7138D6DDFC9604285B586D4B2AD6D819D7B3863FA29E05EA25E384E24"
+    },
+    {
+      "path": "tests/unit/services/test_exam_association_service.py",
+      "hash": "56F0DF15988D15F90E2B3B75B12C7B177DDD42F523CEF218713088345DE7CEC5"
+    },
+    {
+      "path": "tests/unit/services/test_exam_execution_boundaries.py",
+      "hash": "EB0D8E2C27C753AE652B3EA150C676923F78121AFC56F8FD8D78269DD044350F"
+    },
+    {
+      "path": "tests/unit/services/test_exam_scoring_rules.py",
+      "hash": "CA6D366DBE5C3AA627C6E0BA680EB3A47B98B998E881C0B7E5391B09569D3BA2"
+    },
+    {
+      "path": "tests/unit/services/test_exam_service.py",
+      "hash": "446502ECECE5F9FAB92E4B8F5249C1FE5EB90888C4FD579546ACEA04FA4B5070"
+    },
+    {
+      "path": "tests/unit/services/test_file_storage_ingestion.py",
+      "hash": "5095822C9557188B692268E59488E842BF38C992D8FD754259454FFCBC33AE3A"
+    },
+    {
+      "path": "tests/unit/services/test_file_storage_service.py",
+      "hash": "6CFC0344D38A6866331F354A06AC78906341C183C8F5D261D96C1734F2213E17"
+    },
+    {
+      "path": "tests/unit/services/test_fixed_review_service.py",
+      "hash": "36EDAF88566E6E495CDECED5DED3EF90462C19E68B0F1FBE53BDFED50027CCA7"
+    },
+    {
+      "path": "tests/unit/services/test_image_understanding_service.py",
+      "hash": "23DBF9AF07A8210435D4AB894B525C3F54C25D65097CD6100A47A577B7E04D76"
+    },
+    {
+      "path": "tests/unit/services/test_knowledge_base_ingestion.py",
+      "hash": "0AC650DC38D45E8B718DFC45366DED155880CDCBA52E4CD0F990121B2A063E91"
+    },
+    {
+      "path": "tests/unit/services/test_knowledge_base_service.py",
+      "hash": "62852D541D4FF3F828EE6040C1B850F7F4E2E99CE244ACE109A24A8BF80A6ABD"
+    },
+    {
+      "path": "tests/unit/services/test_learning_observations.py",
+      "hash": "26BD9296740D87A087537A41FDE3F58417AE4A3D5F6B06A0930BB5C84FCB1406"
+    },
+    {
+      "path": "tests/unit/services/test_paper_import_foundation.py",
+      "hash": "82BCB900BEE6652D02F310730153D19AB63B6E3357704FFF851FC9C1B4FE6DF3"
+    },
+    {
+      "path": "tests/unit/services/test_question_adaptation_service.py",
+      "hash": "320442DEE14F1502D621C0A227FDE268ABDB75E0816A5E1FD39AA6783C53DB95"
+    },
+    {
+      "path": "tests/unit/services/test_question_asset_service.py",
+      "hash": "71DB29CE3FFE39C1BFA0DC453089BEBD0B580690F82E6AC872DB65E4B62F6C1B"
+    },
+    {
+      "path": "tests/unit/services/test_question_service.py",
+      "hash": "881D8C2C60D4A224F0842E3689669778F465F7CC7329BEC5AA7FE9F55234CF18"
+    },
+    {
+      "path": "tests/unit/services/test_question_validator.py",
+      "hash": "BF8CBCE85EE3C7874AD001DBCDF9DDF0DBB7FD571A1473F92C7A79ECCF94BBE8"
+    },
+    {
+      "path": "tests/unit/services/test_review_round_service.py",
+      "hash": "D3C33358A5AE70747618F62C45D85DBABC0E6E3667BE74E16BD31C606A22F56B"
+    },
+    {
+      "path": "tests/unit/services/test_review_service.py",
+      "hash": "4C3BBCF1388E7575FBA0753EB08F37F6FC2DC2E4B77058ACFD633C0525FAE532"
+    },
+    {
+      "path": "tests/unit/services/test_storage_migration_service.py",
+      "hash": "3AF9C02DFEE453470F8EF438E29CAE0A8277E613AB3196F62F94E6D92BEAD2F6"
+    },
+    {
+      "path": "tests/unit/services/test_student_fixed_exam.py",
+      "hash": "005D8FA6DE589C825E0A3BAB93B80DE5CC45C4262EC1035B8EFDDDC516EA57FF"
+    },
+    {
+      "path": "tests/unit/services/test_submission_service.py",
+      "hash": "2D6A53A68B6CFEC60897FB1E56754DA53B08E5635DD96CBDEF6250248E1F5A44"
+    },
+    {
+      "path": "tests/unit/services/test_t166_semantic_validation.py",
+      "hash": "8F2095B0D446391F6490B25F184E89F212757B8F557ECB83B10229194F56C23F"
+    },
+    {
+      "path": "tests/unit/services/test_t166_teaching_basis.py",
+      "hash": "228E0A43F381D810D53FC1B45683F972257C9BD02B0F29212C166E9192D2BF0B"
+    },
+    {
+      "path": "tests/unit/services/test_trace_service.py",
+      "hash": "782B29FC544E6790E0110B5132BF6B806CAC3BB2388E2DB8117C4928677BB48F"
+    },
+    {
+      "path": "tests/unit/services/test_validation_revision_writers.py",
+      "hash": "F7F9B2870196FADBCFCB2A515E06C7F48B69802664067890BA970D20F6080295"
+    },
+    {
+      "path": "tests/unit/services/test_workflow_checkpoint.py",
+      "hash": "004B091A42EC7F2F42068137C659BFECF62D698719F6A48A897356B59F6C7B36"
+    },
+    {
+      "path": "tests/unit/settings_helpers.py",
+      "hash": "D363D555426E20DFAFEA9F2148CA16BA4860AB54ACE48FA1D6D69DFEE43BA06D"
+    },
+    {
+      "path": "tests/unit/test_app.py",
+      "hash": "4D51E56C016A532B5BC67B4B8B5229357BA433242568B4DD7EB831A29B07153A"
+    },
+    {
+      "path": "tests/unit/test_auth_service.py",
+      "hash": "86805B341667F4BE6041071F456334F3287854CBD2425E12ED66BECF91F2B179"
+    },
+    {
+      "path": "tests/unit/test_config.py",
+      "hash": "256E3DF609A753C402DBFE69DC01D4DEDFA973F6D373482F8B3C13C49B3C6609"
+    },
+    {
+      "path": "tests/unit/test_database.py",
+      "hash": "020AE7E85FC6EE5BEA402051AB2E81ACD0D22C254B3C6C89CFD64FDD9A9E12D0"
+    },
+    {
+      "path": "tests/unit/test_deepseek.py",
+      "hash": "5CBFF5E247C8707B6BEB45543B4A1747A4636C9A73D959199F54083CF1E2F13C"
+    },
+    {
+      "path": "tests/unit/test_exam_question_models.py",
+      "hash": "6C61C24C5BE0962A91B9E19F478AADEC79C7ADB5F0EE67C804DE4D2E55E80346"
+    },
+    {
+      "path": "tests/unit/test_llm.py",
+      "hash": "DFF27AE602D71181A32AE7593FC4ACEF018DD980C5FB34719D5074D69F35F0EC"
+    },
+    {
+      "path": "tests/unit/test_m0_smoke_isolation.py",
+      "hash": "EFCA736F45E3269E1835306A61F2A2DB3A13CAE42002A72CFE7F83E943ADE358"
+    },
+    {
+      "path": "tests/unit/test_redis.py",
+      "hash": "DF3CFA671DB2C8CD0094EF4F096B830C1E6CC8ADFA8BD8DE732EC64CF9723D53"
+    },
+    {
+      "path": "tests/unit/test_retry_policy.py",
+      "hash": "F701E473A4E82A46395FEFCD70FE4F3B90A95575DB9AF059A956389D8442A2C6"
+    },
+    {
+      "path": "tests/unit/test_retry_policy_sdk.py",
+      "hash": "BFFD96998EFC27206DB70AF0F762095B19460CE82BB617465A068A71B3BCDB17"
+    },
+    {
+      "path": "tests/unit/ui/__init__.py",
+      "hash": "618A5D77274AC9DC3011E1AE5112233422BB7DDECA9698A8B80CAF67F31F7552"
+    },
+    {
+      "path": "tests/unit/ui/test_admin_view.py",
+      "hash": "E3D2512EAC710D309AF13CA2F1CF44FCE410352AD50DD48EAED06D7F254C62FC"
+    },
+    {
+      "path": "tests/unit/ui/test_chapter_scope_view.py",
+      "hash": "AAE24B7D647E007C82135F38089D83EDBD3514D9BF5BA76F74637A2B23B11935"
+    },
+    {
+      "path": "tests/unit/ui/test_evaluation_dashboard.py",
+      "hash": "A15A93EA189B07787FA1C801B4BAECEB41D06EA668AFB783AA016B049A33CDEF"
+    },
+    {
+      "path": "tests/unit/ui/test_exam_assembly_view.py",
+      "hash": "3252F7E67C6A3252263A5C7A3BC6A23188E377AFD4A6C792CAC30A5C3C5129CF"
+    },
+    {
+      "path": "tests/unit/ui/test_exam_scoring_view.py",
+      "hash": "ABCC3484B71529DAFD5A0013FD443E051B795B5FBC96926C0EE2E4D833C03FD1"
+    },
+    {
+      "path": "tests/unit/ui/test_gradio_app.py",
+      "hash": "DE10891FA37F3404E27348189E72C4934AE4A93E35FC385639E29F5B7A0F6355"
+    },
+    {
+      "path": "tests/unit/ui/test_knowledge_base_upload.py",
+      "hash": "F8CD7866FC6CE0B75757E16477FA19165555DA034EFD63518F8F0C4D7CC511B9"
+    },
+    {
+      "path": "tests/unit/ui/test_paper_image_review.py",
+      "hash": "95B8B2CC979AEDEF3B5AE76F4082A9B72191FDA9C1D05CECC435645243838BC0"
+    },
+    {
+      "path": "tests/unit/ui/test_paper_import_view.py",
+      "hash": "8F139E08E1C7088C4D11FF965A2594F1A91D4B87A83228DAD1F8BF3360510971"
+    },
+    {
+      "path": "tests/unit/ui/test_question_bank_view.py",
+      "hash": "40FA6A4B21266600309D29829FECD6F9C4BF671A40287139F932C00AE5CC8BBB"
+    },
+    {
+      "path": "tests/unit/ui/test_question_generation_view.py",
+      "hash": "0A78D00CF4DA39BD5002890E640E3C9ED30EB04803C288B0CF2D7428EAAE90A9"
+    },
+    {
+      "path": "tests/unit/ui/test_question_review_view.py",
+      "hash": "E386A3927132F2D769C9C799B325D17C0804202F7F231B89A71C51FBA3759B3F"
+    },
+    {
+      "path": "tests/unit/ui/test_results_analysis_view.py",
+      "hash": "BB2530FF8B0EE285D0F81C67628E0F74F852AE56A98E599001615338A1CD5207"
+    },
+    {
+      "path": "tests/unit/ui/test_results_learning_view.py",
+      "hash": "058639A374FE8DF3E67BE32EC3C6DC387BC1CB11161193441C0922955B190978"
+    },
+    {
+      "path": "tests/unit/ui/test_results_loaders.py",
+      "hash": "681EB956418CB9480FFD48CEA215E3052E6013B0A627C6A4C956907FC1E3416C"
+    },
+    {
+      "path": "tests/unit/ui/test_results_view.py",
+      "hash": "BB8CBCFC8C6E10F428C4128EDBA990302B3DD1D705BCAC2B4659DC63A5DF0430"
+    },
+    {
+      "path": "tests/unit/ui/test_review_exam_inputs.py",
+      "hash": "952CE4432370DFBB2C5D1B4DAAFA6A8A59120F1304EBE783981757F137AA718E"
+    },
+    {
+      "path": "tests/unit/ui/test_review_view.py",
+      "hash": "F9BD2488E380DCC3A6161C8E2C38B56DA712CC02E9E4A0B15A986BD6647A9EA2"
+    },
+    {
+      "path": "tests/unit/ui/test_seven_page_acceptance.py",
+      "hash": "209526A8248DDB621A835C7592BA7BD14EBD01D257AC4D505DEA045C0180EE95"
+    },
+    {
+      "path": "tests/unit/ui/test_shared_ui_acceptance.py",
+      "hash": "6ED560FFC9A494D34913BEE7287911C6CE3AAA1A4CC19FBA545A7F4FB2AE47E8"
+    },
+    {
+      "path": "tests/unit/ui/test_t160_correction_loading.py",
+      "hash": "07C465532D1EFFECD1617CFCFCFB4019874BD1545BE91A0CB05E6FF93D83D8F2"
+    },
+    {
+      "path": "tests/unit/workflows/__init__.py",
+      "hash": "E27BCB62FB1F490D8204071846D8515E3D77F8618821F46D7EE2D5B94675C7A2"
+    },
+    {
+      "path": "tests/unit/workflows/test_fixed_scoring_state.py",
+      "hash": "189B26D7505B6A0130380A34C773A4FC0B17F50B6AE9D7188A321B98F495A8D1"
+    },
+    {
+      "path": "tests/unit/workflows/test_grading_workflow.py",
+      "hash": "9A4A33CDA2872C1897A6E310172390675A2AFD0B653121F93E35EA1700776099"
+    },
+    {
+      "path": "tests/unit/workflows/test_workflow_state.py",
+      "hash": "AF7D09F5E63D1291F7A1E7F7760BD325F905B98425F438EC085A660C31CB9B11"
+    },
+    {
+      "path": ".specify/feature.json",
+      "hash": "3F61275BCCDDFFC1D359A848D1E02A222F24ECA7CFC46DF8D479751F6581F535"
+    },
+    {
+      "path": ".specify/memory/constitution.md",
+      "hash": "5100242CEB2BB86BF7D073B17BBD37377BC645EDC147CA759E20E4FD73DFAC6C"
+    }
+  ],
+  "feature_documents_before": [
+    {
+      "path": "D:\\YJX\\MyCode\\EduAgent\\specs\\001-local-settings-and-onboarding\\analysis-report.md",
+      "sha256": "8CFE363510C80FD74A3F81D5692A072B3DAC87E6EA45722DE46F9DCA69C00EFD"
+    },
+    {
+      "path": "D:\\YJX\\MyCode\\EduAgent\\specs\\001-local-settings-and-onboarding\\audit.md",
+      "sha256": "B94D0CB0BB7ECF1912F0571DDC80DFC139E1A519BF472BE2F9C58D6FA97352DA"
+    },
+    {
+      "path": "D:\\YJX\\MyCode\\EduAgent\\specs\\001-local-settings-and-onboarding\\data-model.md",
+      "sha256": "F34889A6089374B21B3B685E02872081577C64B26B7B84035ED1D75FB32C1B09"
+    },
+    {
+      "path": "D:\\YJX\\MyCode\\EduAgent\\specs\\001-local-settings-and-onboarding\\plan.md",
+      "sha256": "BF447C8F022480C599C643883B448761D890CCDA5694932339109CED8536B9D2"
+    },
+    {
+      "path": "D:\\YJX\\MyCode\\EduAgent\\specs\\001-local-settings-and-onboarding\\quickstart.md",
+      "sha256": "8BB8482A5F649198EDF735AE7D72E9C9AAE33C5A1E13A204A43086BC9D8E1F76"
+    },
+    {
+      "path": "D:\\YJX\\MyCode\\EduAgent\\specs\\001-local-settings-and-onboarding\\research.md",
+      "sha256": "437403DE5F95F769D1B6018132473740351C6898421D45811A81961BF24BD443"
+    },
+    {
+      "path": "D:\\YJX\\MyCode\\EduAgent\\specs\\001-local-settings-and-onboarding\\roadmap.md",
+      "sha256": "0478D02F43A4D3670DC9541489C59C7F1F3F666370756FE2D2131C74A3B8661F"
+    },
+    {
+      "path": "D:\\YJX\\MyCode\\EduAgent\\specs\\001-local-settings-and-onboarding\\spec.md",
+      "sha256": "D862EAB5AE4CE1415F2B93F191980C8C7532E0351C8E39E32B7508CA525C11FA"
+    },
+    {
+      "path": "D:\\YJX\\MyCode\\EduAgent\\specs\\001-local-settings-and-onboarding\\tasks.md",
+      "sha256": "B45D003CB45E1B095A99196E098F50AB24132A7EC08E59C720FBD5EFEDFEB485"
+    },
+    {
+      "path": "D:\\YJX\\MyCode\\EduAgent\\specs\\001-local-settings-and-onboarding\\test-change-plan.md",
+      "sha256": "D588BF4FD1AB4A17A0A54C7A33FDBADFCCD50E903B99D2DCAEAFF9DD39463552"
+    },
+    {
+      "path": "D:\\YJX\\MyCode\\EduAgent\\specs\\001-local-settings-and-onboarding\\checklists\\readiness.md",
+      "sha256": "327B6B2B4FCCA38C5021E29872DFDB2151334CF50CFB7ED6AD1D84BFF1AEB72A"
+    },
+    {
+      "path": "D:\\YJX\\MyCode\\EduAgent\\specs\\001-local-settings-and-onboarding\\checklists\\requirements.md",
+      "sha256": "8CA38A9A6E9EB61B065DE622905793B9EF29A2D178AFC069C268C54890850C94"
+    },
+    {
+      "path": "D:\\YJX\\MyCode\\EduAgent\\specs\\001-local-settings-and-onboarding\\contracts\\runtime-configuration.md",
+      "sha256": "7BDA6C8721A842A14DCE28938EDDC47F22D85B8FDD3296D4224CD50706119F6B"
+    },
+    {
+      "path": "D:\\YJX\\MyCode\\EduAgent\\specs\\001-local-settings-and-onboarding\\contracts\\settings-api.md",
+      "sha256": "073F0502F3BCCDB85BED4E2DDBD3F4FD68923B2E16F95949C98206A151444A57"
+    }
+  ],
+  "private_configuration_integrity": [
+    {
+      "path": ".env",
+      "hash": "6C64A82A1ACC7D83174FECC0C83A3891A845655EC40DC5ADBB8376520398F4D8"
+    },
+    {
+      "path": "C:\\Users\\10169\\AppData\\Local\\EduAgent\\config.env",
+      "hash": "80DD12DB75813267F2C9CC2551245CF98404A4400BAEFD0F87136C853A56F7F1"
+    }
+  ],
+  "observed_shell_configuration": {
+    "process_overrides": [
+      {
+        "name": "DEEPSEEK_API_KEY",
+        "present": true
+      }
+    ],
+    "repository_config_inputs": [
+      {
+        "path": ".env",
+        "exists": true,
+        "variable_names": [
+          "CONFIDENCE_THRESHOLD",
+          "DATABASE_URL",
+          "DEEPSEEK_API_KEY",
+          "DEEPSEEK_BASE_URL",
+          "DEEPSEEK_MODEL",
+          "DEV_MODE",
+          "EMBEDDING_DIMENSION",
+          "EMBEDDING_MODEL",
+          "EMBEDDING_PROVIDER",
+          "JWT_SECRET_KEY",
+          "LLM_PROVIDER",
+          "REDIS_URL",
+          "RERANK_MAX_CANDIDATES",
+          "RERANK_MODEL",
+          "RERANK_PROVIDER"
+        ],
+        "values": "not_collected"
+      },
+      {
+        "path": "config/demo.env.example",
+        "exists": false,
+        "variable_names": [],
+        "values": "not_collected"
+      },
+      {
+        "path": "config/windows.env.example",
+        "exists": true,
+        "variable_names": [
+          "CONFIDENCE_THRESHOLD",
+          "DATABASE_URL",
+          "DEEPSEEK_API_KEY",
+          "DEEPSEEK_BASE_URL",
+          "DEEPSEEK_MODEL",
+          "DEV_MODE",
+          "EMBEDDING_API_KEY",
+          "EMBEDDING_BASE_URL",
+          "EMBEDDING_DIMENSION",
+          "EMBEDDING_MODEL",
+          "EMBEDDING_PROVIDER",
+          "JWT_SECRET_KEY",
+          "LLM_PROVIDER",
+          "OCR_ENABLED",
+          "OCR_MODEL",
+          "OCR_MODEL_DIR",
+          "OCR_PROVIDER",
+          "REDIS_URL",
+          "RERANK_PROVIDER",
+          "VISION_MODEL"
+        ],
+        "values": "not_collected"
+      }
+    ],
+    "effective_application_configuration": "unknown; no app import or running-worker introspection",
+    "sandbox_local_app_data_observation": "not used to infer user profile existence"
+  },
+  "host_read_only_observations": {
+    "utc": "2026-10-10T06:29:28.5812984Z",
+    "local_app_data": "C:\\Users\\10169\\AppData\\Local",
+    "listeners": [],
+    "listeners_status": "observed",
+    "containers": [
+      "eduagent-redis-1|127.0.0.1:6379->6379/tcp|Up 3 hours (healthy)",
+      "eduagent-postgres-1|127.0.0.1:5432->5432/tcp|Up 3 hours (healthy)"
+    ],
+    "containers_status": "observed",
+    "user_config": {
+      "path": "C:\\Users\\10169\\AppData\\Local\\EduAgent\\config.env",
+      "exists": true,
+      "hash": "80DD12DB75813267F2C9CC2551245CF98404A4400BAEFD0F87136C853A56F7F1",
+      "values": "not_collected"
+    }
+  },
+  "historical_receipt_files": [
+    {
+      "path": "docs/validation-report.md",
+      "exists": true,
+      "hash": "6FF39945A5434E59B7374E5184305A9E02B3E80F7F07D0BE50E4A829EB06DAE5"
+    },
+    {
+      "path": "docs/v2.0-exe-acceptance.md",
+      "exists": true,
+      "hash": "75888169E7AB8EBB78EA37FC7B77E6344E7AC59A6F867BBE61E2200B8F736E82"
+    },
+    {
+      "path": "docs/test-change-record-v2.md",
+      "exists": true,
+      "hash": "EB6A47B4FF7C115A7BA186384E57C201628ED94C7DB6CA042329D11BA299F251"
+    },
+    {
+      "path": "benchmark/results/v2/t189-optimize-20261007/README.md",
+      "exists": true,
+      "hash": "53323CCFF88291BA64178D2D3CB482FAE6111841850F61AF5D3273B1001B04D6"
+    },
+    {
+      "path": "benchmark/results/v2/t189-optimize-20261007/summary.json",
+      "exists": true,
+      "hash": "795EA25F9A4CF556CBE1048EE72CE2799EB167F139C374E0E6F4EA7728C9504B"
+    },
+    {
+      "path": "benchmark/results/v2/final-gate-retest-20261006/README.md",
+      "exists": true,
+      "hash": "CD8331C50B94291AB195E9C0EF908C15995471F56E98AC34B0D3BBD515E843B8"
+    },
+    {
+      "path": "benchmark/results/v2/final-gate-retest-20261006/summary.json",
+      "exists": true,
+      "hash": "1A761BCF7E6BDDBCB567F286A8D958464A6A012ECF592A2BCA50D62691E628B1"
+    }
+  ],
+  "dynamic_validation": {
+    "business_tests": "not_run",
+    "database_operations": "not_run",
+    "redis_commands": "not_run",
+    "windows_launch": "not_run",
+    "docker_start_or_build": "not_run",
+    "model_calls": "not_run",
+    "paid_probe": "not_run"
+  }
+}

@@ -23,7 +23,10 @@ from backend.app.services.knowledge_base_service import (
     KnowledgeBaseService,
     KnowledgeBaseValidationError,
 )
-from tests.postgres_helpers import isolated_postgres_engine
+from tests.postgres_helpers import (
+    isolated_postgres_engine,
+    isolated_test_resource_profile,
+)
 from tests.unit.services.test_knowledge_base_ingestion import (
     StubEmbeddingProvider,
     add_course,
@@ -100,7 +103,12 @@ def _persisted_source(session, storage_root):
 def test_resplit_original_publishes_complete_chunks_and_preserves_historical_snapshot(
     tmp_path,
 ) -> None:
-    with isolated_postgres_engine() as engine, Session(engine) as session:
+    with (
+        isolated_test_resource_profile(tmp_path / "owned-profile") as profile,
+        isolated_postgres_engine() as engine,
+        Session(engine) as session,
+    ):
+        tmp_path = profile.storage_root
         teacher, service, document, old_chunk, source_id = _persisted_source(
             session, tmp_path
         )
@@ -178,7 +186,12 @@ def test_resplit_original_publishes_complete_chunks_and_preserves_historical_sna
 def test_resplit_failure_retains_original_chunks_and_reports_real_failed_state(
     tmp_path, failure
 ) -> None:
-    with isolated_postgres_engine() as engine, Session(engine) as session:
+    with (
+        isolated_test_resource_profile(tmp_path / "owned-profile") as profile,
+        isolated_postgres_engine() as engine,
+        Session(engine) as session,
+    ):
+        tmp_path = profile.storage_root
         teacher, service, document, old_chunk, source_id = _persisted_source(
             session, tmp_path
         )
@@ -250,7 +263,12 @@ def test_stale_ready_session_cannot_start_second_resplit_during_embedding(
 ) -> None:
     from threading import Event, Thread
 
-    with isolated_postgres_engine() as engine, Session(engine) as seed:
+    with (
+        isolated_test_resource_profile(tmp_path / "owned-profile") as profile,
+        isolated_postgres_engine() as engine,
+        Session(engine) as seed,
+    ):
+        tmp_path = profile.storage_root
         teacher, _service, document, old_chunk, source_id = _persisted_source(
             seed, tmp_path
         )

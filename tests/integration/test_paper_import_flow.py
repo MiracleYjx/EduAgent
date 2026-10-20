@@ -11,7 +11,6 @@ from sqlalchemy.orm import sessionmaker
 from backend.app.ai.ingestion.ocr.base import BaseOCRProvider
 from backend.app.ai.ingestion.ocr.schemas import OCRProviderInfo, OCRResult
 from backend.app.ai.paper_extraction import PaperExtractor
-from backend.app.core.database import Base
 from backend.app.domain.enums import (
     ExtractedQuestionStatus,
     PaperImportStatus,
@@ -25,7 +24,10 @@ from backend.app.services.paper_import_service import (
     PaperImportService,
 )
 from backend.app.services.question_correction_service import QuestionCorrectionService
-from tests.integration.test_question_source_migration import _empty_isolated_schema
+from tests.postgres_helpers import (
+    isolated_postgres_engine,
+    isolated_test_resource_profile,
+)
 from tests.unit.ingestion.test_paper_extraction import Provider, question
 from tests.unit.settings_helpers import build_test_settings
 
@@ -36,10 +38,12 @@ SAMPLES = (
 
 @pytest.fixture
 def context(tmp_path):
-    with _empty_isolated_schema() as (engine, _schema):
-        Base.metadata.create_all(engine, checkfirst=False)
+    with (
+        isolated_test_resource_profile(tmp_path / "test-environment") as profile,
+        isolated_postgres_engine() as engine,
+    ):
         factory = sessionmaker(bind=engine, expire_on_commit=False)
-        settings = build_test_settings(STORAGE_ROOT=tmp_path / "stored")
+        settings = build_test_settings(storage_root=profile.storage_root)
         with factory() as session:
             teacher = User(
                 username="pipeline",

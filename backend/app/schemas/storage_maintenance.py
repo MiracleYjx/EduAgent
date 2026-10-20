@@ -112,6 +112,8 @@ class BackupManifest(BaseModel):
     database: DatabaseDump | None = None
     references: list[BackupReference]
     files: list[BackupFile]
+    #: 非终态运行引用的非敏感运行快照（T212）；旧清单无该字段时为空。
+    runtime_snapshots: list[BackupFile] = Field(default_factory=list)
     operation_receipts: list[BackupReceipt]
     issues: list[BackupIssue]
 
@@ -121,12 +123,17 @@ class BackupManifest(BaseModel):
         if times != sorted(times):
             raise ValueError("invalid actual stage times")
         paths = [entry.relative_path for entry in self.files]
+        snapshot_paths = [entry.relative_path for entry in self.runtime_snapshots]
         ids = [ref.file_id for ref in self.references]
-        if len(paths) != len(set(paths)) or len(ids) != len(set(ids)):
+        if (len(paths) != len(set(paths)) or len(ids) != len(set(ids))
+                or len(snapshot_paths) != len(set(snapshot_paths))):
             raise ValueError("duplicate physical paths or identities")
         for path in paths:
             if path.split("/")[0] not in {"uploads", "papers", "assets", "exports"}:
                 raise ValueError("file outside managed buckets")
+        for path in snapshot_paths:
+            if path.split("/")[0] != "runtime_snapshots" or not path.endswith(".json"):
+                raise ValueError("runtime snapshot outside managed directory")
         if self.outcome in {"complete", "incomplete"} and (self.database is None or self.window_started_at is None
                 or self.window_finished_at is None or self.completed_at is None):
             raise ValueError("finished backup requires actual dump and stage evidence")

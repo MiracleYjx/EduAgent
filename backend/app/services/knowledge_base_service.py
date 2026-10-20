@@ -21,6 +21,7 @@ from backend.app.ai.embedding.base import EMBEDDING_DIMENSION_MISMATCH
 from backend.app.ai.ingestion.chunking import chunk_document
 from backend.app.ai.ingestion.parsers import DOCUMENT_PARSE_FAILED, DocumentParseError
 from backend.app.ai.ingestion.service import (
+    EMBEDDING_IDENTITY_UNAVAILABLE,
     KNOWLEDGE_BASE_EMPTY,
     IngestionResult,
     IngestionService,
@@ -54,6 +55,12 @@ from backend.app.services.file_storage_service import (
     FileStorageError,
     FileStorageService,
     StoredFile,
+)
+from backend.app.services.settings.index_identity import (
+    INDEX_BUSY,
+    IndexIdentityError,
+    IndexIdentityService,
+    SqlAlchemyIndexRepository,
 )
 
 _UNSET = object()
@@ -311,9 +318,16 @@ def _normalize_error_code(value: str | None) -> str | None:
 class KnowledgeBaseService:
     """封装知识库、课程绑定和文档元数据相关业务。"""
 
-    def __init__(self, session: Session, *, storage_root: Path | None = None) -> None:
+    def __init__(
+        self,
+        session: Session,
+        *,
+        storage_root: Path | None = None,
+        index_identity_service: IndexIdentityService | None = None,
+    ) -> None:
         self.session = session
         self.files = FileStorageService(session, root=storage_root)
+        self._index_identity_service = index_identity_service
 
     def create_knowledge_base(
         self,
@@ -1201,8 +1215,15 @@ class KnowledgeBaseService:
     ) -> DocumentIngestionResult:
         """Publish replacement chunks atomically; explicit re-split failures retain diagnostic originals."""
 
-        if not preserve_failed_chunks:
-            self._delete_document_chunks(document.id)
+        if document.knowledge_base_id is None:
+            return self._mark_ingestion_failed(
+                document,
+                result,
+                error_code=KNOWLEDGE_BASE_EMPTY,
+                retryable=False,
+                detail="资料未绑定知识库，不能写入检索片段与索引身份。",
+                teacher_id=teacher_id,
+            )
         if not result.succeeded:
             return self._mark_ingestion_failed(document, result, teacher_id=teacher_id)
 
@@ -1223,6 +1244,16 @@ class KnowledgeBaseService:
                 teacher_id=teacher_id,
             )
 
+        if not result.embedding_identity:
+            return self._mark_ingestion_failed(
+                document,
+                result,
+                error_code=EMBEDDING_IDENTITY_UNAVAILABLE,
+                retryable=False,
+                detail="Embedding 结果缺少可核验的索引身份。",
+                teacher_id=teacher_id,
+            )
+
         rows = [
             DocumentChunk(
                 document_id=document.id,
@@ -1239,18 +1270,46 @@ class KnowledgeBaseService:
             # 只有 PostgreSQL 能维护 tsvector；测试方言保持为空而不是伪造全文内容。
             for row in rows:
                 row.search_vector = func.to_tsvector("simple", row.content)
+        service = self._index_identity_service
+        if service is None:
+            service = IndexIdentityService(
+                repository=SqlAlchemyIndexRepository(self.session)
+            )
+            self._index_identity_service = service
         try:
-            if preserve_failed_chunks:
+            with service.begin(document.knowledge_base_id) as unit_of_work:
+                facts = dict(unit_of_work.read())
+                identity = dict(result.embedding_identity)
+                if facts.get("identity") is None:
+                    service.register_native(
+                        kb_id=document.knowledge_base_id,
+                        identity=identity,
+                        unit_of_work=unit_of_work,
+                    )
+                else:
+                    service.require_compatible(
+                        kb_id=document.knowledge_base_id,
+                        identity=identity,
+                    )
+                # 身份检查通过后才替换片段；历史 unknown/失败路径不得删除旧向量。
                 self._delete_document_chunks(document.id)
-            self.session.add_all(rows)
-            self.session.flush()
-            self._mark_document_ready(document)
-            # 知识片段和 Ready 一起提交，任何失败都不能留下半完成的可检索状态。
-            self.session.commit()
+                self.session.add_all(rows)
+                self.session.flush()
+                self._mark_document_ready(document)
+                # 知识片段、Ready 与索引身份一起提交，任何失败都不能留下半完成状态。
+                self.session.commit()
+        except IndexIdentityError as exc:
+            self.session.rollback()
+            return self._mark_ingestion_failed(
+                document,
+                result,
+                error_code=exc.code,
+                retryable=exc.code == INDEX_BUSY,
+                detail=f"索引身份保护：{exc.code}",
+                teacher_id=teacher_id,
+            )
         except DocumentValidationError as exc:
             self.session.rollback()
-            if not preserve_failed_chunks:
-                self._delete_document_chunks(document.id)
             return self._mark_ingestion_failed(
                 document,
                 result,
@@ -1261,8 +1320,6 @@ class KnowledgeBaseService:
             )
         except (IntegrityError, SQLAlchemyError) as exc:
             self.session.rollback()
-            if not preserve_failed_chunks:
-                self._delete_document_chunks(document.id)
             return self._mark_ingestion_failed(
                 document,
                 result,

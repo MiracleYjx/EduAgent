@@ -21,7 +21,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 from dataclasses import replace
-from typing import Final
+from typing import Any, Final
 
 from sqlalchemy.orm import Session
 
@@ -90,11 +90,17 @@ class HybridSearchRetriever(BaseRetriever):
         candidate_k: int = DEFAULT_CANDIDATE_K,
         vector_retriever: BaseRetriever | None = None,
         keyword_retriever: BaseRetriever | None = None,
+        index_identity: Mapping[str, Any] | None = None,
     ) -> None:
         self.vector_weight = resolve_vector_weight(vector_weight)
         self.candidate_k = normalize_top_k(candidate_k)
+        self.index_identity = (
+            dict(index_identity) if index_identity is not None else None
+        )
         # 允许注入替身，便于在无 PostgreSQL 环境下验证纯融合逻辑。
-        self._vector = vector_retriever or get_retriever(RetrievalMode.VECTOR_ONLY)
+        self._vector = vector_retriever or get_retriever(
+            RetrievalMode.VECTOR_ONLY, index_identity=self.index_identity
+        )
         self._keyword = keyword_retriever or get_retriever(RetrievalMode.KEYWORD_ONLY)
 
     def search(

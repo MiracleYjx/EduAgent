@@ -30,7 +30,7 @@ import gradio as gr
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, event, select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, sessionmaker
 
 from backend.app.api.reviews import (
     REVIEW_DECISION_REVISION_REQUIRED,
@@ -74,6 +74,7 @@ from backend.app.services.review_service import (
     ReviewOutcome,
 )
 from backend.app.services.workflow_checkpoint import WorkflowCheckpointStore
+from tests.support.application_lifecycle import bind_startup_session_factory
 from tests.unit.models.sqlite_support import seed_submission
 from tests.unit.services.test_submission_service import add_user
 from tests.unit.settings_helpers import build_test_settings
@@ -383,9 +384,14 @@ def _decision_service(
 
 
 @pytest.fixture
-def client_factory(env: dict[str, Any]) -> Generator[Any, None, None]:
+def client_factory(
+    env: dict[str, Any], monkeypatch: pytest.MonkeyPatch
+) -> Generator[Any, None, None]:
     """装配可注入复核服务的 TestClient 工厂。"""
 
+    bind_startup_session_factory(
+        monkeypatch, sessionmaker(bind=env["engine"], expire_on_commit=False)
+    )
     with ExitStack() as stack:
 
         def factory(

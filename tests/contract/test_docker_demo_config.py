@@ -16,10 +16,6 @@ from typing import Any
 import pytest
 from dotenv import dotenv_values
 
-from backend.app.ai.embedding.base import EmbeddingProviderNotReadyError
-from backend.app.ai.embedding.factory import create_embedding_provider
-from backend.app.core.config import AppSettings
-
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
 
@@ -59,14 +55,16 @@ def compose_config(tmp_path: Path) -> Callable[[dict[str, str]], dict[str, Any]]
             and key.upper() not in {"REDIS_PORT", "BACKEND_PORT"}
         }
         process_env["EDUAGENT_ENV_FILE"] = str(env_file)
+        files = ["--file", str(PROJECT_ROOT / "docker-compose.yml")]
+        if "EDUAGENT_SECRETS_DIRECTORY" in overrides:
+            files += ["--file", str(PROJECT_ROOT / "docker-compose.secrets.yml")]
         result = subprocess.run(
             [
                 docker,
                 "compose",
                 "--project-name",
                 "eduagent-p41-config-test",
-                "--file",
-                str(PROJECT_ROOT / "docker-compose.yml"),
+                *files,
                 "--env-file",
                 str(env_file),
                 "config",
@@ -87,59 +85,48 @@ def compose_config(tmp_path: Path) -> Callable[[dict[str, str]], dict[str, Any]]
     return assemble
 
 
-def _settings(backend: dict[str, Any]) -> AppSettings:
-    environment = backend["environment"]
-    values = {
-        field: environment[field.upper()]
-        for field in AppSettings.model_fields
-        if field.upper() in environment
-    }
-    return AppSettings(_env_file=None, **values)
-
-
-def test_demo_cloud_configuration_is_separate_from_host_bge(
-    compose_config: Callable[[dict[str, str]], dict[str, Any]],
-) -> None:
-    config = compose_config(
-        {
-            "DEMO_EMBEDDING_MODEL": "test-cloud-model-1024",
-            "DEMO_EMBEDDING_BASE_URL": "http://127.0.0.1:9/v1",
-            "DEMO_EMBEDDING_API_KEY": "test-only-demo-key",
-        }
-    )
+def test_docker_bootstrap_does_not_copy_host_or_legacy_demo_keys(compose_config):
+    config = compose_config({"DEMO_EMBEDDING_API_KEY": "test-only-demo-key"})
     backend = config["services"]["backend"]
-    settings = _settings(backend)
-    assert settings.embedding_provider == "openai_compatible"
-    assert settings.embedding_model == "test-cloud-model-1024"
-    assert str(settings.embedding_base_url) == "http://127.0.0.1:9/v1"
-    assert settings.embedding_api_key.get_secret_value() == "test-only-demo-key"
-    assert str(settings.database_url) == "postgresql+psycopg://eduagent@postgres:5432/eduagent"
-    assert str(settings.redis_url) == "redis://redis:6379/0"
-    assert "args" not in backend["build"]  # 密钥只在运行环境，不传入镜像构建。
+    assert set(config["services"]) == {"backend", "postgres", "redis"}
+    assert "depends_on" not in backend and "env_file" not in backend
+    assert "args" not in backend["build"]
+    assert not {"DEEPSEEK_API_KEY", "JWT_SECRET_KEY", "EMBEDDING_API_KEY"} & backend["environment"].keys()
+    assert "host-only-key" not in json.dumps(backend) and "test-only-demo-key" not in json.dumps(backend)
+    assert backend["environment"]["STORAGE_ROOT"] == "/app/storage/storage"
+    assert backend["environment"]["EDUAGENT_DATA_ROOT"] == "/app/storage"
+    assert backend["environment"]["DATABASE_URL"] == "postgresql+psycopg://eduagent@postgres:5432/eduagent"
+    assert backend["environment"]["REDIS_URL"] == "redis://redis:6379/0"
+    assert "http://127.0.0.1:8000/ready" in " ".join(backend["healthcheck"]["test"])
     assert [(v["type"], v["source"], v["target"]) for v in backend["volumes"]] == [
         ("volume", "storage_data", "/app/storage")
-    ]  # Persistent business bytes; no host model cache is mounted.
-    assert backend["environment"]["STORAGE_ROOT"] == "/app/storage"
-    assert create_embedding_provider(settings).is_ready()
+    ]
+    for service in config["services"].values():
+        assert all(port["host_ip"] == "127.0.0.1" for port in service["ports"])
 
 
 @pytest.mark.parametrize("missing", ["DEMO_EMBEDDING_MODEL", "DEMO_EMBEDDING_API_KEY"])
-def test_missing_demo_configuration_fails_explicitly_without_host_fallback(
-    compose_config: Callable[[dict[str, str]], dict[str, Any]], missing: str
-) -> None:
-    overrides = {
-        "DEMO_EMBEDDING_MODEL": "test-cloud-model-1024",
-        "DEMO_EMBEDDING_BASE_URL": "http://127.0.0.1:9/v1",
-        "DEMO_EMBEDDING_API_KEY": "test-only-demo-key",
-        missing: "",
-    }
-    config = compose_config(overrides)
-    # 缺 Demo 配置仍能装配基础设施，主机开发只启动 postgres/redis 不受影响。
-    assert {"postgres", "redis"} <= config["services"].keys()
-    settings = _settings(config["services"]["backend"])
-    with pytest.raises(EmbeddingProviderNotReadyError) as caught:
-        create_embedding_provider(settings)
-    assert caught.value.error_code == "EMBEDDING_PROVIDER_NOT_READY"
-    assert missing.removeprefix("DEMO_") in caught.value.detail
-    assert "host-only-key" not in str(caught.value)
-    assert "test-only-demo-key" not in str(caught.value)
+def test_missing_model_configuration_still_assembles_bootstrap(compose_config, missing):
+    config = compose_config({missing: ""})
+    backend = config["services"]["backend"]
+    assert backend["environment"]["EDUAGENT_SECRET_BACKEND"] == "mounted_secret"
+    assert not backend["environment"]["EDUAGENT_SECRET_MOUNTS"]
+    assert "depends_on" not in backend
+    assert "host-only-key" not in json.dumps(backend)
+
+
+def test_secret_overlay_requires_explicit_readonly_directory(compose_config, tmp_path):
+    source = tmp_path / "owned-secrets"
+    source.mkdir()
+    catalog = {"model-v1": {"path": "/run/secrets/model-v1", "purpose": "provider"}}
+    config = compose_config({
+        "EDUAGENT_SECRETS_DIRECTORY": str(source),
+        "EDUAGENT_SECRET_MOUNTS": json.dumps(catalog),
+    })
+    backend = config["services"]["backend"]
+    assert json.loads(backend["environment"]["EDUAGENT_SECRET_MOUNTS"]) == catalog
+    mount = next(m for m in backend["volumes"] if m["target"] == "/run/secrets")
+    assert mount["type"] == "bind" and mount["read_only"] is True
+    assert Path(mount["source"]) == source
+    assert not mount.get("bind", {}).get("create_host_path", False)
+    assert set(config["services"]) == {"backend", "postgres", "redis"}

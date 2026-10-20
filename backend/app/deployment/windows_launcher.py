@@ -1,28 +1,61 @@
-"""Windows single-host launcher with explicit configuration and owned child."""
+"""Windows 本机启动器：Setup 优先、自有 worker 与匿名控制管道（T221）。
+
+启动顺序固定为：
+
+1. 只准备环境路径与持久目录（不加载 `.env`、不探测模型/数据库、不执行迁移）；
+2. 用 `subprocess` 启动自有 worker，stdout 作为控制帧、stdin 作为命令、stderr 写
+   `application.log`，Setup HTTP 立即对外可用；
+3. 等待 worker 的注册确认，再校验 `/setup-ready`，确认后才打开带一次性码 fragment
+   的设置页；
+4. 保留最小控制窗口（打开设置/重新授权/退出）；退出只停止自有 worker。
+
+模型、数据库、迁移与恢复由 T218–T220 的 Bootstrap/Readiness/设置 API 负责，Launcher
+不再重复执行；旧 `.env` 只能由设置页显式导入。Tk 明文配置编辑器不再是默认路径，
+`--configure` 只打开设置页。控制通道与所有权语义见 `control_channel`。
+"""
 
 from __future__ import annotations
 
 import argparse
-import importlib.util
+import functools
 import os
+import queue
 import socket
-import ssl
 import subprocess
 import sys
 import tempfile
+import threading
 import time
 import traceback
 import webbrowser
+from collections.abc import Callable
 from pathlib import Path
-from urllib.parse import urlsplit
+from typing import TextIO
 from urllib.request import ProxyHandler, build_opener
 
-from dotenv import dotenv_values
-
-from backend.app.core.config import AppSettings, ConfigurationError, get_settings
-from backend.app.deployment.configuration_validation import validate_configuration
+from backend.app.core.bootstrap import listen_address
+from backend.app.core.environment import (
+    environment_path,
+    prepare_runtime_paths,
+    resolve_environment_profile,
+)
+from backend.app.core.settings_security import build_process_setup_security
+from backend.app.deployment.control_channel import (
+    RESTART_EXIT_CODE,
+    ControlChannelError,
+    ControlClient,
+    ControlServer,
+    RestartCoordinator,
+)
+from backend.app.deployment.local_management import (
+    LOOPBACK_HOSTS,
+    settings_base_url,
+)
 
 _LOCAL_HTTP = build_opener(ProxyHandler({}))
+
+#: 连续自动重启上限；超过后保留失败现场并停止，不做无限重启。
+MAX_CONSECUTIVE_RESTARTS = 3
 
 
 class LaunchError(RuntimeError):
@@ -35,33 +68,7 @@ def resource_root() -> Path:
     return Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parents[3]))
 
 
-def configure(config: Path) -> AppSettings:
-    config = config.expanduser().resolve()
-    if not config.is_file():
-        raise LaunchError(
-            "外置配置",
-            f"未找到 {config}",
-            "运行 EduAgent.exe --configure 编辑配置，或复制 config.env.example 后填写",
-        )
-    if getattr(sys, "frozen", False) and config.is_relative_to(resource_root()):
-        raise LaunchError("外置配置", "配置位于应用资源目录", "移至用户可写目录")
-    # An explicit file wins over inherited variables; secrets never enter argv.
-    for name, value in dotenv_values(config, encoding="utf-8").items():
-        if value is not None:
-            os.environ[name] = value
-    os.chdir(config.parent)
-    get_settings.cache_clear()
-    try:
-        settings = get_settings()
-        validate_configuration(settings)
-        return settings
-    except ConfigurationError as exc:
-        raise LaunchError(
-            "配置校验", str(exc), "使用 --configure 修正列出的配置项"
-        ) from exc
-
-
-def check_storage(root: Path, *, frozen: bool) -> None:
+def check_storage(root: Path, *, frozen: bool, log_root: Path | None = None) -> None:
     if frozen and (
         root.is_relative_to(resource_root())
         or root.is_relative_to(Path(sys.executable).parent)
@@ -74,220 +81,60 @@ def check_storage(root: Path, *, frozen: bool) -> None:
         with tempfile.NamedTemporaryFile(prefix=".write-check-", dir=root) as stream:
             stream.write(b"EduAgent")
             stream.flush()
-        (root / "logs").mkdir(exist_ok=True)
+        (log_root if log_root is not None else root / "logs").mkdir(
+            parents=True, exist_ok=True
+        )
     except OSError as exc:
         raise LaunchError(
             "持久目录", type(exc).__name__, "检查 STORAGE_ROOT 的写入权限与可用磁盘"
         ) from exc
 
 
-def check_local_model(value: str | None, purpose: str) -> None:
-    if not value or not Path(value).expanduser().is_dir():
-        raise LaunchError(
-            "外置模型",
-            f"{purpose} 模型目录未提供或不存在",
-            "预置完整本地模型并配置绝对目录；云 Embedding 可选择 openai_compatible",
-        )
-    if getattr(sys, "frozen", False) and Path(value).resolve().is_relative_to(
-        resource_root()
-    ):
-        raise LaunchError("外置模型", f"{purpose} 模型位于资源包", "配置外置模型目录")
-    if importlib.util.find_spec("sentence_transformers") is None:
-        raise LaunchError(
-            "外置模型",
-            "缺本地推理依赖",
-            "源码安装 rerank-local；EXE 使用包含本地模型运行库的构建",
-        )
+def setup_ready(base_url: str, *, timeout: float = 2.0) -> bool:
+    """Setup Ready 探测；业务未装配时仍应 200。"""
 
-
-def check_models(settings: AppSettings) -> None:
-    from backend.app.ai.embedding.factory import create_embedding_provider
-    from backend.app.ai.llm.factory import create_llm_provider
-
-    if importlib.util.find_spec("openai") is None:
-        raise LaunchError(
-            "模型运行库", "缺少 OpenAI-compatible SDK", "恢复打包依赖或安装核心运行依赖"
-        )
-    if settings.embedding_provider in {"bge", "huggingface", "local"}:
-        check_local_model(settings.embedding_model, "Embedding")
-    if settings.rerank_provider == "cross_encoder":
-        check_local_model(settings.rerank_model, "Rerank")
     try:
-        create_llm_provider(settings)
-        create_embedding_provider(settings)
-    except Exception as exc:
-        raise LaunchError(
-            "模型配置",
-            type(exc).__name__,
-            "检查当前 Provider、模型、必填凭据及所选运行库",
-        ) from exc
-    if settings.ocr_enabled:
-        from backend.app.ai.ingestion.ocr.rapidocr import MODEL_ID, _model_paths
-
-        if (
-            settings.ocr_provider != "rapidocr"
-            or settings.ocr_model != MODEL_ID
-            or settings.ocr_model_dir is None
-        ):
-            raise LaunchError(
-                "OCR",
-                "缺明确的 RapidOCR / PP-OCRv5-mobile / OCR_MODEL_DIR",
-                "按 T155 选型配置预置权重",
-            )
-        try:
-            if (
-                importlib.util.find_spec("rapidocr") is None
-                or importlib.util.find_spec("onnxruntime") is None
-            ):
-                raise ModuleNotFoundError("OCR runtime")
-            if getattr(
-                sys, "frozen", False
-            ) and settings.ocr_model_dir.resolve().is_relative_to(resource_root()):
-                raise ValueError("OCR weights must be external")
-            _model_paths(settings.ocr_model_dir)
-        except Exception as exc:
-            raise LaunchError(
-                "OCR", type(exc).__name__, "安装 OCR 运行库并核对三份已锁定的外置权重"
-            ) from exc
-
-
-def check_dependencies(settings: AppSettings) -> None:
-    from sqlalchemy import text
-
-    from backend.app.core.database import (
-        check_postgres_ready,
-        create_database_engine,
-        initialize_pgvector_extension,
-    )
-    from backend.app.core.redis import check_redis_ready, create_redis_client
-
-    engine = create_database_engine(settings, connect_timeout=3)
-    try:
-        check_postgres_ready(engine)
-        with engine.connect() as conn:
-            if not conn.scalar(
-                text(
-                    "SELECT EXISTS (SELECT 1 FROM pg_available_extensions WHERE name='vector')"
-                )
-            ):
-                raise LaunchError(
-                    "pgvector",
-                    "服务器未安装 vector 扩展",
-                    "为 PostgreSQL 安装 pgvector",
-                )
-        initialize_pgvector_extension(engine)
-    except LaunchError:
-        raise
-    except Exception as exc:
-        raise LaunchError(
-            "PostgreSQL / pgvector",
-            type(exc).__name__,
-            "启动数据库，核对 DATABASE_URL 与扩展创建权限",
-        ) from exc
-    finally:
-        engine.dispose()
-    client = create_redis_client(settings, socket_connect_timeout=3, socket_timeout=3)
-    try:
-        check_redis_ready(client)
-    except Exception as exc:
-        raise LaunchError(
-            "Redis", type(exc).__name__, "启动 Redis 并核对 REDIS_URL"
-        ) from exc
-    finally:
-        client.close()
-
-
-def check_network(settings: AppSettings) -> None:
-    urls = {str(settings.deepseek_base_url)}
-    if (
-        settings.embedding_provider == "openai_compatible"
-        and settings.embedding_base_url
-    ):
-        urls.add(str(settings.embedding_base_url))
-    for value in urls:
-        parsed = urlsplit(value)
-        host = parsed.hostname
-        if not host:
-            raise LaunchError("模型网络", "端点缺主机", "修正模型端点")
-        try:
-            with socket.create_connection(
-                (host, parsed.port or (443 if parsed.scheme == "https" else 80)),
-                timeout=4,
-            ) as conn:
-                if parsed.scheme == "https":
-                    with ssl.create_default_context().wrap_socket(
-                        conn, server_hostname=host
-                    ):
-                        pass
-        except (OSError, ValueError) as exc:
-            raise LaunchError(
-                "模型网络",
-                f"{host}：{type(exc).__name__}",
-                "检查网络、代理和端点 TLS；此探测不证明凭据或模型调用成功",
-            ) from exc
-
-
-def migrate() -> None:
-    from alembic import command
-    from alembic.config import Config
-    from alembic.runtime.migration import MigrationContext
-    from alembic.script import ScriptDirectory
-
-    from backend.app.core.database import create_database_engine
-
-    config = Config(str(resource_root() / "alembic.ini"))
-    config.set_main_option("script_location", str(resource_root() / "migrations"))
-    engine = create_database_engine()
-    try:
-        command.upgrade(config, "head")
-        expected = set(ScriptDirectory.from_config(config).get_heads())
-        with engine.connect() as conn:
-            actual = set(MigrationContext.configure(conn).get_current_heads())
-        if actual != expected:
-            raise RuntimeError("migration head not applied")
-    except Exception as exc:
-        raise LaunchError(
-            "数据库迁移",
-            type(exc).__name__,
-            "查看迁移日志；修复后重启，不手工伪造版本标记",
-        ) from exc
-    finally:
-        engine.dispose()
-
-
-def http_ready(port: int) -> bool:
-    try:
-        for path in ("/ready", "/gradio/"):
-            with _LOCAL_HTTP.open(
-                f"http://127.0.0.1:{port}{path}", timeout=2
-            ) as response:
-                if response.status != 200:
-                    return False
-        return True
+        with _LOCAL_HTTP.open(f"{base_url}/setup-ready", timeout=timeout) as response:
+            return response.status == 200
     except OSError:
         return False
 
 
-def wait_ready(child: subprocess.Popen, port: int, timeout: float) -> None:
+def wait_setup_ready(
+    child: subprocess.Popen[str], base_url: str, timeout: float
+) -> None:
     deadline = time.monotonic() + timeout
     while time.monotonic() < deadline:
         if child.poll() is not None:
             raise LaunchError(
                 "应用启动",
                 f"所属进程已退出，退出码 {child.returncode}",
-                "查看 STORAGE_ROOT/logs/application.log",
+                "查看当前环境日志目录中的 application.log",
             )
-        if http_ready(port):
+        if setup_ready(base_url):
             return
         time.sleep(0.2)
     raise LaunchError(
         "应用就绪",
-        "readiness 或 Gradio 未在限定时间内可用",
-        "查看 application.log 与数据库/Redis 状态",
+        "Setup 服务未在限定时间内可用",
+        "查看 application.log 与运行环境/数据目录配置",
     )
 
 
-def stop_owned(child: subprocess.Popen) -> None:
+def port_available(host: str, port: int) -> bool:
+    """仅探测端口是否可绑定；不连接、不枚举、不终止任何既有进程。"""
+
+    with socket.socket() as probe:
+        try:
+            probe.bind((host, port))
+        except OSError:
+            return False
+    return True
+
+
+def stop_owned(child: subprocess.Popen[str]) -> None:
+    """只停止本启动器创建的子进程；不按端口或进程名查找其他进程。"""
+
     if child.poll() is None:
         child.terminate()
         try:
@@ -297,170 +144,417 @@ def stop_owned(child: subprocess.Popen) -> None:
             child.wait(timeout=5)
 
 
-def serve(port: int, *, await_preflight: bool = False) -> int:
+class ControlActions:
+    """控制窗口/控制台共用的动作，便于不打开 GUI 的聚焦测试。"""
+
+    def __init__(
+        self,
+        client: ControlClient,
+        *,
+        base_url: str,
+        timeout: float,
+        opener: Callable[[str], bool] | None = None,
+    ) -> None:
+        self.client = client
+        self.base_url = base_url
+        self.timeout = timeout
+        self._opener = opener or webbrowser.open
+        self.last_url: str | None = None
+        self.console_commands: queue.Queue[str] | None = None
+    def _open(self, grant: dict[str, object]) -> str:
+        url = grant.get("authorization_url")
+        if not isinstance(url, str):
+            raise ControlChannelError(
+                "AUTHORIZATION_URL_MISSING", "授权帧缺少设置页地址。"
+            )
+        self.last_url = url
+        try:
+            opened = bool(self._opener(url))
+        except Exception:  # noqa: BLE001 - 浏览器失败只降级为提示，不外泄授权码
+            opened = False
+        if not opened:
+            # 不打印带 fragment 的地址：那会把一次性码写进控制台/日志。
+            print(
+                f"浏览器未打开，请在控制窗口重新授权后手动访问 {self.base_url}/",
+                flush=True,
+            )
+        return url
+
+    def open_settings(self) -> str:
+        return self._open(self.client.open_settings(timeout=self.timeout))
+
+    def reauthorize(self) -> str:
+        return self._open(self.client.reauthorize(timeout=self.timeout))
+
+    def request_restart(self) -> bool:
+        self.client.request_restart(timeout=self.timeout)
+        return True
+
+
+def _stdin_commands(target: queue.Queue[str]) -> None:
+    try:
+        for line in sys.stdin:
+            target.put(line.strip().lower())
+    except (OSError, ValueError):
+        target.put("q")
+    else:
+        # EOF 也是控制台退出信号；唤醒控制循环以复用 user_exit 收尾。
+        target.put("")
+
+
+def _handle_command(command: str, actions: ControlActions) -> str | None:
+    if command in {"o", "open", "打开设置"}:
+        try:
+            actions.open_settings()
+        except ControlChannelError as exc:
+            print(f"打开设置失败：{exc.code}；请稍后重试或退出后重新启动。", flush=True)
+        return None
+    if command in {"r", "reauthorize", "重新授权"}:
+        try:
+            actions.reauthorize()
+        except ControlChannelError as exc:
+            print(f"重新授权失败：{exc.code}；请稍后重试。", flush=True)
+        return None
+    if command in {"q", "quit", "exit", "退出", ""}:
+        return "user_exit"
+    print("可用命令：o=打开设置，r=重新授权，q=退出。", flush=True)
+    return None
+
+
+def run_console_control(
+    actions: ControlActions, child: subprocess.Popen[str]
+) -> str:
+    commands = actions.console_commands
+    if commands is None:
+        commands = queue.Queue()
+        actions.console_commands = commands
+        threading.Thread(
+            target=_stdin_commands, args=(commands,), name="eduagent-console", daemon=True
+        ).start()
+    print(
+        "控制台模式：o=打开设置，r=重新授权，q=退出。Ctrl+C 也会停止所属进程。",
+        flush=True,
+    )
+    while True:
+        try:
+            command = commands.get(timeout=0.2)
+        except queue.Empty:
+            if child.poll() is not None:
+                return "child_exited"
+            continue
+        result = _handle_command(command, actions)
+        if result is not None:
+            return result
+
+
+def run_control_window(actions: ControlActions, child: subprocess.Popen[str]) -> str:
+    """最小 Tk 控制窗口；关闭窗口等同退出并停止自有 worker。"""
+
+    import tkinter as tk
+
+    result = {"reason": "user_exit"}
+    commands: queue.Queue[str] = queue.Queue()
+    root = tk.Tk()
+
+    def poll() -> None:
+        if child.poll() is not None:
+            result["reason"] = "child_exited"
+            root.destroy()
+            return
+        try:
+            command = commands.get_nowait()
+        except queue.Empty:
+            root.after(200, poll)
+            return
+        if _handle_command(command, actions) == "user_exit":
+            root.destroy()
+            return
+        root.after(200, poll)
+
+    root.title("EduAgent")
+    root.geometry("360x150")
+    tk.Label(root, text="EduAgent 本机控制").pack(pady=6)
+    buttons = tk.Frame(root)
+    buttons.pack(pady=4)
+    for label, command in (
+        ("打开设置", "o"),
+        ("重新授权", "r"),
+        ("退出", "q"),
+    ):
+        tk.Button(
+            buttons,
+            text=label,
+            width=10,
+            command=functools.partial(commands.put, command),
+        ).pack(side=tk.LEFT, padx=4)
+    tk.Label(root, text=f"设置地址：{actions.base_url}/").pack(pady=6)
+    root.after(200, poll)
+    try:
+        root.mainloop()
+    finally:
+        try:
+            root.destroy()
+        except tk.TclError:
+            pass
+    return result["reason"]
+
+
+def run_control(
+    actions: ControlActions,
+    child: subprocess.Popen[str],
+    *,
+    window: bool,
+) -> str:
+    if window:
+        return run_control_window(actions, child)
+    return run_console_control(actions, child)
+
+
+def _register_when_started(
+    server: object, control: ControlServer, timeout: float
+) -> None:
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        if bool(getattr(server, "started", False)):
+            control.write(control.registration())
+            return
+        time.sleep(0.05)
+
+
+def serve(
+    port: int, *, bind_host: str, await_preflight: bool = False
+) -> int:
+    """worker 入口：先生成应用（Setup 立即可用），再挂控制通道并运行 HTTP。"""
+
+    del await_preflight  # T221 起不再有 SERVE 握手；参数保留以兼容旧命令行。
+    from backend.app.deployment.windows_tls import install_windows_tls_loader
+
+    # Preserve the existing Windows CA loader before business HTTP clients import.
+    install_windows_tls_loader()
     import uvicorn
 
-    from backend.app.core.app import create_app
+    from backend.app.core.bootstrap import create_application
+    from backend.app.services.settings.management import build_settings_runtime
 
-    application = create_app()
-    if await_preflight:
-        print("应用预加载完成，等待启动预检。", flush=True)
-        if sys.stdin is None or sys.stdin.readline() != "SERVE\n":
-            raise LaunchError("启动预检", "未收到预检通过信号", "查看启动器失败步骤")
-    uvicorn.run(application, host="127.0.0.1", port=port, workers=1)
-    return 0
+    control_out = sys.stdout
+    # 控制帧只走专用 stdout；第三方库/uvicorn 的打印全部转到 stderr（日志）。
+    if control_out is None:
+        raise LaunchError("控制通道", "缺少可用的标准输出", "以 EXE 或脚本方式启动")
+    sys.stdout = sys.stderr
+
+    profile = resolve_environment_profile()
+    coordinator = RestartCoordinator()
+    runtime = build_settings_runtime(profile, restart_channel=coordinator.request)
+    application = create_application(settings_runtime=runtime)
+    security = getattr(application.state, "setup_security", None)
+    if security is None:
+        security = build_process_setup_security()
+        application.state.setup_security = security
+    base_url = settings_base_url(bind_host, port)
+
+    config = uvicorn.Config(
+        application, host=bind_host, port=port, workers=1, access_log=False
+    )
+    server = uvicorn.Server(config)
+    coordinator.bind(lambda: setattr(server, "should_exit", True))
+
+    def _lose_channel() -> None:
+        # Launcher 消失时有序退出；不继续对外提供无人监管的设置面。
+        server.should_exit = True
+
+    control = ControlServer(
+        security,
+        settings_base_url=base_url,
+        reader=sys.stdin,
+        writer=control_out,
+        on_restart=lambda: setattr(server, "should_exit", True),
+        on_shutdown=lambda: setattr(server, "should_exit", True),
+        on_channel_lost=_lose_channel,
+    )
+    control.start()
+    threading.Thread(
+        target=_register_when_started,
+        args=(server, control, 30.0),
+        name="eduagent-register",
+        daemon=True,
+    ).start()
+    server.run()
+    return RESTART_EXIT_CODE if coordinator.requested else 0
+
+
+def _spawn_worker(
+    *,
+    args: argparse.Namespace,
+    host: str,
+    log: TextIO,
+) -> subprocess.Popen[str]:
+    command = [sys.executable]
+    if not getattr(sys, "frozen", False):
+        command.append(str(resource_root() / "scripts/launch_windows.py"))
+    command += [
+        "--child",
+        "serve",
+        "--port",
+        str(args.port),
+        "--bind-host",
+        host,
+    ]
+    env = os.environ.copy()
+    env["GRADIO_ANALYTICS_ENABLED"] = "False"
+    env["PYTHONIOENCODING"] = "utf-8"
+    env["EDUAGENT_BIND_HOST"] = host
+    env["EDUAGENT_BIND_PORT"] = str(args.port)
+    if getattr(sys, "frozen", False):
+        env["EDUAGENT_RUNTIME_KIND"] = "windows"
+        env["EDUAGENT_SETTINGS_UI_ROOT"] = str(resource_root() / "settings-ui")
+    return subprocess.Popen(
+        command,
+        env=env,
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=log,
+        text=True,
+        encoding="utf-8",
+        bufsize=1,
+    )
+
+
+def _parse_bind(port: int) -> str:
+    host, _ = listen_address()
+    if host not in LOOPBACK_HOSTS:
+        raise LaunchError(
+            "监听地址",
+            f"启动器只允许回环监听，当前为 {host}",
+            "移除 EDUAGENT_BIND_HOST 或设为 127.0.0.1",
+        )
+    return host
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         description="EduAgent Windows 单机启动器；退出只停止所属应用进程"
     )
-    data_root = (
-        Path(os.environ.get("LOCALAPPDATA", str(Path.home() / "AppData/Local")))
-        / "EduAgent"
-    )
-    parser.add_argument("--config", type=Path)
     parser.add_argument(
-        "--configure", action="store_true", help="打开本机配置窗口，保存后退出"
+        "--config", type=Path, help="已退役：旧 .env 请在设置页显式导入"
+    )
+    parser.add_argument(
+        "--configure",
+        action="store_true",
+        help="启动设置服务并打开设置页（不再编辑明文配置文件）",
     )
     parser.add_argument("--port", type=int, default=8000)
     parser.add_argument("--startup-timeout", type=float, default=60)
+    parser.add_argument("--restart-timeout", type=float, default=30)
     parser.add_argument("--no-browser", action="store_true")
+    parser.add_argument("--browser-pipe-handle", type=int, help=argparse.SUPPRESS)
+    parser.add_argument("--no-window", action="store_true", help=argparse.SUPPRESS)
     parser.add_argument("--child", choices=["serve"], help=argparse.SUPPRESS)
+    parser.add_argument("--bind-host", default="127.0.0.1", help=argparse.SUPPRESS)
     parser.add_argument(
         "--await-preflight", action="store_true", help=argparse.SUPPRESS
     )
     args = parser.parse_args(argv)
-    explicit_config = args.config is not None
-    args.config = (args.config or data_root / "config.env").expanduser().resolve()
-    if args.configure and args.child:
-        parser.error("--configure 不能与内部工作进程参数一起使用")
-    child = None
+    if args.child:
+        return serve(
+            args.port, bind_host=args.bind_host, await_preflight=args.await_preflight
+        )
+
+    child: subprocess.Popen[str] | None = None
+    client: ControlClient | None = None
     log_path: Path | None = None
+    browser_pipe = None
     try:
+        if args.browser_pipe_handle is not None:
+            from backend.app.deployment.browser_pipe import BrowserPipe
+
+            browser_pipe = BrowserPipe(args.browser_pipe_handle)
         if not 1 <= args.port <= 65535 or args.startup_timeout <= 0:
             raise LaunchError(
                 "启动参数", "端口或超时无效", "端口应为1–65535，超时应大于0"
             )
-        first_configuration = (
-            bool(getattr(sys, "frozen", False))
-            and not args.child
-            and not explicit_config
-            and not args.no_browser
-            and not args.config.exists()
+        if args.config is not None:
+            print(
+                "已忽略 --config：启动器不再加载明文 .env；"
+                "请在设置页“旧配置导入”中显式接纳。",
+                flush=True,
+            )
+        host = _parse_bind(args.port)
+        base_url = settings_base_url(host, args.port)
+        profile = resolve_environment_profile()
+        prepare_runtime_paths(profile)
+        check_storage(
+            profile.storage_root,
+            frozen=bool(getattr(sys, "frozen", False)),
+            log_root=profile.log_root,
         )
-        if args.configure or first_configuration:
-            from backend.app.deployment.configuration_editor import open_configuration
-
-            template = (
-                Path(sys.executable).parent / "config.env.example"
-                if getattr(sys, "frozen", False)
-                else resource_root() / "config/windows.env.example"
+        if not port_available(host, args.port):
+            raise LaunchError(
+                "服务端口",
+                "已被占用",
+                "如已有 EduAgent 在运行，请回到原 Launcher 控制窗口；"
+                "启动器不会停止无关进程",
             )
-            saved = open_configuration(
-                args.config,
-                template,
-                continue_launch=first_configuration and not args.configure,
-            )
-            if args.configure:
+        log_path = environment_path(profile, "logs", "application.log")
+        open_on_start = (not args.no_browser) or args.configure
+        restarts = 0
+        console_commands: queue.Queue[str] | None = None
+        with log_path.open("a", encoding="utf-8") as log:
+            while True:
+                child = _spawn_worker(args=args, host=host, log=log)
+                client = ControlClient(
+                    reader=child.stdout,  # type: ignore[arg-type]
+                    writer=child.stdin,  # type: ignore[arg-type]
+                    settings_base_url=base_url,
+                )
+                client.wait_registration(
+                    timeout=args.startup_timeout, settings_base_url=base_url
+                )
+                wait_setup_ready(child, base_url, args.startup_timeout)
+                actions = ControlActions(
+                    client, base_url=base_url, timeout=args.restart_timeout,
+                    opener=browser_pipe,
+                )
                 print(
-                    (
-                        "配置已保存，重新启动 EduAgent 后生效。"
-                        if saved
-                        else "已取消配置，未保存。"
-                    ),
+                    f"设置服务已就绪：{base_url}/；所属 PID={child.pid}",
                     flush=True,
                 )
-                return 0
-            if not saved:
-                print("已取消首次配置，未启动业务服务。", flush=True)
-                return 0
-        from backend.app.deployment.windows_tls import install_windows_tls_loader
-
-        install_windows_tls_loader()
-        settings = configure(args.config)
-        if args.child:
-            return serve(args.port, await_preflight=args.await_preflight)
-        print("检查：持久目录", flush=True)
-        check_storage(settings.storage_root, frozen=bool(getattr(sys, "frozen", False)))
-        print("通过：持久目录", flush=True)
-
-        def spawn(log, *, preload: bool):
-            with socket.socket() as probe:
-                try:
-                    probe.bind(("127.0.0.1", args.port))
-                except OSError as exc:
-                    raise LaunchError(
-                        "服务端口",
-                        "已被占用",
-                        "停止已确认的旧实例或选择另一个 --port；启动器不会停止无关进程",
-                    ) from exc
-            command = [sys.executable]
-            if not getattr(sys, "frozen", False):
-                command.append(str(resource_root() / "scripts/launch_windows.py"))
-            command += [
-                "--child",
-                "serve",
-                "--config",
-                str(args.config),
-                "--port",
-                str(args.port),
-            ]
-            if preload:
-                command.append("--await-preflight")
-            env = os.environ.copy()
-            env["GRADIO_ANALYTICS_ENABLED"] = "False"
-            env["PYTHONIOENCODING"] = "utf-8"
-            return subprocess.Popen(
-                command,
-                env=env,
-                stdout=log,
-                stderr=log,
-                stdin=subprocess.PIPE if preload else None,
-                text=True,
-                encoding="utf-8",
-            )
-
-        log_path = settings.storage_root / "logs/application.log"
-        with log_path.open("a", encoding="utf-8") as log:
-            if getattr(sys, "frozen", False):
-                child = spawn(log, preload=True)
-            for label, operation in (
-                ("模型配置", lambda: check_models(settings)),
-                ("PostgreSQL / pgvector / Redis", lambda: check_dependencies(settings)),
-                ("必要网络", lambda: check_network(settings)),
-                ("数据库迁移", migrate),
-            ):
-                print(f"检查：{label}", flush=True)
-                operation()
-                print(f"通过：{label}", flush=True)
-            if child is None:
-                child = spawn(log, preload=False)
-            else:
-                try:
-                    child.stdin.write("SERVE\n")
-                    child.stdin.flush()
-                    child.stdin.close()
-                except (OSError, AttributeError) as exc:
-                    raise LaunchError(
-                        "应用预加载", "工作进程未接收启动信号", "查看 application.log"
-                    ) from exc
-            wait_ready(child, args.port, args.startup_timeout)
-            url = f"http://127.0.0.1:{args.port}/gradio/"
-            print(f"应用已就绪：{url}；所属 PID={child.pid}；Ctrl+C 退出", flush=True)
-            if not args.no_browser and not webbrowser.open(url):
-                print(f"浏览器未打开，请手动访问 {url}", flush=True)
-            while child.poll() is None:
-                try:
-                    child.wait(timeout=0.5)
-                except subprocess.TimeoutExpired:
-                    pass
-            return child.returncode or 0
+                if open_on_start:
+                    actions.open_settings()
+                    open_on_start = False
+                actions.console_commands = console_commands
+                reason = run_control(
+                    actions, child, window=not args.no_window
+                )
+                console_commands = actions.console_commands
+                if reason == "user_exit":
+                    try:
+                        client.shutdown(timeout=5)
+                    except ControlChannelError:
+                        pass  # 退出路径不以通道错误掩盖真实停止原因
+                    else:
+                        try:
+                            child.wait(timeout=5)
+                        except subprocess.TimeoutExpired:
+                            pass  # 超时后才终止自有进程；正常退出保留 worker 的真实返回码。
+                    stop_owned(child)
+                else:
+                    client.close()
+                code = child.wait()
+                if code == RESTART_EXIT_CODE and restarts < MAX_CONSECUTIVE_RESTARTS:
+                    restarts += 1
+                    print("正在按请求重启应用…", flush=True)
+                    client = None
+                    continue
+                return code or 0
     except KeyboardInterrupt:
         print("正在停止所属应用进程…", flush=True)
         return 0
-    except LaunchError as exc:
-        message = f"启动失败：{exc}"
+    except (LaunchError, ControlChannelError) as exc:
+        message = (
+            f"启动失败：{exc}"
+            if isinstance(exc, LaunchError)
+            else f"启动失败：[控制通道] {exc.code}"
+        )
         print(message, file=sys.stderr, flush=True)
         if log_path is not None:
             try:
@@ -470,22 +564,30 @@ def main(argv: list[str] | None = None) -> int:
                 pass  # Keep the original failure if its log cannot be written.
         return 1
     except Exception as exc:  # noqa: BLE001 - CLI boundary must redact credentials
-        # Keep the actual child failure location without logging exception values/credentials.
-        if args.child:
-            traceback.print_tb(exc.__traceback__, file=sys.stderr)
         if isinstance(exc, OSError) and exc.filename:
             print(f"失败资源：{exc.filename}", file=sys.stderr, flush=True)
         print(
-            f"启动失败：[启动器] {type(exc).__name__}；检查外置配置、持久目录与应用日志。",
+            f"启动失败：[启动器] {type(exc).__name__}；检查运行环境、持久目录与应用日志。",
             file=sys.stderr,
             flush=True,
         )
+        if args.child:
+            traceback.print_exc(file=sys.stderr)
         return 1
     finally:
+        if browser_pipe is not None:
+            browser_pipe.close()
+        if client is not None:
+            client.close()
         if child is not None:
-            if child.stdin is not None and not child.stdin.closed:
-                try:
-                    child.stdin.close()
-                except OSError:
-                    pass  # Preserve the original preflight/signal error during cleanup.
+            for stream in (child.stdin, child.stdout):
+                if stream is not None and not stream.closed:
+                    try:
+                        stream.close()
+                    except OSError:
+                        pass
             stop_owned(child)
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

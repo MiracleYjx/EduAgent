@@ -14,6 +14,9 @@ from pathlib import Path
 from typing import Any
 from uuid import UUID
 
+from backend.app.core.environment import resolve_results_directory
+from backend.app.schemas.settings import EnvironmentProfile
+
 RETRIEVAL_UNITS = {
     "recall_at_5": "比例", "recall_at_10": "比例",
     "precision_at_5": "比例", "precision_at_10": "比例",
@@ -222,9 +225,11 @@ class EvaluationService:
     """
 
     def __init__(
-        self, results_dir: Path, *, authorize: Callable[[UUID], bool] | None = None,
+        self, results_dir: Path | None = None, *,
+        profile: EnvironmentProfile | None = None,
+        authorize: Callable[[UUID], bool] | None = None,
     ) -> None:
-        self._results_dir = results_dir.resolve()
+        self._results_dir = resolve_results_directory(results_dir, profile=profile)
         self._authorize = authorize
 
     def query(

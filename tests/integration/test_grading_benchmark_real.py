@@ -20,7 +20,10 @@ from backend.app.ai.retrieval.reranker import LLMRerankResponse
 from backend.app.domain.enums import DocumentStatus
 from backend.app.models import Document, DocumentChunk, KnowledgeBase
 from scripts import run_grading_benchmark as benchmark
-from tests.postgres_helpers import isolated_postgres_engine
+from tests.postgres_helpers import (
+    isolated_postgres_engine,
+    isolated_test_resource_profile,
+)
 from tests.unit.models.sqlite_support import seed_submission
 from tests.unit.settings_helpers import build_test_settings
 
@@ -57,7 +60,11 @@ def test_real_benchmark_uses_ingested_corpus_and_production_components(
     monkeypatch.setattr(embedding_factory, "create_embedding_provider", lambda _: embedding)
     provider = Provider()
     corpus = json.loads(benchmark.CORPUS_PATH.read_text(encoding="utf-8"))
-    with isolated_postgres_engine() as engine:
+    with (
+        isolated_test_resource_profile(tmp_path / "owned-profile") as profile,
+        isolated_postgres_engine() as engine,
+    ):
+        tmp_path = profile.results_root
         with Session(engine) as session:
             fixture = seed_submission(session)
             knowledge_base = KnowledgeBase(name="评测语料", course_id=fixture.course_id)
@@ -86,6 +93,7 @@ def test_real_benchmark_uses_ingested_corpus_and_production_components(
         record, _ = benchmark.run_benchmark(
             mode="real", results_dir=tmp_path, provider=provider,
             settings=build_test_settings(
+                storage_root=profile.storage_root,
                 embedding_provider="bge", embedding_dimension=1024,
                 rerank_provider="llm", rerank_max_candidates=5,
             ),

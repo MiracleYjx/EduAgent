@@ -82,6 +82,7 @@ from backend.app.services.grading.grading_task_service import (
 from backend.app.services.grading.subjective_grader import SubjectiveGradingPayload
 from backend.app.services.workflow_checkpoint import WorkflowCheckpointStore
 from tests.postgres_helpers import isolated_postgres_engine
+from tests.support.application_lifecycle import bind_startup_session_factory
 from tests.support.exam_scoring_fixtures import confirm_synthetic_exam_basis
 from tests.support.subjective_grading_doubles import (
     StubEmbeddingProvider,
@@ -446,11 +447,15 @@ def _api_client(
     app.dependency_overrides[get_review_query_service] = lambda: review_query
     app.dependency_overrides[get_review_decision_service] = lambda: review_decision
     app.dependency_overrides[get_results_query_service] = lambda: results
-    with TestClient(
-        app,
-        raise_server_exceptions=raise_server_exceptions,
-    ) as client:
-        yield ApiHarness(client=client, workflow=workflow)
+    from sqlalchemy.orm import sessionmaker
+
+    with pytest.MonkeyPatch.context() as patch:
+        bind_startup_session_factory(patch, sessionmaker(bind=env.engine, expire_on_commit=False))
+        with TestClient(
+            app,
+            raise_server_exceptions=raise_server_exceptions,
+        ) as client:
+            yield ApiHarness(client=client, workflow=workflow)
 
 
 def _start(harness: ApiHarness, env: ReviewEnv) -> Any:

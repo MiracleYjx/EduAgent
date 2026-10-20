@@ -24,7 +24,7 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Callable, Mapping
-from typing import Final
+from typing import TYPE_CHECKING, Final
 
 from sqlalchemy.orm import Session
 
@@ -57,6 +57,9 @@ from backend.app.services.grading.subjective_grader import (
     SubjectiveGradingError,
 )
 
+if TYPE_CHECKING:
+    from backend.app.services.settings.runtime_snapshot import RunSnapshotContext
+
 #: 主观题评分器签名：单题目标 + 答卷快照 → （评分结果, 当次决策）。
 SubjectiveScorer = Callable[
     [SubmissionSnapshot, GradingTargetAnswer],
@@ -80,6 +83,7 @@ def build_subjective_scorer(
     embedding_provider: BaseEmbeddingProvider | None = None,
     top_k: int = DEFAULT_TOP_K,
     on_scoring_input: Callable[[ScoringInput], None] | None = None,
+    runtime: RunSnapshotContext | None = None,
 ) -> SubjectiveScorer:
     """构造 :class:`DefaultScoringPipeline` 使用的主观题评分器。
 
@@ -97,7 +101,10 @@ def build_subjective_scorer(
     ) -> tuple[GradingResult, ConfidenceDecision]:
         """执行一次主观题评分；内部使用同步事件循环，须在无事件循环的调用线程执行。"""
 
-        recording = DecisionRecordingPolicy(policy=policy, settings=settings)
+        resolved_policy = policy
+        if resolved_policy is None and runtime is not None:
+            resolved_policy = ConfidencePolicy(threshold=runtime.confidence_threshold)
+        recording = DecisionRecordingPolicy(policy=resolved_policy, settings=settings)
         grader = SubjectiveGrader(
             provider=provider, policy=recording, on_scoring_input=on_scoring_input
         )
@@ -114,6 +121,7 @@ def build_subjective_scorer(
                     reranker=reranker,
                     embedding_provider=embedding_provider,
                     settings=settings,
+                    runtime=runtime,
                 )
             )
         except (SubjectiveGradingError, GradingContextError, RetrievalError) as error:

@@ -22,8 +22,15 @@ from backend.app.services.exam_scoring_service import (
 from backend.app.services.exam_service import ExamService
 from backend.app.services.question_service import QuestionService
 from tests.integration.test_exam_assembly import database as _assembly_database
+from tests.postgres_helpers import isolated_test_resource_profile
 
 database = _assembly_database
+
+
+@pytest.fixture
+def image_storage_root(tmp_path):
+    with isolated_test_resource_profile(tmp_path / "owned-profile") as profile:
+        yield profile.storage_root
 
 
 def view(service, info):
@@ -390,7 +397,7 @@ def test_delayed_different_prepare_cannot_replace_current_confirmation(
         assert view(service, info).basis == current.basis
 
 
-def test_actual_asset_upload_invalidates_prepared_draft(database, tmp_path):
+def test_actual_asset_upload_invalidates_prepared_draft(database, image_storage_root):
     from io import BytesIO
 
     from PIL import Image
@@ -398,6 +405,7 @@ def test_actual_asset_upload_invalidates_prepared_draft(database, tmp_path):
     from backend.app.services.question_asset_service import QuestionAssetService
 
     engine, info = database
+    tmp_path = image_storage_root
     with Session(engine) as session:
         service = ExamScoringService(session, root=tmp_path)
         original = prepare(service, info, prepare_payload(view(service, info)))

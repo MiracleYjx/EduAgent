@@ -186,9 +186,12 @@ def _coerce_filter_values(
 
     if values is None:
         return ()
-    if isinstance(values, (str, bytes, UUID)):
+    if isinstance(values, (str, bytes, UUID, Mapping)):
         raise RetrievalInputError(f"{field_name}必须是标识序列。")
-    return tuple(_coerce_uuid(value, field_name) for value in values)
+    try:
+        return tuple(_coerce_uuid(value, field_name) for value in values)
+    except TypeError as exc:
+        raise RetrievalInputError(f"{field_name} must be a sequence of identifiers.") from exc
 
 
 @dataclass(frozen=True, slots=True)
@@ -198,6 +201,9 @@ class RetrievalFilters:
     course_ids: tuple[UUID, ...] = ()
     knowledge_base_ids: tuple[UUID, ...] = ()
     document_ids: tuple[UUID, ...] = ()
+    #: 个人学习范围：科目与资料版本；空集合表示该维度不限制。
+    subject_ids: tuple[UUID, ...] = ()
+    material_version_ids: tuple[UUID, ...] = ()
 
     def __post_init__(self) -> None:
         object.__setattr__(
@@ -215,12 +221,23 @@ class RetrievalFilters:
             "document_ids",
             _coerce_filter_values(self.document_ids, "资料标识"),
         )
+        object.__setattr__(
+            self,
+            "subject_ids",
+            _coerce_filter_values(self.subject_ids, "科目标识"),
+        )
+        object.__setattr__(
+            self,
+            "material_version_ids",
+            _coerce_filter_values(self.material_version_ids, "资料版本标识"),
+        )
 
     @property
     def is_empty(self) -> bool:
         """返回是否未设置任何过滤条件。"""
 
-        return not (self.course_ids or self.knowledge_base_ids or self.document_ids)
+        return not (self.course_ids or self.knowledge_base_ids or self.document_ids
+                    or self.subject_ids or self.material_version_ids)
 
     def describe(self) -> str:
         """返回可安全展示的过滤范围描述。"""
@@ -230,7 +247,9 @@ class RetrievalFilters:
         return (
             f"课程范围：{len(self.course_ids)} 个课程，"
             f"{len(self.knowledge_base_ids)} 个知识库，"
-            f"{len(self.document_ids)} 份资料。"
+            f"{len(self.document_ids)} 份资料，"
+            f"{len(self.subject_ids)} 个科目，"
+            f"{len(self.material_version_ids)} 个资料版本。"
         )
 
 
@@ -242,6 +261,8 @@ class RetrievedChunk:
     course_id: str
     document_id: str
     content: str
+    #: 个人学习片段没有旧课程归属，改用真实科目标识定位。
+    subject_id: str | None = None
     metadata: Mapping[str, Any] = field(default_factory=dict)
     semantic_score: float | None = None
     keyword_score: float | None = None
@@ -271,6 +292,7 @@ class RetrievedChunk:
         return {
             "chunk_id": self.chunk_id,
             "course_id": self.course_id,
+            "subject_id": self.subject_id,
             "document_id": self.document_id,
             "content": self.content,
             "metadata": dict(self.metadata),
@@ -298,7 +320,12 @@ class RetrievedChunk:
         metadata = getattr(chunk, "chunk_metadata", None) or {}
         return cls(
             chunk_id=str(chunk.id),
-            course_id=str(chunk.course_id),
+            course_id=str(chunk.course_id or ""),
+            subject_id=(
+                str(chunk.subject_id)
+                if getattr(chunk, "subject_id", None) is not None
+                else None
+            ),
             document_id=str(chunk.document_id),
             content=str(chunk.content),
             metadata=dict(metadata),
@@ -368,15 +395,23 @@ def resolve_filters(filters: RetrievalFilters | None) -> RetrievalFilters:
     if isinstance(filters, RetrievalFilters):
         return filters
     if isinstance(filters, Mapping):
-        unknown = set(filters) - {"course_ids", "knowledge_base_ids", "document_ids"}
+        unknown = set(filters) - {
+            "course_ids",
+            "knowledge_base_ids",
+            "document_ids",
+            "subject_ids",
+            "material_version_ids",
+        }
         if unknown:
             raise RetrievalInputError(
                 "过滤适配层不支持此字段；章节和标签范围必须通过 RetrievalQuery 提供。"
             )
         return RetrievalFilters(
-            course_ids=tuple(filters.get("course_ids", ()) or ()),
-            knowledge_base_ids=tuple(filters.get("knowledge_base_ids", ()) or ()),
-            document_ids=tuple(filters.get("document_ids", ()) or ()),
+            course_ids=filters.get("course_ids", ()),
+            knowledge_base_ids=filters.get("knowledge_base_ids", ()),
+            document_ids=filters.get("document_ids", ()),
+            subject_ids=filters.get("subject_ids", ()),
+            material_version_ids=filters.get("material_version_ids", ()),
         )
     raise RetrievalInputError("过滤条件无效。")
 

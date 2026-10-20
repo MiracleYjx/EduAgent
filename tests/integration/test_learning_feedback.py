@@ -36,7 +36,10 @@ from backend.app.services.question_service import QuestionService
 from tests.contract import test_results_api_contract as result_contracts
 from tests.contract.test_results_analysis_api import analysis_scenario, save_result
 from tests.contract.test_results_api_contract import headers
-from tests.postgres_helpers import isolated_postgres_engine
+from tests.postgres_helpers import (
+    isolated_postgres_engine,
+    isolated_test_resource_profile,
+)
 from tests.support.question_validation_fixtures import persist_current_semantic_pass
 from tests.unit.services.test_student_fixed_exam import add_image
 from tests.unit.services.test_submission_service import add_user
@@ -45,13 +48,19 @@ client_factory = result_contracts.client_factory
 
 
 @pytest.fixture
-def session():
-    with isolated_postgres_engine() as engine, Session(engine) as session:
+def session(tmp_path):
+    with (
+        isolated_test_resource_profile(tmp_path / "owned-profile"),
+        isolated_postgres_engine() as engine,
+        Session(engine) as session,
+    ):
         yield session
 
 
 @pytest.fixture
 def feedback_scenario(session, tmp_path, monkeypatch):
+    # The session fixture owns the active profile for both API and UI consumers.
+    tmp_path = get_settings().storage_root
     monkeypatch.setenv("STORAGE_ROOT", str(tmp_path))
     get_settings.cache_clear()
     s = analysis_scenario.__wrapped__(session)

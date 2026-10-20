@@ -108,6 +108,11 @@ from backend.app.services.review_service import (
     ReviewService,
     ReviewServiceError,
 )
+from backend.app.services.settings.runtime_snapshot import (
+    RunSnapshotContext,
+    RuntimeSnapshotError,
+    RuntimeSnapshotService,
+)
 from backend.app.services.trace_service import TraceService, bind_trace
 from backend.app.services.workflow_checkpoint import (
     WORKFLOW_CHECKPOINT_NOT_FOUND,
@@ -259,10 +264,14 @@ class DiagnosisRecorderAdapter:
         self._store = store
         self._service = service
 
-    async def generate(self, exam_result: Any) -> DiagnosisReportDTO:
+    async def generate(
+        self, exam_result: Any, *, runtime: RunSnapshotContext | None = None
+    ) -> DiagnosisReportDTO:
         """可等待的诊断生成：先生成，再在独立短事务保存。"""
 
-        report = await self._service.generate(exam_result)
+        report = await _diagnosis_generate(
+            self._service, exam_result, runtime=runtime
+        )
         if report.status not in STORABLE_STATUSES:
             return report
         return await asyncio.to_thread(self._store.save, report)
@@ -360,6 +369,7 @@ def _workflow_deps(
     agent: Any,
     session_factory: Callable[[], Session] | None,
     settings: AppSettings | None,
+    runtime: RunSnapshotContext | None = None,
 ) -> GradingWorkflowDeps:
     """构造 T072 运行依赖；组件一律由调用方注入，不在节点内自建。"""
 
@@ -368,7 +378,37 @@ def _workflow_deps(
         agent=agent,
         session_factory=session_factory,
         settings=settings,
+        runtime=runtime,
     )
+
+
+def _accepts_keyword(func: Callable[..., Any], name: str) -> bool:
+    """判定兼容调用方是否接受某关键字；无法内省时交给真实调用。"""
+
+    try:
+        signature = inspect.signature(func)
+    except (TypeError, ValueError):  # pragma: no cover - 内建/扩展调用
+        return True
+    return name in signature.parameters or any(
+        item.kind is inspect.Parameter.VAR_KEYWORD
+        for item in signature.parameters.values()
+    )
+
+
+async def _diagnosis_generate(
+    service: Any,
+    exam_result: Any,
+    *,
+    runtime: RunSnapshotContext | None = None,
+) -> DiagnosisReportDTO:
+    """调用诊断服务；仅在兼容时传入运行快照，旧替身保持原签名。"""
+
+    method = service.generate
+    kwargs: dict[str, Any] = {}
+    if runtime is not None and _accepts_keyword(method, "runtime"):
+        kwargs["runtime"] = runtime
+    produced = method(exam_result, **kwargs)
+    return await produced if inspect.isawaitable(produced) else produced
 
 
 def _outcome_state_facts(
@@ -425,6 +465,7 @@ class WorkflowService:
         settings: AppSettings | None = None,
         review_service_provider: Callable[[], ReviewService] | None = None,
         clock: Callable[[], datetime] | None = None,
+        runtime_snapshots: RuntimeSnapshotService | None = None,
     ) -> None:
         self._checkpoints = checkpoints
         self._reader = reader
@@ -436,6 +477,7 @@ class WorkflowService:
         self._settings = settings
         self._review_service_provider = review_service_provider
         self._clock = clock or (lambda: datetime.now(UTC))
+        self._runtime_snapshots = runtime_snapshots
 
     # ------------------------------------------------------------ 依赖与装配
 
@@ -500,16 +542,40 @@ class WorkflowService:
             return DatabaseCheckpointSaver(session_factory=self._session_factory)
         return DatabaseCheckpointSaver(session=self._session)
 
-    def _build_workflow(self, snapshot: Any, checkpointer: Any) -> GradingWorkflow:
-        """按依赖构造 T072 图；检查点由本模块注入。"""
+    def _build_workflow(
+        self,
+        snapshot: Any,
+        checkpointer: Any,
+        runtime: RunSnapshotContext | None = None,
+    ) -> GradingWorkflow:
+        """按依赖构造 T072 图；检查点与运行快照由本模块注入。"""
 
         deps = _workflow_deps(
             snapshot=snapshot,
             agent=self._agent,
             session_factory=self._session_factory,
             settings=self._settings,
+            runtime=runtime,
         )
         return GradingWorkflow(deps, checkpointer=checkpointer)
+
+    def _runtime_for_state(self, state: Mapping[str, Any]) -> RunSnapshotContext | None:
+        """按状态解析原运行快照；缺失/依赖不可用安全阻断。"""
+
+        if self._runtime_snapshots is None:
+            if state.get("snapshot_id"):
+                raise WorkflowNotReadyError(
+                    "运行已绑定快照，但快照服务未接线；拒绝按当前配置恢复。",
+                    source_code="SNAPSHOT_SERVICE_UNWIRED",
+                )
+            return None
+        try:
+            context, _origin = self._runtime_snapshots.context_for_state(state)
+        except RuntimeSnapshotError as error:
+            raise WorkflowNotReadyError(
+                "运行快照不可用；拒绝自动换用当前配置。", source_code=error.code
+            ) from error
+        return context
 
     def workflow_for_run(self, run: WorkflowRun, state: Mapping[str, Any]) -> GradingWorkflow:
         """按运行记录重建 T072 图（T074 复核服务恢复原图时使用）。"""
@@ -521,7 +587,8 @@ class WorkflowService:
         thread_id = checkpoint_thread_id(run)
         if thread_id:
             saver.bind_thread(thread_id, run.workflow_id)
-        return self._build_workflow(snapshot, saver)
+        runtime = self._runtime_for_state(state)
+        return self._build_workflow(snapshot, saver, runtime)
 
     def _review_service(self) -> ReviewService:
         """获取 T074 复核服务；未接线时显式报未就绪。"""
@@ -571,6 +638,9 @@ class WorkflowService:
                 self._ensure_startable(snapshot)
                 workflow_id = f"grading-{uuid4()}"
                 thread_id = str(uuid4())
+                runtime = self._start_runtime(
+                    workflow_id=workflow_id, request_id=request_id
+                )
                 initial_state: dict[str, Any] = {
                     "workflow_id": workflow_id,
                     "request_id": request_id,
@@ -581,6 +651,8 @@ class WorkflowService:
                     "current_node": LOAD_SUBMISSION,
                     "scoring_inputs": {key: value.model_copy(deep=True) for key, value in snapshot.scoring_inputs.items()},
                 }
+                if runtime is not None:
+                    initial_state["snapshot_id"] = str(runtime.snapshot_id)
                 # 沿用 M3 模式：受理记录在独立短事务提交后，才释放外层答卷锁。
                 self._save_state(
                     workflow_id=workflow_id,
@@ -607,7 +679,7 @@ class WorkflowService:
             )
         saver = self._checkpointer()
         saver.bind_thread(thread_id, workflow_id)
-        workflow = self._build_workflow(snapshot, saver)
+        workflow = self._build_workflow(snapshot, saver, runtime)
         with bind_trace(
             request_id=request_id, user_id=actor_id, workflow_id=workflow_id,
             service=self._trace_service(),
@@ -617,14 +689,45 @@ class WorkflowService:
                 workflow_id=workflow_id,
                 submission_id=str(submission_id),
                 thread_id=thread_id,
+                snapshot_id=(
+                    str(runtime.snapshot_id) if runtime is not None else None
+                ),
             )
             row = await self._persist_outcome(
                 workflow_id=workflow_id,
                 state=result.state,
                 thread_id=thread_id,
                 snapshot=snapshot,
+                runtime=runtime,
             )
         return self._teacher_dto(row, interrupted=bool(result.interrupted))
+
+    def _start_runtime(
+        self, *, workflow_id: str, request_id: str
+    ) -> RunSnapshotContext | None:
+        """首次 AI 调用前持久化运行快照；未接线时保持 legacy 路径。"""
+
+        service = self._runtime_snapshots
+        if service is None:
+            return None
+        try:
+            return service.open_run(
+                workflow_id=workflow_id,
+                request_id=request_id,
+                task_kinds=("subjective_grading",),
+                optional_task_kinds=(
+                    "embedding",
+                    "rerank",
+                    "vision",
+                    "diagnosis",
+                    "question_generation",
+                ),
+                storage_root=(self._settings.storage_root if self._settings else None),
+            )
+        except RuntimeSnapshotError as error:
+            raise WorkflowNotReadyError(
+                "运行快照创建失败；未开始任何模型调用。", source_code=error.code
+            ) from error
 
     def _ensure_startable(self, snapshot: Any) -> None:
         """只允许符合既有提交生命周期的答卷启动阅卷。"""
@@ -672,6 +775,7 @@ class WorkflowService:
             raise WorkflowRunNotResumableError("运行记录缺少线程绑定，无法恢复。")
         state = self._checkpoints.restore_state(row)
         self._require_fixed_context(snapshot, state)
+        runtime = self._runtime_for_state(state)
         pending = pending_review_answer_ids(state)
         if pending:
             return await self._resume_with_teacher_decision(
@@ -694,7 +798,7 @@ class WorkflowService:
         self._require_fixed_context(snapshot, state)
         saver = self._checkpointer()
         saver.bind_thread(thread_id, row.workflow_id)
-        workflow = self._build_workflow(snapshot, saver)
+        workflow = self._build_workflow(snapshot, saver, runtime)
         with bind_trace(
             request_id=row.request_id, user_id=actor_id, workflow_id=row.workflow_id,
             service=self._trace_service(),
@@ -705,6 +809,7 @@ class WorkflowService:
                 state=result.state,
                 thread_id=thread_id,
                 snapshot=snapshot,
+                runtime=runtime,
             )
         return WorkflowResumeOutcomeDTO(
             workflow_id=updated.workflow_id,
@@ -879,6 +984,7 @@ class WorkflowService:
         state: Mapping[str, Any],
         thread_id: str,
         snapshot: Any,
+        runtime: RunSnapshotContext | None = None,
     ) -> WorkflowRun:
         """按一次运行/恢复的真实结论落库：成绩与工作流状态在同一事务内写入（H01）。
 
@@ -925,6 +1031,7 @@ class WorkflowService:
             thread_id=thread_id,
             exam_result=exam_result,
             row=row,
+            runtime=runtime,
         )
 
     async def _finalize_diagnosis(
@@ -935,6 +1042,7 @@ class WorkflowService:
         thread_id: str,
         exam_result: ExamResultDTO | None,
         row: WorkflowRun,
+        runtime: RunSnapshotContext | None = None,
     ) -> WorkflowRun:
         """结果事务提交后生成诊断并写终态（P1.3）。
 
@@ -957,8 +1065,9 @@ class WorkflowService:
                 failure=RuntimeError("诊断服务未接线。"),
             )
         try:
-            produced = service.generate(exam_result)
-            report = await produced if inspect.isawaitable(produced) else produced
+            report = await _diagnosis_generate(
+                service, exam_result, runtime=runtime
+            )
         except Exception as error:  # noqa: BLE001 - 统一收敛为脱敏失败，保留已提交成绩
             return self._write_diagnosis_state(
                 workflow_id=workflow_id, state=state, thread_id=thread_id, failure=error
@@ -1226,6 +1335,7 @@ def build_workflow_service(
     session_factory: Callable[[], Session] | None = None,
     repository: Any | None = None,
     review_service_provider: Callable[[], ReviewService] | None = None,
+    runtime_snapshots: RuntimeSnapshotService | None = None,
 ) -> WorkflowService:
     """按显式组件装配工作流服务；缺依赖时应由调用方先显式失败。"""
 
@@ -1238,6 +1348,7 @@ def build_workflow_service(
         repository=repository,
         settings=settings,
         review_service_provider=review_service_provider,
+        runtime_snapshots=runtime_snapshots,
     )
 
 
@@ -1267,6 +1378,8 @@ def build_review_service(
 
 def build_production_workflow_service(
     settings: AppSettings | None = None,
+    *,
+    runtime_snapshots: RuntimeSnapshotService | None = None,
 ) -> WorkflowService:
     """构造生产工作流服务：数据库 Checkpointer + T060 读取 + T069 Agent + T061 诊断。
 
@@ -1289,6 +1402,7 @@ def build_production_workflow_service(
         diagnosis_service=diagnosis,
         repository=DatabaseGradingRepository(session_factory=session_factory),
         settings=settings,
+        runtime_snapshots=runtime_snapshots,
     )
     service.use_review_service_provider(
         lambda: build_review_service(
@@ -1302,7 +1416,11 @@ def build_production_workflow_service(
     return service
 
 
-def build_production_review_service(settings: AppSettings | None = None) -> ReviewService:
+def build_production_review_service(
+    settings: AppSettings | None = None,
+    *,
+    runtime_snapshots: RuntimeSnapshotService | None = None,
+) -> ReviewService:
     """独立构造生产复核服务；T077 复核 API 直接复用该装配。"""
 
     session_factory = get_session_factory()
@@ -1320,6 +1438,7 @@ def build_production_review_service(settings: AppSettings | None = None) -> Revi
         diagnosis_service=diagnosis,
         repository=DatabaseGradingRepository(session_factory=session_factory),
         settings=settings,
+        runtime_snapshots=runtime_snapshots,
     )
     return build_review_service(
         checkpoints=checkpoints,

@@ -32,6 +32,8 @@ with (args.package / "EduAgent.exe").open("rb") as stream:
 source_paths = sorted(
     set(root.glob("backend/**/*.py"))
     | set(root.glob("migrations/**/*.py"))
+    | set(root.glob("frontend/src/**/*.*"))
+    | set(root.glob("frontend/dist/**/*.*"))
     | {
         root / "scripts/launch_windows.py",
         root / "scripts/build_exe.ps1",
@@ -40,7 +42,10 @@ source_paths = sorted(
         root / "scripts/freeze_gradio.py",
         root / "packaging/EduAgent.spec",
         root / "packaging/requirements-windows.txt",
-        root / "config/windows.env.example",
+        root / "frontend/package.json",
+        root / "frontend/package-lock.json",
+        root / "frontend/vite.config.ts",
+        root / "scripts/export_settings_openapi.py",
         root / "pyproject.toml",
     }
 )
@@ -71,7 +76,11 @@ result = {
     "file_count": len(files),
     "size_bytes": sum(p.stat().st_size for p in files),
     "executable_sha256": executable_hash,
-    "external": "config, database, Redis, business files and model weights",
+    "external": "config, DPAPI ciphertext, database, Redis, business files and model weights",
+    "settings_ui_files_sha256": {
+        str(p.relative_to(args.package)).replace("\\", "/"): hashlib.sha256(p.read_bytes()).hexdigest()
+        for p in files if p.is_relative_to(args.package / "_internal" / "settings-ui")
+    },
     "identity_policy": "Build versions/hashes are traceability only; no runtime equality gate.",
 }
 args.output.write_text(json.dumps(result, ensure_ascii=False, indent=2), "utf-8")

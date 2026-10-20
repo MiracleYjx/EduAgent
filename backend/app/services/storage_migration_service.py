@@ -108,6 +108,20 @@ def storage_references(session: Session) -> list[StorageReference]:
         raise FileStorageError("MAINTENANCE_SCHEMA_NOT_READY", "请先升级完整的导入/题图模型，维护工具不会自动修改 schema。")
     result = []
     for document in session.scalars(select(Document).order_by(Document.id)):
+        if document.subject_id is not None and document.course_id is None:
+            # 个人科目资料：科目是真实 owner，不伪造课程/旧用户归属。
+            owner = {"subject_id": str(document.subject_id)}
+            if document.purpose == DocumentPurpose.KNOWLEDGE_BASE:
+                kb = session.get(KnowledgeBase, document.knowledge_base_id)
+                if kb is None or kb.subject_id != document.subject_id:
+                    raise FileStorageError(
+                        "FILE_REFERENCE_CONFLICT", "资料与个人知识库科目不一致。"
+                    )
+                owner["knowledge_base_id"] = str(kb.id)
+            elif document.knowledge_base_id is not None:
+                raise FileStorageError("FILE_REFERENCE_CONFLICT", "原试卷不能登记到知识库。")
+            result.append(StorageReference(document, "d_" + document.id.hex, owner))
+            continue
         course = session.get(Course, document.course_id)
         if course is None:
             raise FileStorageError("FILE_REFERENCE_CONFLICT", "文件课程不存在。")

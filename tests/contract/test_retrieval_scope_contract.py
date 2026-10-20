@@ -4,7 +4,6 @@ from datetime import UTC, datetime
 from uuid import uuid4
 
 import pytest
-from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from backend.app.ai.retrieval.base import (
@@ -16,28 +15,20 @@ from backend.app.ai.retrieval.base import (
     get_retriever,
 )
 from backend.app.ai.retrieval.reranker import BaseReranker
-from backend.app.core.database import create_database_engine
 from backend.app.domain.enums import DocumentPurpose, DocumentStatus
-from backend.app.models import Base, Chapter
+from backend.app.models import Chapter
 from backend.app.schemas.retrieval_scope import SectionRange
 from tests.contract.test_retrieval_contract import _seed_course, _vector
+from tests.postgres_helpers import isolated_postgres_engine
 
 
 @pytest.fixture
 def scope_session():
-    engine = create_database_engine(connect_timeout=3)
-    schema = "t162_scope_" + uuid4().hex
-    with engine.begin() as connection:
-        connection.execute(text(f'CREATE SCHEMA "{schema}"'))
-    isolated = engine.execution_options(schema_translate_map={None: schema})
-    try:
-        Base.metadata.create_all(isolated)
-        with Session(isolated, expire_on_commit=False) as session:
-            yield session
-    finally:
-        with engine.begin() as connection:
-            connection.execute(text(f'DROP SCHEMA "{schema}" CASCADE'))
-        engine.dispose()
+    with (
+        isolated_postgres_engine() as engine,
+        Session(engine, expire_on_commit=False) as session,
+    ):
+        yield session
 
 
 def seed_scope(session):

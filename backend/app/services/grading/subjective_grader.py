@@ -31,7 +31,7 @@ import json
 import math
 from collections.abc import Callable, Mapping, Sequence
 from decimal import ROUND_HALF_UP, Decimal, InvalidOperation, localcontext
-from typing import Any, ClassVar, Final, Protocol
+from typing import TYPE_CHECKING, Any, ClassVar, Final, Protocol
 
 from pydantic import (
     BaseModel,
@@ -88,6 +88,9 @@ from backend.app.services.grading.scoring_images import (
     prepare_scoring_images,
 )
 from backend.app.services.trace_service import trace_prompt_version
+
+if TYPE_CHECKING:
+    from backend.app.services.settings.runtime_snapshot import RunSnapshotContext
 
 #: LLM 响应不是合法 JSON、不是对象或未通过 Schema 校验。
 GRADING_INVALID_LLM_RESPONSE: Final[str] = "GRADING_INVALID_LLM_RESPONSE"
@@ -307,6 +310,16 @@ def _load_payload(raw: Any) -> Mapping[str, Any]:
     return dict(payload)
 
 
+def _observed_returned_model(provider: object) -> str | None:
+    """只读取 Provider 明确暴露的响应模型；配置模型不等于返回模型。"""
+
+    for name in ("last_response_model", "response_model", "returned_model"):
+        value = getattr(provider, name, None)
+        if isinstance(value, str) and value.strip():
+            return value.strip()
+    return None
+
+
 def _describe_validation_error(error: ValidationError) -> str:
     """把 Pydantic 校验失败脱敏为「已知字段名 + 错误类型」。"""
 
@@ -441,7 +454,7 @@ def _build_user_message(context: GradingContext, *, max_score: Decimal | float) 
                 ]
             )
     sections.extend(
-        ["【课程检索上下文】", context.final_context or "（无可用检索上下文）"]
+        ["【课程检索上下文】", ("（本题按通用知识评分，不检索教材）" if source.grounding == "general_knowledge" else context.final_context or "（无可用检索上下文）")]
     )
     return "\n".join(sections)
 
@@ -525,7 +538,9 @@ class SubjectiveGrader:
         reranker: BaseReranker | None = None,
         embedding_provider: BaseEmbeddingProvider | None = None,
         require_context: bool = True,
+        images: tuple[VisionImage, ...] | None = None,
         settings: AppSettings | None = None,
+        runtime: RunSnapshotContext | None = None,
     ) -> GradingResult:
         """返回经过结构化校验与置信度检查的 :class:`GradingResult`。
 
@@ -533,13 +548,18 @@ class SubjectiveGrader:
         如何都会强制校验上下文充分性**，绝不在空上下文下调用评分模型。
         """
 
-        resolved_settings = settings if settings is not None else get_settings()
+        resolved_settings = (
+            settings
+            if settings is not None
+            else (None if runtime is not None else get_settings())
+        )
         resolved_max_score = _resolve_max_score(max_score)
         if (
             source.scoring_input is not None
             and resolved_max_score != source.scoring_input.effective_score
         ):
             raise InvalidMaxScoreError("传入满分与固定本场输入不一致。")
+        needs_context = source.grounding != "general_knowledge"
         context = await build_grading_context(
             session,
             source,
@@ -547,20 +567,28 @@ class SubjectiveGrader:
             retriever=retriever,
             reranker=reranker,
             embedding_provider=embedding_provider,
-            require_context=require_context,
+            require_context=require_context and needs_context,
             settings=settings,
+            runtime=runtime,
         )
-        context.ensure_sufficient()
+        if needs_context:
+            context.ensure_sufficient()
         enriched = context.enriched_scoring_input()
         if enriched is not None and self._on_scoring_input is not None:
             self._on_scoring_input(enriched)
         vision_provider = None
+        vision_lease = None
         primary_error: BaseException | None = None
         try:
-            images: tuple[VisionImage, ...] = ()
-            if source.scoring_input is not None and source.scoring_input.assets:
+            resolved_images: tuple[VisionImage, ...] = tuple(images or ())
+            if resolved_images:
                 try:
-                    vision_provider = create_vision_provider(resolved_settings)
+                    if runtime is not None:
+                        vision_lease = runtime.acquire("vision")
+                        vision_provider = vision_lease.client
+                    else:
+                        assert resolved_settings is not None
+                        vision_provider = create_vision_provider(resolved_settings)
                 except VisionFailure as error:
                     raise GradingImageError(
                         error.code, error.message, retryable=error.retryable
@@ -570,33 +598,63 @@ class SubjectiveGrader:
                         "VISION_NOT_SUPPORTED",
                         "独立图片模型未声明真实图片输入能力，不能转为纯文本评分。",
                     )
-                images = prepare_scoring_images(
-                    session, source, root=resolved_settings.storage_root
+            if source.scoring_input is not None and source.scoring_input.assets:
+                try:
+                    if runtime is not None:
+                        vision_lease = runtime.acquire("vision")
+                        vision_provider = vision_lease.client
+                    else:
+                        assert resolved_settings is not None
+                        vision_provider = create_vision_provider(resolved_settings)
+                except VisionFailure as error:
+                    raise GradingImageError(
+                        error.code, error.message, retryable=error.retryable
+                    ) from None
+                if not vision_provider.supports_vision():
+                    raise GradingImageError(
+                        "VISION_NOT_SUPPORTED",
+                        "独立图片模型未声明真实图片输入能力，不能转为纯文本评分。",
+                    )
+                storage_root = (
+                    resolved_settings.storage_root
+                    if resolved_settings is not None
+                    else (runtime.storage_root if runtime is not None else None)
+                )
+                if storage_root is None:
+                    raise GradingImageError(
+                        "SNAPSHOT_DEPENDENCY_UNAVAILABLE",
+                        "运行快照缺少文件存储根，无法读取本题图片。",
+                        retryable=False,
+                    )
+                resolved_images = prepare_scoring_images(
+                    session, source, root=storage_root
                 )
             messages = build_grading_messages(
-                context, max_score=resolved_max_score, images=images
+                context, max_score=resolved_max_score, images=resolved_images
             )
             payload = await self._generate_payload(
-                messages, settings=resolved_settings, provider_override=vision_provider
+                messages,
+                settings=resolved_settings,
+                provider_override=vision_provider,
+                runtime=runtime,
             )
         except BaseException as error:
             primary_error = error
             raise
         finally:
-            if vision_provider is not None:
-                try:
+            try:
+                if vision_lease is not None:
+                    await vision_lease.arelease()
+                elif vision_provider is not None:
                     await vision_provider.aclose()
-                except Exception:  # noqa: BLE001
-                    # Cleanup must preserve the original business failure.
-                    if primary_error is not None:
-                        primary_error.add_note(
-                            "独立图像 Provider 的资源清理也失败；保留原始评分错误。"
-                        )
-                    else:
-                        raise GradingImageError(
-                            "VISION_PROVIDER_CLOSE_FAILED",
-                            "独立图像 Provider 资源清理失败，未返回已完成评分。",
-                        ) from None
+            except Exception:  # noqa: BLE001 - keep the original grading failure.
+                if primary_error is not None:
+                    primary_error.add_note("图像评分客户端清理也失败；保留原始评分错误。")
+                else:
+                    raise GradingImageError(
+                        "VISION_PROVIDER_CLOSE_FAILED",
+                        "独立图像 Provider 资源清理失败，未返回已完成评分。",
+                    ) from None
         answer_id = str(source.answer_id) if source.answer_id is not None else None
         submission_id = (
             str(source.submission_id) if source.submission_id is not None else None
@@ -615,29 +673,37 @@ class SubjectiveGrader:
                 else None
             ),
         )
-        return self._apply_confidence_check(result, resolved_settings)
+        return self._apply_confidence_check(result, resolved_settings, runtime=runtime)
 
     async def _generate_payload(
         self,
         messages: LLMMessages,
         *,
-        settings: AppSettings,
+        settings: AppSettings | None,
         provider_override: BaseLLMProvider | None = None,
+        runtime: RunSnapshotContext | None = None,
     ) -> SubjectiveGradingPayload:
         """调用 Provider 获取结构化评分 Payload，并把失败分类为业务错误码。"""
 
+        task_kind = "vision" if provider_override is not None else "subjective_grading"
         provider = (
             provider_override if provider_override is not None else self._provider
         )
-        if provider is None:
+        lease = None
+        if provider is None and runtime is not None:
+            lease = runtime.acquire(task_kind)
+            provider = lease.client
+        elif provider is None:
             try:
                 provider = create_llm_provider(settings)
             except Exception:  # noqa: BLE001 - 未就绪不得静默降级
                 raise ProviderNotReadyError(
                     "评分 Provider 未就绪，请检查 LLM_PROVIDER 与模型配置。"
                 ) from None
+        attempted = False
         try:
             with trace_prompt_version(SUBJECTIVE_GRADING_PROMPT_VERSION):
+                attempted = True
                 result = await provider.generate_structured(
                     messages, SubjectiveGradingPayload
                 )
@@ -665,6 +731,15 @@ class SubjectiveGrader:
             raise
         except Exception:  # noqa: BLE001 - 统一收敛为脱敏 Provider 失败
             raise ProviderFailedError("评分 Provider 调用失败。") from None
+        finally:
+            if runtime is not None and attempted:
+                runtime.record_invocation(
+                    task_kind,
+                    returned_model=_observed_returned_model(provider),
+                    prompt_version=SUBJECTIVE_GRADING_PROMPT_VERSION,
+                )
+            if lease is not None:
+                await lease.arelease()
         if not isinstance(result, SubjectiveGradingPayload):
             raise InvalidLLMResponseError("评分 Provider 未返回约定的结构化结果。")
         if self._on_provider_metadata is not None:
@@ -679,16 +754,21 @@ class SubjectiveGrader:
     def _apply_confidence_check(
         self,
         result: GradingResult,
-        settings: AppSettings,
+        settings: AppSettings | None,
+        *,
+        runtime: RunSnapshotContext | None = None,
     ) -> GradingResult:
-        """置信度检查：未注入策略时使用读取运行配置的默认策略。
+        """置信度检查：优先快照阈值，其次显式/运行配置默认策略。
 
         入口返回前必执行本检查，否则低置信度结果会绕过 FR-035/FR-036 的人工复核。
         """
 
         policy = self._policy
         if policy is None:
-            policy = ConfidencePolicy(settings=settings)
+            if runtime is not None:
+                policy = ConfidencePolicy(threshold=runtime.confidence_threshold)
+            else:
+                policy = ConfidencePolicy(settings=settings)
         return policy.apply(result)
 
 

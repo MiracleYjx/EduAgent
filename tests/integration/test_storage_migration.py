@@ -11,11 +11,20 @@ from backend.app.domain.enums import DocumentStatus, UserRole
 from backend.app.models import Course, Document, KnowledgeBase, Role, User
 from backend.app.services.file_storage_service import FileStorageService
 from backend.app.services.storage_migration_service import StorageMigrationService
-from tests.postgres_helpers import isolated_postgres_engine
+from tests.postgres_helpers import (
+    isolated_postgres_engine,
+    isolated_test_resource_profile,
+)
 
 
 def test_postgres_shared_migration_commits_and_restart_reads(tmp_path):
-    with isolated_postgres_engine() as engine, Session(engine, expire_on_commit=False) as session:
+    with (
+        isolated_test_resource_profile(tmp_path / "owned-profile") as profile,
+        isolated_postgres_engine() as engine,
+        Session(engine, expire_on_commit=False) as session,
+    ):
+        tmp_path = profile.storage_root
+        tmp_path.mkdir()
         teacher = User(username="migration_teacher", email="mt@example.com", password_hash="unused")
         teacher.roles.append(Role(name=UserRole.TEACHER))
         admin = User(username="migration_admin", email="ma@example.com", password_hash="unused")
@@ -37,7 +46,7 @@ def test_postgres_shared_migration_commits_and_restart_reads(tmp_path):
         session.commit()
         ids = [d.id for d in docs]
         actor_id = admin.id
-        root = tmp_path / "persistent"
+        root = tmp_path
         report = StorageMigrationService(session, root=root).run(actor_id=actor_id)
         assert report.counts["migrated"] == 2
         session.close()
@@ -50,8 +59,13 @@ def test_postgres_shared_migration_commits_and_restart_reads(tmp_path):
 
 
 def test_legacy_and_canonical_lock_are_same_physical_key(tmp_path):
-    with isolated_postgres_engine() as engine, Session(engine) as migration, Session(engine) as writer:
-        root = tmp_path / "persistent"
+    with (
+        isolated_test_resource_profile(tmp_path / "owned-profile") as profile,
+        isolated_postgres_engine() as engine,
+        Session(engine) as migration,
+        Session(engine) as writer,
+    ):
+        root = profile.storage_root
         first = FileStorageService(migration, root=root)
         second = FileStorageService(writer, root=root)
         original = root / "uploads/shared/original.txt"

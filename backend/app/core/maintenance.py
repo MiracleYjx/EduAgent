@@ -13,9 +13,12 @@ from sqlalchemy import text
 from sqlalchemy.engine import Connection, Engine
 from sqlalchemy.orm import Session
 
+from backend.app.core.environment import environment_path
 from backend.app.core.security import get_user_roles
+from backend.app.core.settings_security import ManagementSession, SetupSecurityService
 from backend.app.domain.enums import UserRole
 from backend.app.models import User
+from backend.app.schemas.settings import EnvironmentProfile
 from backend.app.services.auth_service import AuthService
 
 MARKER = ".maintenance.json"
@@ -51,9 +54,18 @@ def durable_json(path: Path, value: str, *, create: bool = False) -> None:
         os.replace(temporary, path)
 
 
+def authorize_local_maintenance(
+    security: SetupSecurityService, token: str, profile: EnvironmentProfile,
+) -> ManagementSession:
+    """Local management authority is bound to the exact current environment."""
+    profile.validate_paths()
+    return security.authorize(token, environment_id=profile.environment_id,
+                              instance_id=security.instance_id)
+
+
 class MaintenanceWindow:
     """Operator stops writers first; connection checks and locks enforce the window."""
-    def __init__(self, engine: Engine, root: Path, *, actor_id: UUID, timeout: float = 10):
+    def __init__(self, engine: Engine, root: Path, *, actor_id: UUID | None, timeout: float = 10):
         self.engine = engine
         self.root = root.resolve()
         self.actor_id = actor_id
@@ -62,14 +74,34 @@ class MaintenanceWindow:
         self.connection: Connection | None = None
         self.started_at: datetime | None = None
         self.marker_created = False
+        self.management_session: ManagementSession | None = None
+
+    @classmethod
+    def for_local_management(
+        cls, engine: Engine, *, profile: EnvironmentProfile,
+        security: SetupSecurityService, token: str, timeout: float = 10,
+    ) -> Self:
+        session = authorize_local_maintenance(security, token, profile)
+        # Keep the management principal distinct from a legacy User identity.
+        window = cls(engine, environment_path(profile, "storage"),
+                     actor_id=None, timeout=timeout)
+        window.management_session = session
+        return window
 
     def __enter__(self) -> Self:
         from backend.app.services.file_storage_service import FileStorageError
+        if self.actor_id is None and self.management_session is None:
+            raise FileStorageError("MAINTENANCE_FORBIDDEN", "维护工具需要管理授权。", http_status=403)
         if self.engine.dialect.name != "postgresql":
             raise FileStorageError("MAINTENANCE_DATABASE_UNSUPPORTED", "一致备份必须使用 PostgreSQL。")
         ensure_storage_writable(self.root)
         self.root.mkdir(parents=True, exist_ok=True)
-        durable_json(self.root / MARKER, json.dumps({"operation_id": str(self.operation_id), "actor_id": str(self.actor_id),
+        principal = ({"management_session_id": str(self.management_session.session_id),
+                      "environment_id": str(self.management_session.environment_id),
+                      "principal_id": self.management_session.operator.principal_id,
+                      "principal_kind": self.management_session.operator.kind.value}
+                     if self.management_session is not None else {"actor_id": str(self.actor_id)})
+        durable_json(self.root / MARKER, json.dumps({"operation_id": str(self.operation_id), **principal,
                      "purpose": "offline_backup", "started_at": datetime.now(UTC).isoformat()}), create=True)
         self.marker_created = True
         try:

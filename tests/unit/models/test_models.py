@@ -135,8 +135,12 @@ def test_required_question_and_submission_constraints() -> None:
 
     assert question_type.enums == [item.value for item in QuestionType]
     assert question_status.enums == [item.value for item in QuestionStatus]
-    assert question_columns.score.nullable is False
-    assert question_columns.created_by.nullable is False
+    assert question_columns.score.nullable is True
+    assert question_columns.created_by.nullable is True
+    domain = next(c for c in Question.__table__.constraints if c.name == "ck_question_domain")
+    assert "score IS NOT NULL" in str(domain.sqltext)
+    assert "created_by IS NOT NULL" in str(domain.sqltext)
+    assert "subject_id IS NOT NULL" in str(domain.sqltext)
     assert submission_status.enums == [item.value for item in SubmissionStatus]
     assert submission_columns.student_id.nullable is False
     assert submission_columns.exam_id.nullable is False

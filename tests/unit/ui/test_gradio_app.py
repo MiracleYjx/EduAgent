@@ -268,3 +268,14 @@ def test_workspace_reset_only_returns_registered_output_components(
 
     serialized = convert_component_dict_to_list(list(block_fn.outputs), result)
     assert len(serialized) == len(block_fn.outputs)
+
+
+def test_settings_return_link_is_public_navigation_not_authentication(built_app: gr.Blocks) -> None:
+    navigation = [block for block in built_app.blocks.values() if getattr(block, "elem_id", None) == "edu-settings-navigation"]
+    assert len(navigation) == 1
+    assert navigation[0].value == (
+        '<nav aria-label="设置导航"><a href="/settings">返回设置中心</a>'
+        '<span> · 设置管理需要独立授权；请从 Launcher 重新打开。</span></nav>'
+    )
+    assert empty_login_state()["access_token"] == ""
+    assert select_navigation("teacher.courses", empty_login_state()) == "请先登录。"

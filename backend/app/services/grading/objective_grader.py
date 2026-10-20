@@ -55,10 +55,9 @@
     - 同一题内重复出现的选项键按集合去重（重复既不额外加分也不扣分）；本模块不处理跨题
       重复，跨题重复仍由 ``submission_service`` 的既有规则拒绝。
 
-多选给分与舍入
-    - 集合相等：直接取满分（不经过比例计算）。
-    - 真子集（漏选且无错选）：``Decimal(str(max_score)) × 命中数 ÷ 标准答案键数``，按
-      ``ROUND_HALF_UP`` 保留 2 位小数（对齐 ``Numeric(8, 2)``）。
+多选给分（T051 新合同）
+    - 集合相等：取满分。
+    - 真子集（漏选且无错选）：**0 分**，不设部分分（旧版按命中比例给分的规则已废止）。
     - 存在错选（学生键不在标准答案集合内）：0 分且不倒扣。
     - 空集合（未作答）：0 分。
     - 分数由规则直接产生并落在 ``[0, max_score]``；若该区间被破坏，抛出
@@ -552,7 +551,7 @@ class ObjectiveGrader:
         submission_id: str | None,
         exam_question_id: str | None,
     ) -> GradingResult:
-        """多选：选项键集合比较，漏选按比例给分，错选不得分。"""
+        """多选：选项键集合比较；全部选对才得分，漏选与错选均为 0 分。"""
 
         reference_keys = parse_multiple_choice_keys(
             reference_answer,
@@ -582,7 +581,6 @@ class ObjectiveGrader:
             option_keys=option_keys,
             label="学生答案",
         )
-        hits = student_keys & reference_keys
         missing = reference_keys - student_keys
         extra = student_keys - reference_keys
 
@@ -624,23 +622,19 @@ class ObjectiveGrader:
                 exam_question_id=exam_question_id,
             )
 
-        score = _proportional_score(max_score, len(hits), len(reference_keys))
         missing_display = "、".join(sorted(_display_key(key) for key in missing))
         return self._build_result(
             question_type=QuestionType.MULTIPLE_CHOICE,
-            score=score,
+            score=Decimal("0.00"),
             max_score=max_score,
             reason=(
-                f"多选题漏选 {missing_display}，按命中 {len(hits)}/{len(reference_keys)} "
-                f"比例给分 {_format_score(score)} 分（满分 "
-                f"{_format_score(max_score)} 分）。"
+                f"多选题漏选 {missing_display}；多选要求全部选对才得分，"
+                "本题记 0 分（不设部分分）。"
             ),
-            correct_points=[_display_key(key) for key in sorted(hits)],
+            correct_points=[],
             missing_points=[_display_key(key) for key in sorted(missing)],
             knowledge_points=knowledge_points,
-            suggestions=[
-                f"多选题漏选会按比例扣分，请补齐未选中的选项：{missing_display}。"
-            ],
+            suggestions=[f"多选题需全部选对，请补齐未选中的选项：{missing_display}。"],
             answer_id=answer_id,
             submission_id=submission_id,
             exam_question_id=exam_question_id,

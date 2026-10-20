@@ -17,10 +17,11 @@ from __future__ import annotations
 import hashlib
 from collections.abc import Generator, Sequence
 from dataclasses import fields, replace
+from pathlib import Path
 from uuid import UUID, uuid4
 
 import pytest
-from sqlalchemy import create_engine, func, inspect, select, text
+from sqlalchemy import create_engine, func, select
 from sqlalchemy.orm import Session
 from sqlalchemy.pool import StaticPool
 
@@ -51,8 +52,7 @@ from backend.app.ai.retrieval.reranker import (
     HybridRerankRetriever,
     RerankProviderNotReadyError,
 )
-from backend.app.core.config import get_settings
-from backend.app.core.database import Base, create_database_engine
+from backend.app.core.database import Base
 from backend.app.domain.enums import DocumentStatus, UserRole
 from backend.app.models import (
     Course,
@@ -65,6 +65,10 @@ from backend.app.models import (
 from backend.app.models.document_chunk import EMBEDDING_VECTOR_DIMENSION
 from backend.app.services.course_service import CourseService
 from backend.app.services.knowledge_base_service import KnowledgeBaseService
+from tests.postgres_helpers import (
+    isolated_postgres_engine,
+    isolated_test_resource_profile,
+)
 
 DOCUMENT_ID = UUID("11111111-1111-4111-8111-111111111111")
 COURSE_ID = UUID("22222222-2222-4222-8222-222222222222")
@@ -394,22 +398,14 @@ def test_vector_search_scores_are_sorted_and_bounded(sqlite_session: Session) ->
 
 
 @pytest.fixture
-def postgres_session() -> Generator[Session, None, None]:
-    """提供带种子数据的真实 PostgreSQL 会话；数据库不可用时跳过。"""
+def postgres_session(tmp_path: Path) -> Generator[Session, None, None]:
+    """只在已验证 Test 实例的自有 schema 内提供真实 PostgreSQL 种子。"""
 
-    engine = create_database_engine(get_settings(), connect_timeout=3)
-    session: Session | None = None
-    try:
-        try:
-            with engine.connect() as connection:
-                connection.execute(text("SELECT 1"))
-                tables = set(inspect(connection).get_table_names())
-        except Exception as exc:  # noqa: BLE001  # 环境不可用时跳过而不是伪造通过
-            pytest.skip(f"PostgreSQL 不可用，跳过检索集成契约测试：{type(exc).__name__}")
-        if "document_chunks" not in tables:
-            pytest.skip("document_chunks 表不存在，请先执行 alembic upgrade head。")
-
-        session = Session(bind=engine, expire_on_commit=False)
+    with (
+        isolated_test_resource_profile(tmp_path / "test-environment"),
+        isolated_postgres_engine() as engine,
+        Session(bind=engine, expire_on_commit=False) as session,
+    ):
         unique = uuid4().hex[:8]
         course, knowledge_base, document, chunks = _seed_course(
             session,
@@ -430,21 +426,6 @@ def postgres_session() -> Generator[Session, None, None]:
             "chunk_ids": [chunk.id for chunk in chunks],
         }
         yield session
-    finally:
-        if session is not None:
-            seed = session.info.get("retrieval_seed") or {}
-            try:
-                # 删除课程即可由 ORM 级联清理知识库、资料与知识片段。
-                course = session.get(Course, seed.get("course_id"))
-                if course is not None:
-                    session.delete(course)
-                teacher = session.get(User, seed.get("user_id"))
-                if teacher is not None:
-                    session.delete(teacher)
-                session.commit()
-            finally:
-                session.close()
-        engine.dispose()
 
 
 def test_postgres_vector_search_matches_exact_baseline(postgres_session: Session) -> None:

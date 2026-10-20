@@ -20,21 +20,38 @@ from scripts import benchmark_corpus as corpus
 from scripts import run_grading_benchmark as grading
 from scripts import run_retrieval_benchmark as retrieval
 from scripts import setup_benchmark_corpus as setup
-from tests.postgres_helpers import isolated_postgres_engine
+from tests.postgres_helpers import (
+    isolated_test_resource_profile,
+    postgres_subprocess_environment,
+)
 from tests.unit.settings_helpers import build_test_settings
 
 
 @pytest.fixture(scope="module")
-def manifest_path(tmp_path_factory):
-    # 既有 helper 负责 PostgreSQL/pgvector 可用性检查，不用 SQLite 冒充。
-    with isolated_postgres_engine():
-        output = tmp_path_factory.mktemp("p4a3") / "corpus"
-        assert setup.main(["--self-test", "--output-dir", str(output)]) == 0
-        path = output / "manifest.json"
-        try:
-            yield path
-        finally:
-            corpus.cleanup_manifest(path)
+def benchmark_profile(tmp_path_factory):
+    root = tmp_path_factory.mktemp("p4a3") / "test-environment"
+    with isolated_test_resource_profile(root) as profile:
+        yield profile
+
+
+@pytest.fixture(scope="module")
+def manifest_path(benchmark_profile):
+    # Benchmark 自己创建、持久记录和清理自有 schema，不再套旁路 PG engine。
+    output = benchmark_profile.results_root / "corpus"
+    assert setup.main(["--self-test", "--output-dir", str(output)]) == 0
+    path = output / "manifest.json"
+    try:
+        yield path
+    finally:
+        corpus.cleanup_manifest(path)
+
+
+@pytest.fixture
+def tmp_path(benchmark_profile):
+    # 保留旧断言中的 tmp_path 名称，实际输出必须属于当前显式 Test profile。
+    root = benchmark_profile.results_root / f"case_{uuid4().hex}"
+    root.mkdir(parents=True)
+    return root
 
 
 def _run(path, output, run_id, *extra):
@@ -208,7 +225,8 @@ def test_retrieval_cli_consumes_manifest(manifest_path, tmp_path):
     result = subprocess.run([
         sys.executable, str(Path(retrieval.__file__)), "--manifest", str(manifest_path),
         "--self-test", "--configs", "vector_only", "--output-dir", str(tmp_path), "--run-id", "cli",
-    ], capture_output=True, text=True, timeout=30, check=False)
+    ], env=postgres_subprocess_environment(corpus.load_manifest(manifest_path)["schema"]),
+        capture_output=True, text=True, timeout=30, check=False)
     assert result.returncode == 0, result.stderr
     assert _report(tmp_path, "cli")["status"] == "ok"
 
@@ -250,7 +268,7 @@ def test_llm_rerank_reuses_loop_and_records_actual_provider(manifest_path, tmp_p
     monkeypatch.setattr(rerank_module, "build_reranker", lambda: LLMRerankAdapter(provider=active))
     assert retrieval.main([
         "--manifest", str(manifest_path), "--output-dir", str(tmp_path), "--run-id", "llm",
-        "--configs", "hybrid_rerank", "--queries", "3",
+        "--real", "--configs", "hybrid_rerank", "--queries", "3",
     ]) == 0
     report = _report(tmp_path, "llm", "hybrid_rerank")
     assert len(loops) == 3
@@ -310,7 +328,8 @@ def test_setup_cli_accepts_arbitrary_annotation_keys_and_cleanup(manifest_path, 
     initialized = subprocess.run([
         sys.executable, str(Path(setup.__file__)), "--self-test", "--output-dir", str(output),
         "--corpus-dir", str(source_dir),
-    ], capture_output=True, text=True, timeout=30, check=False)
+    ], env=postgres_subprocess_environment(corpus.load_manifest(manifest_path)["schema"]),
+        capture_output=True, text=True, timeout=30, check=False)
     assert initialized.returncode == 0, initialized.stderr
     manifest = output / "manifest.json"
     try:
@@ -321,3 +340,18 @@ def test_setup_cli_accepts_arbitrary_annotation_keys_and_cleanup(manifest_path, 
         assert setup.main(["--cleanup", str(manifest)]) == 0
     assert _run(manifest, tmp_path, "deleted") == 1
     assert manifest.exists()  # cleanup 保留证据，只删除自有 schema。
+
+
+def test_setup_owned_provider_closes_on_ingestion_loop(tmp_path):
+    loops = []
+    class Provider(retrieval.StubHashEmbeddingProvider):
+        async def embed_documents(self, texts):
+            loops.append(asyncio.get_running_loop())
+            return await super().embed_documents(texts)
+        async def aclose(self):
+            loops.append(asyncio.get_running_loop())
+    path = corpus.setup_corpus(tmp_path / "owned-client", provider=Provider(), close_provider=True)
+    try:
+        assert len(loops) == 2 and loops[0] is loops[1]
+    finally:
+        corpus.cleanup_manifest(path)

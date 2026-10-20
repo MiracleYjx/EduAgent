@@ -43,7 +43,7 @@ from __future__ import annotations
 import asyncio
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass, replace
-from typing import Any, Final, Protocol
+from typing import TYPE_CHECKING, Any, Final, Protocol
 
 from pydantic import ValidationError
 from sqlalchemy.orm import Session
@@ -99,6 +99,9 @@ from backend.app.services.grading.subjective_grader import (
     SubjectiveGrader,
     SubjectiveGradingError,
 )
+
+if TYPE_CHECKING:
+    from backend.app.services.settings.runtime_snapshot import RunSnapshotContext
 from backend.app.services.grading.subjective_pipeline import build_subjective_source
 
 #: 输入不是可阅卷的答卷快照或单题目标。
@@ -176,6 +179,7 @@ class SubjectiveGraderLike(Protocol):
         embedding_provider: BaseEmbeddingProvider | None = None,
         require_context: bool = True,
         settings: AppSettings | None = None,
+        runtime: RunSnapshotContext | None = None,
     ) -> GradingResult: ...
 
 
@@ -267,6 +271,7 @@ class GradingAgent:
         workflow_id: str | None = None,
         session: Session | None = None,
         settings: AppSettings | None = None,
+        runtime: RunSnapshotContext | None = None,
     ) -> AgentInvocation:
         """同步单题入口；事件循环内必须使用 :meth:`grade_answer_async`。
 
@@ -278,7 +283,9 @@ class GradingAgent:
         request_id, workflow_id = normalize_trace_context(request_id, workflow_id)
         _ensure_no_running_loop()
         outcome = asyncio.run(
-            self._grade_answer(snapshot, target, session=session, settings=settings)
+            self._grade_answer(
+                snapshot, target, session=session, settings=settings, runtime=runtime
+            )
         )
         return AgentInvocation(
             request_id=request_id,
@@ -302,6 +309,7 @@ class GradingAgent:
         workflow_id: str | None = None,
         session: Session | None = None,
         settings: AppSettings | None = None,
+        runtime: RunSnapshotContext | None = None,
     ) -> AgentInvocation:
         """异步单题入口：直接 ``await`` 主观题评分，不嵌套 ``asyncio.run``。
 
@@ -312,7 +320,7 @@ class GradingAgent:
 
         request_id, workflow_id = normalize_trace_context(request_id, workflow_id)
         outcome = await self._grade_answer(
-            snapshot, target, session=session, settings=settings
+            snapshot, target, session=session, settings=settings, runtime=runtime
         )
         return AgentInvocation(
             request_id=request_id,
@@ -332,6 +340,7 @@ class GradingAgent:
         snapshot: SubmissionSnapshot,
         *,
         settings: AppSettings | None = None,
+        runtime: RunSnapshotContext | None = None,
     ) -> GradingOutcome:
         """既有的 ``ScoringPipeline`` 同步合同；整卷编排的同步包装。
 
@@ -340,13 +349,14 @@ class GradingAgent:
         """
 
         _ensure_no_running_loop()
-        return asyncio.run(self.score_async(snapshot, settings=settings))
+        return asyncio.run(self.score_async(snapshot, settings=settings, runtime=runtime))
 
     async def score_async(
         self,
         snapshot: SubmissionSnapshot,
         *,
         settings: AppSettings | None = None,
+        runtime: RunSnapshotContext | None = None,
     ) -> GradingOutcome:
         """整卷编排：逐题分流 → 既有评分服务 → 汇总一次；任一步失败即抛出。
 
@@ -368,7 +378,7 @@ class GradingAgent:
         scoring_inputs: dict[str, ScoringInput] = {}
         for target in snapshot.answers:
             outcome = await self._grade_answer(
-                snapshot, target, session=None, settings=settings
+                snapshot, target, session=None, settings=settings, runtime=runtime
             )
             if outcome.result is None:
                 raise self._as_error(outcome.output)
@@ -440,6 +450,7 @@ class GradingAgent:
         *,
         session: Session | None,
         settings: AppSettings | None,
+        runtime: RunSnapshotContext | None = None,
     ) -> _AnswerOutcome:
         """单题编排：分流 → 既有评分服务 → 专属一致性校验 → 置信度决策。"""
 
@@ -475,6 +486,7 @@ class GradingAgent:
             question_type=question_type,
             session=session,
             settings=settings,
+            runtime=runtime,
         )
 
     def _grade_objective(
@@ -527,6 +539,7 @@ class GradingAgent:
         question_type: QuestionType,
         session: Session | None,
         settings: AppSettings | None,
+        runtime: RunSnapshotContext | None = None,
     ) -> _AnswerOutcome:
         """主观题：组装来源后调用一次既有评分器；上下文与检索由评分器内部完成。"""
 
@@ -550,13 +563,18 @@ class GradingAgent:
             reuse_recorded_decision = (
                 self._subjective_grader is None and self._policy is None
             )
-            policy = (
-                None
-                if reuse_recorded_decision
-                else self._resolved_policy(resolved_settings)
-            )
+            policy: ConfidencePolicy | None
+            if runtime is not None and self._policy is None:
+                policy = ConfidencePolicy(threshold=runtime.confidence_threshold)
+            else:
+                policy = (
+                    None
+                    if reuse_recorded_decision
+                    else self._resolved_policy(resolved_settings)
+                )
             recording = DecisionRecordingPolicy(
-                policy=policy, settings=resolved_settings
+                policy=policy,
+                settings=None if runtime is not None else resolved_settings,
             )
             metadata: LLMProviderMetadata | None = None
             actual_input = target.scoring_input
@@ -594,6 +612,7 @@ class GradingAgent:
                     reranker=self._reranker,
                     embedding_provider=self._embedding_provider,
                     settings=resolved_settings,
+                    runtime=runtime,
                 )
             except (
                 SubjectiveGradingError,

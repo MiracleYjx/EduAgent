@@ -1,0 +1,121 @@
+:root {
+  font-family:
+    "Segoe UI", "PingFang SC", "Microsoft YaHei", system-ui, -apple-system, sans-serif;
+  color: #1f2937;
+  background: #f4f6f9;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+  margin: 0;
+}
+
+body {
+  min-width: 320px;
+}
+
+.app-shell {
+  min-height: 100vh;
+}
+
+.app-content {
+  width: min(1180px, calc(100% - 40px));
+  margin: 0 auto;
+  padding: 28px 0 40px;
+}
+
+.page-stack {
+  display: grid;
+  gap: 20px;
+}
+
+.page-heading {
+  margin: 0 !important;
+}
+
+.page-description {
+  margin-bottom: 0 !important;
+  color: #5b6472;
+}
+
+.status-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.status-card .ant-card-body {
+  min-height: 124px;
+}
+
+.status-value {
+  margin-top: 14px;
+}
+
+.detail-table {
+  overflow-x: auto;
+}
+
+.wizard-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.wizard-field {
+  display: grid;
+  gap: 6px;
+}
+
+.credential-fieldset {
+  border: 1px solid #d9e1ee;
+  border-radius: 8px;
+  padding: 14px 18px;
+  margin: 14px 0;
+  min-width: 0;
+}
+
+.credential-fieldset legend {
+  padding: 0 6px;
+  font-weight: 600;
+}
+
+.ant-descriptions-item-content,
+.ant-alert-description,
+.mono {
+  overflow-wrap: anywhere;
+}
+
+.mono {
+  font-family: "Cascadia Code", Consolas, monospace;
+  font-size: 12px;
+}
+
+@media (max-width: 640px) {
+  .app-content {
+    width: min(100% - 24px, 1180px);
+    padding-top: 18px;
+  }
+}
+
+.wizard-field select, .wizard-field input[type="number"] { min-height: 34px; width: 100%; border: 1px solid #b8c0cc; border-radius: 6px; padding: 5px 8px; background: white; color: #172033; }
+.wizard-field select:focus-visible, .wizard-field input:focus-visible { outline: 2px solid #1677ff; outline-offset: 2px; }
+
+.safe-json { white-space: pre-wrap; overflow-wrap: anywhere; max-width: 100%; font-size: 12px; }
+.ant-descriptions-item-content, .ant-table-cell { overflow-wrap: anywhere; }
+
+.page-stack > *, .settings-editor .ant-space-item, .settings-editor .ant-tabs,
+.settings-editor .ant-tabs-content-holder, .settings-editor .ant-tabs-tabpane { min-width: 0; max-width: 100%; }
+.wizard-field { min-width: 0; }
+.wizard-field select { max-width: 100%; box-sizing: border-box; }
+
+.source-blocks .source-image {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}

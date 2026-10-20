@@ -33,7 +33,11 @@ from backend.app.models import Document, Role, User
 from backend.app.models.document_chunk import EMBEDDING_VECTOR_DIMENSION
 from backend.app.services import knowledge_base_service as knowledge_base_module
 from backend.app.services.auth_service import hash_password
-from tests.postgres_helpers import isolated_postgres_engine
+from tests.postgres_helpers import (
+    isolated_postgres_engine,
+    isolated_test_resource_profile,
+)
+from tests.support.application_lifecycle import bind_startup_session_factory
 from tests.unit.settings_helpers import build_test_settings
 
 TEST_JWT_SECRET = token_urlsafe(48)
@@ -98,28 +102,33 @@ def session_factory(request: pytest.FixtureRequest) -> Generator[sessionmaker[Se
 def client(
     session_factory: sessionmaker[Session],
     tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> Generator[TestClient, None, None]:
     """构造使用隔离数据库和测试 JWT 密钥的 API 客户端。"""
 
-    with gr.Blocks() as test_gradio_app:
-        gr.Markdown("资料上传契约测试")
-    application = create_app(
-        settings=build_test_settings(JWT_SECRET_KEY=TEST_JWT_SECRET, STORAGE_ROOT=tmp_path / "storage"),
-        gradio_app=test_gradio_app,
-    )
+    with isolated_test_resource_profile(tmp_path / "owned-profile") as profile:
+        bind_startup_session_factory(monkeypatch, session_factory)
+        with gr.Blocks() as test_gradio_app:
+            gr.Markdown("资料上传契约测试")
+        application = create_app(
+            settings=build_test_settings(
+                JWT_SECRET_KEY=TEST_JWT_SECRET, STORAGE_ROOT=profile.storage_root,
+            ),
+            gradio_app=test_gradio_app,
+        )
 
-    def override_get_db() -> Generator[Session, None, None]:
-        with session_factory() as session:
-            try:
-                yield session
-            except Exception:
-                session.rollback()
-                raise
+        def override_get_db() -> Generator[Session, None, None]:
+            with session_factory() as session:
+                try:
+                    yield session
+                except Exception:
+                    session.rollback()
+                    raise
 
-    application.dependency_overrides[get_db] = override_get_db
-    with TestClient(application) as test_client:
-        yield test_client
-    application.dependency_overrides.clear()
+        application.dependency_overrides[get_db] = override_get_db
+        with TestClient(application) as test_client:
+            yield test_client
+        application.dependency_overrides.clear()
 
 
 def _add_user(

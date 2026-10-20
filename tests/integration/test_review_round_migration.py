@@ -1,42 +1,32 @@
 """P3.1.1 在隔离 PostgreSQL schema 执行真实 Alembic CLI，不修改默认 schema。"""
 
-import os
 import subprocess
 import sys
 from pathlib import Path
 from uuid import uuid4
 
-from sqlalchemy import MetaData, Table, event, inspect, text
+from sqlalchemy import MetaData, Table, inspect, text
 from sqlalchemy.orm import Session
-from sqlalchemy.schema import CreateSchema, DropSchema
 
-from backend.app.core.database import create_database_engine
 from backend.app.domain.enums import ReviewStatus
 from backend.app.models import Answer, Course, Role, Submission, User
 from tests.integration.legacy_question_fixture import insert_legacy_question
+from tests.postgres_helpers import (
+    isolated_postgres_schema,
+    postgres_subprocess_environment,
+)
 from tests.unit.models.sqlite_support import SubmissionFixture
 from tests.unit.models.test_grading_result import _grading_result
 
 
 def test_review_round_migration_upgrade_downgrade_preserves_legacy_rows() -> None:
-    engine = create_database_engine()
-    schema = f"test_review_round_{uuid4().hex}"
-    created = False
-
-    @event.listens_for(engine, "connect")
-    def set_schema(connection, _record) -> None:
-        with connection.cursor() as cursor:
-            cursor.execute(f'SET search_path TO "{schema}", public')
-        connection.commit()
-
     root = Path(__file__).resolve().parents[2]
-    migration_env = {**os.environ, "PGOPTIONS": f"-csearch_path={schema},public"}
 
     def alembic(*args: str) -> None:
         result = subprocess.run(
             [sys.executable, "-m", "alembic", *args],
             cwd=root,
-            env=migration_env,
+            env=postgres_subprocess_environment(schema),
             capture_output=True,
             text=True,
             encoding="utf-8",
@@ -46,13 +36,11 @@ def test_review_round_migration_upgrade_downgrade_preserves_legacy_rows() -> Non
         )
         assert result.returncode == 0, result.stdout + result.stderr
 
-    try:
+    with isolated_postgres_schema() as (engine, schema):
         with engine.begin() as connection:
             assert connection.scalar(
                 text("SELECT 1 FROM pg_extension WHERE extname='vector'")
             )
-            connection.execute(CreateSchema(schema))
-            created = True
             # 遮蔽 public 中可能已有的 Alembic 版本表；迁移只能操作本次 schema。
             connection.execute(
                 text(
@@ -173,8 +161,3 @@ def test_review_round_migration_upgrade_downgrade_preserves_legacy_rows() -> Non
             )
             assert connection.scalar(text("SELECT id FROM review_records")) == record_id
         alembic("upgrade", "0010_review_round_ids")
-    finally:
-        if created:
-            with engine.begin() as connection:
-                connection.execute(DropSchema(schema, cascade=True))
-        engine.dispose()

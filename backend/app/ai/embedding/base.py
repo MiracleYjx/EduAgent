@@ -15,7 +15,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from collections.abc import Sequence
-from typing import ClassVar, Final
+from typing import Any, ClassVar, Final
 
 #: 与资料摄取失败表一致的 Embedding 失败码。
 EMBEDDING_FAILED: Final[str] = "EMBEDDING_FAILED"
@@ -71,6 +71,8 @@ class BaseEmbeddingProvider(ABC):
     provider_name: str = "unknown"
     #: 模型标识与版本；云端或本地 Provider 会按运行配置覆盖。
     model_name: str = "unknown"
+    #: 模型版本；Provider 未暴露时保持 None，不猜值。
+    model_version: str | None = None
     #: 向量维度；未知时为 ``None``，由具体实现或首次调用确定。
     dimension: int | None = None
 
@@ -93,6 +95,29 @@ class BaseEmbeddingProvider(ABC):
             "provider": self.provider_name,
             "model": self.model_name,
             "dimension": self.dimension,
+        }
+
+    def endpoint_identity(self) -> str:
+        """返回不含秘密的端点身份；默认只使用 Provider 与模型标识。"""
+
+        return f"{self.provider_name}://{self.model_name}"
+
+    def semantic_parameters(self) -> dict[str, Any]:
+        """返回影响向量空间的语义参数；未知时保持空对象而非猜测。"""
+
+        return {}
+
+    def index_identity(self, *, dimension: int | None = None) -> dict[str, Any]:
+        """构造当前 Provider 的真实索引身份；秘密、Key 与响应正文不进入身份。"""
+
+        return {
+            "provider": self.provider_name,
+            "adapter": self.provider_name,
+            "endpoint_identity": self.endpoint_identity(),
+            "model_id": self.model_name,
+            "model_version": self.model_version,
+            "dimension": dimension if dimension is not None else self.dimension,
+            "semantic_parameters": self.semantic_parameters(),
         }
 
     def is_ready(self) -> bool:

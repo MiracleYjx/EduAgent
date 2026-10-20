@@ -818,3 +818,20 @@ def test_question_classification_is_not_an_implicit_retrieval_scope() -> None:
     assert query.chapter_ids == ()
     assert query.section_range is None
     assert query.knowledge_points == ()
+
+
+@pytest.mark.parametrize("mode", list(RetrievalMode))
+@pytest.mark.parametrize("field", ["subject_ids", "material_version_ids"])
+def test_course_grading_rejects_personal_filters_before_provider_calls(mode, field):
+    retriever = StubRetriever(mode=mode)
+    embedding = StubEmbeddingProvider()
+    with pytest.raises(GradingInputError):
+        _build(
+            retriever=retriever,
+            embedding=embedding,
+            mode=mode,
+            require_context=False,
+            filters=RetrievalFilters(**{field: (uuid4(),)}),
+        )
+    assert not embedding.queries
+    assert not retriever.calls

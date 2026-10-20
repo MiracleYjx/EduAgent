@@ -230,7 +230,11 @@ docker compose run --rm --no-deps backend python -m alembic upgrade head
 docker compose up -d --wait backend
 ```
 
-Compose 会提供容器内部的 PostgreSQL 与 Redis 地址。启动容器前先停止占用同一端口的本机后端。更方便的演示入口是先在 `.env` 启用 `DEV_MODE=true` 并填写云端配置，再运行 `./scripts/run_demo.ps1`；它启动三容器、迁移并幂等灌入课程、知识库、题目和考试。健康检查不等于 AI 链路验收，脚本可能产生云端模型费用。
+Compose 会提供容器内部的 PostgreSQL 与 Redis 地址。启动容器前先停止占用同一端口的本机后端。
+
+**T202 接线边界（2026-10-15，聚焦验收完成；非真实Demo验收）**：`./scripts/run_demo.ps1` 保留零参数与 `-EnvFile`、`-WaitTimeoutSeconds`，默认只选择 `%LOCALAPPDATA%/EduAgent/demo/config/demo.env`，不再隐式读取仓库/CWD的 Development `.env`，也不会复制已有 Key。独立 Demo 配置仍须填写 `DEV_MODE=true` 和云端 Embedding；端口取解析配置，不要求额外 Profile 文件，未知旧资源不接管、不重置。分阶段顺序已确认并实现：基础服务健康→一次性只读身份/Storage探针→同配置迁移并核对head→业务 Backend/原恢复→健康→Seed。有效配置在内存冻结、镜像固定实际ID，身份或迁移失败不启动业务 Backend；运行中需升级时拒绝并提示受控停机，不自动停止。T202按原路径与兼容合同完成聚焦验收；当前证据仍仅Test/Fake及纯配置装配，真实Demo未启动。**不要将这些局部证据视为真实 Demo 安全运行或完整系统验收**。健康检查不等于 AI 链路验收，seed 仍可能产生云端模型费用。
+
+环境路径已接入独立 cache/logs/temp/results；未接纳 Development 的原 storage 保留。Windows 实际启动日志位于 `%LOCALAPPDATA%/EduAgent/development/logs/application.log`（显式环境根时使用该根的 logs），不再写业务 storage/logs。评测默认读取/写入所选环境 results，旧 `benchmark/results` 不迁移、不删除；完整约束见[运行契约](specs/001-local-settings-and-onboarding/contracts/runtime-configuration.md)。
 
 资料摄取和 AI 操作需要真实可用的 Provider 配置，密钥占位符不能生成向量。
 

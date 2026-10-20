@@ -5,7 +5,16 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 from uuid import UUID
 
-from sqlalchemy import JSON, Boolean, CheckConstraint, ForeignKey, Index, String, Text
+from sqlalchemy import (
+    JSON,
+    Boolean,
+    CheckConstraint,
+    ForeignKey,
+    Index,
+    String,
+    Text,
+    UniqueConstraint,
+)
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -25,6 +34,8 @@ class Document(UUIDPrimaryKeyMixin, TimestampMixin, Base):
 
     __tablename__ = "documents"
     __table_args__ = (
+        UniqueConstraint("id", "subject_id"),
+        CheckConstraint("(subject_id IS NULL AND course_id IS NOT NULL AND uploaded_by IS NOT NULL) OR (subject_id IS NOT NULL AND course_id IS NULL AND uploaded_by IS NULL)", name="ck_document_domain"),
         CheckConstraint("(purpose = 'knowledge_base' AND knowledge_base_id IS NOT NULL) OR (purpose = 'paper_source' AND knowledge_base_id IS NULL)", name="ck_document_purpose_knowledge_base"),
         Index("ix_documents_course_purpose", "course_id", "purpose"),
         CheckConstraint(
@@ -33,15 +44,17 @@ class Document(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         ).ddl_if(dialect="postgresql"),
     )
 
-    course_id: Mapped[UUID] = mapped_column(
-        ForeignKey("courses.id", ondelete="CASCADE"), nullable=False, index=True
+    subject_id: Mapped[UUID | None] = mapped_column(ForeignKey("subjects.id", ondelete="RESTRICT"), nullable=True)
+
+    course_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("courses.id", ondelete="CASCADE"), nullable=True, index=True
     )
     knowledge_base_id: Mapped[UUID | None] = mapped_column(
         ForeignKey("knowledge_bases.id", ondelete="CASCADE"), nullable=True, index=True
     )
     purpose: Mapped[DocumentPurpose] = mapped_column(enum_type(DocumentPurpose, "document_purpose", length=32), default=DocumentPurpose.KNOWLEDGE_BASE, server_default="knowledge_base", nullable=False)
-    uploaded_by: Mapped[UUID] = mapped_column(
-        ForeignKey("users.id", ondelete="RESTRICT"), nullable=False
+    uploaded_by: Mapped[UUID | None] = mapped_column(
+        ForeignKey("users.id", ondelete="RESTRICT"), nullable=True
     )
     original_filename: Mapped[str] = mapped_column(String(255), nullable=False)
     file_format: Mapped[str] = mapped_column(String(32), nullable=False)
@@ -58,8 +71,18 @@ class Document(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     error_code: Mapped[str | None] = mapped_column(String(64))
     error_message: Mapped[str | None] = mapped_column(Text)
     retryable: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    #: 个人资料状态机（T028）；Document.status 仍表达旧摄取状态，二者不互相冒充。
+    material_state: Mapped[str | None] = mapped_column(String(32))
+    #: 用户实际提供的可选描述（年份/出版社/ISBN/考试名称），缺失就不写。
+    optional_metadata: Mapped[dict[str, Any] | None] = mapped_column(
+        JSON(none_as_null=True).with_variant(JSONB(none_as_null=True), "postgresql")
+    )
+    #: 解析事实：有序块锚点、受管媒体摘要、疑点与未处理页，不静默丢弃。
+    parse_facts: Mapped[dict[str, Any] | None] = mapped_column(
+        JSON(none_as_null=True).with_variant(JSONB(none_as_null=True), "postgresql")
+    )
     course: Mapped[Course] = relationship("Course", back_populates="documents")
-    paper_import: Mapped[PaperImport | None] = relationship("PaperImport", back_populates="document", passive_deletes="all")
+    paper_import: Mapped[PaperImport | None] = relationship("PaperImport", back_populates="document", passive_deletes="all", foreign_keys="PaperImport.document_id")
     knowledge_base: Mapped[KnowledgeBase | None] = relationship(
         "KnowledgeBase", back_populates="documents"
     )

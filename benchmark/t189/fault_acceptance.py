@@ -11,7 +11,7 @@ import time
 from pathlib import Path
 from uuid import uuid4
 
-import psutil
+
 from dotenv import dotenv_values
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import make_url
@@ -27,6 +27,10 @@ def save(path, value):
 
 
 def run(args):
+    # The pure failure-step classifier does not need the process observer SDK.
+    # Actual frozen acceptance still fails explicitly when psutil is unavailable.
+    import psutil
+
     root = Path(__file__).resolve().parents[2]
     output = args.output.resolve()
     private = args.private_root.resolve()

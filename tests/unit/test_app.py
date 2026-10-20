@@ -9,6 +9,7 @@ from backend.app.core.app import create_app
 from backend.app.core.config import AppSettings, ConfigurationError
 from backend.app.core.database import DatabaseNotReadyError
 from backend.app.core.redis import RedisNotReadyError
+from backend.app.services.settings import readiness
 from tests.unit.settings_helpers import build_test_settings
 
 
@@ -32,7 +33,7 @@ def test_health_endpoint_and_gradio_mount() -> None:
 def test_readiness_checks_dependencies_and_redacts_errors(
     monkeypatch: pytest.MonkeyPatch, failed: str | None
 ) -> None:
-    """依赖按顺序检查，任一失败返回 503，存活探针始终不访问依赖。"""
+    """分层依赖按顺序检查，任一失败返回 503，存活探针始终不访问依赖。"""
 
     settings = build_settings()
     settings_loader = Mock(return_value=settings)
@@ -40,27 +41,43 @@ def test_readiness_checks_dependencies_and_redacts_errors(
     with gr.Blocks() as ui:
         gr.Markdown("就绪检查测试")
     app = create_app(gradio_app=ui)
+    # T219：模拟本进程启动阶段已完成原恢复钩子（不执行真实恢复动作）。
+    app.state.recovery = "completed"
     settings_loader.reset_mock()
-    engine = Mock()
-    redis = Mock()
-    monkeypatch.setattr(app_module, "create_database_engine", Mock(return_value=engine))
-    monkeypatch.setattr(app_module, "create_redis_client", Mock(return_value=redis))
     checks: list[str] = []
 
-    def postgres_probe(_engine):
-        checks.append("postgres")
-        if failed == "postgres":
-            raise DatabaseNotReadyError("数据库密码=不可泄露")
-        return True
+    def database_probe(_settings: object, _head: str | None) -> readiness.DatabaseProbeResult:
+        names = ("postgres", "vector", "migration", "schema")
+        outcomes: list[readiness.ProbeOutcome] = []
+        for name in names:
+            checks.append(name)
+            if failed == name:
+                raise DatabaseNotReadyError("数据库密码=不可泄露")
+            outcomes.append(readiness.ProbeOutcome("ok"))
+        return readiness.DatabaseProbeResult(
+            postgres=outcomes[0],
+            vector=outcomes[1],
+            migration=outcomes[2],
+            schema=outcomes[3],
+        )
 
-    def redis_probe(_client):
+    def redis_probe(_settings: object) -> readiness.ProbeOutcome:
         checks.append("redis")
         if failed == "redis":
             raise RedisNotReadyError("Redis密码=不可泄露")
-        return True
+        return readiness.ProbeOutcome("ok")
 
-    monkeypatch.setattr(app_module, "check_postgres_ready", postgres_probe)
-    monkeypatch.setattr(app_module, "check_redis_ready", redis_probe)
+    def storage_probe(_settings: object) -> readiness.ProbeOutcome:
+        checks.append("storage")
+        return readiness.ProbeOutcome("ok")
+
+    monkeypatch.setattr(
+        readiness,
+        "DEFAULT_PROBES",
+        readiness.DependencyProbes(
+            database=database_probe, redis=redis_probe, storage=storage_probe
+        ),
+    )
     if failed == "config":
         settings_loader.side_effect = ConfigurationError("配置密钥=不可泄露")
     client = TestClient(app)
@@ -71,15 +88,16 @@ def test_readiness_checks_dependencies_and_redacts_errors(
     assert response.status_code == (503 if failed else 200)
     settings_loader.assert_called_once()
     assert "不可泄露" not in response.text
-    assert checks == {"config": [], "postgres": ["postgres"]}.get(
-        failed, ["postgres", "redis"]
+    expected_checks = {
+        "config": [],
+        "postgres": ["postgres"],
+    }.get(
+        failed,
+        ["postgres", "vector", "migration", "schema", "redis", "storage"],
     )
+    assert checks == expected_checks
     if failed:
         assert response.json()["failed_check"] == failed
         assert response.json()["detail"]
     else:
         assert response.json()["status"] == "ok"
-    if "postgres" in checks:
-        engine.dispose.assert_called_once()
-    if "redis" in checks:
-        redis.close.assert_called_once()

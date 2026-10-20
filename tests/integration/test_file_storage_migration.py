@@ -101,12 +101,15 @@ def test_postgres_locator_lock_serializes_link_and_delete(tmp_path):
     from sqlalchemy.orm import Session
 
     from backend.app.services.file_storage_service import FileStorageService
+    from tests.postgres_helpers import isolated_test_resource_profile
 
     with (
+        isolated_test_resource_profile(tmp_path / "owned-profile") as profile,
         _empty_isolated_schema() as (engine, _schema),
         Session(engine) as first,
         Session(engine) as second,
     ):
+        tmp_path = profile.storage_root
         first_files = FileStorageService(first, root=tmp_path)
         second_files = FileStorageService(second, root=tmp_path)
         locator = "uploads/shared/original.txt"

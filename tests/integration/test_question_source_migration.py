@@ -4,21 +4,19 @@ from collections.abc import Iterator
 from contextlib import contextmanager
 from decimal import Decimal
 from pathlib import Path
-from uuid import uuid4
 
 import pytest
 from alembic import command
 from alembic.config import Config
-from sqlalchemy import event, func, inspect, select, text
+from sqlalchemy import func, inspect, select, text
 from sqlalchemy.engine import Engine
-from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
-from sqlalchemy.schema import CreateSchema, DropSchema
 
 from backend.app.core import database
 from backend.app.domain.enums import QuestionType
 from backend.app.models import Course, Question, User
 from tests.integration.legacy_question_fixture import insert_legacy_question
+from tests.postgres_helpers import isolated_postgres_schema
 
 ROOT = Path(__file__).resolve().parents[2]
 REVISION = "0011_question_source_persistence"
@@ -32,45 +30,20 @@ NEW_TABLES = {
 
 @contextmanager
 def _empty_isolated_schema() -> Iterator[tuple[Engine, str]]:
-    schema = f"test_source_migration_{uuid4().hex}"
-    engine = database.create_database_engine(connect_timeout=3)
-    created = False
-
-    @event.listens_for(engine, "connect")
-    def set_schema(connection, _record) -> None:
-        with connection.cursor() as cursor:
-            cursor.execute(f'SET search_path TO "{schema}", public')
-        connection.commit()
-
-    try:
-        try:
-            with engine.connect() as connection:
-                installed = connection.scalar(
-                    text("SELECT 1 FROM pg_extension WHERE extname='vector'")
-                )
-        except SQLAlchemyError as exc:
-            pytest.skip(f"PostgreSQL 不可用：{type(exc).__name__}")
-        if not installed:
-            pytest.skip("缺少 pgvector 扩展")
+    with isolated_postgres_schema() as (engine, schema):
         with engine.begin() as connection:
-            connection.execute(CreateSchema(schema))
             # public 已有开发库的 alembic_version。先在本 schema 建空版本表，
             # 避免 Alembic 沿 search_path 误读 public 的 head 后跳过本次迁移。
             assert connection.scalar(text("SELECT current_schema()")) == schema
             connection.execute(
                 text(
-                    "CREATE TABLE alembic_version (version_num VARCHAR(32) NOT NULL PRIMARY KEY)"
+                    f'CREATE TABLE "{schema}".alembic_version '
+                    "(version_num VARCHAR(32) NOT NULL PRIMARY KEY)"
                 )
             )
-        created = True
         with engine.connect() as connection:
             assert connection.scalar(text("SELECT current_schema()")) == schema
         yield engine, schema
-    finally:
-        if created:
-            with engine.begin() as connection:
-                connection.execute(DropSchema(schema, cascade=True))
-        engine.dispose()
 
 
 def _revision(engine: Engine, expected_schema: str) -> str:

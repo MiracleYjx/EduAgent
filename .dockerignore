@@ -19,3 +19,11 @@ tests/
 
 # Persistent application files and operation receipts
 /storage/
+
+# Build inputs only; dependency caches and historical artifacts stay on the host.
+frontend/node_modules/
+frontend/dist/
+benchmark/
+docs/
+packaging/*
+!packaging/requirements-windows.txt

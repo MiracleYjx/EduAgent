@@ -10,7 +10,7 @@ from copy import deepcopy
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Literal, cast
+from typing import TYPE_CHECKING, Any, Literal, cast
 from uuid import UUID, uuid4
 
 from pydantic import ValidationError
@@ -83,6 +83,9 @@ from backend.app.services.question_asset_service import actual_image
 from backend.app.services.question_scoring_invalidation import bump_question_validation
 from backend.app.services.reference_lifecycle import lock_course
 
+if TYPE_CHECKING:
+    from backend.app.services.settings.runtime_snapshot import RunSnapshotContext
+
 OwnerKind = Literal["question", "extracted_question"]
 Owner = Question | ExtractedQuestion
 FORMAL_FIELDS = (
@@ -141,6 +144,18 @@ def _utc(value: datetime) -> datetime:
     return value.replace(tzinfo=UTC) if value.tzinfo is None else value.astimezone(UTC)
 
 
+def _observed_provider_model(provider: object | None) -> str | None:
+    """只读取 Provider 明确暴露的响应模型；未知保持未知。"""
+
+    if provider is None:
+        return None
+    for name in ("last_response_model", "response_model", "returned_model"):
+        value = getattr(provider, name, None)
+        if isinstance(value, str) and value.strip():
+            return value.strip()
+    return None
+
+
 class ContentValidationService:
     def __init__(
         self,
@@ -148,10 +163,12 @@ class ContentValidationService:
         *,
         root: Path | None = None,
         provider_factory: Callable[[], BaseLLMProvider] | None = None,
+        runtime: RunSnapshotContext | None = None,
     ):
         self.session = session
         self.files = FileStorageService(session, root=root)
         self._semantic_provider_factory = provider_factory
+        self._runtime = runtime
         self._exam_batch: dict[str, Any] | None = None
 
     @contextmanager
@@ -1563,6 +1580,7 @@ class ContentValidationService:
         manual_context: list[ManualContextReference] | None = None,
         provider: BaseLLMProvider | None = None,
         provider_factory: Callable[[], BaseLLMProvider] | None = None,
+        runtime: RunSnapshotContext | None = None,
     ) -> ValidationReportView:
         """Same one-shot command for explicit review and automatically persisted text candidates."""
         from backend.app.ai.llm.factory import create_llm_provider
@@ -1579,16 +1597,23 @@ class ContentValidationService:
             teaching_chunk_ids=teaching_chunk_ids,
             manual_context=manual_context,
         )
+        active_runtime = runtime if runtime is not None else self._runtime
         owned = provider is None
+        lease = None
         executor = None
+        attempted = False
         try:
             if provider is None:
                 try:
-                    provider = (
-                        provider_factory
-                        or self._semantic_provider_factory
-                        or (lambda: create_llm_provider(get_settings()))
-                    )()
+                    if active_runtime is not None:
+                        lease = active_runtime.acquire("content_validation")
+                        provider = lease.client
+                    else:
+                        provider = (
+                            provider_factory
+                            or self._semantic_provider_factory
+                            or (lambda: create_llm_provider(get_settings()))
+                        )()
                 except Exception as error:  # noqa: BLE001 -- Provider initialization.
                     return self.finish_validation(
                         prepared.report.id,
@@ -1602,6 +1627,7 @@ class ContentValidationService:
                         ),
                     )
             executor = ProviderSemanticValidator(provider)
+            attempted = True
             machine = await executor.validate(prepared.input)
             output = ValidationOutput(
                 checks=machine.checks,
@@ -1639,6 +1665,21 @@ class ContentValidationService:
         finally:
             if owned and provider is not None:
                 await provider.aclose()
+            if lease is not None:
+                await lease.arelease()
+            if active_runtime is not None and attempted:
+                actual_provenance = (
+                    executor.call_provenance if executor is not None else None
+                )
+                active_runtime.record_invocation(
+                    "content_validation",
+                    returned_model=_observed_provider_model(provider),
+                    prompt_version=(
+                        getattr(actual_provenance, "prompt_version", None)
+                        if actual_provenance is not None
+                        else None
+                    ),
+                )
 
     def start_validation(
         self,

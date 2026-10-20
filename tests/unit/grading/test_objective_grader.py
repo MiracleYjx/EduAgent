@@ -9,7 +9,7 @@
 1. 正确答案满分、错误答案 0 分、缺失答案 0 分（与 ``submission_service`` 既有缺失判定一致）；
 2. 重复答案（同一题内多选键重复）按集合去重，不额外加分也不扣分；不涉及跨题重复
    （跨题重复仍由 ``submission_service`` 拒绝，本批不修改）；
-3. 多选满对 / 漏选比例分 / 错选 0 分 / 空集合 0 分，含 ``ROUND_HALF_UP`` 两位小数舍入边界；
+3. 多选全对满分、漏选 0 分、错选 0 分、空集合 0 分（T051 新合同：不设部分分）；
 4. 归一化范围：NFKC（全角转半角）、首尾与内部空白折叠、大小写不敏感；
    不做同义词、数字格式（"3.0" vs "3"）与标点等价归一；
 5. 显式失败：非法满分（≤0、NaN、±inf、非数值）、标准答案缺失、答案编码非法
@@ -209,16 +209,12 @@ def test_multiple_choice_exact_match_scores_full_marks(
     assert result.missing_knowledge_points == []
 
 
-@pytest.mark.parametrize(
-    ("student_answer", "expected_score"),
-    [("A", 1.0), ("A,B", 2.0), ("B", 1.0)],
-)
-def test_multiple_choice_missing_selection_scores_proportionally(
+@pytest.mark.parametrize("student_answer", ["A", "A,B", "B"])
+def test_multiple_choice_missing_selection_scores_zero(
     grader: ObjectiveGrader,
     student_answer: str,
-    expected_score: float,
 ) -> None:
-    """多选漏选（无错选）按命中比例给分：满分 × 命中数 / 标准答案数。"""
+    """T051：多选必须全部选对；漏选（无错选）一律 0 分，不设部分分。"""
 
     result = _grade(
         grader,
@@ -228,22 +224,33 @@ def test_multiple_choice_missing_selection_scores_proportionally(
         max_score=3.0,
     )
 
-    assert result.score == Decimal(str(expected_score))
+    assert result.score == Decimal("0.00")
     assert "漏选" in result.reason
 
 
-def test_multiple_choice_ratio_uses_round_half_up(grader: ObjectiveGrader) -> None:
-    """比例分保留两位小数并采用 ``ROUND_HALF_UP``（0.625 → 0.63）。"""
+def test_multiple_choice_subset_size_never_changes_the_zero(
+    grader: ObjectiveGrader,
+) -> None:
+    """T051：漏选得分与漏选数量无关，永远为 0；满分仍只看集合是否相等。"""
 
-    result = _grade(
+    for answer in ("A", "A,B", "A,B,C"):
+        partial = _grade(
+            grader,
+            question_type=QuestionType.MULTIPLE_CHOICE,
+            reference_answer="A,B,C,D",
+            student_answer=answer,
+            max_score=2.5,
+        )
+        assert partial.score == Decimal("0.00")
+
+    exact = _grade(
         grader,
         question_type=QuestionType.MULTIPLE_CHOICE,
         reference_answer="A,B,C,D",
-        student_answer="A",
+        student_answer=["D", "C", "B", "A"],
         max_score=2.5,
     )
-
-    assert result.score == Decimal("0.63")
+    assert exact.score == Decimal("2.50")
 
 
 @pytest.mark.parametrize(
@@ -554,7 +561,7 @@ def test_unsupported_answer_shapes_are_rejected(
 
 @pytest.mark.parametrize(
     ("max_score", "student_answer", "expected_score"),
-    [(0.05, "A,B", 0.03), (0.01, "A,B", 0.01), (1.0, "A", 0.33)],
+    [(0.05, "A,B", 0.0), (0.01, "A,B", 0.0), (1.0, "A", 0.0)],
 )
 def test_score_is_produced_within_range_without_clamping(
     grader: ObjectiveGrader,

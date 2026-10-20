@@ -28,7 +28,10 @@ from backend.app.services.exam_assembly_service import (
 )
 from backend.app.services.exam_service import ExamService
 from backend.app.services.question_service import QuestionService
-from tests.postgres_helpers import isolated_postgres_engine
+from tests.postgres_helpers import (
+    isolated_postgres_engine,
+    isolated_test_resource_profile,
+)
 from tests.support.exam_scoring_fixtures import confirm_synthetic_exam_basis
 from tests.support.question_validation_fixtures import persist_current_semantic_pass
 from tests.unit.services.test_submission_service import add_user
@@ -410,8 +413,14 @@ def test_corrupt_persisted_intent_is_not_treated_as_missing(database: Any) -> No
         assert error.value.code == "EXAM_ASSEMBLY_CONSTRAINTS_INVALID"
 
 
+@pytest.fixture
+def image_storage_root(tmp_path: Any) -> Any:
+    with isolated_test_resource_profile(tmp_path / "test-environment") as profile:
+        yield profile.storage_root
+
+
 def test_missing_real_image_excludes_candidate_without_rolling_back_new_intent(
-    database: Any, tmp_path: Any, monkeypatch: pytest.MonkeyPatch
+    database: Any, image_storage_root: Any, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     from backend.app.services.content_validation_service import ContentValidationService
     from backend.app.services.file_storage_service import FileStorageService
@@ -421,6 +430,7 @@ def test_missing_real_image_excludes_candidate_without_rolling_back_new_intent(
     from tests.unit.settings_helpers import build_test_settings
 
     engine, info = database
+    tmp_path = image_storage_root
     settings = build_test_settings(storage_root=tmp_path)
     monkeypatch.setattr(
         "backend.app.services.file_storage_service.get_settings", lambda: settings

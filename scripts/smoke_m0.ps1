@@ -17,14 +17,19 @@ param(
 $ErrorActionPreference = "Stop"
 $serviceNames = @("postgres", "redis", "backend")
 $isolationVerified = $false
+$containerProfileSource = $null
 $isolationEnvironment = @{
     "COMPOSE_PROJECT_NAME" = "eduagent-test"
     "POSTGRES_PORT"        = "15432"
     "REDIS_PORT"           = "16379"
     "BACKEND_PORT"         = "18000"
+    "EDUAGENT_ENVIRONMENT" = "test"
+    "POSTGRES_DB"          = "eduagent_test"
+    "POSTGRES_USER"        = "eduagent_test_runner"
 }
 
 function Assert-IsolatedEnvironment {
+    $script:containerProfileSource = $null
     foreach ($name in $isolationEnvironment.Keys) {
         $actual = [Environment]::GetEnvironmentVariable($name)
         if ([string]::IsNullOrWhiteSpace($actual)) {
@@ -33,6 +38,216 @@ function Assert-IsolatedEnvironment {
         if ($actual -ne $isolationEnvironment[$name]) {
             throw "M0 冒烟环境变量 $name 必须固定为 $($isolationEnvironment[$name])，当前值不安全。"
         }
+    }
+    $profilePath = [Environment]::GetEnvironmentVariable("EDUAGENT_TEST_RESOURCE_PROFILE")
+    if ([string]::IsNullOrWhiteSpace($profilePath) -or
+        -not [System.IO.Path]::IsPathRooted($profilePath) -or
+        -not (Test-Path -LiteralPath $profilePath -PathType Leaf)) {
+        throw "M0 冒烟缺少可读取的绝对 Test 资源 profile；拒绝构建或启动 Compose。"
+    }
+    try {
+        $profile = Get-Content -LiteralPath $profilePath -Raw -Encoding UTF8 | ConvertFrom-Json
+    }
+    catch {
+        throw "M0 冒烟 Test 资源 profile 无法解析。"
+    }
+    if ($profile.environment -ne "test" -or
+        $profile.database_identity.database -ne "eduagent_test" -or
+        $profile.database_identity.user -ne "eduagent_test_runner" -or
+        [string]::IsNullOrWhiteSpace($profile.database_identity.instance_id)) {
+        throw "M0 冒烟 Test 资源 profile 身份不符。"
+    }
+    $containerProfilePath = [Environment]::GetEnvironmentVariable("EDUAGENT_TEST_CONTAINER_PROFILE")
+    if ([string]::IsNullOrWhiteSpace($profile.root) -or
+        -not [System.IO.Path]::IsPathRooted($profile.root) -or
+        [System.IO.Path]::GetFullPath($profile.root) -ne $profile.root) {
+        throw "M0 冒烟主机 Test profile 的资源根必须为规范绝对路径。"
+    }
+    $expectedContainerProfile = Join-Path (Join-Path $profile.root "config") "container-resource-profile.json"
+    if ([string]::IsNullOrWhiteSpace($containerProfilePath) -or
+        -not [System.IO.Path]::IsPathRooted($containerProfilePath) -or
+        [System.IO.Path]::GetFullPath($containerProfilePath) -ne $containerProfilePath -or
+        $containerProfilePath -ne $expectedContainerProfile) {
+        throw "M0 冒烟容器 profile 来源必须为本次主机 Test 资源根内的 config/container-resource-profile.json。"
+    }
+    if (-not (Test-Path -LiteralPath $containerProfilePath -PathType Leaf)) {
+        throw "M0 冒烟容器 Test profile 必须已存在且可读取；拒绝自动创建来源路径。"
+    }
+    $ancestor = $containerProfilePath
+    while (-not [string]::IsNullOrWhiteSpace($ancestor)) {
+        $item = Get-Item -LiteralPath $ancestor -Force
+        if (($item.Attributes -band [System.IO.FileAttributes]::ReparsePoint) -ne 0) {
+            throw "M0 冒烟容器 Test profile 来源不得经过重解析路径。"
+        }
+        $parent = Split-Path -Parent $ancestor
+        if ($parent -eq $ancestor) {
+            break
+        }
+        $ancestor = $parent
+    }
+    try {
+        $containerProfile = Get-Content -LiteralPath $containerProfilePath -Raw -Encoding UTF8 | ConvertFrom-Json
+    }
+    catch {
+        throw "M0 冒烟容器 Test profile 无法读取或解析。"
+    }
+    $allowedProfileFields = @("environment", "environment_id", "database_identity", "maintenance_identity", "redis_instance_id", "root")
+    $hostEnvironmentId = [Guid]::Empty
+    $containerEnvironmentId = [Guid]::Empty
+    if ($containerProfile.environment -cne "test" -or
+        $containerProfile.environment -cne $profile.environment -or
+        $containerProfile.root -cne "/app" -or
+        $containerProfile.database_identity.database -cne "eduagent_test" -or
+        $containerProfile.database_identity.user -cne "eduagent_test_runner" -or
+        @($containerProfile.PSObject.Properties.Name | Where-Object { $_ -cnotin $allowedProfileFields }).Count -ne 0 -or
+        -not [Guid]::TryParse([string]$profile.environment_id, [ref]$hostEnvironmentId) -or
+        $hostEnvironmentId -eq [Guid]::Empty -or
+        -not [Guid]::TryParse([string]$containerProfile.environment_id, [ref]$containerEnvironmentId) -or
+        $containerEnvironmentId -ne $hostEnvironmentId -or
+        $containerProfile.redis_instance_id -cne $profile.redis_instance_id) {
+        throw "M0 冒烟容器 Test profile 的环境、资源根或资源身份与主机不一致。"
+    }
+    foreach ($identityName in @("database_identity", "maintenance_identity")) {
+        $hostIdentity = $profile.$identityName
+        $containerIdentity = $containerProfile.$identityName
+        if ($identityName -eq "maintenance_identity" -and $null -eq $hostIdentity -and $null -eq $containerIdentity) {
+            continue
+        }
+        if ($null -eq $hostIdentity -or $null -eq $containerIdentity -or
+            (@($hostIdentity.PSObject.Properties.Name | Sort-Object) -join ",") -cne "database,host,instance_id,port,schema_name,user" -or
+            (@($containerIdentity.PSObject.Properties.Name | Sort-Object) -join ",") -cne "database,host,instance_id,port,schema_name,user" -or
+            $containerIdentity.host -cne "postgres" -or $containerIdentity.port -ne 5432 -or
+            $hostIdentity.schema_name -cne "public") {
+            throw "M0 冒烟容器 Test profile 的数据库身份字段或容器地址不符合约定。"
+        }
+        foreach ($fact in @("database", "user", "schema_name", "instance_id")) {
+            if ([string]::IsNullOrWhiteSpace([string]$hostIdentity.$fact) -or
+                $containerIdentity.$fact -cne $hostIdentity.$fact) {
+                throw "M0 冒烟容器 Test profile 不得改写主机数据库资源事实。"
+            }
+        }
+    }
+    if ($null -ne $profile.maintenance_identity -and
+        ($profile.maintenance_identity.host -cne $profile.database_identity.host -or
+         $profile.maintenance_identity.port -ne $profile.database_identity.port -or
+         $profile.maintenance_identity.database -cne "postgres" -or
+         $profile.maintenance_identity.user -ceq $profile.database_identity.user -or
+         $profile.maintenance_identity.instance_id -cne $profile.database_identity.instance_id)) {
+        throw "M0 冒烟 Test maintenance 身份不属于同一数据库实例。"
+    }
+    $envFile = [Environment]::GetEnvironmentVariable("EDUAGENT_ENV_FILE")
+    if ([string]::IsNullOrWhiteSpace($envFile) -or $envFile -eq ".env" -or
+        -not (Test-Path -LiteralPath $envFile -PathType Leaf)) {
+        throw "M0 冒烟必须显式选择独立 Test 环境文件。"
+    }
+    $authMethod = [Environment]::GetEnvironmentVariable("POSTGRES_HOST_AUTH_METHOD")
+    if ([string]::IsNullOrWhiteSpace($authMethod) -or $authMethod -eq "trust") {
+        throw "M0 冒烟拒绝无认证的 PostgreSQL 初始化。"
+    }
+    $script:containerProfileSource = $containerProfilePath
+}
+
+function Assert-IsolatedComposeConfiguration {
+    $composeFile = [Environment]::GetEnvironmentVariable("COMPOSE_FILE")
+    $expectedFile = [System.IO.Path]::GetFullPath(
+        (Join-Path (Split-Path -Parent $PSScriptRoot) "docker-compose.test.yml")
+    )
+    if ([string]::IsNullOrWhiteSpace($composeFile) -or
+        -not [System.IO.Path]::IsPathRooted($composeFile) -or
+        -not (Test-Path -LiteralPath $composeFile -PathType Leaf) -or
+        [System.IO.Path]::GetFullPath($composeFile) -ne $expectedFile -or
+        [Environment]::GetEnvironmentVariable("COMPOSE_DISABLE_ENV_FILE") -ne "1") {
+        throw "M0 冒烟必须显式使用仓库 Test Compose 文件并禁用隐式 .env。"
+    }
+
+    $result = Invoke-DockerCommand -Arguments @("compose", "config", "--format", "json")
+    if ($result.ExitCode -ne 0) {
+        throw "M0 冒烟无法解析 Test Compose 配置。"
+    }
+    try {
+        $config = $result.Output | ConvertFrom-Json
+    }
+    catch {
+        throw "M0 冒烟 Test Compose 配置不是有效 JSON。"
+    }
+    if ($config.name -ne "eduagent-test" -or
+        (@($config.services.PSObject.Properties.Name | Sort-Object) -join ",") -ne "backend,postgres,redis" -or
+        $config.services.postgres.environment.POSTGRES_USER -ne "eduagent_test_admin" -or
+        $config.services.postgres.environment.POSTGRES_DB -ne "postgres") {
+        throw "M0 冒烟项目、服务或数据库初始化身份不符合 Test 配置。"
+    }
+    $backendEnvironment = $config.services.backend.environment
+    if ($backendEnvironment.EDUAGENT_ENVIRONMENT -cne "test" -or
+        $backendEnvironment.EDUAGENT_RUNTIME_KIND -cne "docker" -or
+        $backendEnvironment.EDUAGENT_DATA_ROOT -cne "/app" -or
+        $backendEnvironment.EDUAGENT_TEST_RESOURCE_PROFILE -cne "/run/eduagent/test-resource-profile.json" -or
+        $backendEnvironment.STORAGE_ROOT -cne "/app/storage") {
+        throw "M0 冒烟 Backend 必须显式使用容器 Test profile 与原 canonical storage。"
+    }
+    $databaseUri = $null
+    if (-not [Uri]::TryCreate([string]$backendEnvironment.DATABASE_URL, [UriKind]::Absolute, [ref]$databaseUri) -or
+        $databaseUri.Scheme -cne "postgresql+psycopg" -or
+        $databaseUri.Host -cne "postgres" -or $databaseUri.Port -ne 5432 -or
+        $databaseUri.AbsolutePath -cne "/eduagent_test" -or
+        [Uri]::UnescapeDataString(($databaseUri.UserInfo -split ":", 2)[0]) -cne "eduagent_test_runner" -or
+        -not [string]::IsNullOrEmpty($databaseUri.Query) -or
+        -not [string]::IsNullOrEmpty($databaseUri.Fragment) -or
+        $backendEnvironment.REDIS_URL -cne "redis://redis:6379/0") {
+        throw "M0 冒烟 Backend 数据库或 Redis 路由不符合容器 Test 身份。"
+    }
+    $expectedPorts = @{
+        postgres = "127.0.0.1:15432:5432"
+        redis = "127.0.0.1:16379:6379"
+        backend = "127.0.0.1:18000:8000"
+    }
+    foreach ($service in $expectedPorts.Keys) {
+        $ports = @($config.services.$service.ports)
+        if ($ports.Count -ne 1 -or
+            "$($ports[0].host_ip):$($ports[0].published):$($ports[0].target)" -ne $expectedPorts[$service]) {
+            throw "M0 冒烟 $service 发布端口不符合 Test 约定。"
+        }
+    }
+    if ((@($config.volumes.PSObject.Properties.Name | Sort-Object) -join ",") -cne "postgres_data,redis_data,storage_data") {
+        throw "M0 冒烟仅允许原三项 Test 卷，不允许未知卷。"
+    }
+    foreach ($volume in @("postgres_data", "redis_data", "storage_data")) {
+        if ($config.volumes.$volume.name -ne "eduagent-test_$volume" -or
+            $config.volumes.$volume.external -eq $true) {
+            throw "M0 冒烟 $volume 不属于 Test 项目。"
+        }
+    }
+    $dependencyMounts = @{
+        postgres = @("postgres_data", "/var/lib/postgresql/data")
+        redis = @("redis_data", "/data")
+    }
+    foreach ($service in $dependencyMounts.Keys) {
+        $mounts = @($config.services.$service.volumes)
+        if ($mounts.Count -ne 1 -or $mounts[0].type -cne "volume" -or
+            $mounts[0].source -cne $dependencyMounts[$service][0] -or
+            $mounts[0].target -cne $dependencyMounts[$service][1] -or
+            $mounts[0].read_only -eq $true) {
+            throw "M0 冒烟 $service 仅允许原可写 Test 数据卷，不允许未知来源或挂载目标。"
+        }
+    }
+    $backendMounts = @($config.services.backend.volumes)
+    $storageMounts = @($backendMounts | Where-Object {
+        $_.type -ceq "volume" -and $_.source -ceq "storage_data" -and $_.target -ceq "/app/storage"
+    })
+    $profileMounts = @($backendMounts | Where-Object {
+        $_.type -ceq "bind" -and $_.target -ceq "/run/eduagent/test-resource-profile.json"
+    })
+    if ($backendMounts.Count -ne 2 -or $storageMounts.Count -ne 1 -or $profileMounts.Count -ne 1) {
+        throw "M0 冒烟 Backend 仅允许原 storage 卷和单一容器 Test profile bind。"
+    }
+    $profileMount = $profileMounts[0]
+    if ([string]::IsNullOrWhiteSpace($script:containerProfileSource) -or
+        [string]::IsNullOrWhiteSpace($profileMount.source) -or
+        -not [System.IO.Path]::IsPathRooted($profileMount.source) -or
+        [System.IO.Path]::GetFullPath($profileMount.source) -ne $script:containerProfileSource -or
+        $profileMount.read_only -isnot [bool] -or -not $profileMount.read_only -or
+        $profileMount.bind.create_host_path -isnot [bool] -or $profileMount.bind.create_host_path -or
+        $storageMounts[0].read_only -eq $true) {
+        throw "M0 冒烟 Backend 挂载必须保留原可写 storage，并只读绑定已核对的 profile，且不得自动创建主机路径。"
     }
 }
 
@@ -277,6 +492,7 @@ try {
     }
 
     Assert-IsolatedEnvironment
+    Assert-IsolatedComposeConfiguration
     $isolationVerified = $true
     Write-Host "开始执行 M0 冒烟验证。"
     Invoke-ComposeCheck -Description "Compose 配置检查" -Arguments @("compose", "config", "--quiet") | Out-Null

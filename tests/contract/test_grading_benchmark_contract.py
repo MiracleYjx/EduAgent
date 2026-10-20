@@ -95,6 +95,9 @@ def test_selftest_default_provider_is_explicit_stub(results_dir: Path) -> None:
 def test_unresolved_benchmark_provider_has_unknown_identity(
     results_dir: Path, monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    from backend.app.ai.llm.factory import LLMProviderFactory
+
+    monkeypatch.setattr(benchmark, "create_llm_provider", LLMProviderFactory().create)
     monkeypatch.setattr(
         embedding_factory, "create_embedding_provider", lambda _: benchmark.StubEmbeddingProvider(),
     )
@@ -195,10 +198,19 @@ def predicted_within_max(prediction: Mapping[str, Any]) -> bool:
     return 0.0 <= score <= maximum
 
 
-def test_metrics_are_null_without_teacher_ground_truth(results_dir: Path) -> None:
+def test_metrics_are_null_without_teacher_ground_truth(results_dir: Path, tmp_path: Path) -> None:
     """数据集只有合成参考分时，质量指标为 null 并说明原因。"""
 
-    record = _run(results_dir)
+    dataset = json.loads(benchmark.DATASET_PATH.read_text(encoding="utf-8"))
+    for item in dataset["samples"]:
+        item["teacher_score"] = None
+        item["label_source"] = "synthetic_reference"
+    dataset_path = tmp_path / "grading_samples_without_teacher.json"
+    dataset_path.write_text(json.dumps(dataset, ensure_ascii=False), encoding="utf-8")
+    record, _ = benchmark.run_benchmark(
+        mode="selftest", dataset_path=dataset_path, results_dir=results_dir,
+        provider=SelfTestScoringProvider(),
+    )
 
     assert record["ground_truth"]["teacher_labels_available"] is False
     assert record["ground_truth"]["reason"] == benchmark.NO_GROUND_TRUTH_REASON

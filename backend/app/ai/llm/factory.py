@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Callable, Mapping
 from functools import lru_cache
 
+from backend.app.ai.errors import AIConfigurationError
 from backend.app.core.config import AppSettings, get_settings
 
 from .base import BaseLLMProvider
@@ -54,19 +55,31 @@ class LLMProviderFactory:
         normalized_name = self._normalize_name(name)
         if not callable(builder):
             raise TypeError("LLM Provider 工厂必须是可调用对象。")
-        if normalized_name in self._providers and not replace:
-            raise ProviderAlreadyRegisteredError(
-                f"LLM Provider 已注册：{normalized_name}。"
-            )
-        self._providers[normalized_name] = builder
+        self._register_builder(normalized_name, builder, replace=replace)
         return self
+
+    def _register_builder(
+        self,
+        name: str,
+        builder: ProviderBuilder,
+        *,
+        replace: bool,
+    ) -> None:
+        if name in self._providers and not replace:
+            raise ProviderAlreadyRegisteredError(f"LLM Provider 已注册：{name}。")
+        self._providers[name] = builder
+
+    def _get_builder(self, name: str) -> ProviderBuilder | None:
+        return self._providers.get(name)
 
     def create(self, settings: AppSettings | None = None) -> BaseLLMProvider:
         """根据 LLM_PROVIDER 配置创建 Provider 实例。"""
 
         runtime_settings = settings or get_settings()
+        if not runtime_settings.llm_configured:
+            raise AIConfigurationError("LLM")
         provider_name = self._normalize_name(runtime_settings.llm_provider)
-        builder = self._providers.get(provider_name)
+        builder = self._get_builder(provider_name)
         if builder is None:
             supported = ", ".join(self.supported_providers()) or "无"
             raise UnsupportedLLMProviderError(
@@ -85,23 +98,52 @@ class LLMProviderFactory:
         return tuple(sorted(self._providers))
 
 
-_default_factory = LLMProviderFactory()
+class _RegistryLLMProviderFactory(LLMProviderFactory):
+    """默认工厂只投影 Registry；显式构造的工厂仍拥有独立注册空间。"""
+
+    def _register_builder(
+        self,
+        name: str,
+        builder: ProviderBuilder,
+        *,
+        replace: bool,
+    ) -> None:
+        from backend.app.services.settings.provider_registry import (
+            DuplicateProviderError,
+            get_provider_registry,
+        )
+
+        try:
+            get_provider_registry().register_legacy("llm", name, builder, replace=replace)
+        except DuplicateProviderError:
+            raise ProviderAlreadyRegisteredError(f"LLM Provider 已注册：{name}。") from None
+
+    def _get_builder(self, name: str) -> ProviderBuilder | None:
+        from backend.app.services.settings.provider_registry import (
+            get_provider_registry,
+        )
+
+        owner = get_provider_registry()
+        if not any(entry.adapter_id == name for entry in owner.entries(kind="llm")):
+            return None
+        return owner.entry("llm", name).legacy_factory
+
+    def supported_providers(self) -> tuple[str, ...]:
+        from backend.app.services.settings.provider_registry import (
+            get_provider_registry,
+        )
+
+        return tuple(sorted(
+            entry.adapter_id for entry in get_provider_registry().entries(kind="llm")
+        ))
 
 
-def _ensure_builtin_providers() -> None:
-    """按需加载内置 Provider，避免调用方必须了解模块导入顺序。"""
-
-    if "deepseek" in _default_factory.supported_providers():
-        return
-    from .deepseek import DeepSeekProvider
-
-    _default_factory.register("deepseek", DeepSeekProvider, replace=True)
+_default_factory = _RegistryLLMProviderFactory()
 
 
 def get_llm_provider_factory() -> LLMProviderFactory:
     """返回进程级默认 Provider 工厂。"""
 
-    _ensure_builtin_providers()
     return _default_factory
 
 
@@ -123,7 +165,6 @@ def create_llm_provider(
 ) -> BaseLLMProvider:
     """使用默认工厂创建 Provider。"""
 
-    _ensure_builtin_providers()
     return _default_factory.create(settings)
 
 

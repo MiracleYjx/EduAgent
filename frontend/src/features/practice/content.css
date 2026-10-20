@@ -1,0 +1,17 @@
+.question-content { min-width: 0; line-height: 1.7; }
+.question-block { margin: 12px 0; min-width: 0; }
+.question-text { white-space: pre-wrap; overflow-wrap: anywhere; margin: 0; }
+.question-block img { display: block; max-width: 100%; height: auto; }
+.question-block math { font-size: 1.4em; overflow-x: auto; padding: 8px 0; }
+.question-options { padding-inline-start: 28px; }
+.question-options > li { padding-inline-start: 8px; margin: 20px 0; }
+.question-table-scroll { overflow-x: auto; }
+.question-block table { border-collapse: collapse; }
+.question-block th, .question-block td { border: 1px solid #b8b8b8; padding: 8px 14px; white-space: pre-wrap; }
+.question-block th, .learning-chart th { background: #fafafa; }
+.learning-chart table { border-collapse: collapse; }
+.learning-chart th, .learning-chart td { border: 1px solid #b8b8b8; padding: 8px 14px; }
+.question-answer-controls { margin-top: 20px; }
+.question-answer-controls .ant-radio-group, .question-answer-controls .ant-checkbox-group { display: flex; flex-wrap: wrap; gap: 16px; }
+.learning-chart { max-width: 680px; margin: 16px 0; }
+.learning-chart svg { width: 100%; height: auto; }

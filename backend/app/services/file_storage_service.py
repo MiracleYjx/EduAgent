@@ -16,6 +16,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from backend.app.core.config import get_settings
+from backend.app.core.environment import environment_path, resolve_environment_profile
 from backend.app.core.maintenance import ensure_storage_writable
 from backend.app.core.security import get_user_roles
 from backend.app.domain.enums import DocumentPurpose, UserRole
@@ -39,6 +40,7 @@ from backend.app.schemas.file_storage import (
     MigrationRecord,
     OperationReceipt,
 )
+from backend.app.schemas.settings import EnvironmentName, EnvironmentProfile
 from backend.app.services.file_resources import (
     FileResource,
     FileResourceType,
@@ -90,21 +92,94 @@ def _media_type(filename: str, data: bytes) -> str:
     return "text/csv" if suffix == ".csv" else "text/plain"
 
 
+def personal_material_asset_locator(
+    document_id: UUID, digest: str, media_type: str
+) -> str:
+    """Canonical locator for one stored personal material asset.
+
+    Derived from content and identity only: no public URL and no guessable
+    filename. The writer and the reader share this single definition.
+    """
+
+    suffix = {"image/png": ".png", "image/jpeg": ".jpg"}.get(media_type, ".bin")
+    return f"materials/{document_id.hex}/assets/{digest}{suffix}"
+
+
 class FileStorageService:
-    def __init__(self, session: Session, *, root: Path | None = None):
+    def __init__(
+        self, session: Session, *, root: Path | None = None,
+        profile: EnvironmentProfile | None = None,
+    ):
         self.session = session
+        self._profile = profile
+        if profile is not None:
+            selected = environment_path(profile, "storage")
+            if root is not None and root != selected:
+                raise FileStorageError("FILE_STORAGE_ENVIRONMENT_MISMATCH", "文件根与所选环境不一致。")
+            root = selected
+        elif any(name in os.environ for name in ("EDUAGENT_ENVIRONMENT", "EDUAGENT_DATA_ROOT", "EDUAGENT_RUNTIME_KIND")):
+            self._profile = resolve_environment_profile(storage_root=root)
+            root = environment_path(self._profile, "storage")
+        # Explicit legacy roots remain supported; do not hide an initial junction.
+        if root is not None and root.is_absolute() and root != root.resolve():
+            raise FileStorageError("FILE_INVALID_PATH", "文件根包含重解析点或非规范路径。", http_status=422)
         self._root = root.resolve() if root is not None else None
 
     @property
     def root(self) -> Path:
         if self._root is None:
-            self._root = get_settings().storage_root.resolve()
+            self._profile = resolve_environment_profile(storage_root=get_settings().storage_root)
+            self._root = environment_path(self._profile, "storage")
+        if self._root != self._root.resolve():
+            raise FileStorageError("FILE_INVALID_PATH", "文件根已改变，拒绝跨目录访问。", http_status=422)
+        if self._profile is not None:
+            environment_path(self._profile, "storage")
         return self._root
+
+    def _check_storage_adoption(self) -> None:
+        """SQL file facts cannot silently acquire an empty replacement root.
+
+        This is a compatibility check, not an adoption or ownership grant.
+        Explicit legacy migration/preview keep their own contract. A missing file
+        remains missing; no alternate directory is searched.
+        """
+        from backend.app.services.storage_migration_service import storage_references
+
+        locators = []
+        with self.session.no_autoflush:
+            for reference in storage_references(self.session):
+                if reference.locator:
+                    locators.append((reference.locator, reference.legacy))
+        available = False
+        needs_root = False
+        for locator, legacy in locators:
+            # Old relative locators without managed metadata are exact historical
+            # paths, not evidence of a binding to this root (T150 compatibility).
+            if legacy and (self._profile is None or self._profile.source_policy == "legacy_compatibility"):
+                continue
+            absolute = Path(locator).is_absolute() or bool(PureWindowsPath(locator).drive)
+            if absolute:
+                candidate = Path(locator)
+                if not candidate.is_absolute() or not candidate.resolve().is_relative_to(self.root):
+                    if self._profile is not None and self._profile.source_policy != "legacy_compatibility":
+                        raise FileStorageError("FILE_STORAGE_ADOPTION_REQUIRED", "数据库文件引用属于其他文件根；请先预览旧资源。")
+                    # Exact legacy locators are not relative bindings to this root.
+                    # Keep the explicit legacy migration/export contract intact.
+                    continue
+            else:
+                candidate = self.resolve_path(locator)
+            needs_root = True
+            available = available or candidate.is_file()
+        if needs_root and not available:
+            raise FileStorageError(
+                "FILE_STORAGE_ADOPTION_REQUIRED",
+                "已有数据库文件未能在所选 storage 核对；禁止自动配用空新目录，请先预览并显式接纳旧资源。",
+            )
 
     def resolve_path(self, locator: str) -> Path:
         """Resolve a canonical new relative locator; never search alternate roots."""
         if (
-            not locator or len(locator) > 1024 or "\\" in locator
+            not locator or len(locator) > 1024 or "\\" in locator or ":" in locator
             or PureWindowsPath(locator).drive or PurePosixPath(locator).is_absolute()
             or any(part in {"", ".", ".."} for part in locator.split("/"))
         ):
@@ -119,10 +194,20 @@ class FileStorageService:
             raise FileStorageError("FILE_HISTORY_UNKNOWN", "历史文件定位未知，需核对原材料。", http_status=404)
         # Exact historical absolute paths remain readable until explicit T150 migration.
         if Path(locator).is_absolute():
-            return Path(locator)
+            path = Path(locator)
+            if self._profile is not None and not (
+                self._profile.environment == EnvironmentName.DEVELOPMENT
+                and self._profile.source_policy == "legacy_compatibility"
+            ) and (path != path.resolve() or not path.is_relative_to(self.root)):
+                raise FileStorageError("FILE_HISTORY_UNKNOWN", "历史文件不属于所选环境，需显式接纳。", http_status=404)
+            return path
         if PureWindowsPath(locator).drive or PurePosixPath(locator).is_absolute():
             raise FileStorageError("FILE_HISTORY_UNKNOWN", "当前主机无法核对历史文件定位。", http_status=404)
-        return Path(locator) if legacy else self.resolve_path(locator)
+        allow_legacy = self._profile is None or (
+            self._profile.environment == EnvironmentName.DEVELOPMENT
+            and self._profile.source_policy == "legacy_compatibility"
+        )
+        return Path(locator) if legacy and allow_legacy else self.resolve_path(locator)
 
     @staticmethod
     def _legacy_metadata(metadata: dict | None) -> bool:
@@ -161,6 +246,8 @@ class FileStorageService:
                 owner = image_owner(self.session, resource)
             except ValueError as exc:
                 raise FileStorageError("FILE_REFERENCE_CONFLICT", str(exc)) from exc
+            if "course_id" not in owner:
+                raise FileStorageError("FILE_FORBIDDEN", "个人文件不使用旧课程或角色授权。",http_status=403)
             course = self._course(UUID(owner["course_id"]))
             allowed = self._manages(actor, course) or (
                 isinstance(resource, QuestionAsset)
@@ -168,6 +255,8 @@ class FileStorageService:
                 and student_asset_allowed(self.session, resource)
             )
         elif isinstance(resource, Document):
+            if resource.course_id is None:
+                raise FileStorageError("FILE_FORBIDDEN", "个人文件须使用当前空间的资源授权。", http_status=403)
             course = self._course(resource.course_id)
             # Current knowledge-base permission is teacher management; no student
             # material-opening relation exists yet. E5 must supply the real grant.
@@ -269,6 +358,75 @@ class FileStorageService:
             state = resource.status.value if isinstance(resource, Document) else resource.status if isinstance(resource, ExportFile) else None
             raise FileStorageError("FILE_MISSING", "已登记文件缺失，请核对原材料。", http_status=404, current_status=state)
         return path, view
+
+    def personal_document_path(
+        self, document_id: UUID, *, subject_id: UUID, practice_id: UUID | None = None,
+    ) -> tuple[Path, FileMetadata]:
+        """Internal personal source seam; no public storage or legacy-user grant.
+
+        Paper originals can contain answers: only a submitted practice with a
+        real question-origin relation grants this read. Review/assets get their
+        own scoped consumers in later content tasks.
+        """
+        from backend.app.models.practice import PracticeItem, PracticeSession
+        from backend.app.models.question_origin import QuestionOrigin
+        from backend.app.models.subject import Subject
+
+        if self._profile is None:
+            raise FileStorageError("FILE_SPACE_UNVERIFIED", "个人文件需要已核验的当前空间。", http_status=403)
+        environment_path(self._profile, "storage")
+        document = self.session.get(Document, document_id)
+        if (document is None or document.subject_id != subject_id
+                or self.session.get(Subject, subject_id) is None):
+            raise FileStorageError("FILE_NOT_FOUND", "当前科目没有此文件。", http_status=404)
+        if document.purpose == DocumentPurpose.PAPER_SOURCE:
+            practice = self.session.get(PracticeSession, practice_id) if practice_id is not None else None
+            if (practice is None or practice.subject_id != subject_id
+                    or practice.state not in {"submitted", "grading", "completed", "partial_failed"}):
+                raise FileStorageError("FILE_STAGE_FORBIDDEN", "作答阶段不能读取试卷原件。", http_status=403)
+            related = self.session.scalar(select(PracticeItem.id).join(
+                QuestionOrigin, QuestionOrigin.question_id == PracticeItem.question_id,
+            ).where(PracticeItem.session_id == practice.id,
+                QuestionOrigin.document_id == document.id,
+                QuestionOrigin.subject_id == subject_id).limit(1))
+            if related is None:
+                raise FileStorageError("FILE_FORBIDDEN", "原件不属于本次练习的来源。", http_status=403)
+        return self.personal_managed_path(document.storage_path, document.file_metadata)
+
+    def personal_managed_path(
+        self, locator: str | None, registration: dict | None,
+    ) -> tuple[Path, FileMetadata]:
+        """Verify bytes after a domain consumer has granted this resource read."""
+        if self._profile is None:
+            raise FileStorageError("FILE_SPACE_UNVERIFIED", "个人文件需要已核验的当前空间。", http_status=403)
+        environment_path(self._profile, "storage")
+        try:
+            metadata = FileMetadata.model_validate(registration)
+        except ValidationError:
+            raise FileStorageError("FILE_METADATA_INVALID", "文件登记不完整。") from None
+        if (metadata.migration.status not in {"not_required", "migrated"}
+                or metadata.sha256 is None or metadata.size_bytes is None):
+            raise FileStorageError("FILE_HISTORY_UNKNOWN", "文件缺少受管完整性事实。", http_status=404)
+        # Use the existing profile path verifier before resolution, including
+        # its ancestor reparse-point checks. Never accept historical absolutes.
+        if locator is None:
+            raise FileStorageError("FILE_MISSING", "已登记文件缺失。", http_status=404)
+        path = self.resolve_path(locator)
+        try:
+            verified = environment_path(self._profile, "storage", locator)
+            if path != verified or not path.is_file():
+                raise FileStorageError("FILE_MISSING", "已登记文件缺失。", http_status=404)
+            digest = hashlib.sha256()
+            size = 0
+            with path.open("rb") as stream:
+                for block in iter(lambda: stream.read(65536), b""):
+                    size += len(block)
+                    digest.update(block)
+            if size != metadata.size_bytes or digest.hexdigest() != metadata.sha256:
+                raise FileStorageError("FILE_INTEGRITY_MISMATCH", "文件与登记内容不一致。")
+        except (OSError, ValueError):
+            raise FileStorageError("FILE_INVALID_PATH", "受管文件定位不可验证。", http_status=422) from None
+        return path, metadata
 
 
     def registered_file_metadata(self, locator: str, *, actor_id: UUID) -> FileMetadata:
@@ -380,9 +538,10 @@ class FileStorageService:
 
     def _store_bytes(
         self, *, resource_type: FileResourceType, resource_id: UUID, owner: dict[str, str],
-        actor_id: UUID, filename: str, content: bytes, bucket: str,
+        actor_id: UUID | None, filename: str, content: bytes, bucket: str,
     ) -> StoredFile:
         ensure_storage_writable(self.root)
+        self._check_storage_adoption()
         if not isinstance(content, bytes):
             raise FileStorageError("FILE_INVALID_INPUT", "文件内容必须是字节。", http_status=422)
         operation_id = uuid4()
@@ -436,6 +595,125 @@ class FileStorageService:
             actor_id=actor_id, filename=document.original_filename, content=content, bucket="papers" if document.purpose == DocumentPurpose.PAPER_SOURCE else "uploads",
         )
 
+    def store_personal_document(
+        self, document: Document, content: bytes,
+    ) -> StoredFile:
+        """Write personal material bytes under the verified space root.
+
+        Personal materials have no legacy user or course owner. The subject is
+        the owner and the receipt carries no browser identity, so this path
+        cannot mint a legacy grant for a deleted account.
+        """
+        if self._profile is None:
+            raise FileStorageError("FILE_SPACE_UNVERIFIED", "个人文件需要已核验的当前空间。", http_status=403)
+        if (document.subject_id is None or document.course_id is not None
+                or document.uploaded_by is not None):
+            raise FileStorageError("FILE_FORBIDDEN", "个人文件须使用当前空间的资源授权。", http_status=403)
+        if document.id is None:
+            raise FileStorageError("FILE_REFERENCE_CONFLICT", "文件需要真实拟建身份。")
+        if document.storage_path is not None or document.file_metadata is not None:
+            raise FileStorageError("FILE_IDENTITY_IN_USE", "已登记原稿不能重写；新内容须使用新资源身份。")
+        return self._store_bytes(
+            resource_type="document", resource_id=document.id,
+            owner={"subject_id": str(document.subject_id)},
+            actor_id=None, filename=document.original_filename,
+            content=content, bucket="materials",
+        )
+
+    def store_personal_material_asset(
+        self, document: Document, data: bytes, *, media_type: str,
+    ) -> StoredFile:
+        """Keep extracted DOCX/page media as managed, subject-owned bytes.
+
+        The locator is derived from the content digest inside the verified
+        storage root, so identical media deduplicate without exposing a public
+        URL or a guessable filename.
+        """
+        if self._profile is None:
+            raise FileStorageError("FILE_SPACE_UNVERIFIED", "个人文件需要已核验的当前空间。", http_status=403)
+        if document.id is None or document.subject_id is None:
+            raise FileStorageError("FILE_REFERENCE_CONFLICT", "媒体需要真实资料与科目归属。")
+        if not isinstance(data, bytes) or not data:
+            raise FileStorageError("FILE_INVALID_INPUT", "媒体内容必须是真实字节。", http_status=422)
+        digest = hashlib.sha256(data).hexdigest()
+        locator = personal_material_asset_locator(document.id, digest, media_type)
+        ensure_storage_writable(self.root)
+        self._check_storage_adoption()
+        path = self.resolve_path(locator)
+        self.lock_locator(locator)
+        metadata = FileMetadata(
+            media_type=media_type, size_bytes=len(data), sha256=digest,
+            migration=MigrationRecord(status="not_required"),
+        )
+        if path.is_file() and hashlib.sha256(path.read_bytes()).hexdigest() == digest:
+            return StoredFile(locator, metadata, path.with_name(digest + ".receipt.json"))
+        try:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            with path.open("xb") as stream:
+                stream.write(data)
+                stream.flush()
+                os.fsync(stream.fileno())
+            written = path.read_bytes()
+        except FileExistsError:
+            raise FileStorageError("FILE_CONTENT_CHANGED", "媒体位置已有不同内容，需核对材料。") from None
+        except OSError as exc:
+            raise FileStorageError("FILE_WRITE_FAILED", "媒体写入失败，已产生材料保留供核对。") from exc
+        if len(written) != len(data) or hashlib.sha256(written).hexdigest() != digest:
+            raise FileStorageError("FILE_CONTENT_CHANGED", "媒体内容与登记不一致。")
+        return StoredFile(locator, metadata, path.with_name(digest + ".receipt.json"))
+
+    def store_personal_document_from_path(
+        self, document: Document, source: Path, *, size: int, sha256: str,
+    ) -> StoredFile:
+        """Copy an already streamed upload into the managed locator.
+
+        The bytes are never re-serialized through JSON or base64; the copy is
+        verified against the streamed size/digest before it becomes the managed
+        original, and a mismatch fails closed.
+        """
+        if self._profile is None:
+            raise FileStorageError("FILE_SPACE_UNVERIFIED", "个人文件需要已核验的当前空间。", http_status=403)
+        if (document.subject_id is None or document.course_id is not None
+                or document.uploaded_by is not None):
+            raise FileStorageError("FILE_FORBIDDEN", "个人文件须使用当前空间的资源授权。", http_status=403)
+        if document.id is None:
+            raise FileStorageError("FILE_REFERENCE_CONFLICT", "文件需要真实拟建身份。")
+        if document.storage_path is not None or document.file_metadata is not None:
+            raise FileStorageError("FILE_IDENTITY_IN_USE", "已登记原稿不能重写；新内容须使用新资源身份。")
+        ensure_storage_writable(self.root)
+        self._check_storage_adoption()
+        suffix = Path(document.original_filename).suffix.lower()
+        if not suffix or len(suffix) > 16 or not suffix[1:].isalnum():
+            suffix = ".bin"
+        locator = f"materials/{document.id.hex}/{uuid4().hex}{suffix}"
+        path = self.resolve_path(locator)
+        self.lock_locator(locator)
+        digest = hashlib.sha256()
+        written = 0
+        try:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            with source.open("rb") as reader, path.open("xb") as writer:
+                for block in iter(lambda: reader.read(262144), b""):
+                    digest.update(block)
+                    written += len(block)
+                    writer.write(block)
+                writer.flush()
+                os.fsync(writer.fileno())
+        except OSError as exc:
+            path.unlink(missing_ok=True)
+            raise FileStorageError(
+                "FILE_WRITE_FAILED", "文件写入失败，已产生材料保留供核对。"
+            ) from exc
+        if written != size or digest.hexdigest() != sha256:
+            path.unlink(missing_ok=True)
+            raise FileStorageError("FILE_CONTENT_CHANGED", "流式上传内容与登记事实不一致。")
+        metadata = FileMetadata(
+            media_type=_media_type(document.original_filename, b""),
+            size_bytes=written, sha256=sha256,
+            migration=MigrationRecord(status="not_required"),
+        )
+        return StoredFile(locator, metadata, path.with_name(path.stem + ".receipt.json"))
+
     def create_export(
         self, *, filename: str, content: bytes, actor_id: UUID,
         audience: str, course_id: UUID | None = None,
@@ -443,6 +721,7 @@ class FileStorageService:
     ) -> ManagedFileView:
         """Register bytes from a real business producer; do not invent a format."""
         ensure_storage_writable(self.root)
+        self._check_storage_adoption()
         if (
             sum(owner is not None for owner in (course_id, exam_id, submission_id)) != 1
             or audience not in {"teacher_only", "submission_owner"}

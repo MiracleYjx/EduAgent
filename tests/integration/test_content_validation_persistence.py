@@ -7,12 +7,11 @@ from threading import Barrier
 from uuid import uuid4
 
 import pytest
-from sqlalchemy import text, update
+from sqlalchemy import update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from backend.app.core.database import create_database_engine
-from backend.app.models import AgentRun, Base, Question, QuestionValidationResult
+from backend.app.models import AgentRun, Question, QuestionValidationResult
 from backend.app.schemas.content_validation import (
     ValidationEvidence,
     ValidationInputRefs,
@@ -20,69 +19,66 @@ from backend.app.schemas.content_validation import (
 )
 from backend.app.services.content_validation_service import ContentValidationService
 from tests.contract.test_retrieval_contract import _seed_course, _vector
+from tests.postgres_helpers import (
+    isolated_postgres_engine,
+    isolated_test_resource_profile,
+)
 from tests.unit.services.test_content_validation_service import result
 
 
 @pytest.fixture
 def pg_case(tmp_path):
-    engine = create_database_engine(connect_timeout=3)
-    schema = "t163_validation_" + uuid4().hex
-    with engine.begin() as connection:
-        connection.execute(text(f'CREATE SCHEMA "{schema}"'))
-    isolated = engine.execution_options(schema_translate_map={None: schema})
-    try:
-        Base.metadata.create_all(isolated)
-        with Session(isolated, expire_on_commit=False) as session:
-            course, _kb, doc, chunks = _seed_course(
-                session,
-                name=uuid4().hex[:8],
-                vectors=[_vector(0)],
-                contents=["Actual teaching evidence"],
-            )
-            question = Question(
-                course_id=course.id,
-                created_by=doc.uploaded_by,
-                type="SHORT_ANSWER",
-                content="Real fixture condition",
-                reference_answer="Reference condition",
-                scoring_rubric="condition: 1 point",
-                score=Decimal("1.00"),
-                status="Pending Review",
-            )
-            session.add(question)
-            session.commit()
-            chunk = chunks[0]
-            refs = ValidationInputRefs(
-                fields=[
-                    "type",
-                    "content",
-                    "options",
-                    "reference_answer",
-                    "scoring_rubric",
-                    "analysis",
-                    "score",
-                ],
-                evidence=[
-                    ValidationEvidence(
-                        evidence_id=uuid4(),
-                        kind="chunk",
-                        source_id=chunk.id,
-                        source_data={
-                            "chunk_id": str(chunk.id),
-                            "document_id": str(doc.id),
-                            "course_id": str(course.id),
-                            "source_file": doc.original_filename,
-                            "location": chunk.chunk_metadata["location"],
-                            "content_snapshot": chunk.content,
-                        },
-                    )
-                ],
-            )
-            yield isolated, question.id, doc.uploaded_by, refs, tmp_path / "owned-files"
-    finally:
-        with engine.begin() as connection:
-            connection.execute(text(f'DROP SCHEMA "{schema}" CASCADE'))
-        engine.dispose()
+    with (
+        isolated_test_resource_profile(tmp_path / "test-environment") as profile,
+        isolated_postgres_engine() as isolated,
+        Session(isolated, expire_on_commit=False) as session,
+    ):
+        course, _kb, doc, chunks = _seed_course(
+            session,
+            name=uuid4().hex[:8],
+            vectors=[_vector(0)],
+            contents=["Actual teaching evidence"],
+        )
+        question = Question(
+            course_id=course.id,
+            created_by=doc.uploaded_by,
+            type="SHORT_ANSWER",
+            content="Real fixture condition",
+            reference_answer="Reference condition",
+            scoring_rubric="condition: 1 point",
+            score=Decimal("1.00"),
+            status="Pending Review",
+        )
+        session.add(question)
+        session.commit()
+        chunk = chunks[0]
+        refs = ValidationInputRefs(
+            fields=[
+                "type",
+                "content",
+                "options",
+                "reference_answer",
+                "scoring_rubric",
+                "analysis",
+                "score",
+            ],
+            evidence=[
+                ValidationEvidence(
+                    evidence_id=uuid4(),
+                    kind="chunk",
+                    source_id=chunk.id,
+                    source_data={
+                        "chunk_id": str(chunk.id),
+                        "document_id": str(doc.id),
+                        "course_id": str(course.id),
+                        "source_file": doc.original_filename,
+                        "location": chunk.chunk_metadata["location"],
+                        "content_snapshot": chunk.content,
+                    },
+                )
+            ],
+        )
+        yield isolated, question.id, doc.uploaded_by, refs, profile.storage_root
 
 
 def test_two_preloaded_sessions_allocate_distinct_global_rounds(pg_case):

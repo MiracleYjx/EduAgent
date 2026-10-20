@@ -1,12 +1,16 @@
 # -*- mode: python ; coding: utf-8 -*-
-"""T188 onedir bundle; configuration, weights and business files stay external."""
+"""Windows onedir bundle; configuration, weights and business files stay external."""
 import os
 from pathlib import Path
 from PyInstaller.utils.hooks import collect_data_files, collect_submodules, copy_metadata
 
 root = Path(SPECPATH).parent
 with_local = os.environ.get('EDUAGENT_BUILD_LOCAL_MODELS') == '1'
+ui = root / 'frontend' / 'dist'
+if not (ui / 'index.html').is_file():
+    raise RuntimeError('Build the settings UI before freezing the application')
 data = [(str(root / 'alembic.ini'), '.'), (str(root / 'migrations'), 'migrations')]
+data.append((str(ui), 'settings-ui'))
 hidden = collect_submodules('backend')
 for package in ('gradio', 'gradio_client', 'rapidocr', 'onnxruntime', 'pypdfium2', 'pypdfium2_raw', 'safehttpx', 'groovy'):
     # RapidOCR SDK includes default OCRv6 weights: omit every weight; use T155 external v5.
@@ -15,7 +19,7 @@ for package in ('langgraph', 'langchain', 'langchain_core', 'langchain_openai', 
     hidden += collect_submodules(package)
 for distribution in ('gradio', 'gradio-client', 'rapidocr', 'onnxruntime', 'langchain', 'langchain-core', 'langchain-openai', 'langgraph', 'langgraph-checkpoint', 'langgraph-prebuilt', 'openai', 'pydantic', 'psycopg', 'pypdfium2'):
     data += copy_metadata(distribution)
-excludes = ['pytest', 'mypy', 'black', 'ruff', 'tensorflow', 'paddle', 'paddleocr']
+excludes = ['sitecustomize', 'usercustomize', 'pytest', 'mypy', 'black', 'ruff', 'tensorflow', 'paddle', 'paddleocr']
 if with_local:
     hidden += collect_submodules('sentence_transformers')
     data += collect_data_files('sentence_transformers') + copy_metadata('sentence-transformers')

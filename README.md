@@ -230,7 +230,11 @@ docker compose run --rm --no-deps backend python -m alembic upgrade head
 docker compose up -d --wait backend
 ```
 
-Compose supplies container-internal PostgreSQL and Redis URLs. Stop the host backend before starting the container on the same port. For a seeded demo, enable `DEV_MODE=true`, configure cloud Embedding in `.env`, then run `./scripts/run_demo.ps1`. It starts the three containers, migrates, and idempotently seeds a course, knowledge base, questions, and exam. A healthy container does not prove AI calls work; seeding may incur provider charges.
+Compose supplies container-internal PostgreSQL and Redis URLs. Stop the host backend before starting the container on the same port.
+
+**T202 接线边界（2026-10-15，聚焦验收完成；非真实Demo验收）**：`./scripts/run_demo.ps1` 保留零参数与 `-EnvFile`、`-WaitTimeoutSeconds`，但默认配置已改为 `%LOCALAPPDATA%/EduAgent/demo/config/demo.env`，不再隐式读取仓库 `.env`。独立 Demo 配置仍须显式填写 `DEV_MODE=true` 和云端 Embedding，端口取实际解析值；不要求额外 Profile 文件，未知旧资源不自动接纳或重置。分阶段顺序已确认并实现：基础服务健康→一次性只读身份/Storage探针→同配置迁移并核对head→业务 Backend/原恢复→健康→Seed。有效配置在内存冻结、镜像固定实际ID，身份或迁移失败不启动业务 Backend；运行中需升级时拒绝并提示受控停机，不自动停止。T202按原路径与兼容合同完成聚焦验收；当前证据仍仅Test/Fake及纯配置装配，真实Demo未启动。**请勿把这些局部证据当作真实 Demo 安全运行或完整系统验收**。健康不证明 AI 可用，seed 仍可能产生云端费用。
+
+环境路径的新接线将 cache/logs/temp/results 与业务 storage 分开；未接纳 Development 的原 storage 保留。Windows 实际启动日志位于 `%LOCALAPPDATA%/EduAgent/development/logs/application.log`（显式环境根时使用该根的 logs）；评测默认读取/写入所选环境 results，不迁移或删除历史 `benchmark/results`。完整边界见 [运行契约](specs/001-local-settings-and-onboarding/contracts/runtime-configuration.md)。
 
 Use real provider settings for document ingestion and AI operations; placeholder credentials cannot supply embeddings.
 
@@ -351,7 +355,7 @@ python scripts/setup_benchmark_corpus.py --self-test --output-dir .cache/benchma
 python scripts/run_retrieval_benchmark.py --self-test --manifest .cache/benchmark/corpus-stub/manifest.json --queries 999 --run-id stub-01 --output-dir .cache/benchmark/results
 ```
 
-Use each script's `--help` for available real-provider options. `--self-test` proves the pipeline, not model quality. Real calls may incur charges; failures and absent metrics are not fabricated as zero scores. Dashboard reads require explicit authorization.
+Retrieval and corpus setup default to `--self-test`; only explicit `--real` selects configured providers. Grading defaults to `--mode selftest` and requires `--mode real` for real providers. The dedicated T160 acceptance runner requires `--execute-confirmed` and never runs paid calls implicitly. Self-tests prove the pipeline, not model quality. Real calls may incur charges; failures and absent metrics are not fabricated as zero scores. Dashboard reads require explicit authorization.
 
 The small synthetic retrieval dataset and Chinese tokenization limitations restrict what can be concluded. Compare runs only with their dataset, model, Prompt, and configuration metadata; synthetic grading reference scores are not Teacher ground truth.
 

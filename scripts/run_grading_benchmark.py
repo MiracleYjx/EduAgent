@@ -16,7 +16,7 @@
   标准答案、rubric、学生答案、满分、知识点与标注来源；``teacher_score``（教师评分）与
   ``reference_score``（合成参考分）分开记录。**没有教师 Ground Truth 时** MAE/RMSE/一致率
   一律为 ``null`` 并说明原因，只报告三路的调用次数、耗时与实际输出差异，不据此判断评分质量。
-- **输出边界**（plan §7）：结果写入 ``benchmark/results/grading_<run_id>.json`` 并追加
+- **输出边界**（plan §7）：结果写入当前环境 results 目录的 ``grading_<run_id>.json`` 并追加
   ``grading_summary.csv``；只记录数据集、模型、Prompt 版本、策略、指标与耗时，
   **不写密钥、不写完整 Prompt、不写学生答案原文**。
 - **失败也如实落盘**：单样本失败记录 ``status=failed`` 与脱敏错误码，不写假分数；
@@ -43,7 +43,7 @@ import sys
 import time
 from collections import Counter
 from collections.abc import Callable, Iterable, Mapping, Sequence
-from contextlib import ExitStack
+from contextlib import AsyncExitStack, ExitStack
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from decimal import ROUND_HALF_UP, Decimal
@@ -51,6 +51,7 @@ from pathlib import Path
 from typing import Any, Final
 from uuid import uuid4
 
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 if __package__ in {None, ""}:
@@ -80,8 +81,14 @@ from backend.app.ai.retrieval.reranker import (
 )
 from backend.app.core.config import AppSettings, get_settings
 from backend.app.core.database import create_database_engine
+from backend.app.core.environment import (
+    resolve_results_directory,
+    result_file_path,
+    validate_result_run_id,
+)
 from backend.app.domain.enums import QuestionType
 from backend.app.models import Document
+from backend.app.schemas.settings import EnvironmentProfile
 from backend.app.services.grading.grading_context import (
     GradingContext,
     GradingContextError,
@@ -96,11 +103,13 @@ from backend.app.services.grading.subjective_grader import (
     build_grading_messages,
     parse_subjective_payload,
 )
+from scripts.benchmark_runtime import close_owned, error_code
 from scripts.run_retrieval_benchmark import _load_ingested_corpus
 
 REPO_ROOT: Final[Path] = Path(__file__).resolve().parents[1]
 DATASET_PATH: Final[Path] = REPO_ROOT / "benchmark" / "corpus" / "grading_samples.json"
 CORPUS_PATH: Final[Path] = REPO_ROOT / "benchmark" / "corpus" / "chunks.json"
+# Historical explicit path only; defaults are resolved for the selected environment.
 RESULTS_DIR: Final[Path] = REPO_ROOT / "benchmark" / "results"
 SUMMARY_FILENAME: Final[str] = "grading_summary.csv"
 
@@ -165,6 +174,8 @@ class StrategyRun:
 
 class StubEmbeddingProvider(BaseEmbeddingProvider):
     """自检用确定性 Embedding；不加载外部模型。"""
+
+    dimension: int
 
     def __init__(self, dimension: int = 8) -> None:
         self.dimension = dimension
@@ -256,16 +267,17 @@ class SelfTestScoringProvider(BaseLLMProvider):
     async def generate_structured(
         self,
         messages: Sequence[Mapping[str, Any]],
-        schema: type[SubjectiveGradingPayload],
+        schema: type[BaseModel],
+        model: str | None = None,
         **kwargs: Any,
-    ) -> SubjectiveGradingPayload:
+    ) -> BaseModel:
         self.calls += 1
         text = "\n".join(str(message.get("content", "")) for message in messages)
         max_score = _extract_max_score(text)
         hits = _hit_count(text, "引用") + _hit_count(text, "保存")
         score = min(max_score, max(0.0, max_score * 0.6 + hits))
         return schema(
-            score=round(score, 2),
+            score=Decimal(str(round(score, 2))),
             confidence=0.8,
             reason="自检评分：依据命中要点数量给出确定性分数。",
             correct_points=["命中要点"] if hits else [],
@@ -382,7 +394,7 @@ async def _build_context(
         )
     mode = RetrievalMode.VECTOR_ONLY if strategy == "rag" else RetrievalMode.HYBRID_RERANK
     return await build_grading_context(
-        session,  # type: ignore[arg-type] - 仅自检允许不提供数据库会话
+        session,  # type: ignore[arg-type]
         source,
         mode=mode,
         retriever=retriever,
@@ -510,7 +522,8 @@ async def _generate(
     """调用 Provider 获取结构化评分 Payload。"""
 
     try:
-        return await provider.generate_structured(messages, SubjectiveGradingPayload)
+        payload = await provider.generate_structured(messages, SubjectiveGradingPayload)
+        return SubjectiveGradingPayload.model_validate(payload)
     except Exception as error:  # noqa: BLE001 - 未就绪按显式失败处理
         raise ProviderNotReady(_error_code(error)) from None
 
@@ -518,8 +531,7 @@ async def _generate(
 def _error_code(error: Exception) -> str:
     """保留来源业务错误码；未知异常仅记录类型，不记录敏感正文。"""
 
-    return str(getattr(error, "error_code", None) or getattr(error, "code", None)
-               or type(error).__name__)
+    return error_code(error)
 
 
 class ProviderNotReady(RuntimeError):
@@ -599,18 +611,21 @@ def compute_metrics(
 def write_run_records(
     record: Mapping[str, Any],
     *,
-    results_dir: Path = RESULTS_DIR,
+    results_dir: Path | None = None,
     run_id: str,
+    profile: EnvironmentProfile | None = None,
 ) -> tuple[Path, Path]:
     """写入单次 JSON 结果并追加 CSV 汇总；返回两个文件路径。"""
 
+    validate_result_run_id(run_id)
+    results_dir = resolve_results_directory(results_dir, profile=profile)
+    json_path = result_file_path(results_dir, f"grading_{run_id}.json")
+    csv_path = result_file_path(results_dir, SUMMARY_FILENAME)
     results_dir.mkdir(parents=True, exist_ok=True)
-    json_path = results_dir / f"grading_{run_id}.json"
     json_path.write_text(
         json.dumps(record, ensure_ascii=False, indent=2, sort_keys=True),
         encoding="utf-8",
     )
-    csv_path = results_dir / SUMMARY_FILENAME
     new_file = not csv_path.exists()
     with csv_path.open("a", encoding="utf-8", newline="") as handle:
         writer = csv.writer(handle)
@@ -751,77 +766,83 @@ async def _run_strategies(
 ) -> None:
     """工厂创建、全部查询、重排和评分共享一次事件循环；数据库资源在结束时释放。"""
 
-    embedding = build_embedding(mode, settings)
-    record["embedding"] = embedding.describe()
-    record["retrieval_config"] = {
-        "candidate_k": settings.rerank_max_candidates,
-        "vector_weight": settings.hybrid_vector_weight,
-        "rerank_provider": settings.rerank_provider if mode == "real" else "selftest-identity",
-    }
-    with ExitStack() as resources:
-        session = None
-        course_id = BENCHMARK_COURSE_ID
-        filters = None
-        if mode == "real" and any(strategy != "zero_shot" for strategy in strategies):
-            try:
-                corpus_data = json.loads(corpus_path.read_text(encoding="utf-8"))
-            except (OSError, ValueError) as error:
-                raise BenchmarkCorpusNotReady(type(error).__name__) from None
-            if "manifest_version" in corpus_data:
-                from scripts.benchmark_corpus import (
-                    embedding_metadata,
-                    load_manifest,
-                    require_schema,
-                    schema_engine,
-                )
+    async with AsyncExitStack() as clients:
+        embedding = build_embedding(mode, settings)
+        clients.push_async_callback(close_owned, embedding)
+        record["embedding"] = embedding.describe()
+        record["retrieval_config"] = {
+            "candidate_k": settings.rerank_max_candidates,
+            "vector_weight": settings.hybrid_vector_weight,
+            "rerank_provider": settings.rerank_provider if mode == "real" else "selftest-identity",
+        }
+        with ExitStack() as resources:
+            session = None
+            course_id = BENCHMARK_COURSE_ID
+            filters = None
+            if mode == "real" and any(strategy != "zero_shot" for strategy in strategies):
+                try:
+                    corpus_data = json.loads(corpus_path.read_text(encoding="utf-8"))
+                except (OSError, ValueError) as error:
+                    raise BenchmarkCorpusNotReady(type(error).__name__) from None
+                if "manifest_version" in corpus_data:
+                    from scripts.benchmark_corpus import (
+                        embedding_metadata,
+                        load_manifest,
+                        require_schema,
+                        schema_engine,
+                    )
 
-                manifest = load_manifest(corpus_path)
-                engine = schema_engine(manifest["schema"], settings)
-                resources.callback(engine.dispose)
-                require_schema(engine, manifest["schema"])
-                if embedding_metadata(embedding) != manifest["embedding"]:
-                    raise BenchmarkCorpusNotReady("Embedding 与摄取 manifest 不兼容")
-                record["corpus_manifest"] = manifest
-            else:
-                engine = create_database_engine(settings)
-                resources.callback(engine.dispose)
-            session = resources.enter_context(Session(engine))
-            course_id, filters, record["corpus"] = load_corpus_scope(session, corpus_path)
-        try:
-            active_provider = provider if provider is not None else build_provider(mode, settings)
-        except Exception as error:  # noqa: BLE001 - 未配置时明确失败
-            raise ProviderNotReady(f"GRADING_PROVIDER_NOT_READY_{type(error).__name__}") from None
-        record.update(describe_llm_provider(
-            active_provider, prompt_version=SUBJECTIVE_GRADING_PROMPT_VERSION,
-        ))
-        if record["provider"] == "stub":
-            record["evidence_kind"] = "pipeline_selftest"
-        for strategy in strategies:
-            retriever, reranker = build_retrieval_components(
-                mode, strategy, settings=settings, provider=active_provider,
-            )
-            run = await run_strategy(
-                strategy, cases, provider=active_provider, retriever=retriever,
-                reranker=reranker, embedding=embedding, settings=settings,
-                session=session, course_id=course_id, filters=filters,
-            )
-            record["runs"].append({
-                "strategy": strategy,
-                "status": run.status,
-                "error_code": run.error_code,
-                "provider_calls": run.provider_calls,
-                "retrieval_calls": run.retrieval_calls,
-                "rerank_calls": run.rerank_calls,
-                "elapsed_ms": run.elapsed_ms,
-                "predictions": run.predictions,
-                "failures": run.failures,
-                "not_executed": run.not_executed,
-                "metrics": run.metrics,
-                "retriever": type(retriever).__name__ if retriever is not None else None,
-                "reranker": reranker.describe() if reranker is not None else None,
-            })
-            if run.fatal_error is not None:
-                raise run.fatal_error
+                    manifest = load_manifest(corpus_path)
+                    engine = schema_engine(manifest["schema"], settings)
+                    resources.callback(engine.dispose)
+                    require_schema(engine, manifest["schema"])
+                    if embedding_metadata(embedding) != manifest["embedding"]:
+                        raise BenchmarkCorpusNotReady("Embedding 与摄取 manifest 不兼容")
+                    record["corpus_manifest"] = manifest
+                else:
+                    engine = create_database_engine(settings)
+                    resources.callback(engine.dispose)
+                session = resources.enter_context(Session(engine))
+                course_id, filters, record["corpus"] = load_corpus_scope(session, corpus_path)
+            try:
+                active_provider = provider if provider is not None else build_provider(mode, settings)
+            except Exception as error:  # noqa: BLE001 - 未配置时明确失败
+                raise ProviderNotReady(f"GRADING_PROVIDER_NOT_READY_{type(error).__name__}") from None
+            if provider is None:
+                clients.push_async_callback(close_owned, active_provider)
+            record.update(describe_llm_provider(
+                active_provider, prompt_version=SUBJECTIVE_GRADING_PROMPT_VERSION,
+            ))
+            if record["provider"] == "stub":
+                record["evidence_kind"] = "pipeline_selftest"
+            for strategy in strategies:
+                retriever, reranker = build_retrieval_components(
+                    mode, strategy, settings=settings, provider=active_provider,
+                )
+                if reranker is not None:
+                    clients.push_async_callback(close_owned, reranker)
+                run = await run_strategy(
+                    strategy, cases, provider=active_provider, retriever=retriever,
+                    reranker=reranker, embedding=embedding, settings=settings,
+                    session=session, course_id=course_id, filters=filters,
+                )
+                record["runs"].append({
+                    "strategy": strategy,
+                    "status": run.status,
+                    "error_code": run.error_code,
+                    "provider_calls": run.provider_calls,
+                    "retrieval_calls": run.retrieval_calls,
+                    "rerank_calls": run.rerank_calls,
+                    "elapsed_ms": run.elapsed_ms,
+                    "predictions": run.predictions,
+                    "failures": run.failures,
+                    "not_executed": run.not_executed,
+                    "metrics": run.metrics,
+                    "retriever": type(retriever).__name__ if retriever is not None else None,
+                    "reranker": reranker.describe() if reranker is not None else None,
+                })
+                if run.fatal_error is not None:
+                    raise run.fatal_error
 
 
 def run_benchmark(
@@ -829,8 +850,9 @@ def run_benchmark(
     mode: str = "selftest",
     dataset_path: Path = DATASET_PATH,
     corpus_path: Path = CORPUS_PATH,
-    results_dir: Path = RESULTS_DIR,
+    results_dir: Path | None = None,
     run_id: str | None = None,
+    profile: EnvironmentProfile | None = None,
     provider: BaseLLMProvider | None = None,
     settings: AppSettings | None = None,
     strategies: Sequence[str] = STRATEGIES,
@@ -840,16 +862,19 @@ def run_benchmark(
 
     if mode not in {"selftest", "real"} or any(s not in STRATEGIES for s in strategies):
         raise ValueError("不支持的评测模式或策略")
+    resolved_run_id = run_id if run_id is not None else f"{mode}-{uuid4().hex[:8]}"
+    validate_result_run_id(resolved_run_id)
+    results_dir = resolve_results_directory(results_dir, profile=profile)
     dataset = load_dataset(dataset_path)
     cases = build_cases(dataset)
     if limit is not None:
         cases = cases[:limit]
     resolved_settings = settings if settings is not None else get_settings()
-    resolved_run_id = run_id or f"{mode}-{uuid4().hex[:8]}"
     record: dict[str, Any] = {
         "run_id": resolved_run_id,
         "created_at": datetime.now(UTC).isoformat(),
         "mode": mode,
+        "configuration_source": "explicit_settings" if settings is not None else "resolved_runtime",
         "evidence_kind": "pipeline_selftest" if mode == "selftest" else "provider_run",
         "dataset": {
             "name": dataset.get("metadata", {}).get("name", dataset_path.stem),
@@ -882,7 +907,7 @@ def run_benchmark(
             record["error_code"] = str(error)
         else:
             record["error_code"] = getattr(error, "error_code", f"GRADING_BENCHMARK_SETUP_FAILED_{type(error).__name__}")
-        write_run_records(record, results_dir=results_dir, run_id=resolved_run_id)
+        write_run_records(record, results_dir=results_dir, run_id=resolved_run_id, profile=profile)
         return record, resolved_run_id
     runs = record["runs"]
     record["status"] = (
@@ -890,7 +915,7 @@ def run_benchmark(
         else "completed" if all(run["status"] == "completed" for run in runs)
         else "partial_failed"
     )
-    write_run_records(record, results_dir=results_dir, run_id=resolved_run_id)
+    write_run_records(record, results_dir=results_dir, run_id=resolved_run_id, profile=profile)
     return record, resolved_run_id
 
 
@@ -917,7 +942,8 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--mode", choices=("selftest", "real"), default="selftest")
     parser.add_argument("--dataset", type=Path, default=DATASET_PATH)
     parser.add_argument("--corpus", type=Path, default=CORPUS_PATH, help="已摄取的 M2 语料清单")
-    parser.add_argument("--results-dir", type=Path, default=RESULTS_DIR)
+    parser.add_argument("--results-dir", type=Path, default=None,
+                        help="结果目录，默认使用当前环境的 results 目录。")
     parser.add_argument("--run-id", default=None)
     parser.add_argument("--limit", type=int, default=None)
     parser.add_argument(

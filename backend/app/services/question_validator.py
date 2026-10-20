@@ -40,6 +40,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from backend.app.domain.enums import QuestionStatus, QuestionType
 from backend.app.schemas.ai import QuestionCandidate
+from backend.app.schemas.content_blocks import RevisionContent
 from backend.app.schemas.content_validation import SemanticQuestionFields
 from backend.app.services.grading.objective_grader import (
     InvalidAnswerFormatError,
@@ -710,3 +711,75 @@ def validate_semantic_fields(
                 )
             )
     return tuple(issues)
+
+
+def personal_admission(
+    *, content, reference_answer: str | None, scoring_rubric: str | None,
+    score, quality, allowed_evidence_ids, uncertainties, confirmed_asset_ids,
+) -> tuple[str, list[str]]:
+    """Same-response model evidence plus independently decidable local checks.
+
+    This is not a mathematical proof. A model's four conclusions retain their
+    actual provenance; unsupported input is held rather than reviewed by another call.
+    """
+    from pydantic import ValidationError
+
+    from backend.app.schemas.content_blocks import ChartBlock, OriginalBlock, TextBlock
+    from backend.app.schemas.learning_charts import review_chart
+    from backend.app.schemas.personal_learning import PersonalQuality
+
+    issues = []
+    if not reference_answer or not reference_answer.strip():
+        return "incomplete", ["ANSWER_MISSING"]
+    if uncertainties:
+        issues.append("CONTENT_UNCERTAIN")
+    if any(isinstance(block,TextBlock) and not block.text.strip() for block in content.blocks()):
+        issues.append("CONTENT_EMPTY")
+    try:
+        number = Decimal(str(score))
+        if not number.is_finite() or number <= 0 or number > MAX_CANDIDATE_SCORE or number.quantize(SCORE_QUANTUM) != number:
+            issues.append("SCORE_INVALID")
+    except (InvalidOperation, TypeError, ValueError):
+        issues.append("SCORE_INVALID")
+    keys = [o.id for o in content.options]
+    if content.question_type == "single_choice":
+        if reference_answer not in keys:
+            issues.append("ANSWER_ENCODING_INVALID")
+    elif content.question_type == "multiple_choice":
+        try:
+            answer_keys = parse_multiple_choice_keys(reference_answer, option_keys=keys)
+            if not answer_keys:
+                issues.append("ANSWER_ENCODING_INVALID")
+        except InvalidAnswerFormatError:
+            issues.append("ANSWER_ENCODING_INVALID")
+    elif not scoring_rubric or not scoring_rubric.strip():
+        issues.append("RUBRIC_MISSING")
+    projections = [RevisionContent(
+        question_type="short_answer", stem_blocks=option.blocks,
+    ).text_projection() for option in content.options]
+    if len({"".join(v.split()).casefold() for v in projections}) != len(projections):
+        issues.append("DUPLICATE_OPTIONS")
+    try:
+        proof = PersonalQuality.model_validate(quality)
+    except (ValidationError, TypeError):
+        return "needs_correction", sorted(set(issues + ["ANSWER_BASIS_INVALID"]))
+    checks = proof.assessment.checks
+    if any(check.verdict != "pass" for check in checks) or any(
+        issue.severity in {"warning", "error"} for issue in proof.assessment.issues
+    ):
+        issues.append("MODEL_REVIEW_REQUIRED")
+    if any(not set(check.evidence_refs) <= allowed_evidence_ids for check in checks) or any(
+        not set(issue.evidence_refs) <= allowed_evidence_ids for issue in proof.assessment.issues
+    ):
+        issues.append("UNKNOWN_EVIDENCE")
+    if content.asset_ids() - set(confirmed_asset_ids):
+        issues.append("IMAGE_EVIDENCE_REQUIRED")
+    for index, block in enumerate(content.blocks()):
+        if isinstance(block, OriginalBlock):
+            issues.append("ORIGINAL_CONTENT_UNCONFIRMED")
+        if isinstance(block, ChartBlock) and review_chart(
+            block.chart, answer_points=proof.chart_answer_points.get(str(index)),
+            claimed_consistent=all(c.verdict == "pass" for c in checks),
+        ) != "consistent":
+            issues.append("CHART_BASIS_INVALID")
+    return ("needs_correction" if issues else "eligible"), sorted(set(issues))

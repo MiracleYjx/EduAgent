@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import io
 import os
 import re
@@ -9,15 +10,20 @@ import secrets
 import stat
 import sys
 import tempfile
+import threading
+from collections import OrderedDict
 from collections.abc import Mapping
 from dataclasses import dataclass
+from datetime import UTC, datetime, timedelta
 from functools import partial
 from pathlib import Path
 from typing import Any
+from urllib.parse import unquote, urlsplit
+from uuid import UUID, uuid4
 
 from dotenv import dotenv_values
 from dotenv.parser import parse_stream
-from pydantic import ValidationError
+from pydantic import SecretStr, ValidationError
 from pydantic_settings import (
     BaseSettings,
     PydanticBaseSettingsSource,
@@ -29,6 +35,12 @@ from backend.app.core.config import (
     ConfigurationError,
 )
 from backend.app.deployment.configuration_validation import validate_configuration
+from backend.app.schemas.settings import DatabaseLocator, RedisLocator, SafeModel
+from backend.app.services.settings.config_service import ConfigServiceError
+from backend.app.services.settings.provider_registry import (
+    RegistryValidationError,
+    validate_provider_endpoint,
+)
 
 
 @dataclass(frozen=True)
@@ -440,6 +452,495 @@ class ConfigurationWindow:
     def cancel(self) -> None:
         self.root.destroy()
 
+
+_LEGACY_MAX_BYTES = 1024 * 1024
+_LEGACY_PREVIEW_MINUTES = 10
+_LEGACY_SOURCE_ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,63}\Z", re.ASCII)
+
+
+class LegacyImportPreview(SafeModel):
+    """Safe projection of an explicit legacy preview; never holds secret text."""
+
+    preview_id: UUID
+    source_id: str
+    expires_at: datetime
+    warnings: tuple[str, ...] = ()
+    missing_fields: tuple[str, ...] = ()
+    credential_purposes: tuple[str, ...] = ()
+    database_locator: DatabaseLocator | None = None
+    redis_locator: RedisLocator | None = None
+    storage_root: Path | None = None
+    provider_adapters: tuple[str, ...] = ()
+    restart_required: bool = True
+
+
+@dataclass(frozen=True)
+class _LegacyPlan:
+    source_id: str
+    path: Path
+    digest: str
+    expected_revision: UUID | None
+    expires_at: datetime
+    document: dict
+    writes: dict
+    warnings: tuple
+    missing: tuple
+    purposes: tuple
+    adapters: tuple
+    database: DatabaseLocator | None
+    redis: RedisLocator | None
+    storage_root: Path | None
+
+
+class LegacyConfigImporter:
+    """Explicit legacy .env acceptance: safe preview first, then a safe draft only.
+
+    The source file is never modified, moved or deleted, no process environment
+    value is borrowed, and no configuration pointer changes in this service.
+    """
+
+    def __init__(self, *, service: Any, sources: Mapping[str, Path], clock: Any = None,
+                 max_previews: int = 8) -> None:
+        if not callable(getattr(service, "create_draft_with_secrets", None)):
+            raise self._error("INVALID_LEGACY_IMPORT_SERVICE")
+        if not isinstance(sources, Mapping):
+            raise self._error("INVALID_LEGACY_IMPORT_SOURCE")
+        validated: dict[str, Path] = {}
+        for source_id, path in sources.items():
+            if (not isinstance(source_id, str) or _LEGACY_SOURCE_ID.fullmatch(source_id) is None
+                    or not isinstance(path, Path) or not path.is_absolute()):
+                raise self._error("INVALID_LEGACY_IMPORT_SOURCE")
+            validated[source_id] = path
+        self.service = service
+        self.sources = validated
+        self._clock = clock if callable(clock) else (lambda: datetime.now(UTC))
+        self._max = max(1, int(max_previews))
+        self._pending: OrderedDict[UUID, _LegacyPlan] = OrderedDict()
+        self._mutex = threading.Lock()
+
+    @staticmethod
+    def _error(code: str) -> ConfigServiceError:
+        return ConfigServiceError(code, stage="legacy_import")
+
+    def preview(self, *, source_id: str, expected_revision: UUID | None) -> LegacyImportPreview:
+        with self._mutex:
+            path = self.sources.get(source_id)
+            if path is None:
+                raise self._error("LEGACY_SOURCE_NOT_ALLOWED")
+            text, digest = self._read_source(path)
+            plan = self._plan(source_id, path, text, digest, expected_revision)
+            preview_id = uuid4()
+            self._pending[preview_id] = plan
+            while len(self._pending) > self._max:
+                self._pending.popitem(last=False)
+            return LegacyImportPreview(
+                preview_id=preview_id, source_id=source_id, expires_at=plan.expires_at,
+                warnings=plan.warnings, missing_fields=plan.missing, credential_purposes=plan.purposes,
+                database_locator=plan.database, redis_locator=plan.redis,
+                storage_root=plan.storage_root, provider_adapters=plan.adapters)
+
+    def apply(self, *, preview_id: UUID, confirm: Any) -> Any:
+        if confirm is not True:
+            raise self._error("IMPORT_CONFIRMATION_REQUIRED")
+        with self._mutex:
+            plan = self._pending.pop(preview_id, None)
+            if plan is None:
+                raise self._error("PREVIEW_NOT_FOUND")
+            if self._clock() > plan.expires_at:
+                raise self._error("PREVIEW_EXPIRED")
+        # Re-prove the exact source bytes before any new secret is written.
+        _, digest = self._read_source(plan.path)
+        if digest != plan.digest:
+            raise self._error("LEGACY_SOURCE_CHANGED")
+        return self.service.create_draft_with_secrets(
+            plan.document, plan.writes, expected_revision=plan.expected_revision,
+            process_env={}, acknowledge_override=False)
+
+    def _read_source(self, path: Path) -> tuple[str, str]:
+        try:
+            info = path.lstat()
+        except OSError:
+            raise self._error("LEGACY_SOURCE_UNAVAILABLE") from None
+        if (stat.S_ISLNK(info.st_mode) or getattr(info, "st_file_attributes", 0) & 0x400
+                or not stat.S_ISREG(info.st_mode) or info.st_nlink != 1
+                or not 0 < info.st_size <= _LEGACY_MAX_BYTES):
+            raise self._error("LEGACY_SOURCE_UNAVAILABLE")
+        try:
+            with path.open("rb") as handle:
+                value = handle.read(_LEGACY_MAX_BYTES + 1)
+                opened = os.fstat(handle.fileno())
+        except OSError:
+            raise self._error("LEGACY_SOURCE_UNAVAILABLE") from None
+        try:
+            after = path.lstat()
+        except OSError:
+            raise self._error("LEGACY_SOURCE_CHANGED") from None
+        if (len(value) != info.st_size or (opened.st_dev, opened.st_ino) != (info.st_dev, info.st_ino)
+                or (after.st_size, after.st_mtime_ns, after.st_ino)
+                != (info.st_size, info.st_mtime_ns, info.st_ino)):
+            raise self._error("LEGACY_SOURCE_CHANGED")
+        try:
+            text = value.decode("utf-8-sig")
+        except UnicodeDecodeError:
+            raise self._error("LEGACY_CONFIGURATION_INVALID") from None
+        return text, hashlib.sha256(value).hexdigest()
+
+    def _plan(self, source_id: str, path: Path, text: str, digest: str,
+              expected_revision: UUID | None) -> _LegacyPlan:
+        try:
+            raw = _values(text)
+        except ConfigurationError:
+            raise self._error("LEGACY_CONFIGURATION_INVALID") from None
+        if any(name not in FIELDS for name in raw):
+            # An unrecognized field may carry a secret that a silent import would
+            # drop; the operator must resolve it explicitly.
+            raise self._error("LEGACY_CONFIGURATION_INVALID")
+        warnings = ["LEGACY_PLAINTEXT_REMAINS", "PROCESS_ENV_OVERRIDES_SAVED"]
+        missing: list[str] = []
+        writes: dict = {}
+        purposes: list[str] = []
+        adapters: list[str] = []
+        providers: dict = {}
+        bindings: dict = {}
+
+        def text_of(name: str, *, required: bool = False) -> str | None:
+            if name not in raw:
+                if required:
+                    missing.append(name)
+                return None
+            item = raw[name]
+            if item is None or not str(item).strip():
+                # An explicitly empty value is not an instruction to inherit.
+                raise self._error("LEGACY_CONFIGURATION_INVALID")
+            return str(item).strip()
+
+        def number_of(name: str, low: float, high: float, *, integer: bool = False):
+            value = text_of(name)
+            if value is None:
+                return None
+            try:
+                number = int(value) if integer else float(value)
+            except ValueError:
+                raise self._error("LEGACY_CONFIGURATION_INVALID") from None
+            if isinstance(number, bool) or not low <= number <= high:
+                raise self._error("LEGACY_CONFIGURATION_INVALID")
+            return number
+
+        def boolean_of(name: str) -> bool | None:
+            value = text_of(name)
+            if value is None:
+                return None
+            lowered = value.lower()
+            if lowered not in {"true", "false"}:
+                raise self._error("LEGACY_CONFIGURATION_INVALID")
+            return lowered == "true"
+
+        dimension = text_of("EMBEDDING_DIMENSION")
+        if dimension is not None and dimension != "1024":
+            # vector(1024) is the fixed index contract of this batch.
+            raise self._error("LEGACY_CONFIGURATION_INVALID")
+        algorithm = text_of("JWT_ALGORITHM")
+        if algorithm is not None and algorithm != "HS256":
+            raise self._error("LEGACY_CONFIGURATION_INVALID")
+        minutes = number_of("JWT_EXPIRE_MINUTES", 1, 100000, integer=True)
+        dev_mode = boolean_of("DEV_MODE")
+        ocred = boolean_of("OCR_ENABLED")
+
+        business_missing = "DATABASE_URL" if "DATABASE_URL" not in raw else (
+            "REDIS_URL" if "REDIS_URL" not in raw else (
+                "STORAGE_ROOT" if "STORAGE_ROOT" not in raw else (
+                    "JWT_SECRET_KEY" if "JWT_SECRET_KEY" not in raw else None)))
+        database = text_of("DATABASE_URL", required=True)
+        database_locator: DatabaseLocator | None = None
+        if database is not None:
+            database_locator, password = self._database(database)
+            if password is not None:
+                writes[("business", "database_password_ref")] = ("database", SecretStr(password))
+                purposes.append("database")
+        redis = text_of("REDIS_URL", required=True)
+        redis_locator: RedisLocator | None = None
+        if redis is not None:
+            redis_locator, password = self._redis(redis)
+            if password is not None:
+                writes[("business", "redis_password_ref")] = ("redis", SecretStr(password))
+                purposes.append("redis")
+        storage = text_of("STORAGE_ROOT")
+        storage_path: Path | None = None
+        if storage is None:
+            missing.append("STORAGE_ROOT")
+        else:
+            storage_path = Path(storage).expanduser()
+            if not storage_path.is_absolute():
+                raise self._error("LEGACY_CONFIGURATION_INVALID")
+        jwt = text_of("JWT_SECRET_KEY", required=True)
+        if jwt is not None:
+            if len(jwt) < 32:
+                raise self._error("LEGACY_CONFIGURATION_INVALID")
+            writes[("business", "jwt_secret_ref")] = ("jwt", SecretStr(jwt))
+            purposes.append("jwt")
+
+        llm_provider = text_of("LLM_PROVIDER")
+        text_base_url: str | None = None
+        text_key: str | None = None
+        if llm_provider is not None:
+            if llm_provider not in {"deepseek", "openai_compatible"}:
+                raise self._error("LEGACY_CONFIGURATION_INVALID")
+            model = text_of("DEEPSEEK_MODEL")
+            base_url = text_of("DEEPSEEK_BASE_URL")
+            key = text_of("DEEPSEEK_API_KEY")
+            if model is None:
+                missing.append("DEEPSEEK_MODEL")
+            if base_url is None:
+                missing.append("DEEPSEEK_BASE_URL")
+            if key is None or model is None or base_url is None:
+                missing.append("DEEPSEEK_API_KEY")
+            if model is not None and base_url is not None:
+                self._endpoint(base_url, warnings)
+                text_base_url = base_url
+                if key is not None:
+                    text_key = key
+                profile_id, profile_revision = uuid4(), uuid4()
+                providers[str(profile_id)] = {
+                    "profile_id": str(profile_id), "profile_revision": str(profile_revision),
+                    "display_name": "Legacy " + llm_provider, "adapter_id": llm_provider,
+                    "model_id": model, "base_url": base_url, "credential_ref": None,
+                    "auth_mode": "api_key", "declared_capabilities": ["text", "json_object"],
+                    "parameters": {}, "enabled": True,
+                }
+                adapters.append(llm_provider)
+                bindings["default_llm"] = {
+                    "task_kind": "default_llm", "profile_id": str(profile_id),
+                    "profile_revision": providers[str(profile_id)]["profile_revision"],
+                }
+                if key is None:
+                    warnings.append("PROVIDER_CREDENTIAL_MISSING")
+                else:
+                    writes[("providers", str(profile_id), "credential_ref")] = ("provider", SecretStr(key))
+                    purposes.append("provider")
+
+        vision_model = text_of("VISION_MODEL")
+        if vision_model is not None:
+            if llm_provider == "deepseek" and text_base_url is not None and text_key is not None:
+                vision_id, vision_revision = uuid4(), uuid4()
+                providers[str(vision_id)] = {
+                    "profile_id": str(vision_id), "profile_revision": str(vision_revision),
+                    "display_name": "Legacy vision", "adapter_id": "deepseek",
+                    "model_id": vision_model, "base_url": text_base_url, "credential_ref": None,
+                    "auth_mode": "api_key", "declared_capabilities": ["vision", "text", "json_object"],
+                    "parameters": {}, "enabled": True,
+                }
+                adapters.append("deepseek")
+                bindings["vision"] = {
+                    "task_kind": "vision", "profile_id": str(vision_id),
+                    "profile_revision": providers[str(vision_id)]["profile_revision"],
+                }
+                writes[("providers", str(vision_id), "credential_ref")] = ("provider", SecretStr(text_key))
+                purposes.append("provider")
+            else:
+                warnings.append("VISION_CONFIGURATION_SKIPPED_UNSUPPORTED")
+
+        embedding_provider = text_of("EMBEDDING_PROVIDER")
+        if embedding_provider is not None:
+            if embedding_provider not in {"openai_compatible", "local", "bge", "huggingface"}:
+                raise self._error("LEGACY_CONFIGURATION_INVALID")
+            model = text_of("EMBEDDING_MODEL")
+            if model is None:
+                missing.append("EMBEDDING_MODEL")
+            elif embedding_provider == "openai_compatible":
+                url = text_of("EMBEDDING_BASE_URL")
+                key = text_of("EMBEDDING_API_KEY")
+                if url is None or key is None:
+                    missing.extend(name for name, value in (
+                        ("EMBEDDING_BASE_URL", url), ("EMBEDDING_API_KEY", key)) if value is None)
+                    warnings.append("EMBEDDING_CONFIGURATION_INCOMPLETE")
+                else:
+                    self._endpoint(url, warnings)
+                    cloud_id, cloud_revision = uuid4(), uuid4()
+                    providers[str(cloud_id)] = {
+                        "profile_id": str(cloud_id), "profile_revision": str(cloud_revision),
+                        "display_name": "Legacy cloud embedding", "adapter_id": "openai_compatible",
+                        "model_id": model, "base_url": url, "credential_ref": None,
+                        "auth_mode": "api_key", "declared_capabilities": ["embedding"],
+                        "parameters": {}, "enabled": True,
+                    }
+                    adapters.append("openai_compatible")
+                    bindings["embedding"] = {
+                        "task_kind": "embedding", "profile_id": str(cloud_id),
+                        "profile_revision": str(cloud_revision),
+                    }
+                    writes[("providers", str(cloud_id), "credential_ref")] = ("provider", SecretStr(key))
+                    purposes.append("provider")
+            else:
+                directory = Path(model).expanduser()
+                if not directory.is_absolute():
+                    raise self._error("LEGACY_CONFIGURATION_INVALID")
+                local_id, local_revision = uuid4(), uuid4()
+                providers[str(local_id)] = {
+                    "profile_id": str(local_id), "profile_revision": str(local_revision),
+                    "display_name": "Legacy local embedding", "adapter_id": embedding_provider,
+                    "model_id": model, "credential_ref": None, "auth_mode": "none",
+                    "declared_capabilities": ["embedding"], "parameters": {},
+                    "resource_directory": str(directory), "enabled": True,
+                }
+                adapters.append(embedding_provider)
+                bindings["embedding"] = {"task_kind": "embedding", "profile_id": str(local_id),
+                                          "profile_revision": str(local_revision)}
+
+        rerank_provider = text_of("RERANK_PROVIDER")
+        if rerank_provider is not None:
+            if rerank_provider not in {"llm", "openai_compatible", "cross_encoder", "none"}:
+                raise self._error("LEGACY_CONFIGURATION_INVALID")
+            if rerank_provider == "cross_encoder":
+                model = text_of("RERANK_MODEL")
+                if model is None:
+                    missing.append("RERANK_MODEL")
+                else:
+                    directory = Path(model).expanduser()
+                    if not directory.is_absolute():
+                        raise self._error("LEGACY_CONFIGURATION_INVALID")
+                    local_rerank_id, local_rerank_revision = uuid4(), uuid4()
+                    providers[str(local_rerank_id)] = {
+                        "profile_id": str(local_rerank_id), "profile_revision": str(local_rerank_revision),
+                        "display_name": "Legacy local rerank", "adapter_id": "cross_encoder",
+                        "model_id": model, "credential_ref": None, "auth_mode": "none",
+                        "declared_capabilities": ["local_rerank"], "parameters": {},
+                        "resource_directory": str(directory), "enabled": True,
+                    }
+                    adapters.append("cross_encoder")
+                    bindings["rerank"] = {"task_kind": "rerank", "profile_id": str(local_rerank_id),
+                                          "profile_revision": str(local_rerank_revision)}
+            elif rerank_provider != "none":
+                model = text_of("RERANK_MODEL") or text_of("DEEPSEEK_MODEL")
+                if text_base_url is None or text_key is None or model is None:
+                    warnings.append("RERANK_CONFIGURATION_INCOMPLETE")
+                else:
+                    text_rerank_id, text_rerank_revision = uuid4(), uuid4()
+                    providers[str(text_rerank_id)] = {
+                        "profile_id": str(text_rerank_id), "profile_revision": str(text_rerank_revision),
+                        "display_name": "Legacy text rerank", "adapter_id": "openai_compatible",
+                        "model_id": model, "base_url": text_base_url, "credential_ref": None,
+                        "auth_mode": "api_key", "declared_capabilities": ["llm_rerank"],
+                        "parameters": {}, "enabled": True,
+                    }
+                    adapters.append("openai_compatible")
+                    bindings["rerank"] = {"task_kind": "rerank", "profile_id": str(text_rerank_id),
+                                          "profile_revision": str(text_rerank_revision)}
+                    writes[("providers", str(text_rerank_id), "credential_ref")] = (
+                        "provider", SecretStr(text_key))
+                    purposes.append("provider")
+
+        if ocred:
+            provider_name = text_of("OCR_PROVIDER") or "rapidocr"
+            ocr_model = text_of("OCR_MODEL") or "PP-OCRv5-mobile"
+            ocr_directory = text_of("OCR_MODEL_DIR")
+            if provider_name != "rapidocr" or ocr_model != "PP-OCRv5-mobile":
+                raise self._error("LEGACY_CONFIGURATION_INVALID")
+            if ocr_directory is None:
+                missing.append("OCR_MODEL_DIR")
+                warnings.append("OCR_RESOURCE_MISSING")
+            else:
+                resource = Path(ocr_directory).expanduser()
+                if not resource.is_absolute():
+                    raise self._error("LEGACY_CONFIGURATION_INVALID")
+                ocr_id, ocr_revision = uuid4(), uuid4()
+                providers[str(ocr_id)] = {
+                    "profile_id": str(ocr_id), "profile_revision": str(ocr_revision),
+                    "display_name": "Legacy OCR", "adapter_id": "rapidocr",
+                    "model_id": ocr_model, "credential_ref": None, "auth_mode": "none",
+                    "declared_capabilities": ["ocr"], "parameters": {},
+                    "resource_directory": str(resource), "enabled": True,
+                }
+                adapters.append("rapidocr")
+                bindings["ocr"] = {"task_kind": "ocr", "profile_id": str(ocr_id),
+                                   "profile_revision": str(ocr_revision)}
+
+        policies: dict = {}
+        threshold = number_of("CONFIDENCE_THRESHOLD", 0.0, 1.0)
+        if threshold is not None:
+            policies["confidence_threshold"] = threshold
+        weight = number_of("HYBRID_VECTOR_WEIGHT", 0.0, 1.0)
+        if weight is not None:
+            policies["hybrid_weight"] = weight
+        candidate_limit = number_of("RERANK_MAX_CANDIDATES", 1, 100000, integer=True)
+        if candidate_limit is not None:
+            policies["rerank_max_candidates"] = candidate_limit
+        timeout = number_of("RERANK_TIMEOUT_SECONDS", 0.1, 100000)
+        if timeout is not None:
+            policies["rerank_timeout_seconds"] = timeout
+
+        if business_missing is not None:
+            warnings.append("BUSINESS_CONFIGURATION_INCOMPLETE")
+        if any(name.startswith(("DEEPSEEK", "EMBEDDING", "RERANK", "OCR_")) for name in missing):
+            warnings.append("AI_CONFIGURATION_INCOMPLETE")
+
+        document = {
+            "bootstrap": {},
+            "business": {
+                "database_locator": (database_locator.model_dump(mode="json")
+                                     if database_locator is not None else None),
+                "database_password_ref": None,
+                "redis_locator": (redis_locator.model_dump(mode="json")
+                                  if redis_locator is not None else None),
+                "redis_password_ref": None,
+                "storage_root": str(storage_path) if storage_path is not None else None,
+                "jwt_secret_ref": None,
+                "jwt_algorithm": algorithm or "HS256",
+                "jwt_expire_minutes": minutes if minutes is not None else 60,
+                "dev_mode": bool(dev_mode) if dev_mode is not None else False,
+            },
+            "providers": providers,
+            "bindings": bindings,
+            "policies": policies,
+        }
+        return _LegacyPlan(
+            source_id=source_id, path=path, digest=digest, expected_revision=expected_revision,
+            expires_at=self._clock() + timedelta(minutes=_LEGACY_PREVIEW_MINUTES), document=document,
+            writes=writes, warnings=tuple(warnings), missing=tuple(missing), purposes=tuple(purposes),
+            adapters=tuple(adapters), database=database_locator, redis=redis_locator,
+            storage_root=storage_path)
+
+    @staticmethod
+    def _endpoint(value: str, warnings: list[str]) -> None:
+        try:
+            validate_provider_endpoint(value)
+        except RegistryValidationError as error:
+            if getattr(error, "code", None) == "HTTPS_REQUIRED":
+                # Legacy http endpoints stay importable but are flagged; the
+                # Registry still refuses them at real construction time.
+                warnings.append("ENDPOINT_HTTPS_REQUIRED")
+                return
+            raise LegacyConfigImporter._error("LEGACY_CONFIGURATION_INVALID") from None
+
+    @staticmethod
+    def _database(value: str) -> tuple[DatabaseLocator, str | None]:
+        try:
+            parsed = urlsplit(value)
+            if not parsed.scheme.startswith("postgres") or not parsed.hostname or not parsed.username:
+                raise ValueError
+            database = parsed.path.lstrip("/")
+            if not database:
+                raise ValueError
+            locator = DatabaseLocator(host=parsed.hostname, port=parsed.port or 5432, database=database,
+                                      user=unquote(parsed.username), schema_name="public")
+            password = unquote(parsed.password) if parsed.password else None
+        except (ValueError, TypeError, ValidationError):
+            raise LegacyConfigImporter._error("LEGACY_CONFIGURATION_INVALID") from None
+        return locator, password
+
+    @staticmethod
+    def _redis(value: str) -> tuple[RedisLocator, str | None]:
+        try:
+            parsed = urlsplit(value)
+            if not parsed.scheme.startswith("redis") or not parsed.hostname:
+                raise ValueError
+            index = parsed.path.strip("/")
+            if index and not index.isdigit():
+                raise ValueError
+            locator = RedisLocator(host=parsed.hostname, port=parsed.port or 6379, database=int(index or 0))
+            password = unquote(parsed.password) if parsed.password else None
+        except (ValueError, TypeError, ValidationError):
+            raise LegacyConfigImporter._error("LEGACY_CONFIGURATION_INVALID") from None
+        return locator, password
 
 def open_configuration(
     path: Path, template: Path, *, continue_launch: bool = False

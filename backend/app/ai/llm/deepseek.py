@@ -9,6 +9,7 @@ import json
 from collections.abc import Mapping, Sequence
 from time import perf_counter
 from typing import TYPE_CHECKING, Any, cast
+from urllib.parse import urlsplit
 
 if TYPE_CHECKING:
     from openai.types.chat import ChatCompletionMessageParam
@@ -43,7 +44,6 @@ class DeepSeekProvider(BaseLLMProvider):
         timeout: float = 30.0,
     ) -> None:
         self._owns_client = client is None
-        self._settings = settings
         self._model = settings.deepseek_model
         self._retry_policy = retry_policy or RetryPolicy()
         self._fallback_provider = fallback_provider
@@ -70,13 +70,23 @@ class DeepSeekProvider(BaseLLMProvider):
 
     def supports_vision(self) -> bool:
         """仅声明当前实例模型与官方适配器明确支持的真实图像能力。"""
+        try:
+            endpoint = urlsplit(self._base_url)
+        except ValueError:
+            return False
         return (
             self._model in {"deepseek-flash", "deepseek-v4-flash", "deepseek-v4-flash-vision-exp"}
-            and self._settings.deepseek_base_url.host == "api.deepseek.com"
+            and endpoint.scheme == "https"
+            and endpoint.netloc.lower() == "api.deepseek.com"
+            and endpoint.path in {"", "/", "/v1"}
+            and not endpoint.query
+            and not endpoint.fragment
             and self._fallback_provider is None
         )
 
     async def aclose(self) -> None:
+        if self._closed:
+            return
         self._closed = True
         if self._owns_client and self._client is not None:
             await self._client.close()
@@ -280,11 +290,6 @@ class DeepSeekProvider(BaseLLMProvider):
                 ),
             )
         return prepared
-
-
-from .factory import register_llm_provider
-
-register_llm_provider("deepseek", DeepSeekProvider, replace=True)
 
 
 __all__ = ["DeepSeekProvider"]

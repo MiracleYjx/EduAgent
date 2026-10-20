@@ -15,9 +15,16 @@ from backend.app.services.exam_assembly_service import (
 from backend.app.services.exam_service import ExamService
 from tests.integration.test_exam_assembly import database as _assembly_database
 from tests.integration.test_exam_assembly import facts, request
+from tests.postgres_helpers import isolated_test_resource_profile
 from tests.support.exam_scoring_fixtures import confirm_synthetic_exam_basis
 
 database = _assembly_database
+
+
+@pytest.fixture
+def image_storage_root(tmp_path):
+    with isolated_test_resource_profile(tmp_path / "owned-profile") as profile:
+        yield profile.storage_root
 
 
 def patch(session, info, qid, **values):
@@ -411,7 +418,7 @@ def test_cross_course_replacement_rejected_with_current_review(database):
 
 
 def test_original_image_survives_replacement_preview_and_missing_file_rejects(
-    database, tmp_path, monkeypatch
+    database, image_storage_root, monkeypatch
 ):
     from backend.app.services.content_validation_service import ContentValidationService
     from backend.app.services.file_storage_service import FileStorageService
@@ -423,6 +430,7 @@ def test_original_image_survives_replacement_preview_and_missing_file_rejects(
     from tests.unit.settings_helpers import build_test_settings
 
     engine, info = database
+    tmp_path = image_storage_root
     settings = build_test_settings(storage_root=tmp_path)
     monkeypatch.setattr(
         "backend.app.services.file_storage_service.get_settings", lambda: settings

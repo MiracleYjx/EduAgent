@@ -70,7 +70,7 @@ class PostgresTools:
 
     def restore(self, path: Path, database: str) -> None:
         command, environment = self._command("pg_restore", database,
-                         ["--dbname", database, "--exit-on-error", "--single-transaction", "--no-owner", "--no-acl"])
+                         ["--dbname", database, "--exit-on-error", "--single-transaction", "--no-owner", "--no-acl", "--no-comments"])
         with path.open("rb") as source:
             result = subprocess.run(command, env=environment, stdin=source, capture_output=True, timeout=self.timeout, check=False)
         if result.returncode != 0:

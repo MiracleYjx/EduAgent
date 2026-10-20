@@ -2356,6 +2356,11 @@ def create_gradio_app() -> gr.Blocks:
             }
         )
         with gr.Column(elem_id="edu-root"):
+            gr.HTML(
+                '<nav aria-label="设置导航"><a href="/settings">返回设置中心</a>'
+                '<span> · 设置管理需要独立授权；请从 Launcher 重新打开。</span></nav>',
+                elem_id="edu-settings-navigation",
+            )
             # 样式随视图挂载，兼容 Gradio 5/6 的挂载参数差异。
             gr.HTML(
                 f"<style>{WORKSPACE_CSS}</style>",

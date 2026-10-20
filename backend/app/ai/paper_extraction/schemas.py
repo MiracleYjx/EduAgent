@@ -1,6 +1,7 @@
 """LLM output contains source page numbers, never trusted file IDs or paths."""
 
-from typing import Any, Literal, Self
+from typing import Annotated, Any, Literal, Self
+from uuid import UUID
 
 from pydantic import (
     BaseModel,
@@ -12,6 +13,7 @@ from pydantic import (
 )
 
 from backend.app.domain.enums import QuestionType
+from backend.app.schemas.content_blocks import RevisionContent, SourceLocation
 from backend.app.schemas.paper_import import Amount
 
 
@@ -97,3 +99,81 @@ class ExtractionBatch(ExtractionModel):
     questions: list[Candidate] = Field(default_factory=list)
     updates: list[AnswerUpdate] = Field(default_factory=list)
     pending: list[SourceExcerpt] = Field(default_factory=list)
+
+
+# Personal extraction uses the shared ordered-content contract. Legacy course
+# extraction remains on Candidate/ExtractionBatch above.
+class PersonalFieldEvidence(ExtractionModel):
+    source: SourceLocation
+    text: str = Field(min_length=1)
+
+
+class PersonalPaperCandidate(RevisionContent):
+    source_locations: list[SourceLocation] = Field(min_length=1)
+    question_number: str | None = None
+    reference_answer: str | None = None
+    scoring_rubric: str | None = None
+    answer_origin: Literal["paper"] | None = None
+    score: Amount | None = None
+    difficulty: str | None = None
+    knowledge_point_ids: list[UUID] = Field(default_factory=list)
+    uncertainties: list[str] = Field(default_factory=list)
+    evidence: dict[
+        Literal["reference_answer", "scoring_rubric", "explanation"],
+        PersonalFieldEvidence,
+    ] = Field(default_factory=dict)
+
+    @field_validator("knowledge_point_ids")
+    @classmethod
+    def unique_knowledge(cls, value: list[UUID]) -> list[UUID]:
+        if len(set(value)) != len(value):
+            raise ValueError("Knowledge point identities must be unique")
+        return value
+
+    @model_validator(mode="after")
+    def honest_answer_source(self) -> Self:
+        if self.reference_answer is None:
+            if self.answer_origin is not None:
+                raise ValueError("Missing answers cannot claim an answer origin")
+        elif not self.reference_answer.strip() or self.answer_origin != "paper":
+            raise ValueError("Extracted answers require their original paper source")
+        for name in ("reference_answer", "scoring_rubric"):
+            value = getattr(self, name)
+            if value is None:
+                continue
+            evidence = self.evidence.get(name)
+            if (
+                evidence is None
+                or evidence.source not in self.source_locations
+                or not "".join(value.split())
+                or "".join(value.split()) not in "".join(evidence.text.split())
+            ):
+                raise ValueError("Original answer fields require matching source evidence")
+        if self.explanation_blocks:
+            evidence = self.evidence.get("explanation")
+            if evidence is None:
+                raise ValueError("Original explanation requires source evidence")
+            for block in self.explanation_blocks:
+                if block.type == "text" and "".join(block.text.split()) not in "".join(evidence.text.split()):
+                    raise ValueError("Original explanation must match its source evidence")
+        for evidence in self.evidence.values():
+            if evidence.source not in self.source_locations:
+                raise ValueError("Field evidence must belong to the question sources")
+        return self
+
+
+class PersonalPaperBatch(ExtractionModel):
+    questions: list[PersonalPaperCandidate] = Field(min_length=1)
+
+
+class PersonalPaperConfirm(ExtractionModel):
+    question_ids: list[UUID] = Field(min_length=1)
+    expected_revisions: dict[UUID, Annotated[int, Field(ge=1, strict=True)]]
+
+    @model_validator(mode="after")
+    def exact_selected_scope(self) -> Self:
+        if len(set(self.question_ids)) != len(self.question_ids):
+            raise ValueError("Selected question identities must be unique")
+        if set(self.expected_revisions) != set(self.question_ids):
+            raise ValueError("Every selected question requires its exact revision")
+        return self

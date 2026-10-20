@@ -45,14 +45,25 @@ def create_vision_provider(settings: AppSettings) -> BaseLLMProvider:
             "VISION_PROVIDER_NOT_READY", "未显式配置 VISION_MODEL，请先完成图像模型配置或使用人工核对。",
             stage="configuration",
         )
-    if settings.llm_provider != "deepseek":
+    from backend.app.services.settings.provider_registry import (
+        RegistryValidationError,
+        get_provider_registry,
+    )
+
+    try:
+        record = get_provider_registry().entry("vision", settings.llm_provider)
+        if "vision" not in record.supported_capabilities:
+            raise RegistryValidationError("CAPABILITY_UNSUPPORTED")
+    except RegistryValidationError:
         raise VisionFailure(
             "VISION_PROVIDER_NOT_READY", "当前已配置 Provider 尚无本批已确认的独立图像模型适配。",
             stage="configuration",
-        )
+        ) from None
     try:
         vision_settings = settings.model_copy(update={"deepseek_model": settings.vision_model})
-        return create_llm_provider(vision_settings)
+        return record.legacy_factory(
+            vision_settings, llm_factory=create_llm_provider
+        )
     except (LLMProviderError, ValueError, TypeError, ImportError) as error:
         # 工厂错误不携带密钥、端点或 SDK request；此时没有发起模型调用。
         raise VisionFailure(
