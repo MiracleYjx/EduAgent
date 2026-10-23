@@ -2,405 +2,190 @@
 
 [English](README.md) | [简体中文](README.zh-CN.md)
 
-基于 RAG、结构化 AI 输出与人工复核的教学评测项目。
+基于 React、FastAPI、PostgreSQL/pgvector 和显式 AI 操作的本地个人学习应用。按科目管理自己的资料和试卷，核对题目，开始练习、查看评分与争议，并与有可追溯引用的 AI 教师对话。
 
-EduAgent 连接课程资料、题目准备、学生答卷、评分与学习反馈。教师审核 AI 生成的候选题，并复核低置信度评分；学生查看基于已确认成绩生成的结果与诊断。
+界面主要使用中文。个人学习不需要教师/学生业务登录；修改设置仍需本机管理授权。
 
-Gradio 界面按角色提供工作台，主要使用中文。
+## 当前状态
 
-## 项目状态：v2.0
+个人学习功能于 **2026-10-23 按“带边界验收”口径收尾**。T001–T087 已勾选，其中 T083/T084/T085/T087 按用户裁决接受已知边界。**87/87 是任务勾选数，不代表所有测试或真实模型场景全部通过。** 详见[已知边界](#已知边界)、[需求规格](specs/002-personal-learning/spec.md)和[任务记录](specs/002-personal-learning/tasks.md)。
 
-**`v2.0` Git 标签**对应 2026-10-07 已验收的学习项目交付版本。T134–T191 共 58 项任务按已确认口径完成。`pyproject.toml` 的包版本仍为 `0.1.0`，与 Git 交付标签分别追溯。
+历史 v2.0 标签对应旧教师/学生版本。其 Gradio 工作台、角色登录和演示账号步骤不是当前入口。Python 包版本仍为 0.1.0，与功能验收及 Git 修订分别追溯。
 
-本版增加试卷导入与校正、CPU OCR、章节范围检索、原题改编与语义核验、条件组卷、本场分值、分析反馈及 Windows EXE 打包。[最终交付清单](docs/v2.0-delivery-checklist.md)汇总当前制品、验收证据、数据库状态与已知限制。复核时原业务库仍为 `0012_audit_logs`；发布源码不会自动升级现有数据库。
+## 主要能力
 
-## 核心能力
+- 按科目、资料版本和已确认知识点组织学习。
+- 通过适用的资料/试卷路径导入 PDF、DOCX、TXT、Markdown、PNG、JPEG，保留原文件、真实锚点、图文和疑点。
+- 校正抽取题目、答案和重复身份，再明确确认是否准入练习。
+- 按上传原题、AI 题或混合来源组练习，开始前查看实际覆盖和不足。
+- 整组提交后评分；客观题和空白主观题走本地确定规则，AI 评分、重评及补答案需显式确认。
+- 保留各轮评分和争议历史；重评不会静默覆盖旧结果，也不会在接受前自动解除争议。
+- 查看有证据的诊断和资料建议，打开教师引用原文；聊天不改变正式成绩。
 
-- **课程知识摄取**：解析 PDF、TXT、Markdown，完成清洗、分块和 Embedding，保留处理状态及可追溯来源。
-- **四种检索模式**：Vector Only、Keyword Only、Hybrid 加权分数融合、Hybrid + Rerank；结果保留课程、资料和片段标识。
-- **AI 辅助题目准备**：生成结构化候选题，经过校验及教师审核后，才能用于可参加的考试。
-- **题目依据持久化**：保存来源快照、实际生成元数据和多轮修订意见，可跨请求读取；来源片段删除后保留历史快照，并在界面明确标注。
-- **阅卷**：客观题由确定性规则评分，不调用 LLM；主观题结合课程上下文，经过 JSON/Pydantic 校验及可配置的置信度检查。
-- **人工复核与恢复**：LangGraph 按题路由，待复核时暂停，教师作出决定后从持久化检查点恢复。
-- **成绩与诊断**：区分待复核和最终成绩；诊断仅使用已接受或人工复核的评分，过期报告标记为 Stale。
-- **角色边界**：后端执行 Teacher、Student、Admin 权限检查，管理员不能代替教师审核题目或复核评分。
-- **工程支撑**：站内 JWT 授权工具、审计日志、Agent/Workflow Trace、可复现 Benchmark、幂等演示种子。评测看板要求显式读取授权。
+真实效果取决于模型和输入。失败或未知结果如实保留，不会自动重发收费请求制造成功。
 
-## v2.0 新增能力
+## 最快体验：Docker
 
-- **试卷导入与校正**：支持文字、扫描、混合 PDF 及图片；对照原页校正结构化题目，支持拒绝与幂等确认入库。选项用 JSON 保留键顺序，未知答案、边界和图像资产保留真实未知状态。
-- **本地 CPU OCR**：RapidOCR 3.9.2＋ONNX Runtime 1.30.0，使用外置 PP-OCRv5 mobile 权重。OCR 显式开启，不可用或提取失败时保留真实错误；试卷源卷不进入教学资料检索。
-- **章节与知识点范围**：确认章、节定位与片段标签，出题和阅卷显式传入检索范围。知识点继续保存在 JSONB metadata 中。
-- **原题改编与审核**：支持导入题改编、独立配置图像模型进行理解、持久化语义核验报告；审核要求当前修订核验通过，输入变化后旧证据失效。题图默认不对学生开放，源卷和含答案整页永久私有。
-- **条件组卷与本场评分**：按教学要求选题，展示缺口，调整题序、替换题目，设置本场分值和 Rubric。组卷条件记录意图，实际题序与分值以 `ExamQuestion` 为准，发布时冻结评分依据。
-- **考情与学习反馈**：教师查看成绩分布、逐题结果、知识点失分和关注名单；学生查看答案反馈及有真实课程来源的推荐。待复核、失败、资料不足分别展示。
-- **持久文件与 Windows 交付**：文件登记、显式历史迁移、数据库与关联文件同集备份及隔离恢复；PyInstaller onedir 包使用外置配置和业务数据。
+先安装 Git 和带 Compose 的 Docker，并启动 Docker 引擎。该路径在容器中构建前后端，**仅打开设置页不要求宿主机安装 Python、Node.js、BGE 或 OCR 权重**。
 
-## 架构
-
-```mermaid
-flowchart LR
-    Entry["FastAPI / Gradio"] --> Services["应用服务"]
-    Services --> Question["Question Agent"]
-    Services --> Workflow["LangGraph：Grading / Reviewer"]
-    Question --> RAG["摄取 / 检索 / 重排"]
-    Workflow --> RAG
-    Question --> LLM["LLM Provider 接口"]
-    Workflow --> LLM
-    RAG --> LLM
-    Services --> PG[("PostgreSQL")]
-    RAG --> PG
-    Workflow --> PG
-    Entry -. "就绪检查" .-> Redis[("Redis")]
-```
-
-PostgreSQL 保存业务数据、pgvector 向量、全文检索数据和 Workflow 检查点。Redis 属于运行基础设施，不承担阅卷检查点存储。Compose 包含 `postgres`、`redis`、`backend` 三个服务，不要求独立 Worker、Milvus 或 Elasticsearch 服务。
-
-| 层次 | 实现 |
-| --- | --- |
-| API 与演示界面 | FastAPI、Gradio |
-| 校验 | Pydantic Schema 与领域 DTO |
-| Workflow | LangGraph、持久化状态与人工复核 |
-| 持久化 | SQLAlchemy、Alembic、PostgreSQL 16 |
-| 检索 | pgvector、PostgreSQL `tsvector`/GIN |
-| 模型接入 | Provider 抽象、DeepSeek 适配器与 OpenAI-compatible 客户端 |
-| 默认本地 Embedding | `BAAI/bge-large-zh-v1.5`，1024 维 |
-| Rerank | LLM 适配器或可选的本地 Cross Encoder |
-
-## 实现原理
-
-### 从课程资料到检索上下文
-
-[摄取管道](backend/app/ai/ingestion/service.py)依次解析资料、清洗文本、切分片段，并调用 Embedding Provider 生成向量。知识库服务将片段、来源元数据和向量写入 PostgreSQL，检索时限定在请求的课程范围内。
-
-| 模式 | 实现方式 |
-| --- | --- |
-| `vector_only` | 将查询转换为向量，通过 pgvector 查找语义相近的片段 |
-| `keyword_only` | 使用 PostgreSQL 全文检索匹配关键词 |
-| `hybrid` | 分别归一化向量分数与关键词分数，再按可配置权重融合 |
-| `hybrid_rerank` | 对混合检索的候选片段调用选定的 Rerank Provider 重排 |
-
-[混合检索器](backend/app/ai/retrieval/hybrid_search.py)保留来源标识和分数，供出题与阅卷引用依据。PostgreSQL 的 `simple` 全文检索配置不进行中文分词，语料语言和查询表达会影响关键词匹配。
-
-### 结构化 Agent 与出题
-
-Agent 之间使用有类型约束的输入、输出传递信息，而不是自由文本。各模块的职责如下：
-
-| Agent | 职责 |
-| --- | --- |
-| Question | 根据课程上下文生成结构化候选题，交由校验与教师审核 |
-| Grading | 编排客观题、主观题评分并返回结构化结果 |
-| Reviewer | 检查结果的结构一致性，提出接受、修订或重评建议，不替代教师决定 |
-| Supervisor | 根据显式任务类型和状态快照作出确定性路由决策；阅卷执行路径由 LangGraph 图控制 |
-
-[Question Agent](backend/app/ai/agents/question_agent.py)调用实际解析的 LLM Provider，生成结果进入校验流程。[生成服务](backend/app/api/question_generation.py)在同一事务中写入整批题目、来源快照和生成元数据。Provider 与模型身份来自实际实例，不根据配置猜测；教师审核是独立操作。
-
-来源快照保存生成时使用的文本。原始片段删除后，实时引用置空，但快照保留为历史依据；多轮修订意见与题目的审核记录一同持久化。
-
-### 可暂停、可恢复的阅卷图
-
-[阅卷工作流](backend/app/ai/workflows/grading_workflow.py)通过显式节点和条件边逐题处理答卷：
-
-1. `load_submission`、`classify_question` 加载答卷并按题型选择评分分支。
-2. `objective_rule_grade` 使用确定性规则评分；`subjective_retrieve_grade` 将课程检索上下文与评分请求一起交给 LLM。
-3. `structured_validation` 校验结果结构，`confidence_check` 决定接受结果或进入人工复核。
-4. `pending_review` 通过 LangGraph 原生 interrupt 暂停。教师可以确认、修改或要求重评；持久化检查点使同一工作流能跨请求恢复。
-5. `next_answer` 推进到下一题，`unified_result` 汇总成绩，满足最终化条件后由 `generate_diagnosis` 生成学习反馈。
-
-[检查点服务](backend/app/services/workflow_checkpoint.py)将图状态保存到 PostgreSQL。业务结果落库和复核决定使用数据库事务，待复核分数不作为最终成绩展示；复核轮次标识用于区分同一次决定的重试与新一轮复核。
-
-启动请求会执行图直到暂停或结束，因此响应时间包含模型调用耗时；查询请求读取已持久化的工作流状态。
-
-### Provider、权限与可观测性边界
-
-LLM、Embedding、Rerank 使用独立接口。[LLM Provider 接口](backend/app/ai/llm/base.py)提供结构化生成和模型元数据，调用方可注入 Provider，而不改变评分规则或图结构。Rerank 失败会显式返回，不静默切换算法。向量表使用 1024 维结构，更换 Embedding 模型后需要重新摄取受影响资料。
-
-[JWT 认证与权限层](backend/app/core/security.py)确定调用者身份，领域服务校验课程归属及成绩读取权限。Teacher、Student、Admin 是不同角色，管理权限不等于教师专属 AI 业务权限。
-
-`mcp/` 提供站内 JWT 授权的工具调用边界，不是外部 MCP 传输；工具将可信调用者传入现有服务。邮件适配器可以替换，默认返回 `not_configured`，不将未发送的邮件标记为成功。
-
-AuditLog 记录脱敏后的业务操作；AgentRun、WorkflowRun 通过请求与工作流标识关联模型调用和图执行。Trace 排除凭据、完整 Prompt 和学生答案原文。显式维护方法按 180 天清理审计日志、按 30 天清理 AgentRun Trace，不删除用于恢复的 WorkflowRun 状态。
-
-## 快速开始
-
-主路径采用 **Docker 运行 PostgreSQL、Redis，本机运行 Python 后端**，并安装默认本地 BGE 所需的可选依赖。
-
-### 1. 准备代码与环境
-
-前置条件：Git、Python **3.12+**、支持 Compose v2 的 Docker、下载依赖和模型权重所需的网络，以及执行真实 AI 操作所需的有效 DeepSeek API Key。
+请使用新检出的仓库、新 Compose 项目和新数据卷。以下步骤不接管已有部署。
 
 在 PowerShell 中执行：
 
-```powershell
-git clone --branch deepcode https://github.com/MiracleYjx/EduAgent.git
+~~~powershell
+git clone --branch main https://github.com/MiracleYjx/EduAgent.git
 cd EduAgent
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install -e ".[dev,rerank-local]"
-Copy-Item .env.example .env
-$env:HF_HOME = Join-Path (Get-Location) ".cache/huggingface"
-```
 
-已有工作区可跳过克隆，并保留原有 `.env`。macOS/Linux 用户将激活环境、复制配置和设置缓存的命令替换为：
+# 端口被占用时改成其他本机空闲端口。
+$env:POSTGRES_PORT = "25432"
+$env:REDIS_PORT = "26379"
+$env:BACKEND_PORT = "8000"
 
-```bash
-source .venv/bin/activate
-cp .env.example .env
-export HF_HOME="$PWD/.cache/huggingface"
-```
+docker compose -p eduagent-local up -d --build
+docker compose -p eduagent-local exec -T backend python -m backend.app.deployment.container_control --port 8000
+~~~
 
-`rerank-local` 提供 `sentence-transformers`，供 BGE Embedding 和可选 Cross Encoder 共用。首次使用模型时会下载权重，请预留时间和磁盘空间。在启动后端的同一终端中设置 `HF_HOME`，即可复用项目内缓存。
+在本机浏览器打开最后一条命令返回的一次性授权链接。若修改 BACKEND_PORT，container_control 的 --port 也必须相同。首次下载和构建需要网络与时间，不承诺统一启动时长。
 
-扫描试卷导入还需安装 OCR 扩展（`python -m pip install -e ".[ocr]"`），设置 `OCR_ENABLED=true`，并在 `OCR_MODEL_DIR` 预置三份 PP-OCRv5 mobile 权重。具体见 [OCR 选型与配置](docs/evaluation.md)及[试卷导入指南](docs/paper-import.md)。下文 Windows 构建已包含 OCR 运行库，权重仍需外置。
+向导填写的是**容器内部地址**：
 
-### 2. 配置环境变量
-
-生成 JWT 签名密钥，将输出粘贴到 `.env`：
-
-```powershell
-python -c "import secrets; print(secrets.token_urlsafe(32))"
-```
-
-以下配置对应未修改的本地 Compose 数据库与 Redis 默认值。替换两处密钥占位符，其他可选设置沿用 [.env.example](.env.example)。
-
-```dotenv
-DATABASE_URL=postgresql+psycopg://eduagent@127.0.0.1:5432/eduagent
-REDIS_URL=redis://127.0.0.1:6379/0
-LLM_PROVIDER=deepseek
-DEEPSEEK_API_KEY=<your-deepseek-api-key>
-DEEPSEEK_BASE_URL=https://api.deepseek.com
-DEEPSEEK_MODEL=deepseek-chat
-EMBEDDING_PROVIDER=huggingface
-EMBEDDING_MODEL=BAAI/bge-large-zh-v1.5
-EMBEDDING_DIMENSION=1024
-RERANK_PROVIDER=llm
-RERANK_MODEL=deepseek-chat
-CONFIDENCE_THRESHOLD=0.80
-JWT_SECRET_KEY=<paste-generated-secret>
-DEV_MODE=true
-```
-
-`JWT_SECRET_KEY` 至少需要 32 个字符。这里显式开启 `DEV_MODE=true` 以便本地演示，仓库默认值为 `false`。不要提交 `.env`。
-
-Compose 数据库采用 trust 认证，并将端口绑定到本地回环地址，仅面向本地开发，不是生产部署配置。如果修改过数据库凭据或映射端口，应相应调整本机连接地址。
-
-### 3. 启动依赖、迁移数据库并运行
-
-```powershell
-docker compose up -d --wait postgres redis
-python -m alembic upgrade head
-python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000
-```
-
-登录或创建业务数据前先执行迁移。如果 Compose 后端已经占用 8000 端口，先执行 `docker compose stop backend`，再启动本机后端。
-
-如需演示内容，可在**迁移完成后、启动后端前**，于同一虚拟环境中执行：
-
-```powershell
-python scripts/demo_seed.py
-```
-
-种子脚本要求 `DEV_MODE=true` 且 Embedding Provider 可用；上述开发模式使用本地 BGE，首次运行可能下载权重。重复执行会复用演示账号、课程、知识库、题目和考试，不创建学生答卷。
-
-| 入口 | 地址 | 用途 |
-| --- | --- | --- |
-| 演示界面 | `http://127.0.0.1:8000/gradio/` | 按角色使用工作台 |
-| API 文档 | `http://127.0.0.1:8000/docs` | 查看并调用接口 |
-| 存活检查 | `http://127.0.0.1:8000/health` | 检查进程是否存活 |
-| 就绪检查 | `http://127.0.0.1:8000/ready` | 检查配置、PostgreSQL 和 Redis |
-
-就绪检查成功不代表模型凭据、模型权重或完整 AI 工作流已经验证通过。
-
-### 4. 本地演示登录
-
-开启开发模式后，点击管理员、教师或学生快速登录按钮。界面会准备 `dev_admin`、`dev_teacher`、`dev_student` 账号并签发标准 JWT，没有统一的默认密码。
-
-如需通过密码使用 API，可在管理员工作台创建用户，调用 `POST /api/auth/login`，再携带返回的 Bearer Token 访问受保护接口。关闭开发模式不会删除演示账号，也不会撤销已有令牌；部署前需另行处理这些账号的访问权限。
-
-### 备选：在 Docker 中运行后端
-
-当前 [Dockerfile](Dockerfile) 安装项目运行依赖（`pip install .`），**不包含本地 BGE/Cross Encoder 依赖**。Docker Demo 通过 `DEMO_EMBEDDING_MODEL`、`DEMO_EMBEDDING_BASE_URL`、`DEMO_EMBEDDING_API_KEY` 配置云端 `openai_compatible` Embedding；模型须实际返回 **1024 维**向量。镜像不内置密钥，也不会在云端不可用时自动切换本地模型。
-
-完成 Provider 配置后，可用下面的方式代替本机后端：
-
-```powershell
-docker compose build backend
-docker compose up -d --wait postgres redis
-docker compose run --rm --no-deps backend python -m alembic upgrade head
-docker compose up -d --wait backend
-```
-
-Compose 会提供容器内部的 PostgreSQL 与 Redis 地址。启动容器前先停止占用同一端口的本机后端。
-
-**T202 接线边界（2026-10-15，聚焦验收完成；非真实Demo验收）**：`./scripts/run_demo.ps1` 保留零参数与 `-EnvFile`、`-WaitTimeoutSeconds`，默认只选择 `%LOCALAPPDATA%/EduAgent/demo/config/demo.env`，不再隐式读取仓库/CWD的 Development `.env`，也不会复制已有 Key。独立 Demo 配置仍须填写 `DEV_MODE=true` 和云端 Embedding；端口取解析配置，不要求额外 Profile 文件，未知旧资源不接管、不重置。分阶段顺序已确认并实现：基础服务健康→一次性只读身份/Storage探针→同配置迁移并核对head→业务 Backend/原恢复→健康→Seed。有效配置在内存冻结、镜像固定实际ID，身份或迁移失败不启动业务 Backend；运行中需升级时拒绝并提示受控停机，不自动停止。T202按原路径与兼容合同完成聚焦验收；当前证据仍仅Test/Fake及纯配置装配，真实Demo未启动。**不要将这些局部证据视为真实 Demo 安全运行或完整系统验收**。健康检查不等于 AI 链路验收，seed 仍可能产生云端模型费用。
-
-环境路径已接入独立 cache/logs/temp/results；未接纳 Development 的原 storage 保留。Windows 实际启动日志位于 `%LOCALAPPDATA%/EduAgent/development/logs/application.log`（显式环境根时使用该根的 logs），不再写业务 storage/logs。评测默认读取/写入所选环境 results，旧 `benchmark/results` 不迁移、不删除；完整约束见[运行契约](specs/001-local-settings-and-onboarding/contracts/runtime-configuration.md)。
-
-资料摄取和 AI 操作需要真实可用的 Provider 配置，密钥占位符不能生成向量。
-
-## 打包与运行 Windows EXE
-
-双击 EXE 时若默认配置尚不存在，会先打开**本机配置窗口**。窗口按连接与存储、文字/图像模型、Embedding、检索与评分、OCR、账号与运行分组；密码默认遮罩，可显式生成 JWT 密钥和选择本地模型目录。保存只校验文件格式，不测试连接；首次保存后继续原启动检查，取消不会写文件或启动业务服务。
-
-已有配置时，双击包内 `Configure-EduAgent.cmd`，或运行下面的命令重新编辑。编辑现有配置时保留未管理项与注释；保存并关闭后，重新启动应用生效，不热更新正在运行的服务。
-
-```powershell
-.\EduAgent.exe --configure
-# 源码模式编辑指定 .env：
-python scripts/launch_windows.py --configure --config .env
-```
-
-EXE 默认保存到 `%LOCALAPPDATA%/EduAgent/config.env`；界面顶部显示本次目标路径。`--no-browser` 无人值守启动和显式指定的缺失配置仍报告原错误，不自动弹窗。
-
-
-在 Windows 上准备 **Python 3.12+**，于项目根目录运行现有[构建脚本](scripts/build_exe.ps1)。下面的构建包含本地 BGE/Cross Encoder 推理库：
-
-```powershell
-.\scripts\build_exe.ps1 -WithLocalModels
-```
-
-脚本会创建独立构建环境，安装 `packaging/requirements-windows.txt`，使用 `packaging/EduAgent.spec` 构建。输出为 **`.cache/exe-build/dist/EduAgent/`**，包含 `EduAgent.exe`、`_internal/`、配置模板和 `build-receipt.json`。交付时复制**整个目录**。GitHub 标签提供源码，上述命令在本机生成二进制包。
-
-如果只用云 Embedding，省略 `-WithLocalModels`，配置真实可用的 1024 维 Embedding 服务。本地推理库不包含模型权重；BGE/Cross Encoder 及启用 OCR 时的完整权重目录需要另行准备，Windows 启动器不会自动下载。
-
-另行准备 PostgreSQL＋pgvector 和 Redis。创建外置配置，并保留已有配置文件：
-
-```powershell
-$taskConfigDir = Join-Path $env:LOCALAPPDATA 'EduAgent'
-New-Item -ItemType Directory -Path $taskConfigDir -Force | Out-Null
-$taskConfigFile = Join-Path $taskConfigDir 'config.env'
-if (-not (Test-Path -LiteralPath $taskConfigFile)) {
-    Copy-Item .\config\windows.env.example $taskConfigFile
-}
-notepad $taskConfigFile
-```
-
-填写数据库、Redis、JWT 密钥、模型凭据及目录。使用本地 Embedding 时，设置 `EMBEDDING_PROVIDER=local`、`EMBEDDING_MODEL=<完整外置模型目录>`；使用云端时保留 `openai_compatible` 并填写其模型、地址和独立凭据。需要演示快速登录时才显式设置 `DEV_MODE=true`。
-
-已有数据库先备份，确认所连接的目标库后启动：
-
-```powershell
-& .\.cache\exe-build\dist\EduAgent\EduAgent.exe --config $taskConfigFile --no-browser
-```
-
-启动器检查依赖、执行必要迁移后开放服务。就绪后访问 `http://127.0.0.1:8000/gradio/`；省略 `--no-browser` 会自动打开页面。Ctrl+C 停止所属应用进程。目标机器无需 Python；配置、权重及业务数据放在包外，默认业务目录为 `%LOCALAPPDATA%/EduAgent/storage`。
-
-详见[部署指南](docs/exe-deployment.md)、[包内说明](packaging/README.md)和[当前交付清单](docs/v2.0-delivery-checklist.md)。部署证据保留了早期失败段落，当前启动结论以 T189 最终结果为准。新构建应另行验证，构建回执用于追溯，不替代验收。
-
-## 教学评测流程
-
-结合 Gradio 页面和 API 文档，按以下流程操作。空数据库不会自动预置数据：开发模式可执行 `python scripts/demo_seed.py`；Docker Demo 在云端 Embedding 配置完成后执行 `./scripts/run_demo.ps1`。两种种子入口均不创建学生答卷。
-
-1. **教师**：创建课程及其知识库，上传受支持的资料，确认处理状态达到 `Ready`。
-2. **教师**：手工创建题目或根据课程资料生成 AI 候选题；审核通过后再加入考试。
-3. **学生**：打开可参加的考试并提交答案，一份考试可组合单选、判断和简答题。
-4. **教师**：调用 `POST /api/workflow/submissions/{submission_id}/runs` 启动 LangGraph 阅卷，通过 `GET /api/workflow/runs/{workflow_id}` 查询状态。
-5. **教师**：通过复核工作台或 API 确认、修改低置信度评分。如果结论已保存但恢复失败，调用 `POST /api/workflow/runs/{workflow_id}/resume` 继续原运行。
-6. **学生／教师**：查看已确认成绩和诊断；待复核状态不得被展示为最终成绩。
-
-独立的 `/api/grading` 任务 API 使用后台任务检查点，不能替代 LangGraph 运行检查点；暂停与恢复应使用 `/api/workflow` 路径。
-
-## 测试
-
-使用开发或测试数据库。PostgreSQL 测试需要可连接的数据库、pgvector 及相应表结构；前置条件不可用时，测试会报告跳过。
-
-项目门禁使用 Mypy 和 Ruff，但当前 `dev` 依赖组未包含这两个工具，需要单独安装后执行三项检查：
-
-```powershell
-python -m pip install mypy ruff
-python -m pytest tests/ -q
-python -m mypy backend/app/
-python -m ruff check backend/ tests/
-python -m alembic current
-python -m alembic check
-```
-
-容器冒烟测试要求隔离设置：`COMPOSE_PROJECT_NAME=eduagent-test`、`POSTGRES_PORT=15432`、`REDIS_PORT=16379`、`BACKEND_PORT=18000`，具体见[测试前置条件](tests/integration/test_m0_smoke.py)。
-
-## 评测
-
-### v2.0 已记录验收
-
-T146/T168 的基准为 **AI 辅助标注＋开发者审查**，使用合成试卷，无独立教师标签。T168 正式采用 v8 的五份试卷、三轮实测：16 道不同参考题，共 48 个评测实例；题型未知的原始实例排除，该字段分母为 45。
-
-| 字段组 | v8 实测 | 目标 |
-| --- | --- | --- |
-| 身份、题号、题序、来源页、选项、参考答案、分值 | 各 48/48（100%） | 100% |
-| 题型 | 45/45（100%） | 已知标签 100% |
-| 题干 content | 40/48（83.33%） | ≥80% |
-| 解析 analysis | 41/48（85.42%） | ≥80% |
-| 评分标准 scoring_rubric | 42/48（87.50%） | ≥80% |
-| 知识点 knowledge_points | 43/48（89.58%） | ≥70% |
-
-图片资产不计入这些阈值：自动图像提取尚未实现，未知资产不等于已确认无图。[v8 字段证据](benchmark/results/v2/t168-bounded-20261007/round2-fields/summary.json)取代 v6 的当前验收结论，历史结果保留。
-
-最终 Windows 包首次三次启动 **9.005–9.670 秒**，后续五次 **8.307–8.865 秒**，均达到 `/ready` 与 `/gradio/` 双端点就绪；启动资源窗口、正常退出各 8/8 通过。这是依赖已准备的本机测量，不含浏览器渲染和长时模型负载。见[启动证据](benchmark/results/v2/t189-optimize-20261007/README.md)、[评测文档](docs/evaluation.md)与[验收报告](docs/validation-report.md)。本次 README 更新未重新运行这些检查。
-
-### 阅卷管道自检
-
-完成环境配置后，可运行确定性替身自检，无需真实模型调用或已持久化的检索语料：
-
-```powershell
-python scripts/run_grading_benchmark.py --mode selftest
-```
-
-自检覆盖 Zero-shot、RAG、Hybrid + Rerank 三种策略，只验证管道行为，不证明评分质量。MAE、RMSE 与一致率需要教师人工标签；缺少标签时这些指标保持 `null`，不将合成参考分数当作人工标注。
-
-### 可复现检索评测
-
-检索 Benchmark 在隔离 schema 中初始化语料，使用 manifest 保存运行时的真实资料与片段 UUID，无需预置数据库标识。可先用替身验证可复现管道：
-
-```powershell
-python scripts/setup_benchmark_corpus.py --self-test --output-dir .cache/benchmark/corpus-stub
-python scripts/run_retrieval_benchmark.py --self-test --manifest .cache/benchmark/corpus-stub/manifest.json --queries 999 --run-id stub-01 --output-dir .cache/benchmark/results
-```
-
-真实 Provider 的运行选项可通过各脚本的 `--help` 查看；`--self-test` 仅验证管道，不是质量结论。真实模型调用可能计费；失败与缺失指标不会伪装成零分，评测看板读取仍需显式授权。
-
-小规模合成检索数据集和中文分词限制影响结论的适用范围。比较实验时，应同时核对数据集、模型、Prompt 和配置元数据；合成评分参考分不是教师人工标签。
-
-## 已知限制
-
-- 质量基准规模较小，使用合成数据及 AI 辅助标注，可验证已确认的学习项目流程；进一步验证质量提升需独立教师标注及更广泛数据。
-- 语义条件误报仍为 **16.67%**（目标≤10%），语义 Rubric 覆盖 **77.78%**（目标≥90%），图片条件完整性 **72.73%**（目标≥95%）。这些指标与已通过的 v8 导入字段准确率不同，继续记录为限制。
-- 自动检测、裁切及关联题图属于后续工作，自动提取 `assets` 为 0/48；当前图片理解与人工校正不代表自动图像提取流程已实现。
-- 原业务库复核时有 0013–0023 共 11 个 v2.0 迁移未应用，源码单链 head 为 `0023_grading_exam_question`。现有环境升级前需备份、核对；隔离恢复验证不会自动切换业务环境。
-- Windows 验收使用依赖已准备的本机，未覆盖纯净目标机安装。Docker 就绪与合成自检不能证明 Docker 云模型闭环或真实学校生产可用性。
-- PostgreSQL `simple` 不做中文分词；Embedding 固定 1024 维，更换模型需重新摄取资料。模型质量、外部服务延迟与工作流响应时间应分别判断，不能用 EXE 启动耗时替代。
-
-完整限制与测量边界见[最终交付清单](docs/v2.0-delivery-checklist.md)。
-
-## 文档导航
-
-| 文档 | 内容 |
+| 配置项 | Docker 应用中填写 |
 | --- | --- |
-| [最终交付清单](docs/v2.0-delivery-checklist.md) | v2.0 当前状态、制品、数据库及限制 |
-| [试卷导入](docs/paper-import.md) | OCR、校正、题图与确认入库 |
-| [文件生命周期](docs/file-lifecycle.md) | 持久文件身份与访问规则 |
-| [存储操作](docs/v2.0-storage-operations.md) | 迁移、同集备份及隔离恢复 |
-| [EXE 部署](docs/exe-deployment.md)／[包内说明](packaging/README.md) | 构建与启动配置 |
-| [评测](docs/evaluation.md)／[验收报告](docs/validation-report.md) | 协议、当前结果及历史证据 |
-| [测试变更记录](docs/test-change-record-v2.md) | 测试修改原因与覆盖 |
+| PostgreSQL 主机 / 端口 | postgres / 5432 |
+| PostgreSQL 数据库 / 用户 | eduagent / eduagent，除非你修改了参数 |
+| Redis 主机 / 端口 / 库 | redis / 6379 / 0 |
+| 业务文件目录 | /app/storage/storage |
 
-## 目录说明
+25432/26379 是容器外部客户端访问数据库的端口，不能填写成容器的依赖地址。默认 Compose 对 PostgreSQL 使用本机开发 trust 认证，宿主端口只发布到回环；这不是公网多用户部署模板。
 
-```text
-backend/
-  main.py                 应用入口
-  app/
-    ai/                   摄取、Embedding、检索、Provider、Agent、Workflow
-    api/                  HTTP 端点与 API 服务装配
-    mcp/                  站内授权工具边界与适配器
-    services/             业务服务、评分、复核、检查点
-    models/               SQLAlchemy 持久化模型
-    schemas/              Pydantic DTO
-    ui/                   Gradio 页面与加载器
-    core/                 配置、数据库、Redis、认证
-migrations/               Alembic 迁移
-scripts/                  启动／构建、存储维护、演示种子与评测执行器
-packaging/                PyInstaller 清单、固定 Windows 依赖与构建回执
-config/                   Windows 外置配置模板
-docs/                     使用指南、验收证据与交付清单
-tests/                    单元、契约与集成测试
-benchmark/                评测语料、清单及结果记录
-```
+核对预览，确认初始化的是**新建空目标**，再按提示激活配置或重启。业务 /ready 为 503 时设置页仍可用；打开页面不会初始化旧数据库，也不会自动调用 AI。
+
+### Docker AI 凭据
+
+Docker 使用只读挂载 Secret，不复用 Windows DPAPI 密文。API Key、凭据密文和模型权重不随仓库或镜像分发。
+
+1. 在仓库外创建自己的私有目录，用编辑器把 Provider Key 保存到 UTF-8 文件 provider-key，不把密钥作为命令行参数。
+2. 指定绝对目录及下面的非秘密挂载目录表。聊天与 Embedding 使用不同密钥时，分别增加文件和条目。
+3. 带覆盖文件重建后端，再获取新授权链接，在设置中选择挂载凭据。保存、Probe、激活是不同操作；核对范围后才执行真实请求。
+
+~~~powershell
+# 改为你自己已经创建的私有目录。
+$env:EDUAGENT_SECRETS_DIRECTORY = Join-Path $env:LOCALAPPDATA "EduAgent/github-secrets"
+$env:EDUAGENT_SECRET_MOUNTS = '{"provider-key":{"path":"/run/secrets/provider-key","purpose":"provider"}}'
+
+docker compose -p eduagent-local -f docker-compose.yml -f docker-compose.secrets.yml up -d backend
+docker compose -p eduagent-local exec -T backend python -m backend.app.deployment.container_control --port 8000
+~~~
+
+Secret 文件须满足挂载凭据后端的归属与访问权限检查。管理同一部署时保留原端口、项目名和 Compose 文件组合。缺 Key 或权重时相应能力显示未就绪，不会自动请求。
+
+### 停止和再次启动
+
+~~~powershell
+docker compose -p eduagent-local stop
+docker compose -p eduagent-local start
+~~~
+
+postgres_data、redis_data、storage_data 卷保存持久数据。日常退出不要使用 down -v 或 volume prune。使用 Secret 覆盖文件的部署应保留原环境与覆盖文件选择。
+
+## Windows 源码开发
+
+需要 Python 3.12（项目声明最低 3.12）、与 Docker 构建一致的 Node.js 24、Git，以及 PostgreSQL/pgvector 和 Redis。也可仅用 Docker 提供两个依赖。
+
+在新检出的仓库根目录、PowerShell 中执行：
+
+~~~powershell
+py -3.12 -m venv .venv
+./.venv/Scripts/python.exe -m pip install -c packaging/requirements-windows.txt -e ".[dev,ocr]"
+
+$env:EDUAGENT_PYTHON = (Resolve-Path ./.venv/Scripts/python.exe).Path
+Push-Location frontend
+npm ci
+npm run build
+Pop-Location
+
+$env:POSTGRES_PORT = "25432"
+$env:REDIS_PORT = "26379"
+docker compose -p eduagent-local up -d postgres redis
+
+$env:EDUAGENT_ENVIRONMENT = "development"
+$env:EDUAGENT_DATA_ROOT = Join-Path $env:LOCALAPPDATA "EduAgent/github-local"
+$env:EDUAGENT_SETTINGS_UI_ROOT = (Resolve-Path ./frontend/dist).Path
+./.venv/Scripts/python.exe scripts/launch_windows.py
+~~~
+
+**宿主机应用**向导中，PostgreSQL 填 **127.0.0.1:25432**，Redis 填 **127.0.0.1:26379**，数据库/用户默认仍为 eduagent。请使用自己的空闲数据根，先确认实际初始化目标。Launcher 负责本机授权及自有 worker 的退出。
+
+源码运行必须先构建前端并显式指定 EDUAGENT_SETTINGS_UI_ROOT；GitHub 不自带 frontend/dist。EDUAGENT_PYTHON 保证前端 API 检查使用正确的 Python 环境。
+
+新版入口不隐式导入仓库 .env 或别人的 config.env。.env.example 仅为旧配置兼容参考；需要迁入时在设置页显式导入。
+
+## 模型选择
+
+| 能力 | 使用环节 | 如何准备 |
+| --- | --- | --- |
+| 远程聊天 / JSON / Vision | 按配置执行出题、补答案、主观评分、教师答疑 | 配置支持的 Provider/模型及自己的受保护凭据 |
+| 远程 Embedding | 资料索引、已配置的语义/混合检索 | 单独配置兼容的 Embedding 服务，不能只填写聊天 Key |
+| 本地 BGE | 选择本地 Provider 后的索引/检索操作 | 安装 .[rerank-local]，获取兼容权重，设置绝对资源目录 |
+| 本地 RapidOCR | 主动识别保留的扫描页或图片 | 安装 .[ocr]，预置三份约定的 PP-OCRv5 mobile ONNX 文件 |
+
+克隆不依赖开发者的模型目录。文字/关键词路径不一定需要本地权重。当前个人出题和教师上下文显式使用关键词检索；评分选择语义/混合模式时才规划相应 Embedding 步骤。
+
+RapidOCR 需要 ch_PP-OCRv5_det_mobile.onnx、ch_PP-OCRv5_rec_mobile.onnx、ch_ppocr_mobile_v2.0_cls_mobile.onnx。[适配器](backend/app/ai/ingestion/ocr/rapidocr.py)核对哈希并使用本地 ONNX CPU 推理，不静默下载替代权重。
+
+Docker 应额外只读挂载模型目录，填写**容器内**绝对资源路径。默认镜像不含 Torch/sentence-transformers，本地 BGE 还需显式准备对应镜像。Windows 默认包同样不包含这些库，除非使用 WithLocalModels 构建。切换 Embedding 身份应走索引校验/重建流程，不能只改路径。
+
+## 构建 Windows EXE
+
+~~~powershell
+./scripts/build_exe.ps1 -Python python -BuildRoot .cache/exe-build
+~~~
+
+复制生成的**整个 EduAgent 目录**，包含 _internal。EXE 免去目标机 Python/Node 安装，但 PostgreSQL/Redis、个人配置、Key 和可选权重仍在外部。源码仓库不表示已提供 GitHub Release 下载包。详见[打包说明](packaging/README.md)。
+
+## 验证
+
+安装 Python 环境并按前文设置 EDUAGENT_PYTHON 后：
+
+~~~powershell
+Push-Location frontend
+npm test
+npm run build
+Pop-Location
+~~~
+
+后端测试分布在 tests/unit、tests/contract、tests/integration。涉及 PG/Redis/Docker 的测试须使用经过实例身份核验、归属明确的独立 Test profile 与专用资源，不能指向个人业务库。初始化测试资源前阅读[验证前置条件](specs/002-personal-learning/quickstart.md)和[PG 工具](tests/postgres_helpers.py)。Mock/构建通过不等于真实模型效果或完整浏览器验收。
+
+| 地址 | 含义 |
+| --- | --- |
+| / | 个人学习界面 |
+| /setup、/settings | 首次设置和受保护配置 |
+| /health | 进程存活 |
+| /setup-ready | 设置及静态资源状态 |
+| /ready | 业务就绪；503 不表示设置页不可用 |
+
+## 已知边界
+
+- 开发者验收环境保留4条历史 outcome_unknown；后续独立样例成功不等于原请求已补偿或已确认。新安装不会导入这些历史记录。
+- T084/T085 journey 保留 api_passed_browser_not_claimed。截图/UI 回读是局部证据，未宣称完整浏览器闭环或 T083 真实 AI 浏览器入口到结果的路径已通过。
+- DOCX 有 T033 有限历史覆盖；T084/T085 没有在 Windows、Docker 两平台重测 DOCX。
+- G1 真实 operation 虽完成，但因 ANSWER_ENCODING_INVALID 未准入，oracle_pass=false 保留；带边界验收不把它变成质量通过。
+- 账本 schema 未持久化 finish_reason；请求计数争议及历史授权待核实说明仍保留。
+- 勾选数不保证准确率、性能、全新机器安装或供应商账单。.cache 本地验收材料不随 GitHub 源码发布。
+
+验收裁决和后续优化入口见 [tasks.md](specs/002-personal-learning/tasks.md)、[spec.md](specs/002-personal-learning/spec.md)、[quickstart.md](specs/002-personal-learning/quickstart.md)。
+
+## 仓库结构
+
+~~~text
+backend/       FastAPI、模型、解析、检索、AI、本机管理
+frontend/      React、生成 API 类型、前端检查
+migrations/    Alembic 迁移历史
+packaging/     Windows 构建及已验收运行依赖约束
+scripts/       启动、构建、Benchmark、显式维护
+tests/         单元、契约、隔离集成与合成样例
+specs/         需求、合同、验收边界
+benchmark/     历史可复现 Benchmark 输入
+~~~
+
+运行数据、.env、凭据、权重、日志、构建包和 .cache 证据不是安装输入。请使用自己有权使用的资料与模型服务。自动搜集教材、图片答案评分、聊天中另建评分流程不属于首版范围。
