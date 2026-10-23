@@ -2,6 +2,8 @@
 
 **Input**: [spec.md](spec.md)、[plan.md](plan.md)、[research.md](research.md)、[data-model.md](data-model.md)、三份 [契约](contracts/personal-learning-api.md) 与 [quickstart.md](quickstart.md)。
 **Status（2026-10-23）**: T001–T087均已勾选（87/87）。2026-10-23用户明确批准T083、T084、T085、T087按“先验收、先使用、发现问题再优化”的带边界口径勾选，T086保持已勾选；勾选不等于全部pass。4条历史outcome_unknown保留，完整浏览器闭环未完整验证，DOCX两平台未重测，详见下列已知边界。G1既有真实样例仍有oracle_pass=false（ANSWER_ENCODING_INVALID等），不因勾选改记为pass。账本记录末值recorded=39/40、proven=32/35、disputed=6、A3=6/10、A4=9/10；本轮真实发送0，无commit/push/正式发布。
+**Post-MVP**: 6/6（T088–T093 完成；与上方 87/87 分开计数，不改变 V1 验收结论）。T088–T092 为 M1，T093 为 M2 三屏 QuickStart；M2 已完成真实浏览器空环境与已有数据闭环。
+
 **Tests**: 用户明确要求可测试任务与独立高风险验收。未来新增/修改测试先按 T001 留最低必要 TCR；详细结果只输出会话，不创建验收报告。
 **Organization**: 按用户故事组织；全部故事仍为第一版 P1。先实现 US5 共享内容，再供 US2/US3 使用；不因此提前宣称完整作答/评分已经可用。
 
@@ -332,4 +334,29 @@ flowchart TD
 沿用实际安装 speckit-tasks 与已解析的 tasks-template 结构。setup-tasks.ps1 及 analyze 的普通 prerequisites 入口会持久化 .specify 旧指针，故遵循用户“不修改旧指针”，复用已执行的 PathsOnly/NoPersist 路径解析、resolve-template.ps1 与只读文件存在性校验；未执行有写指针副作用的入口，也未修改工具脚本或系统策略。
 
 生成此清单时，G-A/G-Q/G-C/G-P 全部未通过，87项均未执行。质量清单未勾选项保持真实状态。具体限额、质量样例/标准、库路线和持久化/兼容细节须经过对应门禁；本轮只执行文档一致性分析，不以分析结论代替上述用户裁决或真实运行验收。
+
+## Phase 13: Post-MVP UX Simplification
+
+**Status（2026-10-23）**: Phase 13 M1（T088–T092）与 M2（T093）均已完成。M2 新增 `/setup/quickstart` 三屏 QuickStart 与 Docker 显式受控重启通道；真实 Chrome 空环境 2 次点击进入、`/ready=200`，已有数据直接进入且零配置写入。真实模型/Probe/外部发送 0；本批不 commit/push，不写验收报告（TCR 除外）。
+
+**目标**: 不新开 spec，在 002 内把首次设置从“技术配置向导”降为“确认推荐 → 下一步”。M1 做默认值检测、已有数据只读检测、数据库/Redis/路径字段折叠、文案去术语、AI 可跳过；M2 由 T093 完成三屏 QuickStart。
+
+**硬边界**: 前 12 Phase、T001–T087 复选框与顶部 87/87 一个字不改；T083–T087 证据/边界/勾选不改；Setup 授权、DPAPI、Host/Origin、维护授权保留；折叠不删除，`/setup/advanced` 可达且字段可展开编辑；已有数据检测优先于全新初始化；零真实模型发送；不改冻结 oracle/账本/已完成 operation。
+
+- [x] T088 后端推荐值检测：新增只读接口，返回数据库/Redis/存储推荐值、来源与 `auto_apply`；不自动写入配置或草稿。（FR-001、FR-033；依赖：无；验收：Docker 环境可检测内置依赖；无有效来源时明确不可用；推荐值不含密码/连接串密钥。）预估 0.5–1 人日。
+- [x] T089 已有数据只读检测：只读探测目标数据库表/关键表行与存储根条目，返回 `existing` / `new` / `needs_confirmation` / `unknown`；不创建目录、不建表、不初始化；失败返回安全原因。（FR-007、FR-033；依赖：T088；验收：已有数据不触发初始化；部分数据/旧表需确认；连接失败不得冒充 `new`。）预估 0.5–1 人日。
+- [x] T090 前端字段折叠：`/setup` 主路径展示推荐配置与数据状态；数据库/Redis/路径移入 `/setup/advanced`，高级入口可达、字段可展开编辑；主路径“确认推荐 → 下一步”，已有数据/需确认/未知时禁用自动创建。（FR-001、FR-033；依赖：T088、T089；验收：主路径不出现数据库/Redis/绝对路径必填；高级页可编辑并保存；已有数据无初始化按钮。）预估 1–1.5 人日。
+- [x] T091 文案去术语 + AI 可跳过：替换草稿/校验/Probe/初始化/Business Ready 等关键术语；AI 默认可选，跳过不阻塞基础学习空间创建；主路径明确“以后可以配置 AI”。（FR-001、FR-033；依赖：T090；验收：跳过 AI 不产生 Provider/Probe 请求；文案不把草稿/检测/激活写成安装步骤。）预估 0.5–1 人日。
+- [x] T092 M1 验收：覆盖空环境、已有数据、跳过 AI、高级入口、未授权改配置被拒、刷新恢复六场景；Fake/合成浏览器，不发送真实模型；追加 TCR 记录断言变化；不写验收报告、不 commit/push。（依赖：T088–T091；验收：六场景逐项 pass/fail；未授权写请求被拒；前 12 Phase 与 87/87 未变。）预估 0.5–1 人日。
+- [x] T093 M2 三屏 QuickStart：欢迎 → 准备学习空间 → 进入学习；自动创建草稿、校验、初始化、启用；保留 `/setup/advanced`。依赖 T088–T092；验收：空环境 2 次点击进入学习；已有数据直接进入；失败可恢复。真实 Chrome 最终空环境 2 次点击、`/ready=200`；已有数据 2 次点击直接进入、草稿/修订/操作数量不变；401 与 override 422 保留。预估 2–3 人日。
+
+**M1 补验证据（2026-10-23，STORAGE_ROOT + DEV_MODE）**: 初始化现在创建并写检当前环境的 `STORAGE_ROOT`，容器入口启动时同时兜底 `mkdir -p`；存储辅助覆盖嵌套路径、已存在目录、非法路径与失败安全码。推荐值从 `DEV_MODE` 读取并在主路径预填；保存值等于环境值不要求 ack，手动改值仍 422。真实 Chrome 空环境与当前 `.env`（`DEV_MODE=true`）各完成一次闭环：9 次主路径点击、受控 backend 重启后 `/ready=200`、学习页实际创建科目；刷新恢复、已有数据显示、401 均复验，真实模型/Probe/外部请求均为 0。详细断言与边界见 TCR。M1 当时 T093 仍未勾选；M2 记录见下。
+
+**Phase 13 计数**: 6/6（T088–T093 完成；不改变 87/87）。
+
+**M1 证据（2026-10-23）**: 新增 `GET /api/settings/onboarding/recommendation`（推荐值/来源/`auto_apply`，不写入）与 `GET /api/settings/onboarding/data-state`（`existing`/`new`/`needs_confirmation`/`unknown`，只读）；前端新增 `/setup` 主路径与 `/setup/advanced` 高级入口，数据库/Redis/路径仍可编辑；AI 主路径默认跳过。12 个 T088/T089 单元断言、5 个 HTTP 集成断言、37 个 Setup 前端断言通过；真实 Docker 空环境返回 `new`，临时已有表/文件返回 `existing` 后清理恢复 `new`；无令牌 GET/POST 均 401；真实模型发送 0。
+
+**M2 证据（2026-10-23）**: 新增 `/setup/quickstart` 三屏页面，复用既有 recommendation/data-state/draft/validate/initialize/activate/restart/ready API，前端只在“推荐 available + auto_apply + data_state=new + 无草稿/已存配置”时自动编排；`existing` 只在业务就绪时显示“进入学习”，`needs_confirmation`/`unknown`/推荐不可用均退回高级设置。Docker 增加 `EDUAGENT_CONTAINER_RESTART=1` 显式受控重启通道，激活后由三屏自动等待 `/ready=200`，不要求用户手动重启。最终空环境真实 Chrome：2 次点击、11.0 秒成功、`/ready=200`、1 次受控重启、1 份草稿/1 个修订/1 个操作、0 Probe；已有数据：2 次点击直接进入，准备前后草稿/修订/操作均为 1/1/1。无令牌 GET/POST 均 401；真实 override 差异在草稿保存阶段仍 422 `OVERRIDE_ACKNOWLEDGEMENT_REQUIRED`，三屏未发送 ack。测试：前端 33 文件/200 条（新增 12 条三屏）通过；后端设置单测/集成聚焦 814 条通过；真实模型发送 0。详细记录见 TCR。
+
+**M2 Windows 补验（2026-10-23，onedir/EXE + 真实 Chrome 155 有头）**: Docker 空环境仍为 2 次点击通过；Windows 用当前源码构建的 onedir 包，在隔离 Test 根与临时本地 PostgreSQL/Redis 上复跑，空环境 2 次点击（开始使用 → 创建并进入）、`/ready=200` 于 6.984 秒、成功于 6.986 秒、总耗时 10.586 秒，1 次 Launcher 受控重启，1 草稿/1 修订/1 操作，0 Probe/模型发送，最终进入“我的科目”；已有数据 2 次点击（开始使用 → 进入学习）、成功 0.174 秒、总耗时 2.130 秒，准备前后草稿/修订/操作均为 1/1/1，零配置写入。Windows 无需手工重启，受控重启走 Launcher 的 ControlChannel/RestartCoordinator，不依赖 `EDUAGENT_CONTAINER_RESTART`；Docker 仍依赖该显式 opt-in。无重启通道时 `/restart` 返回 `manual_restart_required`，三屏会停在第 4 步并提示“当前启动方式不能自动完成重启”，用户需手工重启后重开 `/setup/quickstart`，已有数据且业务就绪时显示“进入学习”；该回退本轮未触发。进度提示：四项状态约在 0.171/0.211/1.818/1.877 秒依次出现；最长 5.123 秒静默发生在“等待学习空间就绪”，同期 `/ready` 由 503→连接超时→200，不是前序步骤静止卡住。mypy 复跑仍为 45 条：39 条在 8 个既有/被导入文件，6 条在 T093/M1 新增 `setup_state.py`（188/190/208/210/255/438），不是本轮 Windows 冒烟引入，但属于 T093 变更集尚未清零的静态检查边界；本轮未修。证据：`.cache/t093-windows/evidence-headful-empty`、`.cache/t093-windows/evidence-headful-existing`。
 

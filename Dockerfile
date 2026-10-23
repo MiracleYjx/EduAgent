@@ -40,6 +40,7 @@ COPY alembic.ini ./
 COPY backend ./backend
 COPY migrations ./migrations
 COPY scripts ./scripts
+RUN chmod 0755 /app/scripts/docker-entrypoint.sh
 COPY --from=frontend-build /app/frontend/dist ./settings-ui
 ENV EDUAGENT_RUNTIME_KIND=docker \
     EDUAGENT_DATA_ROOT=/app/storage \
@@ -49,4 +50,6 @@ ENV EDUAGENT_RUNTIME_KIND=docker \
     EDUAGENT_BIND_PORT=8000
 EXPOSE 8000
 # HTTP Bootstrap precedes business prerequisites; /ready still checks business readiness.
+# The entrypoint creates the environment-owned storage root before business assembly.
+ENTRYPOINT ["/app/scripts/docker-entrypoint.sh"]
 CMD ["python", "-m", "uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000", "--no-access-log"]

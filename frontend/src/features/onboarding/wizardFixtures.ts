@@ -51,7 +51,33 @@ export function wizardApi(options: {
   probeFailure?: boolean; initializationFailure?: boolean; pending?: boolean;
   authorizationFailure?: 401 | 403; operationInterrupted?: boolean;
   queueProbe?: boolean; businessReady?: boolean; personalReady?: boolean; draftConflict?: boolean; runningOperation?: boolean;
+  recommendation?: components["schemas"]["SetupRecommendation"];
+  dataState?: components["schemas"]["SetupDataState"];
+  activationConflict?: boolean; restartRequested?: boolean; ready?: boolean;
+  savedConfiguration?: boolean; draftOverrideConflict?: boolean;
 } = {}) {
+  const recommendation = options.recommendation ?? {
+    available: true, auto_apply: true, mode: "docker" as const,
+    business: {
+      database_locator: { host: "postgres", port: 5432, database: "eduagent", user: "eduagent", schema: "public" },
+      redis_locator: { host: "redis", port: 6379, database: 0 },
+      storage_root: "C:/synthetic-test/storage",
+      dev_mode: true,
+    },
+    sources: {
+      "business.database_locator": "process_env",
+      "business.redis_locator": "process_env",
+      "business.storage_root": "process_env",
+      "business.dev_mode": "process_env",
+    },
+    reason: null, warnings: [],
+  };
+  const dataState = options.dataState ?? {
+    status: "new" as const, can_initialize: true, reason: null,
+    database: { status: "empty" as const, table_count: 0, business_tables: [] },
+    storage: { status: "empty" as const, entry_count: 0 },
+    checked_at: "2026-10-18T02:00:00Z",
+  };
   let draft = options.draft ?? null;
   let step = options.step ?? 0;
   let progressRevision = 0;
@@ -68,6 +94,9 @@ export function wizardApi(options: {
     const body = typeof init?.body === "string" ? JSON.parse(init.body) as Record<string, unknown> : {};
     calls.push({ path, method, body });
     if (path === "/setup-ready") return jsonResponse(setupReadyFixture());
+    if (path === "/ready") return options.ready === false
+      ? jsonResponse({ status: "not_ready", service: "backend", failed_check: "assembly", detail: "synthetic not ready" }, 503)
+      : jsonResponse({ status: "ok", service: "backend" });
     if (path.endsWith("/session/exchange")) return jsonResponse(exchangeFixture());
     if (path === "/api/learning/subjects") return options.personalReady ?? options.businessReady
       ? jsonResponse({ subjects: [] }) : jsonResponse(errorFixture("LEARNING_CONFIGURATION_UNAVAILABLE", "未配置"), 503);
@@ -83,11 +112,13 @@ export function wizardApi(options: {
       pending_revision: options.pending && published ? PUBLISHED_ID : null,
     });
     if (path.endsWith("/readiness")) return jsonResponse(report);
+    if (path.endsWith("/onboarding/recommendation")) return jsonResponse(recommendation);
+    if (path.endsWith("/onboarding/data-state")) return jsonResponse(dataState);
     if (path === "/api/settings/") return jsonResponse(settingsViewFixture({
-      active_revision: published && !options.pending ? PUBLISHED_ID : null,
+      active_revision: options.savedConfiguration || (published && !options.pending) ? PUBLISHED_ID : null,
       pending_revision: published && options.pending ? PUBLISHED_ID : null,
-      configuration: published ? "available" : "not_configured",
-      values: published ? draft?.values ?? null : null,
+      configuration: options.savedConfiguration || published ? "available" : "not_configured",
+      values: options.savedConfiguration || published ? draft?.values ?? null : null,
       restart_required: Boolean(published && options.pending),
     }));
     if (path.endsWith("/providers")) return jsonResponse({ providers: [{
@@ -104,6 +135,7 @@ export function wizardApi(options: {
       return jsonResponse({ revision: progressRevision, current_step: step, draft_revision: body.draft_revision, completed_steps: [] });
     }
     if (path.endsWith("/drafts") || (path.includes("/drafts/") && method === "PATCH")) {
+      if (options.draftOverrideConflict) return jsonResponse(errorFixture("OVERRIDE_ACKNOWLEDGEMENT_REQUIRED", "草稿未能保存，请检查字段。"), 422);
       if (options.draftConflict) return jsonResponse(errorFixture("REVISION_CONFLICT", "修订冲突，请重新读取。"), 409);
       draft = draftFixture(Boolean(draft?.values.bindings?.default_llm?.profile_id));
       return jsonResponse(draft, method === "POST" ? 201 : 200);
@@ -146,10 +178,13 @@ export function wizardApi(options: {
     }
     if (path.includes("/operations/")) return jsonResponse(operation);
     if (path.endsWith("/activate")) {
+      if (options.activationConflict) return jsonResponse(errorFixture("OVERRIDE_ACKNOWLEDGEMENT_REQUIRED", "当前运行设置与保存值不同，需要确认。"), 422);
       published = true;
       return jsonResponse({ revision_id: PUBLISHED_ID, status: options.pending ? "pending_restart" : "active", restart_required: Boolean(options.pending), activation_keys: [] }, options.pending ? 202 : 200);
     }
-    if (path.endsWith("/restart")) return jsonResponse({ status: "manual_restart_required", reason: "请手动重启 Test 进程。", pending_revision: options.pending ? PUBLISHED_ID : null });
+    if (path.endsWith("/restart")) return jsonResponse(options.restartRequested
+      ? { status: "restart_requested", reason: "已请求受控重启。", pending_revision: options.pending ? PUBLISHED_ID : null }
+      : { status: "manual_restart_required", reason: "请手动重启 Test 进程。", pending_revision: options.pending ? PUBLISHED_ID : null });
     if (path.endsWith("/diagnostics")) return jsonResponse({ status: "degraded", checks: { postgres: { status: "failed", code: "postgres_unavailable" } }, evaluated_at: "2026-10-18T02:00:00Z" });
     return jsonResponse(errorFixture("NOT_FOUND", "未提供的合成场景。"), 404);
   });

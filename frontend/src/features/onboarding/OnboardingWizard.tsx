@@ -13,7 +13,7 @@ import { referenceFromStatus, type CredentialPurpose } from "./CredentialInput";
 import { ModelStep } from "./ModelStep";
 import { CompletionStep, InitializationStep, ProbeStep } from "./EvidenceSteps";
 
-const steps = ["初态检测", "依赖诊断", "目录与数据库", "模型或跳过 AI", "能力检测", "初始化", "完成与重启"];
+const steps = ["开始检查", "运行环境", "学习资料", "AI 老师（可跳过）", "功能测试", "创建学习空间", "完成"];
 
 interface WizardData {
   onboarding: OnboardingReport;
@@ -125,7 +125,7 @@ function WizardContent({ initial, onReload, onFactsChanged }: {
     if (!mounted.current) return;
     candidateEpoch.current += 1;
     setDraft(saved); setValidation(null); setProbes([]); setPreview(null); setOperation(null); setActivation(null);
-    setMessage("草稿已保存；校验、检测、初始化与激活仍需分别确认。");
+    setMessage("设置已暂存；检查、测试、创建和启用仍需分别确认。");
     // This association is part of an explicit Save button, never a navigation
     // effect. If it fails, keep the successful draft receipt visible for retry.
     await remember(step, saved);
@@ -183,13 +183,13 @@ function WizardContent({ initial, onReload, onFactsChanged }: {
   const refresh = () => { void run(async () => { await readPending(); await facts(); }); };
   const verifiedCapabilities = new Set(probes.filter(item => item.status === "succeeded").map(item => `${item.profile_id}:${item.capability}`));
   const statusItems = [
-    { label: draft ? "草稿已保存" : "草稿尚未保存", success: Boolean(draft) },
-    { label: valid ? "配置校验通过" : "配置尚未校验通过", success: valid },
-    { label: `${verifiedCapabilities.size} 项候选能力 Probe 已验证`, success: probes.some(item => item.status === "succeeded") },
-    { label: operation?.status === "succeeded" ? "初始化已完成（本次操作）" : "初始化未完成", success: operation?.status === "succeeded" },
-    { label: settings.active_revision ? "存在已激活配置" : "配置尚未激活", success: Boolean(settings.active_revision) },
-    { label: settings.pending_revision ? "pending_restart" : "无待重启修订", success: false },
-    { label: report.business.ready ? "Business Ready" : "Business 未就绪", success: report.business.ready },
+    { label: draft ? "设置已暂存" : "设置尚未暂存", success: Boolean(draft) },
+    { label: valid ? "设置检查通过" : "设置尚未检查通过", success: valid },
+    { label: `${verifiedCapabilities.size} 项功能测试已通过`, success: probes.some(item => item.status === "succeeded") },
+    { label: operation?.status === "succeeded" ? "学习空间已创建（本次操作）" : "学习空间尚未创建", success: operation?.status === "succeeded" },
+    { label: settings.active_revision ? "设置已启用" : "设置尚未启用", success: Boolean(settings.active_revision) },
+    { label: settings.pending_revision ? "需要重启后生效" : "无需重启", success: false },
+    { label: report.business.ready ? "可以开始学习" : "还不能开始学习", success: report.business.ready },
   ];
 
   return <Card>
@@ -200,12 +200,12 @@ function WizardContent({ initial, onReload, onFactsChanged }: {
       <Space wrap>{statusItems.map(item => <Tag key={item.label} color={item.success ? "success" : "default"}>{item.label}</Tag>)}</Space>
       {message ? <Alert type="info" showIcon title={message} /> : null}
       {error ? <Alert type="error" showIcon title={`${error.code}：${error.message}`}
-        description="如请求失联，先读取服务端事实核实部分完成结果。未自动重试，不会切换旧 active。" /> : null}
-      {stale && !activation ? <Alert type="warning" showIcon title="草稿基准已变化，禁止静默覆盖"
+        description="如果请求中断，请先重新读取已保存状态；不会自动重试，也不会切换已启用的设置。" /> : null}
+      {stale && !activation ? <Alert type="warning" showIcon title="设置已被其他窗口修改，不能直接覆盖"
         action={<Button disabled={busy || !draft} onClick={() => { void run(async () => {
           const saved = await api.createDraft(token, { base_revision: head, changes: draft!.values, acknowledge_override: acknowledgeOverride });
           await adopt(saved);
-        }); }}>显式另存为当前修订的候选草稿</Button>} /> : null}
+        }); }}>保存为新的设置草稿</Button>} /> : null}
 
       {step === 0 ? <>
         <Descriptions size="small" column={1} items={[
@@ -215,15 +215,15 @@ function WizardContent({ initial, onReload, onFactsChanged }: {
           { key: "step", label: "已保存流程位置", children: progress.current_step },
           { key: "draft", label: "已保存草稿", children: draft?.revision_id ?? "尚无" },
         ]} />
-        <Alert type="info" title="缺数据库、模型或 JWT 时，设置仍可使用"
-          description="环境和启动身份由本机入口决定，本页不切换环境。没有业务账号创建、服务安装或自动付费检测。" />
+        <Alert type="info" title="缺少部分配置时，设置页仍可使用"
+          description="环境和启动身份由本机入口决定，本页不切换环境，也不会自动安装服务或发送付费请求。" />
       </> : null}
       {step === 1 ? <>
-        <Alert type="info" title="依赖诊断针对当前有效配置，不是未激活草稿"
-          description="尚无 active 时缺配置属于真实结果；候选数据库的初始化目标将在预览中独立核对，不能把旧 active 的成功当作草稿已通过。" />
+        <Alert type="info" title="运行环境检查针对已启用的设置"
+          description="缺少配置时会如实显示；新设置的创建目标会在预览中单独核对，旧设置成功不代表新设置已通过。" />
         <Button disabled={busy} onClick={() => { void run(async () => {
           setDiagnostics(await api.runDependencyDiagnostics(token)); await facts();
-        }); }}>显式运行依赖诊断</Button>
+        }); }}>检查运行环境</Button>
         {diagnostics ? <Space orientation="vertical">{Object.entries(diagnostics.checks).map(([name, check]) =>
           <Typography.Text key={name}>{name}：{check.status} · {check.code ?? "无错误码"} · {check.detail ?? ""}</Typography.Text>)}</Space> : null}
       </> : null}
@@ -231,7 +231,7 @@ function WizardContent({ initial, onReload, onFactsChanged }: {
       {step === 3 ? draft ? <ModelStep key={draft.revision_id} draft={draft} catalog={catalog} providers={initial.providers} busy={busy} externalOnly={Boolean(settings.warnings?.includes("EXTERNALLY_MANAGED"))} onSave={save} onCredential={credential}
         onBind={(profileId, reference) => { void run(async () => {
           await adopt(await api.bindCredential(token, draft.revision_id, { profile_id: profileId, credential_ref: reference.credential_id, version: reference.version }));
-        }); }} /> : <Alert type="info" title="请先返回目录与数据库步骤，显式保存基础草稿。" /> : null}
+        }); }} /> : <Alert type="info" title="请先返回“学习资料”步骤，保存基础设置。" /> : null}
       {step === 4 ? <ProbeStep key={draft?.revision_id ?? "none"} draft={draft} probes={probes} busy={busy} onRead={refresh}
         onProbe={(profileId, capability) => { if (draft) void run(async () => {
           candidateEpoch.current += 1;
@@ -260,27 +260,27 @@ function WizardContent({ initial, onReload, onFactsChanged }: {
           await facts();
         }); }}
         onRestart={() => { if (head) void run(async () => { setRestart(await api.restartApplication(token, { expected_revision: head })); }); }}
-        onFinish={() => { void run(async () => { await remember(6); setMessage("向导完成步骤已保存；Business 与逐任务 AI 仍以实时状态为准。"); }); }} /> : null}
+        onFinish={() => { void run(async () => { await remember(6); setMessage("向导完成步骤已保存；是否可以开始学习及 AI 状态仍以实时状态为准。"); }); }} /> : null}
 
       {draft ? <Space orientation="vertical" style={{ width: "100%" }}>
         <Button disabled={busy || stale} onClick={() => { void run(async () => {
           const result = await api.validateDraft(token, draft.revision_id, { expected_revision: draft.parent_revision });
           if (mounted.current) setValidation(result);
-        }); }}>校验已保存草稿</Button>
+        }); }}>检查设置</Button>
         {validation && !validation.valid ? validation.errors?.map(issue => <Alert key={`${issue.field}:${issue.code}`} type="error" title={`${issue.field} · ${issue.code}：${issue.message}`} />) : null}
       </Space> : null}
       <Checkbox checked={acknowledgeOverride} disabled={busy} onChange={event => setAcknowledgeOverride(event.target.checked)}>
-        如后端报告环境覆盖，我确认只修改保存值；覆盖仍可能使其不生效
+        如果提示环境覆盖，我确认只修改保存值；实际是否生效仍以运行环境为准
       </Checkbox>
       {settings.sources && Object.keys(settings.sources).length > 0 ? <Typography.Text type="secondary">
-        当前有效字段来源：{Object.entries(settings.sources).map(([field, source]) => `${field}=${source.source}${source.effective ? "" : "（保存值未生效）"}`).join("；")}
+        当前设置来源：{Object.entries(settings.sources).map(([field, source]) => `${field}=${source.source}${source.effective ? "" : "（保存值未生效）"}`).join("；")}
       </Typography.Text> : null}
       {settings.warnings?.map(warning => <Alert key={warning} type="warning" title={warning} />)}
       <Space wrap>
-        <Button disabled={busy || step === 0} onClick={() => setStep(current => current - 1)}>查看上一步</Button>
-        <Button disabled={busy || step === steps.length - 1} onClick={() => setStep(current => current + 1)}>查看下一步</Button>
-        <Button disabled={busy || step === steps.length - 1} onClick={() => { void run(async () => { await remember(step + 1); }); }}>保存进度并继续</Button>
-        <Button disabled={busy} onClick={onReload}>重新读取已保存状态（丢弃未保存输入）</Button>
+        <Button disabled={busy || step === 0} onClick={() => setStep(current => current - 1)}>上一步</Button>
+        <Button disabled={busy || step === steps.length - 1} onClick={() => setStep(current => current + 1)}>下一步</Button>
+        <Button disabled={busy || step === steps.length - 1} onClick={() => { void run(async () => { await remember(step + 1); }); }}>保存并继续</Button>
+        <Button disabled={busy} onClick={onReload}>重新读取（丢弃未保存输入）</Button>
       </Space>
       <Typography.Text type="secondary">重新授权后只恢复已保存的非敏感事实。离开本步骤会清空秘密输入；刷新不会重放 Probe、迁移、激活或重启。</Typography.Text>
     </Space>

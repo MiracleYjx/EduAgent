@@ -16,7 +16,8 @@ import type { components } from "./generated";
 import type {
   ActivationView, CredentialStatusView, DiagnosticsReport, DraftView,
   InitializationPreview, OnboardingReport, OnboardingView, OperationView,
-  ProbeView, ProviderCatalogEntry, RestartView, ValidationReport,
+  ProbeView, ProviderCatalogEntry, RestartView, SetupDataState, SetupRecommendation,
+  ValidationReport,
 } from "./contracts";
 
 const SETTINGS_PREFIX = "/api/settings";
@@ -214,6 +215,29 @@ export async function getSetupReady(): Promise<SetupReadyResponse> {
   return body;
 }
 
+export async function getBusinessReady(): Promise<boolean> {
+  let response: Response;
+  try {
+    response = await fetch("/ready", {
+      method: "GET",
+      headers: { Accept: "application/json" },
+      cache: "no-store",
+      credentials: "omit",
+      redirect: "error",
+    });
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "AbortError") throw error;
+    throw networkError();
+  }
+  if (response.status === 200) return true;
+  if (response.status === 503) return false;
+  const body = await parseJson(response);
+  if (isApiErrorEnvelope(body)) {
+    throw errorFromEnvelope(body, response.status);
+  }
+  throw fallbackHttpError(response.status);
+}
+
 export async function getReadiness(token: string, signal?: AbortSignal): Promise<ReadinessReport> {
   const response = await request(
     `${SETTINGS_PREFIX}/readiness`,
@@ -231,10 +255,11 @@ export async function getSettingsView(token: string, signal?: AbortSignal): Prom
 type Schema = components["schemas"];
 
 async function settingsJson<T>(
-  token: string, path: string, method = "GET", body?: unknown,
+  token: string, path: string, method = "GET", body?: unknown, signal?: AbortSignal,
 ): Promise<T> {
   const response = await request(`${SETTINGS_PREFIX}${path}`, {
     method,
+    signal,
     ...(method === "GET" ? {} : {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body ?? {}),
@@ -243,8 +268,12 @@ async function settingsJson<T>(
   return await readJson(response) as T;
 }
 
-export const getOnboarding = (token: string) =>
-  settingsJson<OnboardingReport>(token, "/onboarding");
+export const getOnboarding = (token: string, signal?: AbortSignal) =>
+  settingsJson<OnboardingReport>(token, "/onboarding", "GET", undefined, signal);
+export const getSetupRecommendation = (token: string, signal?: AbortSignal) =>
+  settingsJson<SetupRecommendation>(token, "/onboarding/recommendation", "GET", undefined, signal);
+export const getSetupDataState = (token: string, signal?: AbortSignal) =>
+  settingsJson<SetupDataState>(token, "/onboarding/data-state", "GET", undefined, signal);
 export const getProviderCatalog = async (token: string) =>
   (await settingsJson<{ providers: ProviderCatalogEntry[] }>(token, "/providers")).providers;
 export const saveOnboarding = (token: string, body: Schema["OnboardingUpdateRequest"]) =>

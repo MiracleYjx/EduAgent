@@ -707,6 +707,57 @@ class ActivationView(SafeModel):
     activation_keys: tuple[str, ...] = ()
 
 
+class SetupRecommendedBusiness(SafeModel):
+    """T088 推荐的非秘密业务定位；不含密码、引用或连接串。"""
+
+    database_locator: DatabaseLocator | None = None
+    redis_locator: RedisLocator | None = None
+    storage_root: Path | None = None
+    dev_mode: bool = False
+
+
+class SetupRecommendation(SafeModel):
+    """T088 只读推荐值；`auto_apply` 只表示可安全预填，不代表已写入。"""
+
+    available: bool
+    auto_apply: bool = False
+    mode: Literal["docker", "python", "unknown"] = "unknown"
+    business: SetupRecommendedBusiness = Field(default_factory=SetupRecommendedBusiness)
+    sources: dict[str, str] = Field(default_factory=dict)
+    reason: str | None = None
+    warnings: tuple[str, ...] = ()
+
+
+class SetupDatabaseData(SafeModel):
+    """T089 数据库只读探测结果；不暴露连接串或异常原文。"""
+
+    status: Literal["empty", "existing", "needs_confirmation", "unavailable"]
+    table_count: int | None = None
+    business_tables: tuple[str, ...] = ()
+    code: str | None = None
+    detail: str | None = None
+
+
+class SetupStorageData(SafeModel):
+    """T089 存储根只读探测结果；只报告条目数量，不枚举文件名。"""
+
+    status: Literal["empty", "existing", "unavailable"]
+    entry_count: int | None = None
+    code: str | None = None
+    detail: str | None = None
+
+
+class SetupDataState(SafeModel):
+    """T089 首次设置前的已有数据状态；`new` 才允许自动初始化。"""
+
+    status: Literal["new", "existing", "needs_confirmation", "unknown"]
+    can_initialize: bool
+    reason: str | None = None
+    database: SetupDatabaseData
+    storage: SetupStorageData
+    checked_at: datetime
+
+
 class OnboardingView(SafeModel):
     revision: int
     current_step: int = 0

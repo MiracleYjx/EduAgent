@@ -292,3 +292,22 @@ P1 5000仍失败或Probe失败停止，不自动提额/换模型；V1隔离断�
 本地操作员可通过`scripts/recover_learning_operations.py --operation-id <id> --execution-id <原执行id>`复用Setup本地管理授权进行协调。此命令不发送模型请求，不在启动或GET中自动运行；保留请求、计数、成功片段和unknown，确认旧执行停止后才释放遗留槽位。原未知操作不可原地重执行；后续操作仍需独立预览、确认和预算。资料OCR同样提供显式恢复，不能在仍执行或缺少原witness时假称恢复完成。
 
 隔离恢复到新根后，如需协调原运行，可由本地操作者显式传入`--executor-proof-root <原始根>`，只核验原文件对象与内核锁，持锁直到目标事务提交。新根中的复制文件不能代替原始证据；没有原始证明时继续闭锁，不自动搜索其他路径。
+
+## 9. M1/M2 Setup UX 手工验收
+
+本节的 M1 验收使用 Fake/合成数据，不发送真实 Provider、Embedding、Probe 或 Vision 请求；不得修改 T083–T087 的证据、边界或勾选。
+
+### M1（T088–T092，本轮）
+
+只读接口：`GET /api/settings/onboarding/recommendation` 返回推荐值/来源/`auto_apply`；`GET /api/settings/onboarding/data-state` 返回 `new` / `existing` / `needs_confirmation` / `unknown`。两者都不得写配置、草稿、目录或业务表。
+
+1. **空环境**：全新 Docker 项目/空卷启动，访问 `/setup`，确认主路径显示推荐数据库、Redis、存储目录与来源；不应出现数据库主机/端口/Schema 或绝对路径必填。点击“使用推荐配置，下一步”后，草稿已保存且校验通过，进入 `/setup/advanced` 的初始化步骤；不得自动执行初始化。
+2. **已有数据**：目标数据库已有当前业务表/关键行，或存储根已有条目。访问 `/setup`，确认显示“已有数据”，不显示创建/初始化按钮；进入 `/setup/advanced` 也不得自动初始化。
+3. **跳过 AI**：主路径不填 API Key，选择默认“稍后配置 AI”，确认不产生 Provider/Probe 请求；基础学习空间仍可创建并激活。
+4. **高级入口**：直接访问 `/setup/advanced`，确认数据库、Redis、路径字段可展开编辑并保存；主路径不再要求这些字段。
+5. **未授权改配置被拒**：不带 `Setup` 令牌或使用业务 Bearer 调用 `/api/settings/drafts`、`/onboarding/recommendation`、`/onboarding/data-state`，确认 401/403，且不产生草稿/检测副作用。
+6. **刷新恢复**：保存草稿/进度后刷新 `/setup` 或 `/setup/advanced`，确认恢复已保存的非敏感事实；未保存秘密输入不恢复，不自动重放写操作。
+
+### M2（T093，已完成）
+
+三屏 QuickStart 与自动初始化/启用已完成；Windows/Docker 均 2 次点击进入学习，Windows 空环境 `/ready=200`、已有数据零配置写入；证据见 `tasks.md` T093。M2 验收继续保留 Setup 授权、显式计费提示、已有数据不覆盖和 `/setup/advanced` 高级入口。

@@ -4,10 +4,11 @@ import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { App } from "../src/app/App";
+import type { SetupDataState } from "../src/api/contracts";
 import { errorFixture, jsonResponse, settingsViewFixture } from "../src/test/fixtures";
 import { draftFixture, wizardApi } from "../src/features/onboarding/wizardFixtures";
 
-beforeEach(() => window.history.replaceState({}, "", "/setup#code=synthetic-code"));
+beforeEach(() => window.history.replaceState({}, "", "/setup/advanced#code=synthetic-code"));
 afterEach(() => vi.unstubAllGlobals());
 
 async function start(options: Parameters<typeof wizardApi>[0] = {}) {
@@ -20,8 +21,8 @@ async function start(options: Parameters<typeof wizardApi>[0] = {}) {
 describe("T223 first-run flows", () => {
   it("completes an empty Business-only configuration with explicit saves, AI skip, preview and activation", async () => {
     const { api, user } = await start();
-    await user.click(screen.getByRole("button", { name: "查看下一步" }));
-    await user.click(screen.getByRole("button", { name: "查看下一步" }));
+    await user.click(screen.getByRole("button", { name: "下一步" }));
+    await user.click(screen.getByRole("button", { name: "下一步" }));
     for (const [label, value] of [["持久目录（绝对路径）", "C:/synthetic-test/storage"], ["数据库主机", "127.0.0.1"], ["数据库名称", "eduagent_test"], ["数据库用户", "test_runner"], ["Redis 主机", "127.0.0.1"]]) {
       await user.type(screen.getByLabelText(label), value);
     }
@@ -29,25 +30,25 @@ describe("T223 first-run flows", () => {
     await user.click(screen.getByRole("button", { name: "安全保存 数据库 凭据" }));
     await screen.findByText(/数据库 凭据已保存/);
     await user.click(screen.getByRole("button", { name: "保存目录与依赖草稿" }));
-    await screen.findByText("草稿已保存");
-    await user.click(screen.getByRole("button", { name: "查看下一步" }));
-    await user.click(screen.getByRole("button", { name: "跳过 AI 并保存草稿" }));
+    await screen.findByText("设置已暂存");
+    await user.click(screen.getByRole("button", { name: "下一步" }));
+    await user.click(screen.getByRole("button", { name: "暂不配置 AI，继续" }));
     await waitFor(() => expect(api.writes().filter(c => c.path.includes("/drafts/") && c.method === "PATCH")).toHaveLength(1));
-    await user.click(screen.getByRole("button", { name: "校验已保存草稿" }));
-    await screen.findByText("配置校验通过");
-    await user.click(screen.getByRole("button", { name: "查看下一步" }));
+    await user.click(screen.getByRole("button", { name: "检查设置" }));
+    await screen.findByText("设置检查通过");
+    await user.click(screen.getByRole("button", { name: "下一步" }));
     expect(screen.getByText(/尚未配置默认 AI/)).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "查看下一步" }));
+    await user.click(screen.getByRole("button", { name: "下一步" }));
     await user.click(screen.getByRole("button", { name: "预览初始化目标" }));
     await screen.findByText(/test:127.0.0.1:15432/);
     await user.click(screen.getByRole("checkbox", { name: /我已核对上述环境、数据库和迁移目标/ }));
     await user.click(screen.getByRole("button", { name: "确认执行本次初始化" }));
-    await screen.findByText("初始化已完成（本次操作）");
-    await user.click(screen.getByRole("button", { name: "查看下一步" }));
+    await screen.findByText("学习空间已创建（本次操作）");
+    await user.click(screen.getByRole("button", { name: "下一步" }));
     await user.click(screen.getByRole("checkbox", { name: /我确认激活此草稿/ }));
     await user.click(screen.getByRole("button", { name: "确认激活配置" }));
     await screen.findByText(/配置已激活；当前业务和 AI 状态仍以 readiness 为准/);
-    expect(screen.getByText(/Business 尚未就绪/)).toBeInTheDocument();
+    expect(screen.getByText(/还不能开始学习/)).toBeInTheDocument();
     expect(api.writes().filter(c => c.path.endsWith("/probes"))).toHaveLength(0);
     expect(api.writes().filter(c => c.path.endsWith("/initialization/apply"))).toHaveLength(1);
     expect(api.writes().filter(c => c.path.endsWith("/activate"))).toHaveLength(1);
@@ -84,7 +85,7 @@ describe("T223 first-run flows", () => {
     });
     render(createElement(App));
     await screen.findByLabelText("数据库名称");
-    await userEvent.setup().click(screen.getByRole("button", { name: "重新读取已保存状态（丢弃未保存输入）" }));
+    await userEvent.setup().click(screen.getByRole("button", { name: "重新读取（丢弃未保存输入）" }));
     await screen.findByText(/重新读取未成功/);
     expect(screen.queryByRole("button", { name: "保存目录与依赖草稿" })).not.toBeInTheDocument();
     expect(api.writes()).toEqual([]);
@@ -101,8 +102,8 @@ describe("T223 first-run flows", () => {
     await userEvent.setup().click(screen.getByRole("button", { name: "保存目录与依赖草稿" }));
     await waitFor(() => expect(api.writes().some(c => c.path.endsWith("/onboarding"))).toBe(true));
     await act(async () => { completePoll!(jsonResponse({ operation_id: "old-operation", kind: "initialization", status: "succeeded", steps: [], started_at: "2026-10-18T02:00:00Z" })); });
-    await waitFor(() => expect(screen.getByText("初始化未完成")).toBeInTheDocument());
-    expect(screen.queryByText("初始化已完成（本次操作）")).not.toBeInTheDocument();
+    await waitFor(() => expect(screen.getByText("学习空间尚未创建")).toBeInTheDocument());
+    expect(screen.queryByText("学习空间已创建（本次操作）")).not.toBeInTheDocument();
   });
 
   it.each([401, 403] as const)("observes a late HTTP %s even after a sibling read has already failed", async status => {
@@ -156,8 +157,8 @@ describe("T223 first-run flows", () => {
   it("discards unsubmitted secret inputs when leaving and returning to a step", async () => {
     const { api, user } = await start({ step: 2, draft: draftFixture() });
     await user.type(screen.getByLabelText("数据库 密钥输入"), "synthetic-unsubmitted-secret");
-    await user.click(screen.getByRole("button", { name: "查看下一步" }));
-    await user.click(screen.getByRole("button", { name: "查看上一步" }));
+    await user.click(screen.getByRole("button", { name: "下一步" }));
+    await user.click(screen.getByRole("button", { name: "上一步" }));
     expect(screen.getByLabelText("数据库 密钥输入")).toHaveValue("");
     expect(api.writes()).toEqual([]);
   });
@@ -198,9 +199,9 @@ describe("T223 first-run flows", () => {
   });
   it("loads and changes steps without implicit draft, Probe, migration or activation writes", async () => {
     const { api, user } = await start();
-    expect(screen.getByText("草稿尚未保存")).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "查看下一步" }));
-    await screen.findByRole("button", { name: "显式运行依赖诊断" });
+    expect(screen.getByText("设置尚未暂存")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "下一步" }));
+    await screen.findByRole("button", { name: "检查运行环境" });
     expect(api.writes()).toEqual([]);
     expect(screen.queryByRole("link", { name: "进入旧业务（仍需原登录）" })).not.toBeInTheDocument();
   });
@@ -209,16 +210,16 @@ describe("T223 first-run flows", () => {
     const { api } = await start({ step: 2, draft: draftFixture() });
     expect(screen.getByLabelText("数据库名称")).toHaveValue("eduagent_test");
     expect(screen.getByLabelText("持久目录（绝对路径）")).toHaveValue("C:/synthetic-test/storage");
-    expect(screen.getByText("草稿已保存")).toBeInTheDocument();
-    expect(screen.getByText("配置尚未校验通过")).toBeInTheDocument();
+    expect(screen.getByText("设置已暂存")).toBeInTheDocument();
+    expect(screen.getByText("设置尚未检查通过")).toBeInTheDocument();
     expect(api.writes()).toEqual([]);
   });
 
   it("shows validation field errors without declaring Probe or Business success", async () => {
     const { api, user } = await start({ step: 2, draft: draftFixture(), invalid: true });
-    await user.click(screen.getByRole("button", { name: "校验已保存草稿" }));
+    await user.click(screen.getByRole("button", { name: "检查设置" }));
     expect(await screen.findByText(/business.database_password_ref.*CREDENTIAL_UNAVAILABLE/)).toBeInTheDocument();
-    expect(screen.getByText("配置尚未校验通过")).toBeInTheDocument();
+    expect(screen.getByText("设置尚未检查通过")).toBeInTheDocument();
     expect(api.writes().filter(c => c.path.endsWith("/activate"))).toHaveLength(0);
     expect(api.writes().filter(c => c.path.endsWith("/probes"))).toHaveLength(0);
   });
@@ -255,10 +256,10 @@ describe("T223 first-run flows", () => {
       await user.click(screen.getByRole("button", { name: "检测 text" }));
       await waitFor(() => expect(api.writes().filter(c => c.path.endsWith("/probes"))).toHaveLength(attempt + 1));
     }
-    expect(screen.getByText("1 项候选能力 Probe 已验证")).toBeInTheDocument();
+    expect(screen.getByText("1 项功能测试已通过")).toBeInTheDocument();
     await user.click(screen.getByRole("checkbox", { name: /我确认本次 json_object 检测可能收费/ }));
     await user.click(screen.getByRole("button", { name: "检测 json_object" }));
-    expect(await screen.findByText("2 项候选能力 Probe 已验证")).toBeInTheDocument();
+    expect(await screen.findByText("2 项功能测试已通过")).toBeInTheDocument();
     expect(api.writes().filter(c => c.path.endsWith("/activate"))).toHaveLength(0);
   });
 
@@ -286,7 +287,7 @@ describe("T223 first-run flows", () => {
     await user.click(screen.getByRole("checkbox", { name: /我已核对上述环境、数据库和迁移目标/ }));
     await user.click(apply);
     expect(await screen.findByText(/MIGRATION_FAILED/)).toBeInTheDocument();
-    expect(screen.getByText("初始化未完成")).toBeInTheDocument();
+    expect(screen.getByText("学习空间尚未创建")).toBeInTheDocument();
     expect(api.writes().filter(c => c.path.endsWith("/activate"))).toHaveLength(0);
   });
 
@@ -305,7 +306,7 @@ describe("T223 first-run flows", () => {
     expect(screen.queryByRole("button", { name: "确认执行本次初始化" })).not.toBeInTheDocument();
     options.initializationFailure = false;
     await confirmOne();
-    await screen.findByText("初始化已完成（本次操作）");
+    await screen.findByText("学习空间已创建（本次操作）");
     expect(api.writes().filter(c => c.path.endsWith("/initialization/apply"))).toHaveLength(2);
     expect(api.writes().filter(c => c.path.endsWith("/initialization/preview"))).toHaveLength(2);
     expect(api.writes().filter(c => c.path.endsWith("/activate"))).toHaveLength(0);
@@ -331,7 +332,102 @@ describe("T223 first-run flows", () => {
     expect(api.writes().filter(c => c.path.endsWith("/restart"))).toHaveLength(1);
   });
 
-  it.each(["/#code=synthetic-root-code", "/setup#code=synthetic-setup-code"])("exchanges %s once even with StrictMode effects", async path => {
+  it("shows the recommended setup without advanced database fields", async () => {
+    window.history.replaceState({}, "", "/setup#code=synthetic-code");
+    const api = wizardApi();
+    render(createElement(App));
+
+    await screen.findByRole("heading", { name: "开始使用 EduAgent" });
+    expect(await screen.findByText("学习资料保存位置")).toBeInTheDocument();
+    expect(screen.getByText("C:/synthetic-test/storage")).toBeInTheDocument();
+    expect(screen.queryByLabelText("数据库主机")).not.toBeInTheDocument();
+    expect(screen.getByText(/AI 老师可以稍后配置/)).toBeInTheDocument();
+    expect(api.writes()).toEqual([]);
+  });
+
+  it("creates a validated draft from the recommendation and opens advanced setup", async () => {
+    window.history.replaceState({}, "", "/setup#code=synthetic-code");
+    const api = wizardApi();
+    render(createElement(App));
+    await screen.findByRole("heading", { name: "开始使用 EduAgent" });
+    const user = userEvent.setup();
+
+    await user.click(screen.getByRole("button", { name: "使用推荐配置，下一步" }));
+
+    await waitFor(() => expect(window.location.pathname).toBe("/setup/advanced"));
+    expect(api.writes().filter(call => call.path.endsWith("/drafts") && call.method === "POST")).toHaveLength(1);
+    const create = api.writes().find(call => call.path.endsWith("/drafts") && call.method === "POST");
+    const changes = create?.body.changes as { business?: { dev_mode?: boolean } } | undefined;
+    expect(changes?.business?.dev_mode).toBe(true);
+    expect(api.writes().filter(call => call.path.endsWith("/validate"))).toHaveLength(1);
+    expect(api.writes().filter(call => call.path.endsWith("/onboarding") && call.method === "PATCH")).toHaveLength(1);
+  });
+
+  it("opens advanced setup from the main path", async () => {
+    window.history.replaceState({}, "", "/setup#code=synthetic-code");
+    wizardApi();
+    render(createElement(App));
+    await screen.findByRole("heading", { name: "开始使用 EduAgent" });
+    const user = userEvent.setup();
+
+    await user.click(screen.getByRole("button", { name: "高级设置" }));
+
+    await waitFor(() => expect(window.location.pathname).toBe("/setup/advanced"));
+    expect(await screen.findByRole("heading", { name: "高级设置" })).toBeInTheDocument();
+  });
+
+  it("does not offer automatic creation when existing data is detected", async () => {
+    const existingState: SetupDataState = {
+      status: "existing", can_initialize: false, reason: "EXISTING_DATA_DETECTED",
+      database: { status: "existing", table_count: 3, business_tables: ["subjects"] },
+      storage: { status: "existing", entry_count: 2 },
+      checked_at: "2026-10-18T02:00:00Z",
+    };
+    window.history.replaceState({}, "", "/setup#code=synthetic-code");
+    const api = wizardApi({ dataState: existingState });
+    render(createElement(App));
+
+    expect(await screen.findByText("检测到已有学习数据")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "使用推荐配置，下一步" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "高级设置" })).toBeInTheDocument();
+    expect(api.writes()).toEqual([]);
+  });
+
+  it("recovers a saved draft from the main path without overwriting it", async () => {
+    window.history.replaceState({}, "", "/setup#code=synthetic-code");
+    const api = wizardApi({ draft: draftFixture() });
+    render(createElement(App));
+
+    expect(await screen.findByText("检测到已暂存的设置")).toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: "继续配置" }).length).toBeGreaterThan(0);
+    expect(screen.queryByRole("button", { name: "使用推荐配置，下一步" })).not.toBeInTheDocument();
+    expect(api.writes()).toEqual([]);
+  });
+
+  it("uses conditional setup copy when no recommendation is available", async () => {
+    const unavailable: SetupDataState = {
+      status: "unknown", can_initialize: false, reason: "DATABASE_NOT_CONFIGURED",
+      database: { status: "unavailable", code: "DATABASE_NOT_CONFIGURED", business_tables: [] },
+      storage: { status: "unavailable", code: "STORAGE_NOT_CONFIGURED" },
+      checked_at: "2026-10-18T02:00:00Z",
+    };
+    window.history.replaceState({}, "", "/setup#code=synthetic-code");
+    wizardApi({
+      recommendation: {
+        available: false, auto_apply: false, mode: "python", business: { dev_mode: false },
+        sources: {}, reason: "DATABASE_NOT_CONFIGURED", warnings: [],
+      },
+      dataState: unavailable,
+    });
+    render(createElement(App));
+
+    await screen.findByRole("heading", { name: "开始使用 EduAgent" });
+    expect(screen.getByText(/还没有检测到完整的自动配置/)).toBeInTheDocument();
+    expect(screen.queryByText(/已经为这台电脑检测好推荐配置/)).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "高级设置" })).toBeInTheDocument();
+  });
+
+  it.each(["/#code=synthetic-root-code", "/setup/advanced#code=synthetic-setup-code"])("exchanges %s once even with StrictMode effects", async path => {
     window.history.replaceState({}, "", path);
     const api = wizardApi();
     vi.stubGlobal("fetch", (input: RequestInfo | URL, init?: RequestInit) => String(input) === "/api/learning/subjects"

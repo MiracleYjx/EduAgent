@@ -245,6 +245,7 @@ def test_initialization_is_associated_with_draft_and_confirmed_only_once(flow):
     assert applied.status_code == 202, applied.text
     operation = _wait_operation(client, token, applied.json()["operation_id"])
     assert operation["status"] == "succeeded"
+    assert flow["profile"].storage_root.is_dir()
     repeated = client.post(
         "/api/settings/initialization/apply",
         json={"confirmation_id": preview["preview_id"], "expected_revision": draft["revision_id"]},

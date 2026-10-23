@@ -51,6 +51,8 @@ services:
       DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-eduagent}@postgres:5432/${POSTGRES_DB:-eduagent}
       REDIS_URL: redis://redis:6379/0
       DEV_MODE: ${DEV_MODE:-false}
+      # Explicit opt-in for the QuickStart controlled restart; Compose restarts the container.
+      EDUAGENT_CONTAINER_RESTART: ${EDUAGENT_CONTAINER_RESTART:-1}
       GRADIO_ANALYTICS_ENABLED: "false"
     volumes:
       - storage_data:/app/storage

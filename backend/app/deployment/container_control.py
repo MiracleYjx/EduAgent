@@ -8,11 +8,12 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import signal
 import socket
 import stat
 import struct
 import threading
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Callable, Mapping
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any
@@ -32,6 +33,43 @@ from backend.app.deployment.local_management import (
 from backend.app.schemas.settings import RuntimeKind
 
 _LIMIT = 8192
+CONTAINER_RESTART_ENV = "EDUAGENT_CONTAINER_RESTART"
+_TRUE_VALUES = frozenset({"1", "true", "yes", "on"})
+
+
+def container_restart_enabled(environ: Mapping[str, str] | None = None) -> bool:
+    """Only an explicit deployment opt-in may terminate this process."""
+
+    source = os.environ if environ is None else environ
+    return source.get(CONTAINER_RESTART_ENV, "").strip().lower() in _TRUE_VALUES
+
+
+def container_restart_channel(
+    *, terminate: Callable[[], None], delay: float = 0.75
+) -> Callable[[], str]:
+    """Return a single-use restart channel that lets the HTTP response flush."""
+
+    lock = threading.Lock()
+    requested = False
+
+    def request() -> str:
+        nonlocal requested
+        with lock:
+            if requested:
+                return "accepted"
+            requested = True
+        timer = threading.Timer(delay, terminate)
+        timer.daemon = True
+        timer.start()
+        return "accepted"
+
+    return request
+
+
+def _terminate_container() -> None:
+    """Ask Uvicorn to drain and exit; Compose's restart policy starts a new process."""
+
+    os.kill(os.getpid(), signal.SIGTERM)
 
 
 def dispatch(authority: LocalManagementAuthority, message: object) -> dict[str, object]:
@@ -175,6 +213,11 @@ def install_container_control(app: FastAPI) -> None:
     settings = getattr(context, "settings", None)
     if settings is None or settings.runtime_kind != RuntimeKind.DOCKER:
         return
+    if container_restart_enabled():
+        runtime = getattr(app.state, "settings_runtime", None)
+        bind = getattr(runtime, "bind_restart_channel", None)
+        if callable(bind):
+            bind(container_restart_channel(terminate=_terminate_container))
     original = app.router.lifespan_context
 
     @asynccontextmanager

@@ -48,6 +48,8 @@ from backend.app.schemas.settings import (
     OperationView,
     ProviderProfile,
     SettingsView,
+    SetupDataState,
+    SetupRecommendation,
     ValidationReport,
 )
 from backend.app.services.settings import readiness
@@ -74,6 +76,10 @@ from backend.app.services.settings.runtime_snapshot import (
     RuntimeSnapshotService,
     SnapshotReferenceIndex,
     legacy_run_index,
+)
+from backend.app.services.settings.storage_preparation import (
+    StoragePreparationError,
+    prepare_storage_root,
 )
 
 if TYPE_CHECKING:
@@ -490,6 +496,7 @@ class _InitializationPlan:
     target_head: str | None
     database_url: str
     locator: Any
+    storage_root: Path | None
     expires_at: datetime
     allowed: bool
 
@@ -508,6 +515,8 @@ class InitializationService:
         read_head: Callable[[str], str | None] | None = None,
         operations: OperationRegistry | None = None,
         verify_database: Callable[[str, Mapping[str, Any]], None] | None = None,
+        storage_root: Path | None = None,
+        prepare_storage: Callable[[Path], object] | None = None,
     ) -> None:
         self._config = config
         self._environment = environment
@@ -520,6 +529,8 @@ class InitializationService:
         self._verify_database = verify_database or (
             lambda url, expected: verify_database_url(url, expected=expected)
         )
+        self._storage_root = storage_root
+        self._prepare_storage = prepare_storage
         self._plans: dict[UUID, _InitializationPlan] = {}
         self._lock = threading.RLock()
         self._active_operation: UUID | None = None
@@ -569,6 +580,7 @@ class InitializationService:
                 target_head=target_head,
                 database_url=url,
                 locator=locator,
+                storage_root=self._storage_root,
                 expires_at=expires_at,
                 allowed=allowed,
             )
@@ -629,6 +641,23 @@ class InitializationService:
                 if readiness.discover_migration_head() != plan.target_head:
                     self._operations.mark(operation_id, "failed", error_code="REVISION_CONFLICT")
                     return
+                if plan.storage_root is not None:
+                    try:
+                        (self._prepare_storage or prepare_storage_root)(
+                            plan.storage_root
+                        )
+                    except StoragePreparationError as error:
+                        self._operations.mark(
+                            operation_id, "failed", error_code=error.code
+                        )
+                        return
+                    except Exception:  # noqa: BLE001 - 文件系统失败不得泄出原文
+                        self._operations.mark(
+                            operation_id,
+                            "failed",
+                            error_code="STORAGE_PREPARATION_FAILED",
+                        )
+                        return
                 if self._verify_database is not None:
                     self._verify_database(
                         plan.database_url,
@@ -839,6 +868,17 @@ class SettingsRuntime:
         if self.profile is None:
             raise SettingsManagementError("ENVIRONMENT_PROFILE_UNAVAILABLE", status_code=503)
         return self.profile
+
+    def bind_restart_channel(self, channel: Callable[[], str]) -> None:
+        """Bind one startup-owned restart channel; never replace an existing one.
+
+        The Windows Launcher injects this through ``build_settings_runtime``;
+        the Docker entrypoint binds its explicitly enabled channel after the
+        application factory has run. HTTP requests cannot reach this method.
+        """
+
+        if self._restart_channel is None:
+            self._restart_channel = channel
 
     @property
     def snapshots(self) -> RuntimeSnapshotService:
@@ -1711,6 +1751,9 @@ class SettingsRuntime:
                 )
 
             profile = self._require_profile()
+            from backend.app.core.environment import environment_path
+
+            storage_root = environment_path(profile, "storage")
             test_instance_id = None
             if (
                 str(getattr(profile, "environment", "")) == "test"
@@ -1733,6 +1776,7 @@ class SettingsRuntime:
                 read_head=self._read_head,
                 operations=self._operations,
                 verify_database=self._initialization_verify or verify,
+                storage_root=storage_root,
             )
         return self._initialization
 
@@ -1779,6 +1823,32 @@ class SettingsRuntime:
 
     def onboarding(self) -> OnboardingView:
         return self._onboarding.read()
+
+    def setup_recommendation(self) -> SetupRecommendation:
+        """T088: project non-secret runtime defaults; never write a draft."""
+
+        from backend.app.services.settings.setup_state import (
+            build_setup_recommendation,
+        )
+
+        profile = self.profile
+        return build_setup_recommendation(
+            active=self._current_values(),
+            runtime_kind=getattr(profile, "runtime_kind", "unknown"),
+            environ=dict(os.environ),
+            profile_database=getattr(profile, "database_locator", None),
+            profile_redis=getattr(profile, "redis_locator", None),
+            profile_storage=getattr(profile, "storage_root", None),
+        )
+
+    def setup_data_state(self) -> SetupDataState:
+        """T089: read-only existing-data state; never initialize or create paths."""
+
+        from backend.app.services.settings.setup_state import (
+            detect_setup_data_state,
+        )
+
+        return detect_setup_data_state(recommendation=self.setup_recommendation())
 
     def onboarding_draft(self, draft_revision: UUID | None) -> Any:
         if draft_revision is None:

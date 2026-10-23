@@ -6,7 +6,7 @@ import { useSettingsSession } from "../auth/SettingsSession";
 
 const navigationItems: MenuProps["items"] = [
   { key: "/", label: "我的科目" },
-  { key: "/setup", label: "首次设置" },
+  { key: "/setup/quickstart", label: "首次设置" },
   { key: "/settings", label: "设置概览" },
   { key: "/diagnostics", label: "基础诊断" },
 ];
@@ -22,7 +22,7 @@ export function AppShell() {
   const navigate = useNavigate();
   const session = useSettingsSession();
   const selectedKey =
-    ["/setup", "/settings", "/diagnostics", "/business"].find((path) =>
+    ["/setup/quickstart", "/setup", "/settings", "/diagnostics", "/business"].find((path) =>
       location.pathname.startsWith(path),
     ) ?? "/";
   const sessionLabel = sessionLabels[session.status];

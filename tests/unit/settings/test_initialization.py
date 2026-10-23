@@ -16,8 +16,10 @@ from backend.app.schemas.settings import (
     DatabaseLocator,
 )
 from backend.app.services.settings import database_initialization as runner
+from backend.app.services.settings import readiness
 from backend.app.services.settings.config_service import ConfigService
 from backend.app.services.settings.management import InitializationService
+from backend.app.services.settings.storage_preparation import StoragePreparationError
 
 
 class _Result:
@@ -176,7 +178,15 @@ def test_alembic_runner_uses_programmatic_connection_without_env(
     assert "secret" not in str(calls)
 
 
-def _service(tmp_path: Path, *, verify: Any, migrator: Any) -> tuple[InitializationService, ConfigService, UUID]:
+def _service(
+    tmp_path: Path,
+    *,
+    verify: Any,
+    migrator: Any,
+    read_head: Any = None,
+    storage_root: Path | None = None,
+    prepare_storage: Any = None,
+) -> tuple[InitializationService, ConfigService, UUID]:
     environment_id = uuid4()
     config = ConfigService(tmp_path, environment_id)
     values = ConfigurationValues.model_validate(
@@ -196,8 +206,10 @@ def _service(tmp_path: Path, *, verify: Any, migrator: Any) -> tuple[Initializat
         environment="development",
         database_url=lambda _values: "postgresql+psycopg://synthetic@127.0.0.1:1/synthetic",
         migrator=migrator,
-        read_head=lambda _url: "previous-head",
+        read_head=read_head or (lambda _url: "previous-head"),
         verify_database=verify,
+        storage_root=storage_root,
+        prepare_storage=prepare_storage,
     )
     return service, config, draft.revision_id
 
@@ -228,6 +240,62 @@ def test_verification_failure_is_a_failed_operation_and_keeps_pointer(
         manifest = config.read_manifest()
         assert manifest.active_revision is None
         assert manifest.pending_restart_revision is None
+    finally:
+        config.close()
+
+
+def test_initialization_creates_nested_storage_root_before_success(
+    tmp_path: Path,
+) -> None:
+    root = tmp_path / "custom" / "nested" / "storage"
+    heads = {"value": "previous-head"}
+
+    def migrate(_url: str) -> None:
+        heads["value"] = readiness.discover_migration_head()
+
+    service, config, draft_id = _service(
+        tmp_path,
+        verify=lambda _url, _expected: None,
+        migrator=migrate,
+        read_head=lambda _url: heads["value"],
+        storage_root=root,
+    )
+    try:
+        preview = service.preview(draft_id)
+        operation = service.apply(preview.preview_id, draft_id)
+        final = _wait(service, operation.operation_id)
+        assert final.status == "succeeded"
+        assert root.is_dir()
+        assert list(root.glob(".readiness-init-*")) == []
+    finally:
+        config.close()
+
+
+def test_storage_preparation_failure_is_safe_and_does_not_migrate(
+    tmp_path: Path,
+) -> None:
+    calls: list[str] = []
+
+    def fail_storage(_root: Path) -> None:
+        raise StoragePreparationError("STORAGE_ROOT_UNAVAILABLE")
+
+    def migrate(url: str) -> None:
+        calls.append(url)
+
+    service, config, draft_id = _service(
+        tmp_path,
+        verify=lambda _url, _expected: None,
+        migrator=migrate,
+        storage_root=tmp_path / "storage",
+        prepare_storage=fail_storage,
+    )
+    try:
+        preview = service.preview(draft_id)
+        operation = service.apply(preview.preview_id, draft_id)
+        final = _wait(service, operation.operation_id)
+        assert final.status == "failed"
+        assert final.error_code == "STORAGE_ROOT_UNAVAILABLE"
+        assert calls == []
     finally:
         config.close()
 

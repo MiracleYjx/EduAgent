@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Alert,
   Button,
@@ -94,6 +95,7 @@ function ReadinessSummary({ report }: { report: ReadinessReport }) {
 }
 
 export function OnboardingPage() {
+  const navigate = useNavigate();
   const session = useSettingsSession();
   const publicSetup = useApiResource(getSetupReady, "setup-ready");
   const readiness = useSessionResource(getReadiness);
@@ -113,11 +115,10 @@ export function OnboardingPage() {
     <div className="page-stack">
       <Space orientation="vertical" size={6}>
         <Typography.Title level={2} className="page-heading">
-          首次设置
+          高级设置
         </Typography.Title>
         <Typography.Paragraph className="page-description">
-          完成目录、依赖、模型与初始化设置；草稿、校验、检测、激活、待重启、
-          Business 和逐任务 AI 状态始终分开。所有持久变更与可能收费的操作均需明确触发。
+          这里可以展开调整数据库、Redis、资料目录和 AI。普通使用请返回“开始使用”；所有持久变更与可能收费的操作仍需明确触发。
         </Typography.Paragraph>
       </Space>
 
@@ -138,6 +139,8 @@ export function OnboardingPage() {
           description="当前页面可以读取分层就绪与已保存的非敏感设置概览。"
         />
       )}
+
+      <Button onClick={() => navigate("/setup/quickstart")}>返回开始使用</Button>
 
       <Card
         title="Setup 状态"

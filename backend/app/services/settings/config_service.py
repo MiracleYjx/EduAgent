@@ -680,6 +680,58 @@ class ConfigService:
             raise ConfigServiceError("ENVIRONMENT_MISMATCH", stage="schema")
         return parsed
 
+    def _process_env_overrides(
+        self, values: ConfigurationValues, resolved: ResolvedConfiguration
+    ) -> set[str]:
+        """Return process-env fields whose saved value actually differs.
+
+        Provenance alone is not an override: Docker commonly supplies the same
+        storage/JWT values that the setup recommendation pre-fills. If the saved
+        value equals the resolved environment value, the draft needs no extra
+        acknowledgement. Unparseable or missing comparisons remain conservative.
+        """
+
+        if resolved.errors:
+            return {
+                field
+                for field, source in resolved.sources.items()
+                if source.source == "process_env"
+            }
+        try:
+            effective = ConfigurationValues.model_validate(resolved.segments)
+        except ValidationError:
+            return {
+                field
+                for field, source in resolved.sources.items()
+                if source.source == "process_env"
+            }
+
+        saved_document = values.model_dump(mode="json")
+        effective_document = effective.model_dump(mode="json")
+        missing = object()
+
+        def value_at(document: dict[str, Any], field: str) -> Any:
+            current: Any = document
+            for part in field.split("."):
+                if not isinstance(current, dict) or part not in current:
+                    return missing
+                current = current[part]
+            return current
+
+        overridden: set[str] = set()
+        for field, source in resolved.sources.items():
+            if source.source != "process_env":
+                continue
+            saved_value = value_at(saved_document, field)
+            environment_value = value_at(effective_document, field)
+            if (
+                saved_value is missing
+                or environment_value is missing
+                or saved_value != environment_value
+            ):
+                overridden.add(field)
+        return overridden
+
     def create_draft(
         self, values: ConfigurationValues | dict, *, expected_revision: UUID | None,
         process_env: dict[str, str] | None = None, acknowledge_override: bool = False,
@@ -689,7 +741,7 @@ class ConfigService:
             self._expected(expected_revision)
             parsed = self._values(values)
             resolved = resolve_configuration(saved=parsed.model_dump(mode="json"), process_env=process_env)
-            overridden = {field for field, source in resolved.sources.items() if source.source == "process_env"}
+            overridden = self._process_env_overrides(parsed, resolved)
             if overridden and not acknowledge_override:
                 raise ConfigServiceError("OVERRIDE_ACKNOWLEDGEMENT_REQUIRED", stage="draft")
             sources = dict(resolved.sources)
@@ -758,7 +810,7 @@ class ConfigService:
             resolved = resolve_configuration(saved=values.model_dump(mode="json"), process_env=process_env)
             if resolved.errors:
                 raise ConfigServiceError("INVALID_CONFIGURATION", stage="activation")
-            if any(source.source == "process_env" for source in resolved.sources.values()) and not acknowledge_override:
+            if self._process_env_overrides(values, resolved) and not acknowledge_override:
                 raise ConfigServiceError("OVERRIDE_ACKNOWLEDGEMENT_REQUIRED", stage="activation")
             self._validate_business(values)
             old = self.get_revision(manifest.active_revision) if manifest.active_revision else None

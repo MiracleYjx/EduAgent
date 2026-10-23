@@ -232,6 +232,30 @@ def test_env_override_requires_ack_and_never_persists_override(repository):
     assert "90" not in (root / "config/drafts" / f"{draft.revision_id}.json").read_text(encoding="utf-8").split('"jwt_expire_minutes":')[1].split(",")[0]
 
 
+def test_same_process_env_value_is_not_an_override(repository):
+    service, root, env_id = repository
+    doc = values(root, env_id)
+    env = {
+        "JWT_EXPIRE_MINUTES": "60",
+        "STORAGE_ROOT": str(root / "storage"),
+    }
+    draft = service.create_draft(doc, expected_revision=None, process_env=env)
+    assert draft.values.business.jwt_expire_minutes == 60
+    assert draft.source_metadata["business.jwt_expire_minutes"].source == "process_env"
+    service.validate(draft.revision_id, expected_revision=None, process_env=env)
+    active = service.activate(draft.revision_id, expected_revision=None, process_env=env)
+    assert active.values.business.jwt_expire_minutes == 60
+
+
+def test_missing_process_env_value_is_not_an_override(repository):
+    service, root, env_id = repository
+    draft = service.create_draft(values(root, env_id), expected_revision=None, process_env={})
+    assert not any(
+        source.source == "process_env"
+        for source in draft.source_metadata.values()
+    )
+
+
 def test_enabled_ai_cannot_bypass_later_probe_and_index_gate(repository):
     service, root, env_id = repository
     doc = values(root, env_id)

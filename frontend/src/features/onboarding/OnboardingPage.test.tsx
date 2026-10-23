@@ -32,7 +32,7 @@ function urlOf(input: RequestInfo | URL): string {
 }
 
 beforeEach(() => {
-  window.history.replaceState({}, "", "/setup");
+  window.history.replaceState({}, "", "/setup/advanced");
 });
 
 afterEach(() => {
@@ -58,7 +58,7 @@ describe("OnboardingPage", () => {
   });
 
   it("clears #code before exchange and keeps the token out of storage", async () => {
-    window.history.replaceState({}, "", "/setup#code=synthetic-one-time-code");
+    window.history.replaceState({}, "", "/setup/advanced#code=synthetic-one-time-code");
     let hashAtExchange = "not-called";
     const fetchMock = stubFetch(async (input, init) => {
       const url = urlOf(input);
@@ -115,7 +115,7 @@ describe("OnboardingPage", () => {
   });
 
   it("shows a safe error when the one-time code is expired", async () => {
-    window.history.replaceState({}, "", "/setup#code=expired-code");
+    window.history.replaceState({}, "", "/setup/advanced#code=expired-code");
     stubFetch(async (input) => {
       const url = urlOf(input);
       if (url === "/setup-ready") {

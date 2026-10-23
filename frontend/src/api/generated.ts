@@ -326,6 +326,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/settings/onboarding/recommendation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 首次设置推荐值（只读）
+         * @description T088: only project runtime defaults; never create a draft or write config.
+         */
+        get: operations["setup_recommendation_api_settings_onboarding_recommendation_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/settings/onboarding/data-state": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 已有数据只读检测
+         * @description T089: bounded read-only probes; never create, migrate or initialize.
+         */
+        get: operations["setup_data_state_api_settings_onboarding_data_state_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/settings/onboarding": {
         parameters: {
             query?: never;
@@ -4572,6 +4612,50 @@ export interface components {
             /** Static Resources */
             static_resources: string;
         };
+        /**
+         * SetupDataState
+         * @description T089 首次设置前的已有数据状态；`new` 才允许自动初始化。
+         */
+        SetupDataState: {
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "new" | "existing" | "needs_confirmation" | "unknown";
+            /** Can Initialize */
+            can_initialize: boolean;
+            /** Reason */
+            reason?: string | null;
+            database: components["schemas"]["SetupDatabaseData"];
+            storage: components["schemas"]["SetupStorageData"];
+            /**
+             * Checked At
+             * Format: date-time
+             */
+            checked_at: string;
+        };
+        /**
+         * SetupDatabaseData
+         * @description T089 数据库只读探测结果；不暴露连接串或异常原文。
+         */
+        SetupDatabaseData: {
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "empty" | "existing" | "needs_confirmation" | "unavailable";
+            /** Table Count */
+            table_count?: number | null;
+            /**
+             * Business Tables
+             * @default []
+             */
+            business_tables: string[];
+            /** Code */
+            code?: string | null;
+            /** Detail */
+            detail?: string | null;
+        };
         /** SetupReadiness */
         SetupReadiness: {
             /** Ready */
@@ -4594,6 +4678,69 @@ export interface components {
             setup: components["schemas"]["SetupAvailability"];
             /** Failed Check */
             failed_check?: string | null;
+            /** Detail */
+            detail?: string | null;
+        };
+        /**
+         * SetupRecommendation
+         * @description T088 只读推荐值；`auto_apply` 只表示可安全预填，不代表已写入。
+         */
+        SetupRecommendation: {
+            /** Available */
+            available: boolean;
+            /**
+             * Auto Apply
+             * @default false
+             */
+            auto_apply: boolean;
+            /**
+             * Mode
+             * @default unknown
+             * @enum {string}
+             */
+            mode: "docker" | "python" | "unknown";
+            business?: components["schemas"]["SetupRecommendedBusiness"];
+            /** Sources */
+            sources?: {
+                [key: string]: string;
+            };
+            /** Reason */
+            reason?: string | null;
+            /**
+             * Warnings
+             * @default []
+             */
+            warnings: string[];
+        };
+        /**
+         * SetupRecommendedBusiness
+         * @description T088 推荐的非秘密业务定位；不含密码、引用或连接串。
+         */
+        SetupRecommendedBusiness: {
+            database_locator?: components["schemas"]["DatabaseLocator"] | null;
+            redis_locator?: components["schemas"]["RedisLocator"] | null;
+            /** Storage Root */
+            storage_root?: string | null;
+            /**
+             * Dev Mode
+             * @default false
+             */
+            dev_mode: boolean;
+        };
+        /**
+         * SetupStorageData
+         * @description T089 存储根只读探测结果；只报告条目数量，不枚举文件名。
+         */
+        SetupStorageData: {
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "empty" | "existing" | "unavailable";
+            /** Entry Count */
+            entry_count?: number | null;
+            /** Code */
+            code?: string | null;
             /** Detail */
             detail?: string | null;
         };
@@ -6004,6 +6151,136 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProbeView"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    setup_recommendation_api_settings_onboarding_recommendation_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SetupRecommendation"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    setup_data_state_api_settings_onboarding_data_state_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SetupDataState"];
                 };
             };
             /** @description Unauthorized */

@@ -10,6 +10,10 @@
 
 **Status**: Architecture / Development quality gate approved；T001–T087均已勾选（87/87）。2026-10-23用户明确批准T083、T084、T085、T087按“先验收、先使用、发现问题再优化”的带边界口径勾选，T086保持已勾选；勾选不等于全部pass。4条历史outcome_unknown保留，完整浏览器闭环未完整验证，DOCX两平台未重测，详见下列已知边界。G1既有真实样例仍有oracle_pass=false（ANSWER_ENCODING_INVALID等），不因勾选改记为pass。账本记录末值recorded=39/40、proven=32/35、disputed=6、A3=6/10、A4=9/10；本轮真实发送0，无commit/push/正式发布。
 
+## Post-MVP 优化（T088–T093）
+
+2026-10-23 在 002 内新增 Phase 13 Post-MVP UX Simplification，范围仅首次设置体验：M1（T088–T092）已完成推荐值检测、已有数据只读检测、数据库/Redis/路径字段折叠、文案去术语与 AI 可跳过（Phase 13 计数 6/6）；M2（T093）为三屏 QuickStart，已完成，Windows/Docker 均 2 次点击进入学习，证据见 `tasks.md` T093。该范围**不改变 V1 已验收范围、T083–T087 验收结论、冻结证据或 87/87**；Setup 授权、DPAPI、Host/Origin 与维护授权边界不变；T088/T089 只读且不自动写入，T090 折叠不删除字段，`/setup/advanced` 保留完整编辑能力。真实模型发送 0。
+
 **Input**: 用户《EduAgent 下一版本 — SpecKit 正式需求固化与开发规划》，以附录 A 的 12 部分为产品事实来源。以下需求正文保留附录 A 原意，并纳入用户后续明确确认的澄清；编号、分组和验收场景用于追踪，不增加未经确认的默认规则。
 
 **Feature resolution**: 使用 `SPECIFY_FEATURE_DIRECTORY=specs/002-personal-learning` 显式解析；只读路径检查使用 `check-prerequisites.ps1 -Json -PathsOnly`（内部 `-NoPersist`）。保持 `.specify/feature.json` 及旧 Feature 不变。后续命令使用前必须检查是否会持久化指针，不直接调用会改写旧指针的脚本。

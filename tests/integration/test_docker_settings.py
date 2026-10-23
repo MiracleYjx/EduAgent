@@ -226,6 +226,14 @@ def docker_run():
 
 def test_actual_docker_settings_lifecycle(docker_run):
     run = docker_run
+    nested = run.docker(
+        "run", "--rm", "--pull", "never",
+        "-e", "STORAGE_ROOT=/app/storage/custom/nested/storage",
+        run.image, "python", "-c",
+        "import os, pathlib; p=pathlib.Path(os.environ['STORAGE_ROOT']); "
+        "assert p.is_dir(); print(p)",
+    )
+    assert nested == "/app/storage/custom/nested/storage"
     assert run.client.get("/settings").status_code == 200
     assert run.client.get("/ready").status_code == 503
     assert run.client.get("/api/settings/").status_code in (401, 403)
@@ -245,8 +253,10 @@ def test_actual_docker_settings_lifecycle(docker_run):
         row = next(item for item in catalog if item["external_secret_id"] == name)
         return {"credential_id": row["credential_ref"], **{key: row[key] for key in
                 ("version", "environment_id", "backend", "purpose", "external_secret_id")}}
-    # Explicit provisioning of a new, verified Test volume, never replacement user storage.
-    run.compose("exec", "-T", "backend", "python", "-c", "from pathlib import Path; Path('/app/storage/storage').mkdir(exist_ok=False)")
+    # The entrypoint created the empty root. Remove only that empty directory so
+    # the explicit initialization flow must recreate it, without pre-seeding data.
+    run.compose("exec", "-T", "backend", "python", "-c",
+                "from pathlib import Path; p=Path('/app/storage/storage'); assert p.is_dir(); p.rmdir()")
     schema = "test_" + uuid4().hex
     run.sql('CREATE SCHEMA "' + schema + '";', database="eduagent_test", role="eduagent_test_runner")
     assert run.sql("SELECT pg_get_userbyid(nspowner) FROM pg_namespace WHERE nspname='" + schema + "';",
@@ -265,6 +275,8 @@ def test_actual_docker_settings_lifecycle(docker_run):
             break
         time.sleep(.25)
     assert operation["status"] == "succeeded", operation.get("error_code")
+    assert run.compose("exec", "-T", "backend", "python", "-c",
+                       "from pathlib import Path; assert Path('/app/storage/storage').is_dir(); print('ok')") == "ok"
     active = run.api("POST", f"/drafts/{draft}/activate", {"expected_active_revision": None, "probe_ids": [], "acknowledge_override": True}, (200, 202))["revision_id"]
     assert run.client.get("/ready").status_code == 503
     run.stop_backend()

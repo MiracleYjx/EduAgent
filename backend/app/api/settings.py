@@ -66,6 +66,8 @@ from backend.app.schemas.settings import (
     RestartView,
     SessionExchangeResponse,
     SettingsView,
+    SetupDataState,
+    SetupRecommendation,
     ValidationIssue,
     ValidationReport,
 )
@@ -591,6 +593,28 @@ def cancel_probe(probe_id: UUID, request: Request) -> Response:
 # ---------------------------------------------------------------------------
 # 向导 / 初始化 / 操作 / 重启
 # ---------------------------------------------------------------------------
+
+
+@router.get(
+    "/onboarding/recommendation",
+    response_model=SetupRecommendation,
+    summary="首次设置推荐值（只读）",
+)
+def setup_recommendation(request: Request) -> SetupRecommendation:
+    """T088: only project runtime defaults; never create a draft or write config."""
+
+    return _runtime(request).setup_recommendation()
+
+
+@router.get(
+    "/onboarding/data-state",
+    response_model=SetupDataState,
+    summary="已有数据只读检测",
+)
+def setup_data_state(request: Request) -> SetupDataState:
+    """T089: bounded read-only probes; never create, migrate or initialize."""
+
+    return _runtime(request).setup_data_state()
 
 
 @router.get("/onboarding", response_model=OnboardingReport, summary="向导进度与真实诊断")
