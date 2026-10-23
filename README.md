@@ -26,6 +26,21 @@ Provider quality depends on the model and input. Failed and unknown outcomes rem
 
 ## Fastest start: Docker
 
+### One-click Windows start
+
+Double-click `start-eduagent.cmd` in the repository root. It checks Docker Desktop (and tries to start it when needed), builds the backend on first use, waits for Setup readiness, then opens the app or a one-time Setup authorization URL.
+
+From PowerShell, the launcher accepts the same options:
+
+~~~powershell
+.\start-eduagent.cmd -NoBrowser
+.\start-eduagent.cmd -Port 8001 -NoBrowser
+.\start-eduagent.cmd -Rebuild
+.\start-eduagent.cmd -Setup
+~~~
+
+`-Rebuild` rebuilds after code changes; `-Setup` requests a Settings authorization link even when the app is already initialized; `-Port`, `-PostgresPort` and `-RedisPort` override the defaults 8000/25432/26379. The launcher resolves the Debian mirror through DNS-over-HTTPS and pins its real IP during the build, avoiding Docker's fake-IP DNS. The default is `-DebianMirror deb.debian.org`; a reachable mirror hostname can be supplied instead.
+
 Install Git and Docker with Compose, and start the Docker engine. This route builds the frontend/backend inside Docker; host Python, Node.js and local model weights are not required just to open Setup.
 
 Use a fresh checkout and a new Compose project/data volume. The following steps do not adopt an existing deployment.

@@ -30,8 +30,10 @@ FROM frontend-inputs AS frontend-build
 RUN cd frontend && npm run build
 
 FROM backend-deps AS runtime
+ARG DEBIAN_MIRROR=deb.debian.org
 # RapidOCR's OpenCV wheel needs these native libraries in Debian slim.
-RUN apt-get update \
+RUN sed -i "s|deb.debian.org|${DEBIAN_MIRROR}|g" /etc/apt/sources.list.d/debian.sources \
+    && apt-get update \
     && apt-get install -y --no-install-recommends libgl1 libglib2.0-0t64 libxcb1 \
     && rm -rf /var/lib/apt/lists/*
 COPY alembic.ini ./

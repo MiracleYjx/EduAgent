@@ -26,6 +26,21 @@
 
 ## 最快体验：Docker
 
+### Windows 一键启动
+
+双击仓库根目录的 `start-eduagent.cmd`。脚本会检查 Docker Desktop（必要时尝试启动），首次运行自动构建，等待设置服务就绪，然后打开应用首页或一次性设置授权链接。
+
+也可以在 PowerShell 中传入参数：
+
+~~~powershell
+.\start-eduagent.cmd -NoBrowser
+.\start-eduagent.cmd -Port 8001 -NoBrowser
+.\start-eduagent.cmd -Rebuild
+.\start-eduagent.cmd -Setup
+~~~
+
+`-Rebuild` 用于代码修改后重新构建；`-Setup` 在应用已初始化时仍申请设置授权链接；`-Port`、`-PostgresPort`、`-RedisPort` 可覆盖默认的 8000/25432/26379。脚本会通过 DNS-over-HTTPS 解析 Debian 源并在构建时固定真实 IP，避开 Docker 的 fake-IP DNS；默认 `-DebianMirror deb.debian.org`，也可传入可访问的镜像站域名。
+
 先安装 Git 和带 Compose 的 Docker，并启动 Docker 引擎。该路径在容器中构建前后端，**仅打开设置页不要求宿主机安装 Python、Node.js、BGE 或 OCR 权重**。
 
 请使用新检出的仓库、新 Compose 项目和新数据卷。以下步骤不接管已有部署。
