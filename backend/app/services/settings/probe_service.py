@@ -56,9 +56,14 @@ _BINDING_FIELDS = ("profile_id", "profile_revision", "credential_version", "mode
 _KIND = {"text": "llm", "json_object": "llm", "json_schema": "llm", "vision": "vision",
          "embedding": "embedding", "llm_rerank": "rerank", "local_rerank": "rerank", "ocr": "ocr"}
 _PRIVATE_CALL: ContextVar[bool] = ContextVar("private_settings_probe", default=False)
-# Package-owned 1x1 PNG, shared by Vision/OCR; never a business file or remote URL.
+# Package-owned 1x1 PNG for the OCR probe; never a business file or remote URL.
 _SAMPLE_PNG = base64.b64decode(
     "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aB9sAAAAASUVORK5CYII="
+)
+# Package-owned 128x128 RGB PNG for the vision probe. Some providers reject a
+# 1x1 image even though the documented resize path accepts small inputs.
+_VISION_SAMPLE_PNG = base64.b64decode(
+    "iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAIAAABMXPacAAADG0lEQVR42u3dW3LjMAxEUQn73zPnd8qR9TLA7gZbK0jd4ySWRJD7GGPzhbvCCQxgAF8GMIAvAxjg49r33YFSrpOQcV7fBln1v4WMy8++DbI++4chjwE+bo9tkPKX5/CZw9c/QTaYUP/in7ANqutffw21QWn9W/cBNqirf/dGzAZF9R/cCdugov6zRxE2SK//+FmQDXLrv3kYZ4PE+i+fhtogq/77x9E2SKn/0/uAxQ1S6v/6QmZZg6z6CW/EFjRIrJ/zSnIpg9z6ae+EFzFIr5/5Ur69QUX95FURjQ2K6ucvS2lpUFe/ZF1QM4PS+lULs9oYVNcvXBnXwGBC/dqlidIGc+qXrw0VNZhWf8biXDmDmfUnrY4WMphcf97ydAmD+fWnzgeQG0Dqzx7QoDVA1QdMyBAaAOtjRpSoDLD1YTNiJAbw+sghPbgBQ33wlCTQgKQ+fkwVYsBTn2JOeLIBVX2WQe1pBmz1iSblJxgQ1ufaqqDUgLM+3V4RRQa09Rk360g3YK5PultKogF5fd7talIM+OtT7xf0o4FEffYNm14bqNQX2DHrhYFQfY0tyx4ZaNWX2TPupoFcfaVN+y4NFOuL7Zp4YiBaX2/bykMD3fqS+4b+MRCur7px638GQ7q+8M65Y4wG9YUBDr4Eac7hRI/6unM40WxySM4gGtSXnoWKHp99XYNoMzUnahCdpuYUDaLZzKKcQfSbWdQyiJYTo0IG0XViVMUgGs/rShhE73ldfoNoPy1NbhArTEszG+yPzxOu/+n3bVQ83//oTnKQMu3a0G2ROf1YpD6twXKHebIZrHiaKpXBosfZ8hise54wicHSBzozGKx+ojbcwEeagw0MADYwANjAAGADA4ANDAA2MADYwABgAwOADQwANjAA2MAAYAMDgA0MADYwANjAAGADA4ANDAA2MADYwABgAwOADQwANgiypenLGYTrg/eYvTmnoL4z2DZpwufxDEi4Pvb3IFwfaxCujzUI18cahOtjDcL1sQZxOafo+lkGh99K43xW1PWzDL7dE+zDjTePqRrAlwEM4MsAC17/ALf3ARRXILvxAAAAAElFTkSuQmCC"
 )
 _SAMPLE_TEXT = "A short synthetic connection probe."
 
@@ -316,6 +321,7 @@ class ProbeService:
         wait_for: Callable[..., Awaitable[Any]] = asyncio.wait_for,
         local_resource_loader: Callable[..., Any] | None = None,
         max_results: int = 128,
+        validation_policy: Any = None,
     ) -> None:
         if not isinstance(environment_id, UUID) or not environment_id.int or max_results < 1:
             raise ProbeRequestError("INVALID_PROBE_SERVICE")
@@ -332,6 +338,7 @@ class ProbeService:
         self._running: dict[UUID, asyncio.Task[Any]] = {}
         self._cleanup: set[asyncio.Task[Any]] = set()
         self._closed = False
+        self.validation_policy = validation_policy
 
     def get(self, probe_id: UUID) -> ProbeResult:
         try:
@@ -404,6 +411,11 @@ class ProbeService:
         )
         if not local and code is None and not allow_billable:
             raise ProbeRequestError("BILLABLE_CONFIRMATION_REQUIRED")
+        validation = None
+        if not local and code is None and self.validation_policy is not None:
+            validation = self.validation_policy.probe_guard(
+                environment_id=self.environment_id, candidate_revision=candidate_revision,
+                profile=parsed, capability=capability)
         reserved = False
         lease_pool = self._local if local else self._paid
         if code is None:
@@ -433,7 +445,7 @@ class ProbeService:
         try:
             if code is None:
                 worker = asyncio.create_task(self._execute(parsed, capability, kind or "llm", local,
-                                                            float(timeout_seconds), state))
+                                                            float(timeout_seconds), state, validation))
                 try:
                     # Shield avoids wait_for's unbounded wait for a cancellation-
                     # resistant operation. Teardown has its own two-second budget.
@@ -488,7 +500,7 @@ class ProbeService:
         return ProbeError(safe_error_code=code, message=_MESSAGES[code], correlation_id=correlation)
 
     async def _execute(self, profile: ProviderProfile, capability: str, kind: str, local: bool,
-                       timeout: float, state: _Execution) -> None:
+                       timeout: float, state: _Execution, validation: Any = None) -> None:
         if local:
             directory = profile.resource_directory
             def load_sync() -> Any:
@@ -540,9 +552,20 @@ class ProbeService:
         async def request_hook(request: httpx.Request) -> None:
             if state.stopped or state.requests:
                 raise _ProbeFailure("UNKNOWN_PROVIDER_ERROR")
+            if validation is not None:
+                validation.reserve(json.loads(request.content))
             state.requests += 1
         async def response_hook(response: httpx.Response) -> None:
-            await response.aread()
+            if validation is None:
+                await response.aread()
+            else:
+                content = bytearray()
+                async for chunk in response.aiter_bytes():
+                    if len(content) + len(chunk) > validation.grant.model_budget.response_bytes:
+                        raise _ProbeFailure("UNKNOWN_PROVIDER_ERROR")
+                    content.extend(chunk)
+                response._content = bytes(content)
+                validation.received(response.status_code)
             try:
                 payload = response.json()
             except ValueError:
@@ -572,7 +595,8 @@ class ProbeService:
         sdk = AsyncOpenAI(**options)
         sdk._custom_headers = {}
         state.resources.append(sdk)
-        provider = self.registry.create(profile, kind=kind, probe=True, api_key=key, client=sdk)
+        budget_options = {"max_tokens": validation.max_tokens} if validation is not None and capability != "embedding" else {}
+        provider = self.registry.create(profile, kind=kind, probe=True, api_key=key, client=sdk, **budget_options)
         state.resources.append(provider)
         if capability == "embedding":
             self._validate_vectors(await provider.embed_documents([_SAMPLE_TEXT]))
@@ -584,7 +608,7 @@ class ProbeService:
                 messages[0]["content"] = [
                     {"type": "text", "text": 'Return JSON {"ok": true} for this synthetic image.'},
                     {"type": "image", "image": {"encoding": "base64", "mime_type": "image/png",
-                                                  "value": base64.b64encode(_SAMPLE_PNG).decode("ascii")}},
+                                                  "value": base64.b64encode(_VISION_SAMPLE_PNG).decode("ascii")}},
                 ]
             await provider.generate_structured(messages, _MinimalAnswer, model=profile.model_id)
 

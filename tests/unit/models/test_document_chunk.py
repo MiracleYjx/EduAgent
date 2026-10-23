@@ -32,6 +32,7 @@ from backend.app.models.document_chunk import (
 
 DOCUMENT_INDEXES = {
     "ix_document_chunks_course_id",
+    "ix_document_chunks_subject_id",
     "ix_document_chunks_course_chapter_section",
     "ix_document_chunks_document_id",
     "ix_document_chunks_knowledge_base_id",
@@ -71,6 +72,7 @@ def test_document_chunk_table_and_retrieval_indexes_are_registered() -> None:
     assert [column.name for column in table.columns] == [
         "document_id",
         "course_id",
+        "subject_id",
         "knowledge_base_id",
         "chapter_id",
         "section_order",

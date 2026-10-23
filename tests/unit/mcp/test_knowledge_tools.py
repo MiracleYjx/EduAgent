@@ -236,7 +236,11 @@ def test_query_knowledge_uses_owned_scope_and_returns_safe_source(
 
     assert result.ok and result.data is not None
     assert provider.queries == ["牛顿定律"]
-    assert vector.filters == [RetrievalFilters(course_ids=(course.id,))]
+    # TCR（T081）：新域检索范围以 RetrievalFilters 子类携带 SQL 范围，保留原归属断言，
+    # 不再用精确类型相等（子类与旧基类比较必然不相等）。
+    assert [tuple(str(value) for value in filters.course_ids) for filters in vector.filters] == [
+        (str(course.id),)
+    ]
     assert result.data["count"] == 1
     assert result.data["chunks"][0] == {
         "content": "牛顿第二定律" + "B" * 494 + "…",

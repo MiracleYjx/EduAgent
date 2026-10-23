@@ -55,13 +55,16 @@ it("preserves server errors and does not create a phantom subject", async () => 
   await waitFor(() => expect(fetcher.mock.calls.filter(([, init]) => init?.method === "POST")).toHaveLength(1));
 });
 
-it("edits the persisted subject and honestly marks future areas unavailable", async () => {
+it("edits the persisted subject and opens the implemented teacher without paid sends", async () => {
   window.history.replaceState(null, "", "/subjects/subject-a");
   let row = { id: "subject-a", name: "数学", description: "原说明" as string | null };
-  vi.stubGlobal("fetch", vi.fn(async (_input: RequestInfo | URL, init?: RequestInit) => {
+  const fetcher = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+    if (String(input).endsWith("/conversations")) return jsonResponse([]);
+    if (String(input).endsWith("/material-series")) return jsonResponse({series:[]});
     if (init?.method === "PATCH") row = { ...row, ...JSON.parse(String(init.body)) };
     return jsonResponse(row);
-  }));
+  });
+  vi.stubGlobal("fetch",fetcher);
   render(<App />);
   await screen.findByRole("heading", { name: "数学", level: 2 });
   fireEvent.click(screen.getByRole("button", { name: "修改科目" }));
@@ -71,6 +74,8 @@ it("edits the persisted subject and honestly marks future areas unavailable", as
   expect(await screen.findByRole("heading", { name: "高等数学", level: 2 })).toBeInTheDocument();
   expect(row.description).toBeNull();
   fireEvent.click(screen.getByRole("link", { name: "AI 教师" }));
-  expect(await screen.findByText("AI 教师尚未开放")).toBeInTheDocument();
+  expect(await screen.findByRole("heading",{name:"科目 AI 教师"})).toBeInTheDocument();
+  expect(await screen.findByText("暂无科目对话。")).toBeInTheDocument();
   expect(screen.queryByRole("textbox")).toBeNull();
+  expect(fetcher.mock.calls.some(([,init])=>init?.method==="POST")).toBe(false);
 });

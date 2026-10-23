@@ -12,12 +12,12 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import sessionmaker
 
+from backend.app.api import learning_errors
 from backend.app.core.settings_security import (
     SettingsSecurityError,
     check_personal_request,
 )
 from backend.app.schemas.personal_learning import (
-    LearningApiError,
     SubjectCreate,
     SubjectList,
     SubjectPatch,
@@ -29,6 +29,7 @@ from backend.app.services.learning_material_service import MaterialError
 from backend.app.services.learning_operations import OperationError
 from backend.app.services.settings.config_service import ConfigServiceError
 from backend.app.services.settings.credential_store import CredentialStoreError
+from backend.app.services.settings.index_identity import IndexIdentityError
 from backend.app.services.settings.management import SettingsManagementError
 from backend.app.services.settings.provider_registry import RegistryValidationError
 from backend.app.services.settings.runtime_snapshot import (
@@ -69,6 +70,8 @@ class PersonalRoute(APIRoute):
                 return failure(error.code, error.status)
             except OperationError as error:
                 return failure(error.code, 404 if error.code == "OPERATION_NOT_FOUND" else 409)
+            except IndexIdentityError as error:
+                return failure(error.code, 409)
             except RequestValidationError:
                 return failure("REQUEST_INVALID", 422)
             except FileStorageError as error:
@@ -86,10 +89,7 @@ router = APIRouter(
     prefix="/api/learning/subjects",
     tags=["personal-learning"],
     route_class=PersonalRoute,
-    responses={
-        status: {"model": LearningApiError}
-        for status in (403, 404, 409, 413, 415, 422, 503)
-    },
+    responses=learning_errors(403, 404, 409, 413, 415, 422, 503),
 )
 
 
@@ -179,18 +179,24 @@ def install_subjects(app: FastAPI) -> None:
     from backend.app.api.learning_materials import install_learning_materials
 
     install_learning_materials(app)
-    from backend.app.api.paper_import import personal_router
+    from backend.app.api.personal_papers import personal_router
 
     app.include_router(personal_router)
     from backend.app.api.question_identity import router as identity_router
 
     app.include_router(identity_router)
 
+    from backend.app.api.personal_generation import personal_generation_router
     from backend.app.api.practices import router as practice_router
-    from backend.app.api.question_generation import personal_generation_router
 
     app.include_router(practice_router)
     app.include_router(personal_generation_router)
     from backend.app.api.score_disputes import install_score_disputes
 
     install_score_disputes(app)
+    from backend.app.api.personal_diagnosis import router as diagnosis_router
+
+    app.include_router(diagnosis_router)
+    from backend.app.api.teacher_chat import router as teacher_router
+
+    app.include_router(teacher_router)

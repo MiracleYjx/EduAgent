@@ -30,6 +30,7 @@ from backend.app.core.settings_security import (
     SetupSourcePolicy,
 )
 from backend.app.schemas.settings import EnvironmentName, RuntimeKind
+from tests.postgres_helpers import isolated_test_resource_profile
 from tests.unit.settings_helpers import build_test_settings
 
 T217 = "T217_SETTINGS_SECURITY_REQUIRED"
@@ -55,8 +56,9 @@ def _build_app() -> FastAPI:
 
 
 @pytest.fixture(scope="module")
-def app() -> FastAPI:
-    return _build_app()
+def app(tmp_path_factory) -> Iterator[FastAPI]:
+    with isolated_test_resource_profile((tmp_path_factory.mktemp("settings-security") / "profile").resolve()):
+        yield _build_app()
 
 
 @pytest.fixture(scope="module")
@@ -132,7 +134,7 @@ def test_management_reads_pass_the_gate_only_with_setup_token(
     view = authorized.json()
     assert view["configuration"] == "available"
     assert view["business_assembly"] == "mounted"
-    assert view["environment"] == "development"
+    assert view["environment"] == "test"
     assert view["restart_required"] is False
     text = authorized.text.lower()
     for marker in ("postgresql://", "postgresql+", "redis://", "password", "api_key", "secret"):

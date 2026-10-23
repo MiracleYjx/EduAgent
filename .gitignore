@@ -29,6 +29,7 @@ EduAgent_项目需求与技术方案_v1.1.md
 # Python caches and compiled files
 __pycache__/
 *.pyc
+*.egg-info/
 
 # IDE configuration
 .vscode/

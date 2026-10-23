@@ -391,12 +391,12 @@ def test_setup_token_cannot_authorize_business_api(client: TestClient) -> None:
         "/api/courses", headers={"Authorization": "Setup synthetic-management-token"}
     )
 
-    assert response.status_code == 401
-    assert "www-authenticate" in {name.lower() for name in response.headers}
+    assert response.status_code == 404
+    assert response.json() == {"detail": "Not Found"}
 
 
-def test_business_api_still_requires_bearer_credentials(client: TestClient) -> None:
-    assert client.get("/api/courses").status_code == 401
+def test_retired_business_api_is_absent(client: TestClient) -> None:
+    assert client.get("/api/courses").status_code == 404
 
 
 # ---------------------------------------------------------------------------

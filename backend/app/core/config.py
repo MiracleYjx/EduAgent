@@ -186,7 +186,9 @@ class AppSettings(BaseSettings):
     #: Hybrid 的每路召回数与融合候选数，调小会同步收缩召回、融合与重排规模。
     #: LLM Rerank 单次调用超时（秒）。
     rerank_timeout_seconds: float = Field(default=30.0, gt=0)
-    JWT_SECRET_KEY: SecretStr
+    # Retained only for explicit legacy maintenance consumers. The personal
+    # factory has no JWT middleware or login routes and requires no such key.
+    JWT_SECRET_KEY: SecretStr | None = None
     JWT_ALGORITHM: str = "HS256"
     JWT_EXPIRE_MINUTES: int = Field(default=60, gt=0)
     DEV_MODE: bool = False
@@ -235,9 +237,11 @@ class AppSettings(BaseSettings):
 
     @field_validator("JWT_SECRET_KEY")
     @classmethod
-    def _validate_jwt_secret_key(cls, value: SecretStr) -> SecretStr:
+    def _validate_jwt_secret_key(cls, value: SecretStr | None) -> SecretStr | None:
         """拒绝空白和过短的 JWT 密钥，不在错误中输出输入值。"""
 
+        if value is None:
+            return None
         secret = value.get_secret_value()
         if not secret.strip() or len(secret) < 32:
             raise ValueError("JWT_SECRET_KEY 必须为至少 32 个字符的非空密钥。")

@@ -25,6 +25,7 @@ from backend.app.services.submission_service import (
     SubmissionService,
     SubmissionServiceError,
 )
+from tests.postgres_helpers import isolated_test_resource_profile
 from tests.support.exam_scoring_fixtures import confirm_synthetic_exam_basis
 from tests.unit.models.sqlite_support import create_sqlite_engine, seed_submission
 
@@ -32,7 +33,7 @@ from tests.unit.models.sqlite_support import create_sqlite_engine, seed_submissi
 @pytest.fixture
 def scenario(tmp_path):
     engine = create_sqlite_engine()
-    with Session(engine) as session:
+    with isolated_test_resource_profile((tmp_path / "profile").resolve()) as profile, Session(engine) as session:
         info = seed_submission(session, status=SubmissionStatus.DRAFT)
         confirm_synthetic_exam_basis(session, info.exam_id)
         exam = session.get(Exam, info.exam_id)
@@ -63,7 +64,7 @@ def scenario(tmp_path):
         ]
         first.question.options = {"D": "last", "A": "first", "C": "middle"}
         session.commit()
-        yield session, info, tmp_path
+        yield session, info, profile.storage_root
     engine.dispose()
 
 
@@ -322,68 +323,3 @@ def test_unknown_historical_basis_keeps_legacy_submission_rules(scenario, operat
         )
         with pytest.raises(GradingNotAllowedError, match="EXAM_SCORING_BASIS_MISSING"):
             snapshot.require_scoring_ready()
-
-
-def test_student_display_preserves_original_choices_fixed_values_and_inline_figure(
-    scenario,
-):
-    from backend.app.ui.student_exam_view import _workspace_detail, _workspace_records
-
-    _asset, _path, content = add_image(scenario)
-    session, info, root = scenario
-    detail = SubmissionService(session, root=root).get_exam_detail(
-        info.exam_id, student_id=info.student_id, include_images=True
-    )
-    records = _workspace_records(detail)
-    html, choices, _boolean, _text = _workspace_detail(records, {}, 1)
-    assert "第 2 题" in html and "12.34" in html and "99.00" not in html
-    assert [value for _label, value in choices["choices"]] == ["D", "A", "C"]
-    assert base64.b64encode(content).decode("ascii") in html
-    assert str(root) not in html and "reference_answer" not in html
-    assert all(
-        key not in records[1]
-        for key in ["reference_answer", "scoring_rubric", "source_page_id"]
-    )
-
-
-def test_real_submit_event_postprocess_freezes_workspace(scenario, monkeypatch):
-    import asyncio
-
-    import gradio as gr
-    from gradio.state_holder import SessionState
-
-    import backend.app.ui.student_exam_view as ui
-
-    session, info, _root = scenario
-    from backend.app.domain.enums import AnswerStatus
-
-    for answer in session.get(Submission, info.submission_id).answers:
-        answer.status = AnswerStatus.DRAFT
-    session.commit()
-    monkeypatch.setattr(
-        ui, "get_session_factory", lambda: lambda: Session(session.get_bind())
-    )
-    state = {
-        "user_id": str(info.student_id),
-        "roles": ["Student"],
-        "access_token": "synthetic",
-    }
-    with gr.Blocks() as app:
-        ui.create_student_exam_view(gr.State(state))
-    node = next(fn for fn in app.fns.values() if fn.fn.__name__ == "confirm_submit")
-    answers = {
-        str(info.objective_question_id): "A",
-        str(info.subjective_question_id): "Explicit synthetic answer",
-    }
-    records = [{"id": key} for key in answers]
-    result = node.fn(str(info.submission_id), answers, records, True, state)
-    assert len(node.outputs) == len(result)
-    processed = asyncio.run(app.postprocess_data(node, result, SessionState(app)))
-    assert len(processed) == 11
-    assert "提交成功" in processed[1]
-    assert all(item["interactive"] is False for item in processed[2:10])
-    assert processed[-1]["visible"] is False
-    session.expire_all()
-    assert (
-        session.get(Submission, info.submission_id).status == SubmissionStatus.SUBMITTED
-    )

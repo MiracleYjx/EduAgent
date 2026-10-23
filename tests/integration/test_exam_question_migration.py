@@ -10,10 +10,8 @@ from alembic import command
 from alembic.config import Config
 from sqlalchemy import MetaData, Table, inspect, text
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Session
 
 from backend.app.core import database
-from backend.app.models import Course, Question, User
 from tests.integration.test_question_source_migration import _empty_isolated_schema
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -27,51 +25,64 @@ def test_upgrade_preserves_pairs_real_order_and_unknown_historical_basis(monkeyp
         config = Config(str(ROOT / "alembic.ini"))
         config.set_main_option("script_location", str(ROOT / "migrations"))
         command.upgrade(config, OLD)
-        with Session(engine) as session:
-            teacher = User(
-                username="historical",
-                email="historical@example.test",
-                password_hash="fixture",
-            )
-            course = Course(name="historical", creator=teacher)
-            session.add(course)
-            session.flush()
-            now = datetime.now(UTC)
-            questions = [
-                Question(
-                    course=course,
-                    creator=teacher,
-                    type="SHORT_ANSWER",
-                    content=str(i),
-                    score=Decimal("7.00"),
-                    created_at=now + timedelta(seconds=i),
-                )
-                for i in range(2)
-            ]
-            session.add_all(questions)
-            session.flush()
+        # TCR（T081）：0021 时点的 questions 尚无后续个人域列（如 subject_id），
+        # 历史行必须按该时点表结构插入，不能用当前 ORM 模型（会引用后续迁移列）。
+        with engine.begin() as connection:
             metadata = MetaData()
-            exams = Table("exams", metadata, autoload_with=session.connection())
-            links = Table(
-                "exam_questions", metadata, autoload_with=session.connection()
+            users = Table("users", metadata, autoload_with=connection)
+            courses = Table("courses", metadata, autoload_with=connection)
+            legacy_questions = Table("questions", metadata, autoload_with=connection)
+            exams = Table("exams", metadata, autoload_with=connection)
+            links = Table("exam_questions", metadata, autoload_with=connection)
+            teacher_id = uuid4()
+            connection.execute(
+                users.insert().values(
+                    id=teacher_id,
+                    username="historical",
+                    email="historical@example.test",
+                    password_hash="fixture",
+                    is_active=True,
+                )
             )
+            course_id = uuid4()
+            connection.execute(
+                courses.insert().values(
+                    id=course_id, name="historical", created_by=teacher_id
+                )
+            )
+            now = datetime.now(UTC)
+            question_ids = []
+            for index in range(2):
+                question_id = uuid4()
+                question_ids.append(question_id)
+                connection.execute(
+                    legacy_questions.insert().values(
+                        id=question_id,
+                        course_id=course_id,
+                        created_by=teacher_id,
+                        type="SHORT_ANSWER",
+                        content=str(index),
+                        knowledge_points=[],
+                        score=Decimal("7.00"),
+                        status="Draft",
+                        created_at=now + timedelta(seconds=index),
+                    )
+                )
             exam_ids = [uuid4(), uuid4()]
             for exam_id, status in zip(exam_ids, ["Draft", "Published"], strict=True):
-                session.execute(
+                connection.execute(
                     exams.insert().values(
                         id=exam_id,
-                        course_id=course.id,
-                        created_by=teacher.id,
+                        course_id=course_id,
+                        created_by=teacher_id,
                         title=status,
                         status=status,
                     )
                 )
-                for question in reversed(questions):
-                    session.execute(
-                        links.insert().values(exam_id=exam_id, question_id=question.id)
+                for question_id in reversed(question_ids):
+                    connection.execute(
+                        links.insert().values(exam_id=exam_id, question_id=question_id)
                     )
-            question_ids = [q.id for q in questions]
-            session.commit()
         command.upgrade(config, NEW)
         with engine.connect() as connection:
             rows = (

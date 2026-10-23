@@ -27,6 +27,7 @@ from backend.app.core.bootstrap import (
     resolve_bootstrap_context,
 )
 from backend.app.core.settings_security import OperatorIdentity, PrincipalKind
+from tests.postgres_helpers import isolated_test_resource_profile
 from tests.unit.settings_helpers import build_test_settings
 
 OPERATOR = OperatorIdentity(
@@ -66,8 +67,10 @@ def _build_full_app(storage_root: Path) -> FastAPI:
 
 
 @pytest.fixture(scope="module")
-def full_app(tmp_path_factory: pytest.TempPathFactory) -> FastAPI:
-    return _build_full_app(tmp_path_factory.mktemp("readiness-storage"))
+def full_app(tmp_path_factory: pytest.TempPathFactory) -> Iterator[FastAPI]:
+    with isolated_test_resource_profile((tmp_path_factory.mktemp("readiness") / "profile").resolve()) as profile:
+        profile.storage_root.mkdir(parents=True)
+        yield _build_full_app(profile.storage_root)
 
 
 @pytest.fixture(scope="module")
@@ -177,7 +180,8 @@ def test_readiness_report_exposes_layers_and_never_evaluates_ai(
     checks = body["business_prerequisites"]["checks"]
     assert set(checks) == PREREQUISITE_NAMES
     assert checks["business_config"]["status"] == "ok"
-    assert checks["jwt_reference"]["status"] == "ok"
+    assert checks["jwt_reference"]["status"] == "skipped"
+    assert checks["jwt_reference"]["code"] == "retired_business_auth"
     assert checks["postgres"]["status"] == "failed"
     assert checks["postgres"]["code"] == "postgres_unavailable"
     assert checks["migration"]["status"] == "skipped"
@@ -204,7 +208,7 @@ def test_settings_safe_view_is_non_sensitive(client: TestClient, token: str) -> 
     assert response.status_code == 200
     body = response.json()
     assert body["configuration"] == "available"
-    assert body["environment"] == "development"
+    assert body["environment"] == client.app.state.bootstrap.settings.environment.value
     assert body["business_assembly"] == "mounted"
     assert body["static_resources"] == "not_bundled"
     assert body["active_revision"] is None

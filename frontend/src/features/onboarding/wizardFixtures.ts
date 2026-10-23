@@ -111,7 +111,7 @@ export function wizardApi(options: {
     if (path.endsWith("/validate")) {
       if (!options.invalid && draft) draft = { ...draft, status: "validated" };
       return jsonResponse({ valid: !options.invalid, revision_id: DRAFT_ID,
-        errors: options.invalid ? [{ field: "business.jwt_secret_ref", code: "CREDENTIAL_UNAVAILABLE", message: "JWT 引用不可用。" }] : [], affected_tasks: [], restart_required: false });
+        errors: options.invalid ? [{ field: "business.database_password_ref", code: "CREDENTIAL_UNAVAILABLE", message: "数据库凭据引用不可用。" }] : [], affected_tasks: [], restart_required: false });
     }
     if (path.endsWith("/credentials")) return jsonResponse({
       credential_ref: syntheticReference.credential_id, ...syntheticReference, status: "available",

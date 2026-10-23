@@ -669,6 +669,16 @@ async def check_personal_source(request: Request) -> SetupSourcePolicy:
     source = policy.check_request(request)
     writing = request.method not in {"GET", "HEAD"}
     policy.check_origin(request, source=source, required=writing)
+    if writing:
+        # Offline maintenance applies to every personal writer, including
+        # practice/teacher/operation endpoints that do not write a file.
+        # This must run before a request can claim a paid operation.
+        bootstrap = getattr(request.app.state, "bootstrap", None)
+        settings = getattr(bootstrap, "settings", None)
+        if settings is not None and (settings.config_root.parent / "storage" / ".maintenance.json").exists():
+            raise SettingsSecurityError(
+                "STORAGE_MAINTENANCE", "个人空间正在离线维护，暂时停止写入。", status_code=503
+            )
     return policy
 
 

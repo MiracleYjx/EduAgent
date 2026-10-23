@@ -70,7 +70,7 @@ def test_jwt_settings_defaults_and_redaction() -> None:
     assert secret not in str(settings.public_dict())
 
 
-@pytest.mark.parametrize("value", [None, "", "short-sensitive-secret"])
+@pytest.mark.parametrize("value", ["", "short-sensitive-secret"])
 def test_invalid_jwt_configuration_stops_startup(
     monkeypatch: pytest.MonkeyPatch, tmp_path, caplog, value: str | None
 ) -> None:

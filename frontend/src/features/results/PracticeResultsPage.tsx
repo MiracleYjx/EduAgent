@@ -19,15 +19,19 @@ import {
   getScoreDispute,
   raiseScoreDispute,
   regradeScoreDispute,
+  previewRegrade,
+  executeRegrade,
   type PracticeAttempt,
   type PracticeItemResult,
   type PracticeReport,
   type ScoreDispute,
 } from "../../api/practiceClient";
-import { contentAssetUrl, LearningApiError } from "../../api/learningClient";
+import { contentAssetUrl, confirmLearningOperation, getLearningOperation, isLearningOperation,
+  LearningApiError, type LearningOperation } from "../../api/learningClient";
 import { QuestionContent } from "../practice/QuestionContent";
 import { getQuestion } from "../../api/papersClient";
 import { ScoreDisputePanel } from "./ScoreDisputePanel";
+import { GradingOperationPanel } from "./GradingOperationPanel";
 
 function percent(value?: string | null): string {
   if (value === null || value === undefined || value === "") return "无有效样本";
@@ -94,7 +98,8 @@ function History({ rows }: { rows: PracticeAttempt[] }) {
               <td>{sourceText(row.execution_source)}</td>
               <td>{row.question_revision_id ?? "原始冻结修订"}
                 <div>参考答案：{row.reference_answer ?? "未记录"}</div>
-                <div>评分要点：{row.scoring_rubric ?? "无"}</div></td>
+                <div>评分要点：{row.scoring_rubric ?? "无"}</div>
+                {row.operation_id?<div>收费操作：{row.operation_id}</div>:null}</td>
               <td>{row.reason}{row.error_code ? `（${row.error_code}）` : ""}</td>
               <td>{new Date(row.created_at).toLocaleString("zh-CN")}</td>
             </tr>
@@ -152,11 +157,14 @@ export function PracticeResultsPage({ subjectId, practiceId }: { subjectId: stri
   const [error, setError] = useState<unknown>(null);
   const [busyItem, setBusyItem] = useState<string | null>(null);
   const [actionErrors, setActionErrors] = useState<Record<string, string>>({});
+  const [operations, setOperations] = useState<Record<string, LearningOperation>>({});
+  const [uncertainOperations,setUncertainOperations]=useState<Record<string,boolean>>({});
 
   useEffect(() => {
     const controller = new AbortController();
     setLoading(true);
     setError(null);
+    setOperations({});
     getPracticeReport(practiceId, controller.signal)
       .then(async value => {
         if (controller.signal.aborted) return;
@@ -166,6 +174,11 @@ export function PracticeResultsPage({ subjectId, practiceId }: { subjectId: stri
           if (!item.dispute_id) continue;
           try {
             found[item.item_id] = await getScoreDispute(item.dispute_id, controller.signal);
+            const operationId=found[item.item_id].regrade_operation_id;
+            if(operationId){
+              const operation=await getLearningOperation(operationId,controller.signal);
+              if(!controller.signal.aborted)setOperations(old=>({...old,[item.item_id]:operation}));
+            }
           } catch (cause) {
             if (!controller.signal.aborted && cause instanceof LearningApiError && cause.status === 409) {
               // A stale dispute reference is a visible state, not a fabricated one.
@@ -194,6 +207,11 @@ export function PracticeResultsPage({ subjectId, practiceId }: { subjectId: stri
       if (!item.dispute_id) continue;
       try {
         found[item.item_id] = await getScoreDispute(item.dispute_id);
+        const operationId=found[item.item_id].regrade_operation_id;
+        if(operationId){
+          const operation=await getLearningOperation(operationId);
+          setOperations(old=>({...old,[item.item_id]:operation}));
+        }
       } catch {
         // Keep the report visible; the panel will show that state is unavailable.
       }
@@ -212,6 +230,8 @@ export function PracticeResultsPage({ subjectId, practiceId }: { subjectId: stri
       await action();
       await reload();
     } catch (cause) {
+      if(cause instanceof LearningApiError&&cause.code==="NETWORK_ERROR")
+        setUncertainOperations(old=>({...old,[itemId]:true}));
       setActionErrors(previous => ({ ...previous, [itemId]: errorText(cause) }));
     } finally {
       setBusyItem(null);
@@ -229,7 +249,7 @@ export function PracticeResultsPage({ subjectId, practiceId }: { subjectId: stri
         title="无法读取练习结果"
         description={<Space orientation="vertical">
           <span>{errorText(error)}</span>
-          <Link to={`/subjects/${encodeURIComponent(subjectId)}/practice`}>返回练习</Link>
+          <Link to={`/subjects/${encodeURIComponent(subjectId)}/practice?practice=${encodeURIComponent(practiceId)}`}>返回练习并读取操作</Link>
         </Space>}
       />
     );
@@ -291,6 +311,7 @@ export function PracticeResultsPage({ subjectId, practiceId }: { subjectId: stri
                 mediaUrl={asset => contentAssetUrl(subjectId, practiceId, item.item_id, asset)}
               />
               <Descriptions column={1} size="small" bordered style={{ marginTop: 12 }}>
+                <Descriptions.Item label="科目答疑"><Link to={`/subjects/${encodeURIComponent(subjectId)}/diagnosis?teacher_item=${encodeURIComponent(item.item_id)}`}>向科目教师询问本题与评分</Link></Descriptions.Item>
                 <Descriptions.Item label="你的作答">
                   {item.answer_state === "unanswered"
                     ? "未作答"
@@ -322,19 +343,54 @@ export function PracticeResultsPage({ subjectId, practiceId }: { subjectId: stri
                   item={item}
                   dispute={dispute}
                   busy={busyItem === item.item_id}
-                  canAccept={itemCanAccept(item, dispute)}
+                  canRegrade={!uncertainOperations[item.item_id] && item.validation_state !== "outcome_unknown" && (
+                    !dispute?.regrade_operation_id || Boolean(operations[item.item_id] &&
+                      ["succeeded", "failed", "partial"].includes(operations[item.item_id].state) &&
+                      (item.history ?? []).some(row => row.operation_id === operations[item.item_id].id)))}
+                  canAccept={itemCanAccept(item, dispute)&&!uncertainOperations[item.item_id]&&(
+                    !operations[item.item_id]||["prepared","confirmed"].includes(operations[item.item_id].state)
+                    ||(item.history??[]).some(row=>row.operation_id===operations[item.item_id].id))}
                   latestAttemptId={item.latest_attempt_id}
                   error={actionErrors[item.item_id]}
+                  feeOperation={operations[item.item_id]?<GradingOperationPanel
+                    value={operations[item.item_id]} busy={busyItem===item.item_id}
+                    uncertain={uncertainOperations[item.item_id]}
+                    onCancel={()=>{
+                      delete regradeKeys.current[item.item_id];
+                      setOperations(old=>{const next={...old};delete next[item.item_id];return next;});
+                      setDisputes(old => ({ ...old, [item.item_id]: { ...old[item.item_id], regrade_operation_id: null } }));
+                    }}
+                    onRefresh={()=>void act(item.item_id,async()=>{
+                      const op=await getLearningOperation(operations[item.item_id].id);
+                      setOperations(old=>({...old,[item.item_id]:op}));
+                      setUncertainOperations(old=>({...old,[item.item_id]:false}));
+                    })}
+                    onConfirm={()=>void act(item.item_id,async()=>{
+                      const op=operations[item.item_id];
+                      const confirmed=await confirmLearningOperation(op.id,{preview_digest:op.preview_digest});
+                      setOperations(old=>({...old,[item.item_id]:confirmed}));
+                    })}
+                    onExecute={()=>dispute && void act(item.item_id,async()=>{
+                      const result=await executeRegrade(dispute.id,operations[item.item_id].id);
+                      if(isLearningOperation(result))setOperations(old=>({...old,[item.item_id]:result}));
+                    })}
+                  />:undefined}
                   onRaise={reason => act(item.item_id, () => raiseScoreDispute(practiceId, item.item_id, reason))}
                   onRegrade={useCurrent => dispute && act(item.item_id, async () => {
                     const current = useCurrent ? await getQuestion(item.content.question_id) : null;
                     if (current && current.subject_id !== subjectId) throw new LearningApiError("QUESTION_SCOPE_INVALID",409);
                     const scope = `${dispute.id}:${item.latest_attempt_id}:${current?.revision_id ?? "frozen"}`;
                     const previous = regradeKeys.current[item.item_id];
-                    const key = previous?.scope === scope ? previous.key : crypto.randomUUID();
+                    const completed = operations[item.item_id] && ["succeeded", "failed", "partial"].includes(operations[item.item_id].state);
+                    const key = !completed && previous?.scope === scope ? previous.key : crypto.randomUUID();
                     regradeKeys.current[item.item_id] = { scope, key };
-                    return regradeScoreDispute(dispute.id, { idempotency_key: key,
-                      expected_attempt_id: item.latest_attempt_id, revision_id: current?.revision_id });
+                    const request={ idempotency_key: key,
+                      expected_attempt_id: item.latest_attempt_id, revision_id: current?.revision_id };
+                    if(item.question_type!=="short_answer" || item.answer_state==="unanswered")
+                      return regradeScoreDispute(dispute.id,request);
+                    const operation=await previewRegrade(dispute.id,request);
+                    setOperations(old=>({...old,[item.item_id]:operation}));
+                    return operation;
                   })}
                   onAccept={attemptId => dispute && act(item.item_id, () => acceptScoreDispute(dispute.id, attemptId))}
                 />

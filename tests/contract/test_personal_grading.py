@@ -5,6 +5,8 @@ Real Test PostgreSQL and the real HTTP routes are used; no model is called.
 
 from __future__ import annotations
 
+from concurrent.futures import ThreadPoolExecutor
+
 import pytest
 from sqlalchemy import select
 
@@ -258,6 +260,20 @@ def test_dispute_regrade_appends_a_round_and_only_a_newer_valid_round_resolves(s
     assert accepted.json()["state"] == "resolved"
     assert accepted.json()["accepted_attempt_id"] == str(rows[1].id)
 
+    # The transaction committed but its first HTTP response may have been lost.
+    replay = space.client.post(
+        f"/api/learning/disputes/{dispute['id']}/accept",
+        json={"attempt_id": str(rows[1].id)},
+    )
+    assert replay.status_code == 200, replay.text
+    assert replay.json() == accepted.json()
+    different = space.client.post(
+        f"/api/learning/disputes/{dispute['id']}/accept",
+        json={"attempt_id": str(rows[0].id)},
+    )
+    assert different.status_code == 409
+    assert len([row for row in attempts(space, practice) if str(row.answer_id) == dispute["answer_id"]]) == 2
+
     resolved_report = space.client.get(
         f"/api/learning/practices/{practice['id']}/report"
     ).json()
@@ -266,6 +282,26 @@ def test_dispute_regrade_appends_a_round_and_only_a_newer_valid_round_resolves(s
     }[single["id"]]["disputed"] is False
     assert resolved_report["unresolved_dispute_count"] == 0
     assert resolved_report["group_score_rate"] is not None
+
+
+def test_concurrent_acceptance_of_the_same_valid_round_is_idempotent(space):
+    sid, _point, _ids, _document = seed_bank(space, history=False, count=3)
+    practice = start_practice(space, sid)
+    single = item_of(practice, "single_choice")
+    answer(space, practice, single, choice_ids=["B"])
+    assert submit(space, practice, blank_confirmed=True).status_code == 200
+    raised = space.client.post(f"/api/learning/practices/{practice['id']}/disputes",
+        json={"item_id": single["id"], "reason": "Synthetic response loss"}).json()
+    url = f"/api/learning/disputes/{raised['id']}"
+    assert space.client.post(url + "/regrade", json={}).status_code == 200
+    latest = max((row for row in attempts(space, practice) if str(row.answer_id) == raised["answer_id"]),
+                 key=lambda row: row.round)
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        results = list(pool.map(lambda _: space.client.post(url + "/accept",
+            json={"attempt_id": str(latest.id)}), range(2)))
+    assert [result.status_code for result in results] == [200, 200]
+    assert results[0].json() == results[1].json()
+    assert results[0].json()["accepted_attempt_id"] == str(latest.id)
 
 
 def test_report_is_readable_after_reload_and_scoped_to_its_practice(space):

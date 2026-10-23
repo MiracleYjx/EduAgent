@@ -41,6 +41,7 @@ from backend.app.ai.retrieval.base import (
     RetrievalUnsupportedDialectError,
     RetrievedChunk,
 )
+from backend.app.ai.retrieval.hybrid_search import HybridSearchRetriever
 from backend.app.ai.retrieval.reranker import (
     LLMRerankAdapter,
     LLMRerankResponse,
@@ -62,6 +63,7 @@ from backend.app.services.grading.grading_context import (
     ReferenceAnswerMissingError,
     SubjectiveGradingSource,
     build_grading_context,
+    build_keyword_query_text,
     build_query_text,
 )
 from backend.app.services.grading.question_router import (
@@ -373,6 +375,20 @@ def test_query_text_always_includes_required_sections() -> None:
     assert "【学生答案】" in query
 
 
+def test_keyword_facts_share_query_budgets_without_injected_truncation_terms() -> None:
+    source = _source(question_content="alpha " * 1000, reference_answer="beta " * 1000,
+        scoring_rubric="gamma " * 1000, student_answer="delta " * 1000)
+    trace = build_query_text(source)
+    facts = build_keyword_query_text(source)
+    assert len(facts) <= len(trace) <= MAX_QUERY_CHARS
+    assert TRUNCATION_MARKER in trace and TRUNCATION_MARKER not in facts
+    assert [line.split()[0] for line in facts.splitlines()] == ["alpha", "beta", "gamma", "delta"]
+    assert source.question_content == ("alpha " * 1000).strip()
+    assert source.student_answer_text == ("delta " * 1000).strip()
+    literal = _source(question_content="actual 【题目】 …（已截断）")
+    assert "actual 【题目】 …（已截断）" in build_keyword_query_text(literal)
+
+
 # --- Final Context、溯源与充分性 ---
 
 
@@ -524,7 +540,25 @@ def test_keyword_mode_does_not_call_embedding() -> None:
     )
 
     assert embedding.queries == []
-    assert retriever.calls[0]["query"] == context.query_text
+    assert retriever.calls[0]["query"] == build_keyword_query_text(context.source)
+
+
+@pytest.mark.parametrize("mode", [RetrievalMode.KEYWORD_ONLY, RetrievalMode.HYBRID])
+def test_grading_keyword_query_contains_bounded_facts_without_generated_labels(mode) -> None:
+    source = _source(question_content="alpha", reference_answer="beta",
+        scoring_rubric="gamma", student_answer="delta")
+    keyword = StubRetriever(hits=[_chunk("facts")], mode=RetrievalMode.KEYWORD_ONLY)
+    embedding = StubEmbeddingProvider()
+    retriever = (HybridSearchRetriever(vector_retriever=StubRetriever(), keyword_retriever=keyword)
+        if mode is RetrievalMode.HYBRID else keyword)
+    context = asyncio.run(build_grading_context(_SESSION, source, mode=mode,
+        retriever=retriever, embedding_provider=embedding))
+    assert keyword.calls[0]["query"] == "alpha\nbeta\ngamma\ndelta"
+    assert "【题目】\nalpha" in context.query_text
+    if mode is RetrievalMode.HYBRID:
+        assert embedding.queries == [context.query_text]
+    else:
+        assert embedding.queries == []
 
 
 def test_vector_mode_receives_embedding_only() -> None:
@@ -548,7 +582,7 @@ def test_hybrid_mode_receives_retrieval_query() -> None:
 
     sent = retriever.calls[0]["query"]
     assert isinstance(sent, RetrievalQuery)
-    assert sent.text == context.query_text
+    assert sent.text == build_keyword_query_text(context.source)
     assert list(sent.embedding) == list(EMBEDDING_VECTOR)
 
 

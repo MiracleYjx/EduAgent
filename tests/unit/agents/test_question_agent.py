@@ -595,6 +595,31 @@ def test_invalid_input_type_fails() -> None:
     assert output.error.error_code == QUESTION_INVALID_INPUT
 
 
+def test_provider_empty_content_blocks_without_second_call() -> None:
+    """空正文必须映射为无效结构化响应，不得产生候选或二次调用。"""
+
+    provider = StubQuestionProvider(
+        error=ProviderExecutionError(
+            ProviderErrorInfo(
+                code="ProviderEmptyResponse",
+                message="LLM Provider 返回空正文。",
+                attempt_count=1,
+                retryable=False,
+                status="ProviderEmptyResponse",
+            )
+        )
+    )
+    output = _generate(provider)
+
+    assert output.status is AgentStatus.FAILURE
+    assert output.error is not None
+    assert output.error.error_code == QUESTION_INVALID_LLM_RESPONSE
+    assert output.error.source_code == "ProviderEmptyResponse"
+    assert output.error.retryable is False
+    assert output.error.attempt_count == 1
+    assert output.question_candidates == []
+
+
 def test_provider_structured_failure_maps_to_invalid_response() -> None:
     """Provider 报结构化失败时映射为结构化失败码，并保留脱敏来源信息。"""
 

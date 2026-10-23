@@ -1,4 +1,5 @@
 import { useState } from "react";
+import type { ReactNode } from "react";
 import { Alert, Button, Checkbox, Input, Space, Tag, Typography } from "antd";
 
 import type { PracticeItemResult, ScoreDispute } from "../../api/practiceClient";
@@ -19,6 +20,8 @@ export function ScoreDisputePanel({
   onRaise,
   onRegrade,
   onAccept,
+  feeOperation,
+  canRegrade = !feeOperation,
 }: {
   item: PracticeItemResult;
   dispute: ScoreDispute | null;
@@ -29,6 +32,8 @@ export function ScoreDisputePanel({
   onRaise: (reason: string) => void;
   onRegrade: (useCurrentRevision?: boolean) => void;
   onAccept: (attemptId: string) => void;
+  feeOperation?: ReactNode;
+  canRegrade?: boolean;
 }) {
   const [reason, setReason] = useState("");
   const [confirming, setConfirming] = useState(false);
@@ -58,17 +63,18 @@ export function ScoreDisputePanel({
           <Typography.Paragraph style={{ marginBottom: 0 }}>
             争议理由：{dispute.reason}
           </Typography.Paragraph>
-          {dispute.state === "pending" ? <Checkbox checked={useCurrentRevision} disabled={busy}
+          {feeOperation}
+          {canRegrade ? <Checkbox checked={useCurrentRevision} disabled={busy}
             onChange={event => setUseCurrentRevision(event.target.checked)}>
             采用题库当前已校正并通过核验的修订（保留原轮次）
           </Checkbox> : null}
-          {dispute.state === "pending" ? (
+          {canRegrade ? (
             confirming ? (
               <Alert
                 type="warning"
                 showIcon
                 title="确认主动请求重评？"
-                description="重评只针对本题当前评分轮次；是否调用模型取决于本题评分能力。提交后不会自动重复调用。"
+                description="重评只针对本题当前评分轮次。需要模型时将先生成费用预览，再由你确认，不会在此发送。"
                 action={
                   <Space>
                     <Button size="small" onClick={() => setConfirming(false)} disabled={busy}>
@@ -93,7 +99,8 @@ export function ScoreDisputePanel({
                 主动请求重评
               </Button>
             )
-          ) : (
+          ) : null}
+          {dispute.state === "awaiting_acceptance" ? (
             <Space wrap>
               <Typography.Text type="secondary">
                 请先核对新旧轮次，再决定是否接受当前有效结果。
@@ -111,7 +118,7 @@ export function ScoreDisputePanel({
                 </Typography.Text>
               ) : null}
             </Space>
-          )}
+          ) : null}
           {error ? <Alert type="error" showIcon title={error} /> : null}
         </Space>
       </section>

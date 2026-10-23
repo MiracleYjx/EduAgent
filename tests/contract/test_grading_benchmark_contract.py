@@ -18,7 +18,7 @@ import csv
 import json
 import subprocess
 import sys
-from collections.abc import Mapping, Sequence
+from collections.abc import Iterator, Mapping, Sequence
 from pathlib import Path
 from typing import Any
 
@@ -36,6 +36,10 @@ from backend.app.ai.retrieval.vector_search import VectorSearchRetriever
 from backend.app.core.retry_policy import ProviderErrorInfo, ProviderExecutionError
 from scripts import run_grading_benchmark as benchmark
 from scripts.run_grading_benchmark import SelfTestScoringProvider
+from tests.support.benchmark_results import (
+    benchmark_results_directory,
+    discard_results_directory,
+)
 from tests.unit.settings_helpers import build_test_settings
 
 
@@ -137,10 +141,14 @@ class NotReadyProvider(SelfTestScoringProvider):
 
 
 @pytest.fixture
-def results_dir(tmp_path: Path) -> Path:
-    """每次用例使用独立结果目录。"""
+def results_dir(tmp_path: Path) -> Iterator[Path]:
+    """每次用例使用独立结果目录，并留在已选环境自己的 results 边界内。"""
 
-    return tmp_path / "results"
+    path = benchmark_results_directory(tmp_path, prefix="grading")
+    try:
+        yield path
+    finally:
+        discard_results_directory(path, tmp_path)
 
 
 def _run(results_dir: Path, provider: Any = None) -> dict[str, Any]:

@@ -25,8 +25,9 @@ describe("T223 first-run flows", () => {
     for (const [label, value] of [["持久目录（绝对路径）", "C:/synthetic-test/storage"], ["数据库主机", "127.0.0.1"], ["数据库名称", "eduagent_test"], ["数据库用户", "test_runner"], ["Redis 主机", "127.0.0.1"]]) {
       await user.type(screen.getByLabelText(label), value);
     }
-    await user.click(screen.getByRole("button", { name: "生成并安全保存 JWT" }));
-    await screen.findByText(/JWT 凭据已保存/);
+    await user.type(screen.getByLabelText("数据库 密钥输入"), "synthetic-database-password-not-a-real-key-123456789");
+    await user.click(screen.getByRole("button", { name: "安全保存 数据库 凭据" }));
+    await screen.findByText(/数据库 凭据已保存/);
     await user.click(screen.getByRole("button", { name: "保存目录与依赖草稿" }));
     await screen.findByText("草稿已保存");
     await user.click(screen.getByRole("button", { name: "查看下一步" }));
@@ -63,12 +64,12 @@ describe("T223 first-run flows", () => {
     vi.stubGlobal("fetch", (input: RequestInfo | URL, init?: RequestInit) =>
       String(input).endsWith("/readiness") ? new Promise<Response>(resolve => { rejectRead = resolve; }) : api.fetch(input, init));
     render(createElement(App));
-    await screen.findByLabelText("JWT 密钥输入");
+    await screen.findByLabelText("数据库 密钥输入");
     const user = userEvent.setup();
-    await user.type(screen.getByLabelText("JWT 密钥输入"), "synthetic-in-memory-only");
+    await user.type(screen.getByLabelText("数据库 密钥输入"), "synthetic-in-memory-only");
     rejectRead(jsonResponse(errorFixture("ORIGIN_NOT_ALLOWED", "本次来源已失效，请重新授权。"), 403));
     await screen.findByText(/本次来源已失效/);
-    expect(screen.queryByLabelText("JWT 密钥输入")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("数据库 密钥输入")).not.toBeInTheDocument();
     expect(api.writes()).toEqual([]);
   });
 
@@ -146,7 +147,7 @@ describe("T223 first-run flows", () => {
     }))) : api.fetch(input, init));
     render(createElement(App));
     await screen.findByRole("heading", { name: "首次启动向导" });
-    expect(screen.queryByLabelText("JWT 密钥输入")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("数据库 密钥输入")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "生成并安全保存 JWT" })).not.toBeInTheDocument();
     expect(screen.getAllByText(/外部 Secret 仅由宿主维护/).length).toBeGreaterThan(0);
     expect(api.writes()).toEqual([]);
@@ -154,10 +155,10 @@ describe("T223 first-run flows", () => {
 
   it("discards unsubmitted secret inputs when leaving and returning to a step", async () => {
     const { api, user } = await start({ step: 2, draft: draftFixture() });
-    await user.type(screen.getByLabelText("JWT 密钥输入"), "synthetic-unsubmitted-secret");
+    await user.type(screen.getByLabelText("数据库 密钥输入"), "synthetic-unsubmitted-secret");
     await user.click(screen.getByRole("button", { name: "查看下一步" }));
     await user.click(screen.getByRole("button", { name: "查看上一步" }));
-    expect(screen.getByLabelText("JWT 密钥输入")).toHaveValue("");
+    expect(screen.getByLabelText("数据库 密钥输入")).toHaveValue("");
     expect(api.writes()).toEqual([]);
   });
 
@@ -216,7 +217,7 @@ describe("T223 first-run flows", () => {
   it("shows validation field errors without declaring Probe or Business success", async () => {
     const { api, user } = await start({ step: 2, draft: draftFixture(), invalid: true });
     await user.click(screen.getByRole("button", { name: "校验已保存草稿" }));
-    expect(await screen.findByText(/business.jwt_secret_ref.*CREDENTIAL_UNAVAILABLE/)).toBeInTheDocument();
+    expect(await screen.findByText(/business.database_password_ref.*CREDENTIAL_UNAVAILABLE/)).toBeInTheDocument();
     expect(screen.getByText("配置尚未校验通过")).toBeInTheDocument();
     expect(api.writes().filter(c => c.path.endsWith("/activate"))).toHaveLength(0);
     expect(api.writes().filter(c => c.path.endsWith("/probes"))).toHaveLength(0);
@@ -224,10 +225,10 @@ describe("T223 first-run flows", () => {
 
   it.each([401, 403] as const)("clears secret input and session on HTTP %s without replay", async status => {
     const { api, user } = await start({ step: 2, draft: draftFixture(), authorizationFailure: status });
-    await user.type(screen.getByLabelText("JWT 密钥输入"), "synthetic-only-secret-not-a-real-key");
-    await user.click(screen.getByRole("button", { name: "安全保存 JWT 凭据" }));
+    await user.type(screen.getByLabelText("数据库 密钥输入"), "synthetic-only-secret-not-a-real-key");
+    await user.click(screen.getByRole("button", { name: "安全保存 数据库 凭据" }));
     expect(await screen.findByText(/授权或来源已失效/)).toBeInTheDocument();
-    expect(screen.queryByLabelText("JWT 密钥输入")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("数据库 密钥输入")).not.toBeInTheDocument();
     expect(api.writes().filter(c => c.path.endsWith("/credentials"))).toHaveLength(1);
     expect(localStorage.length).toBe(0);
     expect(sessionStorage.length).toBe(0);
@@ -236,15 +237,15 @@ describe("T223 first-run flows", () => {
   it("clears a successful secret submission and stores only its reference in a draft", async () => {
     const { api, user } = await start({ step: 2, draft: draftFixture() });
     const secret = "synthetic-only-jwt-not-a-real-key-123456789";
-    await user.type(screen.getByLabelText("JWT 密钥输入"), secret);
-    await user.click(screen.getByRole("button", { name: "安全保存 JWT 凭据" }));
-    expect(await screen.findByText(/JWT 凭据已保存/)).toBeInTheDocument();
-    expect(screen.getByLabelText("JWT 密钥输入")).toHaveValue("");
+    await user.type(screen.getByLabelText("数据库 密钥输入"), secret);
+    await user.click(screen.getByRole("button", { name: "安全保存 数据库 凭据" }));
+    expect(await screen.findByText(/数据库 凭据已保存/)).toBeInTheDocument();
+    expect(screen.getByLabelText("数据库 密钥输入")).toHaveValue("");
     await user.click(screen.getByRole("button", { name: "保存目录与依赖草稿" }));
     await waitFor(() => expect(api.writes().some(c => c.path.endsWith("/onboarding"))).toBe(true));
     const draftCall = api.writes().find(c => c.path.includes("/drafts/"));
     expect(JSON.stringify(draftCall?.body)).not.toContain(secret);
-    expect(JSON.stringify(draftCall?.body)).toContain("jwt_secret_ref");
+    expect(JSON.stringify(draftCall?.body)).toContain("database_password_ref");
   });
 
   it("does not count repeated text successes as verification of another capability", async () => {

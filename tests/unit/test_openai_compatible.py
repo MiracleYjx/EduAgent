@@ -199,6 +199,7 @@ async def test_text_parameter_boundaries_are_forwarded(temperature, max_tokens, 
     {"temperature": -0.01}, {"temperature": 2.01},
     {"temperature": float("inf")}, {"temperature": float("nan")},
     {"max_tokens": 0}, {"max_tokens": 32769},
+    {"reasoning_effort": "medium"},
 ])
 def test_invalid_text_parameters_fail_before_network(parameters, probe_sandbox):
     with pytest.raises((ValueError, ProviderCallError)):
@@ -248,6 +249,81 @@ async def test_empty_json_object_and_local_schema_failures_are_safe(kind, expect
         assert caught.value.code == expected_code
         assert_safe_error(probe_sandbox, caught.value)
         assert len(scenario.requests) == 1
+    finally:
+        await provider.aclose()
+        await http.aclose()
+
+
+@pytest.mark.asyncio
+async def test_reasoning_content_is_separate_and_empty_content_never_retries(probe_sandbox):
+    probe_sandbox.scenario.json_body = {
+        "id": "t208-reasoning-only",
+        "object": "chat.completion",
+        "created": 0,
+        "model": "t208-text-model",
+        "choices": [
+            {
+                "index": 0,
+                "message": {
+                    "role": "assistant",
+                    "content": "",
+                    "reasoning_content": "private reasoning must not be the answer",
+                },
+                "finish_reason": "length",
+            }
+        ],
+        "usage": {"prompt_tokens": 10, "completion_tokens": 8, "total_tokens": 18},
+    }
+    http = probe_sandbox.http()
+    provider = make_provider(probe_sandbox, http_client=http)
+    try:
+        with pytest.raises(_SAFE_ERRORS) as caught:
+            await provider.generate_structured(_MESSAGES, TextAnswer)
+        assert caught.value.code == "ProviderEmptyResponse"
+        assert caught.value.info.retryable is False
+        assert len(probe_sandbox.scenario.requests) == 1
+        assert "private reasoning" not in str(caught.value)
+    finally:
+        await provider.aclose()
+        await http.aclose()
+
+
+@pytest.mark.asyncio
+async def test_finish_reason_length_with_valid_json_is_rejected_once(probe_sandbox):
+    probe_sandbox.scenario.json_body = {
+        "id": "t208-truncated",
+        "object": "chat.completion",
+        "created": 0,
+        "model": "t208-text-model",
+        "choices": [
+            {
+                "index": 0,
+                "message": {"role": "assistant", "content": '{"ok": true}'},
+                "finish_reason": "length",
+            }
+        ],
+    }
+    http = probe_sandbox.http()
+    provider = make_provider(probe_sandbox, http_client=http)
+    try:
+        with pytest.raises(_SAFE_ERRORS) as caught:
+            await provider.generate_structured(_MESSAGES, TextAnswer)
+        assert caught.value.code == "ProviderOutputTruncated"
+        assert caught.value.info.retryable is False
+        assert len(probe_sandbox.scenario.requests) == 1
+    finally:
+        await provider.aclose()
+        await http.aclose()
+
+
+@pytest.mark.asyncio
+async def test_reasoning_effort_is_optional_and_forwarded(probe_sandbox):
+    http = probe_sandbox.http()
+    provider = make_provider(probe_sandbox, http_client=http, reasoning_effort="low")
+    try:
+        await provider.generate_structured(_MESSAGES, TextAnswer)
+        body = json.loads(probe_sandbox.scenario.requests[0].content)
+        assert body["reasoning_effort"] == "low"
     finally:
         await provider.aclose()
         await http.aclose()

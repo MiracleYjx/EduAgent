@@ -167,6 +167,69 @@ async def test_business_guard_is_required_even_with_successful_probes(repository
 
 
 @pytest.mark.asyncio
+async def test_adding_vision_binding_only_requires_its_new_candidate_probe(repository):
+    """T083 TCR: exercise real admission and snapshots with offline HTTP only."""
+    from backend.app.services.settings.runtime_snapshot import RuntimeSnapshotService
+
+    store, probes, clock, calls, values = setup(repository)
+    profile_id = add_text(values)
+    credential = store.put(purpose='provider', secret_value=SecretStr('t083_synthetic_' + uuid4().hex))
+    values['providers'][str(profile_id)].update(
+        adapter_id='deepseek', model_id='deepseek-flash',
+        base_url='https://api.deepseek.com',
+        auth_mode='api_key', credential_ref=credential.model_dump(mode='json'),
+        declared_capabilities=['text', 'json_object', 'vision'],
+    )
+    first = draft(repository, values)
+    results = await evidence(probes, first)
+    profile = first.values.providers[str(profile_id)]
+    old_vision = await probes.run(candidate_revision=first.revision_id, profile=profile,
+        capability='vision', allow_billable=True)
+    accepted = activate(repository, first, ids=[result.probe_id for result in results])
+    assert set(accepted.activation_validation) == {'default_llm:text', 'default_llm:json_object'}
+    snapshots = RuntimeSnapshotService(repository, clock=clock)
+    old_snapshot = snapshots.create(workflow_id='synthetic-before-vision', request_id='before',
+        task_kinds=['default_llm'])
+
+    clock.now += timedelta(days=1)
+    changed = accepted.values.model_dump(mode='json')
+    changed['bindings']['vision'] = {'task_kind': 'vision',
+        'profile_id': str(profile_id), 'profile_revision': str(profile.profile_revision)}
+    candidate = draft(repository, changed, accepted.revision_id)
+    before_targets = repository._ai_targets(accepted.values, accepted.revision_id)
+    after_targets = repository._ai_targets(candidate.values, candidate.revision_id)
+    assert set(after_targets) - set(before_targets) == {'vision:vision'}
+    assert all(after_targets[key][0] == facts[0] for key, facts in before_targets.items())
+    assert candidate.values.providers == accepted.values.providers
+
+    for ids in ((), (old_vision.probe_id,)):
+        with pytest.raises(ValueError, match='PROBE_REQUIRED'):
+            activate(repository, candidate, accepted.revision_id, ids)
+        assert repository.read_manifest().active_revision == accepted.revision_id
+        assert len(calls) == 3
+
+    new_vision = await probes.run(candidate_revision=candidate.revision_id,
+        profile=profile, capability='vision', allow_billable=True)
+    current = activate(repository, candidate, accepted.revision_id, [new_vision.probe_id])
+    assert len(calls) == 4
+    assert set(current.activation_validation) == set(accepted.activation_validation) | {'vision:vision'}
+    assert all(current.activation_validation[key] == record
+        for key, record in accepted.activation_validation.items())
+    assert current.activation_validation['vision:vision'].probe_id == new_vision.probe_id
+
+    new_snapshot = snapshots.create(workflow_id='synthetic-after-vision', request_id='after',
+        task_kinds=['default_llm', 'vision'])
+    assert new_snapshot.settings_revision == current.revision_id
+    assert new_snapshot.resolved_task_bindings['vision'].profile_revision == profile.profile_revision
+    assert new_snapshot.resolved_task_bindings['default_llm'] == old_snapshot.resolved_task_bindings['default_llm']
+    assert snapshots.load(old_snapshot.snapshot_id) == old_snapshot
+    assert old_snapshot.settings_revision == accepted.revision_id
+    assert 'vision' not in old_snapshot.resolved_task_bindings
+    assert snapshots.active_lease_count == 0
+    await probes.aclose()
+
+
+@pytest.mark.asyncio
 @pytest.mark.parametrize('field', ['model_id', 'base_url', 'parameters', 'credential_ref'])
 async def test_reused_profile_revision_cannot_inherit_acceptance_for_changed_identity(repository, field):
     store, probes, _, _, values = setup(repository)

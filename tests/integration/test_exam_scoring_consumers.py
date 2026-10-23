@@ -33,7 +33,11 @@ from backend.app.services.grading.subjective_grader import (
 )
 from backend.app.services.grading.subjective_pipeline import build_subjective_source
 from tests.integration.test_fixed_scoring_input import image_fixture
-from tests.integration.test_langgraph_grading_workflow import (
+from tests.postgres_helpers import (
+    isolated_postgres_engine,
+    isolated_test_resource_profile,
+)
+from tests.support.retained_workflow_integration_fixtures import (
     ReviewEnv,
     SequenceScoringProvider,
     _api_client,
@@ -42,10 +46,6 @@ from tests.integration.test_langgraph_grading_workflow import (
     _start,
     _student_result,
     _teacher_headers,
-)
-from tests.postgres_helpers import (
-    isolated_postgres_engine,
-    isolated_test_resource_profile,
 )
 from tests.support.subjective_grading_doubles import (
     StubEmbeddingProvider,

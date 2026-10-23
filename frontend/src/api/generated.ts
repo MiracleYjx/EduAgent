@@ -757,6 +757,142 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/learning/materials/{material_id}/ocr-preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Ocr Preview */
+        post: operations["ocr_preview_api_learning_materials__material_id__ocr_preview_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/learning/materials/{material_id}/ocr/{preview_id}/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Confirm Ocr */
+        post: operations["confirm_ocr_api_learning_materials__material_id__ocr__preview_id__confirm_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/learning/materials/{material_id}/ocr/{preview_id}/execute": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Execute Ocr */
+        post: operations["execute_ocr_api_learning_materials__material_id__ocr__preview_id__execute_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/learning/materials/{material_id}/ocr/{preview_id}/review": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Review Ocr */
+        post: operations["review_ocr_api_learning_materials__material_id__ocr__preview_id__review_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/learning/materials/{material_id}/ocr/{preview_id}/recover": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Recover Ocr */
+        post: operations["recover_ocr_api_learning_materials__material_id__ocr__preview_id__recover_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/learning/materials/{material_id}/index-preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Index Preview */
+        post: operations["index_preview_api_learning_materials__material_id__index_preview_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/learning/materials/{material_id}/index/{operation_id}/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Confirm Index */
+        post: operations["confirm_index_api_learning_materials__material_id__index__operation_id__confirm_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/learning/materials/{material_id}/index/{operation_id}/execute": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Execute Index */
+        post: operations["execute_index_api_learning_materials__material_id__index__operation_id__execute_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/learning/subjects/{subject_id}/material-series": {
         parameters: {
             query?: never;
@@ -1121,6 +1257,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/learning/practices/{identity}/grading-preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Grading Preview */
+        post: operations["grading_preview_api_learning_practices__identity__grading_preview_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/learning/practices/{identity}/grade/{operation_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Grade */
+        post: operations["grade_api_learning_practices__identity__grade__operation_id__post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/learning/subjects/{subject_id}/practices/preview": {
         parameters: {
             query?: never;
@@ -1331,6 +1501,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/learning/disputes/{dispute_id}/regrade-preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Regrade Preview */
+        post: operations["regrade_preview_api_learning_disputes__dispute_id__regrade_preview_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/learning/disputes/{dispute_id}/regrade/{operation_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Execute Regrade */
+        post: operations["execute_regrade_api_learning_disputes__dispute_id__regrade__operation_id__post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/learning/disputes/{dispute_id}/accept": {
         parameters: {
             query?: never;
@@ -1359,6 +1563,127 @@ export interface paths {
         get: operations["get_dispute_api_learning_disputes__dispute_id__get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/learning/subjects/{subject_id}/diagnosis": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Diagnosis */
+        get: operations["diagnosis_api_learning_subjects__subject_id__diagnosis_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/learning/subjects/{subject_id}/conversations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Conversations */
+        get: operations["conversations_api_learning_subjects__subject_id__conversations_get"];
+        put?: never;
+        /** Create */
+        post: operations["create_api_learning_subjects__subject_id__conversations_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/learning/conversations/{identity}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Conversation */
+        get: operations["conversation_api_learning_conversations__identity__get"];
+        put?: never;
+        post?: never;
+        /** Delete Conversation */
+        delete: operations["delete_conversation_api_learning_conversations__identity__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/learning/conversations/{identity}/messages/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Preview */
+        post: operations["preview_api_learning_conversations__identity__messages_preview_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/learning/conversations/{identity}/messages/{operation_id}/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Confirm */
+        post: operations["confirm_api_learning_conversations__identity__messages__operation_id__confirm_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/learning/conversations/{identity}/messages/{operation_id}/execute": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Execute */
+        post: operations["execute_api_learning_conversations__identity__messages__operation_id__execute_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/learning/conversations/{identity}/messages/{operation_id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancel */
+        post: operations["cancel_api_learning_conversations__identity__messages__operation_id__cancel_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1717,6 +2042,60 @@ export interface components {
             /** Blocks */
             blocks: (components["schemas"]["TextBlock"] | components["schemas"]["ImageBlock"] | components["schemas"]["FormulaBlock-Output"] | components["schemas"]["TableBlock"] | components["schemas"]["OriginalBlock"] | components["schemas"]["ChartBlock"])[];
         };
+        /** ConversationCreate */
+        ConversationCreate: {
+            /**
+             * Title
+             * @default 新的对话
+             */
+            title: string;
+        };
+        /** ConversationSummary */
+        ConversationSummary: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Subject Id
+             * Format: uuid
+             */
+            subject_id: string;
+            /** Title */
+            title: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Pending Operation Id */
+            pending_operation_id?: string | null;
+        };
+        /** ConversationView */
+        ConversationView: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Subject Id
+             * Format: uuid
+             */
+            subject_id: string;
+            /** Title */
+            title: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Pending Operation Id */
+            pending_operation_id?: string | null;
+            /** Messages */
+            messages: components["schemas"]["TeacherMessageView"][];
+        };
         /**
          * CredentialBindingRequest
          * @description 把已存在的安全引用绑定到草稿中的 Profile；不写入秘密。
@@ -1844,6 +2223,81 @@ export interface components {
              * Format: uuid
              */
             version_id: string;
+        };
+        /** DiagnosisEvidence */
+        DiagnosisEvidence: {
+            /**
+             * Answer Id
+             * Format: uuid
+             */
+            answer_id: string;
+            /**
+             * Item Id
+             * Format: uuid
+             */
+            item_id: string;
+            /**
+             * Practice Id
+             * Format: uuid
+             */
+            practice_id: string;
+            /**
+             * Question Id
+             * Format: uuid
+             */
+            question_id: string;
+            /**
+             * Revision Id
+             * Format: uuid
+             */
+            revision_id: string;
+            /** Attempt Id */
+            attempt_id: string | null;
+            /**
+             * Submitted At
+             * Format: date-time
+             */
+            submitted_at: string;
+            /** Knowledge Point Ids */
+            knowledge_point_ids: string[];
+            /** Question Type */
+            question_type: string;
+            /** Source Kind */
+            source_kind: string;
+            /** Answer Origin */
+            answer_origin: string | null;
+            /** Score */
+            score: string | null;
+            /** Max Score */
+            max_score: string;
+            /** Exclusion */
+            exclusion: string | null;
+        };
+        /** DiagnosisStatistics */
+        DiagnosisStatistics: {
+            /** Practice Count */
+            practice_count: number;
+            /** Valid Count */
+            valid_count: number;
+            /** Excluded Count */
+            excluded_count: number;
+            /** Unanswered Count */
+            unanswered_count: number;
+            /** Exclusion Counts */
+            exclusion_counts: {
+                [key: string]: number;
+            };
+            first: components["schemas"]["Performance"];
+            repractice: components["schemas"]["Performance"];
+            recent: components["schemas"]["Performance"];
+            previous: components["schemas"]["Performance"];
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "insufficient_evidence" | "reinforce" | "observed";
+            /** Repeated Wrong Question Ids */
+            repeated_wrong_question_ids: string[];
         };
         /** DiagnosticsReport */
         DiagnosticsReport: {
@@ -2218,6 +2672,18 @@ export interface components {
             /** Chapters */
             chapters?: components["schemas"]["KnowledgeChapterInput"][];
         };
+        /** KnowledgeDiagnosis */
+        KnowledgeDiagnosis: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string;
+            statistics: components["schemas"]["DiagnosisStatistics"];
+            suggestion: components["schemas"]["LearningSuggestion"];
+        };
         /** KnowledgePointInput */
         KnowledgePointInput: {
             /** Id */
@@ -2337,6 +2803,19 @@ export interface components {
             scope: {
                 [key: string]: unknown;
             };
+        };
+        /** LearningSuggestion */
+        LearningSuggestion: {
+            /**
+             * Knowledge Point Id
+             * Format: uuid
+             */
+            knowledge_point_id: string;
+            /** Message */
+            message: string;
+            /** Sources */
+            sources: components["schemas"]["ReviewSource"][];
+            practice_conditions: components["schemas"]["PracticeConditions"];
         };
         /** LegacyImportApplyRequest */
         LegacyImportApplyRequest: {
@@ -2460,11 +2939,73 @@ export interface components {
             placement?: string | null;
             /** Reason */
             reason?: string | null;
+            /** Ocr Source Anchor */
+            ocr_source_anchor?: string | null;
+        };
+        /** MaterialIndexExecuteRequest */
+        MaterialIndexExecuteRequest: Record<string, never>;
+        /** MaterialIndexPreviewRequest */
+        MaterialIndexPreviewRequest: {
+            /** Idempotency Key */
+            idempotency_key: string;
         };
         /** MaterialList */
         MaterialList: {
             /** Materials */
             materials: components["schemas"]["MaterialView"][];
+        };
+        /** MaterialOCRPreviewRequest */
+        MaterialOCRPreviewRequest: {
+            /** Idempotency Key */
+            idempotency_key: string;
+        };
+        /** MaterialOCRView */
+        MaterialOCRView: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Material Id
+             * Format: uuid
+             */
+            material_id: string;
+            /** Preview Digest */
+            preview_digest: string;
+            /**
+             * Runtime Snapshot Id
+             * Format: uuid
+             */
+            runtime_snapshot_id: string;
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "prepared" | "confirmed" | "running" | "review_required" | "succeeded" | "partial" | "failed";
+            /** Page Count */
+            page_count: number;
+            /**
+             * Completed Pages
+             * @default 0
+             */
+            completed_pages: number;
+            /**
+             * Adapter
+             * @default rapidocr
+             * @constant
+             */
+            adapter: "rapidocr";
+            /** Model */
+            model: string;
+            /**
+             * Request Budget
+             * @default 0
+             * @constant
+             */
+            request_budget: 0;
+            /** Error Code */
+            error_code?: string | null;
         };
         /**
          * MaterialPurpose
@@ -2542,6 +3083,8 @@ export interface components {
              * Format: uuid
              */
             id: string;
+            /** Index Operation Id */
+            index_operation_id?: string | null;
             /**
              * Subject Id
              * Format: uuid
@@ -2587,6 +3130,7 @@ export interface components {
              * @default false
              */
             requires_ocr: boolean;
+            ocr?: components["schemas"]["MaterialOCRView"] | null;
             /** Blocks */
             blocks?: components["schemas"]["MaterialBlockView"][];
             /** Assets */
@@ -2724,6 +3268,20 @@ export interface components {
             reason: string;
             source: components["schemas"]["SourceLocation"];
         };
+        /** Performance */
+        Performance: {
+            /** Count */
+            count: number;
+            /** Score Rate */
+            score_rate?: string | null;
+            /**
+             * Choice Count
+             * @default 0
+             */
+            choice_count: number;
+            /** Choice Correct Rate */
+            choice_correct_rate?: string | null;
+        };
         /** PersonalAnswerRequest */
         PersonalAnswerRequest: {
             /** Expected Revision */
@@ -2735,6 +3293,23 @@ export interface components {
             mode: "complete" | "review";
             /** Idempotency Key */
             idempotency_key: string;
+        };
+        /** PersonalDiagnosis */
+        PersonalDiagnosis: {
+            /**
+             * Subject Id
+             * Format: uuid
+             */
+            subject_id: string;
+            /** Source Kind */
+            source_kind: ("uploaded" | "ai") | null;
+            /** Answer Origin */
+            answer_origin: string | null;
+            statistics: components["schemas"]["DiagnosisStatistics"];
+            /** Knowledge Points */
+            knowledge_points: components["schemas"]["KnowledgeDiagnosis"][];
+            /** Evidence */
+            evidence?: components["schemas"]["DiagnosisEvidence"][];
         };
         /** PersonalPaperAssetView */
         PersonalPaperAssetView: {
@@ -2908,6 +3483,8 @@ export interface components {
             state: string;
             /** Items */
             items: components["schemas"]["PracticeItemView"][];
+            /** Grading Operation Id */
+            grading_operation_id?: string | null;
         };
         /** PersonalQuestionEdit */
         PersonalQuestionEdit: {
@@ -3106,6 +3683,8 @@ export interface components {
             reference_answer?: string | null;
             /** Scoring Rubric */
             scoring_rubric?: string | null;
+            /** Operation Id */
+            operation_id?: string | null;
         };
         /** PracticeBlankConfirmation */
         PracticeBlankConfirmation: {
@@ -3162,6 +3741,16 @@ export interface components {
             difficulty?: string | null;
             /** Source Document Ids */
             source_document_ids?: string[];
+        };
+        /** PracticeGradingPreviewRequest */
+        PracticeGradingPreviewRequest: {
+            /**
+             * Blank Confirmed
+             * @default false
+             */
+            blank_confirmed: boolean;
+            /** Idempotency Key */
+            idempotency_key: string;
         };
         /** PracticeItemResult */
         PracticeItemResult: {
@@ -3784,6 +4373,29 @@ export interface components {
             /** Pending Revision */
             pending_revision?: string | null;
         };
+        /** ReviewSource */
+        ReviewSource: {
+            /**
+             * Document Id
+             * Format: uuid
+             */
+            document_id: string;
+            /**
+             * Chunk Id
+             * Format: uuid
+             */
+            chunk_id: string;
+            /** Material Version Id */
+            material_version_id?: string | null;
+            /** Title */
+            title: string;
+            /** Location */
+            location: {
+                [key: string]: unknown;
+            };
+            /** Excerpt */
+            excerpt: string;
+        };
         /** ScoreDisputeAcceptRequest */
         ScoreDisputeAcceptRequest: {
             /**
@@ -3842,6 +4454,8 @@ export interface components {
             disputed_attempt_id: string;
             /** Accepted Attempt Id */
             accepted_attempt_id?: string | null;
+            /** Regrade Operation Id */
+            regrade_operation_id?: string | null;
         };
         /** SegmentError */
         SegmentError: {
@@ -4058,6 +4672,107 @@ export interface components {
              * @default []
              */
             required_capabilities: string[];
+        };
+        /** TeacherCitation */
+        TeacherCitation: {
+            /** Id */
+            id: string;
+            /** Document Id */
+            document_id?: string | null;
+            /** Chunk Id */
+            chunk_id?: string | null;
+            /** Material Version Id */
+            material_version_id?: string | null;
+            /** Location */
+            location?: {
+                [key: string]: unknown;
+            };
+            /** Practice Id */
+            practice_id?: string | null;
+            /** Title */
+            title: string;
+        };
+        /** TeacherMessageView */
+        TeacherMessageView: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "user" | "assistant";
+            /** Text */
+            text: string;
+            /** State */
+            state: string;
+            /**
+             * Operation Id
+             * Format: uuid
+             */
+            operation_id: string;
+            reply?: components["schemas"]["TeacherReply"] | null;
+            /** Citations */
+            citations?: components["schemas"]["TeacherCitation"][];
+            /** Error Code */
+            error_code?: string | null;
+            /** Runtime Snapshot Id */
+            runtime_snapshot_id?: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
+        /** TeacherReply */
+        TeacherReply: {
+            /** Answer Body */
+            answer_body: string;
+            /**
+             * Basis
+             * @enum {string}
+             */
+            basis: "uploaded_material" | "model_knowledge" | "mixed";
+            /** Citations */
+            citations?: string[];
+            /** Uncertainties */
+            uncertainties?: string[];
+            /** Practice Knowledge Point Ids */
+            practice_knowledge_point_ids?: string[];
+        };
+        /** TeacherSend */
+        TeacherSend: {
+            /** Text */
+            text: string;
+            /** Idempotency Key */
+            idempotency_key: string;
+            /**
+             * Grounding
+             * @default uploaded_material
+             * @enum {string}
+             */
+            grounding: "uploaded_material" | "general_knowledge";
+            /**
+             * Retrieval Mode
+             * @default keyword_only
+             * @enum {string}
+             */
+            retrieval_mode: "keyword_only" | "none";
+            /** Material Version Ids */
+            material_version_ids?: string[];
+            /** Knowledge Base Ids */
+            knowledge_base_ids?: string[];
+            /** Practice Item Id */
+            practice_item_id?: string | null;
+        };
+        /** TeacherTurn */
+        TeacherTurn: {
+            conversation: components["schemas"]["ConversationView"];
+            operation: components["schemas"]["LearningOperationView"];
+            /** Requires Confirmation */
+            requires_confirmation: boolean;
         };
         /** TextBlock */
         TextBlock: {
@@ -7383,6 +8098,724 @@ export interface operations {
             };
         };
     };
+    ocr_preview_api_learning_materials__material_id__ocr_preview_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                material_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MaterialOCRPreviewRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MaterialOCRView"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningApiError"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningApiError"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningApiError"];
+                };
+            };
+            /** @description Content Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningApiError"];
+                };
+            };
+            /** @description Unsupported Media Type */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningApiError"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningApiError"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningApiError"];
+                };
+            };
+        };
+    };
+    confirm_ocr_api_learning_materials__material_id__ocr__preview_id__confirm_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                material_id: string;
+                preview_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LearningConfirmRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MaterialOCRView"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningApiError"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningApiError"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningApiError"];
+                };
+            };
+            /** @description Content Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningApiError"];
+                };
+            };
+            /** @description Unsupported Media Type */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningApiError"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningApiError"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningApiError"];
+                };
+            };
+        };
+    };
+    execute_ocr_api_learning_materials__material_id__ocr__preview_id__execute_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                material_id: string;
+                preview_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MaterialIndexExecuteRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MaterialView"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningApiError"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningApiError"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningApiError"];
+                };
+            };
+            /** @description Content Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningApiError"];
+                };
+            };
+            /** @description Unsupported Media Type */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningApiError"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningApiError"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningApiError"];
+                };
+            };
+        };
+    };
+    review_ocr_api_learning_materials__material_id__ocr__preview_id__review_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                material_id: string;
+                preview_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LearningConfirmRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MaterialView"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningApiError"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningApiError"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningApiError"];
+                };
+            };
+            /** @description Content Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningApiError"];
+                };
+            };
+            /** @description Unsupported Media Type */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningApiError"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningApiError"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningApiError"];
+                };
+            };
+        };
+    };
+    recover_ocr_api_learning_materials__material_id__ocr__preview_id__recover_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                material_id: string;
+                preview_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MaterialIndexExecuteRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MaterialView"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningApiError"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningApiError"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningApiError"];
+                };
+            };
+            /** @description Content Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningApiError"];
+                };
+            };
+            /** @description Unsupported Media Type */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningApiError"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningApiError"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningApiError"];
+                };
+            };
+        };
+    };
+    index_preview_api_learning_materials__material_id__index_preview_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                material_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MaterialIndexPreviewRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningOperationView"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningApiError"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningApiError"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningApiError"];
+                };
+            };
+            /** @description Content Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningApiError"];
+                };
+            };
+            /** @description Unsupported Media Type */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningApiError"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningApiError"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningApiError"];
+                };
+            };
+        };
+    };
+    confirm_index_api_learning_materials__material_id__index__operation_id__confirm_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                material_id: string;
+                operation_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LearningConfirmRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningOperationView"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningApiError"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningApiError"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningApiError"];
+                };
+            };
+            /** @description Content Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningApiError"];
+                };
+            };
+            /** @description Unsupported Media Type */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningApiError"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningApiError"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningApiError"];
+                };
+            };
+        };
+    };
+    execute_index_api_learning_materials__material_id__index__operation_id__execute_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                material_id: string;
+                operation_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MaterialIndexExecuteRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MaterialView"] | components["schemas"]["LearningOperationView"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningApiError"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningApiError"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningApiError"];
+                };
+            };
+            /** @description Content Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningApiError"];
+                };
+            };
+            /** @description Unsupported Media Type */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningApiError"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningApiError"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningApiError"];
+                };
+            };
+        };
+    };
     list_series_api_learning_subjects__subject_id__material_series_get: {
         parameters: {
             query?: never;
@@ -8436,6 +9869,145 @@ export interface operations {
             };
         };
     };
+    grading_preview_api_learning_practices__identity__grading_preview_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                identity: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PracticeGradingPreviewRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningOperationView"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningApiError"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningApiError"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningApiError"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningApiError"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningApiError"];
+                };
+            };
+        };
+    };
+    grade_api_learning_practices__identity__grade__operation_id__post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                identity: string;
+                operation_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PracticeReport"] | components["schemas"]["LearningOperationView"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningApiError"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningApiError"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningApiError"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningApiError"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningApiError"];
+                };
+            };
+        };
+    };
     preview_api_learning_subjects__subject_id__practices_preview_post: {
         parameters: {
             query?: never;
@@ -9198,6 +10770,145 @@ export interface operations {
             };
         };
     };
+    regrade_preview_api_learning_disputes__dispute_id__regrade_preview_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                dispute_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ScoreDisputeRegradeRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningOperationView"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningApiError"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningApiError"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningApiError"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningApiError"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningApiError"];
+                };
+            };
+        };
+    };
+    execute_regrade_api_learning_disputes__dispute_id__regrade__operation_id__post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                dispute_id: string;
+                operation_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScoreDisputeView"] | components["schemas"]["LearningOperationView"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningApiError"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningApiError"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningApiError"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningApiError"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningApiError"];
+                };
+            };
+        };
+    };
     accept_api_learning_disputes__dispute_id__accept_post: {
         parameters: {
             query?: never;
@@ -9332,6 +11043,315 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LearningApiError"];
+                };
+            };
+        };
+    };
+    diagnosis_api_learning_subjects__subject_id__diagnosis_get: {
+        parameters: {
+            query?: {
+                source_kind?: ("uploaded" | "ai") | null;
+                answer_origin?: ("paper" | "ai_completion" | "user_correction" | "ai_generated") | null;
+            };
+            header?: never;
+            path: {
+                subject_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PersonalDiagnosis"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    conversations_api_learning_subjects__subject_id__conversations_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                subject_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConversationSummary"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_api_learning_subjects__subject_id__conversations_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                subject_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConversationCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConversationSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    conversation_api_learning_conversations__identity__get: {
+        parameters: {
+            query: {
+                subject_id: string;
+            };
+            header?: never;
+            path: {
+                identity: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConversationView"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_conversation_api_learning_conversations__identity__delete: {
+        parameters: {
+            query: {
+                subject_id: string;
+            };
+            header?: never;
+            path: {
+                identity: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConversationSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    preview_api_learning_conversations__identity__messages_preview_post: {
+        parameters: {
+            query: {
+                subject_id: string;
+            };
+            header?: never;
+            path: {
+                identity: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TeacherSend"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TeacherTurn"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    confirm_api_learning_conversations__identity__messages__operation_id__confirm_post: {
+        parameters: {
+            query: {
+                subject_id: string;
+            };
+            header?: never;
+            path: {
+                identity: string;
+                operation_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LearningConfirmRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningOperationView"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    execute_api_learning_conversations__identity__messages__operation_id__execute_post: {
+        parameters: {
+            query: {
+                subject_id: string;
+            };
+            header?: never;
+            path: {
+                identity: string;
+                operation_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TeacherTurn"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    cancel_api_learning_conversations__identity__messages__operation_id__cancel_post: {
+        parameters: {
+            query: {
+                subject_id: string;
+            };
+            header?: never;
+            path: {
+                identity: string;
+                operation_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConversationView"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

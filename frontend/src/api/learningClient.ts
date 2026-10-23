@@ -16,24 +16,24 @@ const prefix = "/api/learning/operations";
 export class LearningApiError extends Error {
   constructor(readonly code: string, readonly status: number, readonly details?: unknown) {
     super(code === "GRADING_OPERATION_REQUIRED"
-      ? "评分费用确认流程尚未接通，本次未发送模型请求。"
+      ? "评分需要先预览并明确确认本次费用与请求范围，本次未发送模型请求。"
       : `学习操作未完成（${code}）。`);
     this.name = "LearningApiError";
   }
 }
 
-function operation(value: unknown): value is LearningOperation {
+export function isLearningOperation(value: unknown): value is LearningOperation {
   if (typeof value !== "object" || value === null) return false;
   const v = value as Record<string, unknown>;
   return typeof v.id === "string" && typeof v.preview_digest === "string"
     && typeof v.runtime_snapshot_id === "string" && typeof v.purpose === "string"
     && typeof v.state === "string" && ["prepared", "confirmed", "running", "succeeded", "failed", "partial", "outcome_unknown"].includes(v.state)
-    && typeof v.request_budget === "number" && Number.isInteger(v.request_budget) && v.request_budget > 0
+    && typeof v.request_budget === "number" && Number.isInteger(v.request_budget) && v.request_budget >= 0
     && typeof v.actual_requests === "number" && Number.isInteger(v.actual_requests)
     && v.actual_requests >= 0 && v.actual_requests <= v.request_budget && Array.isArray(v.steps);
 }
 
-export async function learningRequest(path: string, method: "GET" | "POST" | "PATCH" | "PUT", body?: unknown, signal?: AbortSignal): Promise<{ value: unknown; status: number }> {
+export async function learningRequest(path: string, method: "GET" | "POST" | "PATCH" | "PUT" | "DELETE", body?: unknown, signal?: AbortSignal): Promise<{ value: unknown; status: number }> {
   let response: Response;
   try {
     response = await fetch(path, {
@@ -57,7 +57,7 @@ export async function learningRequest(path: string, method: "GET" | "POST" | "PA
 
 async function request(path: string, method: "GET" | "POST", body?: unknown, signal?: AbortSignal): Promise<LearningOperation> {
   const { value, status } = await learningRequest(path, method, body, signal);
-  if (!operation(value)) throw new LearningApiError("INVALID_RESPONSE", status);
+  if (!isLearningOperation(value)) throw new LearningApiError("INVALID_RESPONSE", status);
   return value;
 }
 

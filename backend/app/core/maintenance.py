@@ -14,17 +14,16 @@ from sqlalchemy.engine import Connection, Engine
 from sqlalchemy.orm import Session
 
 from backend.app.core.environment import environment_path
-from backend.app.core.security import get_user_roles
 from backend.app.core.settings_security import ManagementSession, SetupSecurityService
 from backend.app.domain.enums import UserRole
 from backend.app.models import User
 from backend.app.schemas.settings import EnvironmentProfile
-from backend.app.services.auth_service import AuthService
 
 MARKER = ".maintenance.json"
 
 
 def require_admin_user(session: Session, actor_id: UUID) -> User:
+    from backend.app.core.security import get_user_roles
     from backend.app.services.file_storage_service import FileStorageError
     actor = session.get(User, actor_id)
     if actor is None or not actor.is_active or UserRole.ADMIN not in get_user_roles(actor):
@@ -33,6 +32,7 @@ def require_admin_user(session: Session, actor_id: UUID) -> User:
 
 
 def authenticate_admin(session: Session, token: str) -> User:
+    from backend.app.services.auth_service import AuthService
     actor = AuthService(session).get_current_user(token)
     return require_admin_user(session, actor.id)
 
@@ -74,7 +74,12 @@ class MaintenanceWindow:
         self.connection: Connection | None = None
         self.started_at: datetime | None = None
         self.marker_created = False
+        self.keep_marker_on_exit = False
         self.management_session: ManagementSession | None = None
+        self.purpose = "offline_backup"
+        self.resume_operation_id: UUID | None = None
+        self.session_lock_key: int | None = None
+        self.session_lock_acquired = False
 
     @classmethod
     def for_local_management(
@@ -94,19 +99,34 @@ class MaintenanceWindow:
             raise FileStorageError("MAINTENANCE_FORBIDDEN", "维护工具需要管理授权。", http_status=403)
         if self.engine.dialect.name != "postgresql":
             raise FileStorageError("MAINTENANCE_DATABASE_UNSUPPORTED", "一致备份必须使用 PostgreSQL。")
-        ensure_storage_writable(self.root)
+        resuming = self.resume_operation_id is not None
+        if resuming:
+            marker = json.loads((self.root / MARKER).read_text(encoding="utf-8"))
+            if (self.management_session is None
+                    or marker.get("operation_id") != str(self.resume_operation_id)
+                    or marker.get("purpose") != self.purpose
+                    or marker.get("environment_id") != str(self.management_session.environment_id)):
+                raise FileStorageError("MAINTENANCE_FORBIDDEN", "维护重入身份与原计划不一致。", http_status=403)
+        else:
+            ensure_storage_writable(self.root)
         self.root.mkdir(parents=True, exist_ok=True)
         principal = ({"management_session_id": str(self.management_session.session_id),
                       "environment_id": str(self.management_session.environment_id),
                       "principal_id": self.management_session.operator.principal_id,
                       "principal_kind": self.management_session.operator.kind.value}
                      if self.management_session is not None else {"actor_id": str(self.actor_id)})
-        durable_json(self.root / MARKER, json.dumps({"operation_id": str(self.operation_id), **principal,
-                     "purpose": "offline_backup", "started_at": datetime.now(UTC).isoformat()}), create=True)
+        if not resuming:
+            durable_json(self.root / MARKER, json.dumps({"operation_id": str(self.operation_id), **principal,
+                         "purpose": self.purpose, "started_at": datetime.now(UTC).isoformat()}), create=True)
         self.marker_created = True
         try:
             self.engine.dispose()
             self.connection = self.engine.connect()
+            if self.session_lock_key is not None:
+                self.session_lock_acquired = bool(self.connection.scalar(text(
+                    "SELECT pg_try_advisory_lock(:key)"), {"key": self.session_lock_key}))
+                if not self.session_lock_acquired:
+                    raise FileStorageError("MAINTENANCE_IN_PROGRESS", "同一维护操作正在执行，禁止并发重入。", http_status=409)
             deadline = time.monotonic() + self.timeout
             while self.other_connections():
                 if time.monotonic() >= deadline:
@@ -125,7 +145,7 @@ class MaintenanceWindow:
             self.started_at = datetime.now(UTC)
             return self
         except BaseException:
-            self._release()
+            self._release(keep_marker=self.management_session is not None)
             raise
 
     def other_connections(self) -> int:
@@ -142,12 +162,24 @@ class MaintenanceWindow:
         if self.other_connections():
             raise FileStorageError("MAINTENANCE_NOT_DRAINED", "停写窗口内出现其他数据库连接，不能确认一致备份。")
 
-    def _release(self) -> None:
+    def _release(self, *, keep_marker: bool = False) -> None:
         if self.connection is not None:
             self.connection.rollback()
+            if self.session_lock_acquired:
+                try:
+                    self.connection.execute(text("SELECT pg_advisory_unlock(:key)"), {"key": self.session_lock_key})
+                    self.connection.commit()
+                except BaseException:
+                    self.connection.invalidate()
+                    raise
+                finally:
+                    self.session_lock_acquired = False
+            # Offline maintenance owns this connection. Do not leave an idle
+            # pooled client (or a session lock) behind for another operator.
+            self.connection.invalidate()
             self.connection.close()
             self.connection = None
-        if self.marker_created:
+        if self.marker_created and not keep_marker:
             marker = self.root / MARKER
             # Never clear somebody else's marker or an unrecognizable replacement.
             if json.loads(marker.read_text(encoding="utf-8")).get("operation_id") != str(self.operation_id):
@@ -155,5 +187,5 @@ class MaintenanceWindow:
             marker.unlink()
             self.marker_created = False
 
-    def __exit__(self, *_args) -> None:
-        self._release()
+    def __exit__(self, exc_type, _exc, _traceback) -> None:
+        self._release(keep_marker=self.keep_marker_on_exit or self.management_session is not None and exc_type is not None)

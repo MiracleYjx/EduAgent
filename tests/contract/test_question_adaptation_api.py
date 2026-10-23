@@ -10,21 +10,21 @@ from backend.app.domain.enums import (
     UserRole,
 )
 from backend.app.models import Question
-from tests.contract.test_question_generation_api_contract import (
+from tests.support.question_generation_doubles import make_candidate, make_chunk
+from tests.support.retained_generation_fixtures import (
     _headers,
     _seed_chunk,
     _service,
 )
-from tests.contract.test_question_generation_api_contract import (
+from tests.support.retained_generation_fixtures import (
     client_factory as _client_factory,
 )
-from tests.contract.test_question_generation_api_contract import (
+from tests.support.retained_generation_fixtures import (
     scenario as _scenario,
 )
-from tests.contract.test_question_generation_api_contract import (
+from tests.support.retained_generation_fixtures import (
     session as _session,
 )
-from tests.support.question_generation_doubles import make_candidate, make_chunk
 
 session = _session
 scenario = _scenario

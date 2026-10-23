@@ -10,7 +10,7 @@ from sqlalchemy.orm import sessionmaker
 from backend.app.ai.paper_extraction import PaperExtractor
 from backend.app.models import DocumentChunk, PaperImport
 from backend.app.services.paper_import_service import PaperImportRunner
-from tests.contract.test_file_storage_api import files_api as _files_api
+from tests.support.retained_file_fixtures import files_api as _files_api
 from tests.unit.ingestion.test_paper_extraction import Provider, question
 
 files_api = _files_api

@@ -26,6 +26,7 @@ from backend.app.core.retry_policy import (
 from .base import BaseLLMProvider, LLMMessages, LLMProviderMetadata
 
 _JSON_INSTRUCTION = "请仅返回合法的 JSON 对象，不要输出 Markdown、解释或其他文本。"
+_REASONING_EFFORTS = frozenset({"low", "high", "max"})
 
 
 class DeepSeekProvider(BaseLLMProvider):
@@ -42,7 +43,17 @@ class DeepSeekProvider(BaseLLMProvider):
         fallback_provider: BaseLLMProvider | None = None,
         sleep: AsyncSleep = asyncio.sleep,
         timeout: float = 30.0,
+        max_tokens: int | None = None,
+        reasoning_effort: str | None = None,
     ) -> None:
+        if max_tokens is not None and (isinstance(max_tokens, bool)
+                or not isinstance(max_tokens, int) or not 1 <= max_tokens <= 32768):
+            raise ValueError("Invalid output token budget")
+        if reasoning_effort is not None and reasoning_effort not in _REASONING_EFFORTS:
+            raise ValueError("Invalid reasoning effort")
+        self._max_tokens = max_tokens
+        # 默认 None 保持 G-P 冻结行为；启用前必须重新确认模型与预算。
+        self._reasoning_effort = reasoning_effort
         self._owns_client = client is None
         self._model = settings.deepseek_model
         self._retry_policy = retry_policy or RetryPolicy()
@@ -164,10 +175,15 @@ class DeepSeekProvider(BaseLLMProvider):
 
         started_at = perf_counter()
         try:
+            options: dict[str, Any] = {"max_tokens": self._max_tokens} if self._max_tokens is not None else {}
+            if self._reasoning_effort is not None:
+                # 仅显式配置时发送；默认请求体和冻结预算保持不变。
+                options["extra_body"] = {"reasoning_effort": self._reasoning_effort}
             response = await self._request_client().chat.completions.create(
                 messages=messages,
                 model=model or self._model,
                 response_format={"type": "json_object"},
+                **options,
             )
         except Exception as error:
             record_trace(
@@ -184,20 +200,34 @@ class DeepSeekProvider(BaseLLMProvider):
             "total": getattr(usage, "total_tokens", None),
         }
 
-        def trace_invalid(code: str = "StructuredOutputFailed") -> None:
+        def trace_invalid(
+            code: str = "StructuredOutputFailed", *, retryable: bool = True
+        ) -> None:
             record_trace(
                 agent_type="llm", status="failure", started_at=started_at,
                 model=self.describe()["model"], tokens=tokens,
-                error_code=code, error_retryable=True,
+                error_code=code, error_retryable=retryable,
             )
 
-        content = self._extract_content(response)
+        content, reasoning_content, finish_reason = self._extract_message_fields(response)
         if content is None or not content.strip():
-            trace_invalid("ProviderEmptyResponse")
+            detail = "LLM Provider 返回空正文。"
+            if reasoning_content:
+                detail += " reasoning_content 已分离，未作为正文。"
+            if finish_reason:
+                detail += f" finish_reason={finish_reason}。"
+            trace_invalid("ProviderEmptyResponse", retryable=False)
             raise ProviderCallError(
                 "ProviderEmptyResponse",
-                "LLM Provider 返回为空。",
-                retryable=True,
+                detail,
+                retryable=False,
+            )
+        if finish_reason == "length":
+            trace_invalid("ProviderOutputTruncated", retryable=False)
+            raise ProviderCallError(
+                "ProviderOutputTruncated",
+                "LLM Provider 输出因长度限制被截断。",
+                retryable=False,
             )
 
         try:
@@ -237,15 +267,31 @@ class DeepSeekProvider(BaseLLMProvider):
         return parsed
 
     @staticmethod
-    def _extract_content(response: Any) -> str | None:
+    def _extract_message_fields(
+        response: Any,
+    ) -> tuple[str | None, str | None, str | None]:
+        """只读取 content；reasoning_content 独立保留，绝不作为正文。"""
+
         try:
             choices = response.choices
             if not choices:
-                return None
-            content = choices[0].message.content
+                return None, None, None
+            choice = choices[0]
+            message = choice.message
+            content = getattr(message, "content", None)
+            reasoning = getattr(message, "reasoning_content", None)
+            finish_reason = getattr(choice, "finish_reason", None)
         except (AttributeError, IndexError, TypeError):
-            return None
-        return content if isinstance(content, str) else None
+            return None, None, None
+        return (
+            content if isinstance(content, str) else None,
+            reasoning if isinstance(reasoning, str) else None,
+            finish_reason if isinstance(finish_reason, str) else None,
+        )
+
+    @staticmethod
+    def _extract_content(response: Any) -> str | None:
+        return DeepSeekProvider._extract_message_fields(response)[0]
 
     @staticmethod
     def _prepare_messages(

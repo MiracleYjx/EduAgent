@@ -32,4 +32,7 @@ def test_settings_openapi_declares_consumed_dtos_and_write_only_secrets(tmp_path
         assert schema["paths"]["/api/settings/providers"]["get"]["responses"][status]["content"]["application/json"]["schema"]["$ref"].endswith("/ApiErrorEnvelope")
     assert models["CredentialCreateRequest"]["properties"]["secret_value"]["writeOnly"] is True
     assert models["SessionExchangeRequest"]["properties"]["one_time_code"]["writeOnly"] is True
+    responses = schema["paths"]["/api/learning/subjects"]["post"]["responses"]
+    assert responses["413"]["description"] == "Content Too Large"
+    assert responses["422"]["description"] == "Unprocessable Content"
     assert not (tmp_path / "config").exists()

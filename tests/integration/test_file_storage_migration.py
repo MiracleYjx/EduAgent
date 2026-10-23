@@ -6,6 +6,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from uuid import uuid4
 
+import pytest
 from alembic import command
 from alembic.config import Config
 from sqlalchemy import MetaData, Table, inspect, select
@@ -86,16 +87,18 @@ def test_file_storage_migration_preserves_legacy_and_reverses(monkeypatch):
             assert error.value.orig.sqlstate == "23503"
             assert error.value.orig.diag.constraint_name == "export_files_course_id_fkey"
 
-        command.downgrade(config, "0012_audit_logs")
+        # TCR（T081）：T075 已批准 cutover 不可逆；跨 cutover 的 downgrade 必须拒绝，
+        # 不得部分删除在用表，也不得改写已保留的历史字节与状态。
+        with pytest.raises(RuntimeError, match="irreversible"):
+            command.downgrade(config, "0012_audit_logs")
         with engine.connect() as conn:
-            assert "export_files" not in inspect(conn).get_table_names(schema=schema)
-            assert "file_metadata" not in {c["name"] for c in inspect(conn).get_columns("documents", schema=schema)}
+            assert "export_files" in inspect(conn).get_table_names(schema=schema)
+            assert "file_metadata" in {c["name"] for c in inspect(conn).get_columns("documents", schema=schema)}
             legacy_docs = Table("documents", MetaData(), autoload_with=conn, schema=schema)
             row = conn.execute(select(legacy_docs.c.storage_path, legacy_docs.c.status)).one()
             assert tuple(row) == ("C:/known/legacy.txt", "Ready")
 
 def test_postgres_locator_lock_serializes_link_and_delete(tmp_path):
-    import pytest
     from sqlalchemy import text
     from sqlalchemy.exc import OperationalError
     from sqlalchemy.orm import Session

@@ -22,7 +22,6 @@ from backend.app.schemas.settings import (
     RuntimeKind,
 )
 from backend.app.services.settings.management import (
-    SettingsManagementError,
     build_settings_runtime,
 )
 from tests.integration.test_personal_learning_foundation import migrate, seed
@@ -166,10 +165,7 @@ def test_missing_jwt_does_not_open_legacy_consumers(personal):
     values = values.model_copy(
         update={"business": values.business.model_copy(update={"jwt_secret_ref": None})}
     )
-    with pytest.raises(
-        SettingsManagementError, match="BUSINESS_CONFIGURATION_INCOMPLETE"
-    ):
-        runtime.app_settings_for(values)
+    assert runtime.app_settings_for(values).JWT_SECRET_KEY is None
     with TestClient(
         create_bootstrap_app(context=context, settings_runtime=runtime),
         base_url="http://127.0.0.1:8000",
@@ -204,7 +200,7 @@ def test_no_jwt_configuration_opens_only_personal_entry_after_restart(personal):
     runtime, context, _engine, _schema, _profile, _values, *_ = personal
     assert runtime.config.active_revision().values.business.jwt_secret_ref is None
     settings, reason = runtime.effective_business_settings()
-    assert settings is None and reason == "BUSINESS_CONFIGURATION_INCOMPLETE"
+    assert settings is not None and settings.JWT_SECRET_KEY is None and reason is None
     with TestClient(
         create_application(context=context, settings_runtime=runtime),
         base_url="http://127.0.0.1:8000",
@@ -216,7 +212,7 @@ def test_no_jwt_configuration_opens_only_personal_entry_after_restart(personal):
         )
         assert result.status_code == 201, result.text
         for path in ("/api/admin/users", "/api/courses", "/api/files/d_" + uuid4().hex):
-            assert client.get(path).status_code == 503
+            assert client.get(path).status_code == 404
         assert client.get("/api/settings/").status_code == 401
         assert client.get("/gradio/").status_code == 404
 
@@ -233,7 +229,7 @@ def test_personal_pending_restart_is_checked_and_accepted_without_legacy_assembl
     assert config.read_manifest().pending_restart_revision == pending.revision_id
     with TestClient(create_application(context=context, settings_runtime=runtime), base_url="http://127.0.0.1:8000") as client:
         assert client.get("/api/learning/subjects").status_code == 200
-        assert client.get("/api/admin/users").status_code == 503
+        assert client.get("/api/admin/users").status_code == 404
     manifest = config.read_manifest()
     assert manifest.active_revision == pending.revision_id and manifest.pending_restart_revision is None
 

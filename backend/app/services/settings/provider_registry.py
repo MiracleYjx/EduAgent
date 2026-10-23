@@ -12,7 +12,7 @@ from dataclasses import dataclass
 from dataclasses import replace as dataclass_replace
 from functools import lru_cache, partial
 from types import SimpleNamespace
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Literal
 from urllib.parse import urlsplit
 from uuid import UUID
 
@@ -43,6 +43,13 @@ class NoParameters(SafeModel):
 class TextParameters(SafeModel):
     temperature: float | None = Field(default=None, strict=True, ge=0, le=2, allow_inf_nan=False)
     max_tokens: int | None = Field(default=None, strict=True, ge=1, le=32768)
+    # 默认未设置以保持 G-P 冻结行为；启用需重新确认。
+    reasoning_effort: Literal["low", "high", "max"] | None = None
+
+
+class DeepSeekParameters(SafeModel):
+    # 不暴露温度/输出上限；仅允许可选的思考强度覆盖。
+    reasoning_effort: Literal["low", "high", "max"] | None = None
 
 
 class EmbeddingParameters(SafeModel):
@@ -116,17 +123,24 @@ def _build_text(adapter_id: str, profile: ProviderProfile, **runtime: Any) -> An
     if adapter_id == "deepseek":
         from backend.app.ai.llm.deepseek import DeepSeekProvider
 
-        # Deliberately project only the existing adapter's three consumed fields;
+        parameters = DeepSeekParameters.model_validate(profile.parameters)
+        # Deliberately project only the existing adapter's consumed fields;
         # no fake database/JWT/Embedding settings or environment lookup is needed.
         captured: Any = SimpleNamespace(deepseek_api_key=key, deepseek_base_url=profile.base_url,
                                    deepseek_model=profile.model_id)
-        return DeepSeekProvider(captured, **runtime)
+        return DeepSeekProvider(
+            captured,
+            reasoning_effort=parameters.reasoning_effort,
+            **runtime,
+        )
     from backend.app.ai.llm.openai_compatible import OpenAICompatibleProvider
 
     parameters = TextParameters.model_validate(profile.parameters)
+    max_tokens = runtime.pop("max_tokens", parameters.max_tokens)
     return OpenAICompatibleProvider(model=profile.model_id, base_url=profile.base_url,
                                     api_key=key, auth_mode=profile.auth_mode,
-                                    temperature=parameters.temperature, max_tokens=parameters.max_tokens, **runtime)
+                                    temperature=parameters.temperature, max_tokens=max_tokens,
+                                    reasoning_effort=parameters.reasoning_effort, **runtime)
 
 
 def _build_embedding(adapter_id: str, profile: ProviderProfile, **runtime: Any) -> Any:
@@ -145,6 +159,8 @@ def _build_embedding(adapter_id: str, profile: ProviderProfile, **runtime: Any) 
     from backend.app.ai.embedding.providers.bge import bge_query_prefix
     from backend.app.ai.embedding.providers.local import LocalEmbeddingProvider
 
+    # A local adapter never consumes credential access as a model constructor option.
+    runtime.pop("credential_store", None)
     directory = profile.resource_directory
     if directory is None or not directory.is_dir():
         raise RegistryValidationError("RESOURCE_UNAVAILABLE")
@@ -162,6 +178,7 @@ def _build_rerank(adapter_id: str, profile: ProviderProfile, **runtime: Any) -> 
     )
 
     if adapter_id == "cross_encoder":
+        runtime.pop("credential_store", None)
         directory = profile.resource_directory
         if directory is None or not directory.is_dir():
             raise RegistryValidationError("RESOURCE_UNAVAILABLE")
@@ -306,7 +323,7 @@ def _builtin_entries() -> tuple[RegistryEntry, ...]:
                              partial(_probe_factory, factory, kind), lifecycle, legacy, canonical_id or name)
 
     result: list[RegistryEntry] = [
-        entry("llm", "deepseek", NoParameters, ("text", "json_object", "vision"),
+        entry("llm", "deepseek", DeepSeekParameters, ("text", "json_object", "vision"),
               partial(_build_text, "deepseek"), partial(_legacy_text, "deepseek")),
         entry("llm", "openai_compatible", TextParameters, ("text", "json_object"),
               partial(_build_text, "openai_compatible"), partial(_legacy_text, "openai_compatible")),
@@ -314,7 +331,7 @@ def _builtin_entries() -> tuple[RegistryEntry, ...]:
               partial(_build_embedding, "openai_compatible"), partial(_legacy_embedding, "openai_compatible")),
         entry("rerank", "cross_encoder", LocalRerankParameters, ("local_rerank",),
               partial(_build_rerank, "cross_encoder"), partial(_legacy_rerank, "cross_encoder"), "local_until_restart"),
-        entry("vision", "deepseek", NoParameters, ("vision", "text", "json_object"), _build_vision, _legacy_vision),
+        entry("vision", "deepseek", DeepSeekParameters, ("vision", "text", "json_object"), _build_vision, _legacy_vision),
         entry("ocr", "rapidocr", NoParameters, ("ocr",), _build_ocr, _legacy_ocr, "local_until_restart"),
     ]
     for name in ("bge", "huggingface", "local"):

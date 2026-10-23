@@ -8,11 +8,36 @@
 
 **Created**: 2026-10-19
 
-**Status**: Architecture / Development quality gate approved — T001—T014完成（14/87），本轮止于T014；T007方向与T008开发保护/逐例方法已确认，未测能力、生产容量、峰值及真实模型账单边界不冒充通过。
+**Status**: Architecture / Development quality gate approved；T001–T087均已勾选（87/87）。2026-10-23用户明确批准T083、T084、T085、T087按“先验收、先使用、发现问题再优化”的带边界口径勾选，T086保持已勾选；勾选不等于全部pass。4条历史outcome_unknown保留，完整浏览器闭环未完整验证，DOCX两平台未重测，详见下列已知边界。G1既有真实样例仍有oracle_pass=false（ANSWER_ENCODING_INVALID等），不因勾选改记为pass。账本记录末值recorded=39/40、proven=32/35、disputed=6、A3=6/10、A4=9/10；本轮真实发送0，无commit/push/正式发布。
 
 **Input**: 用户《EduAgent 下一版本 — SpecKit 正式需求固化与开发规划》，以附录 A 的 12 部分为产品事实来源。以下需求正文保留附录 A 原意，并纳入用户后续明确确认的澄清；编号、分组和验收场景用于追踪，不增加未经确认的默认规则。
 
 **Feature resolution**: 使用 `SPECIFY_FEATURE_DIRECTORY=specs/002-personal-learning` 显式解析；只读路径检查使用 `check-prerequisites.ps1 -Json -PathsOnly`（内部 `-NoPersist`）。保持 `.specify/feature.json` 及旧 Feature 不变。后续命令使用前必须检查是否会持久化指针，不直接调用会改写旧指针的脚本。
+
+## 2026-10-23 用户裁决：带边界验收
+
+本节为T083–T087当前验收口径；下文旧日期的批次数字、失败和未勾选描述仅是历史时点记录，不覆盖本次裁决。任务勾选表示用户接受现有结果及边界，不代表所有质量项、浏览器或格式实测均为pass；not_run/not_claimed及失败结果保留原义，不改冻结oracle、账本历史或operation/争议/评分。requirements checklist仍为12/16，属于历史评审项；finish_reason未持久化仍为账本schema边界。本次裁决不补造或追认历史A2/A3授权，也不授予后续真实发送权限。
+
+### 边界1：4条历史outcome_unknown
+
+最近一次只读DB查询：running=0、active_slots=0、outcome_unknown=4；不是unknown清零。以下创建时间均为北京时间（UTC+08:00）。
+
+| 原operation ID | 创建时间 | 场景 | 后续独立补测operation（成功） |
+| --- | --- | --- | --- |
+| 9468d072-af85-4913-9652-9d183d04f9af | 2026-10-21 18:08:34.831909 | A1 补答案 | d3da82e9-1619-4f79-81c2-20080ed1258a |
+| da8b2db0-d550-402e-b7e4-3223762514af | 2026-10-21 18:08:35.229788 | S2 主观评分 | 4ff1d966-b0f4-42ce-b278-409bf6b13b88 |
+| 3df36a78-e386-4483-97da-3c2e8ea37eca | 2026-10-21 18:08:35.620184 | S4 主观评分 | d27e7965-1ab3-40ca-ace8-84ad07cf654d |
+| ccd8030b-f59b-4c83-beff-f7855973458b | 2026-10-21 18:11:13.475645 | T2 多轮教师对话 | 81a2a1d8-d42e-4763-a351-a8f202bdafee |
+
+原4条均保留outcome_unknown，actual_requests=1、retry_of_id=NULL；结果及实际费用仍不确定。后续补测使用新对象成功，不等于原请求重试、补偿或结果确认。历史证据为.cache/t083-batch1/evidence/requests.jsonl、.cache/t083-batch1/stop-loss-state.json及.cache/t083-batch1/evidence/stop-loss-result.json。用户接受为非阻塞历史审计边界；后续优化入口归属T083运行恢复/unknown补偿：仅在可取得原请求结果或补偿依据且另获授权后处理，不原地重执行，不以独立样例成功改写历史unknown。
+
+### 边界2：浏览器闭环未完整验证
+
+T084与T085的journey-result.json均为api_passed_browser_not_claimed（API-only），路径分别为.cache/t082-t086-20261021/windows-runtime/journey-result.json与.cache/t082-t086-20261021/docker-t085-b4711a5f53084e97a39b1af6bd6458d1/journey-result.json。Windows局部截图/UI回读为.cache/t082-t086-20261021/windows-browser-teacher.jpg及.cache/t082-t086-20261021/windows-runtime/ui-readback.json；Docker局部证据为.cache/t082-t086-20261021/docker-browser-settings.jpg、.cache/t082-t086-20261021/docker-browser-unknown.jpg及.cache/t082-t086-20261021/docker-t085-b4711a5f53084e97a39b1af6bd6458d1/root-ui-readonly-observation.json。以上支持局部UI、Fake回答/引用及持久化核对；完整浏览器闭环未完整验证，按not_claimed保留；T083真实AI业务从浏览器入口贯通至结果/引用仍为not_run，不记为pass。用户接受带边界验收；后续优化入口归属T084/T085双平台完整浏览器闭环，真实AI部分归属T083，涉及任何Provider/Embedding/Probe/Vision发送均须另获明确授权，本轮不执行。
+
+### 边界3：DOCX两平台未重测
+
+T033历史有限DOCX材料支持路径存在：.cache/review002-t032-t058/browser-fixtures/docx-clear.docx；用户接受其用于SC-002的有限格式覆盖。T084/T085的journey样例不含DOCX，Windows与Docker均未重测（not_run），不能把T033历史覆盖写成两平台DOCX实测pass。用户接受此边界；后续优化入口归属T084/T085的DOCX样例重测，并回对T033/SC-002的上传、原内容/OOXML锚点和图文顺序，使用隔离Test资源，涉及真实发送时须另获授权。
 
 ## Requirement Status & Authority
 

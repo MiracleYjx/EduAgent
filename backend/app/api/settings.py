@@ -549,6 +549,19 @@ async def create_probe(payload: ProbeCreateRequest, request: Request) -> Respons
         raise SettingsManagementError("BILLABLE_CONFIRMATION_REQUIRED")
     # 只有显式写请求才能按需开户；读取已有 Probe/向导绝不初始化凭据库。
     runtime.credential_store()
+    from backend.app.services.learning_test_validation import refresh_test_validation
+    try:
+        refresh_test_validation(request.app.state)
+    except (ValueError, OSError):
+        raise SettingsManagementError("VALIDATION_NOT_AUTHORIZED", status_code=409) from None
+    policy = getattr(request.app.state, "learning_paid_validation", None)
+    if policy is not None:
+        from backend.app.services.learning_paid_validation import PaidValidationPolicy
+        if not isinstance(policy, PaidValidationPolicy):
+            raise SettingsManagementError("VALIDATION_NOT_AUTHORIZED", status_code=409)
+        runtime.probes().validation_policy = policy
+    else:
+        runtime.probes().validation_policy = None
     result = await runtime.start_probe(
         candidate_revision=payload.draft_revision,
         profile=profile,

@@ -181,70 +181,14 @@ class PracticeService(PersonalQuestionService):
                 runtime.release_all()
 
     def _history(self, session: Session, subject_id: UUID):
-        rows = session.execute(
-            select(PracticeAnswer, PracticeItem)
-            .join(
-                PracticeItem,
-                PracticeItem.id == PracticeAnswer.practice_item_id,
-            )
-            .where(
-                PracticeItem.subject_id == subject_id,
-                PracticeAnswer.answer_state == "answered",
-                PracticeAnswer.submission_state == "submitted",
-            )
-            .order_by(
-                PracticeAnswer.submitted_at,
-                PracticeAnswer.created_at,
-                PracticeAnswer.id,
-            )
-        ).all()
-        attempted: set[UUID] = set()
-        wrong: set[UUID] = set()
-        first: dict[UUID, tuple[Decimal, list[str]]] = {}
-        for answer, item in rows:
-            disputes = list(
-                session.scalars(
-                    select(ScoreDispute).where(ScoreDispute.answer_id == answer.id)
-                )
-            )
-            if any(dispute.state != "resolved" for dispute in disputes):
-                continue
-            latest = session.scalar(
-                select(GradeAttempt)
-                .where(GradeAttempt.answer_id == answer.id)
-                .order_by(GradeAttempt.round.desc())
-                .limit(1)
-            )
-            if (
-                latest is None
-                or latest.validation_state != "valid"
-                or latest.score is None
-                or not latest.max_score
-            ):
-                continue
-            if (
-                disputes
-                and max(
-                    disputes, key=lambda d: (d.created_at, d.id)
-                ).accepted_attempt_id
-                != latest.id
-            ):
-                continue
-            root = canonical_id(session, item.question_id, subject_id)
-            attempted.add(root)
-            ratio = latest.score / latest.max_score
-            if ratio < 1:
-                wrong.add(root)
-            first.setdefault(root, (ratio, item.knowledge_point_ids))
-        samples: dict[UUID, list[Decimal]] = {}
-        for ratio, points in first.values():
-            for point in set(points):
-                samples.setdefault(UUID(point), []).append(ratio)
-        weak = {
-            point
-            for point, values in samples.items()
-            if len(values) >= 5 and sum(values) / len(values) < Decimal("0.6")
-        }
+        from backend.app.services.personal_learning_facts import observations, summarize
+
+        rows = observations(session, subject_id)
+        valid = [r for r in rows if r.exclusion is None]
+        attempted = {r.question_id for r in valid}
+        wrong = {r.question_id for r in valid if r.score is not None and r.score < r.max_score}
+        points = {p for r in valid for p in r.knowledge_point_ids}
+        weak = {p for p in points if summarize(rows, knowledge_point_id=p).status == "reinforce"}
         return attempted, wrong, weak
 
     def _pool(self, session: Session, subject_id: UUID, conditions: PracticeConditions):
@@ -692,7 +636,8 @@ class PracticeService(PersonalQuestionService):
                     )
                 )
             return PersonalPracticeView(
-                id=row.id, subject_id=row.subject_id, state=row.state, items=views
+                id=row.id, subject_id=row.subject_id, state=row.state, items=views,
+                grading_operation_id=row.conditions.get("grading_previews", {}).get("submit"),
             )
 
     def save_answer(
@@ -989,6 +934,7 @@ def _attempt_history(rows) -> list[PracticeAttemptView]:
             question_revision_id=(row.scoring_input or {}).get("question_revision_id"),
             reference_answer=(row.scoring_input or {}).get("reference_answer"),
             scoring_rubric=(row.scoring_input or {}).get("scoring_rubric"),
+            operation_id=(row.scoring_input or {}).get("operation_id"),
         )
         for row in rows
     ]

@@ -2,7 +2,7 @@
 
 from backend.app.services import image_understanding_service as understanding
 from tests.contract.test_content_validation_api import _command, _question
-from tests.contract.test_file_storage_api import files_api as _files_api
+from tests.support.retained_file_fixtures import files_api as _files_api
 from tests.unit.ai.test_vision_provider import VisionStub, valid_result
 from tests.unit.services.test_question_asset_service import png
 

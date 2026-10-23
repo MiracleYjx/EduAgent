@@ -5,16 +5,16 @@ from uuid import UUID
 from fastapi import APIRouter, FastAPI
 from fastapi.responses import FileResponse
 
+from backend.app.api import learning_errors
 from backend.app.api.subjects import PersonalRoute, Subjects
 from backend.app.schemas.content_blocks import QuestionContentView
-from backend.app.schemas.personal_learning import LearningApiError
 from backend.app.services.question_asset_access import PersonalContentAccess
 from backend.app.services.subject_service import SubjectError
 
 router = APIRouter(
     prefix="/api/learning/subjects/{subject_id}/practices/{practice_id}/items/{item_id}",
     tags=["personal-content"], route_class=PersonalRoute,
-    responses={s: {"model": LearningApiError} for s in (403, 404, 409, 422, 503)},
+    responses=learning_errors(403, 404, 409, 422, 503),
 )
 
 

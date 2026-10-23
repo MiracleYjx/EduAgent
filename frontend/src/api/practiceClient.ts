@@ -1,5 +1,5 @@
 import type { components } from "./generated";
-import { learningRequest, LearningApiError } from "./learningClient";
+import { learningRequest, LearningApiError, isLearningOperation } from "./learningClient";
 type S=components["schemas"];
 export type PracticeConditions=S["PracticeConditions"];
 export type PracticePreview=S["PracticePreviewView"];
@@ -77,6 +77,27 @@ export async function submitPractice(id:string,blankConfirmed=false) {
 export async function getPracticeReport(id:string,signal?:AbortSignal) {
   const r=await learningRequest(base+"/practices/"+encodeURIComponent(id)+"/results","GET",undefined,signal);
   if(!report(r.value)) throw new LearningApiError("INVALID_RESPONSE",r.status);
+  return r.value;
+}
+export async function previewGrading(id:string,blankConfirmed:boolean,idempotencyKey:string) {
+  const r=await learningRequest(base+"/practices/"+encodeURIComponent(id)+"/grading-preview","POST",
+    {blank_confirmed:blankConfirmed,idempotency_key:idempotencyKey});
+  if(!isLearningOperation(r.value)) throw new LearningApiError("INVALID_RESPONSE",r.status);
+  return r.value;
+}
+export async function executeGrading(id:string,operationId:string) {
+  const r=await learningRequest(base+"/practices/"+encodeURIComponent(id)+"/grade/"+encodeURIComponent(operationId),"POST",{});
+  if(!report(r.value) && !isLearningOperation(r.value)) throw new LearningApiError("INVALID_RESPONSE",r.status);
+  return r.value;
+}
+export async function previewRegrade(disputeId:string,body:S["ScoreDisputeRegradeRequest"]) {
+  const r=await learningRequest(base+"/disputes/"+encodeURIComponent(disputeId)+"/regrade-preview","POST",body);
+  if(!isLearningOperation(r.value)) throw new LearningApiError("INVALID_RESPONSE",r.status);
+  return r.value;
+}
+export async function executeRegrade(disputeId:string,operationId:string) {
+  const r=await learningRequest(base+"/disputes/"+encodeURIComponent(disputeId)+"/regrade/"+encodeURIComponent(operationId),"POST",{});
+  if(!dispute(r.value) && !isLearningOperation(r.value)) throw new LearningApiError("INVALID_RESPONSE",r.status);
   return r.value;
 }
 export async function raiseScoreDispute(practiceId:string,itemId:string,reason:string) {

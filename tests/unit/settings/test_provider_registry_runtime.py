@@ -371,6 +371,28 @@ def test_local_rerank_binding_is_independent_of_default(probe_sandbox, tmp_path)
     assert calls == [str(tmp_path)]
 
 
+def test_local_rerank_does_not_forward_snapshot_credential_store_to_model(probe_sandbox, tmp_path):
+    owner = registry()
+    local = make_profile(probe_sandbox.environment_id, adapter_id="cross_encoder", model_id="t208-local-rerank",
+        declared_capabilities=("local_rerank",), base_url=None, auth_mode="none", credential_ref=None,
+        resource_directory=tmp_path)
+    loaded = []
+
+    def load(value):
+        loaded.append(value)
+        return object()
+
+    def forbidden(*_args, **_kwargs):
+        raise AssertionError("local rerank must not read credential storage")
+
+    provider = owner.create(local, kind="rerank", credential_store=SimpleNamespace(get=forbidden), model_loader=load)
+    assert loaded == []
+    assert provider.describe()["model"] == "t208-local-rerank"
+    assert provider._ensure_model() is not None
+    assert loaded == [str(tmp_path)]
+    assert probe_sandbox.scenario.requests == []
+
+
 @pytest.mark.parametrize("owns", [False, True])
 def test_rerank_legacy_record_releases_only_its_owned_provider(owns):
     owner = registry()

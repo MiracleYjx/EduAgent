@@ -3,16 +3,16 @@
 from backend.app.domain.enums import ExamStatus
 from backend.app.models import Exam
 from tests.contract.test_exam_assembly_api import _headers
-from tests.contract.test_exam_participation_contract import (
+from tests.support.retained_exam_fixtures import (
     client as client,  # noqa: PLC0414
 )
-from tests.contract.test_exam_participation_contract import (
+from tests.support.retained_exam_fixtures import (
     session as session,  # noqa: PLC0414
 )
 from tests.unit.services.test_submission_service import add_course, add_teacher
 
 
-def test_course_delete_reports_current_protection_without_erasing_exam(client, session):
+def test_course_delete_is_retired_and_never_erases_exam(client, session):
     actor = add_teacher(session)
     course = add_course(session, actor)
     exam = Exam(
@@ -25,9 +25,7 @@ def test_course_delete_reports_current_protection_without_erasing_exam(client, s
     session.commit()
     identity = exam.id
     response = client.delete(f"/api/courses/{course.id}", headers=_headers(actor))
-    assert response.status_code == 409
-    assert response.json()["detail"]["code"] == "COURSE_REFERENCED_IMMUTABLE"
-    assert (
-        response.json()["detail"]["current_status"] is None
-    )  # Course has no status enum.
+    # TCR（T081）：旧课程删除入口已随 T077 退役（生产工厂不再挂载），保留组件套件
+    # 断言退役 404 而不是旧 409 合同；“已发布试卷不得被删除”仍由下方持久化事实验证。
+    assert response.status_code == 404
     assert session.get(Exam, identity).status == ExamStatus.PUBLISHED

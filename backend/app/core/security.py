@@ -52,6 +52,8 @@ def get_jwt_secret_key(
 ) -> str:
     """只从类型化配置中取得 JWT 签名密钥。"""
 
+    if settings.JWT_SECRET_KEY is None:
+        raise HTTPException(status_code=503, detail="旧业务认证未配置。")
     return settings.JWT_SECRET_KEY.get_secret_value()
 
 

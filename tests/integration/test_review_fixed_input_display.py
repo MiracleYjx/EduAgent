@@ -12,7 +12,7 @@ from tests.integration.test_exam_scoring_consumers import (
     ConfirmedPointProvider,
     environment,  # noqa: F401 -- shared real PostgreSQL fixture
 )
-from tests.integration.test_langgraph_grading_workflow import (
+from tests.support.retained_workflow_integration_fixtures import (
     _api_client,
     _start,
     _teacher_headers,
@@ -82,7 +82,7 @@ def test_saved_model_context_survives_real_manual_score_change(
     resume_fails,
 ):
     from backend.app.ai.workflows.grading_workflow import GradingWorkflow
-    from tests.integration.test_langgraph_grading_workflow import _confirm_body
+    from tests.support.retained_workflow_integration_fixtures import _confirm_body
 
     async def fail_resume(*args, **kwargs):
         raise RuntimeError("T178 controlled resume failure after saved decision")

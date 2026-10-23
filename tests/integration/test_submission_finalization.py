@@ -20,7 +20,7 @@ from backend.app.models import (
     WorkflowRun,
 )
 from backend.app.services.grading.grading_repository import DatabaseGradingRepository
-from tests.integration import test_langgraph_grading_workflow as support
+from tests.support import retained_workflow_integration_fixtures as support
 
 env = support.env
 solo_env = support.solo_env

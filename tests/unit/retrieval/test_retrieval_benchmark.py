@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import csv
 import json
+from collections.abc import Iterator
 from pathlib import Path
 
 import pytest
@@ -25,6 +26,10 @@ from scripts.run_retrieval_benchmark import (
     compute_metrics,
     percentile,
     write_run_records,
+)
+from tests.support.benchmark_results import (
+    benchmark_results_directory,
+    discard_results_directory,
 )
 
 DATASET = {
@@ -132,7 +137,18 @@ def test_compute_metrics_handles_empty_results() -> None:
     assert metrics["latency_p95_ms"] == 0.0
 
 
-def test_write_run_records_persists_schema_and_summary(tmp_path: Path) -> None:
+@pytest.fixture
+def results_dir(tmp_path: Path) -> Iterator[Path]:
+    """每次用例使用独立结果目录，并留在已选环境自己的 results 边界内。"""
+
+    path = benchmark_results_directory(tmp_path, prefix="retrieval")
+    try:
+        yield path
+    finally:
+        discard_results_directory(path, tmp_path)
+
+
+def test_write_run_records_persists_schema_and_summary(results_dir: Path) -> None:
     """成功运行写入规范 JSON 字段，并追加汇总 CSV 行。"""
 
     run = ConfigRun(
@@ -150,7 +166,7 @@ def test_write_run_records_persists_schema_and_summary(tmp_path: Path) -> None:
     path = write_run_records(
         run,
         run_id="unit-run",
-        output_dir=tmp_path,
+        output_dir=results_dir,
         dataset_version="m0-seed-v1",
         model_version="stub-hash-v1",
         prompt_version=None,
@@ -167,13 +183,13 @@ def test_write_run_records_persists_schema_and_summary(tmp_path: Path) -> None:
     assert payload["environment"]["top_k"] == 5
     assert "自检" in payload["analysis"]
 
-    summary = (tmp_path / SUMMARY_NAME).read_text(encoding="utf-8").splitlines()
+    summary = (results_dir / SUMMARY_NAME).read_text(encoding="utf-8").splitlines()
     assert summary[0].startswith("run_id,run_at,config")
     assert summary[1].split(",")[0] == "unit-run"
     assert summary[1].split(",")[6] == "ok"
 
 
-def test_write_run_records_marks_failures_without_metrics(tmp_path: Path) -> None:
+def test_write_run_records_marks_failures_without_metrics(results_dir: Path) -> None:
     """失败运行写入错误码，不伪造指标。"""
 
     run = ConfigRun(
@@ -188,7 +204,7 @@ def test_write_run_records_marks_failures_without_metrics(tmp_path: Path) -> Non
     path = write_run_records(
         run,
         run_id="unit-failed",
-        output_dir=tmp_path,
+        output_dir=results_dir,
         dataset_version="m0-seed-v1",
         model_version="BAAI/bge-large-zh-v1.5",
         prompt_version="synthetic-prompt-v1",
@@ -202,10 +218,10 @@ def test_write_run_records_marks_failures_without_metrics(tmp_path: Path) -> Non
     assert payload["results"] == []
     assert payload["metrics"] == {}
 
-    summary_row = (tmp_path / SUMMARY_NAME).read_text(encoding="utf-8").splitlines()[1]
+    summary_row = (results_dir / SUMMARY_NAME).read_text(encoding="utf-8").splitlines()[1]
     assert "failed" in summary_row
     assert "EMBEDDING_PROVIDER_NOT_READY" in summary_row
-    with (tmp_path / SUMMARY_NAME).open(encoding="utf-8", newline="") as handle:
+    with (results_dir / SUMMARY_NAME).open(encoding="utf-8", newline="") as handle:
         row = next(csv.DictReader(handle))
     assert all(row[key] == "" for key in (
         "recall_at_5", "recall_at_10", "precision_at_5", "mrr", "latency_p95_ms",

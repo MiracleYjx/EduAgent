@@ -89,6 +89,16 @@ def test_personal_source_requires_exactly_one_scope_identity() -> None:
         _source(subject_id=None, course_id=None)
 
 
+def test_general_knowledge_skips_a_disabled_retrieval_binding() -> None:
+    calls = []
+    runtime = SimpleNamespace(retrieval_mode=lambda task: calls.append(task) or "none")
+    context = asyncio.run(build_grading_context(None, _source(grounding="general_knowledge"),
+        runtime=runtime, retriever=_ForbiddenRetriever()))
+    assert context.retrieval_mode is None
+    assert context.chunks == () and context.retrieved_context_ids == ()
+    assert calls == []
+
+
 def test_general_knowledge_has_no_retrieval_and_no_fabricated_chunks() -> None:
     source = _source(grounding="general_knowledge")
     context = asyncio.run(

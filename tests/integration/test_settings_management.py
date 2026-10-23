@@ -23,6 +23,7 @@ import httpx
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+from pydantic import SecretStr
 
 from backend.app.ai.errors import AIConfigurationError
 from backend.app.ai.llm.factory import create_llm_provider
@@ -34,6 +35,7 @@ from backend.app.core.bootstrap import (
 from backend.app.core.config import reset_settings_cache
 from backend.app.core.environment import resolve_environment_profile
 from backend.app.core.settings_security import OperatorIdentity, PrincipalKind
+from backend.app.schemas.settings import ConfigurationValues, CredentialReference
 from backend.app.services.settings import readiness
 from backend.app.services.settings.database_initialization import (
     InitializationError,
@@ -44,7 +46,11 @@ from backend.app.services.settings.management import (
     build_settings_runtime,
     mounted_mounts_from_env,
 )
-from tests.support.credential_fakes import FakeFileSecurity, FakeProtector
+from tests.support.credential_fakes import (
+    FakeFileSecurity,
+    FakeProtector,
+    baseline_values,
+)
 from tests.support.provider_probe_fakes import HttpClientFactory, HttpScenario
 
 OPERATOR = OperatorIdentity(
@@ -92,10 +98,13 @@ def isolated_process_configuration(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 @pytest.fixture
-def profile(tmp_path: Path):
+def profile(tmp_path: Path, monkeypatch):
     root = (tmp_path / "data").resolve()
     root.mkdir()
-    return resolve_environment_profile(process_env=_environ(root))
+    selected = resolve_environment_profile(process_env=_environ(root))
+    for key, value in _environ_for(selected).items():
+        monkeypatch.setenv(key, value)
+    return selected
 
 
 @pytest.fixture
@@ -876,53 +885,24 @@ def test_production_entry_stays_in_setup_without_activated_configuration(
     assert ready.json()["failed_check"] == "assembly"
 
 
-def test_recovery_hooks_run_once_and_failure_is_recorded(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
+def test_personal_startup_and_reads_never_replay_legacy_recovery(monkeypatch):
+    from backend.app.core.app import create_app
     from tests.unit.settings_helpers import build_test_settings
 
-    calls = {"grading": 0, "diagnosis": 0, "imports": 0}
-
-    def grading() -> None:
-        calls["grading"] += 1
-
-    def diagnosis() -> None:
-        calls["diagnosis"] += 1
-
-    def imports() -> None:
-        calls["imports"] += 1
-
-    monkeypatch.setattr("backend.app.core.app.recover_interrupted_grading_tasks", grading)
-    monkeypatch.setattr("backend.app.core.app.recover_diagnosis_pending_runs", diagnosis)
-    monkeypatch.setattr("backend.app.core.app.recover_interrupted_paper_imports", imports)
-    import gradio as gr
-
-    from backend.app.core.app import create_app
-
-    with gr.Blocks() as ui:
-        gr.Markdown("synthetic recovery test")
-
-    settings = build_test_settings(
-        database_url="postgresql+psycopg://user:password@127.0.0.1:1/eduagent",
-        redis_url="redis://127.0.0.1:1/0",
-    )
-    app = create_app(settings=settings, gradio_app=ui)
-    with TestClient(app) as started:
-        assert calls == {"grading": 1, "diagnosis": 1, "imports": 1}
+    def forbidden():
+        raise AssertionError("personal startup must not replay retired exam operations")
+    for module, function in [("grading", "recover_interrupted_grading_tasks"),
+            ("workflow", "recover_diagnosis_pending_runs"),
+            ("paper_import", "recover_interrupted_paper_imports")]:
+        monkeypatch.setattr(f"backend.app.api.{module}.{function}", forbidden)
+    settings = build_test_settings(database_url="postgresql+psycopg://synthetic:synthetic@127.0.0.1:1/test",
+        redis_url="redis://127.0.0.1:1/0")
+    app = create_app(settings=settings)
+    with TestClient(app) as client:
         assert app.state.recovery == "completed"
-        started.get("/health")
-        started.get("/ready")
-        assert calls == {"grading": 1, "diagnosis": 1, "imports": 1}
-
-    def broken() -> None:
-        raise RuntimeError("synthetic recovery failure")
-
-    monkeypatch.setattr("backend.app.core.app.recover_interrupted_grading_tasks", broken)
-    failing = create_app(settings=settings, gradio_app=ui)
-    with pytest.raises(BaseException) as failure, TestClient(failing):
-        pass
-    assert "synthetic recovery failure" in str(failure.value)
-    assert failing.state.recovery == "failed"
+        assert client.get("/health").status_code == 200
+        assert client.get("/ready").status_code == 503
+        assert app.state.recovery == "completed"
 
 
 def test_readiness_unknown_migration_head_blocks_ready(
@@ -1006,7 +986,8 @@ def test_business_only_projection_and_application_assembly(
     assert projection.embedding_provider == "none"
     assert projection.rerank_provider == "none"
     assert projection.deepseek_api_key.get_secret_value() == ""
-    assert projection.JWT_SECRET_KEY.get_secret_value().startswith("synthetic-t220")
+    assert projection.JWT_SECRET_KEY is None
+    assert revision.values.business.jwt_secret_ref == CredentialReference.model_validate(reference)
 
     for name, value in _environ_for(profile).items():
         monkeypatch.setenv(name, value)
@@ -1020,7 +1001,7 @@ def test_business_only_projection_and_application_assembly(
         business_client = TestClient(application)
         try:
             rejected = business_client.get("/api/courses")
-            assert rejected.status_code == 401
+            assert rejected.status_code == 404
             assert rejected.json().get("code") != "BUSINESS_NOT_READY"
         finally:
             business_client.close()
@@ -1236,3 +1217,118 @@ def test_mounted_secret_can_be_selected_but_not_written_or_deleted(
     finally:
         client.close()
         runtime.close()
+
+
+# ---------------------------------------------------------------------------
+# T083：未配置或停用 rerank 时不得继承默认 LLM 的 rerank 投影
+# ---------------------------------------------------------------------------
+
+
+def _t083_provider(
+    store: Any, *, adapter_id: str, model_id: str, capabilities: tuple[str, ...]
+) -> tuple[str, str, dict[str, Any]]:
+    """构造合成 provider；凭据只经真实 CredentialStore 写入，不读真实 Key。"""
+
+    profile_id, revision = str(uuid4()), str(uuid4())
+    reference = store.put(
+        purpose="provider", secret_value=SecretStr("synthetic-t083-" + uuid4().hex)
+    )
+    record = {
+        "profile_id": profile_id,
+        "profile_revision": revision,
+        "display_name": f"Synthetic {adapter_id}",
+        "adapter_id": adapter_id,
+        "model_id": model_id,
+        "base_url": (
+            "https://api.deepseek.com"
+            if adapter_id == "deepseek"
+            else "https://model.invalid/v1"
+        ),
+        "credential_ref": reference.model_dump(mode="json"),
+        "auth_mode": "api_key",
+        "declared_capabilities": list(capabilities),
+        "enabled": True,
+    }
+    return profile_id, revision, record
+
+
+def _t083_values(
+    runtime: SettingsRuntime,
+    profile: Any,
+    *,
+    rerank_binding: dict[str, Any] | None = None,
+    rerank_profile: tuple[str, str] | None = None,
+) -> ConfigurationValues:
+    """DeepSeek 作为 default_llm，rerank 可选：缺省 / 显式停用 / 显式绑定。"""
+
+    store = runtime.credential_store()
+    jwt = store.put(
+        purpose="jwt",
+        secret_value=SecretStr("synthetic-t083-jwt-secret-with-at-least-32-chars"),
+    )
+    values = baseline_values(runtime.config.root, profile.environment_id, jwt)
+    default_id, default_revision, default_record = _t083_provider(
+        store,
+        adapter_id="deepseek",
+        model_id="deepseek-flash",
+        capabilities=("text", "json_object"),
+    )
+    providers: dict[str, Any] = {default_id: default_record}
+    bindings: dict[str, Any] = {
+        "default_llm": {
+            "task_kind": "default_llm",
+            "profile_id": default_id,
+            "profile_revision": default_revision,
+        }
+    }
+    if rerank_profile is not None:
+        adapter_id, model_id = rerank_profile
+        rerank_id, rerank_revision, rerank_record = _t083_provider(
+            store, adapter_id=adapter_id, model_id=model_id, capabilities=("llm_rerank",)
+        )
+        providers[rerank_id] = rerank_record
+        bindings["rerank"] = {
+            "task_kind": "rerank",
+            "profile_id": rerank_id,
+            "profile_revision": rerank_revision,
+        }
+    elif rerank_binding is not None:
+        bindings["rerank"] = rerank_binding
+    values["providers"] = providers
+    values["bindings"] = bindings
+    return ConfigurationValues.model_validate(values)
+
+
+@pytest.mark.parametrize(
+    "rerank_binding",
+    [
+        pytest.param(None, id="absent"),
+        pytest.param({"task_kind": "rerank"}, id="disabled"),
+    ],
+)
+def test_projection_keeps_rerank_disabled_without_explicit_binding(
+    runtime: SettingsRuntime, profile: Any, rerank_binding: dict[str, Any] | None
+) -> None:
+    values = _t083_values(runtime, profile, rerank_binding=rerank_binding)
+    before = values.model_dump(mode="json")
+
+    projection = runtime.app_settings_for(values)
+
+    assert projection.llm_provider == "deepseek"
+    assert projection.deepseek_model == "deepseek-flash"
+    assert projection.rerank_provider == "none"
+    assert projection.rerank_model is None
+    # 投影不得就地改写候选配置，否则激活前的差异比较会失真。
+    assert values.model_dump(mode="json") == before
+
+
+def test_projection_preserves_explicitly_bound_rerank_profile(
+    runtime: SettingsRuntime, profile: Any
+) -> None:
+    values = _t083_values(runtime, profile, rerank_profile=("llm", "synthetic-rerank"))
+
+    projection = runtime.app_settings_for(values)
+
+    assert projection.llm_provider == "deepseek"
+    assert projection.rerank_provider == "llm"
+    assert projection.rerank_model == "synthetic-rerank"

@@ -18,7 +18,10 @@ function BlockBody({ subjectId, material, block }: {
   block: MaterialBlock;
 }) {
   const [imageFailed, setImageFailed] = useState(false);
-  if (block.type === "text") return <Typography.Paragraph>{block.text}</Typography.Paragraph>;
+  if (block.type === "text") return <>
+    {block.ocr_source_anchor ? <Typography.Text type="secondary">OCR 识别文字；原图定位：{block.ocr_source_anchor}</Typography.Text> : null}
+    <Typography.Paragraph>{block.text}</Typography.Paragraph>
+  </>;
   if (block.type === "formula") {
     return (
       <Typography.Paragraph>

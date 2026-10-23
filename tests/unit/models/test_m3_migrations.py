@@ -72,10 +72,14 @@ EXPECTED_CHAIN: dict[str, str] = {
     "0028_personal_materials": "0027_personal_content_assets",
     "0029_personal_paper_import": "0028_personal_materials",
     "0030_personal_duplicates": "0029_personal_paper_import",
+    "0031_personal_grading_feedback": "0030_personal_duplicates",
+    "0032_personal_conversations": "0031_personal_grading_feedback",
+    "0033_personal_cutover": "0032_personal_conversations",
+    "0034_material_index_operation": "0033_personal_cutover",
 }
 
 #: 当前 head（逐个任务向后移动）。
-EXPECTED_HEAD = "0030_personal_duplicates"
+EXPECTED_HEAD = "0034_material_index_operation"
 
 
 @dataclass(frozen=True, slots=True)

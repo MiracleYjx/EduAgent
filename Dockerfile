@@ -13,7 +13,7 @@ RUN --mount=type=cache,id=eduagent-pip-py312,target=/root/.cache/pip,sharing=loc
     && python -m pip install --disable-pip-version-check --timeout 30 --retries 2 \
         --constraint build-constraints.txt 'setuptools>=75.0' --report /usr/local/share/eduagent/pip-bootstrap-report.json \
     && python -m pip install --disable-pip-version-check --timeout 30 --retries 2 --verbose \
-        --constraint build-constraints.txt --report /usr/local/share/eduagent/pip-install-report.json .
+        --constraint build-constraints.txt --report /usr/local/share/eduagent/pip-install-report.json '.[ocr]'
 
 FROM node:24-slim AS node-build-tools
 FROM backend-deps AS frontend-inputs
@@ -30,6 +30,10 @@ FROM frontend-inputs AS frontend-build
 RUN cd frontend && npm run build
 
 FROM backend-deps AS runtime
+# RapidOCR's OpenCV wheel needs these native libraries in Debian slim.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends libgl1 libglib2.0-0t64 libxcb1 \
+    && rm -rf /var/lib/apt/lists/*
 COPY alembic.ini ./
 COPY backend ./backend
 COPY migrations ./migrations

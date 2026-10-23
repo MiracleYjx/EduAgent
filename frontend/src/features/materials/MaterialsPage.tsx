@@ -17,6 +17,8 @@ import {
 } from "../../api/materialsClient";
 import { KnowledgeConfirm } from "./KnowledgeConfirm";
 import { SourceViewer } from "./SourceViewer";
+import { MaterialIndexPanel } from "./MaterialIndexPanel";
+import { MaterialOCRPanel } from "./MaterialOCRPanel";
 
 const stateLabels: Record<string, string> = {
   uploaded: "已上传",
@@ -342,6 +344,18 @@ export function MaterialsPage({ subjectId }: { subjectId: string }) {
               <Button onClick={() => setRefresh(value => value + 1)}>刷新状态</Button>
             </Space>
             {openId === material.id ? <SourceViewer subjectId={subjectId} material={material} /> : null}
+            {material.purpose === "study_material" ? <MaterialOCRPanel
+              key={`ocr:${subjectId}:${material.id}`}
+              subjectId={subjectId}
+              material={material}
+              onChanged={value => setMaterials(previous => previous?.map(row => row.id === value.id ? value : row) ?? null)}
+            /> : null}
+            {material.purpose === "study_material" ? <MaterialIndexPanel
+              key={`${subjectId}:${material.id}`}
+              subjectId={subjectId}
+              material={material}
+              onIndexed={value => setMaterials(previous => previous?.map(row => row.id === value.id ? value : row) ?? null)}
+            /> : null}
             <VersionPanel
               subjectId={subjectId}
               material={material}

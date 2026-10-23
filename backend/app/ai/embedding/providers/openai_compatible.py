@@ -222,10 +222,13 @@ class OpenAICompatibleEmbeddingProvider(BaseEmbeddingProvider):
                 return await self._client.embeddings.create(
                     model=self.model_name,
                     input=list(inputs),
+                    encoding_format="float",
                     extra_headers={"Authorization": Omit()},
                 )
             return await self._client.embeddings.create(
-                model=self.model_name, input=list(inputs)
+                model=self.model_name,
+                input=list(inputs),
+                encoding_format="float",
             )
         except (OpenAIError, TimeoutError, OSError) as exc:
             # 只保留异常类型，避免把响应正文或密钥写入错误信息。

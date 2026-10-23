@@ -1,5 +1,6 @@
 """Feature 002 foundation: real owned PG, migrations and historical invariants."""
 
+import os
 from pathlib import Path
 from uuid import uuid4
 
@@ -30,6 +31,105 @@ TABLES = {
     "grade_attempts",
     "score_disputes",
 }
+
+
+def _source_request(host: str, origin: str | None = None):
+    from starlette.requests import Request
+
+    headers = [(b"host", host.encode("ascii"))]
+    if origin is not None:
+        headers.append((b"origin", origin.encode("ascii")))
+    hostname, port = host.rsplit(":", 1)
+    return Request(
+        {
+            "type": "http",
+            "method": "GET",
+            "path": "/api/learning/subjects",
+            "headers": headers,
+            "scheme": "http",
+            "server": (hostname, int(port)),
+            "client": ("127.0.0.1", 1234),
+        }
+    )
+
+
+def test_explicit_settings_assembly_keeps_the_loopback_source_boundary(tmp_path, monkeypatch):
+    """显式 settings 装配也必须保留回环来源边界。
+
+    缺少绑定时 allowed_hosts 为空，个人入口会对所有请求返回
+    503 LEARNING_SOURCE_UNAVAILABLE：应用“装配成功”却不可用。
+    """
+
+    from backend.app.core.bootstrap import create_application
+    from backend.app.core.config import AppSettings
+    from backend.app.core.settings_security import SettingsSecurityError
+
+    monkeypatch.delenv("EDUAGENT_BIND_HOST", raising=False)
+    monkeypatch.delenv("EDUAGENT_BIND_PORT", raising=False)
+    # 进程环境中的旧模型变量会让 LLM_PROVIDER=none 自相矛盾；本用例只验证来源边界。
+    for name in ("DEEPSEEK_API_KEY", "DEEPSEEK_BASE_URL", "DEEPSEEK_MODEL", "VISION_MODEL",
+                 "LLM_PROVIDER", "EMBEDDING_PROVIDER", "RERANK_PROVIDER", "EMBEDDING_BASE_URL",
+                 "EMBEDDING_MODEL", "EMBEDDING_API_KEY", "EMBEDDING_DIMENSION"):
+        monkeypatch.delenv(name, raising=False)
+    settings = AppSettings(
+        _env_file=None,
+        database_url="postgresql+psycopg://runner:pw@127.0.0.1:5432/eduagent_test",
+        redis_url="redis://127.0.0.1:6379/0",
+        storage_root=Path(os.environ.get("STORAGE_ROOT") or tmp_path),
+        confidence_threshold=0.8,
+        jwt_secret_key="t" * 40,
+        rerank_provider="none",
+        llm_provider="none",
+        embedding_provider="none",
+    )
+    app = create_application(settings=settings)
+    policy = app.state.learning_source_policy
+    assert policy is not None, "learning_source_policy must be installed"
+    assert policy.allowed_hosts == frozenset({"127.0.0.1:8000", "localhost:8000"})
+
+    # 正向：回环 Host 通过来源判定。
+    assert policy.check_request(_source_request("127.0.0.1:8000"))
+
+    # 安全边界不退：非回环 Host 与错误端口仍被拒绝。
+    for host in ("evil.example:8000", "127.0.0.1:9999"):
+        with pytest.raises(SettingsSecurityError) as host_error:
+            policy.check_request(_source_request(host))
+        assert host_error.value.code == "HOST_NOT_ALLOWED"
+
+    # 跨站 Origin 仍被拒绝。
+    with pytest.raises(SettingsSecurityError) as origin_error:
+        request = _source_request("127.0.0.1:8000", origin="http://evil.example")
+        policy.check_origin(request, source=policy.check_request(request), required=True)
+    assert origin_error.value.code == "ORIGIN_NOT_ALLOWED"
+
+
+def test_explicit_settings_assembly_honours_a_non_default_bind_port(tmp_path, monkeypatch):
+    """非默认端口必须由 EDUAGENT_BIND_PORT 显式声明，不得静默回退到 8000。"""
+
+    from backend.app.core.bootstrap import create_application
+    from backend.app.core.config import AppSettings
+
+    monkeypatch.setenv("EDUAGENT_BIND_HOST", "127.0.0.1")
+    monkeypatch.setenv("EDUAGENT_BIND_PORT", "8123")
+    for name in ("DEEPSEEK_API_KEY", "DEEPSEEK_BASE_URL", "DEEPSEEK_MODEL", "VISION_MODEL",
+                 "LLM_PROVIDER", "EMBEDDING_PROVIDER", "RERANK_PROVIDER", "EMBEDDING_BASE_URL",
+                 "EMBEDDING_MODEL", "EMBEDDING_API_KEY", "EMBEDDING_DIMENSION"):
+        monkeypatch.delenv(name, raising=False)
+    settings = AppSettings(
+        _env_file=None,
+        database_url="postgresql+psycopg://runner:pw@127.0.0.1:5432/eduagent_test",
+        redis_url="redis://127.0.0.1:6379/0",
+        storage_root=Path(os.environ.get("STORAGE_ROOT") or tmp_path),
+        confidence_threshold=0.8,
+        jwt_secret_key="t" * 40,
+        rerank_provider="none",
+        llm_provider="none",
+        embedding_provider="none",
+    )
+    app = create_application(settings=settings)
+    policy = app.state.learning_source_policy
+    assert policy is not None
+    assert policy.allowed_hosts == frozenset({"127.0.0.1:8123", "localhost:8123"})
 
 
 def migrate(engine, revision):
@@ -507,12 +607,16 @@ def test_real_pg_operation_retains_snapshot_references_and_never_resends_after_i
 ):
     import asyncio
     import json
+    from types import SimpleNamespace
 
     import httpx
     from sqlalchemy.orm import sessionmaker
 
     from backend.app.services.learning_operations import LearningOperations, StepPlan
-    from backend.app.services.settings.management import BusinessRunFacts
+    from backend.app.services.settings.management import (
+        BusinessRunFacts,
+        SettingsRuntime,
+    )
     from backend.app.services.settings.runtime_snapshot import SnapshotReferenceIndex
     from tests.contract.test_learning_operations import invoke
     from tests.support.runtime_settings_fakes import settings_harness
@@ -548,6 +652,7 @@ def test_real_pg_operation_retains_snapshot_references_and_never_resends_after_i
         config=harness.service,
         transport=httpx.MockTransport(handler),
     )
+    settings_runtime = None
     try:
         operation = service.prepare(
             purpose="generation",
@@ -591,8 +696,32 @@ def test_real_pg_operation_retains_snapshot_references_and_never_resends_after_i
             ) == ("snapshot",)
             snapshot = reopened.snapshots.load(operation.runtime_snapshot_id)
             assert snapshot.credential_refs and snapshot.embedding_identity is not None
+            # The production settings assembly must project actual historical
+            # RunSnapshotBinding rows into the legacy admission contract.
+            settings_runtime = SettingsRuntime(
+                profile=SimpleNamespace(environment="test", environment_id=harness.environment_id),
+                config=harness.service,
+                registry=harness.admission.registry,
+                clock=harness.clock,
+            )
+            settings_runtime.run_facts = facts
+            settings_runtime._configure_admission(harness.store)
+            active = harness.service.active_revision()
+            assert active is not None
+            values = active.values.model_dump(mode="json")
+            values["policies"]["confidence_threshold"] = 0.7
+            candidate = harness.draft(values, expected=active.revision_id)
+            accepted = harness.service.activate(
+                candidate.revision_id, expected_revision=active.revision_id, process_env={}
+            )
+            assert accepted.status == "active"
+            assert harness.service.active_revision().revision_id == accepted.revision_id
+            assert len(calls) == 1
+            assert len(harness.admission.requests) == 2
         finally:
             asyncio.run(reopened.aclose())
     finally:
         asyncio.run(service.aclose())
+        if settings_runtime is not None:
+            settings_runtime.close()
         harness.close()

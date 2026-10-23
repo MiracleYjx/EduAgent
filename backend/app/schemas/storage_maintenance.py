@@ -71,12 +71,13 @@ class BackupFile(BaseModel):
 class DatabaseDump(BackupFile):
     relative_path: Literal["database.dump"] = "database.dump"
     schema_revision: str | None
+    schema_name: str = Field(default="public", pattern=r"^[A-Za-z_][A-Za-z0-9_]{0,62}$")
 
 
 class BackupReference(BaseModel):
     model_config = ConfigDict(extra="forbid")
     file_id: str
-    resource_type: Literal["document", "source_page", "staged_asset", "question_asset", "export"]
+    resource_type: Literal["document", "source_page", "staged_asset", "question_asset", "export", "material_asset"]
     resource_id: UUID
     owner: dict[str, str] = Field(min_length=1)
     relative_path: RelativePath | None
@@ -85,10 +86,17 @@ class BackupReference(BaseModel):
 
     @model_validator(mode="after")
     def identity_matches(self):
+        if self.resource_type == "material_asset":
+            import re
+            if not re.fullmatch("m_" + self.resource_id.hex + r"_[a-f0-9]{64}", self.file_id):
+                raise ValueError("material asset identity does not match resource")
+            if self.relative_path is None or not self.relative_path.startswith(f"materials/{self.resource_id.hex}/assets/"):
+                raise ValueError("material asset outside its document")
+            return self
         prefix = {"document": "d_", "export": "e_", "source_page": "p_", "staged_asset": "a_", "question_asset": "a_"}[self.resource_type]
         if self.file_id != prefix + self.resource_id.hex:
             raise ValueError("file identity does not match resource")
-        if self.relative_path is not None and self.relative_path.split("/")[0] not in {"uploads", "papers", "assets", "exports"}:
+        if self.relative_path is not None and self.relative_path.split("/")[0] not in {"uploads", "papers", "assets", "exports", "materials"}:
             raise ValueError("reference outside managed buckets")
         return self
 
@@ -102,7 +110,8 @@ class BackupReceipt(BaseModel):
 
 class BackupManifest(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    manifest_version: Literal[1] = 1
+    manifest_version: Literal[1, 2] = 1
+    environment_id: UUID | None = None
     backup_set_id: UUID
     outcome: Literal["creating", "complete", "incomplete", "failed"]
     started_at: AwareDatetime
@@ -114,6 +123,7 @@ class BackupManifest(BaseModel):
     files: list[BackupFile]
     #: 非终态运行引用的非敏感运行快照（T212）；旧清单无该字段时为空。
     runtime_snapshots: list[BackupFile] = Field(default_factory=list)
+    configuration_revisions: list[BackupFile] = Field(default_factory=list)
     operation_receipts: list[BackupReceipt]
     issues: list[BackupIssue]
 
@@ -129,11 +139,22 @@ class BackupManifest(BaseModel):
                 or len(snapshot_paths) != len(set(snapshot_paths))):
             raise ValueError("duplicate physical paths or identities")
         for path in paths:
-            if path.split("/")[0] not in {"uploads", "papers", "assets", "exports"}:
+            if path.split("/")[0] not in {"uploads", "papers", "assets", "exports", "materials"}:
                 raise ValueError("file outside managed buckets")
         for path in snapshot_paths:
             if path.split("/")[0] != "runtime_snapshots" or not path.endswith(".json"):
                 raise ValueError("runtime snapshot outside managed directory")
+        revision_paths = [entry.relative_path for entry in self.configuration_revisions]
+        if len(revision_paths) != len(set(revision_paths)):
+            raise ValueError("duplicate configuration revision")
+        for path in revision_paths:
+            if path.split("/")[0] != "configuration_revisions" or len(path.split("/")) != 2 or not path.endswith(".json"):
+                raise ValueError("configuration revision outside managed directory")
+        if self.manifest_version == 2 and self.environment_id is None:
+            raise ValueError("personal backup requires its actual space identity")
+        if self.manifest_version == 1 and (self.configuration_revisions or self.environment_id is not None
+                or any(ref.resource_type == "material_asset" or "subject_id" in ref.owner for ref in self.references)):
+            raise ValueError("personal resources require backup format 2")
         if self.outcome in {"complete", "incomplete"} and (self.database is None or self.window_started_at is None
                 or self.window_finished_at is None or self.completed_at is None):
             raise ValueError("finished backup requires actual dump and stage evidence")

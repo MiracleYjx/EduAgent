@@ -96,13 +96,13 @@ class StorageReference:
         return metadata is None or metadata.migration.status not in {"not_required", "migrated"}
 
 
-def storage_references(session: Session) -> list[StorageReference]:
+def storage_references(session: Session, *, personal_only: bool = False) -> list[StorageReference]:
     """Current implemented resource identities only; E2 must attach real mappings."""
     connection = session.connection()
     schema = session.scalar(text("SELECT current_schema()")) if connection.dialect.name == "postgresql" else None
     inspector = inspect(connection)
     tables = set(inspector.get_table_names(schema=schema))
-    if "export_files" not in tables or "file_metadata" not in {c["name"] for c in inspector.get_columns("documents", schema=schema)}:
+    if (not personal_only and "export_files" not in tables) or "file_metadata" not in {c["name"] for c in inspector.get_columns("documents", schema=schema)}:
         raise FileStorageError("MAINTENANCE_SCHEMA_NOT_READY", "请先按既有迁移流程升级数据库；工具不会自动修改 schema。")
     if not {"source_pages", "extracted_questions", "question_assets"}.issubset(tables):
         raise FileStorageError("MAINTENANCE_SCHEMA_NOT_READY", "请先升级完整的导入/题图模型，维护工具不会自动修改 schema。")
@@ -122,6 +122,8 @@ def storage_references(session: Session) -> list[StorageReference]:
                 raise FileStorageError("FILE_REFERENCE_CONFLICT", "原试卷不能登记到知识库。")
             result.append(StorageReference(document, "d_" + document.id.hex, owner))
             continue
+        if personal_only:
+            raise FileStorageError("BACKUP_LEGACY_DATA_PRESENT", "个人资源目录不能包含旧课程或不明归属。")
         course = session.get(Course, document.course_id)
         if course is None:
             raise FileStorageError("FILE_REFERENCE_CONFLICT", "文件课程不存在。")
@@ -134,7 +136,7 @@ def storage_references(session: Session) -> list[StorageReference]:
         elif document.knowledge_base_id is not None:
             raise FileStorageError("FILE_REFERENCE_CONFLICT", "原试卷不能登记到知识库。")
         result.append(StorageReference(document, "d_" + document.id.hex, owner))
-    for export in session.scalars(select(ExportFile).order_by(ExportFile.id)):
+    for export in (() if personal_only else session.scalars(select(ExportFile).order_by(ExportFile.id))):
         owner = {}
         if export.submission_id is not None:
             submission = session.get(Submission, export.submission_id)

@@ -73,6 +73,46 @@ SUGGESTION_SYSTEM_PROMPT: Final[str] = (
 )
 
 
+class PersonalDiagnosisService:
+    """Personal facts are independent of the legacy exam-final aggregation."""
+
+    def __init__(self, space):
+        self.space = space
+
+    def get(self, subject_id, *, source_kind=None, answer_origin=None):
+        from sqlalchemy import select
+
+        from backend.app.models.subject import KnowledgePoint
+        from backend.app.schemas.personal_diagnosis import (
+            DiagnosisEvidence,
+            KnowledgeDiagnosis,
+            PersonalDiagnosis,
+        )
+        from backend.app.services.learning_suggestions import learning_suggestion
+        from backend.app.services.personal_learning_facts import observations, summarize
+
+        self.space.get(subject_id)
+        with self.space.sessions() as session:
+            rows = observations(session, subject_id)
+            filters = {"source_kind": source_kind, "answer_origin": answer_origin}
+            points = []
+            for point in session.scalars(select(KnowledgePoint).where(
+                KnowledgePoint.subject_id == subject_id,
+                KnowledgePoint.confirmation_state == "confirmed").order_by(KnowledgePoint.name, KnowledgePoint.id)):
+                stats = summarize(rows, knowledge_point_id=point.id, **filters)
+                points.append(KnowledgeDiagnosis(id=point.id, name=point.name, statistics=stats,
+                    suggestion=learning_suggestion(session, subject_id, point.id, reinforce=stats.status == "reinforce")))
+            overall = summarize(rows, **filters)
+            # The approved reinforcement threshold applies to each knowledge
+            # point, not an invented subject-wide weakness classification.
+            overall = overall.model_copy(update={"status": "observed" if overall.valid_count else "insufficient_evidence"})
+            return PersonalDiagnosis(subject_id=subject_id, source_kind=source_kind, answer_origin=answer_origin,
+                statistics=overall, knowledge_points=points,
+                evidence=[DiagnosisEvidence(**r.payload()) for r in rows
+                    if (not source_kind or r.source_kind == source_kind)
+                    and (not answer_origin or r.answer_origin == answer_origin)])
+
+
 class DiagnosisError(RuntimeError):
     """诊断失败基类；可按来源保留重试语义。"""
 

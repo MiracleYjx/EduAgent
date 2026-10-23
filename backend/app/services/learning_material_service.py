@@ -12,8 +12,8 @@ Two upload purposes stay separated (FR-005):
   RAG content.
 
 Paid steps never run implicitly: parsing and chunking are local, and
-``index_material`` is the explicit entry point a later, user-confirmed
-operation would call. A material that is parsed but not indexed is reported as
+``MaterialIndexing`` calls ``index_material`` only to publish the complete
+results of an explicit, user-confirmed operation. A material not indexed is reported as
 ``parsed``; it is never presented as retired/ready content.
 """
 
@@ -430,8 +430,12 @@ class LearningMaterialService:
             overlap_chars=80,
         )
         postgres = session.get_bind().dialect.name == "postgresql"
+        offset = (session.scalar(select(func.max(DocumentChunk.chunk_index)).where(
+            DocumentChunk.document_id == row.id)) if chunks else None)
+        offset = offset + 1 if offset is not None else 0
         for chunk in chunks:
             metadata = chunk.as_metadata()
+            metadata["chunk_index"] = chunk.index + offset
             metadata["purpose"] = row.purpose.value
             session.add(
                 DocumentChunk(
@@ -441,7 +445,7 @@ class LearningMaterialService:
                     knowledge_base_id=knowledge_base_id,
                     chapter_id=None,
                     section_order=None,
-                    chunk_index=chunk.index,
+                    chunk_index=chunk.index + offset,
                     content=chunk.content,
                     embedding=None,
                     search_vector=(
@@ -475,6 +479,8 @@ class LearningMaterialService:
         *,
         identity: Mapping[str, Any],
         vectors: Sequence[Sequence[float]],
+        operation_id: UUID | None = None,
+        expected_digest: str | None = None,
     ) -> MaterialView:
         """Explicit, identity-checked index publication.
 
@@ -485,7 +491,7 @@ class LearningMaterialService:
 
         self.space._check_space()
         with self.sessions.begin() as session:
-            row = session.get(Document, material_id)
+            row = session.get(Document, material_id, with_for_update=True)
             if row is None or row.subject_id is None:
                 raise MaterialError("MATERIAL_NOT_FOUND", 404)
             if row.purpose is not DocumentPurpose.KNOWLEDGE_BASE:
@@ -493,12 +499,19 @@ class LearningMaterialService:
             if row.knowledge_base_id is None:
                 raise MaterialError("MATERIAL_KNOWLEDGE_BASE_MISSING", 409)
             if row.material_state == "indexed":
+                if operation_id is not None and (row.parse_facts or {}).get("index_operation_id") == str(operation_id):
+                    return self._view(session, row)
                 raise MaterialError("MATERIAL_ALREADY_INDEXED", 409)
             chunks = session.scalars(
                 select(DocumentChunk)
                 .where(DocumentChunk.document_id == row.id)
-                .order_by(DocumentChunk.chunk_index)
+                .order_by(DocumentChunk.chunk_index, DocumentChunk.id)
             ).all()
+            if operation_id is not None:
+                from backend.app.services.material_indexing import material_digest
+                if ((row.parse_facts or {}).get("index_operation_id") != str(operation_id)
+                        or material_digest(row, chunks) != expected_digest):
+                    raise MaterialError("PREVIEW_CHANGED", 409)
             if not chunks:
                 raise MaterialError("MATERIAL_HAS_NO_CHUNKS", 409)
             if len(vectors) != len(chunks):
@@ -510,7 +523,7 @@ class LearningMaterialService:
             if int(identity.get("dimension") or 0) != dimension:
                 raise MaterialError("EMBEDDING_DIMENSION_MISMATCH", 409)
 
-            kb = session.get(KnowledgeBase, row.knowledge_base_id)
+            kb = session.get(KnowledgeBase, row.knowledge_base_id, with_for_update=True)
             if kb is None:
                 raise MaterialError("MATERIAL_KNOWLEDGE_BASE_MISSING", 409)
             identity_service = IndexIdentityService(
@@ -752,6 +765,7 @@ class LearningMaterialService:
             chunk_count=int(chunk_count),
             issues=issues,
             requires_ocr=bool(facts.get("requires_ocr")),
+            ocr=facts.get("local_ocr"),
             blocks=[
                 MaterialBlockView(**block) for block in facts.get("blocks") or []
             ],
@@ -762,6 +776,7 @@ class LearningMaterialService:
             version_id=version.id if version else None,
             version_label=version.label if version else None,
             default_version_id=series.default_version_id if series else None,
+            index_operation_id=facts.get("index_operation_id"),
         )
 
     def close(self) -> None:

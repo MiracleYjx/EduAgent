@@ -25,8 +25,8 @@ _IDENTIFIER = re.compile(r"^[A-Za-z0-9_.:/-]{1,128}$")
 _SUMMARY = re.compile(r"^(node|branch|agent|status):[A-Za-z0-9_./-]{1,64}$")
 _ERROR_CODE = re.compile(r"^(GRADING|QUESTION)_[A-Z0-9_]{1,54}$")
 _PROVIDER_ERRORS = frozenset({
-    "ProviderFailed", "ProviderEmptyResponse", "StructuredOutputFailed",
-    "WorkflowNodeFailed",
+    "ProviderFailed", "ProviderEmptyResponse", "ProviderOutputTruncated",
+    "StructuredOutputFailed", "WorkflowNodeFailed",
 })
 _context: ContextVar[TraceContext | None] = ContextVar("eduagent_trace", default=None)
 

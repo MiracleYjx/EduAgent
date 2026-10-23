@@ -151,6 +151,11 @@ class PersonalSubjectivePort:
     def __call__(
         self, item: PracticeItem, answer: PracticeAnswer
     ) -> SubjectiveResult:
+        return asyncio.run(self.grade(item, answer))
+
+    async def grade(
+        self, item: PracticeItem, answer: PracticeAnswer
+    ) -> SubjectiveResult:
         frozen = dict(item.scoring_input or {})
         try:
             content = _frozen_content(frozen)
@@ -169,14 +174,12 @@ class PersonalSubjectivePort:
                 )
             else:
                 images = ()
-            result = asyncio.run(
-                SubjectiveGrader().grade(
+            result = await SubjectiveGrader().grade(
                     self._session,
                     source,
                     max_score=item.fixed_max_score,
                     images=images,
                     runtime=self._runtime,
-                )
             )
         except Exception as error:  # noqa: BLE001 - failures must become a failed round.
             return self._failure(error)
@@ -237,7 +240,9 @@ class PersonalSubjectivePort:
             reference_answer=str(frozen.get("reference_answer") or ""),
             student_answer=answer.text_answer,
             scoring_rubric=frozen.get("scoring_rubric"),
-            knowledge_points=_knowledge_point_names(self._session, item),
+            knowledge_points=tuple(frozen["scope_knowledge_point_names"])
+            if "scope_knowledge_point_names" in frozen
+            else _knowledge_point_names(self._session, item),
             material_version_ids=versions,
             question_id=item.question_id,
             answer_id=answer.id,

@@ -20,7 +20,7 @@ export function BusinessStep({ values, catalog, busy, externalOnly, onSave, onCr
     redisHost: redis?.host ?? "", redisPort: redis?.port ?? 6379, redisDatabase: redis?.database ?? 0,
   });
   const [refs, setRefs] = useState<Record<string, CredentialReference | null>>({
-    jwt: business?.jwt_secret_ref ?? null, database: business?.database_password_ref ?? null, redis: business?.redis_password_ref ?? null,
+    database: business?.database_password_ref ?? null, redis: business?.redis_password_ref ?? null,
   });
   function field<K extends keyof typeof fields>(key: K, value: (typeof fields)[K]) {
     setFields(previous => ({ ...previous, [key]: value }));
@@ -41,7 +41,7 @@ export function BusinessStep({ values, catalog, busy, externalOnly, onSave, onCr
         ...business,
         database_locator: { host: fields.dbHost, port: fields.dbPort, database: fields.dbName, user: fields.dbUser, schema: fields.dbSchema },
         redis_locator: { host: fields.redisHost, port: fields.redisPort, database: fields.redisDatabase },
-        storage_root: fields.storage || null, jwt_secret_ref: refs.jwt,
+        storage_root: fields.storage || null,
         database_password_ref: refs.database, redis_password_ref: refs.redis,
       } });
     }}>
@@ -52,9 +52,9 @@ export function BusinessStep({ values, catalog, busy, externalOnly, onSave, onCr
         {input("redisHost", "Redis 主机")}{input("redisPort", "Redis 端口", true)}{input("redisDatabase", "Redis 数据库编号", true)}
       </div>
       <Typography.Paragraph type="secondary">
-        连接定位字段不得嵌入密码或 URL；密码通过下方凭据库提交。个人学习不需要 JWT；此凭据仅供仍在使用的旧业务消费者。
+        连接定位字段不得嵌入密码或 URL；密码通过下方凭据库提交。个人学习不需要旧业务 JWT。
       </Typography.Paragraph>
-      {(["jwt", "database", "redis"] as const).map(purpose => <CredentialInput
+      {(["database", "redis"] as const).map(purpose => <CredentialInput
         key={purpose} purpose={purpose} reference={refs[purpose]} catalog={catalog} busy={busy} externalOnly={externalOnly}
         onSelect={ref => setRefs(previous => ({ ...previous, [purpose]: ref }))}
         onSave={(kind, secret) => onCredential(kind, secret, ref => setRefs(previous => ({ ...previous, [purpose]: ref })))} />)}

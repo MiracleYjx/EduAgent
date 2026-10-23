@@ -21,6 +21,7 @@ from backend.app.schemas.content_blocks import (
 )
 from backend.app.schemas.content_validation import SemanticMachineOutput
 from backend.app.schemas.learning_charts import ChartPoint
+from backend.app.schemas.material_ocr import MaterialOCRView
 
 
 class LearningOperationView(BaseModel):
@@ -48,6 +49,15 @@ class LearningPreviewRequest(BaseModel):
 class LearningConfirmRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
     preview_digest: str = Field(min_length=64, max_length=64)
+
+
+class MaterialIndexPreviewRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    idempotency_key: str = Field(min_length=1, max_length=160)
+
+
+class MaterialIndexExecuteRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
 
 
 class LearningApiError(BaseModel):
@@ -165,12 +175,14 @@ class MaterialBlockView(BaseModel):
     media_type: str | None = None
     placement: str | None = None
     reason: str | None = None
+    ocr_source_anchor: str | None = None
 
 
 class MaterialView(BaseModel):
     """资料的真实解析/索引状态；不把半成品表达为已完成。"""
 
     id: UUID
+    index_operation_id: UUID | None = None
     subject_id: UUID
     purpose: MaterialPurpose
     original_filename: str
@@ -184,6 +196,7 @@ class MaterialView(BaseModel):
     chunk_count: int = 0
     issues: list[str] = Field(default_factory=list)
     requires_ocr: bool = False
+    ocr: MaterialOCRView | None = None
     blocks: list[MaterialBlockView] = Field(default_factory=list)
     assets: list[MaterialAssetView] = Field(default_factory=list)
     series_id: UUID | None = None

@@ -1,33 +1,61 @@
 """Personal practice preparation and answering; grading is a later task."""
 
+from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 
+from backend.app.api import learning_errors
+from backend.app.api.learning_operations import public_operation
+from backend.app.api.learning_operations import service as operation_service
 from backend.app.api.subjects import PersonalRoute, Subjects
-from backend.app.schemas.personal_learning import LearningApiError
+from backend.app.schemas.personal_learning import (
+    LearningOperationView,
+)
 from backend.app.schemas.personal_practice import (
     PersonalPracticeView,
     PracticeAnswerInput,
     PracticeAnswerView,
     PracticeBlankConfirmation,
     PracticeConditions,
+    PracticeGradingPreviewRequest,
     PracticePreviewChanged,
     PracticePreviewView,
     PracticeReport,
     PracticeStartRequest,
     PracticeSubmitRequest,
 )
+from backend.app.services.learning_operations import LearningOperations
 from backend.app.services.personal_grading import BlankAnswersPending
+from backend.app.services.personal_grading_operations import PersonalGradingOperations
 from backend.app.services.practice_service import PracticeService
 
 router = APIRouter(
     prefix="/api/learning",
     tags=["personal-practice"],
     route_class=PersonalRoute,
-    responses={s: {"model": LearningApiError} for s in (403, 404, 409, 422, 503)},
+    responses=learning_errors(403, 404, 409, 422, 503),
 )
+
+Operations = Annotated[LearningOperations, Depends(operation_service)]
+
+
+@router.post("/practices/{identity}/grading-preview", response_model=LearningOperationView)
+def grading_preview(identity: UUID, body: PracticeGradingPreviewRequest, space: Subjects,
+                    operations: Operations):
+    try:
+        return public_operation(PersonalGradingOperations(space, operations).prepare(identity, body))
+    except BlankAnswersPending as pending:
+        return JSONResponse(status_code=409, content=PracticeBlankConfirmation(
+            item_ids=list(pending.item_ids)).model_dump(mode="json"))
+
+
+@router.post("/practices/{identity}/grade/{operation_id}",
+             response_model=PracticeReport | LearningOperationView)
+def grade(identity: UUID, operation_id: UUID, space: Subjects, operations: Operations):
+    result = PersonalGradingOperations(space, operations).execute(operation_id, practice_id=identity)
+    return public_operation(result) if isinstance(result, LearningOperationView) else result
 
 
 @router.post(

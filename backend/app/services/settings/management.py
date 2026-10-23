@@ -73,6 +73,7 @@ from backend.app.services.settings.provider_registry import (
 from backend.app.services.settings.runtime_snapshot import (
     RuntimeSnapshotService,
     SnapshotReferenceIndex,
+    legacy_run_index,
 )
 
 if TYPE_CHECKING:
@@ -737,6 +738,7 @@ class BusinessRunFacts:
                 ).all()
                 from sqlalchemy import inspect
 
+                from backend.app.models.conversation import Message
                 from backend.app.models.operation_run import OperationRun
                 from backend.app.models.practice import GradeAttempt
                 from backend.app.services.workflow_checkpoint import RunSnapshotBinding
@@ -746,6 +748,8 @@ class BusinessRunFacts:
                     personal.extend(RunSnapshotBinding(str(r[0]), str(r[1]), str(r[2])) for r in connection.execute(select(OperationRun.id, OperationRun.state, OperationRun.runtime_snapshot_id)))
                 if "grade_attempts" in tables:
                     personal.extend(RunSnapshotBinding(str(r[0]), "grade_history", str(r[1])) for r in connection.execute(select(GradeAttempt.id, GradeAttempt.runtime_snapshot_id).where(GradeAttempt.runtime_snapshot_id.is_not(None))))
+                if "conversation_messages" in tables:
+                    personal.extend(RunSnapshotBinding(str(r[0]), "conversation_history", str(r[1])) for r in connection.execute(select(Message.id, Message.runtime_snapshot_id).where(Message.runtime_snapshot_id.is_not(None))))
         except SQLAlchemyError:
             raise SettingsManagementError("LEGACY_RUN_INDEX_UNAVAILABLE", stage="runs") from None
         finally:
@@ -888,7 +892,7 @@ class SettingsRuntime:
             probe_service=self._probes,
             business_guard=business_guard,
             runtime_references=references,
-            legacy_runs=self.run_facts.bindings,
+            legacy_runs=legacy_run_index(self.run_facts.bindings),
             clock=self._clock,
         )
         self._admission_configured = True
@@ -1211,23 +1215,6 @@ class SettingsRuntime:
             revision = self.config.check_pending_restart(
                 expected_revision=pending, process_env=dict(os.environ),
             )
-            if revision.values.business.jwt_secret_ref is None:
-                # A personal-only candidate never assembles legacy consumers.
-                # Verify its actual database/schema before committing activation.
-                from sqlalchemy import create_engine, text
-                from sqlalchemy.exc import SQLAlchemyError
-
-                url, _profile = self.personal_learning_database(values=revision.values)
-                engine = create_engine(url, connect_args={"connect_timeout": 3})
-                try:
-                    with engine.connect() as connection:
-                        if connection.scalar(text("SELECT version_num FROM alembic_version")) != readiness.discover_migration_head():
-                            raise SettingsManagementError("LEARNING_DATABASE_NOT_INITIALIZED", status_code=503)
-                except SQLAlchemyError:
-                    raise SettingsManagementError("LEARNING_DATABASE_UNAVAILABLE", status_code=503) from None
-                finally:
-                    engine.dispose()
-                return None, pending, None
             return self.app_settings_for(revision.values), pending, None
         except (ConfigServiceError, SettingsManagementError) as error:
             return None, pending, error.code
@@ -1341,7 +1328,6 @@ class SettingsRuntime:
             business.database_locator is None
             or business.redis_locator is None
             or business.storage_root is None
-            or business.jwt_secret_ref is None
         ):
             raise SettingsManagementError("BUSINESS_CONFIGURATION_INCOMPLETE", stage="resolve")
         policies = policies if hasattr(policies, "confidence_threshold") else values.policies
@@ -1358,7 +1344,19 @@ class SettingsRuntime:
         embedding_ready = embedding is not None and (
             embedding.adapter_id != "openai_compatible" or embedding_key is not None
         )
-        rerank = self._profile_for("rerank", values)
+        # 未配置或显式停用 rerank 时不得继承 default_llm：Registry 的缺省继承会把
+        # rerank 投影成 default_llm 的 adapter（如 deepseek），而 AppSettings 只接受
+        # 已注册的 rerank adapter 或 none，否则整段业务装配在 assembly 阶段失败。
+        rerank_binding = values.bindings.get("rerank")
+        rerank = (
+            self._profile_for("rerank", values)
+            if rerank_binding is not None
+            and (
+                rerank_binding.profile_id is not None
+                or rerank_binding.inherit_default
+            )
+            else None
+        )
         rerank_ready = rerank is not None and (
             rerank.adapter_id == "cross_encoder" or llm_ready
         )
@@ -1372,9 +1370,6 @@ class SettingsRuntime:
                 business.redis_locator, self._secret(business.redis_password_ref)
             ),
             "storage_root": business.storage_root,
-            "JWT_SECRET_KEY": self._secret(business.jwt_secret_ref),
-            "JWT_ALGORITHM": business.jwt_algorithm,
-            "JWT_EXPIRE_MINUTES": business.jwt_expire_minutes,
             "DEV_MODE": business.dev_mode,
             "llm_provider": llm.adapter_id if llm_ready and llm is not None else "none",
             "llm_auth_mode": llm.auth_mode if llm_ready and llm is not None else "api_key",

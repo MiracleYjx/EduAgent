@@ -230,7 +230,7 @@ def test_prerequisite_failures_map_to_stable_ready_classes(
     assert failure[1]
 
 
-def test_missing_jwt_reference_is_reported_without_leaking() -> None:
+def test_retired_jwt_does_not_gate_personal_readiness() -> None:
     settings = cast(
         AppSettings,
         type(
@@ -242,11 +242,9 @@ def test_missing_jwt_reference_is_reported_without_leaking() -> None:
 
     report = evaluate_readiness(_inputs(settings=settings), _probes())
 
-    assert _check(report, "jwt_reference").code == "jwt_reference_missing"
-    assert gate_ready(report) == (
-        "business_prerequisites",
-        "业务 JWT 密钥引用缺失。",
-    )
+    assert _check(report, "jwt_reference").code == "retired_business_auth"
+    assert _check(report, "jwt_reference").status == "skipped"
+    assert gate_ready(report) is None
 
 
 def test_missing_credential_backend_never_falls_back_to_anonymous() -> None:

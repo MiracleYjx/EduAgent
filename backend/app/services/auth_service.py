@@ -270,10 +270,12 @@ def _urlsafe_decode(value: str) -> bytes:
 def _resolve_secret_key(secret_key: str | SecretStr | None) -> bytes:
     """解析显式传入的密钥，缺省时读取经过校验的类型化配置。"""
 
+    value: str | None
     if isinstance(secret_key, SecretStr):
         value = secret_key.get_secret_value()
     elif secret_key is None:
-        value = get_settings().JWT_SECRET_KEY.get_secret_value()
+        configured = get_settings().JWT_SECRET_KEY
+        value = configured.get_secret_value() if configured is not None else None
     else:
         value = secret_key
     if not isinstance(value, str) or not value.strip():

@@ -16,7 +16,7 @@ class OperationRun(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         UniqueConstraint("environment_id", "idempotency_key"),
         UniqueConstraint("environment_id", "active_slot"),
         CheckConstraint(
-            "request_budget > 0 AND actual_requests >= 0 AND actual_requests <= request_budget",
+            "request_budget >= 0 AND actual_requests >= 0 AND actual_requests <= request_budget",
             name="ck_operation_requests",
         ),
         CheckConstraint(
@@ -36,3 +36,5 @@ class OperationRun(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     steps: Mapped[list[dict[str, Any]]] = mapped_column(CONTENT_JSON, nullable=False)
     active_slot: Mapped[str | None] = mapped_column(String(16))
     retry_of_id: Mapped[UUID | None] = mapped_column(Uuid)
+    execution_id: Mapped[UUID | None] = mapped_column(Uuid)
+    executor_identity: Mapped[dict[str, Any] | None] = mapped_column(CONTENT_JSON)

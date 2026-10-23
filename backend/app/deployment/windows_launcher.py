@@ -327,6 +327,12 @@ def serve(
     """worker 入口：先生成应用（Setup 立即可用），再挂控制通道并运行 HTTP。"""
 
     del await_preflight  # T221 起不再有 SERVE 握手；参数保留以兼容旧命令行。
+    if getattr(sys, "frozen", False) and sys.platform == "win32":
+        # NumPy's first native import stalls in a frozen OCR worker. Initialize
+        # the bundled numeric runtime on the main thread before serving work;
+        # OCR providers and external model weights still load on explicit use.
+        import numpy  # noqa: F401
+
     from backend.app.deployment.windows_tls import install_windows_tls_loader
 
     # Preserve the existing Windows CA loader before business HTTP clients import.

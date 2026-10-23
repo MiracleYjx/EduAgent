@@ -49,7 +49,6 @@ if TYPE_CHECKING:
 DIAGNOSTIC_CHECKS = ("postgres", "redis", "storage", "migrations")
 PREREQUISITE_ORDER = (
     "business_config",
-    "jwt_reference",
     "postgres",
     "vector",
     "migration",
@@ -176,7 +175,11 @@ def _required_tables() -> frozenset[str]:
         from backend.app import models  # noqa: F401  仅用于填充 Base.metadata
     except ImportError:
         return frozenset()
-    return frozenset(Base.metadata.tables)
+    # These mappings remain necessary to inspect explicitly approved pre-cutover
+    # objects. They are not prerequisites of the personal application.
+    from migrations.versions.personal_learning_cutover import LEGACY_TABLES
+
+    return frozenset(Base.metadata.tables) - LEGACY_TABLES | {"personal_cutovers"}
 
 
 def _probe_vector(connection: Connection) -> ProbeOutcome:
@@ -390,20 +393,6 @@ def inputs_for_app(
     )
 
 
-def _jwt_reference(settings: AppSettings) -> ProbeOutcome:
-    secret = settings.JWT_SECRET_KEY
-    value: object = (
-        secret.get_secret_value() if hasattr(secret, "get_secret_value") else secret
-    )
-    if not isinstance(value, str) or not value.strip():
-        return ProbeOutcome(
-            "failed",
-            code="jwt_reference_missing",
-            detail="业务 JWT 密钥引用缺失。",
-        )
-    return OK
-
-
 def _run_database_probe(
     probes: DependencyProbes, settings: AppSettings, expected_head: str | None
 ) -> DatabaseProbeResult:
@@ -468,7 +457,7 @@ def _prerequisite_checks(
     postgres_ready = database.postgres.status != "failed"
     return {
         "business_config": config,
-        "jwt_reference": _jwt_reference(settings),
+        "jwt_reference": ProbeOutcome("skipped", code="retired_business_auth"),
         "postgres": database.postgres,
         "vector": database.vector,
         "migration": database.migration,
@@ -513,10 +502,10 @@ def evaluate_readiness(
     active_probes = probes if probes is not None else DEFAULT_PROBES
     outcomes = _prerequisite_checks(inputs, active_probes)
     checks = ReadinessChecks(
-        **{name: outcomes[name].as_check() for name in PREREQUISITE_ORDER}
+        **{name: outcome.as_check() for name, outcome in outcomes.items()}
     )
     # 「均通过」不包含 unknown：无法判定迁移头/表结构时业务不应宣称就绪。
-    prerequisites_ready = all(outcome.status == "ok" for outcome in outcomes.values())
+    prerequisites_ready = all(outcomes[name].status == "ok" for name in PREREQUISITE_ORDER)
     assembly = assembly_state(inputs.assembly)
     recovery = _recovery_state(inputs.recovery)
     business_ready = (

@@ -13,7 +13,7 @@ from __future__ import annotations
 import os
 from collections.abc import AsyncIterator, Mapping
 from contextlib import asynccontextmanager
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal
 from uuid import uuid4
@@ -509,6 +509,13 @@ def create_application(
 
     resolved = context if context is not None else resolve_bootstrap_context()
     if settings is not None:
+        # 显式 settings 路径（测试/嵌入）也必须有精确回环绑定：缺少绑定时
+        # `settings_authorities` 返回空集合，SetupSourcePolicy 的 allowed_hosts
+        # 随之为空，个人入口会对所有请求以 503 拒绝（装配成功却不可用）。
+        # 只回退到回环默认端口，不扩大允许集合；真实监听端口仍由
+        # EDUAGENT_BIND_HOST/PORT 决定，非默认端口保持 fail-closed。
+        if resolved.bind is None:
+            resolved = replace(resolved, bind=BootstrapOptions(port=DEFAULT_BIND_PORT))
         from backend.app.core.app import create_app
 
         return create_app(

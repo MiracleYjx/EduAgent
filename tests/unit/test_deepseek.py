@@ -167,9 +167,22 @@ def build_settings() -> AppSettings:
     return build_test_settings(deepseek_api_key="unit-test-placeholder")
 
 
-def response(content: str | None) -> SimpleNamespace:
+def response(
+    content: str | None,
+    *,
+    reasoning: str | None = None,
+    finish_reason: str = "stop",
+) -> SimpleNamespace:
     return SimpleNamespace(
-        choices=[SimpleNamespace(message=SimpleNamespace(content=content))]
+        choices=[
+            SimpleNamespace(
+                message=SimpleNamespace(
+                    content=content,
+                    reasoning_content=reasoning,
+                ),
+                finish_reason=finish_reason,
+            )
+        ]
     )
 
 
@@ -197,6 +210,7 @@ async def test_deepseek_uses_json_mode_and_validates_pydantic_result() -> None:
     request = client.chat.completions.create.call_args.kwargs
     assert request["model"] == "deepseek-test"
     assert request["response_format"] == {"type": "json_object"}
+    assert "extra_body" not in request
     assert "json" in request["messages"][0]["content"].lower()
 
 
@@ -251,8 +265,10 @@ async def test_deepseek_retries_invalid_json_only_once() -> None:
 
 
 @async_test
-async def test_deepseek_reports_empty_response_after_retry_exhaustion() -> None:
-    client = build_client(response(None), response(""), response("   "))
+async def test_deepseek_empty_content_with_reasoning_fails_once() -> None:
+    client = build_client(
+        response(None, reasoning="internal reasoning must not be content", finish_reason="length")
+    )
     provider = DeepSeekProvider(
         build_settings(),
         client=client,
@@ -267,8 +283,48 @@ async def test_deepseek_reports_empty_response_after_retry_exhaustion() -> None:
         )
 
     assert caught.value.info.code == "ProviderEmptyResponse"
-    assert caught.value.info.attempt_count == 3
+    assert caught.value.info.attempt_count == 1
+    assert caught.value.info.retryable is False
     assert caught.value.info.status == "ProviderEmptyResponse"
+    assert client.chat.completions.create.await_count == 1
+    assert "internal reasoning" not in str(caught.value)
+
+
+@async_test
+async def test_deepseek_length_with_nonempty_content_is_rejected_once() -> None:
+    client = build_client(response('{"value": 7}', finish_reason="length"))
+    provider = DeepSeekProvider(
+        build_settings(),
+        client=client,
+        retry_policy=RetryPolicy(jitter_seconds=0),
+        sleep=_recordless_sleep,
+    )
+
+    with pytest.raises(ProviderExecutionError) as caught:
+        await provider.generate_structured(
+            [{"role": "user", "content": "请返回 JSON"}],
+            ExampleResult,
+        )
+
+    assert caught.value.info.code == "ProviderOutputTruncated"
+    assert caught.value.info.attempt_count == 1
+    assert caught.value.info.retryable is False
+    assert client.chat.completions.create.await_count == 1
+
+
+@async_test
+async def test_deepseek_reasoning_effort_is_optional_and_forwarded() -> None:
+    client = build_client(response('{"value": 7}'))
+    provider = DeepSeekProvider(
+        build_settings(), client=client, reasoning_effort="low"
+    )
+
+    await provider.generate_structured(
+        [{"role": "user", "content": "请返回 JSON"}], ExampleResult
+    )
+
+    request = client.chat.completions.create.call_args.kwargs
+    assert request["extra_body"] == {"reasoning_effort": "low"}
 
 
 @async_test

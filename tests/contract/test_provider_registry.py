@@ -187,6 +187,14 @@ def test_registry_actual_parameter_schema_rejects_outside_or_unsupported_values(
     assert probe_sandbox.scenario.requests == []
 
 
+def test_deepseek_reasoning_effort_is_optional_and_bounded():
+    schema = registry().parameter_schema("deepseek", ("text",))
+    assert schema.model_validate({}).reasoning_effort is None
+    assert schema.model_validate({"reasoning_effort": "low"}).reasoning_effort == "low"
+    with pytest.raises(ValidationError):
+        schema.model_validate({"reasoning_effort": "medium"})
+
+
 def test_registry_remote_key_requires_https_but_local_auth_none_is_allowed(probe_sandbox):
     owner = registry()
     with pytest.raises(ValueError):

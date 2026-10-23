@@ -182,6 +182,7 @@ class PersonalPracticeView(BaseModel):
     subject_id: UUID
     state: str
     items: list[PracticeItemView]
+    grading_operation_id: UUID | None = None
 
 
 class PracticePreviewChanged(BaseModel):
@@ -197,6 +198,10 @@ class PracticeSubmitRequest(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
     blank_confirmed: StrictBool = False
+
+
+class PracticeGradingPreviewRequest(PracticeSubmitRequest):
+    idempotency_key: str = Field(min_length=1, max_length=160)
 
 
 class PracticeScoringFeedback(BaseModel):
@@ -226,6 +231,7 @@ class PracticeAttemptView(BaseModel):
     question_revision_id: UUID | None = None
     reference_answer: str | None = None
     scoring_rubric: str | None = None
+    operation_id: UUID | None = None
 
 
 class PracticeItemResult(BaseModel):
@@ -304,3 +310,4 @@ class ScoreDisputeView(BaseModel):
     reason: str
     disputed_attempt_id: UUID
     accepted_attempt_id: UUID | None = None
+    regrade_operation_id: UUID | None = None

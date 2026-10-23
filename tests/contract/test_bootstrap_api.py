@@ -323,7 +323,7 @@ def test_explicit_business_configuration_keeps_full_app(
 ) -> None:
     assert full_app.state.business_assembly == "assembled"
 
-    assert full_client.get("/api/courses").status_code == 401
+    assert full_client.get("/api/courses").status_code == 404
     assert full_client.get("/api/settings/").status_code == 401
     assert full_client.get("/setup-ready").status_code == 200
 
@@ -332,7 +332,7 @@ def test_explicit_business_configuration_keeps_full_app(
     assert ready.json()["failed_check"] == "postgres"
 
     gradio = full_client.get("/gradio/", follow_redirects=False)
-    assert gradio.status_code != 404
+    assert gradio.status_code == 404
 
 
 def test_setup_token_never_authorizes_business_api(
@@ -349,5 +349,5 @@ def test_setup_token_never_authorizes_business_api(
     token = exchanged.json()["management_token"]
 
     assert (
-        full_client.get("/api/courses", headers=_setup_headers(token)).status_code == 401
+        full_client.get("/api/courses", headers=_setup_headers(token)).status_code == 404
     )

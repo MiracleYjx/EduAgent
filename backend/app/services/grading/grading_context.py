@@ -384,14 +384,8 @@ def _truncate(text: str, budget: int) -> str:
     return text[: budget - len(TRUNCATION_MARKER)] + TRUNCATION_MARKER
 
 
-def build_query_text(source: SubjectiveGradingSource) -> str:
-    """构造检索查询文本：题目 → 参考要点 → 评分标准 → 学生答案（固定顺序）。
-
-    采用固定拼接顺序，不声称某种顺序已优化检索效果（顺序对比留给后续评测）。
-    每个字段使用独立预算，学生答案预算非零；段落标签与截断标记都计入
-    :data:`MAX_QUERY_CHARS`。截断只作用于查询文本，不修改 ``source`` 中的原始输入。
-    """
-
+def _query_fields(source: SubjectiveGradingSource) -> list[tuple[str, str, int]]:
+    """Allocate one field budget shared by trace text and keyword facts."""
     rubric = (source.scoring_rubric or "").strip()
     sections: list[tuple[str, str]] = [
         (SECTION_QUESTION, source.question_content),
@@ -411,9 +405,33 @@ def build_query_text(source: SubjectiveGradingSource) -> str:
         budgets[label] = granted
         remaining -= granted
 
+    return [(label, text, budgets[label]) for label, text in sections]
+
+
+def build_query_text(source: SubjectiveGradingSource) -> str:
+    """Preserve the ordered, labelled, bounded query used for trace/semantic input."""
+
     return "\n".join(
-        f"{label}\n{_truncate(text, budgets[label])}" for label, text in sections
+        f"{label}\n{_truncate(text, budget)}"
+        for label, text, budget in _query_fields(source)
     )
+
+
+def build_keyword_query_text(source: SubjectiveGradingSource) -> str:
+    """Search the same bounded facts without generated labels/truncation terms.
+
+    Only this producer's injected marker is excluded. Identical text actually
+    supplied by the user remains part of the query; the general retriever does
+    no stripping or fallback.
+    """
+
+    facts = []
+    for _label, text, budget in _query_fields(source):
+        bounded = _truncate(text, budget)
+        if len(text) > budget > len(TRUNCATION_MARKER):
+            bounded = bounded[:-len(TRUNCATION_MARKER)]
+        facts.append(bounded)
+    return "\n".join(facts)
 
 
 @dataclass(frozen=True, slots=True)
@@ -422,7 +440,7 @@ class GradingContext:
 
     source: SubjectiveGradingSource
     query_text: str
-    retrieval_mode: RetrievalMode
+    retrieval_mode: RetrievalMode | None
     filters: RetrievalFilters
     chunks: tuple[RetrievedChunk, ...]
     retrieved_context_ids: tuple[str, ...]
@@ -712,25 +730,25 @@ async def build_grading_context(
     ``asyncio.run``。
     """
 
-    if mode is None:
-        configured_mode = (
-            runtime.retrieval_mode("subjective_grading") if runtime is not None else None
-        )
-        mode = configured_mode or RetrievalMode.HYBRID_RERANK
-    resolved_mode = normalize_mode(mode)
     query_text = build_query_text(source)
     if source.grounding == "general_knowledge":
         # 通用知识路径不检索教材，也不把空结果冒充为资料依据。
         return GradingContext(
             source=source,
             query_text=query_text,
-            retrieval_mode=resolved_mode,
+            retrieval_mode=None,
             filters=RetrievalFilters(),
             chunks=(),
             retrieved_context_ids=(),
             final_context="",
             candidate_count=0,
         )
+    if mode is None:
+        configured_mode = (
+            runtime.retrieval_mode("subjective_grading") if runtime is not None else None
+        )
+        mode = configured_mode or RetrievalMode.HYBRID_RERANK
+    resolved_mode = normalize_mode(mode)
     resolved_settings = (
         settings
         if settings is not None
@@ -804,7 +822,8 @@ async def build_grading_context(
     )
     search_query = _build_search_query(
         resolved_mode,
-        query_text=query_text,
+        query_text=(query_text if resolved_mode is RetrievalMode.VECTOR_ONLY
+                    else build_keyword_query_text(source)),
         embedding=embedding,
         retrieval_scope=source.retrieval_scope,
     )

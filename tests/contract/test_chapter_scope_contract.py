@@ -4,17 +4,17 @@ from uuid import uuid4
 
 from backend.app.domain.enums import DocumentStatus
 from backend.app.models import Course, Document, DocumentChunk, KnowledgeBase
-from tests.contract.test_knowledge_base_upload_contract import (
+from tests.support.retained_ingestion_fixtures import (
     TEACHER_PASSWORD,
     _login,
 )
-from tests.contract.test_knowledge_base_upload_contract import (
+from tests.support.retained_ingestion_fixtures import (
     client as scope_client,
 )
-from tests.contract.test_knowledge_base_upload_contract import (
+from tests.support.retained_ingestion_fixtures import (
     session_factory as scope_session_factory,
 )
-from tests.contract.test_knowledge_base_upload_contract import (
+from tests.support.retained_ingestion_fixtures import (
     teacher_id as scope_teacher_id,
 )
 

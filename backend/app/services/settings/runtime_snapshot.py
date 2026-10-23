@@ -238,6 +238,7 @@ def prompt_versions() -> dict[str, str]:
         "subjective_grading": SUBJECTIVE_GRADING_PROMPT_VERSION,
         "vision": VISION_PROMPT_VERSION,
         "diagnosis": "unversioned",
+        "teacher": "personal-teacher-v1",
         "content_validation": "unversioned",
         "paper_extraction": "unversioned",
         "rerank": "unversioned",
@@ -280,6 +281,18 @@ class RuntimeSnapshotService:
     @property
     def root(self) -> Path:
         return self._config.config / "snapshots"
+
+    @property
+    def environment_id(self) -> UUID:
+        return self._config.environment_id
+
+    def backup_dependencies(self, snapshot: RuntimeSnapshot):
+        """Validate original metadata and credential versions without acquiring a client."""
+        if snapshot.environment_id != self.environment_id:
+            raise RuntimeSnapshotError(SNAPSHOT_DEPENDENCY_UNAVAILABLE, stage="environment")
+        revision = self._config.get_revision(snapshot.settings_revision)
+        self._require_dependencies(snapshot)
+        return revision
 
     # -- 创建与持久化 -----------------------------------------------------
 
@@ -676,15 +689,37 @@ class RuntimeSnapshotService:
             for (owner, _task), lease in tuple(self._leases.items())
             if owner == identifier and not lease.released
         ]
-        for lease in leases:
-            lease.release()
+        self._release_leases(leases)
         return len(leases)
+
+    @staticmethod
+    def _release_leases(leases: Sequence[SnapshotClientLease]) -> None:
+        first_error: BaseException | None = None
+        for lease in leases:
+            try:
+                lease.release()
+            except BaseException as error:  # noqa: BLE001 - finish all owned releases before re-raising the original error.
+                if first_error is None:
+                    first_error = error
+        if first_error is not None:
+            raise first_error
+
+    @staticmethod
+    async def _arelease_leases(leases: Sequence[SnapshotClientLease]) -> None:
+        first_error: BaseException | None = None
+        for lease in leases:
+            try:
+                await lease.arelease()
+            except BaseException as error:  # noqa: BLE001 - finish all owned releases before re-raising the original error.
+                if first_error is None:
+                    first_error = error
+        if first_error is not None:
+            raise first_error
 
     def close(self) -> None:
         """释放全部同步租约；不触碰配置服务或凭据库。"""
 
-        for lease in tuple(self._leases.values()):
-            lease.release()
+        self._release_leases(tuple(self._leases.values()))
         self._leases.clear()
 
     async def arelease_all(self, snapshot_id: UUID | str) -> int:
@@ -696,15 +731,13 @@ class RuntimeSnapshotService:
             for (owner, _task), lease in tuple(self._leases.items())
             if owner == identifier and not lease.released
         ]
-        for lease in leases:
-            await lease.arelease()
+        await self._arelease_leases(leases)
         return len(leases)
 
     async def aclose(self) -> None:
         """异步释放全部租约；Provider 的 ``aclose`` 优先。"""
 
-        for lease in tuple(self._leases.values()):
-            await lease.arelease()
+        await self._arelease_leases(tuple(self._leases.values()))
         self._leases.clear()
 
     # -- 备份承载 ---------------------------------------------------------

@@ -5,11 +5,11 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends
 
+from backend.app.api import learning_errors
 from backend.app.api.subjects import PersonalRoute, Subjects
 from backend.app.schemas.personal_learning import (
     KnowledgeConfirmRequest,
     KnowledgeView,
-    LearningApiError,
 )
 from backend.app.services.knowledge_organization import (
     KnowledgeOrganizationService,
@@ -19,10 +19,7 @@ router = APIRouter(
     prefix="/api/learning/subjects/{subject_id}/knowledge",
     tags=["personal-knowledge"],
     route_class=PersonalRoute,
-    responses={
-        status: {"model": LearningApiError}
-        for status in (403, 404, 409, 422, 503)
-    },
+    responses=learning_errors(403, 404, 409, 422, 503),
 )
 
 

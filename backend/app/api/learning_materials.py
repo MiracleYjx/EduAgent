@@ -31,14 +31,21 @@ from fastapi.routing import APIRoute
 from pydantic import ValidationError
 from sqlalchemy.exc import SQLAlchemyError
 
+from backend.app.api import learning_errors
+from backend.app.api.learning_operations import public_operation
+from backend.app.api.learning_operations import service as operation_service
 from backend.app.api.subjects import PersonalRoute, Subjects, failure
 from backend.app.core.settings_security import (
     SettingsSecurityError,
     check_personal_source,
 )
+from backend.app.schemas.material_ocr import MaterialOCRPreviewRequest, MaterialOCRView
 from backend.app.schemas.personal_learning import (
     DefaultVersionRequest,
-    LearningApiError,
+    LearningConfirmRequest,
+    LearningOperationView,
+    MaterialIndexExecuteRequest,
+    MaterialIndexPreviewRequest,
     MaterialList,
     MaterialSeriesList,
     MaterialSeriesView,
@@ -52,6 +59,9 @@ from backend.app.services.learning_material_service import (
     LearningMaterialService,
     MaterialError,
 )
+from backend.app.services.learning_operations import LearningOperations
+from backend.app.services.material_indexing import MaterialIndexing
+from backend.app.services.material_ocr import MaterialOCR
 from backend.app.services.settings.config_service import ConfigServiceError
 from backend.app.services.settings.credential_store import CredentialStoreError
 from backend.app.services.settings.management import SettingsManagementError
@@ -262,10 +272,7 @@ def material_service(subjects: Subjects) -> LearningMaterialService:
 
 Materials = Annotated[LearningMaterialService, Depends(material_service)]
 
-_RESPONSES: dict[int | str, dict[str, Any]] = {
-    status: {"model": LearningApiError}
-    for status in (403, 404, 409, 413, 415, 422, 503)
-}
+_RESPONSES: dict[int | str, dict[str, Any]] = learning_errors(403, 404, 409, 413, 415, 422, 503)
 
 upload_router = APIRouter(
     prefix="/api/learning",
@@ -311,6 +318,58 @@ def list_materials(subject_id: UUID, service: Materials):
 @router.get("/materials/{material_id}", response_model=MaterialView)
 def get_material(material_id: UUID, service: Materials):
     return service.get(material_id)
+
+
+IndexOperations = Annotated[LearningOperations, Depends(operation_service)]
+
+
+@router.post("/materials/{material_id}/ocr-preview", response_model=MaterialOCRView)
+def ocr_preview(material_id: UUID, body: MaterialOCRPreviewRequest,
+                service: Materials, operations: IndexOperations):
+    return MaterialOCR(service, operations).prepare(material_id, body.idempotency_key)
+
+
+@router.post("/materials/{material_id}/ocr/{preview_id}/confirm", response_model=MaterialOCRView)
+def confirm_ocr(material_id: UUID, preview_id: UUID, body: LearningConfirmRequest,
+                service: Materials, operations: IndexOperations):
+    return MaterialOCR(service, operations).confirm(material_id, preview_id, body.preview_digest)
+
+
+@router.post("/materials/{material_id}/ocr/{preview_id}/execute", response_model=MaterialView)
+async def execute_ocr(material_id: UUID, preview_id: UUID, body: MaterialIndexExecuteRequest,
+                      service: Materials, operations: IndexOperations):
+    return await MaterialOCR(service, operations).execute(material_id, preview_id)
+
+
+@router.post("/materials/{material_id}/ocr/{preview_id}/review", response_model=MaterialView)
+def review_ocr(material_id: UUID, preview_id: UUID, body: LearningConfirmRequest,
+               service: Materials, operations: IndexOperations):
+    return MaterialOCR(service, operations).review(material_id, preview_id, body.preview_digest)
+
+
+@router.post("/materials/{material_id}/ocr/{preview_id}/recover", response_model=MaterialView)
+def recover_ocr(material_id: UUID, preview_id: UUID, body: MaterialIndexExecuteRequest,
+                service: Materials, operations: IndexOperations):
+    return MaterialOCR(service, operations).recover(material_id, preview_id)
+
+
+@router.post("/materials/{material_id}/index-preview", response_model=LearningOperationView)
+async def index_preview(material_id: UUID, body: MaterialIndexPreviewRequest,
+                        service: Materials, operations: IndexOperations):
+    return public_operation(await MaterialIndexing(service, operations).prepare(material_id, body.idempotency_key))
+
+
+@router.post("/materials/{material_id}/index/{operation_id}/confirm", response_model=LearningOperationView)
+def confirm_index(material_id: UUID, operation_id: UUID, body: LearningConfirmRequest,
+                  service: Materials, operations: IndexOperations):
+    return public_operation(MaterialIndexing(service, operations).confirm(material_id, operation_id, body.preview_digest))
+
+
+@router.post("/materials/{material_id}/index/{operation_id}/execute", response_model=MaterialView | LearningOperationView)
+async def execute_index(material_id: UUID, operation_id: UUID, body: MaterialIndexExecuteRequest,
+                        service: Materials, operations: IndexOperations):
+    result = await MaterialIndexing(service, operations).execute(material_id, operation_id)
+    return public_operation(result) if isinstance(result, LearningOperationView) else result
 
 
 @router.get(

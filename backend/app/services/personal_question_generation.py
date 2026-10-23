@@ -220,6 +220,9 @@ class PersonalQuestionGeneration(PracticeService):
         result = await operations.execute(operation_id, invoke=invoke)
         if result.state != "succeeded":
             return result
+        if not isinstance(result.steps[0].get("result"), dict):
+            # 空正文/JSON 失败不得被后续 admission 当作成功 payload。
+            raise MaterialError("GENERATION_RESULT_MISSING", 409)
         output = PersonalGenerationResult.model_validate(result.steps[0]["result"])
         if len(output.questions) != payload["count"]:
             raise MaterialError("GENERATION_COUNT_MISMATCH", 409)

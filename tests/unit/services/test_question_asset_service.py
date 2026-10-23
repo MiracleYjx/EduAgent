@@ -15,7 +15,10 @@ from backend.app.services.file_storage_service import (
 )
 from backend.app.services.question_asset_service import QuestionAssetService
 from backend.app.services.question_service import QuestionService
-from tests.support.question_validation_fixtures import persist_current_semantic_pass
+from tests.support.question_validation_fixtures import (
+    persist_current_semantic_pass,
+    seed_teaching_reference,
+)
 from tests.unit.models.test_paper_import_models import paper
 from tests.unit.services.test_file_storage_service import (
     owned_document as _owned_document,
@@ -114,6 +117,16 @@ def test_formal_asset_approved_guard_and_no_physical_unlink(
     monkeypatch.setattr(
         "backend.app.services.file_storage_service.get_settings", lambda: settings
     )
+    # TCR（T081）：本保留组件夹具只拥有自己的合成存储根；审批路径会另建
+    # ContentValidationService（生产由统一 settings 解析同一根）。这里显式注入同一合成根，
+    # 避免根缺失被误判为 VISION_REVIEW_REQUIRED；不降低人工核对与语义报告门槛。
+    original_init = ContentValidationService.__init__
+
+    def _init_with_owned_root(self, session, *, root=None, **kwargs):
+        original_init(self, session, root=root or storage_root, **kwargs)
+
+    storage_root = root
+    monkeypatch.setattr(ContentValidationService, "__init__", _init_with_owned_root)
     questions = QuestionService(session)
     summary = questions.create_question(
         doc.course_id,
@@ -124,6 +137,7 @@ def test_formal_asset_approved_guard_and_no_physical_unlink(
         scoring_rubric="说明唯一黑色像素点计1分。",
         score="1.00",
     )
+    seed_teaching_reference(session, summary.id)
     asset = service.link_question(
         summary.id,
         AssetLinkRequest(

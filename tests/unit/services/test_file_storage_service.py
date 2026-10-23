@@ -13,15 +13,31 @@ import pytest
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import Session
 
+from backend.app.core.config import reset_settings_cache
 from backend.app.core.database import Base
 from backend.app.domain.enums import DocumentStatus, UserRole
 from backend.app.models import Course, Document, KnowledgeBase, Role, User
 from backend.app.services.file_storage_service import FileStorageError
+from tests.postgres_helpers import isolated_test_resource_profile
 from tests.unit.settings_helpers import build_test_settings
 
 
 @pytest.fixture
-def owned_document(tmp_path):
+def owned_document(tmp_path, monkeypatch):
+    # Historical component only: no real Development data or database.
+    monkeypatch.setenv("EDUAGENT_ENVIRONMENT", "development")
+    monkeypatch.delenv("EDUAGENT_DATA_ROOT", raising=False)
+    monkeypatch.delenv("EDUAGENT_TEST_RESOURCE_PROFILE", raising=False)
+    monkeypatch.setenv("LOCALAPPDATA", str(tmp_path / "synthetic-user"))
+    monkeypatch.setenv("STORAGE_ROOT", str(tmp_path / "persistent"))
+    reset_settings_cache()
+    try:
+        yield from document_case(tmp_path / "persistent")
+    finally:
+        reset_settings_cache()
+
+
+def document_case(root):
     engine = create_engine("sqlite:///:memory:")
 
     @event.listens_for(engine, "connect")
@@ -47,7 +63,7 @@ def owned_document(tmp_path):
         )
         session.add(doc)
         session.commit()
-        yield session, doc, teacher, tmp_path / "persistent"
+        yield session, doc, teacher, root
     engine.dispose()
 
 
@@ -57,14 +73,18 @@ def file_service(session, root):
 
 
 def test_storage_root_is_typed_and_explicit(tmp_path):
-    settings = build_test_settings(STORAGE_ROOT=tmp_path / "data")
-    assert settings.storage_root == tmp_path / "data"
+    with isolated_test_resource_profile((tmp_path / "profile").resolve()) as profile:
+        settings = build_test_settings(STORAGE_ROOT=profile.storage_root)
+        assert settings.storage_root == profile.storage_root
 
 
 def test_storage_root_default_uses_user_data_for_frozen_app(monkeypatch, tmp_path):
     import sys
 
     from backend.app.core.config import default_storage_root
+    monkeypatch.setenv("EDUAGENT_ENVIRONMENT", "development")
+    monkeypatch.delenv("EDUAGENT_DATA_ROOT", raising=False)
+    monkeypatch.delenv("EDUAGENT_TEST_RESOURCE_PROFILE", raising=False)
     monkeypatch.setattr(sys, "frozen", True, raising=False)
     monkeypatch.setenv("LOCALAPPDATA", str(tmp_path))
     assert default_storage_root() == tmp_path / "EduAgent" / "storage"
@@ -209,7 +229,19 @@ def test_symlink_escape_is_rejected(owned_document, tmp_path):
     try:
         (root / "uploads").symlink_to(outside, target_is_directory=True)
     except OSError:
-        pytest.skip("Host does not permit creation of this test symlink.")
+        import os
+        import subprocess
+        if os.name != "nt":
+            pytest.skip("Host does not permit creation of this test symlink.")
+        environment = dict(os.environ, EDUAGENT_TEST_LINK=str(root / "uploads"),
+            EDUAGENT_TEST_LINK_TARGET=str(outside))
+        result = subprocess.run(["powershell.exe", "-NoProfile", "-NonInteractive", "-Command",
+            "New-Item -ItemType Junction -Path $env:EDUAGENT_TEST_LINK -Target $env:EDUAGENT_TEST_LINK_TARGET | Out-Null"],
+            env=environment, capture_output=True, text=True, check=False,
+            creationflags=subprocess.CREATE_NO_WINDOW)
+        assert result.returncode == 0, result.stderr
+        assert (root / "uploads").is_junction()
+
     from backend.app.services.file_storage_service import FileStorageError
     with pytest.raises(FileStorageError):
         file_service(session, root).resolve_path("uploads/file.txt")

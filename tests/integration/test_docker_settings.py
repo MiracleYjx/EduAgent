@@ -8,6 +8,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import socket
 import subprocess
 import time
 from pathlib import Path
@@ -42,6 +43,11 @@ class DockerRun:
         self.empty.mkdir()
         self.profile_dir = root / "profile"
         self.profile_dir.mkdir()
+        # The personal Host policy needs the exact published port before startup.
+        # Choose an unused loopback port; Compose must fail if another owner takes it.
+        with socket.socket() as listener:
+            listener.bind(("127.0.0.1", 0))
+            self.expected_port = listener.getsockname()[1]
         self.password = "synthetic-t235-db-" + uuid4().hex
         self.jwt = "synthetic-t235-jwt-" + uuid4().hex
         self.jwt2 = "synthetic-t235-jwt2-" + uuid4().hex
@@ -49,7 +55,8 @@ class DockerRun:
             (self.secrets / name).write_text(value, encoding="utf-8")
         self.hashes = {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in self.secrets.iterdir()}
         self.env_file = root / "compose.env"
-        self.env_file.write_text("POSTGRES_USER=eduagent_test_admin\nPOSTGRES_DB=postgres\nPOSTGRES_PORT=0\nREDIS_PORT=0\nBACKEND_PORT=0\nEDUAGENT_ENVIRONMENT=test\n", encoding="utf-8")
+        self.env_file.write_text("POSTGRES_USER=eduagent_test_admin\nPOSTGRES_DB=postgres\nPOSTGRES_PORT=0\nREDIS_PORT=0\n"
+                                 f"BACKEND_PORT={self.expected_port}\nEDUAGENT_ENVIRONMENT=test\n", encoding="utf-8")
         self.overlay = root / "compose.test.json"
         self.write_overlay(self.secrets)
 
@@ -141,6 +148,7 @@ class DockerRun:
         bindings = obj["NetworkSettings"]["Ports"]["8000/tcp"]
         assert len(bindings) == 1 and bindings[0]["HostIp"] == "127.0.0.1"
         self.port = int(bindings[0]["HostPort"])
+        assert self.port == self.expected_port
         self.url = f"http://127.0.0.1:{self.port}"
         self.client = httpx.Client(base_url=self.url, timeout=15, trust_env=False)
         deadline = time.monotonic() + 60
@@ -245,7 +253,7 @@ def test_actual_docker_settings_lifecycle(docker_run):
                    database="eduagent_test") == "eduagent_test_runner"
     business = {"database_locator": {"host": "postgres", "port": 5432, "database": "eduagent_test", "user": "eduagent_test_runner", "schema": schema},
         "database_password_ref": ref("database-v1"), "redis_locator": {"host": "redis", "port": 6379},
-        "jwt_secret_ref": ref("jwt-v1"), "storage_root": "/app/storage/storage"}
+        "storage_root": "/app/storage/storage"}
     draft = run.api("POST", "/drafts", {"base_revision": None, "changes": {"business": business}, "acknowledge_override": True}, (201,))["revision_id"]
     assert run.api("POST", f"/drafts/{draft}/validate", {"expected_revision": None})["valid"]
     preview = run.api("POST", "/initialization/preview", {"draft_revision": draft})
@@ -263,7 +271,15 @@ def test_actual_docker_settings_lifecycle(docker_run):
     run.start_backend()
     run.authorize()
     assert run.client.get("/ready").status_code == 200
-    assert run.client.get("/gradio/").status_code == 200
+    assert run.client.get("/gradio/").status_code == 404
+    subjects_response = run.client.get("/api/learning/subjects")
+    assert subjects_response.status_code == 200, subjects_response.json()
+    assert run.client.get("/api/learning/subjects", headers={"Host": "foreign.invalid"}).status_code == 403
+    assert run.client.get("/api/learning/subjects", headers={"Origin": "https://foreign.invalid"}).status_code == 403
+    created = run.client.post("/api/learning/subjects", json={"name": "Docker personal subject"},
+                              headers={"Origin": run.url})
+    assert created.status_code == 201, created.json()
+    subject_id = created.json()["id"]
     assert run.api("GET", "/")["active_revision"] == active
     # Missing DB preserves Setup, then recovers without altering configuration.
     run.compose("stop", "--timeout", "15", "postgres")
@@ -295,6 +311,7 @@ def test_actual_docker_settings_lifecycle(docker_run):
     run.authorize()
     assert run.client.get("/ready").status_code == 200
     assert run.api("GET", "/")["active_revision"] == active
+    assert run.client.get(f"/api/learning/subjects/{subject_id}").json()["id"] == subject_id
     assert {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in run.secrets.iterdir()} == run.hashes
     logs = run.compose("logs", "--no-color", "backend")
     assert all(value not in logs for value in (run.password, run.jwt, run.jwt2, run.token))

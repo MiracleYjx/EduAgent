@@ -16,7 +16,7 @@ from backend.app.models import (
 )
 from backend.app.schemas.question_assets import AssetLinkRequest
 from backend.app.services.question_service import QuestionService
-from tests.contract.test_file_storage_api import files_api as _files_api
+from tests.support.retained_file_fixtures import files_api as _files_api
 from tests.unit.services.test_question_asset_service import png, staged_case
 
 files_api = _files_api
@@ -92,9 +92,9 @@ def test_only_enabled_assets_are_returned_and_download_requires_exam_grant(files
     # A true flag by itself does not make an unassigned question public.
     assert client.get("/api/files/" + shown["file_id"], headers=headers[2]).status_code == 403
     exam = opened_exam(files_api, question)
-    detail = client.get(f"/api/submissions/exams/{exam.id}", headers=headers[2])
-    assert detail.status_code == 200, detail.text
-    assert [asset["id"] for asset in detail.json()["questions"][0]["assets"]] == [shown["id"]]
+    assert exam.id
+    # TCR（T081）：旧试卷作答聚合入口已按 T077 退役，保留组件套件不再断言该旧路由；
+    # 考试参与窗口的下载授予仍由下方 /api/files 断言覆盖。
     assets = client.get(f"/api/questions/{question.id}/assets", headers=headers[2])
     assert assets.status_code == 200
     assert [asset["id"] for asset in assets.json()] == [shown["id"]]
@@ -162,7 +162,7 @@ def test_full_pages_and_same_byte_aliases_stay_private_even_if_true(files_api):
     for identity in (full_asset["id"], _uploaded["id"]):
         session.get(QuestionAsset, UUID(identity)).student_visible = True
     session.commit()
-    exam = opened_exam(files_api, question)
+    opened_exam(files_api, question)
     assets = client.get(endpoint, headers=headers[2])
     assert assets.status_code == 200
     assert [asset["id"] for asset in assets.json()] == [crop.json()["id"]]
@@ -170,10 +170,7 @@ def test_full_pages_and_same_byte_aliases_stay_private_even_if_true(files_api):
     for file_id in (full_asset["file_id"], _uploaded["file_id"], "p_" + page.id.hex, "d_" + page.paper_import.document_id.hex):
         assert client.get("/api/files/" + file_id, headers=headers[2]).status_code == 403
     assert client.get("/api/files/" + crop.json()["file_id"], headers=headers[2]).status_code == 200
-    response = client.get(f"/api/submissions/exams/{exam.id}", headers=headers[2])
-    assert response.status_code == 200, response.text
-    detail = response.json()
-    assert [asset["id"] for asset in detail["questions"][0]["assets"]] == [crop.json()["id"]]
+    # TCR（T081）：同 T077 退役的试卷作答聚合入口，旧聚合断言移除，其余来源/可见性断言不变。
     assert service.list_question(question.id, actor_id=users[0].id)
 
 

@@ -27,7 +27,7 @@ from backend.app.services.grading.grading_task_service import (
     SubmissionSnapshot,
 )
 from backend.app.services.review_service import ReviewServiceError
-from tests.contract import test_workflow_api_contract as workflow_cases
+from tests.support import retained_workflow_fixtures as workflow_cases
 from tests.unit.services import test_review_service as review_cases
 
 workflow_env = workflow_cases.env

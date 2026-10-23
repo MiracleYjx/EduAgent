@@ -1,29 +1,36 @@
 import { useEffect, useRef, useState } from "react";
 import { Alert, Button, Card, Input, Space, Tag, Typography } from "antd";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { contentAssetUrl, confirmLearningOperation, getLearningOperation, LearningApiError, type LearningOperation } from "../../api/learningClient";
+import { contentAssetUrl, confirmLearningOperation, getLearningOperation, isLearningOperation, LearningApiError, type LearningOperation } from "../../api/learningClient";
 import { getKnowledge, listMaterials, listSeries, type KnowledgeView, type MaterialSeriesView, type MaterialView } from "../../api/materialsClient";
 import {
   changedPreview, defaultPracticeConditions, executeGeneration, getPractice, getPracticePreview,
   previewGeneration, previewPractice, savePracticeAnswer, startPractice, submitPractice,
+  previewGrading, executeGrading,
   type PersonalPractice, type PracticeConditions, type PracticePreview,
 } from "../../api/practiceClient";
 import { OperationConfirmation } from "../paper-import/OperationConfirmation";
 import { AnswerControls, answerState, type AnswerDraft } from "./AnswerControls";
 import { SubmitPracticeDialog } from "./SubmitPracticeDialog";
 import { QuestionContent } from "./QuestionContent";
+import { GradingOperationPanel } from "../results/GradingOperationPanel";
 
 export function PracticeBuilder({subjectId}:{subjectId:string}) {
   const [params,setParams]=useSearchParams();
   const navigate=useNavigate();
   const internalRoute=useRef<string|null>(null);
-  const [conditions,setConditions]=useState<PracticeConditions>({...defaultPracticeConditions});
+  const [conditions,setConditions]=useState<PracticeConditions>(()=>{
+    const points=params.getAll("knowledge_point");
+    return {...defaultPracticeConditions,...(points.length?{knowledge_point_ids:points,mode:params.get("mode")==="weak"?"weak" as const:"balanced" as const}:{})};
+  });
   const [knowledge,setKnowledge]=useState<KnowledgeView|null>(null);
   const [materials,setMaterials]=useState<MaterialView[]>([]);
   const [series,setSeries]=useState<MaterialSeriesView[]>([]);
   const [preview,setPreview]=useState<PracticePreview|null>(null);
   const [practice,setPractice]=useState<PersonalPractice|null>(null);
   const [operation,setOperation]=useState<LearningOperation|null>(null);
+  const [gradingOperation,setGradingOperation]=useState<LearningOperation|null>(null);
+  const [gradingUncertain,setGradingUncertain]=useState(false);
   const [grounding,setGrounding]=useState<"uploaded_material"|"general_knowledge">("uploaded_material");
   const [versions,setVersions]=useState<string[]>([]);
   const [scores,setScores]=useState<Record<string,string>>({});
@@ -39,7 +46,7 @@ export function PracticeBuilder({subjectId}:{subjectId:string}) {
   };
   useEffect(()=>{
     let active=true;
-    setError(null);setPractice(null);setPreview(null);setOperation(null);
+    setError(null);setPractice(null);setPreview(null);setOperation(null);setGradingOperation(null);setGradingUncertain(false);
     Promise.all([getKnowledge(subjectId),listMaterials(subjectId),listSeries(subjectId)]).then(([k,m,s])=>{
       if(active){setKnowledge(k);setMaterials(m);setSeries(s);}
     }).catch(e=>{if(active)setError(e);});
@@ -53,11 +60,15 @@ export function PracticeBuilder({subjectId}:{subjectId:string}) {
     if(practiceId){
       if(practice?.id===practiceId)return;
       setBusy(true);
-      getPractice(practiceId).then(p=>{
+      getPractice(practiceId).then(async p=>{
         if(p.subject_id!==subjectId)throw new LearningApiError("PRACTICE_SCOPE_INVALID",409);
         if(active){setPractice(p);setDrafts(Object.fromEntries(p.items.map(item=>[item.id,
           item.content.question_type==="short_answer"?{kind:"text",text_answer:item.answer.text_answer??""}:
-            {kind:"choices",choice_ids:item.answer.choice_ids??[]}])));}
+             {kind:"choices",choice_ids:item.answer.choice_ids??[]}])));}
+        if(p.grading_operation_id){
+          const op=await getLearningOperation(p.grading_operation_id);
+          if(active)setGradingOperation(op);
+        }
       }).catch(e=>{if(active)setError(e);}).finally(()=>{if(active)setBusy(false);});
     } else if(previewId) {
       if(preview?.id===previewId)return;
@@ -120,15 +131,39 @@ export function PracticeBuilder({subjectId}:{subjectId:string}) {
     }catch(e){
       if(e instanceof LearningApiError && e.code==="PRACTICE_BLANK_ANSWERS"){
         setSubmitOpen(true);setNotice("检测到未填写的文字主观题，请确认继续或返回填写。");
+      }else if(e instanceof LearningApiError && e.code==="GRADING_OPERATION_REQUIRED"){
+        try{
+          setGradingOperation(await previewGrading(practice.id,blankConfirmed,crypto.randomUUID()));
+          setGradingUncertain(false);
+          setSubmitOpen(false);
+        }catch(cause){setError(cause);}
       }else setError(e);
     }finally{setSubmitting(false);}
   }
   if(practice){
+    const gradingLocked=gradingUncertain||Boolean(gradingOperation&&gradingOperation.state!=="prepared");
     const submissionItems=practice.items.map(item=>({id:item.id,label:`第 ${item.position} 题`,questionType:item.content.question_type,draft:draftFor(item)}));
     return <section className="page-stack" aria-label="当前练习">
       <Typography.Title level={3}>当前练习</Typography.Title>
       <Typography.Paragraph>题目修订、顺序、知识点和分值已固定。答案按题保存为草稿。</Typography.Paragraph>
       {error?<Alert type="error" title={error instanceof Error?error.message:"保存失败"} />:null}
+      {gradingOperation?<GradingOperationPanel value={gradingOperation} busy={busy||submitting} uncertain={gradingUncertain}
+        onCancel={()=>setGradingOperation(null)}
+        onRefresh={()=>void run(async()=>{
+          setGradingOperation(await getLearningOperation(gradingOperation.id));setGradingUncertain(false);
+        })}
+        onConfirm={()=>void run(async()=>{
+          try{setGradingOperation(await confirmLearningOperation(gradingOperation.id,{preview_digest:gradingOperation.preview_digest}));}
+          catch(e){if(e instanceof LearningApiError&&e.code==="NETWORK_ERROR")setGradingUncertain(true);throw e;}
+        })}
+        onExecute={()=>void run(async()=>{
+          let result;
+          try{result=await executeGrading(practice.id,gradingOperation.id);}
+          catch(e){if(e instanceof LearningApiError&&e.code==="NETWORK_ERROR")setGradingUncertain(true);throw e;}
+          if(isLearningOperation(result)){
+            setGradingOperation(result);setPractice(await getPractice(practice.id));
+          }else navigate(`/subjects/${encodeURIComponent(subjectId)}/practices/${encodeURIComponent(result.practice_id)}`);
+        })} />:null}
       <Space wrap><Button disabled={busy||submitting} onClick={()=>{setPractice(null);setDrafts({});setParams({},{replace:true});setPreview(null);setOperation(null);}}>准备另一组练习</Button>
         {practice.state!=="in_progress"?<Button onClick={()=>navigate(`/subjects/${encodeURIComponent(subjectId)}/practices/${encodeURIComponent(practice.id)}`)}>查看评分结果</Button>:null}</Space>
       {practice.items.map(item=><Card key={item.id} title={"第 "+item.position+" 题 · "+item.score+" 分"}>
@@ -137,8 +172,8 @@ export function PracticeBuilder({subjectId}:{subjectId:string}) {
         <QuestionContent content={item.content} mediaUrl={asset=>contentAssetUrl(subjectId,practice.id,item.id,asset)} />
         <AnswerControls questionType={item.content.question_type} options={item.content.options}
           value={drafts[item.id]??(item.content.question_type==="short_answer"?{kind:"text",text_answer:""}:{kind:"choices",choice_ids:[]})}
-          onChange={draft=>setDrafts(old=>({...old,[item.id]:draft}))} disabled={busy||submitting||practice.state!=="in_progress"} />
-        <Button disabled={busy||submitting||practice.state!=="in_progress"} onClick={()=>run(async()=>{
+          onChange={draft=>{setGradingOperation(null);setDrafts(old=>({...old,[item.id]:draft}));}} disabled={busy||submitting||gradingLocked||practice.state!=="in_progress"} />
+        <Button disabled={busy||submitting||gradingLocked||practice.state!=="in_progress"} onClick={()=>run(async()=>{
           const draft=drafts[item.id];
           const saved=await savePracticeAnswer(practice.id,item.id,draft?.kind==="text"?{text_answer:draft.text_answer}:
             {choice_ids:draft?.choice_ids??[]});
@@ -148,7 +183,7 @@ export function PracticeBuilder({subjectId}:{subjectId:string}) {
       </Card>)}
       {notice?<Alert type="success" title={notice} />:null}
       <Space wrap>
-        <Button type="primary" loading={submitting} disabled={busy||practice.state!=="in_progress"}
+        <Button type="primary" loading={submitting} disabled={busy||gradingLocked||practice.state!=="in_progress"}
           onClick={()=>{
             const blank=submissionItems.some(item=>item.questionType==="short_answer" && answerState(item.draft)==="unanswered");
             if(blank)setSubmitOpen(true); else void submitAll(false);

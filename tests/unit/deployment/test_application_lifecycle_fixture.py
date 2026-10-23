@@ -1,5 +1,6 @@
 """T203: contract fixtures must run real recovery on their own SQLite engine."""
 import asyncio
+from types import SimpleNamespace
 
 import pytest
 from fastapi import FastAPI
@@ -12,7 +13,44 @@ from backend.app.core.database import Base
 from tests.support.application_lifecycle import bind_startup_session_factory
 
 
-def test_real_startup_recovery_uses_only_the_explicit_fixture(monkeypatch, tmp_path):
+@pytest.mark.parametrize("first_owner", ["operations", "subjects", "runtime", "body"])
+def test_lifespan_closes_all_owners_and_preserves_first_original_error(first_owner):
+    calls = []
+    failure = OSError("synthetic first lifecycle error")
+
+    def close(name):
+        calls.append(name)
+        if name == first_owner:
+            raise failure
+        if first_owner == "body" or (first_owner in calls and calls.index(first_owner) < calls.index(name)):
+            raise ValueError("synthetic later lifecycle error")
+
+    async def close_operations():
+        close("operations")
+
+    async def close_runtime():
+        close("runtime")
+
+    async def wait():
+        calls.append("native_work_finished")
+
+    app = FastAPI()
+    app.state.subject_service = SimpleNamespace(wait_for_local_work=wait, close=lambda: close("subjects"))
+    app.state.learning_operations = SimpleNamespace(aclose=close_operations)
+    app.state.settings_runtime = SimpleNamespace(aclose=close_runtime)
+
+    async def run():
+        async with _application_lifespan(app):
+            if first_owner == "body":
+                raise failure
+
+    with pytest.raises(OSError) as error:
+        asyncio.run(run())
+    assert error.value is failure
+    assert calls == ["native_work_finished", "operations", "subjects", "runtime"]
+
+
+def test_personal_startup_does_not_query_legacy_recovery(monkeypatch, tmp_path):
     engine = create_engine(f"sqlite:///{tmp_path / 'recovery.db'}")
     Base.metadata.create_all(engine)
     statements = []
@@ -37,8 +75,7 @@ def test_real_startup_recovery_uses_only_the_explicit_fixture(monkeypatch, tmp_p
         asyncio.run(run())
         sql = "\n".join(statements)
         # Both M3 and M4 recovery use the shared WorkflowRun fact table.
-        assert sql.count("from workflow_runs") >= 2
-        assert "paper_imports" in sql
+        assert sql == ""
     finally:
         engine.dispose()
 

@@ -6,39 +6,12 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from typing import Any
 
-import gradio as gr
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 from backend.app.ai.errors import AIConfigurationError
-from backend.app.api.admin import router as admin_router
-from backend.app.api.auth import router as auth_router
-from backend.app.api.content_validation import router as content_validation_router
-from backend.app.api.courses import router as courses_router
-from backend.app.api.exams import router as exams_router
-from backend.app.api.file_storage import router as file_storage_router
-from backend.app.api.grading import (
-    recover_interrupted_grading_tasks,
-)
-from backend.app.api.grading import (
-    router as grading_router,
-)
-from backend.app.api.image_understanding import router as image_understanding_router
-from backend.app.api.knowledge_bases import router as knowledge_bases_router
-from backend.app.api.paper_import import recover_interrupted_paper_imports
-from backend.app.api.paper_import import router as paper_import_router
-from backend.app.api.question_assets import router as question_assets_router
-from backend.app.api.question_generation import router as question_generation_router
-from backend.app.api.questions import router as questions_router
-from backend.app.api.results import router as results_router
-from backend.app.api.reviews import router as reviews_router
-from backend.app.api.submissions import exam_submission_router
-from backend.app.api.submissions import router as submissions_router
-from backend.app.api.traces import router as traces_router
-from backend.app.api.workflow import recover_diagnosis_pending_runs
-from backend.app.api.workflow import router as workflow_router
 from backend.app.core.bootstrap import (
     BootstrapContext,
     build_bootstrap_security,
@@ -52,10 +25,8 @@ from backend.app.core.config import (
     ConfigurationError,
     get_settings,
 )
-from backend.app.core.security import AuthenticationMiddleware
 from backend.app.core.settings_security import SetupSecurityService
 from backend.app.services.settings import readiness
-from backend.app.ui.gradio_app import create_gradio_app as build_gradio_app
 
 
 class HealthResponse(BaseModel):
@@ -65,52 +36,51 @@ class HealthResponse(BaseModel):
     service: str = "backend"
 
 
-def create_gradio_app() -> gr.Blocks:
-    """构建由后端挂载的 Gradio 应用外壳。"""
-
-    return build_gradio_app()
-
-
 @asynccontextmanager
 async def _application_lifespan(app: FastAPI) -> AsyncIterator[None]:
-    """应用生命周期：启动阶段收敛遗留阅卷任务，只执行一次。
-
-    结果存储未迁移或不可连接时跳过，不阻断启动；本阶段把遗留的进行中 M3 任务标为中断失败，
-    并把“整卷结果已提交、诊断未生成”的遗留 M4 运行改判为可恢复的诊断待生成态（P1.4），
-    不实现自动恢复队列。健康轮询/诊断/单次请求都不会再次调用这些钩子。
-    """
+    """个人运行保留持久状态；启动不恢复旧考试任务或自动重发模型请求。"""
 
     runtime = getattr(app.state, "settings_runtime", None)
-    try:
-        recover_interrupted_grading_tasks()
-        recover_diagnosis_pending_runs()
-        recover_interrupted_paper_imports()
-    except Exception:
-        # 保留原启动失败语义；同时留下可诊断的恢复阶段事实。
-        app.state.recovery = "failed"
-        raise
-    # 原恢复钩子启动阶段完成；只证明本进程完成该阶段，不代表历史 Workflow 全部成功。
     app.state.recovery = "completed"
+    first_error: BaseException | None = None
     try:
         yield
+    except BaseException as error:  # noqa: BLE001 - preserve the application error while finishing all owners below.
+        first_error = error
     finally:
         subjects = getattr(app.state, "subject_service", None)
-        if subjects is not None:
-            subjects.close()
-        personal = getattr(app.state, "subject_service", None)
-        if personal is not None:
-            await personal.wait_for_local_work()
+        try:
+            if subjects is not None:
+                await subjects.wait_for_local_work()
+        except BaseException as error:  # noqa: BLE001 - finish all owners before re-raising the original error.
+            if first_error is None:
+                first_error = error
         operations = getattr(app.state, "learning_operations", None)
-        if operations is not None:
-            await operations.aclose()
-        if runtime is not None and callable(getattr(runtime, "aclose", None)):
-            await runtime.aclose()
+        try:
+            if operations is not None:
+                await operations.aclose()
+        except BaseException as error:  # noqa: BLE001 - finish all owners before re-raising the original error.
+            if first_error is None:
+                first_error = error
+        try:
+            if subjects is not None:
+                subjects.close()
+        except BaseException as error:  # noqa: BLE001 - finish all owners before re-raising the original error.
+            if first_error is None:
+                first_error = error
+        try:
+            if runtime is not None and callable(getattr(runtime, "aclose", None)):
+                await runtime.aclose()
+        except BaseException as error:  # noqa: BLE001 - finish all owners before re-raising the original error.
+            if first_error is None:
+                first_error = error
+    if first_error is not None:
+        raise first_error
 
 
 def create_app(
     *,
     settings: AppSettings | None = None,
-    gradio_app: gr.Blocks | None = None,
     setup_security: SetupSecurityService | None = None,
     bootstrap_context: BootstrapContext | None = None,
     settings_runtime: Any = None,
@@ -152,7 +122,6 @@ def create_app(
     app.state.pending_revision = facts.get("pending_revision")
     app.state.migration_head = facts.get("migration_head")
     app.state.credential_backend_available = facts.get("credential_backend_available")
-    app.add_middleware(AuthenticationMiddleware)
     # T217/T218：设置授权面在业务路由之前安装，引导模式与完整模式共用同一实现。
     install_settings_surface(
         app,
@@ -171,25 +140,6 @@ def create_app(
     from backend.app.api.subjects import install_subjects
 
     install_subjects(app)
-    app.include_router(auth_router)
-    app.include_router(admin_router)
-    app.include_router(courses_router)
-    app.include_router(knowledge_bases_router)
-    app.include_router(file_storage_router)
-    app.include_router(question_generation_router)
-    app.include_router(questions_router)
-    app.include_router(question_assets_router)
-    app.include_router(content_validation_router)
-    app.include_router(image_understanding_router)
-    app.include_router(paper_import_router)
-    app.include_router(exams_router)
-    app.include_router(grading_router)
-    app.include_router(results_router)
-    app.include_router(reviews_router)
-    app.include_router(submissions_router)
-    app.include_router(exam_submission_router)
-    app.include_router(workflow_router)
-    app.include_router(traces_router)
 
     @app.exception_handler(AIConfigurationError)
     async def ai_configuration_handler(
@@ -274,13 +224,8 @@ def create_app(
             },
         )
 
-    gr.mount_gradio_app(
-        app,
-        gradio_app or create_gradio_app(),
-        path="/gradio",
-    )
     mount_static_bundle(app, context.static_root)
     return app
 
 
-__all__ = ["HealthResponse", "create_app", "create_gradio_app"]
+__all__ = ["HealthResponse", "create_app"]

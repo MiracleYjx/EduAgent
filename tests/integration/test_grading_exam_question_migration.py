@@ -7,14 +7,11 @@ from uuid import uuid4
 import pytest
 from alembic import command
 from alembic.config import Config
-from sqlalchemy import MetaData, Table, inspect, select, text
+from sqlalchemy import MetaData, Table, inspect, text
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Session
 
 from backend.app.core import database
-from backend.app.models import ExamQuestion
 from tests.integration.test_question_source_migration import _empty_isolated_schema
-from tests.unit.models.sqlite_support import seed_submission
 
 ROOT = Path(__file__).resolve().parents[2]
 OLD = "0022_exam_question"
@@ -30,16 +27,77 @@ def test_upgrade_preserves_result_pk_score_unknown_link_and_real_restrict_fk(
         config.set_main_option("script_location", str(ROOT / "migrations"))
         command.upgrade(config, OLD)
         row_id = uuid4()
-        with Session(engine) as session:
-            info = seed_submission(session)
-            table = Table(
-                "grading_results", MetaData(), autoload_with=session.connection()
+        # TCR（T081）：0022 时点的 questions/answers 等表尚无个人域列（如 subject_id），
+        # 历史行必须按该时点真实表结构插入，不能用当前 ORM 模型假装旧库已存在新列。
+        with engine.begin() as connection:
+            metadata = MetaData()
+            users = Table("users", metadata, autoload_with=connection)
+            courses = Table("courses", metadata, autoload_with=connection)
+            legacy_questions = Table("questions", metadata, autoload_with=connection)
+            exams = Table("exams", metadata, autoload_with=connection)
+            links = Table("exam_questions", metadata, autoload_with=connection)
+            submissions = Table("submissions", metadata, autoload_with=connection)
+            answers = Table("answers", metadata, autoload_with=connection)
+            teacher_id, student_id, course_id = uuid4(), uuid4(), uuid4()
+            connection.execute(
+                users.insert(),
+                [
+                    {"id": teacher_id, "username": "historical-teacher",
+                     "email": "teacher@historical.test", "password_hash": "fixture", "is_active": True},
+                    {"id": student_id, "username": "historical-student",
+                     "email": "student@historical.test", "password_hash": "fixture", "is_active": True},
+                ],
             )
-            session.execute(
+            connection.execute(
+                courses.insert().values(id=course_id, name="historical", created_by=teacher_id)
+            )
+            objective_question_id = uuid4()
+            connection.execute(
+                legacy_questions.insert().values(
+                    id=objective_question_id,
+                    course_id=course_id,
+                    created_by=teacher_id,
+                    type="SINGLE_CHOICE",
+                    content="下列哪个是不可变类型？",
+                    options=["list", "tuple"],
+                    reference_answer="tuple",
+                    knowledge_points=["数据类型"],
+                    score=Decimal("10.00"),
+                    status="Approved",
+                )
+            )
+            exam_id = uuid4()
+            connection.execute(
+                exams.insert().values(
+                    id=exam_id, course_id=course_id, created_by=teacher_id,
+                    title="historical", status="Published",
+                )
+            )
+            link_id = uuid4()
+            connection.execute(
+                links.insert().values(
+                    id=link_id, exam_id=exam_id, question_id=objective_question_id, order_index=1
+                )
+            )
+            submission_id = uuid4()
+            connection.execute(
+                submissions.insert().values(
+                    id=submission_id, exam_id=exam_id, student_id=student_id, status="Submitted"
+                )
+            )
+            objective_answer_id = uuid4()
+            connection.execute(
+                answers.insert().values(
+                    id=objective_answer_id, submission_id=submission_id,
+                    question_id=objective_question_id, content="tuple", status="Graded",
+                )
+            )
+            table = Table("grading_results", metadata, autoload_with=connection)
+            connection.execute(
                 table.insert().values(
                     id=row_id,
-                    answer_id=info.objective_answer_id,
-                    submission_id=info.submission_id,
+                    answer_id=objective_answer_id,
+                    submission_id=submission_id,
                     question_type="SINGLE_CHOICE",
                     score=Decimal("0.01"),
                     max_score=Decimal("10.00"),
@@ -54,12 +112,6 @@ def test_upgrade_preserves_result_pk_score_unknown_link_and_real_restrict_fk(
                     review_status="Not Required",
                 )
             )
-            link_id = session.scalar(
-                select(ExamQuestion.id).where(
-                    ExamQuestion.question_id == info.objective_question_id
-                )
-            )
-            session.commit()
         command.upgrade(config, NEW)
         with engine.connect() as connection:
             actual = (

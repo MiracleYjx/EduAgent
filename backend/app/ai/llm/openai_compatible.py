@@ -26,6 +26,7 @@ if TYPE_CHECKING:
     from backend.app.core.config import AppSettings
 
 _JSON_INSTRUCTION = "请仅返回合法的 JSON 对象，不要输出 Markdown、解释或其他文本。"
+_REASONING_EFFORTS = frozenset({"low", "high", "max"})
 _SDK_CALL: ContextVar[bool] = ContextVar("openai_compatible_private_sdk_call", default=False)
 
 
@@ -91,6 +92,7 @@ class OpenAICompatibleProvider(BaseLLMProvider):
         auth_mode: str = "api_key",
         temperature: float | None = None,
         max_tokens: int | None = None,
+        reasoning_effort: str | None = None,
         timeout: float = 30.0,
         client: Any = None,
         http_client: httpx.AsyncClient | None = None,
@@ -102,6 +104,8 @@ class OpenAICompatibleProvider(BaseLLMProvider):
             raise ValueError("LLM Provider 鉴权模式无效。")
         if not isinstance(timeout, (int, float)) or not math.isfinite(timeout) or timeout <= 0:
             raise ValueError("LLM Provider 超时必须为有限正数。")
+        if reasoning_effort is not None and reasoning_effort not in _REASONING_EFFORTS:
+            raise ValueError("LLM Provider reasoning_effort 无效。")
         if client is not None and http_client is not None:
             raise ValueError("LLM Provider 不接受同时注入 SDK 和 HTTP 客户端。")
         secret: SecretStr | None = None
@@ -125,6 +129,8 @@ class OpenAICompatibleProvider(BaseLLMProvider):
         self._api_key = secret
         self._base_url = _base_url(base_url, auth_mode=auth_mode)
         self._parameters = parameters.model_dump(exclude_none=True)
+        # 默认 None 保持 G-P 冻结行为；启用前必须重新确认模型与预算。
+        self._reasoning_effort = reasoning_effort
         self._timeout = float(timeout)
         self._retry_policy = retry_policy if retry_policy is not None else RetryPolicy()
         self._client = client
@@ -284,6 +290,11 @@ class OpenAICompatibleProvider(BaseLLMProvider):
                     "messages": messages, "model": model,
                     "response_format": {"type": "json_object"}, **self._parameters,
                 }
+                if self._reasoning_effort is not None:
+                    # 仅显式配置时发送；默认请求体和冻结预算保持不变。
+                    options["extra_body"] = {
+                        "reasoning_effort": self._reasoning_effort
+                    }
                 if self._auth_mode == "none":
                     # SDK 校验逐请求的显式 omit；没有假 Key，也不发送 Bearer 空串。
                     options["extra_headers"] = {"Authorization": Omit()}
@@ -293,9 +304,22 @@ class OpenAICompatibleProvider(BaseLLMProvider):
         finally:
             _SDK_CALL.reset(token)
 
-        content = self._extract_content(response)
+        content, reasoning_content, finish_reason = self._extract_message_fields(response)
         if content is None or not content.strip():
-            raise ProviderCallError("ProviderEmptyResponse", "LLM Provider 返回为空。", retryable=True)
+            detail = "LLM Provider 返回空正文。"
+            if reasoning_content:
+                detail += " reasoning_content 已分离，未作为正文。"
+            if finish_reason:
+                detail += f" finish_reason={finish_reason}。"
+            raise ProviderCallError(
+                "ProviderEmptyResponse", detail, retryable=False
+            )
+        if finish_reason == "length":
+            raise ProviderCallError(
+                "ProviderOutputTruncated",
+                "LLM Provider 输出因长度限制被截断。",
+                retryable=False,
+            )
         try:
             payload = json.loads(content)
         except json.JSONDecodeError:
@@ -317,13 +341,31 @@ class OpenAICompatibleProvider(BaseLLMProvider):
             ) from None
 
     @staticmethod
-    def _extract_content(response: Any) -> str | None:
+    def _extract_message_fields(
+        response: Any,
+    ) -> tuple[str | None, str | None, str | None]:
+        """只读取 content；reasoning_content 独立保留，绝不作为正文。"""
+
         try:
             choices = response.choices
-            content = choices[0].message.content if choices else None
+            if not choices:
+                return None, None, None
+            choice = choices[0]
+            message = choice.message
+            content = getattr(message, "content", None)
+            reasoning = getattr(message, "reasoning_content", None)
+            finish_reason = getattr(choice, "finish_reason", None)
         except (AttributeError, IndexError, TypeError):
-            return None
-        return content if isinstance(content, str) else None
+            return None, None, None
+        return (
+            content if isinstance(content, str) else None,
+            reasoning if isinstance(reasoning, str) else None,
+            finish_reason if isinstance(finish_reason, str) else None,
+        )
+
+    @staticmethod
+    def _extract_content(response: Any) -> str | None:
+        return OpenAICompatibleProvider._extract_message_fields(response)[0]
 
 
 __all__ = ["OpenAICompatibleProvider"]

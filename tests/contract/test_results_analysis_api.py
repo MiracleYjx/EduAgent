@@ -37,8 +37,8 @@ from backend.app.schemas.grading import (
     QuestionResultDTO,
 )
 from backend.app.services.grading.grading_repository import DatabaseGradingRepository
-from tests.contract import test_results_api_contract as result_contracts
-from tests.contract.test_results_api_contract import headers
+from tests.support import retained_result_fixtures as result_contracts
+from tests.support.retained_result_fixtures import headers
 from tests.unit.services.test_submission_service import (
     add_student,
     add_teacher,

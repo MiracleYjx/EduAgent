@@ -342,7 +342,7 @@ def preview_legacy_resources(
 def prepare_runtime_paths(profile: EnvironmentProfile) -> None:
     """Prepare only owned operational directories, not an empty replacement storage.
 
-    Called once by a process owner before Gradio/model imports, never to hot-switch
+    Called once by a process owner before model imports, never to hot-switch
     running clients. Old caches/temp files are neither copied nor removed.
     """
     directories = {name: environment_path(profile, name) for name in ("cache", "logs", "temp")}
@@ -353,7 +353,6 @@ def prepare_runtime_paths(profile: EnvironmentProfile) -> None:
     os.environ.update({
         "HF_HOME": str(cache / "huggingface"), "HF_HUB_CACHE": str(cache / "huggingface" / "hub"),
         "SENTENCE_TRANSFORMERS_HOME": str(cache / "sentence-transformers"),
-        "GRADIO_TEMP_DIR": str(temp / "gradio"),
         "XDG_CACHE_HOME": str(cache), "TORCH_HOME": str(cache / "torch"),
         "TMPDIR": str(temp), "TMP": str(temp), "TEMP": str(temp),
     })

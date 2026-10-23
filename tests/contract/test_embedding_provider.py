@@ -54,6 +54,7 @@ from backend.app.ai.embedding.providers.openai_compatible import (
     OpenAICompatibleEmbeddingProvider,
 )
 from backend.app.core.config import AppSettings
+from backend.app.services.settings.provider_registry import get_provider_registry
 from tests.unit.settings_helpers import build_test_settings
 
 CONTRACT_DOCUMENTS = ("第一节课程资料", "第二节课程资料")
@@ -145,15 +146,19 @@ class FakeAsyncEmbeddings:
     ) -> None:
         self.calls: list[list[str]] = []
         self.models: list[str] = []
+        self.encoding_formats: list[str | None] = []
         self._dimension = dimension
         self._count_override = count_override
         self._error = error
 
-    async def create(self, *, model: str, input: list[str]) -> FakeEmbeddingResponse:
+    async def create(
+        self, *, model: str, input: list[str], encoding_format: str | None = None
+    ) -> FakeEmbeddingResponse:
         if self._error is not None:
             raise self._error
         self.calls.append(list(input))
         self.models.append(model)
+        self.encoding_formats.append(encoding_format)
         count = len(input) if self._count_override is None else self._count_override
         vectors = [[0.5] * self._dimension for _ in range(count)]
         return FakeEmbeddingResponse(vectors)
@@ -300,6 +305,7 @@ def test_cloud_provider_contract_batches_without_losing_documents() -> None:
     assert len(vectors) == 3
     assert embeddings.calls == [["一", "二"], ["三"]]
     assert set(embeddings.models) == {"contract-model"}
+    assert embeddings.encoding_formats == ["float", "float"]
 
 
 def test_cloud_provider_contract_maps_provider_errors_without_leaking_key() -> None:
@@ -571,6 +577,8 @@ def test_register_embedding_provider_extends_default_factory() -> None:
     """向默认工厂注册 Provider 后应可直接创建，并使缓存实例失效。"""
 
     settings: AppSettings = build_test_settings(embedding_provider="openai_compatible")
+    factory = get_embedding_provider_factory()
+    original = factory._get_builder("openai_compatible")
     register_embedding_provider(
         "openai_compatible",
         lambda _settings: HashingEmbeddingProvider(dimension=5, provider_name="stub"),
@@ -583,3 +591,8 @@ def test_register_embedding_provider_extends_default_factory() -> None:
         assert provider.describe()["dimension"] == 5
     finally:
         reset_embedding_provider_cache()
+        # TCR（T081）：默认工厂与进程级 ProviderRegistry 都是全局状态；替换后必须还原，
+        # 否则后续用例会读到替身对应的 NoParameters 条目，顺序相关地拒绝合法嵌入参数。
+        if original is not None:
+            factory.register("openai_compatible", original, replace=True)
+        get_provider_registry.cache_clear()

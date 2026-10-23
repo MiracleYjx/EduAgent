@@ -269,8 +269,10 @@ def grade_practice(
                 blank_item_ids=blanks,
             )
 
-    if blanks and not blank_confirmed:
-        raise BlankAnswersPending(blanks)
+    subjective_blanks = tuple(item.id for item in items if item.id in blanks
+        and (item.scoring_input or {}).get("question_type") == SUBJECTIVE_TYPE)
+    if subjective_blanks and not blank_confirmed:
+        raise BlankAnswersPending(subjective_blanks)
 
     engine = grader or ObjectiveGrader()
     facts: list[AttemptFacts] = []

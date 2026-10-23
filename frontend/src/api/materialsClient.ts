@@ -1,5 +1,5 @@
 import type { components } from "./generated";
-import { LearningApiError } from "./learningClient";
+import { isLearningOperation, LearningApiError, type LearningOperation } from "./learningClient";
 
 export { LearningApiError };
 
@@ -14,6 +14,7 @@ export type KnowledgeView = Schema["KnowledgeView"];
 export type KnowledgeChapterInput = Schema["KnowledgeChapterInput"];
 export type KnowledgePointInput = Schema["KnowledgePointInput"];
 export type MaterialPurpose = Schema["MaterialPurpose"];
+export type MaterialOCR = Schema["MaterialOCRView"];
 
 export type MaterialUploadInput = {
   purpose: MaterialPurpose;
@@ -101,6 +102,83 @@ export async function listMaterials(subjectId: string, signal?: AbortSignal): Pr
     || !value.materials.every(isMaterial))
     throw new LearningApiError("INVALID_RESPONSE", 200);
   return value.materials;
+}
+
+export async function getMaterial(subjectId: string, identity: string): Promise<MaterialView> {
+  const value=await request(`${base}/materials/${encodeURIComponent(identity)}`,"GET");
+  if(!isMaterial(value)||value.subject_id!==subjectId||value.id!==identity) throw new LearningApiError("INVALID_RESPONSE",200);
+  return value;
+}
+
+function materialOCR(value: unknown, materialId: string, previewId?: string): MaterialOCR {
+  if (typeof value !== "object" || value === null) throw new LearningApiError("INVALID_RESPONSE", 200);
+  const row = value as Record<string, unknown>;
+  if (typeof row.id !== "string" || row.material_id !== materialId || typeof row.preview_digest !== "string"
+    || row.adapter !== "rapidocr" || row.request_budget !== 0 || typeof row.state !== "string"
+    || (previewId !== undefined && row.id !== previewId)) throw new LearningApiError("INVALID_RESPONSE", 200);
+  return value as MaterialOCR;
+}
+
+export async function previewMaterialOCR(materialId: string, idempotencyKey: string): Promise<MaterialOCR> {
+  return materialOCR(await request(`${base}/materials/${encodeURIComponent(materialId)}/ocr-preview`, "POST",
+    { idempotency_key: idempotencyKey }), materialId);
+}
+
+export async function confirmMaterialOCR(materialId: string, preview: MaterialOCR): Promise<MaterialOCR> {
+  return materialOCR(await request(`${base}/materials/${encodeURIComponent(materialId)}/ocr/${encodeURIComponent(preview.id)}/confirm`,
+    "POST", { preview_digest: preview.preview_digest }), materialId, preview.id);
+}
+
+export async function executeMaterialOCR(subjectId: string, materialId: string, previewId: string): Promise<MaterialView> {
+  const value = await request(`${base}/materials/${encodeURIComponent(materialId)}/ocr/${encodeURIComponent(previewId)}/execute`, "POST", {});
+  if (!isMaterial(value) || value.id !== materialId || value.subject_id !== subjectId || value.ocr?.id !== previewId)
+    throw new LearningApiError("INVALID_RESPONSE", 200);
+  return value;
+}
+
+export async function reviewMaterialOCR(subjectId: string, materialId: string, preview: MaterialOCR): Promise<MaterialView> {
+  const value = await request(`${base}/materials/${encodeURIComponent(materialId)}/ocr/${encodeURIComponent(preview.id)}/review`,
+    "POST", { preview_digest: preview.preview_digest });
+  if (!isMaterial(value) || value.id !== materialId || value.subject_id !== subjectId
+    || value.ocr?.id !== preview.id || value.ocr.state !== "succeeded") throw new LearningApiError("INVALID_RESPONSE", 200);
+  return value;
+}
+
+export async function recoverMaterialOCR(subjectId: string, materialId: string, previewId: string): Promise<MaterialView> {
+  const value = await request(`${base}/materials/${encodeURIComponent(materialId)}/ocr/${encodeURIComponent(previewId)}/recover`, "POST", {});
+  if (!isMaterial(value) || value.id !== materialId || value.subject_id !== subjectId || value.ocr?.id !== previewId)
+    throw new LearningApiError("INVALID_RESPONSE", 200);
+  return value;
+}
+
+function indexOperation(value: unknown, materialId: string, operationId?: string): LearningOperation {
+  if (!isLearningOperation(value) || value.purpose !== `material_index:${materialId}`
+    || (operationId !== undefined && value.id !== operationId))
+    throw new LearningApiError("INVALID_RESPONSE", 200);
+  return value;
+}
+
+export async function previewMaterialIndex(materialId: string, idempotencyKey: string): Promise<LearningOperation> {
+  return indexOperation(await request(`${base}/materials/${encodeURIComponent(materialId)}/index-preview`, "POST",
+    { idempotency_key: idempotencyKey }), materialId);
+}
+
+export async function confirmMaterialIndex(materialId: string, operation: LearningOperation): Promise<LearningOperation> {
+  return indexOperation(await request(
+    `${base}/materials/${encodeURIComponent(materialId)}/index/${encodeURIComponent(operation.id)}/confirm`, "POST",
+    { preview_digest: operation.preview_digest }), materialId, operation.id);
+}
+
+export async function executeMaterialIndex(subjectId: string, materialId: string, operationId: string): Promise<MaterialView | LearningOperation> {
+  const value = await request(
+    `${base}/materials/${encodeURIComponent(materialId)}/index/${encodeURIComponent(operationId)}/execute`, "POST", {});
+  if (isMaterial(value)) {
+    if (value.id !== materialId || value.subject_id !== subjectId || value.state !== "indexed"
+      || value.index_operation_id !== operationId)
+      throw new LearningApiError("INVALID_RESPONSE", 200);
+    return value;
+  }
+  return indexOperation(value, materialId, operationId);
 }
 
 export async function uploadMaterial(

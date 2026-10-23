@@ -33,14 +33,14 @@ from backend.app.models import (
 from backend.app.schemas.grading import DiagnosisReportDTO, DiagnosisStatus
 from backend.app.services.grading.diagnosis_report_store import DiagnosisReportStore
 from backend.app.services.question_service import QuestionService
-from tests.contract import test_results_api_contract as result_contracts
 from tests.contract.test_results_analysis_api import analysis_scenario, save_result
-from tests.contract.test_results_api_contract import headers
 from tests.postgres_helpers import (
     isolated_postgres_engine,
     isolated_test_resource_profile,
 )
+from tests.support import retained_result_fixtures as result_contracts
 from tests.support.question_validation_fixtures import persist_current_semantic_pass
+from tests.support.retained_result_fixtures import headers
 from tests.unit.services.test_student_fixed_exam import add_image
 from tests.unit.services.test_submission_service import add_user
 
@@ -109,7 +109,7 @@ def material(
     if confirmed:
         metadata["scope_confirmation"] = {
             "knowledge_points": {
-                "teacher_id": str(s["teacher"].id),
+                "confirmed_by": str(s["teacher"].id),
                 "confirmed_at": datetime.now(UTC).isoformat(),
             }
         }

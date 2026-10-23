@@ -23,7 +23,7 @@ from backend.app.services.auth_service import AuthService
 from backend.app.services.course_service import CourseService
 from backend.app.services.grading.diagnosis_report_store import DiagnosisReportStore
 from backend.app.services.grading.grading_repository import DatabaseGradingRepository
-from tests.contract.test_results_api_contract import (
+from tests.support.retained_result_fixtures import (
     _t057_final_result,
     _t057_ready_report,
 )

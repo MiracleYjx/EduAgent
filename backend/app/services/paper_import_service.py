@@ -618,10 +618,19 @@ class PersonalPaperImportService:
                 raise MaterialError("PAPER_SOURCE_EVIDENCE_INVALID", 409)
         for asset_id in value.asset_ids():
             asset = catalog.get(asset_id)
-            if asset is None or not any(
+            if asset is None or asset.source.document_id != document.id or not any(
                 source.document_id == document.id
                 and (source.page is None or source.page == asset.source.page)
-                and (source.anchor is None or source.anchor == asset.source.anchor)
+                and (
+                    source.anchor is None or source.anchor == asset.source.anchor
+                    or any(
+                        block.get("type") == "text"
+                        and self._matches(source, block)
+                        and block.get("page") == asset.source.page
+                        and block.get("ocr_source_anchor") == asset.source.anchor
+                        for block in blocks
+                    )
+                )
                 for source in value.source_locations
             ):
                 raise MaterialError("PAPER_ASSET_SCOPE_INVALID", 409)
@@ -691,17 +700,23 @@ class PersonalPaperImportService:
         from backend.app.services.learning_operations import StepPlan
 
         if retry_of_id is not None:
-            with self.sessions() as session:
-                paper = self._record(session, identity)
-                if paper.extraction_operation_id != retry_of_id:
-                    raise MaterialError("PAPER_OPERATION_CHANGED",409)
-            operation = operations.retry(retry_of_id,idempotency_key=idempotency_key,
-                                         acknowledge_unknown=acknowledge_unknown)
+            from backend.app.models.operation_run import OperationRun
+
+            # Serialize the retry transition with its import reference. A repeat
+            # of the same request returns the recorded retry, never a new one.
             with self.sessions.begin() as session:
-                paper = self._record(session,identity,lock=True)
-                if paper.extraction_operation_id not in (retry_of_id,operation.id):
-                    raise MaterialError("PAPER_OPERATION_CHANGED",409)
-                paper.extraction_operation_id=operation.id
+                paper = self._record(session, identity, lock=True)
+                if paper.extraction_operation_id != retry_of_id:
+                    current = session.get(OperationRun, paper.extraction_operation_id)
+                    if (current is not None and current.retry_of_id == retry_of_id
+                            and current.idempotency_key == idempotency_key):
+                        return operations.view(current.id)
+                    raise MaterialError("PAPER_OPERATION_CHANGED", 409)
+                operation = operations.retry(
+                    retry_of_id, idempotency_key=idempotency_key,
+                    acknowledge_unknown=acknowledge_unknown,
+                )
+                paper.extraction_operation_id = operation.id
             return operation
         with self.sessions() as session:
             paper = self._record(session, identity)

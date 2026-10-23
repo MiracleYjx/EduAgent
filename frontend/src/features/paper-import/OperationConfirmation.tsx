@@ -1,8 +1,8 @@
 import { Alert, Button, Card, Typography } from "antd";
 import type { LearningOperation } from "../../api/learningClient";
 
-export function OperationConfirmation({ value, busy, onConfirm }: {
-  value: LearningOperation; busy: boolean; onConfirm: () => void;
+export function OperationConfirmation({ value, busy, disabled = false, onConfirm }: {
+  value: LearningOperation; busy: boolean; disabled?: boolean; onConfirm: () => void;
 }) {
   return <Card title="确认本次模型操作">
     <Typography.Paragraph>本次最多 {value.request_budget} 次请求，已尝试 {value.actual_requests} 次。
@@ -12,7 +12,7 @@ export function OperationConfirmation({ value, busy, onConfirm }: {
       {typeof step.scope_summary==="string"?<Typography.Paragraph>{step.scope_summary}</Typography.Paragraph>:null}
     </li>)}</ul>
     <Alert type="info" title="仅确认这里保存的范围和模型；失败不会自动重发。" />
-    <Button type="primary" loading={busy} disabled={busy || value.state !== "prepared"} onClick={onConfirm}>
+    <Button type="primary" loading={busy} disabled={busy || disabled || value.state !== "prepared"} onClick={onConfirm}>
       确认本次范围并执行
     </Button>
     {value.state !== "prepared" ? <Typography.Paragraph>操作状态：{value.state}</Typography.Paragraph> : null}

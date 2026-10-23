@@ -18,14 +18,14 @@ from backend.app.domain.enums import SubmissionStatus, WorkflowStatus
 from backend.app.models import Submission, WorkflowRun
 from backend.app.services.grading.grading_repository import CHECKPOINT_KIND
 from backend.app.services.workflow_checkpoint import run_kind_criteria
-from tests.integration.test_langgraph_grading_workflow import (
+from tests.postgres_helpers import isolated_postgres_engine
+from tests.support.retained_workflow_integration_fixtures import (
     ReviewEnv,
     SequenceScoringProvider,
     _api_client,
     _seed_paper,
     _start,
 )
-from tests.postgres_helpers import isolated_postgres_engine
 
 
 @pytest.fixture

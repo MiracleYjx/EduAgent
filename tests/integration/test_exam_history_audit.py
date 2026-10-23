@@ -438,54 +438,6 @@ def test_stronger_order_evidence_preserves_association_identity(history):
         assert immutable_rows(session) == before
 
 
-def test_cli_reports_committed_facts_when_final_report_write_fails(
-    history, monkeypatch, tmp_path, capsys
-):
-    from scripts import audit_exam_history as cli
-
-    engine, ids, raw, _ = history
-    manifest_path = tmp_path / "reviewed.json"
-    manifest_path.write_text(json.dumps(raw), encoding="utf-8")
-    report_path = tmp_path / "report.json"
-    monkeypatch.setenv("T171_TEST_TOKEN", "fixture-token-used-only-by-auth-double")
-    monkeypatch.setattr(
-        "sys.argv",
-        [
-            "audit_exam_history.py",
-            "--token-env",
-            "T171_TEST_TOKEN",
-            "--apply",
-            str(manifest_path),
-            "--report",
-            str(report_path),
-        ],
-    )
-    monkeypatch.setattr(cli, "get_session_factory", lambda: lambda: Session(engine))
-    monkeypatch.setattr(
-        cli,
-        "authenticate_admin",
-        lambda session, token: session.get(User, ids["actor"]),
-    )
-    original = cli.durable_json
-    calls = []
-
-    def fail_final_once(path, value, *, create=False):
-        calls.append(create)
-        if len(calls) == 2:
-            raise OSError("injected final report storage failure")
-        original(path, value, create=create)
-
-    monkeypatch.setattr(cli, "durable_json", fail_final_once)
-    assert cli.main() == 1
-    recorded = json.loads(report_path.read_text(encoding="utf-8"))
-    assert recorded["status"] == "report_failed_after_commit"
-    assert recorded["database_committed"] is True
-    assert "fixture-token" not in capsys.readouterr().err
-    with Session(engine) as session:
-        assert all(
-            row.score == Decimal("5.00")
-            for row in session.scalars(select(ExamQuestion))
-        )
 
 
 def test_stale_session_cannot_overwrite_another_sessions_confirmed_history(history):
@@ -522,52 +474,3 @@ def test_stale_session_cannot_overwrite_another_sessions_confirmed_history(histo
         assert {
             row.id: row.scoring_basis["confirmation"] for row in persisted
         } == first_confirmations
-
-
-def test_cli_reports_unknown_when_commit_succeeded_but_receipt_was_lost(
-    history, monkeypatch, tmp_path
-):
-    from sqlalchemy.exc import SQLAlchemyError
-
-    from scripts import audit_exam_history as cli
-
-    engine, ids, raw, _ = history
-    manifest_path = tmp_path / "reviewed-ambiguous.json"
-    manifest_path.write_text(json.dumps(raw), encoding="utf-8")
-    report_path = tmp_path / "ambiguous-report.json"
-    monkeypatch.setenv("T171_TEST_TOKEN", "fixture-token-used-only-by-auth-double")
-    monkeypatch.setattr(
-        "sys.argv",
-        [
-            "audit_exam_history.py",
-            "--token-env",
-            "T171_TEST_TOKEN",
-            "--apply",
-            str(manifest_path),
-            "--report",
-            str(report_path),
-        ],
-    )
-    monkeypatch.setattr(cli, "get_session_factory", lambda: lambda: Session(engine))
-    monkeypatch.setattr(
-        cli,
-        "authenticate_admin",
-        lambda session, token: session.get(User, ids["actor"]),
-    )
-    actual_commit = Session.commit
-
-    def commit_then_lose_receipt(session):
-        actual_commit(session)
-        raise SQLAlchemyError("injected lost COMMIT acknowledgement")
-
-    monkeypatch.setattr(Session, "commit", commit_then_lose_receipt)
-    assert cli.main() == 1
-    recorded = json.loads(report_path.read_text(encoding="utf-8"))
-    assert recorded["status"] == "commit_outcome_unknown"
-    assert recorded["database_committed"] is None
-    assert recorded["error"]["code"] == "EXAM_HISTORY_COMMIT_UNKNOWN"
-    with Session(engine) as observer:
-        assert all(
-            row.score == Decimal("5.00")
-            for row in observer.scalars(select(ExamQuestion))
-        )

@@ -201,7 +201,9 @@ def test_runtime_cache_temp_logs_are_env_owned_without_provider_loading(tmp_path
     api('prepare_runtime_paths')(selected)
     assert Path(tempfile.gettempdir()) == selected.temp_root
     assert Path(os.environ['HF_HOME']).is_relative_to(selected.cache_root)
-    assert Path(os.environ['GRADIO_TEMP_DIR']).is_relative_to(selected.temp_root)
+    # TCR（T081）：Gradio 已按 T077 退役，运行时不再写入 GRADIO_TEMP_DIR；
+    # 其余环境自有缓存/临时/日志路径断言保持不变。
+    assert 'GRADIO_TEMP_DIR' not in os.environ
     assert selected.log_root.is_dir()
     assert not selected.storage_root.exists()  # preparation is not storage adoption
 
@@ -352,7 +354,7 @@ def test_windows_entry_uses_environment_logs_before_setup_worker(tmp_path, monke
 
     def stop_at_worker(**_kwargs):
         assert Path(tempfile.gettempdir()) == selected.temp_root
-        assert Path(os.environ['GRADIO_TEMP_DIR']).is_relative_to(selected.temp_root)
+        assert 'GRADIO_TEMP_DIR' not in os.environ
         assert (selected.log_root / 'application.log').is_file()
         assert not (selected.storage_root / 'logs').exists()
         calls.append('setup-worker')

@@ -4,6 +4,8 @@ import { Link, useParams } from "react-router-dom";
 import { PracticeBuilder } from "../practice/PracticeBuilder";
 import { QuestionBankPage } from "../question-bank/QuestionBankPage";
 import { MaterialsPage } from "../materials/MaterialsPage";
+import { DiagnosisPage } from "../learning-diagnosis/DiagnosisPage";
+import { TeacherPanel } from "../teacher/TeacherPanel";
 import { createSubject, getSubject, getSubjects, LearningApiError, patchSubject, type Subject, type SubjectCreate } from "../../api/learningClient";
 
 function Failure({ error }: { error: unknown }) {
@@ -109,12 +111,14 @@ export function SubjectPage() {
       {editing ? <SubjectEditor initial={value} busy={saving} onSave={save} onCancel={() => setEditing(false)} /> : null}
       <div className="status-grid">{areas.map(([key, label]) => <Card key={key}>
         <Typography.Title level={4}><Link to={`/subjects/${encodeURIComponent(value.id)}/${key}`}>{label}</Link></Typography.Title>
-        <Typography.Text type="secondary">{["materials","question-bank","practice"].includes(key) ? "管理你的科目内容" : "功能将在后续开发批次开放"}</Typography.Text>
+        <Typography.Text type="secondary">管理你的科目内容</Typography.Text>
       </Card>)}</div>
       {area === "materials" ? <MaterialsPage subjectId={value.id} /> : null}
       {area === "question-bank" ? <QuestionBankPage subjectId={value.id} /> : null}
       {area === "practice" ? <PracticeBuilder key={value.id} subjectId={value.id} /> : null}
-      {area && !["materials", "question-bank", "practice"].includes(area) ? <Alert type="info" showIcon title={`${selected?.[1] ?? "此页面"}尚未开放`} description="当前已提供科目管理与资料页；此功能尚未实现。" /> : null}
+      {area === "diagnosis" ? <DiagnosisPage key={value.id} subjectId={value.id} /> : null}
+      {area === "teacher" ? <TeacherPanel key={value.id} subjectId={value.id} /> : null}
+      {area && !["materials", "question-bank", "practice", "diagnosis", "teacher"].includes(area) ? <Alert type="info" showIcon title={`${selected?.[1] ?? "此页面"}尚未开放`} description="请使用当前科目入口。" /> : null}
     </> : null}
   </section>;
 }

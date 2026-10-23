@@ -18,7 +18,6 @@ from sqlalchemy.orm import Session
 from backend.app.core.config import get_settings
 from backend.app.core.environment import environment_path, resolve_environment_profile
 from backend.app.core.maintenance import ensure_storage_writable
-from backend.app.core.security import get_user_roles
 from backend.app.domain.enums import DocumentPurpose, UserRole
 from backend.app.models import (
     Course,
@@ -136,7 +135,7 @@ class FileStorageService:
             environment_path(self._profile, "storage")
         return self._root
 
-    def _check_storage_adoption(self) -> None:
+    def _check_storage_adoption(self, *, personal_only: bool = False) -> None:
         """SQL file facts cannot silently acquire an empty replacement root.
 
         This is a compatibility check, not an adoption or ownership grant.
@@ -147,7 +146,7 @@ class FileStorageService:
 
         locators = []
         with self.session.no_autoflush:
-            for reference in storage_references(self.session):
+            for reference in storage_references(self.session, personal_only=personal_only):
                 if reference.locator:
                     locators.append((reference.locator, reference.legacy))
         available = False
@@ -237,9 +236,11 @@ class FileStorageService:
 
     @staticmethod
     def _manages(actor: User, course: Course) -> bool:
+        from backend.app.core.security import get_user_roles
         return UserRole.TEACHER in get_user_roles(actor) and actor.id == course.created_by
 
     def _authorize(self, resource: FileResource, actor_id: UUID) -> Course:
+        from backend.app.core.security import get_user_roles
         actor = self._actor(actor_id)
         if isinstance(resource, (SourcePage, StagedAssetResource, QuestionAsset)):
             try:
@@ -541,7 +542,7 @@ class FileStorageService:
         actor_id: UUID | None, filename: str, content: bytes, bucket: str,
     ) -> StoredFile:
         ensure_storage_writable(self.root)
-        self._check_storage_adoption()
+        self._check_storage_adoption(personal_only="subject_id" in owner)
         if not isinstance(content, bytes):
             raise FileStorageError("FILE_INVALID_INPUT", "文件内容必须是字节。", http_status=422)
         operation_id = uuid4()
@@ -638,7 +639,7 @@ class FileStorageService:
         digest = hashlib.sha256(data).hexdigest()
         locator = personal_material_asset_locator(document.id, digest, media_type)
         ensure_storage_writable(self.root)
-        self._check_storage_adoption()
+        self._check_storage_adoption(personal_only=True)
         path = self.resolve_path(locator)
         self.lock_locator(locator)
         metadata = FileMetadata(
@@ -681,7 +682,7 @@ class FileStorageService:
         if document.storage_path is not None or document.file_metadata is not None:
             raise FileStorageError("FILE_IDENTITY_IN_USE", "已登记原稿不能重写；新内容须使用新资源身份。")
         ensure_storage_writable(self.root)
-        self._check_storage_adoption()
+        self._check_storage_adoption(personal_only=True)
         suffix = Path(document.original_filename).suffix.lower()
         if not suffix or len(suffix) > 16 or not suffix[1:].isalnum():
             suffix = ".bin"

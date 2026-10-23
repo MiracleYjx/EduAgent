@@ -25,12 +25,6 @@ from backend.app.models import (
 from backend.app.schemas.image_assessment import ImageManualCheckRequest
 from backend.app.services.content_validation_service import ContentValidationService
 from backend.app.services.question_asset_service import QuestionAssetService
-from tests.contract.test_question_generation_api_contract import _headers, _seed_chunk
-from tests.contract.test_question_generation_api_contract import (
-    client_factory as _client_factory,
-)
-from tests.contract.test_question_generation_api_contract import scenario as _scenario
-from tests.contract.test_question_generation_api_contract import session as _session
 from tests.support.question_generation_doubles import (
     StubEmbeddingProvider,
     StubQuestionProvider,
@@ -38,6 +32,12 @@ from tests.support.question_generation_doubles import (
     make_candidate,
     make_chunk,
 )
+from tests.support.retained_generation_fixtures import _headers, _seed_chunk
+from tests.support.retained_generation_fixtures import (
+    client_factory as _client_factory,
+)
+from tests.support.retained_generation_fixtures import scenario as _scenario
+from tests.support.retained_generation_fixtures import session as _session
 from tests.support.semantic_validation_doubles import StubSemanticProvider
 from tests.unit.settings_helpers import build_test_settings
 

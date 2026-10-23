@@ -212,11 +212,64 @@ def test_failure_does_not_retry_and_releases_leases(env, failure):
     result = execute(env, operation)
     assert len(calls) == result.actual_requests == 1
     assert result.state == (
-        "outcome_unknown" if failure in {"timeout", "disconnect"} else "failed"
+        "outcome_unknown" if failure in {"timeout", "disconnect", "oversize"} else "failed"
+    )
+    # Rejecting an oversized stream before recording its complete response
+    # preserves the already reserved request's unknown billing outcome.
+    assert result.steps[0]["requests"][0]["state"] == (
+        "outcome_unknown" if failure in {"timeout", "disconnect", "oversize"}
+        else "response_received"
     )
     assert result.steps[0]["state"] == result.state
     assert service.snapshots.active_lease_count == 0
     assert execute(env, operation).actual_requests == 1 and len(calls) == 1
+
+
+def test_empty_content_is_a_single_send_failure_with_no_result(env):
+    _module, service, _, calls, _ = env
+
+    async def empty(request):
+        calls.append(json.loads(request.content))
+        return httpx.Response(
+            200,
+            json={
+                "id": "fake-empty",
+                "object": "chat.completion",
+                "created": 0,
+                "model": "test-model-a",
+                "choices": [
+                    {
+                        "index": 0,
+                        "message": {
+                            "role": "assistant",
+                            "content": "",
+                            "reasoning_content": "private reasoning",
+                        },
+                        "finish_reason": "length",
+                    }
+                ],
+                "usage": {
+                    "prompt_tokens": 10,
+                    "completion_tokens": 2000,
+                    "total_tokens": 2010,
+                },
+            },
+        )
+
+    service.transport = httpx.MockTransport(empty)
+    operation = prepare(env)
+    confirm(env, operation)
+    result = execute(env, operation)
+
+    assert len(calls) == result.actual_requests == 1
+    assert result.state == "failed"
+    assert result.steps[0]["state"] == "failed"
+    assert result.steps[0]["error_code"] == "ProviderEmptyResponse"
+    assert result.steps[0]["result"] is None
+    assert result.steps[0]["usage"]["completion_tokens"] == 2000
+    assert execute(env, operation).actual_requests == 1
+    assert len(calls) == 1
+    assert service.snapshots.active_lease_count == 0
 
 
 def test_partial_success_and_explicit_user_retry_excludes_success(env):
@@ -295,6 +348,73 @@ def test_unplanned_extra_provider_request_blocked_before_second_send(env):
     result = asyncio.run(service.execute(operation.id, invoke=twice))
     assert result.state == "failed" and result.actual_requests == 1 and len(calls) == 1
     assert service.snapshots.active_lease_count == 0
+
+
+def test_grading_dependency_budget_cannot_be_borrowed_by_another_task(env):
+    module, service, _, calls, _ = env
+    operation = service.prepare(purpose="practice_grading:synthetic", idempotency_key=uuid4().hex,
+        steps=[module.StepPlan(step_id="item", task_kind="subjective_grading", messages=[],
+            grading_input={"frozen_input": "synthetic"}, request_budget=2,
+            task_budgets={"subjective_grading": 1, "rerank": 1})])
+    confirm(env, operation)
+
+    async def twice(runtime, step):
+        provider = runtime.acquire("subjective_grading").client
+        await provider.generate_structured([{"role":"user","content":"Return JSON"}], Reply)
+        return await provider.generate_structured([{"role":"user","content":"Return JSON"}], Reply)
+
+    result = asyncio.run(service.execute(operation.id, invoke=twice))
+    assert result.state == "failed" and result.request_budget == 2
+    assert result.actual_requests == len(calls) == 1
+    assert result.steps[0]["error_code"] == "REQUEST_BUDGET_EXCEEDED"
+    assert result.steps[0]["task_actual_requests"] == {"subjective_grading": 1}
+    assert service.snapshots.active_lease_count == 0
+
+
+def test_vision_grading_uses_its_own_image_budget_and_releases_the_lease(env):
+    import base64
+    import hashlib
+    from io import BytesIO
+
+    from PIL import Image
+
+    from tests.support import runtime_consumer_fakes as fakes
+    module, _service, harness, calls, sessions = env
+
+    def add_vision(values):
+        identifier, _revision = fakes.add_vision(values, model="deepseek-v4-flash-vision-exp")
+        # The real adapter requires this exact capability identity. MockTransport
+        # still intercepts every byte; this is not a vendor capability test.
+        values["providers"][str(identifier)]["base_url"] = "https://api.deepseek.com/v1"
+        values["providers"][str(identifier)]["credential_ref"] = harness.provider_reference.model_dump(mode="json")
+
+    config = fakes.SyntheticConfig(harness, fakes.synthetic_revision(harness, add_vision))
+    service = module.LearningOperations(sessions=sessions, config=config, transport=_service.transport)
+    picture = BytesIO()
+    Image.effect_noise((512,512),100).convert("RGB").save(picture,format="PNG")
+    pixels = picture.getvalue()
+    assert len(pixels) > service.limits.text_request_bytes
+    operation = service.prepare(purpose="practice_grading:vision", idempotency_key=uuid4().hex,
+        steps=[module.StepPlan(step_id="image", task_kind="vision", messages=[], request_budget=1,
+            grading_input={"asset_sha256":hashlib.sha256(pixels).hexdigest()}, task_budgets={"vision":1})])
+    service.confirm(operation.id,preview_digest=operation.preview_digest)
+
+    async def vision(runtime, step):
+        lease = runtime.acquire("vision")
+        return await lease.client.generate_structured([{"role":"user","content":[
+            {"type":"text","text":"Return JSON"},
+            {"type":"image","image":{"encoding":"base64","mime_type":"image/png",
+                "value":base64.b64encode(pixels).decode()}}
+        ]}], Reply, model=runtime.requested_model("vision"))
+
+    try:
+        result = asyncio.run(service.execute(operation.id,invoke=vision))
+        assert result.state == "succeeded", result
+        assert result.actual_requests == len(calls) == 1
+        assert calls[0]["model"] == "deepseek-v4-flash-vision-exp"
+        assert service.snapshots.active_lease_count == 0
+    finally:
+        asyncio.run(service.aclose())
 
 
 def test_runtime_dependency_loss_is_not_current_configuration_fallback(env):

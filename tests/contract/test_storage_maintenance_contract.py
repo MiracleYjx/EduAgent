@@ -13,11 +13,16 @@ from backend.app.services.file_storage_service import (
     FileStorageError,
     FileStorageService,
 )
-from tests.unit.services.test_file_storage_service import (
-    owned_document as _owned_document,
-)
+from tests.postgres_helpers import isolated_test_resource_profile
+from tests.unit.services import test_file_storage_service as legacy_files
 
-owned_document = _owned_document
+
+@pytest.fixture
+def owned_document(tmp_path):
+    with isolated_test_resource_profile((tmp_path / "maintenance-profile").resolve()) as profile:
+        yield from legacy_files.document_case(profile.storage_root)
+
+
 ROOT = Path(__file__).resolve().parents[2]
 
 
@@ -25,10 +30,14 @@ def test_cli_help_does_not_require_token_or_dump():
     environment = os.environ.copy()
     environment["PYTHONIOENCODING"] = "utf-8"
     environment.pop("EDUAGENT_MAINTENANCE_TOKEN", None)
-    for script in ("migrate_storage_paths.py", "backup_restore.py"):
+    for script in ("backup_restore.py",):
         result = subprocess.run([sys.executable, str(ROOT / "scripts" / script), "--help"], env=environment, capture_output=True, text=True, encoding="utf-8", check=False)
         assert result.returncode == 0
-        assert "--token-env" in result.stdout
+        if script == "backup_restore.py":
+            assert "--local-management" in result.stdout
+            assert "--token-env" not in result.stdout
+        else:
+            assert "--token-env" in result.stdout
 
 
 def manifest(outcome="creating"):

@@ -1,6 +1,5 @@
 from unittest.mock import Mock
 
-import gradio as gr
 import pytest
 from fastapi.testclient import TestClient
 
@@ -17,16 +16,15 @@ def build_settings() -> AppSettings:
     return build_test_settings()
 
 
-def test_health_endpoint_and_gradio_mount() -> None:
+def test_health_endpoint_and_personal_routes() -> None:
     app = create_app(settings=build_settings())
 
     response = TestClient(app).get("/health")
 
     assert response.status_code == 200
     assert response.json() == {"status": "ok", "service": "backend"}
-    assert any(
-        str(getattr(route, "path", "")).startswith("/gradio") for route in app.routes
-    )
+    assert TestClient(app).get("/gradio/").status_code == 404
+    assert "/api/learning/subjects" in app.openapi()["paths"]
 
 
 @pytest.mark.parametrize("failed", [None, "config", "postgres", "redis"])
@@ -38,9 +36,7 @@ def test_readiness_checks_dependencies_and_redacts_errors(
     settings = build_settings()
     settings_loader = Mock(return_value=settings)
     monkeypatch.setattr(app_module, "get_settings", settings_loader)
-    with gr.Blocks() as ui:
-        gr.Markdown("就绪检查测试")
-    app = create_app(gradio_app=ui)
+    app = create_app()
     # T219：模拟本进程启动阶段已完成原恢复钩子（不执行真实恢复动作）。
     app.state.recovery = "completed"
     settings_loader.reset_mock()

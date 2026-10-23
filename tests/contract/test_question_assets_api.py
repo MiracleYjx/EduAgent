@@ -3,7 +3,7 @@ from uuid import UUID
 
 from backend.app.models import Question
 from backend.app.services.question_service import QuestionService
-from tests.contract.test_file_storage_api import files_api as _files_api
+from tests.support.retained_file_fixtures import files_api as _files_api
 from tests.unit.services.test_question_asset_service import png
 
 files_api = _files_api

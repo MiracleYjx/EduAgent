@@ -9,12 +9,12 @@ from fastapi.responses import JSONResponse
 from fastapi.routing import APIRoute
 from sqlalchemy.exc import SQLAlchemyError
 
+from backend.app.api import learning_errors
 from backend.app.core.settings_security import (
     SettingsSecurityError,
     check_personal_request,
 )
 from backend.app.schemas.personal_learning import (
-    LearningApiError,
     LearningConfirmRequest,
     LearningOperationView,
     LearningPreviewRequest,
@@ -40,6 +40,18 @@ def failure(code: str, status: int) -> JSONResponse:
             "retryable": False,
         },
     )
+
+
+def public_operation(value: LearningOperationView) -> LearningOperationView:
+    """A fee preview must not disclose frozen answers while drafts are editable."""
+    if value.purpose.startswith("material_index:"):
+        return value.model_copy(update={"steps":[{k:v for k,v in step.items()
+            if k not in {"material_input", "embedding_inputs", "result", "messages"}} for step in value.steps]})
+    return value.model_copy(update={"steps": [
+        {k: v for k, v in step.items() if k not in (
+            {"grading_input", "messages", "result"} if value.purpose.startswith("teacher:") else {"grading_input", "messages"})}
+        if step.get("grading_input") is not None or value.purpose.startswith("teacher:") else step for step in value.steps
+    ]})
 
 
 class LearningRoute(APIRoute):
@@ -82,14 +94,16 @@ router = APIRouter(
     prefix="/api/learning/operations",
     tags=["personal-learning"],
     route_class=LearningRoute,
-    responses={
-        code: {"model": LearningApiError}
-        for code in (403, 404, 409, 413, 415, 422, 503)
-    },
+    responses=learning_errors(403, 404, 409, 413, 415, 422, 503),
 )
 
 
 def service(request: Request) -> LearningOperations:
+    from backend.app.services.learning_test_validation import refresh_test_validation
+    try:
+        refresh_test_validation(request.app.state)
+    except (ValueError, OSError):
+        raise OperationError("PAID_SEND_NOT_AUTHORIZED") from None
     value = getattr(request.app.state, "learning_operations", None)
     if value is None:
         with request.app.state.learning_operations_lock:
@@ -106,8 +120,32 @@ def service(request: Request) -> LearningOperations:
                 # Reuse the selected and verified personal database; legacy
                 # AppSettings/business assembly must not choose a second space.
                 _store = runtime.credential_store
-                value = LearningOperations(sessions=space.sessions, config=config)
+                policy = getattr(request.app.state, "learning_paid_validation", None)
+                from backend.app.services.learning_paid_validation import (
+                    PaidValidationPolicy,
+                )
+                if policy is not None and not isinstance(policy, PaidValidationPolicy):
+                    raise OperationError("PAID_SEND_NOT_AUTHORIZED")
+                value = LearningOperations(sessions=space.sessions, config=config,
+                    token_counter=policy.token_counter if policy is not None else None,
+                    task_model_budgets=policy.manifest.task_model_budgets if policy is not None else None)
                 request.app.state.learning_operations = value
+    # A reviewed manifest may be installed after no-send previews have frozen
+    # their operation IDs and snapshots. Cached services still apply that exact
+    # manifest at the next preflight/send; no route manufactures authorization.
+    policy = getattr(request.app.state, "learning_paid_validation", None)
+    if policy is not None:
+        from backend.app.services.learning_paid_validation import PaidValidationPolicy
+        if not isinstance(policy, PaidValidationPolicy):
+            raise OperationError("PAID_SEND_NOT_AUTHORIZED")
+        value.paid_authorization = lambda view: policy.authorize(value, view)
+        value.token_counter = policy.token_counter
+        value.task_model_budgets = dict(policy.manifest.task_model_budgets)
+    elif getattr(value, "_paid_validation_installed", False):
+        value.paid_authorization = None
+        value.token_counter = None
+        value.task_model_budgets = {}
+    value._paid_validation_installed = policy is not None
     return value
 
 
@@ -123,8 +161,31 @@ def preview(
 def confirm(
     operation_id: UUID,
     body: LearningConfirmRequest,
+    request: Request,
     operations: Annotated[LearningOperations, Depends(service)],
 ):
+    if operations.view(operation_id).purpose.startswith("material_index:"):
+        from backend.app.api.subjects import get_subject_service
+        from backend.app.services.learning_material_service import (
+            LearningMaterialService,
+        )
+        from backend.app.services.material_indexing import MaterialIndexing
+
+        identity = UUID(operations.view(operation_id).purpose.split(":",1)[1])
+        return public_operation(MaterialIndexing(LearningMaterialService(get_subject_service(request)), operations).confirm(
+            identity, operation_id, body.preview_digest))
+    if operations.view(operation_id).purpose.startswith("teacher:"):
+        from backend.app.api.subjects import get_subject_service
+        from backend.app.services.teacher_service import TeacherService
+
+        return public_operation(TeacherService(get_subject_service(request),operations).confirm(operation_id,body.preview_digest))
+    if operations.view(operation_id).purpose.startswith(("practice_grading:", "dispute_regrade:")):
+        from backend.app.api.subjects import get_subject_service
+        from backend.app.services.personal_grading_operations import (
+            PersonalGradingOperations,
+        )
+        return public_operation(PersonalGradingOperations(get_subject_service(request), operations).confirm(
+            operation_id, body.preview_digest))
     return operations.confirm(operation_id, preview_digest=body.preview_digest)
 
 
@@ -132,7 +193,7 @@ def confirm(
 def get_operation(
     operation_id: UUID, operations: Annotated[LearningOperations, Depends(service)]
 ):
-    return operations.view(operation_id)
+    return public_operation(operations.view(operation_id))
 
 
 def install_learning_operations(app):

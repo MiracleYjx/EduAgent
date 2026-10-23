@@ -1,0 +1,405 @@
+{
+  "sample_version": "002-acceptance-v1",
+  "status": "gp_amended_25_activation_passed_business_blocked",
+  "real_requests_authorized": 25,
+  "real_requests_sent": 10,
+  "materials": [
+    {
+      "id": "linear-function",
+      "purpose": "knowledge_base",
+      "text": "一次函数的一般形式为 y=kx+b。已知图中两点时，k=(y2-y1)/(x2-x1)，b=y1-kx1。斜率表示每单位x变化时y的变化量；截距表示x=0时y的值。具体点位必须从所附图像读取。"
+    },
+    {
+      "id": "area-distractor",
+      "purpose": "knowledge_base",
+      "text": "长方形面积等于长乘宽。长20米、宽5米时，面积为100平方米。长度单位不能替代面积单位。"
+    }
+  ],
+  "scoring_oracle": {
+    "question": "长方形长20米、宽5米，求面积，写出计算式、结果和单位。",
+    "reference": "20×5=100平方米。",
+    "max_score": 10,
+    "rubric": [
+      {
+        "criterion": "选择长乘宽并写出20×5",
+        "points": 4
+      },
+      {
+        "criterion": "计算结果100",
+        "points": 4
+      },
+      {
+        "criterion": "单位为平方米",
+        "points": 2
+      }
+    ],
+    "answers": {
+      "complete": {
+        "text": "20×5=100平方米",
+        "expected_score": 10
+      },
+      "partial": {
+        "text": "20×5=100",
+        "expected_score": 8
+      },
+      "answered_zero": {
+        "text": "20+5=25米",
+        "expected_score": 0
+      }
+    }
+  },
+  "vision_oracle": {
+    "image_spec": "实际离线坐标图标明(0,1)、(2,5)；图外题干不含坐标、斜率、截距或函数答案。",
+    "question": "根据题图求一次函数表达式，说明依据。",
+    "expected": "y=2x+1；斜率2，截距1",
+    "required": [
+      "原图受管身份",
+      "读取图上两个点",
+      "真实资料引用支持计算规则"
+    ],
+    "image_file": "linear-function.png",
+    "image_sha256": "1c04d5699cb3dc1ad83e4907c8058f42522cd4f7ffd24a921355e13a0145221e",
+    "image_size": [
+      1200,
+      1000
+    ],
+    "image_bytes": 32642,
+    "manual_oracle": {
+      "human_review_required": true,
+      "points": [
+        [
+          0,
+          1
+        ],
+        [
+          2,
+          5
+        ]
+      ],
+      "slope": 2,
+      "intercept": 1,
+      "equation": "y=2x+1",
+      "reasoning": "从图像读出两点，计算(5-1)/(2-0)=2，由x=0时y=1确认截距；不能只复述资料答案。",
+      "pass": "读图点位、方程、依据均正确且引用实际选定资料；误读点位或用未选资料替代图像不通过。"
+    },
+    "input_boundary": {
+      "oracle_is_evaluation_only": true,
+      "allowed_sent_text_field": "vision_oracle.question",
+      "allowed_image_field": "vision_oracle.image_file",
+      "retrieved_material_ids": [
+        "linear-function"
+      ],
+      "required_isolation": "V1发送文本与检索资料均不得含图上测试坐标、数值斜率/截距或函数答案；expected、manual_oracle、image_spec只供人工验收，不得作为模型输入。",
+      "manual_check": "人工核对模型确实从图像读出两点数值并用于推导；仅引用通用规则或复述参考答案不足以证明视觉理解。"
+    }
+  },
+  "scenarios": [
+    {
+      "id": "G1",
+      "action": "general_question_generation",
+      "primary_requests": 1,
+      "oracle": "一题，明确通用知识，答案与解析一致；包含有明确数据/坐标/单位的表格或图表"
+    },
+    {
+      "id": "G2",
+      "action": "uploaded_question_generation",
+      "primary_requests": 1,
+      "oracle": "一题，真实引用linear-function，禁止引用未发送的片段"
+    },
+    {
+      "id": "A1",
+      "action": "missing_answer_completion",
+      "primary_requests": 1,
+      "oracle": "明确标记AI补充；题目条件与参考答案一致，不冒充原卷答案"
+    },
+    {
+      "id": "P1",
+      "action": "paper_extraction",
+      "primary_requests": 1,
+      "oracle": "一批经本地OCR的两页合成跨页题；逐项核对题序、选项、数值、单位、原图槽位及页定位",
+      "paper_file": "cross-page-paper.pdf",
+      "paper_sha256": "d647897413daf3e142b5be479e42eb9c62e57a149b5def3553bff075e13acdb1",
+      "paper_bytes": 147632,
+      "page_count": 2,
+      "scan_size_per_page": [
+        1240,
+        1754
+      ],
+      "render_dpi": 150,
+      "pdf_text_layer": false,
+      "manual_oracle": {
+        "human_review_required": true,
+        "question_count": 1,
+        "question_number": "7",
+        "question_type": "single_choice",
+        "length": {
+          "value": 20,
+          "unit": "m",
+          "page": 1
+        },
+        "width": {
+          "value": 5,
+          "unit": "m",
+          "page": 2
+        },
+        "area": {
+          "value": 100,
+          "unit": "m²"
+        },
+        "options": {
+          "A": "100 m²",
+          "B": "50 m²",
+          "C": "25 m²",
+          "D": "10 m²"
+        },
+        "reference_answer": "A",
+        "answer_origin": "paper",
+        "answer_key_page": 2,
+        "diagram_page": 1,
+        "pass": "两页合并为同一第7题；保留四个稳定选项、20m/5m/100m²、第一页矩形原图与跨页定位，原答案A必须标为paper；拆成两题、丢单位/图/选项或伪称AI补答不通过。"
+      }
+    },
+    {
+      "id": "S1",
+      "action": "general_subjective_grading",
+      "answer": "complete",
+      "primary_requests": 1,
+      "oracle": "按固定rubric为10分，说明给分点"
+    },
+    {
+      "id": "S2",
+      "action": "general_subjective_grading",
+      "answer": "partial",
+      "primary_requests": 1,
+      "oracle": "按固定rubric为8分，指出面积单位缺失"
+    },
+    {
+      "id": "S3",
+      "action": "general_subjective_grading",
+      "answer": "answered_zero",
+      "primary_requests": 1,
+      "oracle": "有效已答零分，保留answered，不当成未答或评分失败"
+    },
+    {
+      "id": "S4",
+      "action": "repeat_identical_fixed_input",
+      "repeats": "S2",
+      "primary_requests": 1,
+      "oracle": "同一固定输入进行最低两次比较；逐点对照，不据此报告统计稳定性"
+    },
+    {
+      "id": "R1",
+      "action": "explicit_revision_regrade",
+      "primary_requests": 1,
+      "oracle": "原错误参考答案50平方米修订为100平方米，保存新旧输入/轮次；接受前排除，接受后恢复原作答位置"
+    },
+    {
+      "id": "V1",
+      "action": "vision_subjective_grading_with_semantic_retrieval",
+      "primary_requests": 1,
+      "embedding_queries": 1,
+      "oracle": "读取vision_oracle实图并用linear-function真实片段支持；人工核对分数/依据"
+    },
+    {
+      "id": "T1",
+      "action": "teacher_first_message",
+      "primary_requests": 1,
+      "oracle": "解释一次函数斜率错误，引用实际关键词检索资料并可打开原位置"
+    },
+    {
+      "id": "T2",
+      "action": "teacher_followup",
+      "primary_requests": 1,
+      "oracle": "追问后核对解释与引用；说懂了不修改任何正式评分或诊断事实"
+    }
+  ],
+  "proposed_request_plan": {
+    "primary": 12,
+    "material_chunks": 2,
+    "index_embedding_requests": 2,
+    "query_embedding_requests": 1,
+    "base_total": 15,
+    "conditional_probes": [
+      "json_object",
+      "vision",
+      "embedding"
+    ],
+    "proposed_total_with_three_probes": 18,
+    "optional_hybrid_rerank_additional_requests": 2,
+    "notes": "12主请求/15基础方案保持；实际分块、视觉与图片Token计量、Probe复用及远程rerank须纳入精确计划重新冻结，不得自动继承18、19或重排追加次数。",
+    "fresh_profile_probes": [
+      "text",
+      "json_object",
+      "vision",
+      "embedding"
+    ],
+    "fresh_total": 19,
+    "three_probe_total_condition": "18仅在同Provider/模型/凭据版本已有可复用且有效的text能力验收事实时成立；全新Provider或凭据版本按实际门禁需text、json_object、vision、embedding四项远程Probe。",
+    "authorization_status": "G-P-20261021-A1 已批准21次方案（4 Probe+1失败Vision+1诊断+12业务+3 Embedding）；实际发送6，业务/浏览器待执行。"
+  },
+  "gp_fields_pending": {
+    "provider": {
+      "llm": "deepseek",
+      "vision": "deepseek",
+      "embedding": "openai_compatible",
+      "ocr": "rapidocr"
+    },
+    "model_ids": {
+      "llm": "deepseek-flash",
+      "vision": "deepseek-flash",
+      "embedding": "BAAI/bge-m3",
+      "embedding_dimension": 1024
+    },
+    "exact_endpoints": {
+      "llm": "https://api.deepseek.com",
+      "vision": "https://api.deepseek.com",
+      "embedding": "https://api.siliconflow.cn/v1"
+    },
+    "test_credential_references_and_versions": {
+      "status": "all_written_unprobed",
+      "deepseek_primary": {
+        "credential_ref": "d9993954-08c5-4f8a-a5ab-f534a60a2ee9",
+        "version": "2cf8bc5c-7d1a-4821-8ff4-8553d6b1c63e",
+        "written_at": "2026-10-21T14:25:51+08:00"
+      },
+      "deepseek_secondary_unused": {
+        "credential_ref": "8aac0618-b63a-4e1d-a520-528d384988d3",
+        "version": "57fcc8f4-280c-4b6f-ac94-75a9c1586c96",
+        "written_at": "2026-10-21T14:26:55+08:00",
+        "note": "also a DeepSeek key; DeepSeek has no embedding API, so this cannot serve as the embedding credential"
+      },
+      "embedding": {
+        "credential_ref": "8afc04ca-1020-40c9-81d1-cf997b9496a9",
+        "version": "14a3e04c-1cb9-4e13-b753-1bf1eed27b9d",
+        "written_at": "2026-10-21T14:42:32+08:00",
+        "assumed_endpoint": "https://api.siliconflow.cn/v1",
+        "assumed_model": "BAAI/bge-m3",
+        "vendor": "siliconflow",
+        "free_tier_confirmed_by_operator": "2026-10-21"
+      },
+      "purpose": "provider",
+      "note": "Three provider credentials written through the local Setup UI; none bound or probed. Embedding is mapped by selection to SiliconFlow/BAAI/bge-m3; if the actual vendor or endpoint differs, update this record before T083. Local Qwen is unavailable in the frozen EXE because packaging/EduAgent.spec excludes sentence_transformers/torch."
+    },
+    "input_token_limits": 120000,
+    "output_token_limits": 30000,
+    "token_counter_and_image_accounting": "max(tiktoken cl100k_base, ceil(UTF-8 bytes/2)) + 1024 input tokens per image; planned caps only; response usage recorded",
+    "currency": "CNY",
+    "prices_and_date": {
+      "date": "2026-10-21",
+      "deepseek_flash_input_peak_per_million": 2,
+      "deepseek_flash_output_peak_per_million": 8,
+      "off_peak_multiplier": 0.5,
+      "embedding": "free tier confirmed by operator 2026-10-21 (SiliconFlow/BAAI/bge-m3)",
+      "source": "https://api-docs.deepseek.com/zh-cn/quick_start/pricing/"
+    },
+    "approved_total_amount": 1.01,
+    "explicit_user_authorization": "G-P-20261021 + A1 amendment: user approved 21 requests / 106000 input / 27000 output / CNY 1.01 on 2026-10-21",
+    "approved_total_requests": 21,
+    "approved_total_input_tokens": 106000,
+    "approved_total_output_tokens": 27000,
+    "http_timeout_seconds": 30,
+    "operation_deadline_seconds": 300,
+    "batch_deadline_seconds": 3600,
+    "reusable_probe_evidence": "none: fresh profile required text, json_object, vision and embedding probes",
+    "amendment_a2": {
+      "approved_at": "2026-10-21",
+      "approved_total_requests": 25,
+      "approved_total_input_tokens": 120000,
+      "approved_total_output_tokens": 30000,
+      "approved_total_amount": 1.01,
+      "reason": "activation requires fresh probes bound to the persisted revision identity (config_service.py:431, probe_service.py:644); the A1 probes used throwaway uuid4 profiles and expired",
+      "activation_probe_results": {
+        "text": {"status": "succeeded", "input_tokens": 64, "output_tokens": 35},
+        "json_object": {"status": "succeeded", "input_tokens": 64, "output_tokens": 29},
+        "vision": {"status": "succeeded", "input_tokens": 248, "output_tokens": 18},
+        "embedding": {"status": "succeeded", "input_tokens": 11, "output_tokens": 0},
+        "ocr": {"status": "succeeded", "external_requests": 0, "local": true}
+      },
+      "active_revision": "5d865206-54e3-42f1-9631-8950510a7fd0",
+      "activation_keys": 14,
+      "requests_sent": 10,
+      "requests_remaining": 15,
+      "business_blocked_by": "source-run personal entry has no learning_source_policy assembly; 12 business + 3 embedding and the browser entry were not executed"
+    },
+    "amendment_a1": {
+      "approved_at": "2026-10-21",
+      "approved_total_requests": 21,
+      "approved_total_input_tokens": 106000,
+      "approved_total_output_tokens": 27000,
+      "approved_total_amount": 1.01,
+      "added_requests": [
+        {
+          "purpose": "vision_probe_retry_128x128",
+          "requests": 1,
+          "input": 6000,
+          "output": 1500
+        },
+        {
+          "purpose": "vision_diagnostic_1200x1000",
+          "requests": 1,
+          "input": 6000,
+          "output": 1500
+        }
+      ],
+      "probe_results": {
+        "text": {
+          "status": "succeeded",
+          "input_tokens": 64,
+          "output_tokens": 30
+        },
+        "json_object": {
+          "status": "succeeded",
+          "input_tokens": 64,
+          "output_tokens": 26
+        },
+        "vision_first": {
+          "status": "failed",
+          "result_code": "UNKNOWN_PROVIDER_ERROR",
+          "usage": null
+        },
+        "vision_diagnostic": {
+          "status": "succeeded",
+          "answer": {
+            "ok": true
+          },
+          "usage": null
+        },
+        "vision_retry": {
+          "status": "succeeded",
+          "input_tokens": 248,
+          "output_tokens": 43
+        },
+        "embedding": {
+          "status": "succeeded",
+          "input_tokens": 11,
+          "output_tokens": 0
+        }
+      },
+      "probe_sample_fix": "vision sample changed from 1x1 to 128x128 RGB; OCR sample unchanged; 150 offline tests passed",
+      "requests_sent": 6,
+      "requests_remaining": 15,
+      "business_browser_pending": true
+    }
+  },
+  "stop_rules": [
+    "没有具体G-P授权和全部必需预算时实际发送0次",
+    "SDK/Provider/HTTP/任务零自动收费重试；Probe和派生步骤逐个计入",
+    "未知发送保持计数、不退额度、不自动重发；协议断裂同样处理",
+    "模型/端点/凭据版本/样例/数量/费用条件变化先停止并重新确认",
+    "结构通过与语义通过分开；评分/视觉/教学质量须人工逐例评估",
+    "关键错误被正确阻断不等于正向样例功能完成，不换样例或补请求凑通过"
+  ],
+  "artifact_revision": 3,
+  "artifact_generation": {
+    "generator": ".cache/t082-t086-20261021/generate_acceptance_fixtures.py",
+    "Pillow": "12.3.0",
+    "reportlab": "4.4.9",
+    "dpi": 150,
+    "font_sha256": {
+      "arial.ttf": "b3658eadae55e682b5f69eb64c439c1ecc8f196c0bb8d4756d145d13bc86476a",
+      "arialbd.ttf": "e8f4e3baf6cc35fed6fcce3a540e8b39e8f6cda1d22a28f2ec8f526fef7a43f5"
+    },
+    "real_requests_sent": 0,
+    "reproducibility": "Fixed pixels, local font hashes and reportlab invariant mode; no timestamps or random noise."
+  }
+}

@@ -9,10 +9,10 @@ from backend.app.domain.enums import UserRole
 from backend.app.schemas.exam_scoring import ScoringBasisView
 from backend.app.services.exam_assembly_service import AssemblyError
 from tests.contract.test_exam_assembly_api import _headers
-from tests.contract.test_exam_participation_contract import (
+from tests.support.retained_exam_fixtures import (
     client as client,  # noqa: PLC0414
 )
-from tests.contract.test_exam_participation_contract import (
+from tests.support.retained_exam_fixtures import (
     session as session,  # noqa: PLC0414
 )
 from tests.unit.services.test_submission_service import add_student, add_teacher

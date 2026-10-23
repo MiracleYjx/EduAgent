@@ -367,3 +367,44 @@ def test_worker_installs_existing_tls_loader_before_runtime_assembly(monkeypatch
     monkeypatch.setattr(launcher.sys, "stdout", io.StringIO())
     with pytest.raises(AssemblyReached):
         launcher.serve(19492, bind_host="127.0.0.1")
+
+
+@pytest.mark.parametrize("frozen,platform,expected", [
+    (True, "win32", ["numpy", "tls"]),
+    (False, "win32", ["tls"]),
+    (True, "linux", ["tls"]),
+])
+def test_frozen_windows_worker_initializes_numpy_on_main_thread_before_assembly(
+    monkeypatch, frozen, platform, expected,
+):
+    import builtins
+
+    from backend.app.deployment import windows_tls
+    from backend.app.services.settings import management
+
+    steps = []
+    original_import = builtins.__import__
+
+    class AssemblyReached(Exception):
+        pass
+
+    def tracked_import(name, *args, **kwargs):
+        if name == "numpy":
+            assert threading.current_thread() is threading.main_thread()
+            steps.append("numpy")
+            return object()
+        return original_import(name, *args, **kwargs)
+
+    def assemble(*args, **kwargs):
+        assert steps == expected
+        raise AssemblyReached
+
+    monkeypatch.setattr(launcher.sys, "frozen", frozen, raising=False)
+    monkeypatch.setattr(launcher.sys, "platform", platform)
+    monkeypatch.setattr(builtins, "__import__", tracked_import)
+    monkeypatch.setattr(windows_tls, "install_windows_tls_loader", lambda: steps.append("tls"))
+    monkeypatch.setattr(management, "build_settings_runtime", assemble)
+    monkeypatch.setattr(launcher, "resolve_environment_profile", lambda: object())
+    monkeypatch.setattr(launcher.sys, "stdout", io.StringIO())
+    with pytest.raises(AssemblyReached):
+        launcher.serve(19492, bind_host="127.0.0.1")
